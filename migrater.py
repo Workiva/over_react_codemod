@@ -5,28 +5,49 @@ import re
 
 import codemod
 
-demo_factory = 'UiFactory<DemoProps> Demo;'
-
-def get_factory_props_name(line):
-    name = re.search(r'UiFactory<(\w+)>', line).group(1)
-    return name
-assert get_factory_props_name(demo_factory) == 'DemoProps'
 
 def get_factory_name(line):
+    """
+    Get the factory name from a line that is known to include a factory
+    definition.
+
+    >>> get_factory_name('UiFactory<DemoProps> Demo;')
+    'Demo'
+    """
     name = re.search(r' (\w+);', line).group(1)
     return name
-assert get_factory_name(demo_factory) == 'Demo'
+
 
 def get_part_name(path):
+    """
+    Get the expected part name from a file path.
+
+    >>> get_part_name('./foo/bar/baz.dart')
+    'baz'
+    """
     name = os.path.split(path)[-1].replace('.dart', '')
     return name
-assert get_part_name('./foo/bar/baz.dart') == 'baz'
+
 
 # Maps library identifiers (foo.bar) to the parts that
 # must be added to them (baz.g.dart).
 libraries = {}
 
+
 def collect_library(lines, part_name):
+    """
+    Determine which library the current file is a part of and remember it.
+
+    >>> result = collect_library([
+    ...     'foo bar baz',
+    ...     'part of foo.bar;',
+    ...     'something'
+    ... ], 'part')
+    >>> result
+    True
+    >>> libraries['foo.bar']
+    'part'
+    """
     count0 = len(libraries)
     for line in lines:
         name = re.search(r'part of ([\w.]+);', line)
@@ -34,11 +55,7 @@ def collect_library(lines, part_name):
             name = name.group(1)
             libraries[name] = part_name
     return count0 < len(libraries)
-result = collect_library([
-        'foo bar baz', 'part of foo.bar;', 'something'
-    ], 'part')
-assert result
-assert libraries['foo.bar'] == 'part'
+
 
 def suggest(lines, path):
     patches = []
@@ -76,10 +93,18 @@ def suggest(lines, path):
     for patch in patches:
         yield patch
 
+
 def use_path(path):
+    """
+    Determines if the given path is a Dart file.
+
+    >>> use_path('foo/bar.dart')
+    True
+    >>> use_path('bar/baz.py')
+    False
+    """
     return path.endswith('.dart')
 
-q0 = codemod.Query(suggest, path_filter=use_path)
 
 def parts_suggest(lines, _path):
     library_name = None
@@ -98,6 +123,8 @@ def parts_suggest(lines, _path):
             'part \'%s\'\n' % libraries[library_name],
         ])
 
+
+q0 = codemod.Query(suggest, path_filter=use_path)
 q1 = codemod.Query(parts_suggest, path_filter=use_path)
 
 if __name__ == '__main__':
