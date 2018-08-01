@@ -5,7 +5,8 @@ import re
 
 import codemod
 
-IGNORE_GENERATED_URI_COMMENT = '// ignore: uri_does_not_exist\n'
+IGNORE_GENERATED_URI_COMMENT_LINE = '// ignore: uri_does_not_exist\n'
+GENERATED_PART_EXTENSION = '.generated.dart'
 
 def get_factory_name(line):
     """
@@ -29,6 +30,19 @@ def get_part_name(path):
     name = os.path.split(path)[-1].replace('.dart', '')
     return name
 
+def get_last_directive_line_number(lines):
+    last_directive_line_number = -1
+    for line_number, line in enumerate(lines):
+        match = re.search(r'''^(?:(?:(?:part|import|export)\s+['"])|library\s+\w)''', line)
+        if match:
+            last_directive_line_number = line_number
+    return last_directive_line_number
+
+def get_line_number_to_insert_part(lines):
+    last_directive_line_number = get_last_directive_line_number(lines)
+    if last_directive_line_number != -1:
+        return last_directive_line_number + 1
+    return len(lines)
 
 # Maps library identifiers (foo.bar) to the parts that
 # must be added to them (baz.g.dart).
@@ -77,18 +91,23 @@ def suggest(lines, path):
 
     if need_part:
         part_name = get_part_name(path)
-        part_filename = '%s.namespace.dart' % part_name
+        part_filename = '%s%s' % (part_name, GENERATED_PART_EXTENSION)
+
+        get_last_directive_line_number
 
         # If we're not a part then we just need to declare our part.
         # Otherwise we'll need to make another pass and declare our
         # part in the library we are a part of.
         if not collect_library(lines, part_filename):
-            part_line = 'part \'%s\';' % part_filename
+            part_line = 'part \'%s\';\n' % part_filename
 
-            patches.append(codemod.Patch(0, new_lines=[
-                IGNORE_GENERATED_URI_COMMENT,
-                part_line,
-            ]))
+            insert_line_number = get_line_number_to_insert_part(lines)
+            patches.append(codemod.Patch(insert_line_number,
+                end_line_number=insert_line_number,
+                new_lines=[
+                    IGNORE_GENERATED_URI_COMMENT_LINE,
+                    part_line,
+                ]))
 
     for patch in patches:
         yield patch
@@ -108,28 +127,21 @@ def use_path(path):
 
 def parts_suggest(lines, _path):
     library_name = None
-    last_part_line_number = -1
     for line_number, line in enumerate(lines):
         match = re.search(r'library ([\w.]+);', line)
         if match is not None:
             library_name = match.group(1)
             break
-    for line_number, line in enumerate(lines):
-        match = re.search(r'''part ['"]''', line)
-        if match is not None:
-            last_part_line_number = line_number + 1
-
-    if last_part_line_number == -1:
-        last_part_line_number = len(lines)
 
     if library_name is not None and parts_by_library_name.has_key(library_name):
         new_lines = []
         for part in parts_by_library_name[library_name]:
-            new_lines.append('part \'%s\'; %s' % (part, IGNORE_GENERATED_URI_COMMENT))
+            new_lines.append('part \'%s\'; %s' % (part, IGNORE_GENERATED_URI_COMMENT_LINE))
 
+        insert_line_number = get_line_number_to_insert_part(lines)
         # Parts need to go after all other directives; add them after the last part, or at the end of the file
-        yield codemod.Patch(last_part_line_number + 1,
-            end_line_number=last_part_line_number + 1,
+        yield codemod.Patch(insert_line_number,
+            end_line_number=insert_line_number,
             new_lines=new_lines)
 
 q0 = codemod.Query(suggest, path_filter=use_path)
