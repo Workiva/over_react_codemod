@@ -68,16 +68,16 @@ def suggest(lines, path):
             factory_name = get_factory_name(line)
             ignore_line = '// ignore: undefined_identifier\n'
             new_line = line.replace(';\n', ' = $%s;\n' % (factory_name))
-            
+
             patches.append(codemod.Patch(line_number, new_lines=[
                 ignore_line,
                 new_line,
             ]))
-        
+
     if need_part:
         part_name = get_part_name(path)
         part_filename = '%s.namespace.dart' % part_name
-        
+
         # If we're not a part then we just need to declare our part.
         # Otherwise we'll need to make another pass and declare our
         # part in the library we are a part of.
@@ -89,7 +89,7 @@ def suggest(lines, path):
                 ignore_line,
                 part_line,
             ]))
-        
+
     for patch in patches:
         yield patch
 
@@ -179,4 +179,3 @@ if __name__ == '__main__':
     codemod.run_interactive(q0)
     codemod.run_interactive(q1)
     codemod.run_interactive(q2)
-
