@@ -5,6 +5,7 @@ import re
 
 import codemod
 
+IGNORE_URI_HAS_NOT_BEEN_GENERATED_LINE='// ignore: uri_has_not_been_generated\n'
 
 def get_factory_name(line):
     """
@@ -82,11 +83,10 @@ def suggest(lines, path):
         # Otherwise we'll need to make another pass and declare our
         # part in the library we are a part of.
         if not collect_library(lines, part_filename):
-            ignore_line = '// ignore: uri_has_not_been_generated\n'
             part_line = 'part \'%s\';' % part_filename
 
             patches.append(codemod.Patch(0, new_lines=[
-                ignore_line,
+                IGNORE_URI_HAS_NOT_BEEN_GENERATED_LINE,
                 part_line,
             ]))
 
@@ -108,20 +108,28 @@ def use_path(path):
 
 def parts_suggest(lines, _path):
     library_name = None
-    library_line = ''
-    library_line_number = 0
+    last_part_line_number = -1
     for line_number, line in enumerate(lines):
         match = re.search(r'library ([\w.]+);', line)
         if match is not None:
             library_name = match.group(1)
-            library_line = line
-            library_line_number = line_number
             break
+    for line_number, line in enumerate(lines):
+        match = re.search(r'''part ['"]''', line)
+        if match is not None:
+            last_part_line_number = line_number + 1
+
+    if last_part_line_number == -1:
+        last_part_line_number = len(lines)
+
     if library_name is not None and libraries.has_key(library_name):
-        yield codemod.Patch(library_line_number, new_lines=[
-            library_line,
-            'part \'%s\'\n' % libraries[library_name],
-        ])
+        # Parts need to go after all other directives; add them after the last part, or at the end of the file
+        yield codemod.Patch(last_part_line_number + 1,
+            end_line_number=last_part_line_number + 1,
+            new_lines=[
+                IGNORE_URI_HAS_NOT_BEEN_GENERATED_LINE,
+                'part \'%s\'\n' % libraries[library_name],
+            ])
 
 q0 = codemod.Query(suggest, path_filter=use_path)
 q1 = codemod.Query(parts_suggest, path_filter=use_path)
