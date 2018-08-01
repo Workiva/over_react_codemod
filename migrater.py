@@ -124,10 +124,59 @@ def parts_suggest(lines, _path):
         ])
 
 
+def constructor_suggest(lines, _path):
+    component_name = ''
+    component_line = 0
+    patches = []
+
+    # Create the new factory constructor if necessary
+    for line_number, line in enumerate(lines):
+        match = re.search(r'class ([\w.]+) extends UiComponent<.+> {')
+        if match is None:
+            continue
+        component_line = line_number
+        component_name = match.group(1)
+
+        factory_line = 'factory %s() = _$%s;\n' % (component_name, component_name)
+        # constructor_line = '%s._();\n' % component_name
+
+        patches.append(codemod.Patch(line_number, new_lines=[
+            line,
+            factory_line,
+            # constructor_line,
+        ]))
+        break
+
+    found_constructor = False
+
+    # Look for an existing constructor and update it if necessary
+    if component_name != '':
+        for line_number, line in enumerate(lines):
+            match = re.search(r'%s(.*) {\n', line)
+            if match is None:
+                continue
+            found_constructor = True
+            patches.append(codemod.Patch(line_number, new_lines=[
+                line.replace('()', '._() {\n'),
+            ]))
+            break
+
+    # Add an empty private constructor if we didn't find a constructor
+    if not found_constructor:
+        patches.append(codemod.Patch(component_line, new_lines=[
+            '%s._();\n' % component_name,
+        ]))
+
+    for patch in patches:
+        yield patch
+
+
 q0 = codemod.Query(suggest, path_filter=use_path)
 q1 = codemod.Query(parts_suggest, path_filter=use_path)
+q2 = codemod.Query(constructor_suggest, path_filter=use_path)
 
 if __name__ == '__main__':
     codemod.run_interactive(q0)
     codemod.run_interactive(q1)
+    codemod.run_interactive(q2)
 
