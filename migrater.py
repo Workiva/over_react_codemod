@@ -30,6 +30,18 @@ def get_part_name(path):
     name = os.path.split(path)[-1].replace('.dart', '')
     return name
 
+def get_part_path(path):
+    """
+    Get the expected part name from a file path.
+
+    >>> get_part_name('./foo/bar/baz.dart')
+    'baz'
+    """
+    split_path = os.path.split(path)
+    directory = os.path.join(*split_path[:-1])
+    name = split_path[-1].replace('.dart', GENERATED_PART_EXTENSION)
+    return os.path.join(directory, name)
+
 def get_last_directive_line_number(lines):
     last_directive_line_number = -1
     for line_number, line in enumerate(lines):
@@ -46,10 +58,10 @@ def get_line_number_to_insert_part(lines):
 
 # Maps library identifiers (foo.bar) to the parts that
 # must be added to them (baz.g.dart).
-parts_by_library_name = {}
+part_paths_by_library_name = {}
 
 
-def collect_library(lines, part_name):
+def collect_library(lines, part_path):
     """
     Determine which library the current file is a part of and remember it.
 
@@ -67,7 +79,7 @@ def collect_library(lines, part_name):
         name = re.search(r'part of ([_\w\.]+);', line)
         if name is not None:
             name = name.group(1)
-            parts_by_library_name.setdefault(name, []).append(part_name)
+            part_paths_by_library_name.setdefault(name, []).append(part_path)
             return True
     return False
 
@@ -91,6 +103,7 @@ def suggest(lines, path):
 
     if need_part:
         part_name = get_part_name(path)
+        part_path = get_part_path(path)
         part_filename = '%s%s' % (part_name, GENERATED_PART_EXTENSION)
 
         get_last_directive_line_number
@@ -98,7 +111,7 @@ def suggest(lines, path):
         # If we're not a part then we just need to declare our part.
         # Otherwise we'll need to make another pass and declare our
         # part in the library we are a part of.
-        if not collect_library(lines, part_filename):
+        if not collect_library(lines, part_path):
             part_line = 'part \'%s\';\n' % part_filename
 
             insert_line_number = get_line_number_to_insert_part(lines)
@@ -133,10 +146,13 @@ def parts_suggest(lines, _path):
             library_name = match.group(1)
             break
 
-    if library_name is not None and parts_by_library_name.has_key(library_name):
+    if library_name is not None and part_paths_by_library_name.has_key(library_name):
         new_lines = []
-        for part in parts_by_library_name[library_name]:
-            new_lines.append('part \'%s\'; %s' % (part, IGNORE_GENERATED_URI_COMMENT_LINE))
+        for part_path in part_paths_by_library_name[library_name]:
+            containing_dir_path = os.path.join(*os.path.split(_path)[:-1])
+            # This path needs to be relative from the libary
+            relative_part_path = os.path.relpath(part_path, containing_dir_path)
+            new_lines.append('part \'%s\'; %s' % (relative_part_path, IGNORE_GENERATED_URI_COMMENT_LINE))
 
         insert_line_number = get_line_number_to_insert_part(lines)
         # Parts need to go after all other directives; add them after the last part, or at the end of the file
