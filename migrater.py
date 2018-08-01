@@ -5,7 +5,7 @@ import re
 
 import codemod
 
-IGNORE_URI_HAS_NOT_BEEN_GENERATED_LINE='// ignore: uri_has_not_been_generated\n'
+IGNORE_GENERATED_URI_COMMENT = '// ignore: uri_does_not_exist\n'
 
 def get_factory_name(line):
     """
@@ -32,7 +32,7 @@ def get_part_name(path):
 
 # Maps library identifiers (foo.bar) to the parts that
 # must be added to them (baz.g.dart).
-libraries = {}
+parts_by_library_name = {}
 
 
 def collect_library(lines, part_name):
@@ -49,13 +49,13 @@ def collect_library(lines, part_name):
     >>> libraries['foo.bar']
     'part'
     """
-    count0 = len(libraries)
     for line in lines:
-        name = re.search(r'part of ([\w.]+);', line)
+        name = re.search(r'part of ([_\w\.]+);', line)
         if name is not None:
             name = name.group(1)
-            libraries[name] = part_name
-    return count0 < len(libraries)
+            parts_by_library_name.setdefault(name, []).append(part_name)
+            return True
+    return False
 
 
 def suggest(lines, path):
@@ -86,7 +86,7 @@ def suggest(lines, path):
             part_line = 'part \'%s\';' % part_filename
 
             patches.append(codemod.Patch(0, new_lines=[
-                IGNORE_URI_HAS_NOT_BEEN_GENERATED_LINE,
+                IGNORE_GENERATED_URI_COMMENT,
                 part_line,
             ]))
 
@@ -122,14 +122,15 @@ def parts_suggest(lines, _path):
     if last_part_line_number == -1:
         last_part_line_number = len(lines)
 
-    if library_name is not None and libraries.has_key(library_name):
+    if library_name is not None and parts_by_library_name.has_key(library_name):
+        new_lines = []
+        for part in parts_by_library_name[library_name]:
+            new_lines.append('part \'%s\'; %s' % (part, IGNORE_GENERATED_URI_COMMENT))
+
         # Parts need to go after all other directives; add them after the last part, or at the end of the file
         yield codemod.Patch(last_part_line_number + 1,
             end_line_number=last_part_line_number + 1,
-            new_lines=[
-                IGNORE_URI_HAS_NOT_BEEN_GENERATED_LINE,
-                'part \'%s\'\n' % libraries[library_name],
-            ])
+            new_lines=new_lines)
 
 q0 = codemod.Query(suggest, path_filter=use_path)
 q1 = codemod.Query(parts_suggest, path_filter=use_path)
