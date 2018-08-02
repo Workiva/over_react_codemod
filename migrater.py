@@ -7,6 +7,22 @@ import codemod
 
 IGNORE_GENERATED_URI_COMMENT_LINE = '// ignore: uri_does_not_exist\n'
 GENERATED_PART_EXTENSION = '.generated.dart'
+DOLLAR_PROPS_USAGE_REGEX = r'(?:const|new)\s+\$Props\s*\(\s*([$A-Za-z0-9_.]+)\s*\)'
+DOLLAR_PROP_KEYS_USAGE_REGEX = r'(?:const|new)\s+\$PropKeys\s*\(\s*([$A-Za-z0-9_.]+)\s*\)'
+
+
+def get_class_name(line):
+    """
+    Get the class name from a line that is known to include a class definition.
+
+    >>> get_class_name('class FooProps extends UiProps {')
+    'FooProps'
+    """
+    name = re.search(r'^class (\w+)', line).group(1)
+    if not name:
+        name = re.search(r'^abstract class (\w+)', line).group(1)
+    return name
+
 
 def get_factory_name(line):
     """
@@ -16,8 +32,10 @@ def get_factory_name(line):
     >>> get_factory_name('UiFactory<DemoProps> Demo;')
     'Demo'
     """
-    name = re.search(r' (\w+);', line).group(1)
-    return name
+    match = re.search(r' (\w+);', line)
+    if not match:
+        raise Exception('Could not parse factory name from:\n%s' % line)
+    return match.group(1)
 
 
 def get_part_name(path):
@@ -29,6 +47,7 @@ def get_part_name(path):
     """
     name = os.path.split(path)[-1].replace('.dart', '')
     return name
+
 
 def get_part_path(path):
     """
@@ -42,6 +61,7 @@ def get_part_path(path):
     name = split_path[-1].replace('.dart', GENERATED_PART_EXTENSION)
     return os.path.join(directory, name)
 
+
 def get_last_directive_line_number(lines):
     last_directive_line_number = -1
     for line_number, line in enumerate(lines):
@@ -50,11 +70,41 @@ def get_last_directive_line_number(lines):
             last_directive_line_number = line_number
     return last_directive_line_number
 
+
 def get_line_number_to_insert_part(lines):
     last_directive_line_number = get_last_directive_line_number(lines)
     if last_directive_line_number != -1:
         return last_directive_line_number + 1
     return len(lines)
+
+
+def has_dollar_props_usages(lines):
+    s = ''.join(lines)
+    return re.search(DOLLAR_PROPS_USAGE_REGEX, s, flags=re.MULTILINE) is not None
+
+
+def has_dollar_prop_keys_usages(lines):
+    s = ''.join(lines)
+    return re.search(DOLLAR_PROP_KEYS_USAGE_REGEX, s, flags=re.MULTILINE) is not None
+
+
+def update_dollar_props_usages(lines):
+    s = ''.join(lines)
+    match = re.search(DOLLAR_PROPS_USAGE_REGEX, s, flags=re.MULTILINE)
+    before = match.group(0)
+    after = '%s.meta' % match.group(1)
+    s = s.replace(before, after)
+    return ['%s\n' % line for line in s.split('\n')[:-1]]
+
+
+def update_dollar_prop_keys_usages(lines):
+    s = ''.join(lines)
+    match = re.search(DOLLAR_PROP_KEYS_USAGE_REGEX, s, flags=re.MULTILINE)
+    before = match.group(0)
+    after = '%s.meta.keys' % match.group(1)
+    s = s.replace(before, after)
+    return ['%s\n' % line for line in s.split('\n')[:-1]]
+
 
 # Maps library identifiers (foo.bar) to the parts that
 # must be added to them (baz.g.dart).
@@ -84,7 +134,7 @@ def collect_library(lines, part_path):
     return False
 
 
-def suggest(lines, path):
+def factories_suggest(lines, path):
     patches = []
     need_part = False
 
@@ -118,6 +168,7 @@ def suggest(lines, path):
             patches.append(codemod.Patch(insert_line_number,
                 end_line_number=insert_line_number,
                 new_lines=[
+                    '\n',
                     IGNORE_GENERATED_URI_COMMENT_LINE,
                     part_line,
                 ]))
@@ -157,12 +208,137 @@ def parts_suggest(lines, _path):
         insert_line_number = get_line_number_to_insert_part(lines)
         # Parts need to go after all other directives; add them after the last part, or at the end of the file
         yield codemod.Patch(insert_line_number,
-            end_line_number=insert_line_number,
-            new_lines=new_lines)
+                            end_line_number=insert_line_number,
+                            new_lines=new_lines)
 
-q0 = codemod.Query(suggest, path_filter=use_path)
-q1 = codemod.Query(parts_suggest, path_filter=use_path)
+
+def props_metas_suggest(lines, path):
+    for line_number, line in enumerate(lines):
+        if line.startswith('@Props('):
+            offset = 0
+            found_class_opening = False
+            class_body_is_empty = False
+            props_class_name = None
+
+            for o, line_b in enumerate(lines[line_number:]):
+                if line_b.startswith('class ') or line_b.startswith('abstract class '):
+                    found_class_opening = True
+                    props_class_name = get_class_name(line_b)
+
+                if found_class_opening:
+                    if line_b.endswith('{\n'):
+                        offset = o
+                        break
+
+                    if line_b.endswith('{}\n'):
+                        offset = o
+                        class_body_is_empty = True
+                        break
+
+            if not props_class_name:
+                continue
+
+            last_class_def_line = lines[line_number + offset]
+            if class_body_is_empty:
+                last_class_def_line = last_class_def_line.replace('{}\n', '{\n')
+
+            ignore_line = '  // ignore: undefined_identifier, const_initialized_with_non_constant_value\n'
+            meta_line = '  static const PropsMeta meta = $metaFor%s;\n' % props_class_name
+            # debug_line = 'line endings: %s' % line_endings
+
+            new_lines = [
+                last_class_def_line,
+                ignore_line,
+                meta_line,
+            ]
+
+            if class_body_is_empty:
+                new_lines.append('}\n')
+            else:
+                new_lines.append('\n')
+
+            yield codemod.Patch(line_number + offset, new_lines=new_lines)
+
+
+def dollar_props_suggest(lines, path):
+    for line_number, line in enumerate(lines):
+
+        if not has_dollar_props_usages([line]):
+            continue
+
+        new_lines = update_dollar_props_usages([line])
+
+        yield codemod.Patch(line_number, new_lines=new_lines)
+
+
+def dollar_prop_keys_suggest(lines, path):
+    for line_number, line in enumerate(lines):
+
+        if not has_dollar_prop_keys_usages([line]):
+            continue
+
+        new_lines = update_dollar_prop_keys_usages([line])
+
+        yield codemod.Patch(line_number, new_lines=new_lines)
+
+
+def dollar_props_multiline_suggest(lines, path):
+    for line_number, line in enumerate(lines):
+
+        # A $Props() usage can be spread across at most 3 lines
+        lines_subset = lines[line_number:line_number + 3]
+        if not has_dollar_props_usages(lines_subset):
+            continue
+
+        new_lines = update_dollar_props_usages(lines_subset)
+
+        # It may not have actually changed the 1st line.
+        # If that's the case, don't change it for no reason.
+        start_line_number = line_number
+        end_line_number = start_line_number + 3
+        if new_lines[0] == lines_subset[0]:
+            start_line_number += 1
+            new_lines = new_lines[1:]
+
+        yield codemod.Patch(start_line_number,
+                            end_line_number=end_line_number,
+                            new_lines=new_lines)
+
+
+def dollar_prop_keys_multiline_suggest(lines, path):
+    for line_number, line in enumerate(lines):
+
+        # A $PropKeys() usage can be spread across at most 3 lines
+        lines_subset = lines[line_number:line_number + 3]
+        if not has_dollar_prop_keys_usages(lines_subset):
+            continue
+
+        new_lines = update_dollar_prop_keys_usages(lines_subset)
+
+        # It may not have actually changed the 1st line.
+        # If that's the case, don't change it for no reason.
+        start_line_number = line_number
+        end_line_number = start_line_number + 3
+        if new_lines[0] == lines_subset[0]:
+            start_line_number += 1
+            new_lines = new_lines[1:]
+
+        yield codemod.Patch(start_line_number,
+                            end_line_number=end_line_number,
+                            new_lines=new_lines)
+
+
+queries = [
+    codemod.Query(factories_suggest, path_filter=use_path),
+    codemod.Query(props_metas_suggest, path_filter=use_path),
+    codemod.Query(dollar_props_suggest, path_filter=use_path),
+    codemod.Query(dollar_props_multiline_suggest, path_filter=use_path),
+    codemod.Query(dollar_prop_keys_suggest, path_filter=use_path),
+    codemod.Query(dollar_prop_keys_multiline_suggest, path_filter=use_path),
+    codemod.Query(parts_suggest, path_filter=use_path),
+]
+
 
 if __name__ == '__main__':
-    codemod.run_interactive(q0)
-    codemod.run_interactive(q1)
+    for query in queries:
+        codemod.run_interactive(query)
