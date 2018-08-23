@@ -7,35 +7,59 @@ import 'package:test/test.dart';
 void main() {
   group('Migrater', () {
     test('correctly converts components with part directive', () async {
-      final testFixtureDirectory = p.absolute('test/test_fixtures/before_codemod/components_in_parts');
-      final expectedResultsPath = p.absolute('test/test_fixtures/after_codemod/components_in_parts/component_in_part.dart');
-      final testFilePath = p.absolute('test/test_fixtures/before_codemod/components_in_parts/temp/component_in_part.dart');
+      final pathToTestFixtureDirectory = p.absolute('test/test_fixtures/before_codemod/component_in_parts');
+      final pathToExpectedResults = p.absolute('test/test_fixtures/after_codemod/component_in_parts/component_in_part.dart');
+      final pathToTestFile = p.absolute('test/test_fixtures/before_codemod/component_in_parts/temp/component_in_part.dart');
 
-      await setupAndCodemod(testFixtureDirectory);
-
-      /// Compare expected results against codemod file in temp directory
-      String expectedResults = new File(expectedResultsPath).readAsStringSync();
-      String testFile = new File(testFilePath).readAsStringSync();
-
-      expect(testFile, equals(expectedResults));
-
-      await removeTempDir(testFixtureDirectory);
+      makeComparison(pathToTestFixtureDirectory, pathToExpectedResults, pathToTestFile);
     });
 
     test('correctly converts components in a library', () async {
-      final testFixtureDirectory = p.absolute('test/test_fixtures/before_codemod/components_in_library');
-      final expectedResultsPath = p.absolute('test/test_fixtures/after_codemod/components_in_library/component_in_library.dart');
-      final testFilePath = p.absolute('test/test_fixtures/before_codemod/components_in_library/temp/component_in_library.dart');
+      final pathToTestFixtureDirectory = p.absolute('test/test_fixtures/before_codemod/component_in_library');
+      final pathToExpectedResults = p.absolute('test/test_fixtures/after_codemod/component_in_library/component_in_library.dart');
+      final pathToTestFile = p.absolute('test/test_fixtures/before_codemod/component_in_library/temp/component_in_library.dart');
 
-      await setupAndCodemod(testFixtureDirectory);
+      makeComparison(pathToTestFixtureDirectory, pathToExpectedResults, pathToTestFile);
+    });
 
-      /// Compare expected results against codemod file in temp directory
-      String expectedResults = new File(expectedResultsPath).readAsStringSync();
-      String testFile = new File(testFilePath).readAsStringSync();
+    test('correctly converts components without props', () async {
+      final pathToTestFixtureDirectory = p.absolute('test/test_fixtures/before_codemod/component_without_props');
+      final pathToExpectedResults = p.absolute('test/test_fixtures/after_codemod/component_without_props/component_without_props.dart');
+      final pathToTestFile = p.absolute('test/test_fixtures/before_codemod/component_without_props/temp/component_without_props.dart');
 
-      expect(testFile, equals(expectedResults));
+      makeComparison(pathToTestFixtureDirectory, pathToExpectedResults, pathToTestFile);
+    });
 
-      await removeTempDir(testFixtureDirectory);
+    test('correctly converts single \$PropKeys reference', () async {
+      final pathToTestFixtureDirectory = p.absolute('test/test_fixtures/before_codemod/mock_test_single_prop');
+      final pathToExpectedResults = p.absolute('test/test_fixtures/after_codemod/mock_test_single_prop/mock_test_single_prop.dart');
+      final pathToTestFile = p.absolute('test/test_fixtures/before_codemod/mock_test_single_prop/temp/mock_test_single_prop.dart');
+
+      await makeComparison(pathToTestFixtureDirectory, pathToExpectedResults, pathToTestFile);
+    });
+
+    test('correctly coverts multiple \$PropKeys references', () async {
+      final pathToTestFixtureDirectory = p.absolute('test/test_fixtures/before_codemod/mock_test_multiple_props');
+      final pathToExpectedResults = p.absolute('test/test_fixtures/after_codemod/mock_test_multiple_props/mock_test_multiple_props.dart');
+      final pathToTestFile = p.absolute('test/test_fixtures/before_codemod/mock_test_multiple_props/temp/mock_test_multiple_props.dart');
+
+      await makeComparison(pathToTestFixtureDirectory, pathToExpectedResults, pathToTestFile);
+    });
+
+    test('correctly coverts single \$Prop reference', () async {
+      final pathToTestFixtureDirectory = p.absolute('test/test_fixtures/before_codemod/component_with_single_consumed_prop');
+      final pathToExpectedResults = p.absolute('test/test_fixtures/after_codemod/component_with_single_consumed_prop/component_with_single_consumed_prop.dart');
+      final pathToTestFile = p.absolute('test/test_fixtures/before_codemod/component_with_single_consumed_prop/temp/component_with_single_consumed_prop.dart');
+
+      await makeComparison(pathToTestFixtureDirectory, pathToExpectedResults, pathToTestFile);
+    });
+
+    test('correctly coverts multiple \$Prop references', () async {
+      final pathToTestFixtureDirectory = p.absolute('test/test_fixtures/before_codemod/component_with_multiple_consumed_props');
+      final pathToExpectedResults = p.absolute('test/test_fixtures/after_codemod/component_with_multiple_consumed_props/component_with_multiple_consumed_props.dart');
+      final pathToTestFile = p.absolute('test/test_fixtures/before_codemod/component_with_multiple_consumed_props/temp/component_with_multiple_consumed_props.dart');
+
+      await makeComparison(pathToTestFixtureDirectory, pathToExpectedResults, pathToTestFile);
     });
   });
 }
@@ -59,4 +83,18 @@ Future<Null> setupAndCodemod(String pathToTestFixtureDirectory) async {
 /// Deletes the temp directory.
 Future<Null> removeTempDir(String pathToTestFixtureDirectory) async {
   await Process.run('/bin/bash', ['-c', 'rm -R temp'], workingDirectory: pathToTestFixtureDirectory);
+}
+
+/// Makes the comparison between the expected result (migrated file) and the test file
+/// (the file that is migrated during the test run in a temp directory).
+Future<Null> makeComparison(String pathToTestFixtureDirectory, String pathToExpectedResults, String pathToTestFile) async {
+  await setupAndCodemod(pathToTestFixtureDirectory);
+
+  /// Compare expected results against codemod file in temp directory.
+  String expectedResults = new File(pathToExpectedResults).readAsStringSync();
+  String testFile = new File(pathToTestFile).readAsStringSync();
+
+  expect(testFile, equals(expectedResults));
+
+  await removeTempDir(pathToTestFixtureDirectory);
 }

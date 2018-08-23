@@ -6,6 +6,9 @@ UiFactory<ComponentInLibraryProps> ComponentInLibrary = $ComponentInLibrary;
 
 @Props()
 class ComponentInLibraryProps extends UiProps {
+  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+  static const PropsMeta meta = $metaForComponentInLibraryProps;
+
   // ignore: deprecated_member_use
   @Required(message: 'This Prop is Required for testing purposes.')
   var required;
