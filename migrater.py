@@ -32,7 +32,7 @@ def get_factory_name(line):
     >>> get_factory_name('UiFactory<DemoProps> Demo;')
     'Demo'
     """
-    match = re.search(r' (\w+);', line)
+    match = re.search(r'(\w+);', line)
     if not match:
         raise Exception('Could not parse factory name from:\n%s' % line)
     return match.group(1)
@@ -140,9 +140,13 @@ def factories_suggest(lines, path):
 
     for line_number, line in enumerate(lines):
         if line.startswith('UiFactory'):
+            factory_name = get_factory_name(line)
+
+            if '$' + factory_name in line:
+                continue 
+            
             need_part = True
 
-            factory_name = get_factory_name(line)
             ignore_line = '// ignore: undefined_identifier\n'
             new_line = line.replace(';\n', ' = $%s;\n' % (factory_name))
 
@@ -219,6 +223,10 @@ def props_metas_suggest(lines, path):
             found_class_opening = False
             class_body_is_empty = False
             props_class_name = None
+            ignore_line = '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n'
+
+            if ignore_line in lines:
+                continue 
 
             for o, line_b in enumerate(lines[line_number:]):
                 if line_b.startswith('class ') or line_b.startswith('abstract class '):
@@ -240,9 +248,8 @@ def props_metas_suggest(lines, path):
 
             last_class_def_line = lines[line_number + offset]
             if class_body_is_empty:
-                last_class_def_line = last_class_def_line.replace('{}\n', '{\n')
+                    last_class_def_line = last_class_def_line.replace('{}\n', '{\n')
 
-            ignore_line = '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n'
             meta_line = '  static const PropsMeta meta = $metaFor%s;\n' % props_class_name
             # debug_line = 'line endings: %s' % line_endings
 
