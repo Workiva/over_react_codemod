@@ -248,7 +248,7 @@ def props_metas_suggest(lines, path):
 
             last_class_def_line = lines[line_number + offset]
             if class_body_is_empty:
-                    last_class_def_line = last_class_def_line.replace('{}\n', '{\n')
+                last_class_def_line = last_class_def_line.replace('{}\n', '{\n')
 
             meta_line = '  static const PropsMeta meta = $metaFor%s;\n' % props_class_name
             # debug_line = 'line endings: %s' % line_endings
