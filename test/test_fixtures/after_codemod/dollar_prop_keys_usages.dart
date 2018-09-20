@@ -24,3 +24,4 @@ main() {
 /// Add this class as a placeholder to eliminate analyzer errors.
 /// This will not affect how migrater.py performs.
 class ButtonPropsMixin {}
+class ButtonDisplayPropsMixin {}
