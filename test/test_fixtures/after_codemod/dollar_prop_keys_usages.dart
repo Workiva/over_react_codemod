@@ -15,6 +15,7 @@ main() {
           MockTestCaseComponent,
           unconsumedPropKeys: []
             ..addAll(ButtonPropsMixin.meta.keys)
+            ..addAll(ButtonDisplayPropsMixin.meta.keys)
       );
     });
   });
