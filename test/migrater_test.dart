@@ -48,7 +48,7 @@ Future<Null> codeModAndCompare(Directory tempDir, String fileToCodemod) async {
       ['-c', 'cp -r $fileToCodemod /${tempDir.absolute.path}'], workingDirectory: pathToBeforeCodeModTestFixtures);
 
   /// Codemod the file within the temporary directory
-  await Process.start('/bin/bash', ['-c', 'python $pathToMigrater'], workingDirectory: tempDir.absolute.path).then((Process process) async {
+  await Process.start('python', [pathToMigrater], workingDirectory: tempDir.absolute.path).then((Process process) async {
     await process.stdin.write('A\nA\n');
     await process.stdin.close();
     await process.exitCode;
