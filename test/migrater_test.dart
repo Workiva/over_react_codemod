@@ -43,12 +43,14 @@ void main() {
 }
 
 Future<Null> codeModAndCompare(Directory tempDir, String fileToCodemod) async {
+  final tempDirPath = tempDir.absolute.path;
+
   /// Copy the file to codemod to the temporary directory.
   await Process.run('/bin/bash',
-      ['-c', 'cp -r $fileToCodemod /${tempDir.absolute.path}'], workingDirectory: pathToBeforeCodeModTestFixtures);
+      ['-c', 'cp -r $fileToCodemod /$tempDirPath'], workingDirectory: pathToBeforeCodeModTestFixtures);
 
   /// Codemod the file within the temporary directory
-  await Process.start('python', [pathToMigrater], workingDirectory: tempDir.absolute.path).then((Process process) async {
+  await Process.start('python', [pathToMigrater], workingDirectory: tempDirPath).then((Process process) async {
     await process.stdin.write('A\nA\n');
     await process.stdin.close();
     await process.exitCode;
@@ -56,7 +58,7 @@ Future<Null> codeModAndCompare(Directory tempDir, String fileToCodemod) async {
 
   /// Compare expected results against codemod file in temp directory.
   String expectedResults = new File(pathToAfterCodeModTestFixtures + fileToCodemod).readAsStringSync();
-  String testFile = new File('${tempDir.absolute.path}/$fileToCodemod').readAsStringSync();
+  String testFile = new File('$tempDirPath/$fileToCodemod').readAsStringSync();
 
   expect(testFile, equals(expectedResults));
 }
