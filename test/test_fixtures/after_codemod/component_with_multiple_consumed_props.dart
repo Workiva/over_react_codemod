@@ -1,31 +1,30 @@
 import 'package:over_react/over_react.dart';
 
 // ignore: uri_does_not_exist
-part 'component_with_single_consumed_prop.generated.dart';
+part 'component_with_multiple_consumed_props.generated.dart';
 
 @Factory()
 // ignore: undefined_identifier
-UiFactory<ComponentInPartProps> ComponentInPart = $ComponentInPart;
+UiFactory<ComponentWithMultipleConsumedPropsProps> ComponentWithMultipleConsumedProps = $ComponentWithMultipleConsumedProps;
 
 @Props()
-class ComponentInPartProps extends UiProps {
+class ComponentWithMultipleConsumedPropsProps extends UiProps {
   // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-  static const PropsMeta meta = $metaForComponentInPartProps;
+  static const PropsMeta meta = $metaForComponentWithMultipleConsumedPropsProps;
 
-  // ignore: deprecated_member_use
-  @Required(message: 'This Prop is Required for testing purposes.')
+  @requiredProp
   var required;
 
-  // ignore: deprecated_member_use
-  @Required(isNullable: true, message: 'This prop can be set to null!')
+  @nullableRequiredProp
   var nullable;
 }
 
 @Component()
-class ComponentInPartComponent extends UiComponent<ComponentInPartProps> {
+class ComponentWithMultipleConsumedPropsComponent extends UiComponent<ComponentWithMultipleConsumedPropsProps> {
   @override
   get consumedProps => const [
     AbstractToggleInputGroupProps.meta,
+    ToggleButtonGroupProps.meta,
   ];
 
   @override
@@ -35,3 +34,4 @@ class ComponentInPartComponent extends UiComponent<ComponentInPartProps> {
 /// Add these class as a placeholder to eliminate analyzer errors.
 /// This will not affect how migrater.py performs.
 class AbstractToggleInputGroupProps {}
+class ToggleButtonGroupProps {}

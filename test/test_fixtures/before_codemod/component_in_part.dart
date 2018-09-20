@@ -1,4 +1,4 @@
-import 'package:over_react/over_react.dart';
+part of test_component_library;
 
 @Factory()
 UiFactory<ComponentInPartProps> ComponentInPart;

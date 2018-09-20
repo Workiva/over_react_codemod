@@ -1,4 +1,4 @@
-name: over_react_codemode
+name: over_react_codemod
 description: A tool to convert Over React components from Dart 1 to Dart 2 using Codemod.
 version: 0.0.1
 

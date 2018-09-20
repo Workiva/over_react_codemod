@@ -16,7 +16,7 @@ ADD . /build/
 ENV TERM=linux
 ENV TERMINFO=/etc/terminfo
 RUN echo "Install codemod" && \
-        pip install git+https://github.com/georgelesica-wf/codemod@dart-convert && \
+        pip install codemod && \
         echo "done"
 RUN echo "Starting the script sections" && \
 	    dart --version && \
