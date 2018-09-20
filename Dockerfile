@@ -13,6 +13,8 @@ ARG GIT_MERGE_HEAD
 ARG GIT_MERGE_BRANCH
 WORKDIR /build/
 ADD . /build/
+ENV TERM=linux
+ENV TERMINFO=/etc/terminfo
 RUN echo "Install codemod" && \
         pip install git+https://github.com/georgelesica-wf/codemod@dart-convert && \
         echo "done"
