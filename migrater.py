@@ -242,7 +242,7 @@ def props_metas_suggest(lines, path):
             if class_body_is_empty:
                 last_class_def_line = last_class_def_line.replace('{}\n', '{\n')
 
-            ignore_line = '  // ignore: undefined_identifier, const_initialized_with_non_constant_value\n'
+            ignore_line = '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n'
             meta_line = '  static const PropsMeta meta = $metaFor%s;\n' % props_class_name
             # debug_line = 'line endings: %s' % line_endings
 
