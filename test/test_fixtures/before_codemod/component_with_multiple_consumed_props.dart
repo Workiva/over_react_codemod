@@ -1,24 +1,23 @@
 import 'package:over_react/over_react.dart';
 
 @Factory()
-UiFactory<ComponentInPartProps> ComponentInPart;
+UiFactory<ComponentWithMultipleConsumedPropsProps> ComponentWithMultipleConsumedProps;
 
 @Props()
-class ComponentInPartProps extends UiProps {
-  // ignore: deprecated_member_use
-  @Required(message: 'This Prop is Required for testing purposes.')
+class ComponentWithMultipleConsumedPropsProps extends UiProps {
+  @requiredProp
   var required;
 
-  // ignore: deprecated_member_use
-  @Required(isNullable: true, message: 'This prop can be set to null!')
+  @nullableRequiredProp
   var nullable;
 }
 
 @Component()
-class ComponentInPartComponent extends UiComponent<ComponentInPartProps> {
+class ComponentWithMultipleConsumedPropsComponent extends UiComponent<ComponentWithMultipleConsumedPropsProps> {
   @override
   get consumedProps => const [
     const $Props(AbstractToggleInputGroupProps),
+    const $Props(ToggleButtonGroupProps),
   ];
 
   @override
@@ -28,3 +27,4 @@ class ComponentInPartComponent extends UiComponent<ComponentInPartProps> {
 /// Add these class as a placeholder to eliminate analyzer errors.
 /// This will not affect how migrater.py performs.
 class AbstractToggleInputGroupProps {}
+class ToggleButtonGroupProps {}

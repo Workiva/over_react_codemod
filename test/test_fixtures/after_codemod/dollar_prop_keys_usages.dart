@@ -14,12 +14,14 @@ main() {
         // ignore: undefined_identifier
           MockTestCaseComponent,
           unconsumedPropKeys: []
-            ..addAll(const $PropKeys(ButtonPropsMixin))
+            ..addAll(ButtonPropsMixin.meta.keys)
+            ..addAll(ButtonDisplayPropsMixin.meta.keys)
       );
     });
   });
 }
 
-/// Add these class as a placeholder to eliminate analyzer errors.
+/// Add this class as a placeholder to eliminate analyzer errors.
 /// This will not affect how migrater.py performs.
 class ButtonPropsMixin {}
+class ButtonDisplayPropsMixin {}
