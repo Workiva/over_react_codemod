@@ -9,6 +9,7 @@ IGNORE_GENERATED_URI_COMMENT_LINE = '// ignore: uri_does_not_exist\n'
 GENERATED_PART_EXTENSION = '.generated.dart'
 DOLLAR_PROPS_USAGE_REGEX = r'(?:const|new)\s+\$Props\s*\(\s*([$A-Za-z0-9_.]+)\s*\)'
 DOLLAR_PROP_KEYS_USAGE_REGEX = r'(?:const|new)\s+\$PropKeys\s*\(\s*([$A-Za-z0-9_.]+)\s*\)'
+FACTORY_REGEX = r'^UiFactory(<\w+>) (\w+);'
 
 
 def get_class_name(line):
@@ -32,10 +33,10 @@ def get_factory_name(line):
     >>> get_factory_name('UiFactory<DemoProps> Demo;')
     'Demo'
     """
-    match = re.search(r'(\w+);', line)
+    match = re.search(FACTORY_REGEX, line)
     if not match:
         raise Exception('Could not parse factory name from:\n%s' % line)
-    return match.group(1)
+    return match.group(2)
 
 
 def get_part_name(path):
@@ -47,6 +48,10 @@ def get_part_name(path):
     """
     name = os.path.split(path)[-1].replace('.dart', '')
     return name
+
+
+def needs_factory_update(line):
+    return re.search(FACTORY_REGEX, line) is not None
 
 
 def get_part_path(path):
@@ -139,16 +144,13 @@ def factories_suggest(lines, path):
     need_part = False
 
     for line_number, line in enumerate(lines):
-        if line.startswith('UiFactory'):
+        if needs_factory_update(line):
             factory_name = get_factory_name(line)
-
-            if '$' + factory_name in line:
-                continue 
             
             need_part = True
 
             ignore_line = '// ignore: undefined_identifier\n'
-            new_line = line.replace(';\n', ' = $%s;\n' % (factory_name))
+            new_line = line.replace(';\n', ' = $%s;\n' % factory_name)
 
             patches.append(codemod.Patch(line_number, new_lines=[
                 ignore_line,
