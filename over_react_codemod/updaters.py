@@ -7,20 +7,23 @@ from . import util
 def add_public_props_or_state_class_boilerplate(lines):
     combined = ''.join(lines)
     match = re.search(regexes.PROPS_OR_STATE_CLASS_REGEX, combined)
-    is_abstract = match.group(1) is not None
-    class_name = match.group(2).strip()
+    annotation = match.group(1)
+    is_abstract = match.group(2) is not None
+    class_name = match.group(3).strip()
 
     private_class_name = '_$' + class_name
     accessors_mixin_name = '_$' + class_name + 'AccessorsMixin'
+    meta_type = 'PropsMeta' if 'Props' in annotation else 'StateMeta'
 
     public_class_signature = '{abstract}class {class_name} extends {super_class_name} with {mixin_name}'.format(
         abstract='abstract ' if is_abstract else '',
         class_name=class_name,
-        super_class_name=private_class_name,
         mixin_name=accessors_mixin_name,
+        super_class_name=private_class_name,
     )
-    props_meta_impl = 'static const PropsMeta meta = $metaFor{class_name};'.format(
-        class_name=class_name
+    props_meta_impl = 'static const {meta_type} meta = $metaFor{class_name};'.format(
+        class_name=class_name,
+        meta_type=meta_type,
     )
 
     return [

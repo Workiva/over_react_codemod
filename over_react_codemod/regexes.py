@@ -103,15 +103,16 @@ PART_REGEX = re.compile(
 
 
 # Groups:
-# 1 = non-empty if class is abstract
-# 2 = class name
+# 1 = props or state annotation
+# 2 = non-empty if class is abstract
+# 3 = class name
 PROPS_OR_STATE_CLASS_REGEX = re.compile(
     # Abstract or concrete props and state annotations:
     # - @Props()
     # - @AbstractProps()
     # - @State()
     # - @AbstractState()
-    r'^@(?:Props|AbstractProps|State|AbstractState)\(\)'
+    r'^@(Props|AbstractProps|State|AbstractState)\(\)'
     # optional whitespace or comments or other annotations
     r'[\s.]*'
     # optional abstract keyword
