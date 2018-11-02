@@ -2,7 +2,6 @@ import os
 
 import codemod
 
-from .. import constants
 from .. import util
 
 

@@ -4,7 +4,6 @@ import os
 import re
 import sys
 
-from . import constants
 from . import regexes
 
 
