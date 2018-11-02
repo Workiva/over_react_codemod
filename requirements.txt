@@ -1,0 +1,3 @@
+git+https://github.com/georgelesica-wf/codemod@dart-convert#egg=codemod
+mock
+nose
