@@ -5,7 +5,7 @@ COMPONENT_DEFAULT_PROPS_REGEX = re.compile(
     r'new\s+'
     # component class name
     # (GROUP 1)
-    r'(\w)Component'
+    r'(\w+)Component'
     # parens + optional whitespace
     r'\(\)\s*'
     # getDefaultProps() invocation
@@ -101,6 +101,13 @@ PART_REGEX = re.compile(
     flags=re.MULTILINE,
 )
 
+PROPS_OR_STATE_ANNOTATION_REGEX= re.compile(
+    r'^@(Props|AbstractProps|State|AbstractState)\('
+)
+
+CLASS_DECLARATION_REGEX = re.compile(
+    r'^(abstract )?class ([\w$]+)'
+)
 
 # Groups:
 # 1 = props or state annotation
@@ -126,6 +133,10 @@ PROPS_OR_STATE_CLASS_REGEX = re.compile(
     # everything else (e.g. implements clause) up to the opening curly brace
     r'[\s.]*{',
     flags=re.MULTILINE,
+)
+
+PROPS_OR_STATE_MIXIN_ANNOTATION_REGEX = re.compile(
+    r'^@(?:PropsMixin|StateMixin)\('
 )
 
 # Groups:

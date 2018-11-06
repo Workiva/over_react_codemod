@@ -3,7 +3,6 @@ import re
 from . import regexes
 from . import util
 
-
 def add_public_props_or_state_class_boilerplate(lines):
     combined = ''.join(lines)
     match = re.search(regexes.PROPS_OR_STATE_CLASS_REGEX, combined)
@@ -13,7 +12,7 @@ def add_public_props_or_state_class_boilerplate(lines):
 
     private_class_name = '_$' + class_name
     accessors_mixin_name = '_$' + class_name + 'AccessorsMixin'
-    meta_type = 'PropsMeta' if 'Props' in annotation else 'StateMeta'
+    meta_type = util.get_meta_type(annotation)
 
     public_class_signature = '{abstract}class {class_name} extends {super_class_name} with {mixin_name}'.format(
         abstract='abstract ' if is_abstract else '',
@@ -21,10 +20,7 @@ def add_public_props_or_state_class_boilerplate(lines):
         mixin_name=accessors_mixin_name,
         super_class_name=private_class_name,
     )
-    props_meta_impl = 'static const {meta_type} meta = $metaFor{class_name};'.format(
-        class_name=class_name,
-        meta_type=meta_type,
-    )
+    props_meta_impl = util.get_props_meta_const(class_name, meta_type)
 
     return [
         '\n',
@@ -67,7 +63,7 @@ def update_component_default_props(lines):
     # TODO: update all matches, not just first
     combined = ''.join(lines)
     factory_name = re.search(regexes.COMPONENT_DEFAULT_PROPS_REGEX, combined).group(1)
-    updated = re.sub(regexes.COMPONENT_DEFAULT_PROPS_REGEX, '%s().componentDefaultProps' % factory_name)
+    updated = re.sub(regexes.COMPONENT_DEFAULT_PROPS_REGEX, '%s().componentDefaultProps' % factory_name, combined)
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 

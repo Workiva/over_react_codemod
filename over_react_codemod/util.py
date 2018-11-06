@@ -118,6 +118,17 @@ def get_line_number_to_insert_parts(lines):
     return len(lines)
 
 
+def get_props_meta_const(class_name, meta_type):
+    return 'static const {meta_type} meta = $metaFor{class_name};'.format(
+        class_name=class_name,
+        meta_type=meta_type,
+    )
+
+
+def get_meta_type(annotation):
+    return 'PropsMeta' if 'Props' in annotation else 'StateMeta'
+
+
 def is_dart_file(path):
     """
     Determines if the given path is a Dart file.

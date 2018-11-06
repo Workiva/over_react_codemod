@@ -13,3 +13,4 @@ def suggest_patches(pattern, lines, updater, insert_at_end=False):
             end_line_number=end,
             new_lines=new_lines,
         )
+
