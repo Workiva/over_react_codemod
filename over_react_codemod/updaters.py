@@ -3,6 +3,7 @@ import re
 from . import regexes
 from . import util
 
+
 def add_public_props_or_state_class_boilerplate(lines):
     combined = ''.join(lines)
     match = re.search(regexes.PROPS_OR_STATE_CLASS_REGEX, combined)
@@ -55,15 +56,18 @@ def rename_props_or_state_mixin(lines):
     )
     updated = re.sub(pattern, 'class $%s' % class_name, combined)
     updated_lines = util.split_lines_by_newline_but_retain_newlines(updated)
-    updated_lines.insert(1, '// AF-#### This will be made private once the transition to Dart 2 is complete.\n')
+    updated_lines.insert(
+        1, '// AF-#### This will be made private once the transition to Dart 2 is complete.\n')
     return updated_lines
 
 
 def update_component_default_props(lines):
     # TODO: update all matches, not just first
     combined = ''.join(lines)
-    factory_name = re.search(regexes.COMPONENT_DEFAULT_PROPS_REGEX, combined).group(1)
-    updated = re.sub(regexes.COMPONENT_DEFAULT_PROPS_REGEX, '%s().componentDefaultProps' % factory_name, combined)
+    factory_name = re.search(
+        regexes.COMPONENT_DEFAULT_PROPS_REGEX, combined).group(1)
+    updated = re.sub(regexes.COMPONENT_DEFAULT_PROPS_REGEX,
+                     '%s().componentDefaultProps' % factory_name, combined)
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 
@@ -75,7 +79,8 @@ def update_dollar_props(lines):
 
 def update_dollar_prop_keys(lines):
     # TODO: update all matches, not just first
-    updated = re.sub(regexes.DOLLAR_PROP_KEYS_REGEX, r'\1.meta.keys', ''.join(lines))
+    updated = re.sub(regexes.DOLLAR_PROP_KEYS_REGEX,
+                     r'\1.meta.keys', ''.join(lines))
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 
@@ -83,7 +88,8 @@ def update_factory(lines):
     combined = ''.join(lines)
     match = re.search(regexes.FACTORY_REGEX, combined)
     factory_name = match.group(1)
-    updated = combined.replace('%s;' % factory_name, '%s = $%s;' % (factory_name, factory_name))
+    updated = combined.replace(
+        '%s;' % factory_name, '%s = $%s;' % (factory_name, factory_name))
     updated = '// ignore: undefined_identifier\n' + updated
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
@@ -101,7 +107,7 @@ def update_props_or_state_mixin_usage(lines):
         r'    // ignore: mixin_of_non_class, undefined_class\n'
         r'    $\1\2'
     )
-    updated_with_clause = str(re.sub(r'(\w+)(PropsMixin|StateMixin)', replace_pattern, with_clause))
+    updated_with_clause = str(
+        re.sub(r'(\w+)(PropsMixin|StateMixin)', replace_pattern, with_clause))
     updated = combined.replace(with_clause, updated_with_clause)
-    util.eprint(len(util.split_lines_by_newline_but_retain_newlines(updated)))
     return util.split_lines_by_newline_but_retain_newlines(updated)

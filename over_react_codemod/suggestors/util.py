@@ -14,3 +14,14 @@ def suggest_patches(pattern, lines, updater, insert_at_end=False):
             new_lines=new_lines,
         )
 
+
+def suggest_patches_v2(patterns, lines, updater, insert_at_end=False):
+    for start, end, new_lines in util.find_patches_v2(patterns, lines, updater):
+        if insert_at_end:
+            start = len(lines)
+            end = start
+        yield codemod.Patch(
+            start_line_number=start,
+            end_line_number=end,
+            new_lines=new_lines,
+        )

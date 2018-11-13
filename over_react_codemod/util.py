@@ -72,8 +72,64 @@ def find_patches(pattern, lines, updater):
         )] = None
 
     for start, end, line_selection in reversed(list(matches.iterkeys())):
-        updated_lines = updater(split_lines_by_newline_but_retain_newlines(line_selection))
+        updated_lines = updater(
+            split_lines_by_newline_but_retain_newlines(line_selection))
         yield start, end, updated_lines
+
+
+def find_patches_v2(patterns, lines, updater):
+    """
+    Takes a set of single-line patterns and uses them to find all
+    non-overlapping subsets of lines that match all of the patterns in order.
+
+    In other words, the given lines are iterated over and tested against the
+    first pattern. Once a match is found, the iteration continues but testing is
+    performed against the second match, and so on until all patterns have been
+    matched. The subset of lines that completely contain all matches are then
+    selected and passed through the given updater function in order to yield a
+    "patch". Then, the matching restarts with the first pattern on the next
+    line.
+
+    Every "patch" that is yielded contains the updated lines along with the
+    start and end line numbers from the original lines.
+
+    :param pattern:
+    :param lines:
+    :param updater:
+    :return:
+    """
+    current_pattern_i = 0
+    patch_start = None
+    patch_end = None
+    patch_lines_by_number = OrderedDict()
+    patch_matches = []
+
+    for line_number, line in enumerate(lines):
+        while re.search(patterns[current_pattern_i], line):
+            match = re.search(patterns[current_pattern_i], line)
+            patch_lines_by_number[line_number] = line
+            patch_matches.append(match)
+
+            if not patch_start:
+                patch_start = line_number
+
+            if patterns[current_pattern_i] == patterns[-1]:
+                patch_end = line_number + 1
+                updated_lines = updater(
+                    patch_lines_by_number.values(),
+                    patch_matches,
+                    lines[:patch_start],
+                    lines[patch_end:],
+                )
+                yield patch_start, patch_end, updated_lines
+                patch_start = None
+                patch_end = None
+                patch_lines_by_number = OrderedDict()
+                patch_matches = []
+                current_pattern_i = 0
+                break
+
+            current_pattern_i += 1
 
 
 def finditer_with_line_numbers(pattern, string, flags=0):
@@ -98,7 +154,8 @@ def finditer_with_line_numbers(pattern, string, flags=0):
     for m in matches:
         newline_offset = string.rfind('\n', 0, m.start())
         start_line_number = newline_table[newline_offset]
-        end_line_number = start_line_number + len(re.findall(r'\n', m.group(0))) + 1
+        end_line_number = start_line_number + \
+            len(re.findall(r'\n', m.group(0))) + 1
         yield (m, start_line_number, end_line_number)
 
 
@@ -165,17 +222,20 @@ def parse_factory_name(s):
 
 
 def parse_library_name(lines):
-    match = search_pattern_over_one_or_two_lines(regexes.LIBRARY_NAME_REGEX, lines)
+    match = search_pattern_over_one_or_two_lines(
+        regexes.LIBRARY_NAME_REGEX, lines)
     return match.group(1) if match else None
 
 
 def parse_part_of_name(lines):
-    match = search_pattern_over_one_or_two_lines(regexes.PART_OF_NAME_REGEX, lines)
+    match = search_pattern_over_one_or_two_lines(
+        regexes.PART_OF_NAME_REGEX, lines)
     return match.group(1) if match else None
 
 
 def parse_part_of_uri(lines):
-    match = search_pattern_over_one_or_two_lines(regexes.PART_OF_URI_REGEX, lines)
+    match = search_pattern_over_one_or_two_lines(
+        regexes.PART_OF_URI_REGEX, lines)
     return match.group(1) if match else None
 
 

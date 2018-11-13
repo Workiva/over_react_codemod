@@ -101,7 +101,7 @@ PART_REGEX = re.compile(
     flags=re.MULTILINE,
 )
 
-PROPS_OR_STATE_ANNOTATION_REGEX= re.compile(
+PROPS_OR_STATE_ANNOTATION_REGEX = re.compile(
     r'^@(Props|AbstractProps|State|AbstractState)\('
 )
 
@@ -136,7 +136,7 @@ PROPS_OR_STATE_CLASS_REGEX = re.compile(
 )
 
 PROPS_OR_STATE_MIXIN_ANNOTATION_REGEX = re.compile(
-    r'^@(?:PropsMixin|StateMixin)\('
+    r'^@(PropsMixin|StateMixin)\('
 )
 
 # Groups:
