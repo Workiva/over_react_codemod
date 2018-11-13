@@ -1,14 +1,14 @@
 from ..regexes import PROPS_OR_STATE_MIXIN_REGEX, PROPS_OR_STATE_MIXIN_ANNOTATION_REGEX, CLASS_DECLARATION_REGEX
 from ..updaters import rename_props_or_state_mixin
-from .util import suggest_patches, suggest_patches_v2
 from ..util import get_props_or_state_meta_const, get_meta_type, eprint, get_meta_const_ignore_line
+from .util import suggest_patches_from_pattern_sequence, suggest_patches_from_single_pattern
 import re
 import codemod
 
 
 def props_and_state_mixins_suggestor(lines, _):
     # Rename props and state mixins
-    for patch in suggest_patches(
+    for patch in suggest_patches_from_single_pattern(
             PROPS_OR_STATE_MIXIN_REGEX,
             lines,
             rename_props_or_state_mixin,
@@ -24,9 +24,10 @@ def props_and_state_mixins_meta_suggestor(lines, _):
     ]
 
     def updater(lines, matches, prev_lines, next_lines):
-        if re.match(r'  static const (Props|State)Meta meta =', next_lines[0]):
-            # Already updated.
-            return lines
+        for line in next_lines[:3]:
+            if re.match(r'  static const (Props|State)Meta meta =', line):
+                # Already updated.
+                return lines
 
         annotation_match = matches[0]
         meta_type = get_meta_type(annotation_match.group(1))
@@ -51,6 +52,7 @@ def props_and_state_mixins_meta_suggestor(lines, _):
 
             new_lines.extend([
                 line,
+                '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  %s\n' % get_props_or_state_meta_const(
                     class_name, meta_type),
                 '}\n' if needs_closing_brace else '\n',
@@ -58,5 +60,5 @@ def props_and_state_mixins_meta_suggestor(lines, _):
 
         return new_lines
 
-    for patch in suggest_patches_v2(patterns, lines, updater):
+    for patch in suggest_patches_from_pattern_sequence(patterns, lines, updater):
         yield patch

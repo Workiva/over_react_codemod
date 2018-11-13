@@ -127,9 +127,9 @@ PROPS_OR_STATE_CLASS_REGEX = re.compile(
     # class name including optional generic params
     r'class\s+([\w\s<>,]+)'
     # extends clause including optional generic args
-    r'extends\s+(?:[\w\s<>,]+)'
+    r'extends\s+(?:[\w\s<>,.]+)'
     # with clause including optional generic args
-    r'(?:with\s+(?:[\w\s<>,]+))?'
+    r'(?:with\s+(?:[\w\s<>,.]+))?'
     # everything else (e.g. implements clause) up to the opening curly brace
     r'[\s.]*{',
     flags=re.MULTILINE,

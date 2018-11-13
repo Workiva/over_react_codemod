@@ -42,7 +42,7 @@ def convert_part_of_uri_to_relpath(uri):
     )
 
 
-def find_patches(pattern, lines, updater):
+def find_patches_from_single_pattern(pattern, lines, updater):
     """
     Searches the given lines for matches to the given pattern and yields a "patch"
     for each subset of lines that are updated by the given updater function.
@@ -64,20 +64,22 @@ def find_patches(pattern, lines, updater):
     # found (i.e. top-down).
     matches = OrderedDict()
     combined_lines = ''.join(lines)
-    for _, start, end in finditer_with_line_numbers(pattern, combined_lines):
+    for match, start, end in finditer_with_line_numbers(pattern, combined_lines):
         matches[(
             start,
             end,
             ''.join(lines[start:end]),
-        )] = None
+        )] = match
 
-    for start, end, line_selection in reversed(list(matches.iterkeys())):
-        updated_lines = updater(
-            split_lines_by_newline_but_retain_newlines(line_selection))
-        yield start, end, updated_lines
+    for match_context, match in reversed(list(matches.iteritems())):
+        start, end, patch_lines = match_context
+        patch_lines = split_lines_by_newline_but_retain_newlines(patch_lines)
+        updated_lines = updater(patch_lines, match, lines[:start], lines[end:])
+        if updated_lines is not None:
+            yield start, end, updated_lines
 
 
-def find_patches_v2(patterns, lines, updater):
+def find_patches_from_pattern_sequence(patterns, lines, updater):
     """
     Takes a set of single-line patterns and uses them to find all
     non-overlapping subsets of lines that match all of the patterns in order.
@@ -121,7 +123,8 @@ def find_patches_v2(patterns, lines, updater):
                     lines[:patch_start],
                     lines[patch_end:],
                 )
-                yield patch_start, patch_end, updated_lines
+                if updated_lines is not None:
+                    yield patch_start, patch_end, updated_lines
                 patch_start = None
                 patch_end = None
                 patch_lines_by_number = OrderedDict()
@@ -130,6 +133,9 @@ def find_patches_v2(patterns, lines, updater):
                 break
 
             current_pattern_i += 1
+
+        if patch_start is not None:
+            patch_lines_by_number[line_number] = line
 
 
 def finditer_with_line_numbers(pattern, string, flags=0):

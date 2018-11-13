@@ -4,12 +4,30 @@ from . import regexes
 from . import util
 
 
-def add_public_props_or_state_class_boilerplate(lines):
-    combined = ''.join(lines)
-    match = re.search(regexes.PROPS_OR_STATE_CLASS_REGEX, combined)
-    annotation = match.group(1)
-    is_abstract = match.group(2) is not None
-    class_name = match.group(3).strip()
+def add_public_props_or_state_class_boilerplate(lines, matches, prev_lines, next_lines):
+    annotation_match = matches[0]
+    class_decl_match = matches[1]
+
+    annotation = annotation_match.group(1)
+    is_abstract = class_decl_match.group(1) is not None
+    class_name = class_decl_match.group(2).strip()
+
+    if class_name.startswith('_$'):
+        # Ignore the private, already codemod'd classes.
+        return None
+
+    for line in next_lines:
+        options = [
+            'abstract class %s ' % class_name,
+            'abstract class %s<' % class_name,
+            'class %s ' % class_name,
+            'class %s<' % class_name,
+        ]
+        for option in options:
+            if line.startswith(option):
+                # if re.match(r'(abstract\s+)?class\s+' + class_name + r'[\s<]', line):
+                # Accompanying class already added.
+                return None
 
     private_class_name = '_$' + class_name
     accessors_mixin_name = '_$' + class_name + 'AccessorsMixin'
@@ -34,7 +52,7 @@ def add_public_props_or_state_class_boilerplate(lines):
     ]
 
 
-def rename_props_or_state_class(lines):
+def rename_props_or_state_class(lines, match, prev_lines, next_lines):
     combined = ''.join(lines)
     match = re.search(regexes.PROPS_OR_STATE_CLASS_REGEX, combined)
     class_name = match.group(2)
@@ -46,9 +64,8 @@ def rename_props_or_state_class(lines):
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 
-def rename_props_or_state_mixin(lines):
+def rename_props_or_state_mixin(lines, match, prev_lines, next_lines):
     combined = ''.join(lines)
-    match = re.search(regexes.PROPS_OR_STATE_MIXIN_REGEX, combined)
     class_name = match.group(1)
     pattern = (
         r'class\s+'
@@ -61,7 +78,7 @@ def rename_props_or_state_mixin(lines):
     return updated_lines
 
 
-def update_component_default_props(lines):
+def update_component_default_props(lines, match, prev_lines, next_lines):
     # TODO: update all matches, not just first
     combined = ''.join(lines)
     factory_name = re.search(
@@ -71,22 +88,21 @@ def update_component_default_props(lines):
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 
-def update_dollar_props(lines):
+def update_dollar_props(lines, match, prev_lines, next_lines):
     # TODO: update all matches, not just first
     updated = re.sub(regexes.DOLLAR_PROPS_REGEX, r'\1.meta', ''.join(lines))
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 
-def update_dollar_prop_keys(lines):
+def update_dollar_prop_keys(lines, match, prev_lines, next_lines):
     # TODO: update all matches, not just first
     updated = re.sub(regexes.DOLLAR_PROP_KEYS_REGEX,
                      r'\1.meta.keys', ''.join(lines))
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 
-def update_factory(lines):
+def update_factory(lines, match, prev_lines, next_lines):
     combined = ''.join(lines)
-    match = re.search(regexes.FACTORY_REGEX, combined)
     factory_name = match.group(1)
     updated = combined.replace(
         '%s;' % factory_name, '%s = $%s;' % (factory_name, factory_name))
@@ -94,13 +110,18 @@ def update_factory(lines):
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 
-def update_props_or_state_mixin_usage(lines):
+def update_props_or_state_mixin_usage(lines, match, prev_lines, next_lines):
     # NOTE: For simplicity, this implementation does NOT account for generics, and will probably function incorrectly
     # if used on a with clause that specifies generic type args.
+
+    if re.match(r'\s*//', lines[0]):
+        # Comment, not code.
+        return None
 
     combined = ''.join(lines)
     match = re.search(regexes.WITH_PROPS_OR_STATE_MIXIN_REGEX, combined)
     with_clause = match.group(1)
+    with_clause = re.sub(r'\s+implements[\s\S]+', '', with_clause)
     replace_pattern = (
         r'\n'
         r'    \1\2,\n'
