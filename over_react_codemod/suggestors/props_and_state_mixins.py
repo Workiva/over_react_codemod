@@ -1,7 +1,7 @@
 from ..regexes import PROPS_OR_STATE_MIXIN_REGEX, PROPS_OR_STATE_MIXIN_ANNOTATION_REGEX, CLASS_DECLARATION_REGEX
 from ..updaters import rename_props_or_state_mixin
 from .util import suggest_patches
-from ..util import get_props_meta_const, get_meta_type, eprint
+from ..util import get_props_or_state_meta_const, get_meta_type, eprint, get_meta_const_ignore_line
 import re
 import codemod
 
@@ -35,7 +35,8 @@ def props_and_state_mixins_meta_suggestor(lines, _):
             if match and class_name:
                 new_lines = [
                     '\n',
-                    get_props_meta_const(class_name, meta_type),
+                    get_meta_const_ignore_line(),
+                    '  ' + get_props_or_state_meta_const(class_name, meta_type),
                     '\n'
                 ]
                 insert_meta_location = offset_from_end+1 + line_number+1

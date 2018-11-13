@@ -46,12 +46,6 @@ def props_and_state_classes_rename_suggestor(lines, _):
                 else:
                     updated_line = re.sub(CLASS_DECLARATION_REGEX, r'class _$\2', line)
 
-
-                yield codemod.Patch(start_line_number=class_declaration_start, end_line_number=class_declaration_start, new_lines=[updated_line])
+                yield codemod.Patch(start_line_number=class_declaration_start,
+                                    end_line_number=class_declaration_start + 1, new_lines=[updated_line])
                 break
-
-
-
-
-
-

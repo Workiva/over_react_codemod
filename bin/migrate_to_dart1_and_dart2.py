@@ -19,7 +19,7 @@ if __name__ == '__main__':
     codemod.run_interactive(codemod.Query(component_default_props_suggestor, path_filter=is_dart_file))
     codemod.run_interactive(codemod.Query(props_and_state_classes_accompanying_public_class_suggestor, path_filter=is_dart_file))
     codemod.run_interactive(codemod.Query(props_and_state_classes_rename_suggestor, path_filter=is_dart_file))
-    codemod.run_interactive(codemod.Query(props_and_state_mixins_suggestor, path_filter=is_dart_file))
+    # codemod.run_interactive(codemod.Query(props_and_state_mixins_suggestor, path_filter=is_dart_file))
     codemod.run_interactive(codemod.Query(props_and_state_mixins_meta_suggestor, path_filter=is_dart_file))
     codemod.run_interactive(codemod.Query(with_props_and_state_mixins_suggestor, path_filter=is_dart_file))
     codemod.run_interactive(codemod.Query(collect_libraries_suggestor, path_filter=is_dart_file))

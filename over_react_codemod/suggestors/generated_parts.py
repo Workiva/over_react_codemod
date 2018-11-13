@@ -77,7 +77,7 @@ def generated_parts_suggestor(lines, path):
     line_number_to_insert_parts = util.get_line_number_to_insert_parts(lines)
     new_lines = [
         '\n',
-        '// ignore: uri_does_not_exist\n',
+        '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
         "part '%s';\n" % generated_part_filename,
     ]
 

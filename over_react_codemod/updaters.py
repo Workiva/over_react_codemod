@@ -20,14 +20,14 @@ def add_public_props_or_state_class_boilerplate(lines):
         mixin_name=accessors_mixin_name,
         super_class_name=private_class_name,
     )
-    props_meta_impl = util.get_props_meta_const(class_name, meta_type)
+    props_meta_impl = util.get_props_or_state_meta_const(class_name, meta_type)
 
     return [
         '\n',
         '// AF-#### This will be removed once the transition to Dart 2 is complete.\n',
         '// ignore: mixin_of_non_class, undefined_class\n',
         '%s {\n' % public_class_signature,
-        '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
+        util.get_meta_const_ignore_line(),
         '  %s\n' % props_meta_impl,
         '}\n',
     ]
@@ -97,10 +97,9 @@ def update_props_or_state_mixin_usage(lines):
     with_clause = match.group(1)
     replace_pattern = (
         r'\n'
-        r'    // AF-#### This will be removed once the transition to Dart 2 is complete.\n'
-        r'    $\1\2,\n'
+        r'    \1\2,\n'
         r'    // ignore: mixin_of_non_class, undefined_class\n'
-        r'    \1\2'
+        r'    $\1\2'
     )
     updated_with_clause = str(re.sub(r'(\w+)(PropsMixin|StateMixin)', replace_pattern, with_clause))
     updated = combined.replace(with_clause, updated_with_clause)

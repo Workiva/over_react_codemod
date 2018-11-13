@@ -118,11 +118,15 @@ def get_line_number_to_insert_parts(lines):
     return len(lines)
 
 
-def get_props_meta_const(class_name, meta_type):
+def get_props_or_state_meta_const(class_name, meta_type):
     return 'static const {meta_type} meta = $metaFor{class_name};'.format(
         class_name=class_name,
         meta_type=meta_type,
     )
+
+
+def get_meta_const_ignore_line():
+    return '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n'
 
 
 def get_meta_type(annotation):
