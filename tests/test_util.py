@@ -42,22 +42,25 @@ class TestBuildLibraryNameFromPath(unittest.TestCase):
 class TestConvertPartOfURIToRelpath(unittest.TestCase):
 
     def test_package_uri(self):
-        result = util.convert_part_of_uri_to_relpath('package:foo/src/bar.dart')
+        result = util.convert_part_of_uri_to_relpath(
+            'package:foo/src/bar.dart')
         self.assertEqual(result, './lib/src/bar.dart')
 
     def test_package_uri_with_redundancies(self):
-        result = util.convert_part_of_uri_to_relpath('package:foo/src/../src/bar.dart')
+        result = util.convert_part_of_uri_to_relpath(
+            'package:foo/src/../src/bar.dart')
         self.assertEqual(result, './lib/src/bar.dart')
 
 
 class TestFindPatches(unittest.TestCase):
 
     def test_no_lines(self):
-        result = list(util.find_patches(regexes.DOLLAR_PROPS_REGEX, [], mock.Mock()))
+        result = list(util.find_patches_from_single_pattern(
+            regexes.DOLLAR_PROPS_REGEX, [], mock.Mock()))
         self.assertListEqual(result, [])
 
     def test_no_usages(self):
-        result = list(util.find_patches(regexes.DOLLAR_PROPS_REGEX, [
+        result = list(util.find_patches_from_single_pattern(regexes.DOLLAR_PROPS_REGEX, [
             'library foo.bar;\n',
             '// comment\n',
             'void foo() {}\n',
@@ -67,7 +70,7 @@ class TestFindPatches(unittest.TestCase):
     def test_one_usage(self):
         updater = mock.Mock()
         updater.return_value = ['test']
-        result = list(util.find_patches(regexes.DOLLAR_PROPS_REGEX, [
+        result = list(util.find_patches_from_single_pattern(regexes.DOLLAR_PROPS_REGEX, [
             'library foo.bar;\n',
             'var p = new $Props(FooProps);\n',
             'void foo() {}\n',
@@ -83,7 +86,7 @@ class TestFindPatches(unittest.TestCase):
     def test_multiple_usages(self):
         updater = mock.Mock()
         updater.return_value = ['test']
-        result_iter = util.find_patches(regexes.DOLLAR_PROPS_REGEX, [
+        result_iter = util.find_patches_from_single_pattern(regexes.DOLLAR_PROPS_REGEX, [
             'library foo.bar;\n',
             'var p = new $Props(FooProps);\n',
             'var q = new $Props(\n',
@@ -94,23 +97,33 @@ class TestFindPatches(unittest.TestCase):
         first_patch = result_iter.next()
         self.assertEqual(first_patch, (2, 5, ['test']))
         self.assertEqual(updater.call_count, 1)
-        updater.assert_called_with([
-            'var q = new $Props(\n',
-            '  FooProps\n',
-            ');\n',
-        ])
+        updater.assert_called_with(
+            [
+                'var q = new $Props(\n',
+                '  FooProps\n',
+                ');\n',
+            ],
+            mock.ANY,
+            mock.ANY,
+            mock.ANY,
+        )
 
         second_patch = result_iter.next()
         self.assertEqual(second_patch, (1, 2, ['test']))
         self.assertEqual(updater.call_count, 2)
-        updater.assert_called_with([
-            'var p = new $Props(FooProps);\n',
-        ])
+        updater.assert_called_with(
+            [
+                'var p = new $Props(FooProps);\n',
+            ],
+            mock.ANY,
+            mock.ANY,
+            mock.ANY,
+        )
 
     def test_multiple_usages_on_same_line(self):
         updater = mock.Mock()
         updater.return_value = ['test']
-        result = list(util.find_patches(regexes.DOLLAR_PROPS_REGEX, [
+        result = list(util.find_patches_from_single_pattern(regexes.DOLLAR_PROPS_REGEX, [
             'library foo.bar;\n',
             'var metas = [new $Props(FooProps), const $Props(BarProps)];\n',
             'void foo() {}\n',
@@ -118,9 +131,14 @@ class TestFindPatches(unittest.TestCase):
         self.assertListEqual(result, [
             (1, 2, ['test']),
         ])
-        updater.assert_called_once_with([
-            'var metas = [new $Props(FooProps), const $Props(BarProps)];\n',
-        ])
+        updater.assert_called_once_with(
+            [
+                'var metas = [new $Props(FooProps), const $Props(BarProps)];\n',
+            ],
+            mock.ANY,
+            mock.ANY,
+            mock.ANY,
+        )
 
 
 class TestGetLastDirectiveLineNumber(unittest.TestCase):
@@ -228,7 +246,8 @@ class TestParseFactoryName(unittest.TestCase):
         self.assertEqual(result, 'FooBar')
 
     def test_already_initialized(self):
-        result = util.parse_factory_name('UiFactory<FooBarProps> FooBar = $FooBar;')
+        result = util.parse_factory_name(
+            'UiFactory<FooBarProps> FooBar = $FooBar;')
         self.assertIsNone(result)
 
 

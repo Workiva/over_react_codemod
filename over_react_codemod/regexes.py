@@ -1,5 +1,9 @@
 import re
 
+COMMENT_LINE_REGEX = re.compile(
+    r'^\s*//'
+)
+
 COMPONENT_DEFAULT_PROPS_REGEX = re.compile(
     # constructor keyword + at least one whitespace char
     r'new\s+'
@@ -62,7 +66,7 @@ FACTORY_REGEX = re.compile(
     # UiFactory type (must be at beginning of line) + optional whitespace
     r'^UiFactory\s*'
     # optional generic arg (including optional nested generics) + optional whitespace
-    r'(?:<\s*[<>\w\s]+\s*>)?'
+    r'(?:<\s*[<>\w\s_$]+\s*>)?'
     # at least one whitespace char after the type
     r'\s+'
     # factory name + semicolon
@@ -107,6 +111,11 @@ PROPS_OR_STATE_ANNOTATION_REGEX = re.compile(
 
 CLASS_DECLARATION_REGEX = re.compile(
     r'^(abstract )?class ([\w$]+)'
+)
+
+CLASS_BODY_BRACES_REGEX = re.compile(
+    r'.*{(})?$',
+    flags=re.MULTILINE,
 )
 
 # Groups:
@@ -162,11 +171,23 @@ PROPS_OR_STATE_MIXIN_REGEX = re.compile(
 #     mixin that ends in PropsMixin or StateMixin.
 WITH_PROPS_OR_STATE_MIXIN_REGEX = re.compile(
     # beginning of the with clause
-    r'with\s+'
+    r'with\s+('
     # mixins, searching for at least one props or state mixin (by naming convention)
     r'(.*(?:PropsMixin|StateMixin).*)'
     # trailing whitespace
-    r'\s*'
+    r'[\S\s]*'
     # end of the with clause (either the start of the implements clause or the class body)
-    r'(?:implements|\{)'
+    r')(?:implements|\{)'
+)
+
+WITH_CLAUSE_START_REGEX = re.compile(
+    r'^.*\s+with\s+',
+)
+
+PROPS_OR_STATE_MIXIN_REFERENCE_REGEX = re.compile(
+    r'(.*(?:PropsMixin|StateMixin).*)',
+)
+
+WITH_CLAUSE_END_REGEX = re.compile(
+    r'\s+(?:implements|\{).*',
 )

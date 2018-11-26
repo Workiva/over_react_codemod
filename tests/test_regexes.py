@@ -69,37 +69,56 @@ class TestDirectiveRegex(RegexTestCase):
         self.assert_has_match('library foo;')
         self.assert_has_match('library foo_bar;', msg='underscore')
         self.assert_has_match('library foo.bar.baz;', msg='dot-delimited')
-        self.assert_has_match('library\n    really_long.library.name;', msg='multi-line')
+        self.assert_has_match(
+            'library\n    really_long.library.name;', msg='multi-line')
 
     def test_import(self):
-        self.assert_has_match('''import "package:foo/bar.dart";''', msg='package (double quote)')
-        self.assert_has_match('''import 'package:foo/bar.dart';''', msg='package (single quote)')
+        self.assert_has_match(
+            '''import "package:foo/bar.dart";''', msg='package (double quote)')
+        self.assert_has_match(
+            '''import 'package:foo/bar.dart';''', msg='package (single quote)')
 
-        self.assert_has_match('''import "../foo/bar.dart";''', msg='relative (double quote)')
-        self.assert_has_match('''import '../foo/bar.dart';''', msg='relative (single quote)')
+        self.assert_has_match('''import "../foo/bar.dart";''',
+                              msg='relative (double quote)')
+        self.assert_has_match('''import '../foo/bar.dart';''',
+                              msg='relative (single quote)')
 
-        self.assert_has_match('''import\n    "package:foo/long/import.dart";''', msg='multi-line (double quote)')
-        self.assert_has_match('''import\n    'package:foo/long/import.dart';''', msg='multi-line (single quote)')
+        self.assert_has_match(
+            '''import\n    "package:foo/long/import.dart";''', msg='multi-line (double quote)')
+        self.assert_has_match(
+            '''import\n    'package:foo/long/import.dart';''', msg='multi-line (single quote)')
 
     def test_export(self):
-        self.assert_has_match('''export "package:foo/bar.dart";''', msg='package (double quote)')
-        self.assert_has_match('''export 'package:foo/bar.dart';''', msg='package (single quote)')
+        self.assert_has_match(
+            '''export "package:foo/bar.dart";''', msg='package (double quote)')
+        self.assert_has_match(
+            '''export 'package:foo/bar.dart';''', msg='package (single quote)')
 
-        self.assert_has_match('''export "../foo/bar.dart";''', msg='relative (double quote)')
-        self.assert_has_match('''export '../foo/bar.dart';''', msg='relative (single quote)')
+        self.assert_has_match('''export "../foo/bar.dart";''',
+                              msg='relative (double quote)')
+        self.assert_has_match('''export '../foo/bar.dart';''',
+                              msg='relative (single quote)')
 
-        self.assert_has_match('''export\n    "package:foo/long/export.dart";''', msg='multi-line (double quote)')
-        self.assert_has_match('''export\n    'package:foo/long/export.dart';''', msg='multi-line (single quote)')
+        self.assert_has_match(
+            '''export\n    "package:foo/long/export.dart";''', msg='multi-line (double quote)')
+        self.assert_has_match(
+            '''export\n    'package:foo/long/export.dart';''', msg='multi-line (single quote)')
 
     def test_part(self):
-        self.assert_has_match('''part "package:foo/bar.dart";''', msg='package (double quote)')
-        self.assert_has_match('''part 'package:foo/bar.dart';''', msg='package (single quote)')
+        self.assert_has_match(
+            '''part "package:foo/bar.dart";''', msg='package (double quote)')
+        self.assert_has_match(
+            '''part 'package:foo/bar.dart';''', msg='package (single quote)')
 
-        self.assert_has_match('''part "../foo/bar.dart";''', msg='relative (double quote)')
-        self.assert_has_match('''part '../foo/bar.dart';''', msg='relative (single quote)')
+        self.assert_has_match('''part "../foo/bar.dart";''',
+                              msg='relative (double quote)')
+        self.assert_has_match('''part '../foo/bar.dart';''',
+                              msg='relative (single quote)')
 
-        self.assert_has_match('''part\n    "package:foo/long/part.dart";''', msg='multi-line (double quote)')
-        self.assert_has_match('''part\n    'package:foo/long/part.dart';''', msg='multi-line (single quote)')
+        self.assert_has_match(
+            '''part\n    "package:foo/long/part.dart";''', msg='multi-line (double quote)')
+        self.assert_has_match(
+            '''part\n    'package:foo/long/part.dart';''', msg='multi-line (single quote)')
 
 
 class TestFactoryRegex(RegexTestCase):
@@ -123,7 +142,8 @@ class TestFactoryRegex(RegexTestCase):
 
     def test_already_initialized(self):
         self.assert_has_no_match('UiFactory<FooBarProps> FooBar = $FooBar;')
-        self.assert_has_no_match('UiFactory<FooBarProps> FooBar\n    = $FooBar;')
+        self.assert_has_no_match(
+            'UiFactory<FooBarProps> FooBar\n    = $FooBar;')
 
     def test_no_generic(self):
         self.assert_has_match(

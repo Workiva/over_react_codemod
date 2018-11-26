@@ -13,8 +13,9 @@ def add_public_props_or_state_class_boilerplate(lines, matches, prev_lines, next
     class_name = class_decl_match.group(2).strip()
 
     if class_name.startswith('_$'):
-        # Ignore the private, already codemod'd classes.
-        return None
+        # This props/state class has already been renamed/codemodded. Strip the
+        # prefix and continue to ensure that the accompanying class is there.
+        class_name = class_name.replace('_$', '')
 
     for line in next_lines:
         options = [
@@ -52,16 +53,63 @@ def add_public_props_or_state_class_boilerplate(lines, matches, prev_lines, next
     ]
 
 
-def rename_props_or_state_class(lines, match, prev_lines, next_lines):
-    combined = ''.join(lines)
-    match = re.search(regexes.PROPS_OR_STATE_CLASS_REGEX, combined)
-    class_name = match.group(2)
-    pattern = (
-        r'class\s+'
-        '%s' % class_name
-    )
-    updated = re.sub(pattern, 'class _$%s' % class_name, combined)
-    return util.split_lines_by_newline_but_retain_newlines(updated)
+def insert_props_or_state_meta(lines, matches, prev_lines, next_lines):
+    for line in next_lines[:3]:
+        if re.match(r'\s*static const (Props|State)Meta meta =', line):
+            # Already updated.
+            return None
+
+    annotation_match = matches[0]
+    meta_type = util.get_meta_type(annotation_match.group(1))
+
+    class_decl_match = matches[1]
+    class_name = class_decl_match.group(2)
+
+    class_body_open_match = matches[2]
+    class_body_open_line = class_body_open_match.group(0)
+
+    new_lines = []
+    for line in lines:
+        if not line.startswith(class_body_open_line):
+            new_lines.append(line)
+            continue
+
+        needs_closing_brace = False
+        if line.endswith('{}\n'):
+            # Strip the closing body curly brace
+            line = line.replace('{}', '{')
+            needs_closing_brace = True
+
+        new_lines.extend([
+            line,
+            '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
+            '  %s\n' % util.get_props_or_state_meta_const(
+                class_name, meta_type),
+            '}\n' if needs_closing_brace else '\n',
+        ])
+
+    return new_lines
+
+
+def rename_props_or_state_class(lines, matches, prev_lines, next_lines):
+    class_decl_match = matches[1]
+    class_decl_line = class_decl_match.group(0)
+    class_name = class_decl_match.group(2)
+    if class_name.startswith('_$'):
+        # Class has already been renamed.
+        return lines
+
+    new_lines = []
+    for line in lines:
+        if not line.startswith(class_decl_line):
+            new_lines.append(line)
+            continue
+
+        updated_line = line.replace(
+            'class %s' % class_name, 'class _$%s' % class_name)
+        new_lines.append(updated_line)
+
+    return new_lines
 
 
 def rename_props_or_state_mixin(lines, match, prev_lines, next_lines):
@@ -79,23 +127,18 @@ def rename_props_or_state_mixin(lines, match, prev_lines, next_lines):
 
 
 def update_component_default_props(lines, match, prev_lines, next_lines):
-    # TODO: update all matches, not just first
     combined = ''.join(lines)
-    factory_name = re.search(
-        regexes.COMPONENT_DEFAULT_PROPS_REGEX, combined).group(1)
     updated = re.sub(regexes.COMPONENT_DEFAULT_PROPS_REGEX,
-                     '%s().componentDefaultProps' % factory_name, combined)
+                     r'\1().componentDefaultProps', combined)
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 
 def update_dollar_props(lines, match, prev_lines, next_lines):
-    # TODO: update all matches, not just first
     updated = re.sub(regexes.DOLLAR_PROPS_REGEX, r'\1.meta', ''.join(lines))
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 
 def update_dollar_prop_keys(lines, match, prev_lines, next_lines):
-    # TODO: update all matches, not just first
     updated = re.sub(regexes.DOLLAR_PROP_KEYS_REGEX,
                      r'\1.meta.keys', ''.join(lines))
     return util.split_lines_by_newline_but_retain_newlines(updated)
@@ -110,25 +153,54 @@ def update_factory(lines, match, prev_lines, next_lines):
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 
-def update_props_or_state_mixin_usage(lines, match, prev_lines, next_lines):
-    # NOTE: For simplicity, this implementation does NOT account for generics, and will probably function incorrectly
-    # if used on a with clause that specifies generic type args.
-
-    if re.match(r'\s*//', lines[0]):
-        # Comment, not code.
+def update_props_or_state_mixin_usage(lines, matches, prev_lines, next_lines):
+    if re.search(regexes.COMMENT_LINE_REGEX, lines[0]):
+        # First line matched on a comment, ignore it.
         return None
 
-    combined = ''.join(lines)
-    match = re.search(regexes.WITH_PROPS_OR_STATE_MIXIN_REGEX, combined)
-    with_clause = match.group(1)
-    with_clause = re.sub(r'\s+implements[\s\S]+', '', with_clause)
+    with_started = False
+    props_or_state_mixin_found = False
+    mixins = ''
+
+    for line in lines:
+        is_comment = re.search(regexes.COMMENT_LINE_REGEX, line)
+
+        if not with_started and not is_comment and re.search(regexes.WITH_CLAUSE_START_REGEX, line):
+            with_started = True
+
+        if with_started:
+            s = re.sub(regexes.WITH_CLAUSE_START_REGEX, '', line)
+            s = re.sub(regexes.WITH_CLAUSE_END_REGEX, r'', s)
+            mixins += s
+
+            if not is_comment and re.search(regexes.PROPS_OR_STATE_MIXIN_REFERENCE_REGEX, line):
+                props_or_state_mixin_found = True
+            if not is_comment and re.search(regexes.WITH_CLAUSE_END_REGEX, line):
+                break
+
+    # Strip last trailing newline char.
+    mixins = mixins[:-1]
+
+    if not props_or_state_mixin_found:
+        return None
+
+    for line in mixins.split('\n'):
+        if re.match(r'\s*// ignore: mixin_of_non_class', line):
+            # Already updated.
+            return None
+
     replace_pattern = (
         r'\n'
-        r'    \1\2,\n'
+        r'    \1\2\3,\n'
         r'    // ignore: mixin_of_non_class, undefined_class\n'
-        r'    $\1\2'
+        r'    $\1\2\3'
     )
-    updated_with_clause = str(
-        re.sub(r'(\w+)(PropsMixin|StateMixin)', replace_pattern, with_clause))
-    updated = combined.replace(with_clause, updated_with_clause)
+    updated_mixins = str(
+        re.sub(r'(\w+)(PropsMixin|StateMixin)([<\w>]*)', replace_pattern, mixins))
+    if updated_mixins == mixins:
+        return
+
+    combined = ''.join(lines)
+    updated = re.sub(r'(\s+with[\S\s]+)' + re.escape(mixins), r'\1' + updated_mixins, combined)
+
     return util.split_lines_by_newline_but_retain_newlines(updated)
