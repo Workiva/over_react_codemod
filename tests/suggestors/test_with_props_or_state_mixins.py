@@ -112,9 +112,11 @@ abstract class FooProps
 }''')
         self.assert_num_patches_suggested(1)
         self.assert_patch_suggested(codemod.Patch(
-            start_line_number=4,
+            start_line_number=2,
             end_line_number=5,
             new_lines=[
+                'abstract class FooProps\n',
+                '    extends LongSuperClassName\n',
                 '    with \n',
                 '    FooPropsMixin,\n',
                 '    // ignore: mixin_of_non_class, undefined_class\n',
@@ -154,9 +156,10 @@ abstract class FooProps extends UiProps
 }''')
         self.assert_num_patches_suggested(1)
         self.assert_patch_suggested(codemod.Patch(
-            start_line_number=3,
+            start_line_number=2,
             end_line_number=7,
             new_lines=[
+                'abstract class FooProps extends UiProps\n',
                 '    with\n',
                 '        \n',
                 '    FooPropsMixin,\n',
@@ -179,9 +182,10 @@ abstract class FooProps extends UiProps
 }''')
         self.assert_num_patches_suggested(1)
         self.assert_patch_suggested(codemod.Patch(
-            start_line_number=3,
+            start_line_number=2,
             end_line_number=4,
             new_lines=[
+                'abstract class FooProps extends UiProps\n',
                 '    with \n',
                 '    FooPropsMixin,\n',
                 '    // ignore: mixin_of_non_class, undefined_class\n',
@@ -200,9 +204,11 @@ abstract class FooProps
 }''')
         self.assert_num_patches_suggested(1)
         self.assert_patch_suggested(codemod.Patch(
-            start_line_number=4,
+            start_line_number=2,
             end_line_number=6,
             new_lines=[
+                'abstract class FooProps\n',
+                '    extends UiProps\n',
                 '    with PreMixin, \n',
                 '    FooPropsMixin,\n',
                 '    // ignore: mixin_of_non_class, undefined_class\n',
@@ -220,9 +226,10 @@ abstract class FooProps extends UiProps
 }''')
         self.assert_num_patches_suggested(1)
         self.assert_patch_suggested(codemod.Patch(
-            start_line_number=3,
+            start_line_number=2,
             end_line_number=4,
             new_lines=[
+                'abstract class FooProps extends UiProps\n',
                 '    with PreMixin, \n',
                 '    FooPropsMixin,\n',
                 '    // ignore: mixin_of_non_class, undefined_class\n',
@@ -293,9 +300,10 @@ abstract class FooProps<P> extends UiProps
 }''')
         self.assert_num_patches_suggested(1)
         self.assert_patch_suggested(codemod.Patch(
-            start_line_number=3,
+            start_line_number=2,
             end_line_number=4,
             new_lines=[
+                'abstract class FooProps<P> extends UiProps\n',
                 '    with \n',
                 '    FooPropsMixin<P>,\n',
                 '    // ignore: mixin_of_non_class, undefined_class\n',
@@ -367,3 +375,58 @@ class FooPropsMixinView extends UiProps with FooPropsMixin {}''')
                 '    $FooPropsMixin {}\n',
             ],
         ))
+
+    def test_with_in_comment_just_before_valid_usage(self):
+        self.suggest('''library foo;
+
+@PropsMixin()
+abstract class ButtonPropsMixin {
+  /// Blah blah with blah blah.
+}
+
+@Props()
+class _$ButtonProps extends UiProps
+    with ButtonPropsMixin {}''')
+        self.assert_num_patches_suggested(1)
+        self.assert_patch_suggested(codemod.Patch(
+            start_line_number=8,
+            end_line_number=10,
+            new_lines=[
+                'class _$ButtonProps extends UiProps\n',
+                '    with \n',
+                '    ButtonPropsMixin,\n',
+                '    // ignore: mixin_of_non_class, undefined_class\n',
+                '    $ButtonPropsMixin {}\n',
+            ]
+        ))
+
+    def test_with_after_class_body_start(self):
+        self.suggest('''library foo;
+
+class _HasPropMatcher extends CustomMatcher {
+
+  _HasPropMatcher(propKey, propValue)
+      : this._propKey = propKey,
+        super('React instance with props that', 'props/attributes map', containsPair(propKey, propValue));
+
+  static bool _isValidDomPropKey(propKey) => DomPropsMixin.meta.keys.contains(propKey);
+
+  @override
+  Map featureValueOf(item) {
+    // foo
+  }
+}''')
+        self.assert_no_patches_suggested()
+
+    def test_wsd(self):
+        self.suggest('''library foo;
+
+/// A MapView with the typed getters/setters for [FormComponentDisplayPropsMixin].
+class FormComponentDisplayPropsMapView extends UiPropsMapView with
+    DomPropsMixin,
+    FormComponentDisplayPropsMixin,
+    FormComponentWrapperPropsMixin {
+  /// Create a new instance backed by the specified map.
+  FormComponentDisplayPropsMapView(Map map) : super(map);
+}''')
+        self.assert_num_patches_suggested(1)

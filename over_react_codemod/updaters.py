@@ -154,35 +154,25 @@ def update_factory(lines, match, prev_lines, next_lines):
 
 
 def update_props_or_state_mixin_usage(lines, matches, prev_lines, next_lines):
-    if re.search(regexes.COMMENT_LINE_REGEX, lines[0]):
-        # First line matched on a comment, ignore it.
-        return None
-
-    with_started = False
-    props_or_state_mixin_found = False
     mixins = ''
+    with_started = False
 
     for line in lines:
-        is_comment = re.search(regexes.COMMENT_LINE_REGEX, line)
-
-        if not with_started and not is_comment and re.search(regexes.WITH_CLAUSE_START_REGEX, line):
+        if not with_started and re.search(regexes.WITH_CLAUSE_START_REGEX, line):
             with_started = True
 
-        if with_started:
-            s = re.sub(regexes.WITH_CLAUSE_START_REGEX, '', line)
-            s = re.sub(regexes.WITH_CLAUSE_END_REGEX, r'', s)
-            mixins += s
+        if not with_started:
+            continue
 
-            if not is_comment and re.search(regexes.PROPS_OR_STATE_MIXIN_REFERENCE_REGEX, line):
-                props_or_state_mixin_found = True
-            if not is_comment and re.search(regexes.WITH_CLAUSE_END_REGEX, line):
-                break
+        s = re.sub(regexes.WITH_CLAUSE_START_REGEX, r'', line)
+        s = re.sub(regexes.WITH_CLAUSE_END_REGEX, r'', s)
+        mixins += s
+
+        if re.search(regexes.WITH_CLAUSE_END_REGEX, line):
+            break
 
     # Strip last trailing newline char.
     mixins = mixins[:-1]
-
-    if not props_or_state_mixin_found:
-        return None
 
     for line in mixins.split('\n'):
         if re.match(r'\s*// ignore: mixin_of_non_class', line):
@@ -201,6 +191,43 @@ def update_props_or_state_mixin_usage(lines, matches, prev_lines, next_lines):
         return
 
     combined = ''.join(lines)
-    updated = re.sub(r'(\s+with[\S\s]+)' + re.escape(mixins), r'\1' + updated_mixins, combined)
+    updated = re.sub(
+        r'(\s+with[\S\s]+)' + re.escape(mixins), r'\1' + updated_mixins, combined)
 
     return util.split_lines_by_newline_but_retain_newlines(updated)
+
+
+def validate_props_or_state_mixin_usage_patch(lines, matches):
+    if re.search(regexes.COMMENT_LINE_REGEX, lines[0]):
+        # First line matched on a comment, ignore it.
+        return False
+
+    # Track these so we can find a false positive where `with` may have matched
+    # outside of a class declaration.
+    with_clause_started = False
+    class_body_started = False
+
+    for line in lines:
+        is_comment = re.search(regexes.COMMENT_LINE_REGEX, line)
+        with_clause_start_match = re.search(
+            regexes.WITH_CLAUSE_START_REGEX, line)
+        class_body_start_match = re.search(
+            regexes.CLASS_BODY_BRACES_REGEX, line)
+
+        if is_comment and with_clause_start_match:
+            # with clause matched on a comment
+            return False
+
+        if is_comment:
+            continue
+
+        if not with_clause_started and with_clause_start_match:
+            with_clause_started = True
+        if not class_body_started and class_body_start_match:
+            class_body_started = True
+
+        if class_body_started and not with_clause_started:
+            # False positive. Matched on a with clause outside of the class.
+            return False
+
+    return True

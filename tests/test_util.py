@@ -166,6 +166,17 @@ class TestGetLastDirectiveLineNumber(unittest.TestCase):
         ])
         self.assertEqual(result, 4)
 
+    def test_wrapped_directive(self):
+        result = util.get_last_directive_line_number([
+            'library foo.bar;\n',
+            '\n',
+            'import "foo/bar.dart"\n',
+            '    show Baz;\n',
+            '\n',
+            'function fooBar() {}\n',
+        ])
+        self.assertEqual(result, 3)
+
 
 class TestGetLineNumberToInsertParts(unittest.TestCase):
 

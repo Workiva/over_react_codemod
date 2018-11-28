@@ -165,6 +165,26 @@ void someCode() {}
             ],
         ))
 
+    def test_after_directive_with_line_wrap(self):
+        generated_parts.libraries_that_need_generated_part_by_name.add('foo')
+        self.suggest('''library foo;
+
+import 'package:bar/bar.dart'
+    show Bar;
+
+void someCode() {}
+''', 'path/to/foo.dart')
+        self.assert_num_patches_suggested(1)
+        self.assert_patch_suggested(codemod.Patch(
+            start_line_number=4,
+            end_line_number=4,
+            new_lines=[
+                '\n',
+                '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
+                "part 'foo.overReact.g.dart';\n",
+            ],
+        ))
+
     def test_already_added(self):
         generated_parts.libraries_that_need_generated_part_by_name.add('foo')
         self.suggest('''library foo;

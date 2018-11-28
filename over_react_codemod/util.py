@@ -79,7 +79,7 @@ def find_patches_from_single_pattern(pattern, lines, updater):
             yield start, end, updated_lines
 
 
-def find_patches_from_pattern_sequence(patterns, lines, updater):
+def find_patches_from_pattern_sequence(patterns, lines, updater, validator=None):
     """
     Takes a set of single-line patterns and uses them to find all
     non-overlapping subsets of lines that match all of the patterns in order.
@@ -106,7 +106,9 @@ def find_patches_from_pattern_sequence(patterns, lines, updater):
     patch_lines_by_number = OrderedDict()
     patch_matches = []
 
-    for line_number, line in enumerate(lines):
+    line_number = 0
+    while line_number < len(lines):
+        line = lines[line_number]
         while re.search(patterns[current_pattern_i], line):
             match = re.search(patterns[current_pattern_i], line)
             patch_lines_by_number[line_number] = line
@@ -116,6 +118,20 @@ def find_patches_from_pattern_sequence(patterns, lines, updater):
                 patch_start = line_number
 
             if patterns[current_pattern_i] == patterns[-1]:
+                patch_lines = patch_lines_by_number.values()
+                if validator and not validator(patch_lines, patch_matches):
+                    # False positive. Ignore this patch and move the iterator
+                    # back to the start of this patch. The end of the outer loop
+                    # will then increment, effectively starting the search over
+                    # at the line just after the start of this patch.
+                    line_number = patch_start
+                    current_pattern_i = 0
+                    patch_start = None
+                    patch_end = None
+                    patch_lines_by_number = OrderedDict()
+                    patch_matches = []
+                    break
+
                 patch_end = line_number + 1
                 updated_lines = updater(
                     patch_lines_by_number.values(),
@@ -125,17 +141,19 @@ def find_patches_from_pattern_sequence(patterns, lines, updater):
                 )
                 if updated_lines is not None:
                     yield patch_start, patch_end, updated_lines
+                current_pattern_i = 0
                 patch_start = None
                 patch_end = None
                 patch_lines_by_number = OrderedDict()
                 patch_matches = []
-                current_pattern_i = 0
                 break
 
             current_pattern_i += 1
 
         if patch_start is not None:
             patch_lines_by_number[line_number] = line
+
+        line_number += 1
 
 
 def finditer_with_line_numbers(pattern, string, flags=0):
@@ -170,7 +188,11 @@ def get_last_directive_line_number(lines):
     for line_number, line in enumerate(lines):
         match = re.search(regexes.DIRECTIVE_REGEX, line)
         if match:
-            last_directive_line_number = line_number
+            directive_end_line_number = line_number
+            while not lines[directive_end_line_number].endswith(';\n'):
+                directive_end_line_number += 1
+            last_directive_line_number = directive_end_line_number
+
     return last_directive_line_number
 
 
