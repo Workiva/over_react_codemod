@@ -11,15 +11,15 @@ class TestBuildGeneratedPartFilename(unittest.TestCase):
 
     def test_file(self):
         result = util.build_generated_part_filename('test_file.dart')
-        self.assertEqual(result, 'test_file.overReact.g.dart')
+        self.assertEqual(result, 'test_file.over_react.g.dart')
 
     def test_no_parent_dir(self):
         result = util.build_generated_part_filename('./test_file.dart')
-        self.assertEqual(result, 'test_file.overReact.g.dart')
+        self.assertEqual(result, 'test_file.over_react.g.dart')
 
     def test_multiple_parent_dirs(self):
         result = util.build_generated_part_filename('./foo/bar/test_file.dart')
-        self.assertEqual(result, 'test_file.overReact.g.dart')
+        self.assertEqual(result, 'test_file.over_react.g.dart')
 
 
 class TestBuildLibraryNameFromPath(unittest.TestCase):

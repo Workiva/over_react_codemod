@@ -42,7 +42,7 @@ class FooProps extends UiProps {
             end_line_number=8,
             new_lines=[
                 '\n',
-                '// AF-#### This will be removed once the transition to Dart 2 is complete.\n',
+                '// AF-3369 This will be removed once the transition to Dart 2 is complete.\n',
                 '// ignore: mixin_of_non_class, undefined_class\n',
                 'class FooProps extends _$FooProps with _$FooPropsAccessorsMixin {\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
@@ -66,7 +66,7 @@ abstract class FooProps extends UiProps {
             end_line_number=8,
             new_lines=[
                 '\n',
-                '// AF-#### This will be removed once the transition to Dart 2 is complete.\n',
+                '// AF-3369 This will be removed once the transition to Dart 2 is complete.\n',
                 '// ignore: mixin_of_non_class, undefined_class\n',
                 'abstract class FooProps extends _$FooProps with _$FooPropsAccessorsMixin {\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
@@ -90,7 +90,7 @@ class FooState extends UiState {
             end_line_number=8,
             new_lines=[
                 '\n',
-                '// AF-#### This will be removed once the transition to Dart 2 is complete.\n',
+                '// AF-3369 This will be removed once the transition to Dart 2 is complete.\n',
                 '// ignore: mixin_of_non_class, undefined_class\n',
                 'class FooState extends _$FooState with _$FooStateAccessorsMixin {\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
@@ -114,7 +114,7 @@ abstract class FooState extends UiState {
             end_line_number=8,
             new_lines=[
                 '\n',
-                '// AF-#### This will be removed once the transition to Dart 2 is complete.\n',
+                '// AF-3369 This will be removed once the transition to Dart 2 is complete.\n',
                 '// ignore: mixin_of_non_class, undefined_class\n',
                 'abstract class FooState extends _$FooState with _$FooStateAccessorsMixin {\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
@@ -138,7 +138,7 @@ class FooProps extends UiProps {
             end_line_number=8,
             new_lines=[
                 '\n',
-                '// AF-#### This will be removed once the transition to Dart 2 is complete.\n',
+                '// AF-3369 This will be removed once the transition to Dart 2 is complete.\n',
                 '// ignore: mixin_of_non_class, undefined_class\n',
                 'class FooProps extends _$FooProps with _$FooPropsAccessorsMixin {\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
@@ -163,7 +163,7 @@ class FooProps extends UiProps {
             end_line_number=9,
             new_lines=[
                 '\n',
-                '// AF-#### This will be removed once the transition to Dart 2 is complete.\n',
+                '// AF-3369 This will be removed once the transition to Dart 2 is complete.\n',
                 '// ignore: mixin_of_non_class, undefined_class\n',
                 'class FooProps extends _$FooProps with _$FooPropsAccessorsMixin {\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
@@ -188,7 +188,7 @@ class FooProps extends UiProps {
 #             end_line_number=8,
 #             new_lines=[
 #                 '\n',
-#                 '// AF-#### This will be removed once the transition to Dart 2 is complete.\n',
+#                 '// AF-3369 This will be removed once the transition to Dart 2 is complete.\n',
 #                 '// ignore: mixin_of_non_class, undefined_class\n',
 #                 'class FooProps<T extends Iterable, Foo<U>> extends _$FooProps with _$FooPropsAccessorsMixin {\n',
 #                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
@@ -212,7 +212,7 @@ class _$FooProps extends UiProps {
             end_line_number=8,
             new_lines=[
                 '\n',
-                '// AF-#### This will be removed once the transition to Dart 2 is complete.\n',
+                '// AF-3369 This will be removed once the transition to Dart 2 is complete.\n',
                 '// ignore: mixin_of_non_class, undefined_class\n',
                 'class FooProps extends _$FooProps with _$FooPropsAccessorsMixin {\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',

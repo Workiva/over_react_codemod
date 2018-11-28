@@ -44,7 +44,7 @@ def add_public_props_or_state_class_boilerplate(lines, matches, prev_lines, next
 
     return [
         '\n',
-        '// AF-#### This will be removed once the transition to Dart 2 is complete.\n',
+        '// AF-3369 This will be removed once the transition to Dart 2 is complete.\n',
         '// ignore: mixin_of_non_class, undefined_class\n',
         '%s {\n' % public_class_signature,
         util.get_meta_const_ignore_line(),
@@ -122,7 +122,7 @@ def rename_props_or_state_mixin(lines, match, prev_lines, next_lines):
     updated = re.sub(pattern, 'class $%s' % class_name, combined)
     updated_lines = util.split_lines_by_newline_but_retain_newlines(updated)
     updated_lines.insert(
-        1, '// AF-#### This will be made private once the transition to Dart 2 is complete.\n')
+        1, '// AF-3369 This will be made private once the transition to Dart 2 is complete.\n')
     return updated_lines
 
 

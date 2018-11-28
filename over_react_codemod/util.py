@@ -16,11 +16,11 @@ def build_generated_part_filename(path):
     For a given file path, return the filename for the accompanying generated part.
 
     >>> build_generated_part_filename('./foo/bar/baz.dart')
-    'baz.overReact.g.dart'
+    'baz.over_react.g.dart'
     """
     return re.sub(
         regexes.DART_EXTENSION_REGEX,
-        '.overReact.g.dart',
+        '.over_react.g.dart',
         os.path.basename(path),
     )
 

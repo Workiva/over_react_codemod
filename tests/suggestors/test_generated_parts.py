@@ -84,7 +84,7 @@ class TestGeneratedPartsSuggestor(CodemodPatchTestCase):
             new_lines=[
                 '\n',
                 '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
-                "part 'foo.overReact.g.dart';\n",
+                "part 'foo.over_react.g.dart';\n",
             ],
         ))
 
@@ -99,7 +99,7 @@ class TestGeneratedPartsSuggestor(CodemodPatchTestCase):
             new_lines=[
                 '\n',
                 '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
-                "part 'foo.overReact.g.dart';\n",
+                "part 'foo.over_react.g.dart';\n",
             ],
         ))
 
@@ -120,7 +120,7 @@ void someCode() {}
             new_lines=[
                 '\n',
                 '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
-                "part 'foo.overReact.g.dart';\n",
+                "part 'foo.over_react.g.dart';\n",
             ],
         ))
 
@@ -141,7 +141,7 @@ void someCode() {}
             new_lines=[
                 '\n',
                 '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
-                "part 'foo.overReact.g.dart';\n",
+                "part 'foo.over_react.g.dart';\n",
             ],
         ))
 
@@ -161,7 +161,7 @@ void someCode() {}
             new_lines=[
                 '\n',
                 '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
-                "part 'foo.overReact.g.dart';\n",
+                "part 'foo.over_react.g.dart';\n",
             ],
         ))
 
@@ -181,7 +181,7 @@ void someCode() {}
             new_lines=[
                 '\n',
                 '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
-                "part 'foo.overReact.g.dart';\n",
+                "part 'foo.over_react.g.dart';\n",
             ],
         ))
 
@@ -189,7 +189,7 @@ void someCode() {}
         generated_parts.libraries_that_need_generated_part_by_name.add('foo')
         self.suggest('''library foo;
 
-part 'foo.overReact.g.dart';
+part 'foo.over_react.g.dart';
 
 void someCode() {}
 ''', 'path/to/foo.dart')
