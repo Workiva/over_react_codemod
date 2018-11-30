@@ -1,1 +1,4 @@
-over_react_codemod.egg-info
+/build/
+/dist/
+/over_react_codemod.egg-info/
+/over_react_migrate_to_dart1_and_dart2.spec

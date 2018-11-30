@@ -19,5 +19,5 @@ setup(
     url='https://github.com/Workiva/over_react_codemod',
     license=license,
     packages=['over_react_codemod'],
-    scripts=['bin/migrate_to_dart1_and_dart2.py'],
+    scripts=['bin/over_react_migrate_to_dart1_and_dart2.py'],
 )
