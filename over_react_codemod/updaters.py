@@ -54,7 +54,7 @@ def add_public_props_or_state_class_boilerplate(lines, matches, prev_lines, next
 
 
 def insert_props_or_state_meta(lines, matches, prev_lines, next_lines):
-    for line in next_lines[:3]:
+    for line in next_lines[:6]:
         if re.match(r'\s*static const (Props|State)Meta meta =', line):
             # Already updated.
             return None
@@ -82,6 +82,8 @@ def insert_props_or_state_meta(lines, matches, prev_lines, next_lines):
 
         new_lines.extend([
             line,
+            '  // To ensure the codemod regression checking works properly, please keep this\n',
+            '  // field at the top of the class!\n',
             '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
             '  %s\n' % util.get_props_or_state_meta_const(
                 class_name, meta_type),
@@ -99,6 +101,9 @@ def rename_props_or_state_class(lines, matches, prev_lines, next_lines):
         # Class has already been renamed.
         return lines
 
+    is_private = class_name.startswith('_')
+    new_name = '_$%s' % (class_name[1:] if is_private else class_name)
+
     new_lines = []
     for line in lines:
         if not line.startswith(class_decl_line):
@@ -106,7 +111,7 @@ def rename_props_or_state_class(lines, matches, prev_lines, next_lines):
             continue
 
         updated_line = line.replace(
-            'class %s' % class_name, 'class _$%s' % class_name)
+            'class %s' % class_name, 'class %s' % new_name)
         new_lines.append(updated_line)
 
     return new_lines
@@ -147,8 +152,10 @@ def update_dollar_prop_keys(lines, match, prev_lines, next_lines):
 def update_factory(lines, match, prev_lines, next_lines):
     combined = ''.join(lines)
     factory_name = match.group(1)
+    is_private = factory_name.startswith('_')
+    initializer = '_$%s' % factory_name[1:] if is_private else '$%s' % factory_name
     updated = combined.replace(
-        '%s;' % factory_name, '%s = $%s;' % (factory_name, factory_name))
+        '%s;' % factory_name, '%s = %s;' % (factory_name, initializer))
     updated = '// ignore: undefined_identifier\n' + updated
     return util.split_lines_by_newline_but_retain_newlines(updated)
 

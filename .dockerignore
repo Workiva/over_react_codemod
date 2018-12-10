@@ -1,3 +1,4 @@
-/build/
-/dist/
-/over_react_codemod.egg-info/
+.git/
+build/
+dist/
+over_react_codemod.egg-info/

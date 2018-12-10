@@ -18,7 +18,6 @@ def collect_libraries_suggestor(lines, path):
 
     if parent_library_uri:
         # This file is a part file and has a parent library referenced by uri.
-
         if parent_library_uri.startswith('package:'):
             parent_library_relpath = util.convert_part_of_uri_to_relpath(parent_library_uri)
         else:
@@ -60,24 +59,10 @@ def generated_parts_suggestor(lines, path):
     if generated_part_filename in existing_part_paths:
         return
 
-    # Not necessary if we use a path to reference this parent from the generated part.
-    # # In order to add a part directive, this file will need a library directive.
-    # # Add one if it's missing.
-    # if not library_name:
-    #     library_name = util.build_library_name_from_path(path)
-    #     yield codemod.Patch(
-    #         start_line_number=0,
-    #         end_line_number=0,
-    #         new_lines=[
-    #             'library %s;\n' % library_name,
-    #             '\n',
-    #         ],
-    #     )
-
     line_number_to_insert_parts = util.get_line_number_to_insert_parts(lines)
     new_lines = [
         '\n',
-        '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
+        '// ignore: uri_has_not_been_generated\n',
         "part '%s';\n" % generated_part_filename,
     ]
 

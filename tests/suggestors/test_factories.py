@@ -83,6 +83,21 @@ UiFactory<Foo_Props<$Bar>> Foo_Bar;''')
             ],
         ))
 
+    def test_private(self):
+        self.suggest('''library foo;
+
+@Factory()
+UiFactory<_PrivateFooProps> _PrivateFoo;''')
+
+        self.assert_num_patches_suggested(1)
+        self.assert_patch_suggested(codemod.Patch(
+            start_line_number=3,
+            new_lines=[
+                '// ignore: undefined_identifier\n',
+                'UiFactory<_PrivateFooProps> _PrivateFoo = _$PrivateFoo;\n',
+            ],
+        ))
+
     def test_commented_out(self):
         self.suggest('''library foo;
 

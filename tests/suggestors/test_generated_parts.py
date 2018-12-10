@@ -83,7 +83,7 @@ class TestGeneratedPartsSuggestor(CodemodPatchTestCase):
             end_line_number=1,
             new_lines=[
                 '\n',
-                '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
+                '// ignore: uri_has_not_been_generated\n',
                 "part 'foo.over_react.g.dart';\n",
             ],
         ))
@@ -98,7 +98,7 @@ class TestGeneratedPartsSuggestor(CodemodPatchTestCase):
             end_line_number=1,
             new_lines=[
                 '\n',
-                '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
+                '// ignore: uri_has_not_been_generated\n',
                 "part 'foo.over_react.g.dart';\n",
             ],
         ))
@@ -119,7 +119,7 @@ void someCode() {}
             end_line_number=5,
             new_lines=[
                 '\n',
-                '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
+                '// ignore: uri_has_not_been_generated\n',
                 "part 'foo.over_react.g.dart';\n",
             ],
         ))
@@ -140,7 +140,7 @@ void someCode() {}
             end_line_number=5,
             new_lines=[
                 '\n',
-                '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
+                '// ignore: uri_has_not_been_generated\n',
                 "part 'foo.over_react.g.dart';\n",
             ],
         ))
@@ -160,7 +160,7 @@ void someCode() {}
             end_line_number=4,
             new_lines=[
                 '\n',
-                '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
+                '// ignore: uri_has_not_been_generated\n',
                 "part 'foo.over_react.g.dart';\n",
             ],
         ))
@@ -180,7 +180,7 @@ void someCode() {}
             end_line_number=4,
             new_lines=[
                 '\n',
-                '// ignore: uri_does_not_exist, uri_has_not_been_generated\n',
+                '// ignore: uri_has_not_been_generated\n',
                 "part 'foo.over_react.g.dart';\n",
             ],
         ))

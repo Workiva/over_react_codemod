@@ -43,6 +43,8 @@ class FooPropsMixin implements UiProps {
             new_lines=[
                 '@PropsMixin()\n',
                 'class FooPropsMixin implements UiProps {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const PropsMeta meta = $metaForFooPropsMixin;\n',
                 '\n',
@@ -65,6 +67,8 @@ abstract class FooPropsMixin implements UiProps {
             new_lines=[
                 '@PropsMixin()\n',
                 'abstract class FooPropsMixin implements UiProps {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const PropsMeta meta = $metaForFooPropsMixin;\n',
                 '\n',
@@ -87,6 +91,8 @@ class FooStateMixin implements UiState {
             new_lines=[
                 '@StateMixin()\n',
                 'class FooStateMixin implements UiState {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const StateMeta meta = $metaForFooStateMixin;\n',
                 '\n',
@@ -109,6 +115,8 @@ abstract class FooStateMixin implements UiState {
             new_lines=[
                 '@StateMixin()\n',
                 'abstract class FooStateMixin implements UiState {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const StateMeta meta = $metaForFooStateMixin;\n',
                 '\n',
@@ -131,6 +139,8 @@ class FooPropsMixin implements UiProps {
             new_lines=[
                 "@PropsMixin(keyNamespace: 'test')\n",
                 'class FooPropsMixin implements UiProps {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const PropsMeta meta = $metaForFooPropsMixin;\n',
                 '\n',
@@ -155,6 +165,8 @@ class FooPropsMixin implements UiProps {
                 '@PropsMixin()\n',
                 "@Deprecated('3.0.0')\n",
                 'class FooPropsMixin implements UiProps {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const PropsMeta meta = $metaForFooPropsMixin;\n',
                 '\n',
@@ -177,6 +189,8 @@ class FooPropsMixin<T extends Iterable, Foo<U>> implements UiProps {
             new_lines=[
                 '@PropsMixin()\n',
                 'class FooPropsMixin<T extends Iterable, Foo<U>> implements UiProps {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const PropsMeta meta = $metaForFooPropsMixin;\n',
                 '\n',
@@ -195,6 +209,8 @@ class FooPropsMixin implements UiProps {}''')
             new_lines=[
                 '@PropsMixin()\n',
                 'class FooPropsMixin implements UiProps {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const PropsMeta meta = $metaForFooPropsMixin;\n',
                 '}\n',
@@ -217,6 +233,8 @@ class $Foo_PropsMixin implements UiProps {
             new_lines=[
                 '@PropsMixin()\n',
                 'class $Foo_PropsMixin implements UiProps {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const PropsMeta meta = $metaFor$Foo_PropsMixin;\n',
                 '\n',
@@ -239,6 +257,8 @@ class _FooPropsMixin implements UiProps {
             new_lines=[
                 '@PropsMixin()\n',
                 'class _FooPropsMixin implements UiProps {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const PropsMeta meta = $metaFor_FooPropsMixin;\n',
                 '\n',
@@ -261,6 +281,8 @@ class FooPropsMixin {
             new_lines=[
                 '@PropsMixin()\n',
                 'class FooPropsMixin {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const PropsMeta meta = $metaForFooPropsMixin;\n',
                 '\n',
@@ -289,6 +311,8 @@ class FooPropsMixin implements
                 '    UiProps,\n',
                 '    BarPropsInterface,\n',
                 '    BazPropsInterface {\n',
+                '  // To ensure the codemod regression checking works properly, please keep this\n',
+                '  // field at the top of the class!\n',
                 '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
                 '  static const PropsMeta meta = $metaForFooPropsMixin;\n',
                 '\n',
@@ -300,6 +324,8 @@ class FooPropsMixin implements
 
 @PropsMixin()
 class FooPropsMixin implements UiProps {
+  // To ensure the codemod regression checking works properly, please keep this
+  // field at the top of the class!
   // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
   static const PropsMeta meta = $metaForFooPropsMixin;
 
@@ -317,6 +343,8 @@ class FooProps extends _$FooProps with _$FooPropsAccessorsMixin {}''')
 @PropsMixin()
 class FooPropsMixin implements UiProps {
 
+  // To ensure the codemod regression checking works properly, please keep this
+  // field at the top of the class!
   // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
   static const PropsMeta meta = $metaForFooPropsMixin;
 

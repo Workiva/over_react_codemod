@@ -159,6 +159,8 @@ def find_patches_from_pattern_sequence(patterns, lines, updater, validator=None)
 def finditer_with_line_numbers(pattern, string, flags=0):
     """
     A version of 're.finditer' that returns '(match, line_number)' pairs.
+
+    Source: https://stackoverflow.com/a/45142535 with some slight modifications.
     """
     matches = list(re.finditer(pattern, string, flags))
     if not matches:
