@@ -61,6 +61,12 @@ class CollectLibrariesSuggestor(CodemodPatchTestCase):
 
 class TestGeneratedPartsSuggestor(CodemodPatchTestCase):
 
+    EXPECTED_NEW_LINES=[
+        '\n',
+        '// ignore: uri_has_not_been_generated\n',
+        "part 'foo.over_react.g.dart';\n",
+    ]
+
     def setUp(self):
         super(TestGeneratedPartsSuggestor, self).setUp()
         generated_parts.libraries_that_need_generated_part_by_name = set([])
@@ -81,11 +87,7 @@ class TestGeneratedPartsSuggestor(CodemodPatchTestCase):
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=1,
             end_line_number=1,
-            new_lines=[
-                '\n',
-                '// ignore: uri_has_not_been_generated\n',
-                "part 'foo.over_react.g.dart';\n",
-            ],
+            new_lines=self.EXPECTED_NEW_LINES,
         ))
 
     def test_referenced_by_path(self):
@@ -96,11 +98,7 @@ class TestGeneratedPartsSuggestor(CodemodPatchTestCase):
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=1,
             end_line_number=1,
-            new_lines=[
-                '\n',
-                '// ignore: uri_has_not_been_generated\n',
-                "part 'foo.over_react.g.dart';\n",
-            ],
+            new_lines=self.EXPECTED_NEW_LINES,
         ))
 
     def test_after_imports(self):
@@ -117,11 +115,7 @@ void someCode() {}
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=5,
             end_line_number=5,
-            new_lines=[
-                '\n',
-                '// ignore: uri_has_not_been_generated\n',
-                "part 'foo.over_react.g.dart';\n",
-            ],
+            new_lines=self.EXPECTED_NEW_LINES,
         ))
 
     def test_after_exports(self):
@@ -138,11 +132,7 @@ void someCode() {}
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=5,
             end_line_number=5,
-            new_lines=[
-                '\n',
-                '// ignore: uri_has_not_been_generated\n',
-                "part 'foo.over_react.g.dart';\n",
-            ],
+            new_lines=self.EXPECTED_NEW_LINES,
         ))
 
     def test_after_parts(self):
@@ -158,11 +148,7 @@ void someCode() {}
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=4,
             end_line_number=4,
-            new_lines=[
-                '\n',
-                '// ignore: uri_has_not_been_generated\n',
-                "part 'foo.over_react.g.dart';\n",
-            ],
+            new_lines=self.EXPECTED_NEW_LINES,
         ))
 
     def test_after_directive_with_line_wrap(self):
@@ -178,11 +164,7 @@ void someCode() {}
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=4,
             end_line_number=4,
-            new_lines=[
-                '\n',
-                '// ignore: uri_has_not_been_generated\n',
-                "part 'foo.over_react.g.dart';\n",
-            ],
+            new_lines=self.EXPECTED_NEW_LINES,
         ))
 
     def test_already_added(self):
