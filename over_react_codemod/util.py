@@ -206,8 +206,10 @@ def get_line_number_to_insert_parts(lines):
 
 
 def get_props_or_state_meta_const(class_name, meta_type):
-    return 'static const {meta_type} meta = $metaFor{class_name};'.format(
-        class_name=class_name,
+    is_private = class_name.startswith('_')
+    initializer = '_$metaFor%s' % class_name[1:] if is_private else '$metaFor%s' % class_name
+    return 'static const {meta_type} meta = {initializer};'.format(
+        initializer=initializer,
         meta_type=meta_type,
     )
 
@@ -276,9 +278,15 @@ def parse_part_paths(lines):
             yield match.group(1)
 
 
+def prefix_name(name, private=True):
+    prefix = '_$' if private else '$'
+    is_aleady_private = name.startswith('_')
+    return prefix + (name[1:] if is_aleady_private else name)
+
+
 def search_pattern_over_one_or_two_lines(pattern, lines):
     prev_line = None
-    for i, line in enumerate(lines):
+    for line in lines:
         # First, search over the single line
         match = re.search(pattern, line)
         if match:

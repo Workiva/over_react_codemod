@@ -171,6 +171,29 @@ class FooProps extends UiProps {
                 '}\n',
             ],
         ))
+    
+    def test_private_class(self):
+        self.suggest('''library foo;
+
+@Props()
+class _FooProps extends UiProps {
+    String prop1;
+}''')
+
+        self.assert_num_patches_suggested(1)
+        self.assert_patch_suggested(codemod.Patch(
+            start_line_number=6,
+            end_line_number=6,
+            new_lines=[
+                '\n',
+                '// AF-3369 This will be removed once the transition to Dart 2 is complete.\n',
+                '// ignore: mixin_of_non_class, undefined_class\n',
+                'class _FooProps extends _$FooProps with _$FooPropsAccessorsMixin {\n',
+                '  // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value\n',
+                '  static const PropsMeta meta = _$metaForFooProps;\n',
+                '}\n',
+            ],
+        ))
 
 # TODO: generics not currently supported
 #     def test_generics(self):

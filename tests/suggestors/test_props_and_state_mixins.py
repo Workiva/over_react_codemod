@@ -246,7 +246,7 @@ class _FooPropsMixin implements UiProps {
                 '@PropsMixin()\n',
                 'class _FooPropsMixin implements UiProps {\n',
             ] + self.EXPECTED_COMMENT_LINES + [
-                '  static const PropsMeta meta = $metaFor_FooPropsMixin;\n',
+                '  static const PropsMeta meta = _$metaForFooPropsMixin;\n',
                 '\n',
             ],
         ))
