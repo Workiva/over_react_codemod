@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sys import exit
+from argparse import ArgumentParser
+import sys
 
 import codemod
 
@@ -40,21 +41,36 @@ suggestors = [
 ]
 
 
-def main(check=False):
+def main():
+    parser = ArgumentParser()
+    check_help = ''.join([
+        'checks for regressions or missed changes instead of actually making ',
+        'changes; sets exit code to zero if nothing found and non-zero otherwise',
+    ])
+    parser.add_argument('-c', '--check', action='store_true',
+                        default=False, help=check_help)
+    args = parser.parse_args()
+
     num_changes_needed = 0
 
     global suggestors
     for suggestor in suggestors:
         query = codemod.Query(suggestor, path_filter=is_dart_file)
 
-        if check:
-            num_changes_needed += len(query.generate_patches())
+        if args.check:
+            num_changes_needed += len(list(query.generate_patches()))
         else:
             codemod.run_interactive(query)
 
-    if check and num_changes_needed > 0:
-        print('Failed: %d changes needed.' % num_changes_needed)
-        exit(1)
+    if args.check:
+        if num_changes_needed > 0:
+            print('Failed: %d changes needed.' % num_changes_needed)
+            return 1
+        else:
+            print('Passed. No changes needed.')
+
+    return 0
+
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
