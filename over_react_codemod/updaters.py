@@ -35,12 +35,15 @@ def add_public_props_or_state_class_boilerplate(lines, matches, prev_lines, next
         options = [
             'abstract class %s ' % class_name,
             'abstract class %s<' % class_name,
+            'abstract class _%s ' % class_name,
+            'abstract class _%s<' % class_name,
             'class %s ' % class_name,
             'class %s<' % class_name,
+            'class _%s ' % class_name,
+            'class _%s<' % class_name,
         ]
         for option in options:
             if line.startswith(option):
-                # if re.match(r'(abstract\s+)?class\s+' + class_name + r'[\s<]', line):
                 # Accompanying class already added.
                 return None
 

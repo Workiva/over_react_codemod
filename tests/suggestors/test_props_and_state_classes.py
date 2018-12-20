@@ -270,6 +270,19 @@ class _$FooProps extends UiProps {
 
 class FooProps extends _$FooProps with _$FooPropsAccessorsMixin {}''')
         self.assert_no_patches_suggested()
+    
+    def test_private_already_added(self):
+        self.suggest('''library foo;
+
+@Props()
+class _$FooProps extends UiProps {
+    String prop1;
+
+    bool prop2;
+}
+
+class _FooProps extends _$FooProps with _$FooPropsAccessorsMixin {}''')
+        self.assert_no_patches_suggested()
 
 
 class TestPropsAndStateClassesRenameSuggestor(CodemodPatchTestCase):
