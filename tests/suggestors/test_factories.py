@@ -20,7 +20,7 @@ import re
 import unittest
 
 
-class TestDollarPropsSuggestor(CodemodPatchTestCase):
+class TestFactoriesSuggestor(CodemodPatchTestCase):
 
     @property
     def suggestor(self):
@@ -47,8 +47,9 @@ UiFactory<FooProps> Foo;''')
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=3,
             new_lines=[
-                '// ignore: undefined_identifier\n',
-                'UiFactory<FooProps> Foo = $Foo;\n',
+                'UiFactory<FooProps> Foo =\n',
+                '    // ignore: undefined_identifier\n',
+                '    $Foo;\n',
             ],
         ))
 
@@ -62,8 +63,9 @@ UiFactory Foo;''')
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=3,
             new_lines=[
-                '// ignore: undefined_identifier\n',
-                'UiFactory Foo = $Foo;\n',
+                'UiFactory Foo =\n',
+                '    // ignore: undefined_identifier\n',
+                '    $Foo;\n',
             ],
         ))
 
@@ -77,8 +79,9 @@ UiFactory<FooProps<Bar>> Foo;''')
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=3,
             new_lines=[
-                '// ignore: undefined_identifier\n',
-                'UiFactory<FooProps<Bar>> Foo = $Foo;\n',
+                'UiFactory<FooProps<Bar>> Foo =\n',
+                '    // ignore: undefined_identifier\n',
+                '    $Foo;\n',
             ],
         ))
 
@@ -92,8 +95,9 @@ UiFactory<Foo_Props<$Bar>> Foo_Bar;''')
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=3,
             new_lines=[
-                '// ignore: undefined_identifier\n',
-                'UiFactory<Foo_Props<$Bar>> Foo_Bar = $Foo_Bar;\n',
+                'UiFactory<Foo_Props<$Bar>> Foo_Bar =\n',
+                '    // ignore: undefined_identifier\n',
+                '    $Foo_Bar;\n',
             ],
         ))
 
@@ -107,8 +111,9 @@ UiFactory<_PrivateFooProps> _PrivateFoo;''')
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=3,
             new_lines=[
-                '// ignore: undefined_identifier\n',
-                'UiFactory<_PrivateFooProps> _PrivateFoo = _$PrivateFoo;\n',
+                'UiFactory<_PrivateFooProps> _PrivateFoo =\n',
+                '    // ignore: undefined_identifier\n',
+                '    _$PrivateFoo;\n',
             ],
         ))
 
@@ -131,8 +136,9 @@ UiFactory<FooProps> Foo;''')
         self.assert_patch_suggested(codemod.Patch(
             start_line_number=4,
             new_lines=[
-                '// ignore: undefined_identifier\n',
-                'UiFactory<FooProps> Foo = $Foo;\n',
+                'UiFactory<FooProps> Foo =\n',
+                '    // ignore: undefined_identifier\n',
+                '    $Foo;\n',
             ],
         ))
 
@@ -141,4 +147,13 @@ UiFactory<FooProps> Foo;''')
 
 @Factory()
 UiFactory<FooProps> Foo = $Foo;''')
+        self.assert_no_patches_suggested()
+    
+    def test_already_initialized_newline_with_comment(self):
+        self.suggest('''library foo;
+
+@Factory()
+UiFactory<FooProps> Foo =\n
+    // ignore: undefined_identifier\n
+    $Foo;''')
         self.assert_no_patches_suggested()
