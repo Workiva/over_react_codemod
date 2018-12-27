@@ -51,10 +51,9 @@ def add_public_props_or_state_class_boilerplate(lines, matches, prev_lines, next
     accessors_mixin_name = util.prefix_name(class_name + 'AccessorsMixin')
     meta_type = util.get_meta_type(annotation)
 
-    public_class_signature = '{abstract}class {class_name} extends {super_class_name} with {mixin_name}'.format(
+    class_signature = '{abstract}class {class_name} extends {super_class_name}'.format(
         abstract='abstract ' if is_abstract else '',
         class_name=class_name,
-        mixin_name=accessors_mixin_name,
         super_class_name=class_rename,
     )
     props_meta_impl = util.get_props_or_state_meta_const(class_name, meta_type)
@@ -62,8 +61,10 @@ def add_public_props_or_state_class_boilerplate(lines, matches, prev_lines, next
     return [
         '\n',
         '// AF-3369 This will be removed once the transition to Dart 2 is complete.\n',
-        '// ignore: mixin_of_non_class, undefined_class\n',
-        '%s {\n' % public_class_signature,
+        '%s\n' % class_signature,
+        '    with\n',
+        '        // ignore: mixin_of_non_class, undefined_class\n',
+        '        %s {\n' % accessors_mixin_name,
         util.get_meta_const_ignore_line(),
         '  %s\n' % props_meta_impl,
         '}\n',
@@ -171,9 +172,9 @@ def update_factory(lines, match, prev_lines, next_lines):
     factory_name = match.group(1)
     is_private = factory_name.startswith('_')
     initializer = '_$%s' % factory_name[1:] if is_private else '$%s' % factory_name
+    ignore_comment = '// ignore: undefined_identifier'
     updated = combined.replace(
-        '%s;' % factory_name, '%s = %s;' % (factory_name, initializer))
-    updated = '// ignore: undefined_identifier\n' + updated
+        '%s;' % factory_name, '%s =\n    %s\n    %s;' % (factory_name, ignore_comment, initializer))
     return util.split_lines_by_newline_but_retain_newlines(updated)
 
 
