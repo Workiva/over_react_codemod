@@ -7,13 +7,8 @@ import '../../util.dart';
 class PropsAndStateMixinMetaAdder extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  bool _hasStaticMetaField;
-
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    // Reset this flag, as it is specific to each source file/compilation unit.
-    _hasStaticMetaField = false;
-
     // Only looking for @PropsMixin() and @StateMixin() classes.
     String metaType;
     final isOverReactMixin = node.metadata.any((annotation) {
@@ -28,27 +23,36 @@ class PropsAndStateMixinMetaAdder extends RecursiveAstVisitor
       return;
     }
 
-    // Recurse here so that the class fields are visited.
-    super.visitClassDeclaration(node);
+    final targetMetaInitializer = '\$metaFor${node.name.name}';
 
-    if (_hasStaticMetaField) {
-      return;
+    final existingMetaField = node.getField('meta');
+    if (existingMetaField == null) {
+      // Meta field needs to be added.
+      final ignoreComment = buildIgnoreComment(
+        constInitializedWithNonConstantValue: true,
+        undefinedClass: true,
+        undefinedIdentifier: true,
+      );
+      yieldPatch(
+        node.leftBracket.end,
+        node.leftBracket.end,
+        [
+          '',
+          '  $ignoreComment',
+          '  static const $metaType meta = $targetMetaInitializer;',
+          '',
+        ].join('\n'),
+      );
+    } else {
+      // Meta field already exists.
+      if (existingMetaField.initializer.toSource() != targetMetaInitializer) {
+        // But, it isn't initialized correctly, so update it.
+        yieldPatch(
+          existingMetaField.initializer.offset,
+          existingMetaField.initializer.end,
+          targetMetaInitializer,
+        );
+      }
     }
-
-    final ignoreComment = buildIgnoreComment(
-      constInitializedWithNonConstantValue: true,
-      undefinedClass: true,
-      undefinedIdentifier: true,
-    );
-    yieldPatch(
-      node.leftBracket.end,
-      node.leftBracket.end,
-      [
-        '',
-        '  $ignoreComment',
-        '  static const $metaType meta = \$metaFor${node.name.name};',
-        '',
-      ].join('\n'),
-    );
   }
 }

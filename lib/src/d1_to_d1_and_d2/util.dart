@@ -1,6 +1,8 @@
 /// Utility functions that are specific to the Dart1 -> Dart1/Dart2 codemod.
 library over_react_codemod.src.d1_to_d1_and_d2.util;
 
+import 'package:analyzer/analyzer.dart';
+
 import '../constants.dart';
 import '../util.dart';
 
@@ -28,7 +30,7 @@ String buildPropsCompanionClass(
   String annotations,
   String commentPrefix,
   String docComment,
-  String typeParameters,
+  TypeParameterList typeParameters,
 }) =>
     _buildPropsOrStateCompanionClass(className, propsMetaType,
         annotations: annotations,
@@ -57,7 +59,7 @@ String buildStateCompanionClass(
   String annotations,
   String commentPrefix,
   String docComment,
-  String typeParameters,
+  TypeParameterList typeParameters,
 }) =>
     _buildPropsOrStateCompanionClass(className, stateMetaType,
         annotations: annotations,
@@ -91,12 +93,11 @@ String _buildPropsOrStateCompanionClass(
   String annotations,
   String commentPrefix,
   String docComment,
-  String typeParameters,
+  TypeParameterList typeParameters,
 }) {
   annotations ??= '';
   commentPrefix ??= '';
   docComment ??= '';
-  typeParameters ??= '';
 
   final classCommentsAndAnnotations = <String>[];
   if (docComment.isNotEmpty) {
@@ -107,6 +108,18 @@ String _buildPropsOrStateCompanionClass(
   }
   classCommentsAndAnnotations.add(
       '// ${commentPrefix}This will be removed once the transition to Dart 2 is complete.');
+
+  var typeParamsOnClass = '';
+  var typeParamsOnSuper = '';
+  if (typeParameters != null) {
+    typeParamsOnClass = typeParameters.toSource();
+    typeParamsOnSuper = (StringBuffer()
+          ..write('<')
+          ..write(
+              typeParameters.typeParameters.map((t) => t.name.name).join(', '))
+          ..write('>'))
+        .toString();
+  }
 
   final strippedClassName = stripPrivateGeneratedPrefix(className);
   final mixinIgnoreComment = buildIgnoreComment(
@@ -123,7 +136,7 @@ String _buildPropsOrStateCompanionClass(
   return '''
 
 ${classCommentsAndAnnotations.join('\n')}
-class $strippedClassName$typeParameters extends ${privateGeneratedPrefix}$strippedClassName$typeParameters
+class $strippedClassName$typeParamsOnClass extends ${privateGeneratedPrefix}$strippedClassName$typeParamsOnSuper
     with
         $mixinIgnoreComment
         ${privateGeneratedPrefix}${strippedClassName}AccessorsMixin {

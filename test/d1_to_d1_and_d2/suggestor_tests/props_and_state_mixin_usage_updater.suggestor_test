@@ -65,3 +65,11 @@ class Foo extends Object with FooPropsMixin,
     $FooPropsMixin, FooStateMixin,
     // ignore: mixin_of_non_class, undefined_class
     $FooStateMixin {}
+
+
+>>> retains generic type parameters (patches 1)
+class Foo extends Object with FooPropsMixin<String, int> {}
+<<<
+class Foo extends Object with FooPropsMixin<String, int>,
+    // ignore: mixin_of_non_class, undefined_class
+    $FooPropsMixin<String, int> {}

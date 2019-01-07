@@ -85,3 +85,58 @@ class FooState {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
   static const StateMeta meta = $metaForFooState;
 }
+
+
+>>> @PropsMixin() already added (patches 0)
+@PropsMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+<<<
+@PropsMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+
+
+>>> @StateMixin() already added (patches 0)
+@StateMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaForFoo;
+}
+<<<
+@StateMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaForFoo;
+}
+
+>>> @PropsMixin() already added but initialized incorrectly (patches 1)
+@PropsMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForWrong;
+}
+<<<
+@PropsMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+
+
+>>> @StateMixin() already added but initialized incorrectly (patches 1)
+@StateMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaForWrong;
+}
+<<<
+@StateMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaForFoo;
+}

@@ -66,11 +66,12 @@ class PropsAndStateCompanionClassAdder extends RecursiveAstVisitor
               annotations: annotations,
               commentPrefix: commentPrefix,
               docComment: docComment,
-              typeParameters: node.typeParameters?.toSource())
+              typeParameters: node.typeParameters)
           : buildStateCompanionClass(node.name.name,
               annotations: annotations,
               commentPrefix: commentPrefix,
-              docComment: docComment),
+              docComment: docComment,
+              typeParameters: node.typeParameters),
     );
   }
 }
