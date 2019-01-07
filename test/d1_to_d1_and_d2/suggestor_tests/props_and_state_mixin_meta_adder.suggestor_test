@@ -1,0 +1,87 @@
+PropsAndStateMixinMetaAdder
+>>> empty file (patches 0)
+<<<
+
+
+>>> no matches (patches 0)
+library foo;
+var a = 'b';
+class Foo {}
+<<<
+library foo;
+var a = 'b';
+class Foo {}
+
+
+>>> @PropsMixin() (patches 1)
+@PropsMixin()
+class Foo {
+  String prop1;
+  bool prop2;
+}
+<<<
+@PropsMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+
+  String prop1;
+  bool prop2;
+}
+
+
+>>> @StateMixin() (patches 1)
+@StateMixin()
+class Foo {
+  String state1;
+  bool state2;
+}
+<<<
+@StateMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaForFoo;
+
+  String state1;
+  bool state2;
+}
+
+
+>>> @PropsMixin() with empty body (patches 1)
+@PropsMixin()
+class Foo {}
+<<<
+@PropsMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+
+
+>>> @StateMixin() with empty body (patches 1)
+@StateMixin()
+class Foo {}
+<<<
+@StateMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaForFoo;
+}
+
+
+>>> multiple mixins (patches 2)
+@PropsMixin()
+class FooProps {}
+@StateMixin()
+class FooState {}
+<<<
+@PropsMixin()
+class FooProps {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFooProps;
+}
+@StateMixin()
+class FooState {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaForFooState;
+}

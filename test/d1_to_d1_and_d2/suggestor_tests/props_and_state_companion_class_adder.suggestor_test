@@ -1,0 +1,340 @@
+PropsAndStateCompanionClassAdder
+>>> empty file (patches 0)
+<<<
+
+
+>>> no matches (patches 0)
+library foo;
+var a = 'b';
+class Foo {}
+<<<
+library foo;
+var a = 'b';
+class Foo {}
+
+
+>>> @Props() public not-yet-renamed (patches 1)
+@Props() class Foo {}
+<<<
+@Props() class Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+
+
+>>> @Props() private not-yet-renamed (patches 1)
+@Props() class _Foo {}
+<<<
+@Props() class _Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class _Foo extends _$_Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$_FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaFor_Foo;
+}
+
+
+>>> @Props() public already-renamed (patches 1)
+@Props() class _$Foo {}
+<<<
+@Props() class _$Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+
+
+>>> @Props() private already-renamed (patches 1)
+@Props() class _$_Foo {}
+<<<
+@Props() class _$_Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class _Foo extends _$_Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$_FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaFor_Foo;
+}
+
+
+>>> @State() public not-yet-renamed (patches 1)
+@State() class Foo {}
+<<<
+@State() class Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaForFoo;
+}
+
+
+>>> @State() private not-yet-renamed (patches 1)
+@State() class _Foo {}
+<<<
+@State() class _Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class _Foo extends _$_Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$_FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaFor_Foo;
+}
+
+
+>>> @State() public already-renamed (patches 1)
+@State() class _$Foo {}
+<<<
+@State() class _$Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaForFoo;
+}
+
+
+>>> @State() private already-renamed (patches 1)
+@State() class _$_Foo {}
+<<<
+@State() class _$_Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class _Foo extends _$_Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$_FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaFor_Foo;
+}
+
+
+>>> @AbstractProps() public not-yet-renamed (patches 1)
+@AbstractProps() class Foo {}
+<<<
+@AbstractProps() class Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+
+
+>>> @AbstractProps() private not-yet-renamed (patches 1)
+@AbstractProps() class _Foo {}
+<<<
+@AbstractProps() class _Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class _Foo extends _$_Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$_FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaFor_Foo;
+}
+
+
+>>> @AbstractProps() public already-renamed (patches 1)
+@AbstractProps() class _$Foo {}
+<<<
+@AbstractProps() class _$Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+
+
+>>> @AbstractProps() private already-renamed (patches 1)
+@AbstractProps() class _$_Foo {}
+<<<
+@AbstractProps() class _$_Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class _Foo extends _$_Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$_FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaFor_Foo;
+}
+
+
+>>> @AbstractState() public not-yet-renamed (patches 1)
+@AbstractState() class Foo {}
+<<<
+@AbstractState() class Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaForFoo;
+}
+
+
+>>> @AbstractState() private not-yet-renamed (patches 1)
+@AbstractState() class _Foo {}
+<<<
+@AbstractState() class _Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class _Foo extends _$_Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$_FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaFor_Foo;
+}
+
+
+>>> @AbstractState() public already-renamed (patches 1)
+@AbstractState() class _$Foo {}
+<<<
+@AbstractState() class _$Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaForFoo;
+}
+
+
+>>> @AbstractState() private already-renamed (patches 1)
+@AbstractState() class _$_Foo {}
+<<<
+@AbstractState() class _$_Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class _Foo extends _$_Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$_FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = $metaFor_Foo;
+}
+
+
+>>> already added (patches 0)
+@Props() class _$Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+<<<
+@Props() class _$Foo {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+
+
+>>> retains other annotations (patches 1)
+@Bar(test: true)
+@Props()
+@deprecated
+class Foo {}
+<<<
+@Bar(test: true)
+@Props()
+@deprecated
+class Foo {}
+
+@Bar(test: true)
+@deprecated
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+
+
+>>> retains doc comments (patches 1)
+/// A doc comment.
+/// And a second line!
+@Props()
+class Foo {}
+<<<
+/// A doc comment.
+/// And a second line!
+@Props()
+class Foo {}
+
+/// A doc comment.
+/// And a second line!
+// This will be removed once the transition to Dart 2 is complete.
+class Foo extends _$Foo
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}
+
+
+>>> retains generics (patches 1)
+@Props()
+class Foo<TActions, TState> {}
+<<<
+@Props()
+class Foo<TActions, TState> {}
+
+// This will be removed once the transition to Dart 2 is complete.
+class Foo<TActions, TState> extends _$Foo<TActions, TState>
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = $metaForFoo;
+}

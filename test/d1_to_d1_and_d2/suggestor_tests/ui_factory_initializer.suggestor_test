@@ -1,0 +1,65 @@
+UiFactoryInitializer
+>>> empty file (patches 0)
+<<<
+
+
+>>> no matches (patches 0)
+library foo;
+var a = 'b';
+class Foo {}
+<<<
+library foo;
+var a = 'b';
+class Foo {}
+
+
+>>> public factory (patches 1)
+@Factory() UiFactory Foo;
+<<<
+@Factory() UiFactory Foo =
+    // ignore: undefined_identifier
+    $Foo;
+
+
+>>> private factory (patches 1)
+@Factory() UiFactory _Foo;
+<<<
+@Factory() UiFactory _Foo =
+    // ignore: undefined_identifier
+    _$Foo;
+
+
+>>> public factory initialized incorrectly (patches 1)
+@Factory() UiFactory Foo = wrong;
+<<<
+@Factory() UiFactory Foo =
+    // ignore: undefined_identifier
+    $Foo;
+
+
+>>> private factory initialized incorrectly (patches 1)
+@Factory() UiFactory _Foo = wrong;
+<<<
+@Factory() UiFactory _Foo =
+    // ignore: undefined_identifier
+    _$Foo;
+
+
+>>> public factory initialized correctly (patches 0)
+@Factory() UiFactory Foo =
+    // ignore: undefined_identifier
+    $Foo;
+<<<
+@Factory() UiFactory Foo =
+    // ignore: undefined_identifier
+    $Foo;
+
+
+>>> private factory initialized correctly (patches 0)
+@Factory() UiFactory _Foo =
+    // ignore: undefined_identifier
+    _$Foo;
+<<<
+@Factory() UiFactory _Foo =
+    // ignore: undefined_identifier
+    _$Foo;

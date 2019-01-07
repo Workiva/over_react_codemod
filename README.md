@@ -1,9 +1,10 @@
-# over_react_codemod
+# Over React Codemods
 
-A tool to convert Over React components from Dart 1 to Dart 2. Uses the
-[Codemod](https://github.com/Facebook/codemod) library.
+> **Built with [dart_codemod][dart_codemod].**
 
-The script requires a [custom branch](https://github.com/georgelesica-wf/codemod/tree/dart-convert)
-of `codemod`. Install it however you want (virtual environment, or whatever).
+Codemods to help consumers of [over_react][over_react] automate the migration of
+UI component code. Currently, the only use cases are around upgrading from Dart
+1 to Dart 2.
 
-To use, just run the Python script in the Dart repo you want to update.
+[dart_codemod]: https://github.com/Workiva/dart_codemod
+[over_react]: https://github.com/Workiva/over_react

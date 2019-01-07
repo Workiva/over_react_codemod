@@ -1,0 +1,66 @@
+DollarPropKeysMigrator
+>>> empty file (patches 0)
+<<<
+
+
+>>> no matches (patches 0)
+library foo;
+var a = 'b';
+class Random {}
+<<<
+library foo;
+var a = 'b';
+class Random {}
+
+
+>>> const constructor (patches 1)
+var p = const $PropKeys(FooProps);
+<<<
+var p = FooProps.meta.keys;
+
+
+>>> new constructor (patches 1)
+var p = new $PropKeys(FooProps);
+<<<
+var p = FooProps.meta.keys;
+
+
+>>> import prefix and special chars (patches 1)
+var p = new over_react.$PropKeys(consumer.$Foo_Props);
+<<<
+var p = consumer.$Foo_Props.meta.keys;
+
+
+>>> across two lines (patches 1)
+var p = new $PropKeys(
+  FooProps);
+<<<
+var p = FooProps.meta.keys;
+
+
+>>> across three lines (patches 1)
+var p = new $PropKeys(
+  FooProps,
+);
+<<<
+var p = FooProps.meta.keys;
+
+
+>>> multiple (patches 3)
+var propsKeys = [
+  new $PropKeys(FooProps),
+  new $PropKeys(BarProps),
+  new $PropKeys(BazProps),
+];
+<<<
+var propsKeys = [
+  FooProps.meta.keys,
+  BarProps.meta.keys,
+  BazProps.meta.keys,
+];
+
+
+>>> multiple on one line (patches 2)
+var p = [new $PropKeys(Foo), new $PropKeys(Bar)];
+<<<
+var p = [Foo.meta.keys, Bar.meta.keys];

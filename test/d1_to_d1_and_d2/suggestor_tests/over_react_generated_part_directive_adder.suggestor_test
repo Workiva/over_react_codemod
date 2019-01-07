@@ -1,0 +1,60 @@
+OverReactGeneratedPartDirectiveAdder
+# This test requires a small amount of setup, as the suggestor depends on the
+# NeedsOverReactLibraryCollector to determine which library names and paths
+# need the over_react generated part directive.
+#
+# See the test setup here:
+# test/d1_to_d1_and_d2/suggestors_test.dart
+#
+# For the following tests, the assumption is made that the library collector has
+# matched on two libraries:
+# 1. a library with the name `match`
+# 2. a library with the path `match.dart`
+>>> neither library name nor path matches (patches 0) (path no_match.dart)
+library no.match;
+<<<
+library no.match;
+
+
+>>> generated part directive is already present (patches 0) (path match.dart)
+library match;
+part 'match.over_react.g.dart';
+<<<
+library match;
+part 'match.over_react.g.dart';
+
+
+>>> library name matches (patches 1) (path foo.dart)
+library match;
+<<<
+library match;
+// ignore: uri_has_not_been_generated
+part 'foo.over_react.g.dart';
+
+
+>>> library path matches (patches 1) (path match.dart)
+library foo;
+<<<
+library foo;
+// ignore: uri_has_not_been_generated
+part 'match.over_react.g.dart';
+
+
+>>> adds part after last directive (with other parts) (patches 1) (path match.dart)
+import 'foo.dart';
+part 'bar.dart';
+<<<
+import 'foo.dart';
+part 'bar.dart';
+// ignore: uri_has_not_been_generated
+part 'match.over_react.g.dart';
+
+
+>>> adds part after last directive (without other parts) (patches 1) (path match.dart)
+import 'foo.dart';
+export 'bar.dart';
+<<<
+import 'foo.dart';
+export 'bar.dart';
+// ignore: uri_has_not_been_generated
+part 'match.over_react.g.dart';
