@@ -64,3 +64,11 @@ var propsMetas = [
 var p = [new $Props(Foo), new $Props(Bar)];
 <<<
 var p = [Foo.meta, Bar.meta];
+
+
+>>> ignores usages with an attached `// orcm_ignore` comment (patches 0)
+// orcm_ignore
+var p = new $Props(NotProps);
+<<<
+// orcm_ignore
+var p = new $Props(NotProps);

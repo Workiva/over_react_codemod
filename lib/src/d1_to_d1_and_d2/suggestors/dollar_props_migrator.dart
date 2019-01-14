@@ -1,6 +1,9 @@
 import 'package:codemod/codemod.dart';
 import 'package:source_span/source_span.dart';
 
+/// Suggestor that migrates usages of `$Props()` to the Dart 2-compatible
+/// alternative of accessing the props list off of the static `meta` field on
+/// the props class.
 class DollarPropsMigrator implements Suggestor {
   static final RegExp dollarPropsPattern = RegExp(
     // constructor keyword + at least one whitespace char

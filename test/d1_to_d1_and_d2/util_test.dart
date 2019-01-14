@@ -48,7 +48,7 @@ class Foo extends _\$Foo
         $mixinIgnoreComment
         _\$FooAccessorsMixin {
   $metaIgnoreComment
-  static const $metaType meta = \$metaForFoo;
+  static const $metaType meta = _\$metaForFoo;
 }
 ''');
   });
@@ -62,7 +62,7 @@ class Foo extends _\$Foo
         $mixinIgnoreComment
         _\$FooAccessorsMixin {
   $metaIgnoreComment
-  static const $metaType meta = \$metaForFoo;
+  static const $metaType meta = _\$metaForFoo;
 }
 ''');
   });
@@ -76,7 +76,7 @@ class _Foo extends _\$_Foo
         $mixinIgnoreComment
         _\$_FooAccessorsMixin {
   $metaIgnoreComment
-  static const $metaType meta = \$metaFor_Foo;
+  static const $metaType meta = _\$metaFor_Foo;
 }
 ''');
   });
@@ -90,7 +90,7 @@ class _Foo extends _\$_Foo
         $mixinIgnoreComment
         _\$_FooAccessorsMixin {
   $metaIgnoreComment
-  static const $metaType meta = \$metaFor_Foo;
+  static const $metaType meta = _\$metaFor_Foo;
 }
 ''');
   });
@@ -104,7 +104,7 @@ class Foo extends _\$Foo
         $mixinIgnoreComment
         _\$FooAccessorsMixin {
   $metaIgnoreComment
-  static const $metaType meta = \$metaForFoo;
+  static const $metaType meta = _\$metaForFoo;
 }
 ''');
   });
@@ -120,7 +120,7 @@ class Foo extends _\$Foo
         $mixinIgnoreComment
         _\$FooAccessorsMixin {
   $metaIgnoreComment
-  static const $metaType meta = \$metaForFoo;
+  static const $metaType meta = _\$metaForFoo;
 }
 ''');
   });
@@ -136,7 +136,7 @@ class Foo extends _\$Foo
         $mixinIgnoreComment
         _\$FooAccessorsMixin {
   $metaIgnoreComment
-  static const $metaType meta = \$metaForFoo;
+  static const $metaType meta = _\$metaForFoo;
 }
 ''');
   });

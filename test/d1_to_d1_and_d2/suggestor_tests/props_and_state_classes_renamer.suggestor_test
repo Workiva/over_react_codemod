@@ -119,3 +119,13 @@ class Foo {}
 @Props(keyNamespace: 'foo')
 @deprecated
 class _$Foo {}
+
+
+>>> ignores usages with an attached `// orcm_ignore` comment (patches 0)
+@Props()
+// orcm_ignore
+class DontRename {}
+<<<
+@Props()
+// orcm_ignore
+class DontRename {}

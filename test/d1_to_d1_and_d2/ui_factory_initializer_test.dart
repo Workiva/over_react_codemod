@@ -5,17 +5,6 @@ import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/ui_factory_ini
 
 void main() {
   group('UiFactoryInitializer', () {
-    group('getFactoryInitializerValue()', () {
-      test('with public factory', () {
-        expect(UiFactoryInitializer.getFactoryInitializerValue('Foo'), r'$Foo');
-      });
-
-      test('with private factory', () {
-        expect(
-            UiFactoryInitializer.getFactoryInitializerValue('_Foo'), r'_$Foo');
-      });
-    });
-
     group('shouldSkip()', () {
       test('returns false when @Factory() annotation found', () {
         final sourceFileContents = '''library foo;

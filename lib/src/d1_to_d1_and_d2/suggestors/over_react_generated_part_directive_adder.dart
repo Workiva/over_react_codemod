@@ -6,6 +6,9 @@ import '../../constants.dart';
 import '../../util.dart';
 import 'needs_over_react_library_collector.dart';
 
+/// Suggestor that uses the set of libraries that need the over_react generated
+/// part directive (collected via [NeedsOverReactLibraryCollector]) and adds the
+/// directive to every library that needs it and does not already have it.
 class OverReactGeneratedPartDirectiveAdder extends SimpleAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {

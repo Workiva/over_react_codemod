@@ -13,5 +13,5 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaForFoo;
+  static const PropsMeta meta = _$metaForFoo;
 }

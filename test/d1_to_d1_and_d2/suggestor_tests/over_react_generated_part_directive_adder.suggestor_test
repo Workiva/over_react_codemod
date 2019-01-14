@@ -58,3 +58,9 @@ import 'foo.dart';
 export 'bar.dart';
 // ignore: uri_has_not_been_generated
 part 'match.over_react.g.dart';
+
+
+>>> ignores usages with an attached `// orcm_ignore` comment (patches 0) (path match.dart)
+import 'foo.dart'; // orcm_ignore
+<<<
+import 'foo.dart'; // orcm_ignore

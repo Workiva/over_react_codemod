@@ -7,8 +7,9 @@ dependencies:
   codemod:
     git:
       url: git@github.com:Workiva/dart_codemod.git
-      ref: 5cfda9d2438e4a4ce9d8938315ef0cebf727365f # initial
+      ref: 8fb0296c7cdca6bae5de9e646c37f03e0dc4992c
   path: ^1.6.2
+  pub_semver: ^1.4.2
   source_span: ^1.4.1
 
 dev_dependencies:
@@ -19,4 +20,4 @@ dev_dependencies:
   test: ^1.5.1
 
 executables:
-  migrate_from_dart1_to_dart1_and_dart2:
+  dart1_to_dart1_and_dart2:

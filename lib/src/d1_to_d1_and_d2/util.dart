@@ -141,7 +141,7 @@ class $strippedClassName$typeParamsOnClass extends ${privateGeneratedPrefix}$str
         $mixinIgnoreComment
         ${privateGeneratedPrefix}${strippedClassName}AccessorsMixin {
   $metaIgnoreComment
-  static const $metaType meta = ${generatedPrefix}metaFor$strippedClassName;
+  static const $metaType meta = ${privateGeneratedPrefix}metaFor$strippedClassName;
 }
 ''';
 }

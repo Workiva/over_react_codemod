@@ -24,7 +24,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaForFoo;
+  static const PropsMeta meta = _$metaForFoo;
 }
 
 
@@ -39,7 +39,7 @@ class _Foo extends _$_Foo
         // ignore: mixin_of_non_class, undefined_class
         _$_FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaFor_Foo;
+  static const PropsMeta meta = _$metaFor_Foo;
 }
 
 
@@ -54,7 +54,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaForFoo;
+  static const PropsMeta meta = _$metaForFoo;
 }
 
 
@@ -69,7 +69,7 @@ class _Foo extends _$_Foo
         // ignore: mixin_of_non_class, undefined_class
         _$_FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaFor_Foo;
+  static const PropsMeta meta = _$metaFor_Foo;
 }
 
 
@@ -84,7 +84,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const StateMeta meta = $metaForFoo;
+  static const StateMeta meta = _$metaForFoo;
 }
 
 
@@ -99,7 +99,7 @@ class _Foo extends _$_Foo
         // ignore: mixin_of_non_class, undefined_class
         _$_FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const StateMeta meta = $metaFor_Foo;
+  static const StateMeta meta = _$metaFor_Foo;
 }
 
 
@@ -114,7 +114,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const StateMeta meta = $metaForFoo;
+  static const StateMeta meta = _$metaForFoo;
 }
 
 
@@ -129,7 +129,7 @@ class _Foo extends _$_Foo
         // ignore: mixin_of_non_class, undefined_class
         _$_FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const StateMeta meta = $metaFor_Foo;
+  static const StateMeta meta = _$metaFor_Foo;
 }
 
 
@@ -144,7 +144,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaForFoo;
+  static const PropsMeta meta = _$metaForFoo;
 }
 
 
@@ -159,7 +159,7 @@ class _Foo extends _$_Foo
         // ignore: mixin_of_non_class, undefined_class
         _$_FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaFor_Foo;
+  static const PropsMeta meta = _$metaFor_Foo;
 }
 
 
@@ -174,7 +174,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaForFoo;
+  static const PropsMeta meta = _$metaForFoo;
 }
 
 
@@ -189,7 +189,7 @@ class _Foo extends _$_Foo
         // ignore: mixin_of_non_class, undefined_class
         _$_FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaFor_Foo;
+  static const PropsMeta meta = _$metaFor_Foo;
 }
 
 
@@ -204,7 +204,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const StateMeta meta = $metaForFoo;
+  static const StateMeta meta = _$metaForFoo;
 }
 
 
@@ -219,7 +219,7 @@ class _Foo extends _$_Foo
         // ignore: mixin_of_non_class, undefined_class
         _$_FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const StateMeta meta = $metaFor_Foo;
+  static const StateMeta meta = _$metaFor_Foo;
 }
 
 
@@ -234,7 +234,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const StateMeta meta = $metaForFoo;
+  static const StateMeta meta = _$metaForFoo;
 }
 
 
@@ -249,7 +249,7 @@ class _Foo extends _$_Foo
         // ignore: mixin_of_non_class, undefined_class
         _$_FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const StateMeta meta = $metaFor_Foo;
+  static const StateMeta meta = _$metaFor_Foo;
 }
 
 
@@ -262,7 +262,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaForFoo;
+  static const PropsMeta meta = _$metaForFoo;
 }
 <<<
 @Props() class _$Foo {}
@@ -273,7 +273,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaForFoo;
+  static const PropsMeta meta = _$metaForFoo;
 }
 
 
@@ -296,7 +296,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaForFoo;
+  static const PropsMeta meta = _$metaForFoo;
 }
 
 
@@ -319,7 +319,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const StateMeta meta = $metaForFoo;
+  static const StateMeta meta = _$metaForFoo;
 }
 
 
@@ -342,7 +342,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaForFoo;
+  static const PropsMeta meta = _$metaForFoo;
 }
 
 
@@ -365,7 +365,7 @@ class Foo extends _$Foo
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const StateMeta meta = $metaForFoo;
+  static const StateMeta meta = _$metaForFoo;
 }
 
 
@@ -382,7 +382,7 @@ class Foo<TActions extends A, TState extends S> extends _$Foo<TActions, TState>
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const PropsMeta meta = $metaForFoo;
+  static const PropsMeta meta = _$metaForFoo;
 }
 
 
@@ -399,5 +399,17 @@ class Foo<TActions extends A, TState extends S> extends _$Foo<TActions, TState>
         // ignore: mixin_of_non_class, undefined_class
         _$FooAccessorsMixin {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
-  static const StateMeta meta = $metaForFoo;
+  static const StateMeta meta = _$metaForFoo;
 }
+
+
+>>> ignores usages with an attached `// orcm_ignore` comment (patches 0)
+@Props()
+class DontAdd {}
+
+// orcm_ignore
+<<<
+@Props()
+class DontAdd {}
+
+// orcm_ignore

@@ -73,3 +73,13 @@ class Foo extends Object with FooPropsMixin<String, int> {}
 class Foo extends Object with FooPropsMixin<String, int>,
     // ignore: mixin_of_non_class, undefined_class
     $FooPropsMixin<String, int> {}
+
+
+>>> ignores usages with an attached `// orcm_ignore` comment (patches 0)
+class Foo extends Object
+    // orcm_ignore
+    with DebounceStateMixin {}
+<<<
+class Foo extends Object
+    // orcm_ignore
+    with DebounceStateMixin {}

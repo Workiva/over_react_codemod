@@ -5,6 +5,10 @@ import '../../constants.dart';
 import '../../util.dart';
 import '../util.dart';
 
+/// Suggestor that inserts the companion class for every non-mixin props and
+/// state class, but only if it hasn't already been added.
+///
+/// The companion class will include a static `meta` mixin field.
 class PropsAndStateCompanionClassAdder extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {

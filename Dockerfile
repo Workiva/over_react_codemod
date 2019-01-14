@@ -28,6 +28,7 @@ RUN chmod 600 /root/.ssh/id_rsa
 RUN pub get
 RUN dartanalyzer .
 RUN pub run dart_dev format
+RUN pub run dependency_validator -i dart_style,over_react
 RUN pub run test
 
 ARG BUILD_ARTIFACTS_BUILD=/build/pubspec.lock

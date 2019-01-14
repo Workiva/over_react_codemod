@@ -4,6 +4,8 @@ import 'package:codemod/codemod.dart';
 import '../../constants.dart';
 import '../util.dart';
 
+/// Suggestor that renames all non-mixin props and state classes to have the
+/// required `_$` prefix.
 class PropsAndStateClassesRenamer extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {

@@ -55,3 +55,11 @@ var p = [Foo().componentDefaultProps, Bar().componentDefaultProps];
 var defaultProps = new Foo_BarComponent().getDefaultProps();
 <<<
 var defaultProps = Foo_Bar().componentDefaultProps;
+
+
+>>> ignores usages with an attached `// orcm_ignore` comment (patches 0)
+// orcm_ignore
+var p = new NotAComponent().getDefaultProps();
+<<<
+// orcm_ignore
+var p = new NotAComponent().getDefaultProps();

@@ -18,7 +18,7 @@ class Foo {}
 <<<
 @Factory() UiFactory Foo =
     // ignore: undefined_identifier
-    $Foo;
+    _$Foo;
 
 
 >>> private factory (patches 1)
@@ -26,7 +26,7 @@ class Foo {}
 <<<
 @Factory() UiFactory _Foo =
     // ignore: undefined_identifier
-    _$Foo;
+    _$_Foo;
 
 
 >>> public factory initialized incorrectly (patches 1)
@@ -34,7 +34,7 @@ class Foo {}
 <<<
 @Factory() UiFactory Foo =
     // ignore: undefined_identifier
-    $Foo;
+    _$Foo;
 
 
 >>> private factory initialized incorrectly (patches 1)
@@ -42,24 +42,32 @@ class Foo {}
 <<<
 @Factory() UiFactory _Foo =
     // ignore: undefined_identifier
-    _$Foo;
+    _$_Foo;
 
 
 >>> public factory initialized correctly (patches 0)
 @Factory() UiFactory Foo =
     // ignore: undefined_identifier
-    $Foo;
+    _$Foo;
 <<<
 @Factory() UiFactory Foo =
     // ignore: undefined_identifier
-    $Foo;
+    _$Foo;
 
 
 >>> private factory initialized correctly (patches 0)
 @Factory() UiFactory _Foo =
     // ignore: undefined_identifier
-    _$Foo;
+    _$_Foo;
 <<<
 @Factory() UiFactory _Foo =
     // ignore: undefined_identifier
-    _$Foo;
+    _$_Foo;
+
+
+>>> ignores usages with an attached `// orcm_ignore` comment (patches 0)
+// orcm_ignore
+@Factory() UiFactory DontInitialize;
+<<<
+// orcm_ignore
+@Factory() UiFactory DontInitialize;

@@ -13,6 +13,7 @@ import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/props_and_stat
 import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/props_and_state_mixin_meta_adder.dart';
 import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/props_and_state_mixin_usage_updater.dart';
 import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/ui_factory_initializer.dart';
+import 'package:codemod_over_react/src/ignoreable.dart';
 
 import '../util.dart';
 
@@ -27,21 +28,24 @@ void main() {
     when(mockCollector.byName).thenReturn(['match']);
     when(mockCollector.byPath).thenReturn([p.canonicalize('match.dart')]);
     final overReactGeneratedPartDirectiveAdder =
-        OverReactGeneratedPartDirectiveAdder(mockCollector);
+        Ignoreable(OverReactGeneratedPartDirectiveAdder(mockCollector));
 
     final suggestorMap = {
-      'ComponentDefaultPropsMigrator': ComponentDefaultPropsMigrator(),
-      'DollarPropKeysMigrator': DollarPropKeysMigrator(),
-      'DollarPropsMigrator': DollarPropsMigrator(),
+      'ComponentDefaultPropsMigrator':
+          Ignoreable(ComponentDefaultPropsMigrator()),
+      'DollarPropKeysMigrator': Ignoreable(DollarPropKeysMigrator()),
+      'DollarPropsMigrator': Ignoreable(DollarPropsMigrator()),
       'OverReactGeneratedPartDirectiveAdder':
           overReactGeneratedPartDirectiveAdder,
-      'PropsAndStateClassesRenamer': PropsAndStateClassesRenamer(),
-      'PropsAndStateCompanionClassAdder': PropsAndStateCompanionClassAdder(),
-      'PropsAndStateCompanionClassAdderWithCommentPrefix':
-          PropsAndStateCompanionClassAdder(commentPrefix: 'PREFIX: '),
-      'PropsAndStateMixinMetaAdder': PropsAndStateMixinMetaAdder(),
-      'PropsAndStateMixinUsageUpdater': PropsAndStateMixinUsageUpdater(),
-      'UiFactoryInitializer': UiFactoryInitializer(),
+      'PropsAndStateClassesRenamer': Ignoreable(PropsAndStateClassesRenamer()),
+      'PropsAndStateCompanionClassAdder':
+          Ignoreable(PropsAndStateCompanionClassAdder()),
+      'PropsAndStateCompanionClassAdderWithCommentPrefix': Ignoreable(
+          PropsAndStateCompanionClassAdder(commentPrefix: 'PREFIX: ')),
+      'PropsAndStateMixinMetaAdder': Ignoreable(PropsAndStateMixinMetaAdder()),
+      'PropsAndStateMixinUsageUpdater':
+          Ignoreable(PropsAndStateMixinUsageUpdater()),
+      'UiFactoryInitializer': Ignoreable(UiFactoryInitializer()),
     };
     testSuggestorsDir(suggestorMap, 'test/d1_to_d1_and_d2/suggestor_tests');
   });

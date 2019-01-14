@@ -4,6 +4,9 @@ import 'package:codemod/codemod.dart';
 import '../../constants.dart';
 import '../../util.dart';
 
+/// Suggestor that inserts a static `meta` field to every props and state mixin
+/// class so that consumers who may be using `$Props()` or `$PropKeys()` on the
+/// mixin will be able to use the new Dart 2-compatible alternative.
 class PropsAndStateMixinMetaAdder extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
@@ -23,7 +26,8 @@ class PropsAndStateMixinMetaAdder extends RecursiveAstVisitor
       return;
     }
 
-    final targetMetaInitializer = '\$metaFor${node.name.name}';
+    final targetMetaInitializer =
+        '${privateGeneratedPrefix}metaFor${node.name.name}';
 
     final existingMetaField = node.getField('meta');
     if (existingMetaField == null) {

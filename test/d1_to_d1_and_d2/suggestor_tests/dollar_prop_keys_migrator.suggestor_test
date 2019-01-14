@@ -64,3 +64,11 @@ var propsKeys = [
 var p = [new $PropKeys(Foo), new $PropKeys(Bar)];
 <<<
 var p = [Foo.meta.keys, Bar.meta.keys];
+
+
+>>> ignores usages with an attached `// orcm_ignore` comment (patches 0)
+// orcm_ignore
+var p = new $PropKeys(NotProps);
+<<<
+// orcm_ignore
+var p = new $PropKeys(NotProps);

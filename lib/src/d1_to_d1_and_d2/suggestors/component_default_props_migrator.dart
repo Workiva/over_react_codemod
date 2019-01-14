@@ -1,6 +1,9 @@
 import 'package:codemod/codemod.dart';
 import 'package:source_span/source_span.dart';
 
+/// Suggestor that migrates usages of the `getDefaultProps()` method on a
+/// UI component class to the Dart 2-compatible alternative of using the
+/// `componentDefaultProps` getter on the component's props class.
 class ComponentDefaultPropsMigrator implements Suggestor {
   static final RegExp dollarPropsPattern = RegExp(
       // constructor keyword + at least one whitespace char

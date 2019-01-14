@@ -1,6 +1,9 @@
 import 'package:codemod/codemod.dart';
 import 'package:source_span/source_span.dart';
 
+/// Suggestor that migrates usages of `$PropKeys()` to the Dart 2-compatible
+/// alternative of accessing the keys off of the static `meta` field on the
+/// props class.
 class DollarPropKeysMigrator implements Suggestor {
   static final RegExp dollarPropKeysPattern = RegExp(
     // constructor keyword + at least one whitespace char
