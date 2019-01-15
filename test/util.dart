@@ -8,8 +8,9 @@ import 'package:test/test.dart';
 final _patchesPattern = RegExp(r'\(patches (\d+)\)');
 final _pathPattern = RegExp(r'\(path ([\w./]+)\)');
 
-// TODO: Give credit to https://github.com/dart-lang/dart_style/blob/master/test/utils.dart
-
+// This testing approach is similar to what dart_style does for their formatting
+// tests since it is pretty much entirely input >> output.
+// https://github.com/dart-lang/dart_style/blob/master/test/utils.dart#L55
 void testSuggestorsDir(Map<String, Suggestor> suggestorMap, String testDir) {
   final testFiles =
       Directory(testDir).listSync(followLinks: false, recursive: true);
@@ -77,6 +78,7 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       // Trim trailing whitespace (except a single newline) as it is not
       // critical to the suggestor outputs and allows for spacing between test
       // cases for better readability.
+      input = input.trimRight() + '\n';
       expectedOutput = expectedOutput.trimRight() + '\n';
 
       test(description, () {
@@ -88,7 +90,9 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
               '(expected: $expectedNumPatches, actual: ${patches.length})\n'
               'Patches:\n$patches');
         }
-        expect(applyPatches(sourceFile, patches), expectedOutput);
+        final modifiedInput =
+            applyPatches(sourceFile, patches).trimRight() + '\n';
+        expect(modifiedInput, expectedOutput);
       });
     }
   });

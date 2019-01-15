@@ -3,17 +3,18 @@ import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/component_default_props_migrator.dart';
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/dollar_prop_keys_migrator.dart';
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/dollar_props_migrator.dart';
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/needs_over_react_library_collector.dart';
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/over_react_generated_part_directive_adder.dart';
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/props_and_state_classes_renamer.dart';
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/props_and_state_companion_class_adder.dart';
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/props_and_state_mixin_meta_adder.dart';
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/props_and_state_mixin_usage_updater.dart';
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/ui_factory_initializer.dart';
-import 'package:codemod_over_react/src/ignoreable.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/component_default_props_migrator.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/dollar_prop_keys_migrator.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/dollar_props_migrator.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/needs_over_react_library_collector.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/over_react_generated_part_directive_adder.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/props_and_state_classes_renamer.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/props_and_state_companion_class_adder.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/props_and_state_mixin_meta_adder.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/props_and_state_mixin_usage_updater.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/pubspec_over_react_upgrader.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/ui_factory_initializer.dart';
+import 'package:over_react_codemod/src/ignoreable.dart';
 
 import '../util.dart';
 
@@ -45,6 +46,7 @@ void main() {
       'PropsAndStateMixinMetaAdder': Ignoreable(PropsAndStateMixinMetaAdder()),
       'PropsAndStateMixinUsageUpdater':
           Ignoreable(PropsAndStateMixinUsageUpdater()),
+      'PubspecOverReactUpgrader': PubspecOverReactUpgrader(),
       'UiFactoryInitializer': Ignoreable(UiFactoryInitializer()),
     };
     testSuggestorsDir(suggestorMap, 'test/d1_to_d1_and_d2/suggestor_tests');

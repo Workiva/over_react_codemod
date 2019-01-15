@@ -3,7 +3,7 @@ import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/suggestors/needs_over_react_library_collector.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/needs_over_react_library_collector.dart';
 
 void main() {
   group('NeedsOverReactLibraryCollector', () {

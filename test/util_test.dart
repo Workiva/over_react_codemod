@@ -2,8 +2,8 @@
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'package:codemod_over_react/src/constants.dart';
-import 'package:codemod_over_react/src/util.dart';
+import 'package:over_react_codemod/src/constants.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 void main() {
   group('Utils for all over_react codemods', () {

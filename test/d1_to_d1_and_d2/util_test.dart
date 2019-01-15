@@ -1,8 +1,8 @@
 @TestOn('vm')
 import 'package:test/test.dart';
 
-import 'package:codemod_over_react/src/constants.dart';
-import 'package:codemod_over_react/src/d1_to_d1_and_d2/util.dart';
+import 'package:over_react_codemod/src/constants.dart';
+import 'package:over_react_codemod/src/d1_to_d1_and_d2/util.dart';
 
 void main() {
   group('Utils for Dart1 -> Dart1/Dart2:', () {
