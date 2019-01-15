@@ -402,6 +402,51 @@ class Foo<TActions extends A, TState extends S> extends _$Foo<TActions, TState>
   static const StateMeta meta = _$metaForFoo;
 }
 
+>>> @Props() retains generics and doc comments (patches 1)
+/// A doc comment.
+/// And a second line!
+@Props()
+class Foo<TActions extends A, TState extends S> {}
+<<<
+/// A doc comment.
+/// And a second line!
+@Props()
+class Foo<TActions extends A, TState extends S> {}
+
+/// A doc comment.
+/// And a second line!
+// This will be removed once the transition to Dart 2 is complete.
+class Foo<TActions extends A, TState extends S> extends _$Foo<TActions, TState>
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = _$metaForFoo;
+}
+
+
+>>> @State() retains generics and doc comments (patches 1)
+/// A doc comment.
+/// And a second line!
+@State()
+class Foo<TActions extends A, TState extends S> {}
+<<<
+/// A doc comment.
+/// And a second line!
+@State()
+class Foo<TActions extends A, TState extends S> {}
+
+/// A doc comment.
+/// And a second line!
+// This will be removed once the transition to Dart 2 is complete.
+class Foo<TActions extends A, TState extends S> extends _$Foo<TActions, TState>
+    with
+        // ignore: mixin_of_non_class, undefined_class
+        _$FooAccessorsMixin {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = _$metaForFoo;
+}
+
 
 >>> ignores usages with an attached `// orcm_ignore` comment (patches 0)
 @Props()
