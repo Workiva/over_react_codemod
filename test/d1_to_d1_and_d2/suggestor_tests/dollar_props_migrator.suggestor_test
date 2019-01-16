@@ -1,0 +1,74 @@
+DollarPropsMigrator
+>>> empty file (patches 0)
+<<<
+
+
+>>> no matches (patches 0)
+library foo;
+var a = 'b';
+class Random {}
+<<<
+library foo;
+var a = 'b';
+class Random {}
+
+
+>>> const constructor (patches 1)
+var p = const $Props(FooProps);
+<<<
+var p = FooProps.meta;
+
+
+>>> new constructor (patches 1)
+var p = new $Props(FooProps);
+<<<
+var p = FooProps.meta;
+
+
+>>> import prefix and special chars (patches 1)
+var p = new over_react.$Props(consumer.$Foo_Props);
+<<<
+var p = consumer.$Foo_Props.meta;
+
+
+>>> across two lines (patches 1)
+var p = new $Props(
+  FooProps);
+<<<
+var p = FooProps.meta;
+
+
+>>> across three lines (patches 1)
+var p = new $Props(
+  FooProps,
+);
+<<<
+var p = FooProps.meta;
+
+
+>>> multiple (patches 3)
+var propsMetas = [
+  new $Props(FooProps),
+  new $Props(BarProps),
+  new $Props(BazProps),
+];
+<<<
+var propsMetas = [
+  FooProps.meta,
+  BarProps.meta,
+  BazProps.meta,
+];
+
+
+>>> multiple on one line (patches 2)
+var p = [new $Props(Foo), new $Props(Bar)];
+<<<
+var p = [Foo.meta, Bar.meta];
+
+
+>>> ignores usages with an attached `// orcm_ignore` comment (patches 0)
+// orcm_ignore
+var p = new $Props(NotProps);
+<<<
+// orcm_ignore
+var p = new $Props(NotProps);

@@ -1,4 +1,4 @@
-FROM python:2.7.15 as build
+FROM google/dart:2.1.0 as build
 
 # Build Environment Vars
 ARG BUILD_ID
@@ -11,15 +11,25 @@ ARG GIT_COMMIT_RANGE
 ARG GIT_HEAD_URL
 ARG GIT_MERGE_HEAD
 ARG GIT_MERGE_BRANCH
+# Expose env vars for git ssh access
+ARG GIT_SSH_KEY
+ARG KNOWN_HOSTS_CONTENT
 
 WORKDIR /build/
 ADD . /build/
 
-RUN make install
-RUN make test
-RUN make dist
+# Install SSH keys for git ssh access
+RUN mkdir /root/.ssh
+RUN echo "$KNOWN_HOSTS_CONTENT" > "/root/.ssh/known_hosts"
+RUN echo "$GIT_SSH_KEY" > "/root/.ssh/id_rsa"
+RUN chmod 700 /root/.ssh/
+RUN chmod 600 /root/.ssh/id_rsa
 
-ARG BUILD_ARTIFACTS_EXE_DART1_AND_DART2=/build/dist/over_react_migrate_to_dart1_and_dart2
-# ARG BUILD_ARTIFACTS_EXE_DART2=/build/dist/over_react_migrate_to_dart2
+RUN pub get
+RUN dartanalyzer .
+RUN pub run dart_dev format --check
+RUN pub run dependency_validator -i dart_style,over_react
+RUN pub run test
 
+ARG BUILD_ARTIFACTS_BUILD=/build/pubspec.lock
 FROM scratch
