@@ -42,7 +42,7 @@ This package provides three codemod executables:
 - `pub global run over_react_codemod:dart1_and_dart2_to_dart2`
 
     Use this codemod to migrate over_react code that has previously been
-    migrated via the `dart1_to_dart1_and_dart1` codemod to the form that is only
+    migrated via the `dart1_to_dart1_and_dart2` codemod to the form that is only
     compatible with Dart 2. In other words, use this when you're ready to drop
     Dart 1 support.
 
