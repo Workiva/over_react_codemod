@@ -139,7 +139,7 @@ ${classCommentsAndAnnotations.join('\n')}
 class $strippedClassName$typeParamsOnClass extends ${privateGeneratedPrefix}$strippedClassName$typeParamsOnSuper
     with
         $mixinIgnoreComment
-        ${privateGeneratedPrefix}${strippedClassName}AccessorsMixin {
+        ${privateGeneratedPrefix}${strippedClassName}AccessorsMixin$typeParamsOnSuper {
   $metaIgnoreComment
   static const $metaType meta = ${privateGeneratedPrefix}metaFor$strippedClassName;
 }

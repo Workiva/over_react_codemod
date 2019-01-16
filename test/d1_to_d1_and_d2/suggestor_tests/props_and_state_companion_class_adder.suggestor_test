@@ -380,7 +380,7 @@ class Foo<TActions extends A, TState extends S> {}
 class Foo<TActions extends A, TState extends S> extends _$Foo<TActions, TState>
     with
         // ignore: mixin_of_non_class, undefined_class
-        _$FooAccessorsMixin {
+        _$FooAccessorsMixin<TActions, TState> {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
   static const PropsMeta meta = _$metaForFoo;
 }
@@ -397,7 +397,7 @@ class Foo<TActions extends A, TState extends S> {}
 class Foo<TActions extends A, TState extends S> extends _$Foo<TActions, TState>
     with
         // ignore: mixin_of_non_class, undefined_class
-        _$FooAccessorsMixin {
+        _$FooAccessorsMixin<TActions, TState> {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
   static const StateMeta meta = _$metaForFoo;
 }
@@ -419,7 +419,7 @@ class Foo<TActions extends A, TState extends S> {}
 class Foo<TActions extends A, TState extends S> extends _$Foo<TActions, TState>
     with
         // ignore: mixin_of_non_class, undefined_class
-        _$FooAccessorsMixin {
+        _$FooAccessorsMixin<TActions, TState> {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
   static const PropsMeta meta = _$metaForFoo;
 }
@@ -442,7 +442,7 @@ class Foo<TActions extends A, TState extends S> {}
 class Foo<TActions extends A, TState extends S> extends _$Foo<TActions, TState>
     with
         // ignore: mixin_of_non_class, undefined_class
-        _$FooAccessorsMixin {
+        _$FooAccessorsMixin<TActions, TState> {
   // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
   static const StateMeta meta = _$metaForFoo;
 }
