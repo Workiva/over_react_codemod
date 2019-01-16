@@ -5,10 +5,7 @@ version: 0.0.0
 dependencies:
   analyzer: ^0.33.6+1
   args: ^1.5.1
-  codemod:
-    git:
-      url: git@github.com:Workiva/dart_codemod.git
-      ref: 8fb0296c7cdca6bae5de9e646c37f03e0dc4992c
+  codemod: ^0.1.1
   path: ^1.6.2
   pub_semver: ^1.4.2
   source_span: ^1.4.1
