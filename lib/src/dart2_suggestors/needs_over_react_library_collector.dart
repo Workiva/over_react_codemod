@@ -16,7 +16,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 import 'package:path/path.dart' as p;
 
-import '../../util.dart';
+import '../util.dart';
 import 'over_react_generated_part_directive_adder.dart';
 
 /// Suggestor that collects the set of libraries that need an over_react

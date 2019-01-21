@@ -15,8 +15,8 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
-import '../../constants.dart';
-import '../../util.dart';
+import '../constants.dart';
+import '../util.dart';
 
 /// Suggestor that inserts a static `meta` field to every props and state mixin
 /// class so that consumers who may be using `$Props()` or `$PropKeys()` on the

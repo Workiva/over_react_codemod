@@ -16,8 +16,8 @@ import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 import 'package:path/path.dart' as p;
 
-import '../../constants.dart';
-import '../../util.dart';
+import '../constants.dart';
+import '../util.dart';
 import 'needs_over_react_library_collector.dart';
 
 /// Suggestor that uses the set of libraries that need the over_react generated

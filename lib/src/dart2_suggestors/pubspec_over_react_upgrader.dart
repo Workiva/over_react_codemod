@@ -25,8 +25,14 @@ import 'package:source_span/source_span.dart';
 class PubspecOverReactUpgrader implements Suggestor {
   /// Version constraint that ensures a version of over_react compatible with
   /// the new forwards- and backwards-compatible component boilerplate.
-  static final VersionRange overReactConstraint =
+  static final VersionRange dart1And2Constraint =
       VersionConstraint.parse('^1.30.2');
+
+  /// Version constraint that ensures a version of over_react compatible with
+  /// the Dart 2 builder and also opens the range up to over_react 2.x which is
+  /// the first release that drops support for Dart 1.
+  static final VersionRange dart2Constraint =
+      VersionConstraint.parse('>=1.30.2 <3.0.0');
 
   /// Regex that matches the dependency constraint declaration for over_react.
   static final RegExp overReactDep = RegExp(
@@ -40,6 +46,10 @@ class PubspecOverReactUpgrader implements Suggestor {
     multiLine: true,
   );
 
+  final VersionRange targetConstraint;
+
+  PubspecOverReactUpgrader(this.targetConstraint);
+
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
     final contents = sourceFile.getText(0);
@@ -49,15 +59,22 @@ class PubspecOverReactUpgrader implements Suggestor {
       final line = overReactMatch.group(0);
       final constraintValue = overReactMatch.group(1);
       final constraint = VersionConstraint.parse(constraintValue);
-      if (constraint is VersionRange &&
-          constraint.min < overReactConstraint.min) {
+      if (constraint is VersionRange && constraint.min < targetConstraint.min) {
+        // Wrap the new constraint in quotes if required.
+        var newValue = targetConstraint.toString();
+        if (newValue.contains(' ') &&
+            !line.contains("'") &&
+            !line.contains('"')) {
+          newValue = "'$newValue'";
+        }
+
         // Update the version constraint to ensure a safe minimum bound.
         yield Patch(
           sourceFile,
           sourceFile.span(overReactMatch.start, overReactMatch.end),
           line.replaceFirst(
             constraintValue,
-            overReactConstraint.toString(),
+            newValue,
           ),
         );
       }
@@ -65,10 +82,16 @@ class PubspecOverReactUpgrader implements Suggestor {
       // over_react is missing in pubspec.yaml, so add it.
       final dependeniesKeyMatch = dependenciesKey.firstMatch(contents);
       if (dependeniesKeyMatch != null) {
+        // Wrap the new constraint in quotes if required.
+        var newValue = targetConstraint.toString();
+        if (newValue.contains(' ')) {
+          newValue = "'$newValue'";
+        }
+
         yield Patch(
           sourceFile,
           sourceFile.span(dependeniesKeyMatch.end, dependeniesKeyMatch.end),
-          '\n  over_react: $overReactConstraint',
+          '\n  over_react: $newValue',
         );
       }
     }

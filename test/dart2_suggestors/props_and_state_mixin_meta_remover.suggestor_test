@@ -1,0 +1,160 @@
+PropsAndStateMixinMetaRemover
+>>> empty file (patches 0)
+<<<
+
+
+>>> no matches (patches 0)
+library foo;
+var a = 'b';
+class Foo {}
+<<<
+library foo;
+var a = 'b';
+class Foo {}
+
+
+>>> @PropsMixin() (patches 1)
+@PropsMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = _$metaForFoo;
+
+  String prop1;
+  bool prop2;
+}
+<<<
+@PropsMixin()
+class Foo {
+
+  String prop1;
+  bool prop2;
+}
+
+
+>>> @StateMixin() (patches 1)
+@StateMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = _$metaForFoo;
+
+  String state1;
+  bool state2;
+}
+<<<
+@StateMixin()
+class Foo {
+
+  String state1;
+  bool state2;
+}
+
+
+>>> @PropsMixin() with empty body (patches 1)
+@PropsMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = _$metaForFoo;
+}
+<<<
+@PropsMixin()
+class Foo {
+}
+
+
+>>> @StateMixin() with empty body (patches 1)
+@StateMixin()
+class Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = _$metaForFoo;
+}
+<<<
+@StateMixin()
+class Foo {
+}
+
+
+>>> @PropsMixin() private (patches 1)
+@PropsMixin()
+class _Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = _$metaFor_Foo;
+}
+<<<
+@PropsMixin()
+class _Foo {
+}
+
+
+>>> @StateMixin() private (patches 1)
+@StateMixin()
+class _Foo {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = _$metaFor_Foo;
+}
+<<<
+@StateMixin()
+class _Foo {
+}
+
+
+>>> multiple mixins (patches 2)
+@PropsMixin()
+class FooProps {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = _$metaForFooProps;
+}
+@StateMixin()
+class FooState {
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const StateMeta meta = _$metaForFooState;
+}
+<<<
+@PropsMixin()
+class FooProps {
+}
+@StateMixin()
+class FooState {
+}
+
+
+>>> @PropsMixin() already removed (patches 0)
+@PropsMixin()
+class Foo {}
+<<<
+@PropsMixin()
+class Foo {}
+
+
+>>> @StateMixin() already removed (patches 0)
+@StateMixin()
+class Foo {}
+<<<
+@StateMixin()
+class Foo {}
+
+
+>>> @PropsMixin() without an ignore comment (patches 1)
+@PropsMixin()
+class Foo {
+  static const PropsMeta meta = _$metaForFooProps;
+}
+<<<
+@PropsMixin()
+class Foo {
+  }
+
+
+>>> ignores instances with an attached `// orcm_ignore` comment (patches 0)
+@PropsMixin()
+class DontRemoveMeta {
+  // orcm_ignore
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = _$metaForDontRemoveMeta;
+}
+<<<
+@PropsMixin()
+class DontRemoveMeta {
+  // orcm_ignore
+  // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+  static const PropsMeta meta = _$metaForDontRemoveMeta;
+}

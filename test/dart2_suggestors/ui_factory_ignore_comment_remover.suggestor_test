@@ -1,0 +1,39 @@
+UiFactoryIgnoreCommentRemover
+>>> empty file (patches 0)
+<<<
+
+
+>>> no factory (patches 0)
+library foo;
+var a = 'b';
+class Foo {}
+<<<
+library foo;
+var a = 'b';
+class Foo {}
+
+
+>>> no factory initializer (patches 0)
+@Factory()
+UiFactory Foo;
+<<<
+@Factory()
+UiFactory Foo;
+
+
+>>> no ignore comment (patches 0)
+@Factory()
+UiFactory Foo = _$Foo;
+<<<
+@Factory()
+UiFactory Foo = _$Foo;
+
+
+>>> ignore comment on line before initializer (patches 1)
+@Factory()
+UiFactory Foo =
+  // ignore: undefined_identifier
+  $Foo;
+<<<
+@Factory()
+UiFactory Foo = _$Foo;

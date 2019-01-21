@@ -12,4 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export 'package:over_react_codemod/src/d1_to_d1_and_d2/executable.dart';
+export 'package:over_react_codemod/src/executables/dart2_upgrade.dart';

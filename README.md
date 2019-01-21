@@ -18,35 +18,29 @@ pub global activate over_react_codemod
 Once you've activated this package, you should be able to run whichever codemods
 you need via `pub global run`.
 
-## Dart 1 to Dart 2 Codemods
+## Dart 1 to Dart 2 Codemod
+
+This package provides a `dart2_upgrade` codemod that will modify existing
+over_react component code to be compatible with Dart 2 and the over_react
+builder.
 
 Depending on your needs, you may be able to upgrade directly from Dart 1 to
 Dart 2, or you may need to take an intermediary step and provide a version of
-your codebase that is both forwards- and backwards-compatible.
+your codebase that is both forwards- and backwards-compatible. Both of these
+options are supported by this codemod.
 
-This package provides three codemod executables:
-
-- `pub global run over_react_codemod:dart1_to_dart2`
-
-    Use this codemod if you want to migrate directly from Dart 1 compatibile
-    code to Dart 2 compatible code and do not need to provide a version that is
-    compatible with both.
-
-    _Still in progress; coming soon._
-
-- `pub global run over_react_codemod:dart1_to_dart1_and_dart2`
+- `pub global run over_react_codemod:dart2_upgrade --backwards-compat`
 
     Use this codemod to migrate your over_react code to a format that is both
     forwards-compatible with Dart 2 and backwards-compatible with Dart 1.
 
-- `pub global run over_react_codemod:dart1_and_dart2_to_dart2`
+- `pub global run over_react_codemod:dart2_upgrade`
 
-    Use this codemod to migrate over_react code that has previously been
-    migrated via the `dart1_to_dart1_and_dart2` codemod to the form that is only
-    compatible with Dart 2. In other words, use this when you're ready to drop
-    Dart 1 support.
-
-    _Still in progress; coming soon._
+    Use this codemod if you want to migrate to Dart 2 compatible code and do not
+    need to maintain backwards-compatability with Dart 1. You can run this to
+    immediately upgrade from Dart 1 to Dart 2, or you can run this on code that
+    has already been run through this codemod with the `--backwards-compat`
+    flag once you're ready to drop Dart 1 support.
 
 For more information on the transition from Dart 1 to Dart 2 and how it affects
 over_react, check out the [over_react Dart 2 migration guide](over_react_dart2).
@@ -69,7 +63,7 @@ checklist will prevent merging code that is not in the form that is compatible
 with both Dart 1 and Dart 2:
 
 ```bash
-pub global run over_react_codemod:dart1_to_dart1_and_dart2 --fail-on-changes
+pub global run over_react_codemod:dart2_upgrade --fail-on-changes
 ```
 
 ## Ignoring Codemod Suggestions
@@ -87,8 +81,8 @@ of ending with `StateMixin`, but isn't actually an over_react state mixin:
 class Foo extends Object with BarStateMixin {}
 ```
 
-As is, the `dart1_to_dart1_and_dart2` codemod would find this code and attempt
-to change it to:
+As is, the `dart2_upgrade --backwards-compat` codemod would find this code and
+attempt to change it to:
 
 ```dart
 class Foo extends Object

@@ -15,8 +15,7 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
-import '../../constants.dart';
-import '../../util.dart';
+import '../constants.dart';
 import '../util.dart';
 
 /// Suggestor that inserts the companion class for every non-mixin props and
