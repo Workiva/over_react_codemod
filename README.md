@@ -1,5 +1,8 @@
 # Over React Codemods
 
+[![Pub](https://img.shields.io/pub/v/over_react_codemod.svg)](https://pub.dartlang.org/packages/over_react_codemod)
+[![Build Status](https://travis-ci.org/Workiva/over_react_codemod.svg?branch=master)](https://travis-ci.org/Workiva/over_react_codemod)
+
 > **Built with [dart_codemod][dart_codemod].**
 
 Codemods to help consumers of [over_react][over_react] automate the migration of
