@@ -46,7 +46,7 @@ options are supported by this codemod.
     flag once you're ready to drop Dart 1 support.
 
 For more information on the transition from Dart 1 to Dart 2 and how it affects
-over_react, check out the [over_react Dart 2 migration guide](over_react_dart2).
+over_react, check out the [over_react Dart 2 migration guide][over_react_dart2].
 It includes sample diffs of the changes that these codemods will introduce.
 
 ## Checking for Regressions
