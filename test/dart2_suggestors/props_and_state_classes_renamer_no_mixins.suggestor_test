@@ -1,4 +1,4 @@
-PropsAndStateClassesRenamer
+PropsAndStateClassesRenamerNoMixins
 >>> empty file (patches 0)
 <<<
 
@@ -119,6 +119,18 @@ class Foo {}
 @Props(keyNamespace: 'foo')
 @deprecated
 class _$Foo {}
+
+
+>>> ignores @PropsMixin() (patches 0)
+@PropsMixin() class Foo {}
+<<<
+@PropsMixin() class Foo {}
+
+
+>>> ignores @StateMixin() (patches 0)
+@StateMixin() class Foo {}
+<<<
+@StateMixin() class Foo {}
 
 
 >>> ignores usages with an attached `// orcm_ignore` comment (patches 0)

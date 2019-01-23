@@ -16,36 +16,34 @@ class Foo {}
 >>> public factory (patches 1)
 @Factory() UiFactory Foo;
 <<<
-@Factory() UiFactory Foo =
-    // ignore: undefined_identifier
-    _$Foo;
+@Factory() UiFactory Foo = _$Foo;
 
 
 >>> private factory (patches 1)
 @Factory() UiFactory _Foo;
 <<<
-@Factory() UiFactory _Foo =
-    // ignore: undefined_identifier
-    _$_Foo;
+@Factory() UiFactory _Foo = _$_Foo;
 
 
 >>> public factory initialized incorrectly (patches 1)
-@Factory() UiFactory Foo = wrong;
+@Factory() UiFactory Foo = _$_Foo;
 <<<
-@Factory() UiFactory Foo =
-    // ignore: undefined_identifier
-    _$Foo;
+@Factory() UiFactory Foo = _$Foo;
 
 
 >>> private factory initialized incorrectly (patches 1)
-@Factory() UiFactory _Foo = wrong;
+@Factory() UiFactory _Foo = _$Foo;
 <<<
-@Factory() UiFactory _Foo =
-    // ignore: undefined_identifier
-    _$_Foo;
+@Factory() UiFactory _Foo = _$_Foo;
 
 
 >>> public factory initialized correctly (patches 0)
+@Factory() UiFactory Foo = _$Foo;
+<<<
+@Factory() UiFactory Foo = _$Foo;
+
+
+>>> public factory initialized correctly with ignore (patches 0)
 @Factory() UiFactory Foo =
     // ignore: undefined_identifier
     _$Foo;
@@ -56,6 +54,12 @@ class Foo {}
 
 
 >>> private factory initialized correctly (patches 0)
+@Factory() UiFactory _Foo = _$_Foo;
+<<<
+@Factory() UiFactory _Foo = _$_Foo;
+
+
+>>> private factory initialized correctly with ignore (patches 0)
 @Factory() UiFactory _Foo =
     // ignore: undefined_identifier
     _$_Foo;

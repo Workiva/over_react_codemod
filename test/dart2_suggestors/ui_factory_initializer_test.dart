@@ -15,7 +15,7 @@
 @TestOn('vm')
 import 'package:test/test.dart';
 
-import 'package:over_react_codemod/src/d1_to_d1_and_d2/suggestors/ui_factory_initializer.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/ui_factory_initializer.dart';
 
 void main() {
   group('UiFactoryInitializer', () {

@@ -15,8 +15,8 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
-import '../../constants.dart';
-import '../../util.dart';
+import '../constants.dart';
+import '../util.dart';
 
 final _mixinIgnoreComment = buildIgnoreComment(
   mixinOfNonClass: true,
@@ -38,15 +38,13 @@ final _mixinIgnoreComment = buildIgnoreComment(
 ///             // orcm_ignore
 ///             DebounceStateMixin {}
 // TODO: Can we use an ElementVisitor to definitively determine whether a mixin type is an over_react mixin? Otherwise we will hit false positives (e.g. `DebounceStateMixin`)
-class PropsAndStateMixinUsageUpdater extends RecursiveAstVisitor
+class PropsAndStateMixinUsageDoubler extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   @override
   visitWithClause(WithClause node) {
     final allMixins = node.mixinTypes.map((n) => n.name.name);
     final targetMixins = node.mixinTypes
-        // Filter out explicitly ignored mixin types.
-        // .where((n) => n.)
         .map((n) => n.name.name)
         // Ignore mixin types that were added already via this codemod.
         .where((n) => !n.startsWith(generatedPrefix))

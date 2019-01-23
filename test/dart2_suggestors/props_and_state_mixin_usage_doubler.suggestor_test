@@ -1,0 +1,85 @@
+PropsAndStateMixinUsageDoubler
+>>> empty file
+<<<
+
+
+>>> no matches
+library foo;
+var a = 'b';
+class Foo {}
+<<<
+library foo;
+var a = 'b';
+class Foo {}
+
+
+>>> props mixin (patches 1)
+class Foo extends Object with FooPropsMixin {}
+<<<
+class Foo extends Object with FooPropsMixin,
+    // ignore: mixin_of_non_class, undefined_class
+    $FooPropsMixin {}
+
+
+>>> state mixin (patches 1)
+class Foo extends Object with FooStateMixin {}
+<<<
+class Foo extends Object with FooStateMixin,
+    // ignore: mixin_of_non_class, undefined_class
+    $FooStateMixin {}
+
+
+>>> props mixin already updated (patches 0)
+class Foo extends Object with FooPropsMixin,
+    // ignore: mixin_of_non_class, undefined_class
+    $FooPropsMixin {}
+<<<
+class Foo extends Object with FooPropsMixin,
+    // ignore: mixin_of_non_class, undefined_class
+    $FooPropsMixin {}
+
+
+>>> state mixin already updated (patches 0)
+class Foo extends Object with FooStateMixin,
+    // ignore: mixin_of_non_class, undefined_class
+    $FooStateMixin {}
+<<<
+class Foo extends Object with FooStateMixin,
+    // ignore: mixin_of_non_class, undefined_class
+    $FooStateMixin {}
+
+
+>>> mixin amidst other mixins (patches 1)
+class Foo extends Object with Bar, FooPropsMixin, Baz {}
+<<<
+class Foo extends Object with Bar, FooPropsMixin,
+    // ignore: mixin_of_non_class, undefined_class
+    $FooPropsMixin, Baz {}
+
+
+>>> multiple mixin updates (patches 2)
+class Foo extends Object with FooPropsMixin, FooStateMixin {}
+<<<
+class Foo extends Object with FooPropsMixin,
+    // ignore: mixin_of_non_class, undefined_class
+    $FooPropsMixin, FooStateMixin,
+    // ignore: mixin_of_non_class, undefined_class
+    $FooStateMixin {}
+
+
+>>> retains generic type parameters (patches 1)
+class Foo extends Object with FooPropsMixin<String, int> {}
+<<<
+class Foo extends Object with FooPropsMixin<String, int>,
+    // ignore: mixin_of_non_class, undefined_class
+    $FooPropsMixin<String, int> {}
+
+
+>>> ignores usages with an attached `// orcm_ignore` comment (patches 0)
+class Foo extends Object
+    // orcm_ignore
+    with DebounceStateMixin {}
+<<<
+class Foo extends Object
+    // orcm_ignore
+    with DebounceStateMixin {}

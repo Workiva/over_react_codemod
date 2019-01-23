@@ -15,8 +15,8 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
-import '../../constants.dart';
-import '../../util.dart';
+import '../constants.dart';
+import '../util.dart';
 
 /// Suggestor that inserts the expected initializer value for all `UiFactory`
 /// declarations.
@@ -25,6 +25,10 @@ class UiFactoryInitializer extends RecursiveAstVisitor
     implements Suggestor {
   static final RegExp factoryAnnotationPattern =
       RegExp(r'^@Factory\(', multiLine: true);
+
+  final bool includeIgnore;
+
+  UiFactoryInitializer({this.includeIgnore = false});
 
   @override
   bool shouldSkip(String sourceFileContents) =>
@@ -48,7 +52,7 @@ class UiFactoryInitializer extends RecursiveAstVisitor
 
     final targetInitializer =
         '${privateGeneratedPrefix}${factoryNode.name.name}';
-    final targetInitializerWithComment = [
+    final targetInitializerWithIgnore = [
       // Insert a line break to avoid the situation where a dartfmt run may
       // separate the ignore comment from the initializer value.
       '\n',
@@ -67,14 +71,17 @@ class UiFactoryInitializer extends RecursiveAstVisitor
       yieldPatch(
         factoryNode.equals.end,
         factoryNode.initializer.end,
-        targetInitializerWithComment,
+        includeIgnore ? targetInitializerWithIgnore : ' ' + targetInitializer,
       );
     } else {
       // Initializer does not yet exist.
       yieldPatch(
         factoryNode.name.end,
         factoryNode.end,
-        ' =' + targetInitializerWithComment,
+        ' =' +
+            (includeIgnore
+                ? targetInitializerWithIgnore
+                : ' ' + targetInitializer),
       );
     }
   }

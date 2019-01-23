@@ -36,6 +36,15 @@ const List<String> overReactAnnotationNames = const [
   'StateMixin',
 ];
 
+const List<String> overReactPropsStateAnnotationNames = const [
+  'Props',
+  'State',
+  'AbstractProps',
+  'AbstractState',
+  'PropsMixin',
+  'StateMixin',
+];
+
 /// Annotation names for over_react's props and state classes, excluding the
 /// mixin annotations.
 const List<String> overReactPropsStateNonMixinAnnotationNames = const [
@@ -56,3 +65,7 @@ const String propsMetaType = 'PropsMeta';
 
 /// Dart type for the static meta field on state classes.
 const String stateMetaType = 'StateMeta';
+
+/// Comment text that is attached to the props/state companion classes.
+const String temporaryCompanionClassComment =
+    'This will be removed once the transition to Dart 2 is complete.';

@@ -19,7 +19,7 @@ environment:
 dependencies:
   analyzer: ^0.33.6+1
   args: ^1.5.1
-  codemod: ^0.1.1
+  codemod: ^0.1.2
   path: ^1.6.2
   pub_semver: ^1.4.2
   source_span: ^1.4.1
@@ -33,4 +33,4 @@ dev_dependencies:
   test: ^1.5.1
 
 executables:
-  dart1_to_dart1_and_dart2:
+  dart2_upgrade:

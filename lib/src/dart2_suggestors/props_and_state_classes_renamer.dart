@@ -15,21 +15,31 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
-import '../../constants.dart';
+import '../constants.dart';
 import '../util.dart';
 
-/// Suggestor that renames all non-mixin props and state classes to have the
-/// required `_$` prefix.
+/// Suggestor that renames all props and state classes to have the required `_$`
+/// prefix.
+///
+/// If [includeMixins] is true, props and state mixins will also be renamed.
 class PropsAndStateClassesRenamer extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  final bool renameMixins;
+
+  PropsAndStateClassesRenamer({this.renameMixins = true});
+
+  Iterable<String> get annotationNames => renameMixins
+      ? overReactPropsStateAnnotationNames
+      : overReactPropsStateNonMixinAnnotationNames;
+
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
-    if (!node.metadata.any((m) =>
-        overReactPropsStateNonMixinAnnotationNames.contains(m.name.name))) {
+    if (!node.metadata.any((m) => annotationNames.contains(m.name.name))) {
       // Only looking for classes annotated with `@Props()`, `@State()`,
-      // `@AbstractProps()`, or `@AbstractState()`.
+      // `@AbstractProps()`, or `@AbstractState()`. If [renameMixins] is true,
+      // also includes `@PropsMixin()` and `@StateMixin()`.
       return;
     }
     final className = node.name.name;
