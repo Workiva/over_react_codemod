@@ -26,13 +26,13 @@ class Foo {}
 
 
 >>> public factory initialized incorrectly (patches 1)
-@Factory() UiFactory Foo = wrong;
+@Factory() UiFactory Foo = _$_Foo;
 <<<
 @Factory() UiFactory Foo = _$Foo;
 
 
 >>> private factory initialized incorrectly (patches 1)
-@Factory() UiFactory _Foo = wrong;
+@Factory() UiFactory _Foo = _$Foo;
 <<<
 @Factory() UiFactory _Foo = _$_Foo;
 
