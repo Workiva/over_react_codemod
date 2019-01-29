@@ -15,8 +15,6 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
-import '../constants.dart';
-
 /// Suggestor that inserts the expected initializer value for all `UiFactory`
 /// declarations.
 class UiFactoryIgnoreCommentRemover extends RecursiveAstVisitor
@@ -25,8 +23,9 @@ class UiFactoryIgnoreCommentRemover extends RecursiveAstVisitor
   static final RegExp factoryAnnotationPattern =
       RegExp(r'^@Factory\(', multiLine: true);
 
-  static final RegExp ignorePattern =
-      RegExp(r'//[ ]*ignore: undefined_identifier[ ]*$', multiLine: true);
+  static final RegExp ignorePattern = RegExp(
+      r'\s*\/\/[ ]*ignore:[ ]*undefined_identifier[ ]*$',
+      multiLine: true);
 
   List<int> _ignoreLines = [];
 
@@ -41,7 +40,7 @@ class UiFactoryIgnoreCommentRemover extends RecursiveAstVisitor
     // it should always be targeting the next line.
     _ignoreLines = ignorePattern
         .allMatches(sourceFile.getText(0))
-        .map((match) => sourceFile.getLine(match.start) + 1)
+        .map((match) => sourceFile.getLine(match.end) + 1)
         .toList();
 
     super.visitCompilationUnit(node);
@@ -67,17 +66,23 @@ class UiFactoryIgnoreCommentRemover extends RecursiveAstVisitor
       return;
     }
 
-    final initializerLineNum =
-        sourceFile.getLine(factoryNode.initializer.offset);
-
     // If an ignore line was found on the line before the initializer, then we
     // need to remove it. To do this, we just replace the entire initializer
     // with the same value, but without the comment.
+    final initializerLineNum =
+        sourceFile.getLine(factoryNode.initializer.offset);
     if (_ignoreLines.contains(initializerLineNum)) {
+      final currentFactory = sourceFile
+          .span(
+            node.offset,
+            node.end,
+          )
+          .text;
+      final updatedFactory = currentFactory.replaceFirst(ignorePattern, '');
       yieldPatch(
-        factoryNode.equals.end,
-        factoryNode.initializer.end,
-        ' ${privateGeneratedPrefix}${factoryNode.name.name}',
+        node.offset,
+        node.end,
+        updatedFactory,
       );
     }
   }

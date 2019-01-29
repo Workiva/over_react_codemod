@@ -33,7 +33,17 @@ UiFactory Foo = _$Foo;
 @Factory()
 UiFactory Foo =
   // ignore: undefined_identifier
-  $Foo;
+  _$Foo;
 <<<
 @Factory()
-UiFactory Foo = _$Foo;
+UiFactory Foo =
+  _$Foo;
+
+
+>>> ignore comment on line between annotation and factory (patches 1)
+@Factory()
+// ignore: undefined_identifier
+UiFactory<_CustomColorInputProps> _CustomColorInput = _$_CustomColorInput;
+<<<
+@Factory()
+UiFactory<_CustomColorInputProps> _CustomColorInput = _$_CustomColorInput;

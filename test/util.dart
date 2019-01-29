@@ -98,6 +98,10 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       test(description, () {
         final sourceFile = SourceFile.fromString(input, url: path);
         final patches = suggestor.generatePatches(sourceFile);
+        final emptyPatches = patches.where((p) => p.isNoop);
+        expect(emptyPatches, isEmpty,
+            reason: 'Suggested ${emptyPatches.length} empty patch(es).');
+
         if (expectedNumPatches != null &&
             patches.length != expectedNumPatches) {
           fail('Incorrect number of patches generated '
