@@ -46,7 +46,6 @@ class UiFactoryInitializer extends RecursiveAstVisitor
     // There can only be one UiFactory per file.
     final factoryNode = node?.variables?.variables?.first;
     if (factoryNode == null) {
-      // throw new
       return;
     }
 
