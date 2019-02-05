@@ -14,6 +14,7 @@
 
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:path/path.dart' as p;
 
@@ -36,6 +37,13 @@ import '../ignoreable.dart';
 import '../util.dart';
 
 const _backwardsCompatFlag = '--backwards-compat';
+const _helpFlag = '--help';
+const _changesRequiredOutput = """
+To update your code, switch to Dart 2.1.0 and run the following commands:
+  pub global activate over_react_codemod ^<version>
+  pub global run over_react_codemod:dart2_upgrade --backwards-compat
+Then, review and commit the changes.
+""";
 
 void main(List<String> args) {
   // Whether or not backwards-compatibility (with Dart 1) is desired will
@@ -61,6 +69,8 @@ void main(List<String> args) {
     ),
     args: args,
     defaultYes: true,
+    additionalHelpOutput: argParser.usage,
+    changesRequiredOutput: _changesRequiredOutput,
   );
 
   if (exitCode > 0) {
@@ -98,20 +108,30 @@ void main(List<String> args) {
     phaseThreeSuggestors.add(PropsAndStateCompanionClassRemover());
   }
 
-  exitCode = runInteractiveCodemodSequence(
-    FileQuery.dir(
-      pathFilter: isDartFile,
-      recursive: true,
-    ),
-    [
-      AggregateSuggestor(
-        phaseTwoSuggestors.map((s) => Ignoreable(s)),
+  if (!args.contains(_helpFlag) && !args.contains('-h')) {
+    exitCode = runInteractiveCodemodSequence(
+      FileQuery.dir(
+        pathFilter: isDartFile,
+        recursive: true,
       ),
-      AggregateSuggestor(
-        phaseThreeSuggestors.map((s) => Ignoreable(s)),
-      )
-    ],
-    args: args,
-    defaultYes: true,
-  );
+      [
+        AggregateSuggestor(
+          phaseTwoSuggestors.map((s) => Ignoreable(s)),
+        ),
+        AggregateSuggestor(
+          phaseThreeSuggestors.map((s) => Ignoreable(s)),
+        )
+      ],
+      args: args,
+      defaultYes: true,
+      changesRequiredOutput: _changesRequiredOutput,
+    );
+  }
 }
+
+final argParser = ArgParser()
+  ..addFlag(
+    'backwards-compat',
+    negatable: false,
+    help: 'Maintain backwards-compatibility with Dart 1.',
+  );
