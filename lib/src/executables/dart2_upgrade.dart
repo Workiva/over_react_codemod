@@ -38,9 +38,10 @@ import '../util.dart';
 
 const _backwardsCompatFlag = '--backwards-compat';
 const _helpFlag = '--help';
+const _helpFlagAbbr = '-h';
 const _changesRequiredOutput = """
 To update your code, switch to Dart 2.1.0 and run the following commands:
-  pub global activate over_react_codemod ^<version>
+  pub global activate over_react_codemod ^1.0.1
   pub global run over_react_codemod:dart2_upgrade --backwards-compat
 Then, review and commit the changes.
 """;
@@ -73,7 +74,9 @@ void main(List<String> args) {
     changesRequiredOutput: _changesRequiredOutput,
   );
 
-  if (exitCode > 0) {
+  if (exitCode > 0 ||
+      args.contains(_helpFlag) ||
+      args.contains(_helpFlagAbbr)) {
     return;
   }
 
@@ -108,25 +111,23 @@ void main(List<String> args) {
     phaseThreeSuggestors.add(PropsAndStateCompanionClassRemover());
   }
 
-  if (!args.contains(_helpFlag) && !args.contains('-h')) {
-    exitCode = runInteractiveCodemodSequence(
-      FileQuery.dir(
-        pathFilter: isDartFile,
-        recursive: true,
+  exitCode = runInteractiveCodemodSequence(
+    FileQuery.dir(
+      pathFilter: isDartFile,
+      recursive: true,
+    ),
+    [
+      AggregateSuggestor(
+        phaseTwoSuggestors.map((s) => Ignoreable(s)),
       ),
-      [
-        AggregateSuggestor(
-          phaseTwoSuggestors.map((s) => Ignoreable(s)),
-        ),
-        AggregateSuggestor(
-          phaseThreeSuggestors.map((s) => Ignoreable(s)),
-        )
-      ],
-      args: args,
-      defaultYes: true,
-      changesRequiredOutput: _changesRequiredOutput,
-    );
-  }
+      AggregateSuggestor(
+        phaseThreeSuggestors.map((s) => Ignoreable(s)),
+      )
+    ],
+    args: args,
+    defaultYes: true,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
 }
 
 final argParser = ArgParser()
