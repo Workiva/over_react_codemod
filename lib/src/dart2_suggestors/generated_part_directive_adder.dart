@@ -23,12 +23,12 @@ import 'needs_over_react_library_collector.dart';
 /// Suggestor that uses the set of libraries that need the over_react generated
 /// part directive (collected via [NeedsOverReactLibraryCollector]) and adds the
 /// directive to every library that needs it and does not already have it.
-class OverReactGeneratedPartDirectiveAdder extends SimpleAstVisitor
+class GeneratedPartDirectiveAdder extends SimpleAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final NeedsOverReactLibraryCollector _libraryCollector;
 
-  OverReactGeneratedPartDirectiveAdder(this._libraryCollector);
+  GeneratedPartDirectiveAdder(this._libraryCollector);
 
   @override
   visitCompilationUnit(CompilationUnit node) {

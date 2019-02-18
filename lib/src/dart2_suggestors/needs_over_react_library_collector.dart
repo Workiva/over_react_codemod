@@ -17,13 +17,13 @@ import 'package:codemod/codemod.dart';
 import 'package:path/path.dart' as p;
 
 import '../util.dart';
-import 'over_react_generated_part_directive_adder.dart';
+import 'generated_part_directive_adder.dart';
 
 /// Suggestor that collects the set of libraries that need an over_react
 /// generated part file.
 ///
 /// This suggestor is intended to be used in conjunction with the
-/// [OverReactGeneratedPartDirectiveAdder]; this collector should run first
+/// [GeneratedPartDirectiveAdder]; this collector should run first
 /// across the entire set of Dart files in a project and then the directive
 /// adder should run second (using [runInteractiveCodemodSequence]).
 class NeedsOverReactLibraryCollector extends RecursiveAstVisitor

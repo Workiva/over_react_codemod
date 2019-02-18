@@ -1,0 +1,61 @@
+OrcmIgnoreRemover
+>>> empty file (patches 0)
+<<<
+
+
+>>> no matches (patches 0)
+library foo;
+var a = 'b';
+class Random {}
+<<<
+library foo;
+var a = 'b';
+class Random {}
+
+
+>>> previous line (patches 1)
+library foo;
+
+// orcm_ignore
+var foo;
+<<<
+library foo;
+
+var foo;
+
+
+>>> same line (patches 1)
+library foo;
+
+var foo; // orcm_ignore
+<<<
+library foo;
+
+var foo;
+
+
+>>> whitespace (patches 1)
+library foo;
+
+  // orcm_ignore  
+var foo;
+<<<
+library foo;
+
+var foo;
+
+
+>>> multiple removals (patches 2)
+library foo;
+
+// orcm_ignore
+var foo;
+
+// orcm_ignore
+var bar;
+<<<
+library foo;
+
+var foo;
+
+var bar;

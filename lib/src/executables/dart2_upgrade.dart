@@ -22,7 +22,9 @@ import '../dart2_suggestors/component_default_props_migrator.dart';
 import '../dart2_suggestors/dollar_prop_keys_migrator.dart';
 import '../dart2_suggestors/dollar_props_migrator.dart';
 import '../dart2_suggestors/needs_over_react_library_collector.dart';
-import '../dart2_suggestors/over_react_generated_part_directive_adder.dart';
+import '../dart2_suggestors/orcm_ignore_remover.dart';
+import '../dart2_suggestors/generated_part_directive_adder.dart';
+import '../dart2_suggestors/generated_part_directive_ignore_remover.dart';
 import '../dart2_suggestors/props_and_state_classes_renamer.dart';
 import '../dart2_suggestors/props_and_state_companion_class_adder.dart';
 import '../dart2_suggestors/props_and_state_companion_class_remover.dart';
@@ -98,11 +100,13 @@ void main(List<String> args) {
           UiFactoryIgnoreCommentRemover(),
           PropsAndStateMixinMetaRemover(),
           PropsAndStateMixinUsageConsolidator(),
+          GeneratedPartDirectiveIgnoreRemover(),
+          OrcmIgnoreRemover(),
         ]);
 
   final phaseThreeSuggestors = <Suggestor>[
     Ignoreable(
-      OverReactGeneratedPartDirectiveAdder(
+      GeneratedPartDirectiveAdder(
         needsOverReactLibraryCollector,
       ),
     ),

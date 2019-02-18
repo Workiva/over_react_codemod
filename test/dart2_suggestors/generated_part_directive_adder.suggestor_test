@@ -1,4 +1,4 @@
-OverReactGeneratedPartDirectiveAdder
+GeneratedPartDirectiveAdder
 # This test requires a small amount of setup, as the suggestor depends on the
 # NeedsOverReactLibraryCollector to determine which library names and paths
 # need the over_react generated part directive.
