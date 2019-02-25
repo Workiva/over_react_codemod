@@ -1,0 +1,26 @@
+GeneratedPartDirectiveIgnoreRemover
+>>> empty file (patches 0)
+<<<
+
+
+>>> no matches (patches 0)
+library foo;
+var a = 'b';
+class Random {}
+<<<
+library foo;
+var a = 'b';
+class Random {}
+
+
+>>> removes comment (patches 1)
+library foo;
+
+import 'bar.dart';
+// ignore: uri_has_not_been_generated
+part 'foo.over_react.g.dart';
+<<<
+library foo;
+
+import 'bar.dart';
+part 'foo.over_react.g.dart';

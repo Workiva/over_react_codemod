@@ -21,7 +21,9 @@ import 'package:over_react_codemod/src/dart2_suggestors/component_default_props_
 import 'package:over_react_codemod/src/dart2_suggestors/dollar_prop_keys_migrator.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/dollar_props_migrator.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/needs_over_react_library_collector.dart';
-import 'package:over_react_codemod/src/dart2_suggestors/over_react_generated_part_directive_adder.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/generated_part_directive_adder.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/generated_part_directive_ignore_remover.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/orcm_ignore_remover.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_classes_renamer.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_companion_class_adder.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_companion_class_remover.dart';
@@ -46,8 +48,8 @@ void main() {
     final mockCollector = MockCollector();
     when(mockCollector.byName).thenReturn(['match']);
     when(mockCollector.byPath).thenReturn([p.canonicalize('match.dart')]);
-    final overReactGeneratedPartDirectiveAdder =
-        Ignoreable(OverReactGeneratedPartDirectiveAdder(mockCollector));
+    final generatedPartDirectiveAdder =
+        Ignoreable(GeneratedPartDirectiveAdder(mockCollector));
 
     final suggestorMap = {
       'ComponentDefaultPropsMigrator': Ignoreable(
@@ -59,8 +61,10 @@ void main() {
       'DollarPropsMigrator': Ignoreable(
         DollarPropsMigrator(),
       ),
-      'OverReactGeneratedPartDirectiveAdder':
-          overReactGeneratedPartDirectiveAdder,
+      'GeneratedPartDirectiveAdder': generatedPartDirectiveAdder,
+      'GeneratedPartDirectiveIgnoreRemover':
+          GeneratedPartDirectiveIgnoreRemover(),
+      'OrcmIgnoreRemover': OrcmIgnoreRemover(),
       'PropsAndStateClassesRenamer': Ignoreable(
         PropsAndStateClassesRenamer(renameMixins: true),
       ),
