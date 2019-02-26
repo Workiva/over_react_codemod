@@ -74,13 +74,13 @@ class UiFactoryIgnoreCommentRemover extends RecursiveAstVisitor
     if (_ignoreLines.contains(initializerLineNum)) {
       final currentFactory = sourceFile
           .span(
-            node.offset,
+            node.metadata.beginToken.offset,
             node.end,
           )
           .text;
       final updatedFactory = currentFactory.replaceFirst(ignorePattern, '');
       yieldPatch(
-        node.offset,
+        node.metadata.beginToken.offset,
         node.end,
         updatedFactory,
       );

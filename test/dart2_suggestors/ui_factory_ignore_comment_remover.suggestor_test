@@ -47,3 +47,20 @@ UiFactory<_CustomColorInputProps> _CustomColorInput = _$_CustomColorInput;
 <<<
 @Factory()
 UiFactory<_CustomColorInputProps> _CustomColorInput = _$_CustomColorInput;
+
+
+>>> factory with doc comment (patches 1)
+/// Doc comment.
+/// Line 2.
+/// Line 3.
+@Factory()
+UiFactory Foo =
+  // ignore: undefined_identifier
+  _$Foo;
+<<<
+/// Doc comment.
+/// Line 2.
+/// Line 3.
+@Factory()
+UiFactory Foo =
+  _$Foo;
