@@ -83,36 +83,52 @@ void main(List<String> args) {
   }
 
   final needsOverReactLibraryCollector = NeedsOverReactLibraryCollector();
-  final phaseTwoSuggestors = <Suggestor>[
-    needsOverReactLibraryCollector,
-    UiFactoryInitializer(includeIgnore: backwardsCompat),
-    ComponentDefaultPropsMigrator(),
-    DollarPropsMigrator(),
-    DollarPropKeysMigrator(),
-    PropsAndStateClassesRenamer(renameMixins: !backwardsCompat),
-  ]..addAll(backwardsCompat
-      ? [
+
+  final suggestorSequence = <Suggestor>[
+    AggregateSuggestor(
+      <Suggestor>[
+        needsOverReactLibraryCollector,
+        UiFactoryInitializer(includeIgnore: backwardsCompat),
+        ComponentDefaultPropsMigrator(),
+        DollarPropsMigrator(),
+        DollarPropKeysMigrator(),
+        PropsAndStateClassesRenamer(renameMixins: !backwardsCompat),
+      ].map((s) => Ignoreable(s)),
+    ),
+    GeneratedPartDirectiveAdder(
+      needsOverReactLibraryCollector,
+    ),
+  ];
+
+  if (backwardsCompat) {
+    suggestorSequence.add(
+      AggregateSuggestor(
+        <Suggestor>[
           PropsAndStateCompanionClassAdder(commentPrefix: commentPrefix),
           PropsAndStateMixinMetaAdder(),
           PropsAndStateMixinUsageDoubler(),
-        ]
-      : [
+        ].map((s) => Ignoreable(s)),
+      ),
+    );
+  } else {
+    suggestorSequence.addAll([
+      AggregateSuggestor(
+        // These suggestors mainly clean up the transitional boilerplate
+        // introduced by the backwards-compat suggestors. As such, they do not
+        // need to be ignoreable.
+        <Suggestor>[
+          GeneratedPartDirectiveIgnoreRemover(),
           UiFactoryIgnoreCommentRemover(),
           PropsAndStateMixinMetaRemover(),
           PropsAndStateMixinUsageConsolidator(),
-          GeneratedPartDirectiveIgnoreRemover(),
-          OrcmIgnoreRemover(),
-        ]);
-
-  final phaseThreeSuggestors = <Suggestor>[
-    Ignoreable(
-      GeneratedPartDirectiveAdder(
-        needsOverReactLibraryCollector,
+          PropsAndStateCompanionClassRemover(),
+        ],
       ),
-    ),
-  ];
-  if (!backwardsCompat) {
-    phaseThreeSuggestors.add(PropsAndStateCompanionClassRemover());
+      // The orcm_ignore comments could be anywhere in the source, which makes
+      // them a high-risk for producing overlapping patches with other
+      // suggestors. For that reason, we run it by itself and not in aggregate.
+      OrcmIgnoreRemover(),
+    ]);
   }
 
   exitCode = runInteractiveCodemodSequence(
@@ -120,14 +136,7 @@ void main(List<String> args) {
       pathFilter: isDartFile,
       recursive: true,
     ),
-    [
-      AggregateSuggestor(
-        phaseTwoSuggestors.map((s) => Ignoreable(s)),
-      ),
-      AggregateSuggestor(
-        phaseThreeSuggestors.map((s) => Ignoreable(s)),
-      )
-    ],
+    suggestorSequence,
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
