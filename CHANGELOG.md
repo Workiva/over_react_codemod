@@ -7,6 +7,9 @@
   - `// ignore: uri_has_not_been_generated` comments that precede a
     `.over_react.g.dart` part directive are removed
 
+- Fix a bug that could result in overlapping patches being suggested, which
+  would cause the `dart2_upgrade` codemod to exit early unsuccessfully.
+
 ## [1.0.2](https://github.com/Workiva/over_react_codemod/compare/1.0.1...1.0.2)
 
 - Provide additional output from the `dart2_upgrade` codemod in the following
