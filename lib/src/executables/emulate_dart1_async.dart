@@ -30,7 +30,8 @@ void main(List<String> args) {
     AsyncEmulator(),
     args: args,
     defaultYes: true,
-    additionalHelpOutput: 'A codemod that emulates Dart 1 async function timing in Dart 2 by adding delays to relevant async functions.'
+    additionalHelpOutput:
+        'A codemod that emulates Dart 1 async function timing in Dart 2 by adding delays to relevant async functions.',
   );
 
   if (exitCode > 0 ||
@@ -62,14 +63,16 @@ class AsyncEmulator extends RecursiveAstVisitor
         return;
       } else if (body.block.statements.length == 1) {
         final statement = body.block.statements[0];
-        if (statement is ReturnStatement && isConstExpression(statement.expression)) {
+        if (statement is ReturnStatement &&
+            isConstExpression(statement.expression)) {
           // Common case: a function that just returns a constant value,
           // which has no side effects and thus cannot affect timing.
           return;
         }
       }
 
-      yieldPatch(body.block.leftBracket.end, body.block.leftBracket.end, '/* TODO d2_async */ await new Future(() {});');
+      yieldPatch(body.block.leftBracket.end, body.block.leftBracket.end,
+          '/* TODO d2_async */ await new Future(() {});');
     } else if (body is ExpressionFunctionBody) {
       if (isConstExpression(body.expression)) {
         // Common case: a function that just returns a constant value,
@@ -78,19 +81,21 @@ class AsyncEmulator extends RecursiveAstVisitor
       }
 
       yieldPatch(body.keyword.offset, body.expression.end,
-          '=> /* TODO d2_async */ new Future(() async => ${sourceFile.getText(body.expression.offset, body.expression.end)})'
-      );
+          '=> /* TODO d2_async */ new Future(() async => ${sourceFile.getText(body.expression.offset, body.expression.end)})');
     }
   }
 }
 
-bool isConstExpression(Expression expr) => expr is BooleanLiteral
-               || expr is DoubleLiteral
-               || expr is IntegerLiteral
-               || expr is ListLiteral
-               || expr is MapLiteral
-               || expr is NullLiteral
-               || expr is StringLiteral || (expr is InstanceCreationExpression && expr.isConst) || (expr is TypedLiteral && expr.isConst);
+bool isConstExpression(Expression expr) =>
+    expr is BooleanLiteral ||
+    expr is DoubleLiteral ||
+    expr is IntegerLiteral ||
+    expr is ListLiteral ||
+    expr is MapLiteral ||
+    expr is NullLiteral ||
+    expr is StringLiteral ||
+    (expr is InstanceCreationExpression && expr.isConst) ||
+    (expr is TypedLiteral && expr.isConst);
 
 FunctionDeclaration getFunctionDeclaration(FunctionExpression function) {
   final parent = function.parent;
