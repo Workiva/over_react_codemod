@@ -34,3 +34,4 @@ dev_dependencies:
 
 executables:
   dart2_upgrade:
+  emulate_dart1_async:
