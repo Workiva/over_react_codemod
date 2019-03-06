@@ -44,6 +44,13 @@ void main(List<String> args) {
 class AsyncEmulator extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  static const oldComments = [
+    // TODO replace these
+    'TODO d2_async',
+  ];
+  static const commentText =
+      'TODO Added to preserve Dart 1 timings; remove if possible.';
+
   @override
   void visitFunctionExpression(FunctionExpression node) {
     node.visitChildren(this);
@@ -54,6 +61,10 @@ class AsyncEmulator extends RecursiveAstVisitor
     }
 
     if (isMain(node) || isTestMethodBlock(node)) {
+      return;
+    }
+
+    if (alreadyModded(node)) {
       return;
     }
 
@@ -71,8 +82,9 @@ class AsyncEmulator extends RecursiveAstVisitor
         }
       }
 
+      // TODO see if we can make this `await null`; it might not work in dart2js.
       yieldPatch(body.block.leftBracket.end, body.block.leftBracket.end,
-          '/* TODO d2_async */ await new Future(() {});');
+          '// $commentText\n await new Future(() {});');
     } else if (body is ExpressionFunctionBody) {
       if (isConstExpression(body.expression)) {
         // Common case: a function that just returns a constant value,
@@ -81,8 +93,48 @@ class AsyncEmulator extends RecursiveAstVisitor
       }
 
       yieldPatch(body.keyword.offset, body.expression.end,
-          '=> /* TODO d2_async */ new Future(() async => ${sourceFile.getText(body.expression.offset, body.expression.end)})');
+          '=> // $commentText\n new Future(() async => ${sourceFile.getText(body.expression.offset, body.expression.end)})');
     }
+  }
+
+  bool alreadyModded(FunctionExpression function) {
+    final body = function.body;
+
+    int commentsStart;
+    int commentsEnd;
+
+    if (body is ExpressionFunctionBody) {
+      commentsStart = body.expression.beginToken.precedingComments?.offset;
+      commentsEnd = body.expression.offset;
+    } else if (body is BlockFunctionBody && body.block.statements.isNotEmpty) {
+      commentsStart =
+          body.block.statements[0].beginToken.precedingComments?.offset;
+      commentsEnd = body.block.statements[0].offset;
+    }
+
+    if (commentsStart != null && commentsEnd != null) {
+      final commentsSource = sourceFile.getText(commentsStart, commentsEnd);
+      if (commentsSource.contains(commentText) ||
+          oldComments.any(commentsSource.contains)) {
+        return true;
+      }
+    } else if (body is ExpressionFunctionBody) {
+      // This might be the callback of the Future added to async functions
+      final future = futureBlockFuture(function);
+      if (future != null) {
+        commentsStart = future.beginToken.precedingComments?.offset;
+        commentsEnd = future.offset;
+        if (commentsStart != null && commentsEnd != null) {
+          final commentsSource = sourceFile.getText(commentsStart, commentsEnd);
+          if (commentsSource.contains(commentText) ||
+              oldComments.any(commentsSource.contains)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }
 
@@ -104,6 +156,19 @@ FunctionDeclaration getFunctionDeclaration(FunctionExpression function) {
 
 bool isMain(FunctionExpression function) =>
     getFunctionDeclaration(function)?.name?.name == 'main';
+
+InstanceCreationExpression futureBlockFuture(FunctionExpression function) {
+  final parent = function.parent;
+  if (parent is ArgumentList) {
+    final grandparent = parent.parent;
+    if (grandparent is InstanceCreationExpression) {
+      if (grandparent.constructorName.toSource() == 'Future') {
+        return grandparent;
+      }
+    }
+  }
+  return null;
+}
 
 bool isTestMethodBlock(FunctionExpression function) {
   final parent = function.parent;
