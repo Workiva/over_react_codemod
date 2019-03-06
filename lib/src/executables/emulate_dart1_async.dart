@@ -51,6 +51,12 @@ class AsyncEmulator extends RecursiveAstVisitor
   static const commentText =
       'TODO Added to preserve Dart 1 timings; remove if possible.';
 
+  // TODO see if we can make this `await null`; it might not work in dart2js.
+  // spaces are needed after newline so that dartfmt aligns the comment
+  // with the if-statement line
+  static const conditionalAwaitStatement =
+      '\n // $commentText\n if (isDart2) await new Future(() {});\n';
+
   @override
   void visitFunctionExpression(FunctionExpression node) {
     node.visitChildren(this);
@@ -82,9 +88,8 @@ class AsyncEmulator extends RecursiveAstVisitor
         }
       }
 
-      // TODO see if we can make this `await null`; it might not work in dart2js.
       yieldPatch(body.block.leftBracket.end, body.block.leftBracket.end,
-          '// $commentText\n await new Future(() {});');
+          conditionalAwaitStatement);
     } else if (body is ExpressionFunctionBody) {
       if (isConstExpression(body.expression)) {
         // Common case: a function that just returns a constant value,
@@ -92,21 +97,27 @@ class AsyncEmulator extends RecursiveAstVisitor
         return;
       }
 
-      yieldPatch(body.keyword.offset, body.expression.end,
-          '=> // $commentText\n new Future(() async => ${sourceFile.getText(body.expression.offset, body.expression.end)})');
+      yieldPatch(
+          body.offset,
+          body.end,
+          ' async {$conditionalAwaitStatement'
+          'return ${sourceFile.getText(body.expression.offset, body.expression.end)};\n'
+          '}');
     }
   }
 
   bool alreadyModded(FunctionExpression function) {
-    final body = function.body;
+    if (function.body is! BlockFunctionBody) {
+      // All functions are turned into block bodies after modding.
+      return false;
+    }
+
+    final BlockFunctionBody body = function.body;
 
     int commentsStart;
     int commentsEnd;
 
-    if (body is ExpressionFunctionBody) {
-      commentsStart = body.expression.beginToken.precedingComments?.offset;
-      commentsEnd = body.expression.offset;
-    } else if (body is BlockFunctionBody && body.block.statements.isNotEmpty) {
+    if (body.block.statements.isNotEmpty) {
       commentsStart =
           body.block.statements[0].beginToken.precedingComments?.offset;
       commentsEnd = body.block.statements[0].offset;
@@ -117,20 +128,6 @@ class AsyncEmulator extends RecursiveAstVisitor
       if (commentsSource.contains(commentText) ||
           oldComments.any(commentsSource.contains)) {
         return true;
-      }
-    } else if (body is ExpressionFunctionBody) {
-      // This might be the callback of the Future added to async functions
-      final future = futureBlockFuture(function);
-      if (future != null) {
-        commentsStart = future.beginToken.precedingComments?.offset;
-        commentsEnd = future.offset;
-        if (commentsStart != null && commentsEnd != null) {
-          final commentsSource = sourceFile.getText(commentsStart, commentsEnd);
-          if (commentsSource.contains(commentText) ||
-              oldComments.any(commentsSource.contains)) {
-            return true;
-          }
-        }
       }
     }
 
