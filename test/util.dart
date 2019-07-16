@@ -15,12 +15,16 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:dart_style/dart_style.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 
 final _patchesPattern = RegExp(r'\(patches (\d+)\)');
 final _pathPattern = RegExp(r'\(path ([\w./]+)\)');
+final _dartfmtOutputPattern = RegExp(r'\s*@dartfmt_output');
+
+final formatter = new DartFormatter();
 
 // This testing approach is similar to what dart_style does for their formatting
 // tests since it is pretty much entirely input >> output.
@@ -43,7 +47,16 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
     final lines = File(testFilePath).readAsLinesSync();
 
     // First line selects the suggestor to use.
-    final suggestorName = lines[0];
+    var suggestorName = lines[0];
+
+    // Let the test specify whether to format expected and actual output
+    // before comparing them.
+    var dartfmtOutputAll = false;
+    suggestorName = suggestorName.replaceAllMapped(_dartfmtOutputPattern, (match) {
+      dartfmtOutputAll = true;
+      return '';
+    });
+
     final suggestor = suggestorMap[suggestorName];
     if (suggestor == null) {
       throw Exception('Unknown suggestor: $suggestorName');
@@ -60,14 +73,22 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       var description = lines[i++].replaceAll('>>>', '');
 
       // Let the test specify how many patches should be generated.
-      var expectedNumPatches;
+      int expectedNumPatches;
       description = description.replaceAllMapped(_patchesPattern, (match) {
         expectedNumPatches = int.parse(match.group(1));
         return '';
       });
 
+      // Let the test specify whether to format expected and actual output
+      // before comparing them.
+      var shouldDartfmtOutput = dartfmtOutputAll;
+      description = description.replaceAllMapped(_dartfmtOutputPattern, (match) {
+        shouldDartfmtOutput = true;
+        return '';
+      });
+
       // Let the test specify a file path, as the suggestor may use it.
-      var path;
+      String path;
       description = description.replaceAllMapped(_pathPattern, (match) {
         path = match.group(1);
         return '';
@@ -94,6 +115,10 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       // cases for better readability.
       input = input.trimRight() + '\n';
       expectedOutput = expectedOutput.trimRight() + '\n';
+      if (shouldDartfmtOutput) {
+        expectedOutput =
+            formatter.format(expectedOutput, uri: 'expectedOutput');
+      }
 
       test(description, () {
         final sourceFile = SourceFile.fromString(input, url: path);
@@ -108,9 +133,14 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
               '(expected: $expectedNumPatches, actual: ${patches.length})\n'
               'Patches:\n$patches');
         }
-        final modifiedInput =
+        var modifiedInput =
             applyPatches(sourceFile, patches).trimRight() + '\n';
-        expect(modifiedInput, expectedOutput);
+        if (shouldDartfmtOutput) {
+          modifiedInput = formatter.format(modifiedInput, uri: 'modifiedInput');
+        }
+
+        expect(modifiedInput, expectedOutput,
+            reason: 'Original input:\n---------------\n$input');
       });
     }
   });
