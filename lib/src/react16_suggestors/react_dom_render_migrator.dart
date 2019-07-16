@@ -14,6 +14,7 @@
 
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 
 /// Suggestor that migrates `react_dom.render` usages to be compatible with
@@ -34,12 +35,12 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       if (parent is VariableDeclaration) {
         // > Instances of this class are always children of the class [VariableDeclarationList]
         yieldPatch(parent.parent.offset, parent.parent.offset,
-            '// TODO validate typing and safety of ref\n');
+            '// $fixmePrefix - validate typing and safety of ref\n');
         yieldPatch(parent.equals.offset, parent.equals.end, ';');
         refVariableName = parent.name.name;
       } else if (parent is AssignmentExpression) {
         yieldPatch(parent.offset, parent.offset,
-            '// TODO validate typing and safety of ref\n');
+            '// $fixmePrefix - validate typing and safety of ref\n');
         yieldPatch(parent.offset, parent.rightHandSide.offset, '');
         refVariableName = parent.leftHandSide.toSource();
       } else {
@@ -67,7 +68,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         // todo check for existing ref
       } else {
         yieldPatch(node.offset, node.offset,
-            '// FIXME manually verify that ref is used on this component expreession \n');
+            '// $fixmePrefix - manually verify that ref is used on this component expreession \n');
       }
     }
 

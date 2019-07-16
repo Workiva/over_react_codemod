@@ -14,7 +14,7 @@
 
 @TestOn('vm')
 import 'package:mockito/mockito.dart';
-import 'package:over_react_codemod/src/dart2_suggestors/react_dom_render_migrator.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react_dom_render_migrator.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -42,13 +42,18 @@ import 'util.dart';
 class MockCollector extends Mock implements NeedsOverReactLibraryCollector {}
 
 void main() {
-  group('Dart2 migration suggestors', () {
+  MockCollector mockCollector;
+
+  setUp(() {
     // In the `.suggestor_test` for this suggestor, the tests are written with
     // the assumption that any library with a name of `match` or a path of
     // `match.dart` needs the part directive, and this setup is why that works.
-    final mockCollector = MockCollector();
+    mockCollector = MockCollector();
     when(mockCollector.byName).thenReturn(['match']);
     when(mockCollector.byPath).thenReturn([p.canonicalize('match.dart')]);
+  });
+
+  group('Dart2 migration suggestors', () {
     final generatedPartDirectiveAdder =
         Ignoreable(GeneratedPartDirectiveAdder(mockCollector));
 
@@ -110,5 +115,14 @@ void main() {
       ),
     };
     testSuggestorsDir(suggestorMap, 'test/dart2_suggestors');
+  });
+
+  group('React16 migration suggestors', () {
+    final suggestorMap = {
+      'ReactDomRenderMigrator': Ignoreable(
+        ReactDomRenderMigrator(),
+      ),
+    };
+    testSuggestorsDir(suggestorMap, 'test/react16_suggestors');
   });
 }

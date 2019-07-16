@@ -28,7 +28,7 @@ ReactDomRenderMigrator @dartfmt_output
     }
 <<<
     main() {
-      // TODO validate typing and safety of ref
+      // FIXME:over_react_codemod - validate typing and safety of ref
       var instance;
       react_dom.render((Foo()
         ..ref = (ref) { instance = ref; }
@@ -44,7 +44,7 @@ ReactDomRenderMigrator @dartfmt_output
 <<<
     main() {
       var instance;
-      // TODO validate typing and safety of ref
+      // FIXME:over_react_codemod - validate typing and safety of ref
       react_dom.render((Foo()
         ..ref = (ref) { instance = ref; }
       )(), mountNode);
@@ -59,7 +59,7 @@ ReactDomRenderMigrator @dartfmt_output
     }
 <<<
     main() {
-      // TODO validate typing and safety of ref
+      // FIXME:over_react_codemod - validate typing and safety of ref
       var instance;
       react_dom.render((Foo()
         ..ref = (ref) { instance = ref; }
@@ -78,7 +78,7 @@ ReactDomRenderMigrator @dartfmt_output
     main() {
       var fooRef;
       react_dom.render((Foo()
-        // TODO validate safety of ref
+        // FIXME:over_react_codemod - validate safety of ref
         ..ref = (ref) { fooRef = ref; }
       )(), mountNode);
     }
