@@ -1,0 +1,84 @@
+ReactDomRenderMigrator @dartfmt_output
+>>> empty file (patches 0)
+<<<
+
+>>> no matches (patches 0)
+    library foo;
+    var a = 'b';
+    class Foo {}
+<<<
+    library foo;
+    var a = 'b';
+    class Foo {}
+
+
+>>> render without usage of return value (patches 0)
+    main() {
+      react_dom.render(Foo()(), mountNode);
+    }
+<<<
+    main() {
+      react_dom.render(Foo()(), mountNode);
+    }
+
+
+>>> simple usage (patches 5)
+    main() {
+      var instance = react_dom.render(Foo()(), mountNode);
+    }
+<<<
+    main() {
+      // TODO validate typing and safety of ref
+      var instance;
+      react_dom.render((Foo()
+        ..ref = (ref) { instance = ref; }
+      )(), mountNode);
+    }
+
+
+>>> simple usage assignment to existing variable (patches 5)
+    main() {
+      var instance;
+      instance = react_dom.render(Foo()(), mountNode);
+    }
+<<<
+    main() {
+      var instance;
+      // TODO validate typing and safety of ref
+      react_dom.render((Foo()
+        ..ref = (ref) { instance = ref; }
+      )(), mountNode);
+    }
+
+
+>>> simple usage w/ existing other props (patches 3)
+    main() {
+      var instance = react_dom.render((Foo()
+        ..id = 'foo'
+      )(), mountNode);
+    }
+<<<
+    main() {
+      // TODO validate typing and safety of ref
+      var instance;
+      react_dom.render((Foo()
+        ..ref = (ref) { instance = ref; }
+        ..id = 'foo'
+      )(), mountNode);
+    }
+
+>>> simple usage w/ existing ref (patches 1)
+    main() {
+      var fooRef;
+      react_dom.render((Foo()
+        ..ref = (ref) { fooRef = ref; }
+      )(), mountNode);
+    }
+<<<
+    main() {
+      var fooRef;
+      react_dom.render((Foo()
+        // TODO validate safety of ref
+        ..ref = (ref) { fooRef = ref; }
+      )(), mountNode);
+    }

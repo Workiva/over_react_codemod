@@ -14,6 +14,7 @@
 
 @TestOn('vm')
 import 'package:mockito/mockito.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/react_dom_render_migrator.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -94,6 +95,9 @@ void main() {
       ),
       'PubspecOverReactUpgrader': PubspecOverReactUpgrader(
         PubspecOverReactUpgrader.dart2Constraint,
+      ),
+      'ReactDomRenderMigrator': Ignoreable(
+        ReactDomRenderMigrator(),
       ),
       'UiFactoryIgnoreCommentRemover': Ignoreable(
         UiFactoryIgnoreCommentRemover(),
