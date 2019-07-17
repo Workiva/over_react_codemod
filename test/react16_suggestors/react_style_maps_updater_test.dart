@@ -18,10 +18,14 @@ main() {
         testSuggestor(
           expectedPatchCount: 0,
           input: '''
-          ..style = {
-            "width": 40
-          }
-        ''',
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ..style = {
+                'width': 40
+              }
+            }
+          ''',
         );
       });
 
@@ -29,16 +33,24 @@ main() {
         testSuggestor(
           expectedPatchCount: 2,
           input: '''
-          ..style = {
-            'width': '40',
-          }
-        ''',
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ..style = {
+                'width': '40'
+              }
+            }
+          ''',
           expectedOutput: '''
-          ..style = {
-            ${getCheckboxComment(keysOfModdedValues: ['width'])}
-            'width': 40,
-          }
-        ''',
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ..style = {
+                ${getCheckboxComment(keysOfModdedValues: ['width'])}
+                'width': 40,
+              }
+            }
+          ''',
         );
       });
 
@@ -46,45 +58,30 @@ main() {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
-          ..style = {
-            'width': '40',
-            'height': '40%',
-            'fontSize': '12',
-            'margin': '25',
-          }
-        ''',
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ..style = {
+                'width': '40',
+                'height': '40%',
+                'fontSize': '12',
+                'margin': '25',
+              }
+            }
+          ''',
           expectedOutput: '''
-          ..style = {
-            ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
-            'width': 40
-            'height': '40%',
-            'fontSize': 12,
-            'margin': 25,
-          }
-        ''',
-        );
-      });
-
-      test('multiple value swithin a style map', () {
-        testSuggestor(
-          expectedPatchCount: 4,
-          input: '''
-          ..style = {
-            'width': '40',
-            'height': '40%',
-            'fontSize': '12',
-            'margin': '25',
-          }
-        ''',
-          expectedOutput: '''
-          ..style = {
-            ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
-            'width': 40
-            'height': '40%',
-            'fontSize': 12,
-            'margin': 25,
-          }
-        ''',
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ..style = {
+                'width': 40
+                'height': '40%',
+                'fontSize': 12,
+                'margin': 25,
+              }
+            }
+          ''',
         );
       });
     });
@@ -93,14 +90,47 @@ main() {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
-          ..style = {
-            'width': '40px',
+          $classSetupBoilerPlate
+          main() {
+            Foo()
+            ..style = {
+              'width': '40px',
+            }
           }
         ''',
         expectedOutput: '''
-          ..style = {
+          $classSetupBoilerPlate
+          main() {
+            Foo()
             ${getCheckboxComment(keysOfModdedValues: ['width'])}
-            'width': 40,
+            ..style = {
+              'width': 40,
+            }
+          }
+        ''',
+      );
+    });
+
+    test('adds a comment then the map value is a variable', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          $classSetupBoilerPlate
+            main() {
+              Foo()
+              ..style = {
+                'width': '40px',
+              }
+            }
+        ''',
+        expectedOutput: '''
+          $classSetupBoilerPlate
+          main() {
+            Foo()
+            ${getCheckboxComment(keysOfModdedValues: ['width'])}
+            ..style = {
+              'width': 40,
+            }
           }
         ''',
       );
@@ -116,7 +146,22 @@ String getCheckboxComment({
         ' Check this box upon manual validation that this style map uses a valid num '
         '${keysOfModdedValues.isNotEmpty
             ? 'for the keys ${keysOfModdedValues.join(', ')}.'
-            : 'for each given key.'}'
+            : 'for the keys that are numbers.'}'
         '$willBeRemovedCommentSuffix';
 
+String manualVariableCheckComment({List<String> keysOfModdedValues: const []}) =>
+    '// [ ] Check this box upon manual validation that '
+        'the style map is receiving a value that is a num for the keys '
+        '${keysOfModdedValues.isNotEmpty
+        ? '${keysOfModdedValues.join(', ')}.'
+        : 'that are variables.'}'
+        '$willBeRemovedCommentSuffix';
+
+
+
 final checkboxComment = getCheckboxComment();
+final classSetupBoilerPlate = '''
+  class Foo {
+    Map style;
+  }
+''';
