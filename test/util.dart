@@ -23,6 +23,7 @@ import 'package:test/test.dart';
 final _patchesPattern = RegExp(r'\(patches (\d+)\)');
 final _pathPattern = RegExp(r'\(path ([\w./]+)\)');
 final _dartfmtOutputPattern = RegExp(r'\s*@dartfmt_output');
+final _idempotentPattern = RegExp(r'\s*@idempotent');
 
 final formatter = new DartFormatter();
 
@@ -57,6 +58,14 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       return '';
     });
 
+    // Let the test specify whether to test for idempotency by re-running the
+    // suggestor on the suggestor's output.
+    var testIdempotencyAll = false;
+    suggestorName = suggestorName.replaceAllMapped(_idempotentPattern, (match) {
+      testIdempotencyAll = true;
+      return '';
+    });
+
     final suggestor = suggestorMap[suggestorName];
     if (suggestor == null) {
       throw Exception('Unknown suggestor: $suggestorName');
@@ -84,6 +93,12 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       var shouldDartfmtOutput = dartfmtOutputAll;
       description = description.replaceAllMapped(_dartfmtOutputPattern, (match) {
         shouldDartfmtOutput = true;
+        return '';
+      });
+
+      var testIdempotency = testIdempotencyAll;
+      description = description.replaceAllMapped(_idempotentPattern, (match) {
+        testIdempotency = true;
         return '';
       });
 
@@ -121,26 +136,41 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       }
 
       test(description, () {
-        final sourceFile = SourceFile.fromString(input, url: path);
-        final patches = suggestor.generatePatches(sourceFile);
-        final emptyPatches = patches.where((p) => p.isNoop);
-        expect(emptyPatches, isEmpty,
-            reason: 'Suggested ${emptyPatches.length} empty patch(es).');
+        String modifiedInput;
+        {
+          final sourceFile = SourceFile.fromString(input, url: path);
+          final patches = suggestor.generatePatches(sourceFile);
+          final emptyPatches = patches.where((p) => p.isNoop);
+          expect(emptyPatches, isEmpty,
+              reason: 'Suggested ${emptyPatches.length} empty patch(es).');
 
-        if (expectedNumPatches != null &&
-            patches.length != expectedNumPatches) {
-          fail('Incorrect number of patches generated '
-              '(expected: $expectedNumPatches, actual: ${patches.length})\n'
-              'Patches:\n$patches');
-        }
-        var modifiedInput =
-            applyPatches(sourceFile, patches).trimRight() + '\n';
-        if (shouldDartfmtOutput) {
-          modifiedInput = formatter.format(modifiedInput, uri: 'modifiedInput');
+          if (expectedNumPatches != null &&
+              patches.length != expectedNumPatches) {
+            fail('Incorrect number of patches generated '
+                '(expected: $expectedNumPatches, actual: ${patches.length})\n'
+                'Patches:\n$patches');
+          }
+          modifiedInput =
+              applyPatches(sourceFile, patches).trimRight() + '\n';
+          if (shouldDartfmtOutput) {
+            modifiedInput = formatter.format(modifiedInput, uri: 'modifiedInput');
+          }
+          expect(modifiedInput, expectedOutput,
+              reason: 'Original input:\n---------------\n$input');
         }
 
-        expect(modifiedInput, expectedOutput,
-            reason: 'Original input:\n---------------\n$input');
+        if (testIdempotency) {
+          final sourceFile = SourceFile.fromString(modifiedInput, url: 'modifiedInput');
+          final patches = suggestor.generatePatches(sourceFile);
+          var doubleModifiedInput =
+              applyPatches(sourceFile, patches).trimRight() + '\n';
+          if (shouldDartfmtOutput) {
+            doubleModifiedInput = formatter.format(doubleModifiedInput, uri: 'doubleModifiedInput');
+          }
+          expect(modifiedInput, doubleModifiedInput,
+              reason: 'Should be idempotent, but changed in the second run.\n\n'
+                  'Original input:\n---------------\n$input');
+        }
       });
     }
   });
