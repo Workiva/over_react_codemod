@@ -16,6 +16,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
+import 'package:source_span/source_span.dart';
 
 /// Suggestor that migrates `react_dom.render` usages to be compatible with
 /// React 16 and inserts comments in situations where validation is required.
@@ -24,6 +25,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     implements Suggestor {
   @override
   visitMethodInvocation(MethodInvocation node) {
+    super.visitMethodInvocation(node);
+
     final parent = node.parent;
 
     if (node.methodName.name == 'render' &&
@@ -33,14 +36,22 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
 
       // Edit assignment
       if (parent is VariableDeclaration) {
+        // todo might need these
+//        if (hasValidationComment(parent, sourceFile)) {
+//          return;
+//        }
         // > Instances of this class are always children of the class [VariableDeclarationList]
         yieldPatch(parent.parent.offset, parent.parent.offset,
-            '// $fixmePrefix - validate typing and safety of ref\n');
+            '// [ ] Check this box upon manual validation of this ref and its typing.$willBeRemovedCommentSuffix\n');
         yieldPatch(parent.equals.offset, parent.equals.end, ';');
         refVariableName = parent.name.name;
       } else if (parent is AssignmentExpression) {
+        // todo might need these
+//        if (hasValidationComment(parent, sourceFile)) {
+//          return;
+//        }
         yieldPatch(parent.offset, parent.offset,
-            '// $fixmePrefix - validate typing and safety of ref\n');
+            '// [ ] Check this box upon manual validation of this ref.$willBeRemovedCommentSuffix\n');
         yieldPatch(parent.offset, parent.rightHandSide.offset, '');
         refVariableName = parent.leftHandSide.toSource();
       } else {
@@ -67,11 +78,41 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
 
         // todo check for existing ref
       } else {
+        // add a space after newline so that comment gets indented by dartfmt
         yieldPatch(node.offset, node.offset,
-            '// $fixmePrefix - manually verify that ref is used on this component expreession \n');
+            '\n // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely.$willBeRemovedCommentSuffix\n');
       }
     }
+  }
+}
 
-    super.visitMethodInvocation(node);
+
+bool hasValidationComment(AstNode node, SourceFile sourceFile) {
+  final line = sourceFile.getLine(node.offset);
+
+  final visitor = new _GetCommentForLineVisitor(line, sourceFile);
+  node.root.accept(visitor);
+  final commentText = visitor.commentText;
+  return false;
+
+  return commentText?.contains(manualValidationCommentSubstring) ?? false;
+}
+
+class _GetCommentForLineVisitor extends RecursiveAstVisitor {
+  final int line;
+  final SourceFile sourceFile;
+
+  String commentText;
+
+  _GetCommentForLineVisitor(this.line, this.sourceFile);
+
+  @override
+  void visitComment(Comment node) {
+    if (commentText != null) return;
+
+    final commentLine = sourceFile.getLine(node.offset);
+    if (commentLine == line - 1 || (node.isEndOfLine && commentLine == line)) {
+      commentText = sourceFile.getText(node.offset, node.end);
+    }
   }
 }

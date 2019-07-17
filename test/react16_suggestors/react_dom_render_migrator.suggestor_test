@@ -1,4 +1,4 @@
-ReactDomRenderMigrator @dartfmt_output
+ReactDomRenderMigrator @dartfmt_output @idempotent
 >>> empty file (patches 0)
 <<<
 
@@ -28,7 +28,7 @@ ReactDomRenderMigrator @dartfmt_output
     }
 <<<
     main() {
-      // FIXME:over_react_codemod - validate typing and safety of ref
+      // [ ] Check this box upon manual validation of this ref and its typing. This will be removed once the transition to React 16 is complete.
       var instance;
       react_dom.render((Foo()
         ..ref = (ref) { instance = ref; }
@@ -44,7 +44,7 @@ ReactDomRenderMigrator @dartfmt_output
 <<<
     main() {
       var instance;
-      // FIXME:over_react_codemod - validate typing and safety of ref
+      // [ ] Check this box upon manual validation of this ref. This will be removed once the transition to React 16 is complete.
       react_dom.render((Foo()
         ..ref = (ref) { instance = ref; }
       )(), mountNode);
@@ -59,7 +59,7 @@ ReactDomRenderMigrator @dartfmt_output
     }
 <<<
     main() {
-      // FIXME:over_react_codemod - validate typing and safety of ref
+      // [ ] Check this box upon manual validation of this ref and its typing. This will be removed once the transition to React 16 is complete.
       var instance;
       react_dom.render((Foo()
         ..ref = (ref) { instance = ref; }
@@ -78,7 +78,63 @@ ReactDomRenderMigrator @dartfmt_output
     main() {
       var fooRef;
       react_dom.render((Foo()
-        // FIXME:over_react_codemod - validate safety of ref
+        // [ ] Check this box upon manual validation of this ref. This will be removed once the transition to React 16 is complete.
+        ..ref = (ref) { fooRef = ref; }
+      )(), mountNode);
+    }
+
+
+>>> simple usage w/ non-component usage (patches 6)
+    main() {
+      var instance1 = react_dom.render(foo(), mountNode);
+
+      var instance2 = react_dom.render(foo, mountNode);
+    }
+<<<
+    main() {
+      // [ ] Check this box upon manual validation of this ref and its typing. This will be removed once the transition to React 16 is complete.
+      var instance1;
+      // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely. This will be removed once the transition to React 16 is complete.
+      react_dom.render(foo(), mountNode);
+
+      // [ ] Check this box upon manual validation of this ref and its typing. This will be removed once the transition to React 16 is complete.
+      var instance2;
+      // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely. This will be removed once the transition to React 16 is complete.
+      react_dom.render(foo, mountNode);
+    }
+
+
+
+>>> simple usage w/ validated ref (patches 0)
+    main() {
+      var fooRef;
+      react_dom.render((Foo()
+        // [x] Check this box upon manual validation of this ref. This will be removed once the transition to React 16 is complete.
+        ..ref = (ref) { fooRef = ref; }
+      )(), mountNode);
+    }
+<<<
+    main() {
+      var fooRef;
+      react_dom.render((Foo()
+        // [x] Check this box upon manual validation of this ref. This will be removed once the transition to React 16 is complete.
+        ..ref = (ref) { fooRef = ref; }
+      )(), mountNode);
+    }
+
+>>> simple usage w/ unvalidated ref (patches 0)
+    main() {
+      var fooRef;
+      react_dom.render((Foo()
+        // [ ] Check this box upon manual validation of this ref. This will be removed once the transition to React 16 is complete.
+        ..ref = (ref) { fooRef = ref; }
+      )(), mountNode);
+    }
+<<<
+    main() {
+      var fooRef;
+      react_dom.render((Foo()
+        // [ ] Check this box upon manual validation of this ref. This will be removed once the transition to React 16 is complete.
         ..ref = (ref) { fooRef = ref; }
       )(), mountNode);
     }
