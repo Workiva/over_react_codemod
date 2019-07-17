@@ -5,7 +5,6 @@ import 'package:test/test.dart';
 import '../util.dart';
 
 main() {
-
   group('ReactStyleMapUpdater', () {
     final testSuggestor = getSuggestorTester(ReactStyleMapsUpdater());
 
@@ -23,7 +22,7 @@ main() {
               Foo()
               ..style = {
                 'width': 40
-              }
+              };
             }
           ''',
         );
@@ -38,17 +37,17 @@ main() {
               Foo()
               ..style = {
                 'width': '40'
-              }
+              };
             }
           ''',
           expectedOutput: '''
             $classSetupBoilerPlate
             main() {
               Foo()
+              ${getCheckboxComment(keysOfModdedValues: ['width'])}
               ..style = {
-                ${getCheckboxComment(keysOfModdedValues: ['width'])}
                 'width': 40,
-              }
+              };
             }
           ''',
         );
@@ -66,7 +65,7 @@ main() {
                 'height': '40%',
                 'fontSize': '12',
                 'margin': '25',
-              }
+              };
             }
           ''',
           expectedOutput: '''
@@ -75,11 +74,11 @@ main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
               ..style = {
-                'width': 40
+                'width': 40,
                 'height': '40%',
                 'fontSize': 12,
                 'margin': 25,
-              }
+              };
             }
           ''',
         );
@@ -95,7 +94,7 @@ main() {
             Foo()
             ..style = {
               'width': '40px',
-            }
+            };
           }
         ''',
         expectedOutput: '''
@@ -105,7 +104,7 @@ main() {
             ${getCheckboxComment(keysOfModdedValues: ['width'])}
             ..style = {
               'width': 40,
-            }
+            };
           }
         ''',
       );
@@ -120,7 +119,7 @@ main() {
               Foo()
               ..style = {
                 'width': '40px',
-              }
+              };
             }
         ''',
         expectedOutput: '''
@@ -130,8 +129,40 @@ main() {
             ${getCheckboxComment(keysOfModdedValues: ['width'])}
             ..style = {
               'width': 40,
-            }
+            };
           }
+        ''',
+      );
+    });
+
+    test('does not add a second validate comment when unchecked', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          $classSetupBoilerPlate
+            main() {
+              Foo()
+              ${getCheckboxComment(keysOfModdedValues: ['width'])}
+              ..style = {
+                'width': '40px',
+              };
+            }
+        ''',
+      );
+    });
+
+    test('does not add a second validate comment when checked', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          $classSetupBoilerPlate
+            main() {
+              Foo()
+              ${getCheckboxComment(keysOfModdedValues: ['width'], checked: true)}
+              ..style = {
+                'width': '40px',
+              };
+            }
         ''',
       );
     });
@@ -156,8 +187,6 @@ String manualVariableCheckComment({List<String> keysOfModdedValues: const []}) =
         ? '${keysOfModdedValues.join(', ')}.'
         : 'that are variables.'}'
         '$willBeRemovedCommentSuffix';
-
-
 
 final checkboxComment = getCheckboxComment();
 final classSetupBoilerPlate = '''
