@@ -53,9 +53,9 @@ main() {
         );
       });
 
-      test('multiple value swithin a style map', () {
+      test('multiple values within a style map', () {
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: 4,
           input: '''
             $classSetupBoilerPlate
             main() {
@@ -83,52 +83,60 @@ main() {
           ''',
         );
       });
-    });
 
-    test('removes the pixel unit specification', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          $classSetupBoilerPlate
-          main() {
-            Foo()
-            ..style = {
-              'width': '40px',
-            };
-          }
-        ''',
-        expectedOutput: '''
-          $classSetupBoilerPlate
-          main() {
-            Foo()
-            ${getCheckboxComment(keysOfModdedValues: ['width'])}
-            ..style = {
-              'width': 40,
-            };
-          }
-        ''',
-      );
-    });
-
-    test('adds a comment then the map value is a variable', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          $classSetupBoilerPlate
+      test('correctly when there is an expression', () {
+        testSuggestor(
+          expectedPatchCount: 4,
+          input: '''
+            $classSetupBoilerPlate
             main() {
               Foo()
               ..style = {
-                'width': '40px',
+                'width': isWide ? '40' : '20',
+                'height': '40%',
+                'fontSize': '12',
+                'margin': '25',
+              };
+            }
+          ''',
+          expectedOutput: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ..style = {
+                'width': isWide ? 40 : 20,
+                'height': '40%',
+                'fontSize': 12,
+                'margin': 25,
+              };
+            }
+          ''',
+        );
+      });
+    });
+
+    test('adds a validate variable comment when the map value is a variable', () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+          $classSetupBoilerPlate
+            main() {
+              var bar = '40';
+              Foo()
+              ..style = {
+                'width': bar,
               };
             }
         ''',
         expectedOutput: '''
           $classSetupBoilerPlate
           main() {
+            var bar = '40';
             Foo()
-            ${getCheckboxComment(keysOfModdedValues: ['width'])}
+            ${manualVariableCheckComment(keysOfModdedValues: ['width'])}
             ..style = {
-              'width': 40,
+              'width': bar,
             };
           }
         ''',
