@@ -222,7 +222,7 @@ void testSuggestor({
       doubleModifiedInput =
           formatter.format(doubleModifiedInput, uri: 'doubleModifiedInput');
     }
-    expect(modifiedInput, doubleModifiedInput,
+    expect(doubleModifiedInput, expectedOutput,
         reason: 'Should be idempotent, but changed in the second run.\n\n'
             'Original input:\n---------------\n$input');
   }

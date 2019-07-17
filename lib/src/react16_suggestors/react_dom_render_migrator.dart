@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
@@ -29,43 +30,40 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
 
     final parent = node.parent;
 
-    if (node.methodName.name == 'render' &&
-        const ['react_dom', 'reactDom'].contains(node.realTarget.toSource()) &&
-        (parent is VariableDeclaration || parent is AssignmentExpression)) {
+    if (node.methodName.name != 'render' ||
+        !const ['react_dom', 'reactDom'].contains(node.realTarget.toSource())) {
+      return;
+    }
+
+    FluentComponentUsage usage;
+    final renderFirstArg = node.argumentList.arguments.first;
+    if (renderFirstArg is InvocationExpression) {
+      usage = getComponentUsage(renderFirstArg);
+    }
+
+    if (parent is VariableDeclaration || parent is AssignmentExpression) {
       String refVariableName;
 
       // Edit assignment
       if (parent is VariableDeclaration) {
-        // todo might need these
-//        if (hasValidationComment(parent, sourceFile)) {
-//          return;
-//        }
         // > Instances of this class are always children of the class [VariableDeclarationList]
-        yieldPatch(parent.parent.offset, parent.parent.offset,
-            '// [ ] Check this box upon manual validation of this ref and its typing.$willBeRemovedCommentSuffix\n');
         yieldPatch(parent.equals.offset, parent.equals.end, ';');
+        // Add this on the render call and not before the parent so that dupe comments aren't added on subsequent runs.
+        yieldPatch(parent.equals.end, parent.equals.end,
+            '\n // [ ] Check this box upon manual validation of this ref and its typing.$willBeRemovedCommentSuffix\n');
         refVariableName = parent.name.name;
       } else if (parent is AssignmentExpression) {
-        // todo might need these
-//        if (hasValidationComment(parent, sourceFile)) {
-//          return;
-//        }
-        yieldPatch(parent.offset, parent.offset,
-            '// [ ] Check this box upon manual validation of this ref.$willBeRemovedCommentSuffix\n');
         yieldPatch(parent.offset, parent.rightHandSide.offset, '');
+        // Add this on the render call and not before the parent so that dupe comments aren't added on subsequent runs.
+        yieldPatch(parent.rightHandSide.offset, parent.rightHandSide.offset,
+            '// [ ] Check this box upon manual validation of this ref.$willBeRemovedCommentSuffix\n');
         refVariableName = parent.leftHandSide.toSource();
       } else {
         throw StateError('should never get here');
       }
 
-      // add the ref
-      FluentComponentUsage usage;
-
-      final renderFirstArg = node.argumentList.arguments.first;
-      if (renderFirstArg is InvocationExpression) {
-        usage = getComponentUsage(renderFirstArg);
-      }
       if (usage != null) {
+        // add the ref
         final builderExpression = usage.node.function;
         if (builderExpression is! ParenthesizedExpression) {
           yieldPatch(builderExpression.offset, builderExpression.offset, '(');
@@ -77,42 +75,58 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         }
 
         // todo check for existing ref
-      } else {
-        // add a space after newline so that comment gets indented by dartfmt
-        yieldPatch(node.offset, node.offset,
-            '\n // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely.$willBeRemovedCommentSuffix\n');
+      }
+      // TODO remove? this case doesn't seem necessary
+      // else {
+      //   // add a space after newline so that comment gets indented by dartfmt
+      //   yieldPatch(node.offset, node.offset,
+      //       '\n // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely.$willBeRemovedCommentSuffix\n');
+      // }
+    } else {
+      if (!hasValidationComment(node, sourceFile)) {
+        if (usage != null) {
+          // todo only add when there's an existing ref
+          yieldPatch(parent.offset, parent.offset,
+              '// [ ] Check this box upon manual validation of this ref.$willBeRemovedCommentSuffix\n');
+        } else {
+          yieldPatch(node.offset, node.offset,
+              '\n // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely.$willBeRemovedCommentSuffix\n');
+        }
       }
     }
   }
 }
 
-
 bool hasValidationComment(AstNode node, SourceFile sourceFile) {
   final line = sourceFile.getLine(node.offset);
 
-  final visitor = new _GetCommentForLineVisitor(line, sourceFile);
-  node.root.accept(visitor);
-  final commentText = visitor.commentText;
-  return false;
+  // Find the comment associated with this line; doesn't work with visitor for some reason.
+  String commentText;
+  for (var comment in allComments(node.root.beginToken)) {
+    final commentLine = sourceFile.getLine(comment.end);
+    if (commentLine == line || commentLine == line - 1) {
+      commentText = sourceFile.getText(comment.offset, comment.end);
+      break;
+    }
+  }
 
   return commentText?.contains(manualValidationCommentSubstring) ?? false;
 }
 
-class _GetCommentForLineVisitor extends RecursiveAstVisitor {
-  final int line;
-  final SourceFile sourceFile;
-
-  String commentText;
-
-  _GetCommentForLineVisitor(this.line, this.sourceFile);
-
-  @override
-  void visitComment(Comment node) {
-    if (commentText != null) return;
-
-    final commentLine = sourceFile.getLine(node.offset);
-    if (commentLine == line - 1 || (node.isEndOfLine && commentLine == line)) {
-      commentText = sourceFile.getText(node.offset, node.end);
+/// Returns an iterable of all the comments from [beginToken] to the end of the
+/// file.
+///
+/// Comments are part of the normal stream, and need to be accessed via
+/// [Token.precedingComments], so it's difficult to iterate over them without
+/// this method.
+Iterable allComments(Token beginToken) sync* {
+  var currentToken = beginToken;
+  while (!currentToken.isEof) {
+    var currentComment = currentToken.precedingComments;
+    while (currentComment != null) {
+      yield currentComment;
+      currentComment = currentComment.next;
     }
-  }
+    currentToken = currentToken.next;
+  };
 }

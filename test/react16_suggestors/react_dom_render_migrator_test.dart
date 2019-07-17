@@ -44,8 +44,8 @@ main() {
         ''',
         expectedOutput: '''
           main() {
-            $checkboxCommentWithType
             var instance;
+            $checkboxCommentWithType
             react_dom.render((Foo()
               ..ref = (ref) { instance = ref; }
             )(), mountNode);
@@ -87,8 +87,8 @@ main() {
         ''',
         expectedOutput: '''
           main() {
-            $checkboxCommentWithType
             var instance;
+            $checkboxCommentWithType
             react_dom.render((Foo()
               ..ref = (ref) { instance = ref; }
               ..id = 'foo'
@@ -100,7 +100,7 @@ main() {
 
     test('simple usage with existing ref', () {
       testSuggestor(
-        expectedPatchCount: 3,
+        expectedPatchCount: 1,
         input: '''
           main() {
             var fooRef;
@@ -112,9 +112,32 @@ main() {
         expectedOutput: '''
           main() {
             var fooRef;
+            $checkboxComment
             react_dom.render((Foo()
-              $checkboxComment
               ..ref = (ref) { fooRef = ref; }
+            )(), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('existing ref and assignment', () {
+      // TODO do we even care about this case?
+      testSuggestor(
+//        expectedPatchCount: 1,
+        input: '''
+          main() {
+            var fooRef = react_dom.render((Foo()
+              ..ref = (ref) { somethingElse = ref; }
+            )(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            var fooRef;
+            $checkboxCommentWithType
+            react_dom.render((Foo()
+              ..ref = (ref) { somethingElse = ref; }
             )(), mountNode);
           }
         ''',
@@ -123,7 +146,7 @@ main() {
 
     test('simple usage with non-component usage', () {
       testSuggestor(
-        expectedPatchCount: 6,
+        expectedPatchCount: 4,
         input: '''
           main() {
             var instance1 = react_dom.render(foo(), mountNode);
@@ -133,14 +156,12 @@ main() {
         ''',
         expectedOutput: '''
           main() {
-            $checkboxCommentWithType
             var instance1;
-            $checkboxCommentExpressionRef
+            $checkboxCommentWithType
             react_dom.render(foo(), mountNode);
       
-            $checkboxCommentWithType
             var instance2;
-            $checkboxCommentExpressionRef
+            $checkboxCommentWithType
             react_dom.render(foo, mountNode);
           }
         ''',
@@ -153,8 +174,8 @@ main() {
         input: '''
           main() {
             var fooRef;
+            ${getCheckboxComment(checked: true)}
             react_dom.render((Foo()
-              ${getCheckboxComment(checked: true)}
               ..ref = (ref) { fooRef = ref; }
             )(), mountNode);
           }
@@ -168,8 +189,8 @@ main() {
         input: '''
           main() {
             var fooRef;
+            ${getCheckboxComment(checked: true)}
             react_dom.render((Foo()
-              ${getCheckboxComment(checked: true)}
               ..ref = (ref) { fooRef = ref; }
             )(), mountNode);
           }
