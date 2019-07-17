@@ -122,6 +122,30 @@ main() {
         input: '''
           $classSetupBoilerPlate
             main() {
+              var bar = {'width': '40'};
+              Foo()
+              ..style = bar;
+            }
+        ''',
+        expectedOutput: '''
+          $classSetupBoilerPlate
+          main() {
+            var bar = {'width': '40'};
+            Foo()
+            ${manualVariableCheckComment()}
+            ..style = bar;
+          }
+        ''',
+      );
+    });
+
+    test('adds a validate variable comment when the key value is a variable',
+            () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+          $classSetupBoilerPlate
+            main() {
               var bar = '40';
               Foo()
               ..style = {
@@ -193,7 +217,7 @@ String manualVariableCheckComment({List<String> keysOfModdedValues: const []}) =
         'the style map is receiving a value that is a num for the keys '
         '${keysOfModdedValues.isNotEmpty
         ? '${keysOfModdedValues.join(', ')}.'
-        : 'that are variables.'}'
+        : 'that are simple string variables. For example, \'width\': \'40\'.'}'
         '$willBeRemovedCommentSuffix';
 
 final checkboxComment = getCheckboxComment();
