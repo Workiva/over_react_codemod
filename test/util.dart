@@ -16,6 +16,7 @@ import 'dart:io';
 
 import 'package:codemod/codemod.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
@@ -53,7 +54,8 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
     // Let the test specify whether to format expected and actual output
     // before comparing them.
     var dartfmtOutputAll = false;
-    suggestorName = suggestorName.replaceAllMapped(_dartfmtOutputPattern, (match) {
+    suggestorName =
+        suggestorName.replaceAllMapped(_dartfmtOutputPattern, (match) {
       dartfmtOutputAll = true;
       return '';
     });
@@ -91,7 +93,8 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       // Let the test specify whether to format expected and actual output
       // before comparing them.
       var shouldDartfmtOutput = dartfmtOutputAll;
-      description = description.replaceAllMapped(_dartfmtOutputPattern, (match) {
+      description =
+          description.replaceAllMapped(_dartfmtOutputPattern, (match) {
         shouldDartfmtOutput = true;
         return '';
       });
@@ -130,48 +133,97 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       // cases for better readability.
       input = input.trimRight() + '\n';
       expectedOutput = expectedOutput.trimRight() + '\n';
-      if (shouldDartfmtOutput) {
-        expectedOutput =
-            formatter.format(expectedOutput, uri: 'expectedOutput');
-      }
 
       test(description, () {
-        String modifiedInput;
-        {
-          final sourceFile = SourceFile.fromString(input, url: path);
-          final patches = suggestor.generatePatches(sourceFile);
-          final emptyPatches = patches.where((p) => p.isNoop);
-          expect(emptyPatches, isEmpty,
-              reason: 'Suggested ${emptyPatches.length} empty patch(es).');
-
-          if (expectedNumPatches != null &&
-              patches.length != expectedNumPatches) {
-            fail('Incorrect number of patches generated '
-                '(expected: $expectedNumPatches, actual: ${patches.length})\n'
-                'Patches:\n$patches');
-          }
-          modifiedInput =
-              applyPatches(sourceFile, patches).trimRight() + '\n';
-          if (shouldDartfmtOutput) {
-            modifiedInput = formatter.format(modifiedInput, uri: 'modifiedInput');
-          }
-          expect(modifiedInput, expectedOutput,
-              reason: 'Original input:\n---------------\n$input');
-        }
-
-        if (testIdempotency) {
-          final sourceFile = SourceFile.fromString(modifiedInput, url: 'modifiedInput');
-          final patches = suggestor.generatePatches(sourceFile);
-          var doubleModifiedInput =
-              applyPatches(sourceFile, patches).trimRight() + '\n';
-          if (shouldDartfmtOutput) {
-            doubleModifiedInput = formatter.format(doubleModifiedInput, uri: 'doubleModifiedInput');
-          }
-          expect(modifiedInput, doubleModifiedInput,
-              reason: 'Should be idempotent, but changed in the second run.\n\n'
-                  'Original input:\n---------------\n$input');
-        }
+        testSuggestor(
+          suggestor: suggestor,
+          input: input,
+          expectedOutput: expectedOutput,
+          expectedPatchCount: expectedNumPatches,
+          shouldDartfmtOutput: shouldDartfmtOutput,
+          testIdempotency: testIdempotency,
+          inputUrl: path,
+        );
       });
     }
   });
+}
+
+/// Returns a version of [testSuggestor] with [suggestor] curried.
+void Function({
+  @required String input,
+  @required String expectedOutput,
+  int expectedPatchCount,
+  bool shouldDartfmtOutput,
+  bool testIdempotency,
+}) getSuggestorTester(Suggestor suggestor) {
+  return ({
+    @required String input,
+    @required String expectedOutput,
+    int expectedPatchCount,
+    bool shouldDartfmtOutput = true,
+    bool testIdempotency = true,
+  }) =>
+      testSuggestor(
+        suggestor: suggestor,
+        input: input,
+        expectedOutput: expectedOutput,
+        expectedPatchCount: expectedPatchCount,
+        shouldDartfmtOutput: shouldDartfmtOutput,
+        testIdempotency: testIdempotency,
+      );
+}
+
+void testSuggestor({
+  @required Suggestor suggestor,
+  @required String input,
+  @required String expectedOutput,
+  int expectedPatchCount,
+  bool shouldDartfmtOutput = true,
+  bool testIdempotency = true,
+  String inputUrl: 'input',
+}) {
+  if (expectedOutput == null) {
+    expectedOutput = input;
+  }
+
+  if (shouldDartfmtOutput) {
+    expectedOutput = formatter.format(expectedOutput, uri: 'expectedOutput');
+  }
+
+  String modifiedInput;
+  {
+    final sourceFile = SourceFile.fromString(input, url: inputUrl);
+    final patches = suggestor.generatePatches(sourceFile);
+    final emptyPatches = patches.where((p) => p.isNoop);
+    expect(emptyPatches, isEmpty,
+        reason: 'Suggested ${emptyPatches.length} empty patch(es).');
+
+    if (expectedPatchCount != null && patches.length != expectedPatchCount) {
+      fail('Incorrect number of patches generated '
+          '(expected: $expectedPatchCount, actual: ${patches.length})\n'
+          'Patches:\n$patches');
+    }
+    modifiedInput = applyPatches(sourceFile, patches).trimRight() + '\n';
+    if (shouldDartfmtOutput) {
+      modifiedInput = formatter.format(modifiedInput, uri: 'modifiedInput');
+    }
+    expect(modifiedInput, expectedOutput,
+        reason: 'Original input:\n---------------\n$input');
+  }
+
+  if (testIdempotency) {
+    final sourceFile =
+        SourceFile.fromString(modifiedInput, url: 'modifiedInput');
+    final patches = suggestor.generatePatches(sourceFile);
+    var doubleModifiedInput =
+        applyPatches(sourceFile, patches).trimRight() + '\n';
+    if (shouldDartfmtOutput) {
+      doubleModifiedInput =
+          formatter.format(doubleModifiedInput, uri: 'doubleModifiedInput');
+    }
+    expect(modifiedInput, doubleModifiedInput,
+        reason: 'Should be idempotent, but changed in the second run.\n\n'
+            'Original input:\n---------------\n$input');
+  }
 }

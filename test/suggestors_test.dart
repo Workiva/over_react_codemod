@@ -116,13 +116,4 @@ void main() {
     };
     testSuggestorsDir(suggestorMap, 'test/dart2_suggestors');
   });
-
-  group('React16 migration suggestors', () {
-    final suggestorMap = {
-      'ReactDomRenderMigrator': Ignoreable(
-        ReactDomRenderMigrator(),
-      ),
-    };
-    testSuggestorsDir(suggestorMap, 'test/react16_suggestors');
-  });
 }
