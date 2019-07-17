@@ -17,6 +17,11 @@ import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+// Component 2
+import 'package:over_react_codemod/src/component2_suggestors/componentwillmount_migrator.dart';
+import 'package:over_react_codemod/src/component2_suggestors/class_name_and_annotation_migrator.dart';
+
+// Dart 2
 import 'package:over_react_codemod/src/dart2_suggestors/component_default_props_migrator.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/dollar_prop_keys_migrator.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/dollar_props_migrator.dart';
@@ -86,6 +91,7 @@ void main() {
       'PropsAndStateMixinMetaRemover': Ignoreable(
         PropsAndStateMixinMetaRemover(),
       ),
+
       'PropsAndStateMixinUsageConsolidator': Ignoreable(
         PropsAndStateMixinUsageConsolidator(),
       ),
@@ -106,5 +112,26 @@ void main() {
       ),
     };
     testSuggestorsDir(suggestorMap, 'test/dart2_suggestors');
+  });
+
+  group('Component2 migration suggestors', () {
+    // In the `.suggestor_test` for this suggestor, the tests are written with
+    // the assumption that any library with a name of `match` or a path of
+    // `match.dart` needs the part directive, and this setup is why that works.
+    final mockCollector = MockCollector();
+    when(mockCollector.byName).thenReturn(['match']);
+    when(mockCollector.byPath).thenReturn([p.canonicalize('match.dart')]);
+    final generatedPartDirectiveAdder =
+        Ignoreable(GeneratedPartDirectiveAdder(mockCollector));
+
+    final suggestorMap = {
+      'ClassNameAndAnnotationMigrator': Ignoreable(
+        ClassNameAndAnnotationMigrator(),
+      ),
+      'ComponentWillMountMigrator': Ignoreable(
+        ComponentWillMountMigrator(),
+      ),
+    };
+    testSuggestorsDir(suggestorMap, 'test/component2_suggestors');
   });
 }

@@ -1,0 +1,61 @@
+ClassNameAndAnnotationMigrator
+>>> empty file (patches 0)
+<<<
+
+
+>>> no matches (patches 0)
+library foo;
+var a = 'b';
+class Foo {}
+<<<
+library foo;
+var a = 'b';
+class Foo {}
+
+
+>>> annotation with non-based extending class updates (patches 1)
+@Component()
+class FooComponent extends SomeOtherClass{}
+<<<
+@Component2()
+class FooComponent extends SomeOtherClass{}
+
+
+>>> annotation and extending class updates (patches 2)
+@Component()
+class FooComponent extends UiComponent<FooProps>{}
+<<<
+@Component2()
+class FooComponent extends UiComponent2<FooProps>{}
+
+
+>>> extending class only needs updating (patches 1)
+@Component2()
+class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
+<<<
+@Component2()
+class FooComponent extends UiStatefulComponent2<FooProps, FooState>{}
+
+
+>>> annotation with args and extending class updates (patches 2)
+@Component(isWrapper: true)
+class FooComponent extends UiComponent<FooProps>{}
+<<<
+@Component2(isWrapper: true)
+class FooComponent extends UiComponent2<FooProps>{}
+
+
+>>> annotation with args and extending stateful class updates (patches 2)
+@Component(isWrapper: true)
+class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
+<<<
+@Component2(isWrapper: true)
+class FooComponent extends UiStatefulComponent2<FooProps, FooState>{}
+
+
+>>> AbstractComponent class annotation updates (patches 2)
+@AbstractComponent(isWrapper: true)
+abstract class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
+<<<
+@AbstractComponent2(isWrapper: true)
+abstract class FooComponent extends UiStatefulComponent2<FooProps, FooState>{}
