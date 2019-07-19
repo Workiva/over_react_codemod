@@ -121,6 +121,23 @@ main() {
       );
     });
 
+    test('simple usage with existing ref in an arrow function', () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+          main() {
+            void mount() => react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            void mount() => $checkboxComment
+            react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
+          }
+        ''',
+      );
+    });
+
     test('existing ref and assignment', () {
       // TODO do we even care about this case?
       testSuggestor(
@@ -146,22 +163,32 @@ main() {
 
     test('simple usage with non-component usage', () {
       testSuggestor(
-        expectedPatchCount: 4,
+        expectedPatchCount: 8,
         input: '''
           main() {
             var instance1 = react_dom.render(foo(), mountNode);
       
             var instance2 = react_dom.render(foo, mountNode);
+            
+            instance3 = react_dom.render(foo(), mountNode);
+            
+            instance4 = react_dom.render(foo, mountNode);
           }
         ''',
         expectedOutput: '''
           main() {
             var instance1;
-            $checkboxCommentWithType
+            $checkboxCommentExpressionRef
             react_dom.render(foo(), mountNode);
       
             var instance2;
-            $checkboxCommentWithType
+            $checkboxCommentExpressionRef
+            react_dom.render(foo, mountNode);
+            
+            $checkboxCommentExpressionRef
+            react_dom.render(foo(), mountNode);
+            
+            $checkboxCommentExpressionRef
             react_dom.render(foo, mountNode);
           }
         ''',
