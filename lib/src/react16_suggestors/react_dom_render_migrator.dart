@@ -37,6 +37,13 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
 
     FluentComponentUsage usage;
     final renderFirstArg = node.argumentList.arguments.first;
+
+    // Wrap render in ErrorBoundary
+    if(!renderFirstArg.toString().startsWith('ErrorBoundary')) {
+      yieldPatch(renderFirstArg.offset, renderFirstArg.offset, 'ErrorBoundary()(');
+      yieldPatch(renderFirstArg.end, renderFirstArg.end, ')');
+    }
+
     if (renderFirstArg is InvocationExpression) {
       usage = getComponentUsage(renderFirstArg);
     }
