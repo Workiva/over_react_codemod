@@ -28,12 +28,16 @@ main() {
         expectedPatchCount: 2,
         input: '''
           main() {
-            react_dom.render(Foo()(), mountNode);
+            render() {
+              react_dom.render(Foo()(), mountNode);
+            }
           }
         ''',
         expectedOutput: '''
           main() {
-            react_dom.render(ErrorBoundary()(Foo()()), mountNode);
+            render() {
+              react_dom.render(ErrorBoundary()(Foo()()), mountNode);
+            }
           }
         ''',
       );
@@ -44,16 +48,20 @@ main() {
         expectedPatchCount: 7,
         input: '''
           main() {
-            var instance = react_dom.render(Foo()(), mountNode);
+            render() {
+              var instance = react_dom.render(Foo()(), mountNode);
+            }
           }
         ''',
         expectedOutput: '''
           main() {
-            var instance;
-            $checkboxCommentWithType
-            react_dom.render(ErrorBoundary()((Foo()
-              ..ref = (ref) { instance = ref; }
-            )()), mountNode);
+            render() {
+              var instance;
+              $checkboxCommentWithType
+              react_dom.render(ErrorBoundary()((Foo()
+                ..ref = (ref) { instance = ref; }
+              )()), mountNode);
+            }
           }
         ''',
       );
@@ -64,17 +72,21 @@ main() {
         expectedPatchCount: 7,
         input: '''
           main() {
-            var instance;
-            instance = react_dom.render(Foo()(), mountNode);
+            render() {
+              var instance;
+              instance = react_dom.render(Foo()(), mountNode);
+            }
           }
         ''',
         expectedOutput: '''
           main() {
-            var instance;
-            $checkboxComment
-            react_dom.render(ErrorBoundary()((Foo()
-              ..ref = (ref) { instance = ref; }
-            )()), mountNode);
+            render() {
+              var instance;
+              $checkboxComment
+              react_dom.render(ErrorBoundary()((Foo()
+                ..ref = (ref) { instance = ref; }
+              )()), mountNode);
+            }
           }
         ''',
       );
@@ -85,19 +97,23 @@ main() {
         expectedPatchCount: 5,
         input: '''
           main() {
-            var instance = react_dom.render((Foo()
-              ..id = 'foo'
-            )(), mountNode);
+            render() {
+              var instance = react_dom.render((Foo()
+                ..id = 'foo'
+              )(), mountNode);
+            }
           }
         ''',
         expectedOutput: '''
           main() {
-            var instance;
-            $checkboxCommentWithType
-            react_dom.render(ErrorBoundary()((Foo()
-              ..ref = (ref) { instance = ref; }
-              ..id = 'foo'
-            )()), mountNode);
+            render() {
+              var instance;
+              $checkboxCommentWithType
+              react_dom.render(ErrorBoundary()((Foo()
+                ..ref = (ref) { instance = ref; }
+                ..id = 'foo'
+              )()), mountNode);
+            }
           }
         ''',
       );
@@ -108,19 +124,23 @@ main() {
         expectedPatchCount: 3,
         input: '''
           main() {
-            var fooRef;
-            react_dom.render((Foo()
-              ..ref = (ref) { fooRef = ref; }
-            )(), mountNode);
+            render() {
+              var fooRef;
+              react_dom.render((Foo()
+                ..ref = (ref) { fooRef = ref; }
+              )(), mountNode);
+            }
           }
         ''',
         expectedOutput: '''
           main() {
-            var fooRef;
-            $checkboxComment
-            react_dom.render(ErrorBoundary()((Foo()
-              ..ref = (ref) { fooRef = ref; }
-            )()), mountNode);
+            render() {
+              var fooRef;
+              $checkboxComment
+              react_dom.render(ErrorBoundary()((Foo()
+                ..ref = (ref) { fooRef = ref; }
+              )()), mountNode);
+            }
           }
         ''',
       );
@@ -131,12 +151,12 @@ main() {
         expectedPatchCount: 3,
         input: '''
           main() {
-            void mount() => react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
+            void render() => react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
           }
         ''',
         expectedOutput: '''
           main() {
-            void mount() => $checkboxComment
+            render() => $checkboxComment
             react_dom.render(ErrorBoundary()((Foo()..ref = ((ref) => fooRef = ref))()), mountNode);
           }
         ''',
@@ -149,18 +169,22 @@ main() {
 //        expectedPatchCount: 1,
         input: '''
           main() {
-            var fooRef = react_dom.render((Foo()
-              ..ref = (ref) { somethingElse = ref; }
-            )(), mountNode);
+            render() {
+              var fooRef = react_dom.render((Foo()
+                ..ref = (ref) { somethingElse = ref; }
+              )(), mountNode);
+            }
           }
         ''',
         expectedOutput: '''
           main() {
-            var fooRef;
-            $checkboxCommentWithType
-            react_dom.render(ErrorBoundary()((Foo()
-              ..ref = (ref) { somethingElse = ref; }
-            )()), mountNode);
+            render() {
+              var fooRef;
+              $checkboxCommentWithType
+              react_dom.render(ErrorBoundary()((Foo()
+                ..ref = (ref) { somethingElse = ref; }
+              )()), mountNode);
+            }
           }
         ''',
       );
@@ -171,30 +195,34 @@ main() {
         expectedPatchCount: 16,
         input: '''
           main() {
-            var instance1 = react_dom.render(foo(), mountNode);
-      
-            var instance2 = react_dom.render(foo, mountNode);
-            
-            instance3 = react_dom.render(foo(), mountNode);
-            
-            instance4 = react_dom.render(foo, mountNode);
+            render() {
+              var instance1 = react_dom.render(foo(), mountNode);
+
+              var instance2 = react_dom.render(foo, mountNode);
+
+              instance3 = react_dom.render(foo(), mountNode);
+
+              instance4 = react_dom.render(foo, mountNode);
+            }
           }
         ''',
         expectedOutput: '''
           main() {
-            var instance1;
-            $checkboxCommentExpressionRef
-            react_dom.render(ErrorBoundary()(foo()), mountNode);
-      
-            var instance2;
-            $checkboxCommentExpressionRef
-            react_dom.render(ErrorBoundary()(foo), mountNode);
-            
-            $checkboxCommentExpressionRef
-            react_dom.render(ErrorBoundary()(foo()), mountNode);
-            
-            $checkboxCommentExpressionRef
-            react_dom.render(ErrorBoundary()(foo), mountNode);
+            render() {
+              var instance1;
+              $checkboxCommentExpressionRef
+              react_dom.render(ErrorBoundary()(foo()), mountNode);
+
+              var instance2;
+              $checkboxCommentExpressionRef
+              react_dom.render(ErrorBoundary()(foo), mountNode);
+
+              $checkboxCommentExpressionRef
+              react_dom.render(ErrorBoundary()(foo()), mountNode);
+
+              $checkboxCommentExpressionRef
+              react_dom.render(ErrorBoundary()(foo), mountNode);
+            }
           }
         ''',
       );
@@ -205,11 +233,13 @@ main() {
         expectedPatchCount: 0,
         input: '''
           main() {
-            var fooRef;
-            ${getCheckboxComment(checked: true)}
-            react_dom.render(ErrorBoundary()((Foo()
-              ..ref = (ref) { fooRef = ref; }
-            )()), mountNode);
+            render() {
+              var fooRef;
+              ${getCheckboxComment(checked: true)}
+              react_dom.render(ErrorBoundary()((Foo()
+                ..ref = (ref) { fooRef = ref; }
+              )()), mountNode);
+            }
           }
         ''',
       );
@@ -220,11 +250,37 @@ main() {
         expectedPatchCount: 0,
         input: '''
           main() {
-            var fooRef;
-            ${getCheckboxComment(checked: true)}
-            react_dom.render(ErrorBoundary()((Foo()
-              ..ref = (ref) { fooRef = ref; }
-            )()), mountNode);
+            render() {
+              var fooRef;
+              ${getCheckboxComment(checked: true)}
+              react_dom.render(ErrorBoundary()((Foo()
+                ..ref = (ref) { fooRef = ref; }
+              )()), mountNode);
+            }
+          }
+        ''',
+      );
+    });
+
+    test('simple usage in a test', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          main() {
+            test('simple test', () {
+              var instance2 = react_dom.render(Foo()(), mountNode);
+            });
+          }
+        ''',
+      );
+    });
+
+    test('simple usage outside of a lifecycle method', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          main() {
+            var instance = react_dom.render(Foo()(), mountNode);
           }
         ''',
       );

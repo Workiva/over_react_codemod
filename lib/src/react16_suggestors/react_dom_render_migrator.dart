@@ -28,10 +28,16 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
+//    final lifecycleMethods = ['componentWillMount', 'componentWillReceiveProps', 'componentWillUpdate', 'getDerivedStateFromError','getDerivedStateFromProps','getSnapshotBeforeUpdate','shouldComponentUpdate','render','componentDidMount','componentDidUpdate','componentWillUnmount','componentDidCatch'];
+
     final parent = node.parent;
+//    final methodDecl = (node.thisOrAncestorMatching((ancestor) {
+//      return ancestor is MethodDeclaration;
+//    }) as MethodDeclaration)?.name;
 
     if (node.methodName.name != 'render' ||
-        !const ['react_dom', 'reactDom'].contains(node.realTarget?.toSource?.call())) {
+        !const ['react_dom', 'reactDom'].contains(node.realTarget?.toSource?.call()) ||
+        !isInLifecycleMethod(node)) {
       return;
     }
 
@@ -133,4 +139,16 @@ Iterable allComments(Token beginToken) sync* {
     }
     currentToken = currentToken.next;
   };
+}
+
+bool isInLifecycleMethod(AstNode node) {
+  final lifecycleMethods = ['componentWillMount', 'componentWillReceiveProps', 'componentWillUpdate', 'getDerivedStateFromError','getDerivedStateFromProps','getSnapshotBeforeUpdate','shouldComponentUpdate','render','componentDidMount','componentDidUpdate','componentWillUnmount','componentDidCatch'];
+
+  if (node == null) {
+    return false;
+  } else if (lifecycleMethods.contains(node.beginToken.toString())) {
+    return true;
+  } else {
+    return isInLifecycleMethod(node.parent);
+  }
 }
