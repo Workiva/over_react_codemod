@@ -116,7 +116,7 @@ main() {
         );
       });
 
-      test('correctly when there is an expression', () {
+      test('correctly when there is a ternary expression', () {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
@@ -138,6 +138,37 @@ main() {
               ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
               ..style = {
                 'width': isWide ? 40 : 20,
+                'height': '40%',
+                'fontSize': 12,
+                'margin': 25,
+              };
+            }
+          ''',
+        );
+      });
+
+      test('correctly when there is a null check', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ..style = {
+                'width': isWide ?? '40',
+                'height': '40%',
+                'fontSize': '12',
+                'margin': '25',
+              };
+            }
+          ''',
+          expectedOutput: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ..style = {
+                'width': isWide ?? 40,
                 'height': '40%',
                 'fontSize': 12,
                 'margin': 25,
