@@ -20,6 +20,7 @@ main() {
             $classSetupBoilerPlate
             main() {
               Foo()
+              ..id = 'number1'
               ..style = {
                 'width': 40
               };
@@ -30,11 +31,12 @@ main() {
 
       test('a single value within a style map', () {
         testSuggestor(
-          expectedPatchCount: 2,
+          expectedPatchCount: 1,
           input: '''
             $classSetupBoilerPlate
             main() {
               Foo()
+              ..id = 'number1'
               ..style = {
                 'width': '40'
               };
@@ -44,6 +46,7 @@ main() {
             $classSetupBoilerPlate
             main() {
               Foo()
+              ..id = 'number1'
               ${getCheckboxComment(keysOfModdedValues: ['width'])}
               ..style = {
                 'width': 40,
@@ -55,11 +58,12 @@ main() {
 
       test('multiple values within a style map', () {
         testSuggestor(
-          expectedPatchCount: 4,
+          expectedPatchCount: 1,
           input: '''
             $classSetupBoilerPlate
             main() {
               Foo()
+              ..id = 'number1'
               ..style = {
                 'width': '40',
                 'height': '40%',
@@ -72,6 +76,7 @@ main() {
             $classSetupBoilerPlate
             main() {
               Foo()
+              ..id = 'number1'
               ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
               ..style = {
                 'width': 40,
@@ -86,7 +91,7 @@ main() {
 
       test('correctly when there is an expression', () {
         testSuggestor(
-          expectedPatchCount: 4,
+          expectedPatchCount: 1,
           input: '''
             $classSetupBoilerPlate
             main() {
@@ -114,6 +119,38 @@ main() {
           ''',
         );
       });
+    });
+
+    test('correctly when there is an expression that has already been updated', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ..style = {
+                'width': isWide ? 40 : 20,
+                'height': '40%',
+                'fontSize': 12,
+                'margin': 25,
+              };
+            }
+          ''',
+        expectedOutput: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ..style = {
+                'width': isWide ? 40 : 20,
+                'height': '40%',
+                'fontSize': 12,
+                'margin': 25,
+              };
+            }
+          ''',
+      );
     });
 
     test('adds a validate variable comment when the map value is a variable', () {
@@ -224,5 +261,6 @@ final checkboxComment = getCheckboxComment();
 final classSetupBoilerPlate = '''
   class Foo {
     Map style;
+    String id;
   }
 ''';
