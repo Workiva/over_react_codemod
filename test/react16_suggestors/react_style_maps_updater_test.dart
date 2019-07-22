@@ -331,20 +331,16 @@ String getCheckboxComment({
   bool checked: false,
   List<String> keysOfModdedValues: const [],
 }) =>
-    '// ${checked ? '[x]' : '[ ]'}'
-        ' Check this box upon manual validation that this style map uses a valid num '
-        '${keysOfModdedValues.isNotEmpty
+    '''// ${checked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map uses a valid num ${keysOfModdedValues.isNotEmpty
             ? 'for the following keys: ${keysOfModdedValues.join(', ')}.'
-            : 'for the keys that are numbers.'}'
-        '$willBeRemovedCommentSuffix';
+            : 'for the keys that are numbers.'}
+    //$willBeRemovedCommentSuffix''';
 
 String manualVariableCheckComment({List<String> keysOfModdedValues: const []}) =>
-    '// [ ] Check this box upon manual validation that '
-        'the style map is receiving a value that is a num '
-        '${keysOfModdedValues.isNotEmpty
+    '''// [ ] Check this box upon manual validation that the style map is receiving a value that is a num ${keysOfModdedValues.isNotEmpty
         ? 'for the following keys: ${keysOfModdedValues.join(', ')}.'
-        : 'for the keys that are simple string variables. For example, \'width\': \'40\'.'}'
-        '$willBeRemovedCommentSuffix';
+        : 'for the keys that are simple string variables. For example, \'width\': \'40\'.'}
+    //$willBeRemovedCommentSuffix''';
 
 final checkboxComment = getCheckboxComment();
 final classSetupBoilerPlate = '''

@@ -99,7 +99,8 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
               // [ ] Check this box upon manual validation that the style map is receiving a value that is a num for ${affectedValues.isNotEmpty
                 ? 'for the following keys: ${affectedValues.join(', ')}.'
                 : 'the keys that are simple string variables. For example, \'width\': '
-                '\'40\'.'}$willBeRemovedCommentSuffix
+                '\'40\'.'}
+              //$willBeRemovedCommentSuffix
             ''');
           }
 
@@ -119,24 +120,25 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
             }
           });
 
-          cleanStyleMapString += '}\n';
+          cleanStyleMapString += '}';
+          cleanStyleMapString.trim();
 
           if (containsAVariable) {
             yieldPatch(cascade.beginToken.previous.end, cascade.end, '''
             
               // [ ] Check this box upon manual validation that the style map is receiving a value that is a num ${affectedValues.isNotEmpty
                 ? 'for the following keys: ${affectedValues.join(', ')}.'
-                : 'for the keys that are simple string variables. For example, \'width\': \'40\'.'}$willBeRemovedCommentSuffix
-              ..style = ${cleanStyleMapString}
-            ''');
+                : 'for the keys that are simple string variables. For example, \'width\': \'40\'.'}
+              //$willBeRemovedCommentSuffix
+              ..style = ${cleanStyleMapString}''');
           } else {
             if (affectedValues.isNotEmpty) {
               yieldPatch(cascade.offset, cascade.end, '''
                 // [ ] Check this box upon manual validation that this style map uses a valid num ${affectedValues.isNotEmpty
                       ? 'for the following keys: ${affectedValues.join(', ')}.'
-                      : 'for the keys that are numbers.'}$willBeRemovedCommentSuffix
-                ..style = ${cleanStyleMapString}
-              ''');
+                      : 'for the keys that are numbers.'}
+                //$willBeRemovedCommentSuffix
+                ..style = ${cleanStyleMapString}''');
             }
           }
           break;
@@ -148,6 +150,10 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
 String cleanString(dynamic elementToClean) {
   return elementToClean.toString().replaceAll("\'","").replaceAll("\"","");
+}
+
+String addLeftPadding(String key, String value, int spacesToPad) {
+  return '$key: $value,\n'.padLeft(spacesToPad);
 }
 
 bool nodeIsLikelyAnExpression(String node) {
