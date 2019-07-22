@@ -56,6 +56,33 @@ main() {
         );
       });
 
+      test('a single value within a style map using double quotes', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ..id = 'number1'
+              ..style = {
+                "width": "40"
+              };
+            }
+          ''',
+          expectedOutput: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ..id = 'number1'
+              ${getCheckboxComment(keysOfModdedValues: ['width'])}
+              ..style = {
+                'width': 40,
+              };
+            }
+          ''',
+        );
+      });
+
       test('multiple values within a style map', () {
         testSuggestor(
           expectedPatchCount: 1,
@@ -245,16 +272,16 @@ String getCheckboxComment({
     '// ${checked ? '[x]' : '[ ]'}'
         ' Check this box upon manual validation that this style map uses a valid num '
         '${keysOfModdedValues.isNotEmpty
-            ? 'for the keys ${keysOfModdedValues.join(', ')}.'
+            ? 'for the following keys: ${keysOfModdedValues.join(', ')}.'
             : 'for the keys that are numbers.'}'
         '$willBeRemovedCommentSuffix';
 
 String manualVariableCheckComment({List<String> keysOfModdedValues: const []}) =>
     '// [ ] Check this box upon manual validation that '
-        'the style map is receiving a value that is a num for the keys '
+        'the style map is receiving a value that is a num '
         '${keysOfModdedValues.isNotEmpty
-        ? '${keysOfModdedValues.join(', ')}.'
-        : 'that are simple string variables. For example, \'width\': \'40\'.'}'
+        ? 'for the following keys: ${keysOfModdedValues.join(', ')}.'
+        : 'for the keys that are simple string variables. For example, \'width\': \'40\'.'}'
         '$willBeRemovedCommentSuffix';
 
 final checkboxComment = getCheckboxComment();

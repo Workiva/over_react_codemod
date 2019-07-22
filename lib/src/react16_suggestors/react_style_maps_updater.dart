@@ -94,19 +94,20 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           if (isAVariable) {
             yieldPatch(cascade.beginToken.previous.end, cascade.offset, '''
             
-              // [ ] Check this box upon manual validation that the style map is receiving a value that is a num for the keys ${affectedValues.isNotEmpty
-                ? '${affectedValues.join(', ')}.'
-                : 'that are simple string variables. For example, \'width\': '
+              // [ ] Check this box upon manual validation that the style map is receiving a value that is a num for ${affectedValues.isNotEmpty
+                ? 'for the following keys: ${affectedValues.join(', ')}.'
+                : 'the keys that are simple string variables. For example, \'width\': '
                 '\'40\'.'}$willBeRemovedCommentSuffix
             ''');
           }
 
           newStyleMap.forEach((key, value) {
-            if ((value.toString()).contains("\'")) {
+
+            if ((value.toString()).contains("\'") || (value.toString()).contains("\"")) {
               String cleanValue = cleanString(value);
 
               if (num.tryParse(cleanValue) != null) {
-                cleanStyleMapString += '$key: $cleanValue,\n';
+                cleanStyleMapString += '${key.toString().replaceAll('"', "'")}: $cleanValue,\n';
                 affectedValues.add(cleanString(key));
               } else {
                 cleanStyleMapString += '$key: $value,\n';
@@ -121,17 +122,16 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           if (containsAVariable) {
             yieldPatch(cascade.beginToken.previous.end, cascade.end, '''
             
-              // [ ] Check this box upon manual validation that the style map is receiving a value that is a num for the keys ${affectedValues.isNotEmpty
-                ? '${affectedValues.join(', ')}.'
-                : 'that are simple string variables. For example, \'width\': '
-                '\'40\'.'}$willBeRemovedCommentSuffix
+              // [ ] Check this box upon manual validation that the style map is receiving a value that is a num ${affectedValues.isNotEmpty
+                ? 'for the following keys: ${affectedValues.join(', ')}.'
+                : 'for the keys that are simple string variables. For example, \'width\': \'40\'.'}$willBeRemovedCommentSuffix
               ..style = ${cleanStyleMapString}
             ''');
           } else {
             if (affectedValues.isNotEmpty) {
               yieldPatch(cascade.offset, cascade.end, '''
                 // [ ] Check this box upon manual validation that this style map uses a valid num ${affectedValues.isNotEmpty
-                      ? 'for the keys ${affectedValues.join(', ')}.'
+                      ? 'for the following keys: ${affectedValues.join(', ')}.'
                       : 'for the keys that are numbers.'}$willBeRemovedCommentSuffix
                 ..style = ${cleanStyleMapString}
               ''');
