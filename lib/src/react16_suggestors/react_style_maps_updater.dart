@@ -68,12 +68,14 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                   cleanedCssPropertyValue = cleanedCssPropertyValue.trim();
                 });
 
-                if (wasModified) {
+                newStyleMap.addAll({originalCssPropertyKey: cleanedCssPropertyValue});
 
-                  newStyleMap.addAll({originalCssPropertyKey: cleanedCssPropertyValue});
+                if (wasModified) {
                   affectedValues.add(cleanedCssPropertyKey);
                 }
-              } else if (nodeIsLikelyAVariable(originalCssKeyValue)) {
+              }
+
+              if (nodeIsLikelyAVariable(originalCssKeyValue)) {
 
                 containsAVariable = true;
                 affectedValues.add(cleanedCssPropertyKey);

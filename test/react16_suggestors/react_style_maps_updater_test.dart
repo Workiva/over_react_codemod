@@ -177,6 +177,37 @@ main() {
           ''',
         );
       });
+
+      test('correctly when there is a null check with two variables', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ..style = {
+                'width': isWide ?? isNotWide,
+                'height': '40%',
+                'fontSize': '12',
+                'margin': '25',
+              };
+            }
+          ''',
+          expectedOutput: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ${manualVariableCheckComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ..style = {
+                'width': isWide ?? isNotWide,
+                'height': '40%',
+                'fontSize': 12,
+                'margin': 25,
+              };
+            }
+          ''',
+        );
+      });
     });
 
     test('correctly when there is an expression that has already been updated', () {
