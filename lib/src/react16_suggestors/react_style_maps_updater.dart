@@ -158,10 +158,6 @@ String cleanString(dynamic elementToClean) {
   return elementToClean.toString().replaceAll("\'","").replaceAll("\"","");
 }
 
-String addLeftPadding(String key, String value, int spacesToPad) {
-  return '$key: $value,\n'.padLeft(spacesToPad);
-}
-
 bool nodeIsLikelyAnExpression(String node) {
   bool containsTernaryNotation = node.contains('?') && node.contains(':');
   bool containsNullNotation = node.contains('??');
