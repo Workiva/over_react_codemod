@@ -9,11 +9,11 @@ main() {
     final testSuggestor = getSuggestorTester(ReactStyleMapsUpdater());
 
     group('updates', () {
-      test('an empty file correctly', () {
+      test('an empty file correctly when there', () {
         testSuggestor(expectedPatchCount: 0, input: '');
       });
 
-      test('no matches correctly', () {
+      test('are no matches', () {
         testSuggestor(
           expectedPatchCount: 0,
           input: '''
@@ -29,7 +29,7 @@ main() {
         );
       });
 
-      test('a single value within a style map', () {
+      test('is a single value within a style map', () {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
@@ -56,7 +56,7 @@ main() {
         );
       });
 
-      test('a single value within a style map using double quotes', () {
+      test('is a single value within a style map using double quotes', () {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
@@ -83,7 +83,7 @@ main() {
         );
       });
 
-      test('a single value within an inline style map', () {
+      test('is a single value within an inline style map', () {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
@@ -103,7 +103,7 @@ main() {
         );
       });
 
-      test('multiple values within a style map', () {
+      test('are multiple values within a style map', () {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
@@ -136,7 +136,7 @@ main() {
         );
       });
 
-      test('correctly when there is a ternary expression', () {
+      test('is a ternary expression', () {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
@@ -167,7 +167,7 @@ main() {
         );
       });
 
-      test('correctly when there is a null check', () {
+      test('a null check', () {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
@@ -198,7 +198,7 @@ main() {
         );
       });
 
-      test('correctly when there is a null check with two variables', () {
+      test('a null check with two variables', () {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
@@ -228,12 +228,11 @@ main() {
           ''',
         );
       });
-    });
 
-    test('correctly when there is an expression that has already been updated', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
+      test('is an expression that has already been updated', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
             $classSetupBoilerPlate
             main() {
               Foo()
@@ -246,7 +245,7 @@ main() {
               };
             }
           ''',
-        expectedOutput: '''
+          expectedOutput: '''
             $classSetupBoilerPlate
             main() {
               Foo()
@@ -259,7 +258,41 @@ main() {
               };
             }
           ''',
-      );
+        );
+      });
+
+      test('is a function call', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            $classSetupBoilerPlate
+            main() {
+              Map getStyleMap() {
+                return {
+                  'width': '40px',
+                };
+              }
+            
+              Foo()
+              ..style = getStyleMap();
+            }
+          ''',
+          expectedOutput: '''
+            $classSetupBoilerPlate
+            main() {
+              Map getStyleMap() {
+                return {
+                  'width': '40px',
+                };
+              }
+            
+              Foo()
+              ${getFunctionComment()}
+              ..style = getStyleMap();
+            }
+          ''',
+        );
+      });
     });
 
     test('adds a validate variable comment when the map value is a variable', () {
@@ -362,7 +395,14 @@ String manualVariableCheckComment({List<String> keysOfModdedValues: const []}) =
         : 'for the keys that are simple string variables. For example, \'width\': \'40\'.'}
     //$willBeRemovedCommentSuffix''';
 
-final checkboxComment = getCheckboxComment();
+String getFunctionComment() =>
+  '''// [ ] Check this box upon manual validation that the method called to set the style prop returns nums instead of simple string literals without units. 
+ 
+  // Incorrect: 'width': '40'
+  // Correct: 'width': 40 or 'width': '40px' or 'width': '4em'
+ 
+  //$willBeRemovedCommentSuffix''';
+
 final classSetupBoilerPlate = '''
   class Foo {
     Map style;

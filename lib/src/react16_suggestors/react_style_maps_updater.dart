@@ -38,6 +38,9 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           String cleanStyleMapString = '{\n';
           bool containsAVariable = false;
           bool isAVariable = false;
+          bool isAFunction = false;
+          bool isInline = sourceFile.getLine(cascade.offset) ==
+              sourceFile.getLine(cascade.parent.offset);
 
           if (styleMap is MapLiteral) {
             styleMap.entries.forEach((node) {
@@ -50,11 +53,11 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
               String originalCssKeyValue = endToken.join(" ");
 
-              bool isAnExpression = nodeIsLikelyAnExpression(originalCssKeyValue);
+              bool isAnExpression = nodeIsLikelyAnExpression(
+                  originalCssKeyValue);
               bool wasModified = false;
 
               if (isAnExpression) {
-
                 originalCssKeyValue.split(' ').forEach((String property) {
                   String cleanPropertyValue = cleanString(property);
 
@@ -68,7 +71,8 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                   cleanedCssPropertyValue = cleanedCssPropertyValue.trim();
                 });
 
-                newStyleMap.addAll({originalCssPropertyKey: cleanedCssPropertyValue});
+                newStyleMap.addAll(
+                    {originalCssPropertyKey: cleanedCssPropertyValue});
 
                 if (wasModified) {
                   affectedValues.add(cleanedCssPropertyKey);
@@ -76,41 +80,37 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
               }
 
               if (nodeIsLikelyAVariable(originalCssKeyValue)) {
-
                 containsAVariable = true;
                 affectedValues.add(cleanedCssPropertyKey);
               }
 
               if (!isAnExpression) {
-                newStyleMap.addAll({originalCssPropertyKey: originalCssKeyValue});
+                newStyleMap.addAll(
+                    {originalCssPropertyKey: originalCssKeyValue});
               }
             });
           } else if (styleMap is SimpleIdentifier) {
             isAVariable = true;
-          } else {
-            throw TypeError();
+          } else if (styleMap is MethodInvocation) {
+            isAFunction = true;
           }
 
           if (newStyleMap == null) return;
 
-          if (isAVariable) {
-            yieldPatch(cascade.beginToken.previous.end, cascade.offset, '''
-            
-              // [ ] Check this box upon manual validation that the style map is receiving a value that is a num for ${affectedValues.isNotEmpty
-                ? 'for the following keys: ${affectedValues.join(', ')}.'
-                : 'the keys that are simple string variables. For example, \'width\': '
-                '\'40\'.'}
-              //$willBeRemovedCommentSuffix
-            ''');
+          if (isAVariable || isAFunction) {
+            yieldPatch(cascade.beginToken.previous.end, cascade.offset,
+                getString(isAVariable: isAVariable, isAFunction: isAFunction,
+                    affectedValues: affectedValues));
           }
 
           newStyleMap.forEach((key, value) {
-
-            if ((value.toString()).contains("\'") || (value.toString()).contains("\"")) {
+            if ((value.toString()).contains("\'") ||
+                (value.toString()).contains("\"")) {
               String cleanValue = cleanString(value);
 
               if (num.tryParse(cleanValue) != null) {
-                cleanStyleMapString += '${key.toString().replaceAll('"', "'")}: $cleanValue,\n';
+                cleanStyleMapString +=
+                '${key.toString().replaceAll('"', "'")}: $cleanValue,\n';
                 affectedValues.add(cleanString(key));
               } else {
                 cleanStyleMapString += '$key: $value,\n';
@@ -123,34 +123,94 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           cleanStyleMapString += '}';
           cleanStyleMapString.trim();
 
-          if (containsAVariable) {
-            yieldPatch(cascade.beginToken.previous.end, cascade.end, '''
-            
-              // [ ] Check this box upon manual validation that the style map is receiving a value that is a num ${affectedValues.isNotEmpty
-                ? 'for the following keys: ${affectedValues.join(', ')}.'
-                : 'for the keys that are simple string variables. For example, \'width\': \'40\'.'}
-              //$willBeRemovedCommentSuffix
-              ..style = ${cleanStyleMapString}''');
-          } else {
             if (affectedValues.isNotEmpty) {
-              if (sourceFile.getLine(cascade.offset) == sourceFile.getLine(cascade.parent.offset)) {
-                yieldPatch(cascade.offset, cascade.end, '''
-                
-                // [ ] Check this box upon manual validation that this style map uses a valid num for the following keys: ${affectedValues.join(', ')}.
-                //$willBeRemovedCommentSuffix
-                ..style = ${cleanStyleMapString}''');
-              } else {
-                yieldPatch(cascade.offset, cascade.end, '''
-                // [ ] Check this box upon manual validation that this style map uses a valid num for the following keys: ${affectedValues.join(', ')}.
-                //$willBeRemovedCommentSuffix
-                ..style = ${cleanStyleMapString}''');
-              }
+              yieldPatch(cascade.offset, cascade.end,
+                  getString(styleMap: cleanStyleMapString,
+                      affectedValues: affectedValues,
+                      addExtraLine: isInline,
+                      containsAVariable: containsAVariable));
             }
-          }
+
           break;
         }
       }
     }
+  }
+}
+
+String getString({String styleMap, List affectedValues = const [], bool
+isAVariable = false, bool containsAVariable = false, bool isAFunction =
+false, bool addExtraLine = false}) {
+  String checkboxWithAffectedValues = '// [ ] Check this box upon manual '
+      'validation that this style map uses a valid num for the following keys: ${affectedValues.join(', ')}.';
+
+  String variableCheckbox = '// [ ] Check this box upon manual validation '
+      'that the style map is receiving a value that is a num for the keys '
+      'that are simple string variables. For example, \'width\': \'40\'.';
+
+  String variableCheckboxWithAffectedValues = '// [ ] Check this box upon '
+      'manual validation that the style map is receiving a value that is a '
+      'num for the following keys: ${affectedValues.join(', ')}.';
+
+  String willBeRemovedSuffix = '//$willBeRemovedCommentSuffix';
+
+  String functionCheckbox =
+  '''// [ ] Check this box upon manual validation that the method called to set the style prop returns nums instead of simple string literals without units. 
+ 
+  // Incorrect: 'width': '40'
+  // Correct: 'width': 40 or 'width': '40px' or 'width': '4em'
+  ''';
+
+  if (!isAVariable && !isAFunction && !containsAVariable && !addExtraLine) {
+    return '''
+    $checkboxWithAffectedValues
+    $willBeRemovedSuffix
+    ..style = $styleMap
+    ''';
+  } else if (!isAVariable && !isAFunction && !containsAVariable && addExtraLine) {
+    return '''
+    
+    $checkboxWithAffectedValues
+    $willBeRemovedSuffix
+    ..style = $styleMap
+    ''';
+  } else if ((isAVariable || containsAVariable)) {
+    if (affectedValues.isNotEmpty) {
+      if (styleMap != null) {
+        return '''
+        $variableCheckboxWithAffectedValues
+        $willBeRemovedSuffix
+        ..style = $styleMap
+        ''';
+      } else {
+        return '''
+      
+        $variableCheckboxWithAffectedValues
+        $willBeRemovedSuffix
+        ''';
+      }
+    } else {
+      if (styleMap != null) {
+        return '''
+        
+        $variableCheckbox
+        $willBeRemovedSuffix
+        ..style = $styleMap
+        ''';
+      } else {
+        return '''
+      
+        $variableCheckbox
+        $willBeRemovedSuffix
+        ''';
+      }
+    }
+  } else if (isAFunction) {
+      return '''
+       
+       $functionCheckbox
+       $willBeRemovedSuffix
+       ''';
   }
 }
 
