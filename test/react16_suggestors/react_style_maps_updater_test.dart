@@ -83,6 +83,26 @@ main() {
         );
       });
 
+      test('a single value within an inline style map', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()..style = {"width": "40"};
+            }
+          ''',
+          expectedOutput: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ${getCheckboxComment(keysOfModdedValues: ['width'])}
+              ..style = {'width': 40,};
+            }
+          ''',
+        );
+      });
+
       test('multiple values within a style map', () {
         testSuggestor(
           expectedPatchCount: 1,

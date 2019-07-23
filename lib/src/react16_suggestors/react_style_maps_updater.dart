@@ -133,12 +133,18 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
               ..style = ${cleanStyleMapString}''');
           } else {
             if (affectedValues.isNotEmpty) {
-              yieldPatch(cascade.offset, cascade.end, '''
-                // [ ] Check this box upon manual validation that this style map uses a valid num ${affectedValues.isNotEmpty
-                      ? 'for the following keys: ${affectedValues.join(', ')}.'
-                      : 'for the keys that are numbers.'}
+              if (sourceFile.getLine(cascade.offset) == sourceFile.getLine(cascade.parent.offset)) {
+                yieldPatch(cascade.offset, cascade.end, '''
+                
+                // [ ] Check this box upon manual validation that this style map uses a valid num for the following keys: ${affectedValues.join(', ')}.
                 //$willBeRemovedCommentSuffix
                 ..style = ${cleanStyleMapString}''');
+              } else {
+                yieldPatch(cascade.offset, cascade.end, '''
+                // [ ] Check this box upon manual validation that this style map uses a valid num for the following keys: ${affectedValues.join(', ')}.
+                //$willBeRemovedCommentSuffix
+                ..style = ${cleanStyleMapString}''');
+              }
             }
           }
           break;
@@ -191,7 +197,8 @@ bool hasValidationComment(AstNode node, SourceFile sourceFile) {
   for (var comment in allComments(node.root.beginToken)) {
     final commentLine = sourceFile.getLine(comment.end);
 
-    if (commentLine == line || commentLine == line + 1 || commentLine == line + 2) {
+    if (commentLine == line || commentLine == line + 1 || commentLine == line
+        + 2 || commentLine == line + 3) {
       commentText = sourceFile.getText(comment.offset, comment.end);
       break;
     }
