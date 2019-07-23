@@ -293,6 +293,91 @@ main() {
           ''',
         );
       });
+
+      test('is a call to setProperty', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            class Foo {
+              Style style;
+            }
+            
+            class Style {
+              void setProperty(prop, value) {}
+            }
+            
+            main() {
+              Foo()
+              ..style.setProperty('width', '800')..style.setProperty('height', '400');
+            }
+          ''',
+          expectedOutput: '''
+            class Foo {
+              Style style;
+            }
+            
+            class Style {
+              void setProperty(prop, value) {}
+            }
+            
+            main() {
+              Foo()
+              ${getCheckboxComment(keysOfModdedValues: ['width', 'height'])}
+              ..style.setProperty('width', 800)..style.setProperty('height', 400);
+            }
+          ''',
+        );
+      });
+
+      test('is a nested component', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            class Foo {
+              Map style;
+              Bar bar;
+            }
+            
+            class Bar {
+              Map style;
+            }
+            
+            main() {
+              Foo()
+              ..style = {
+                'width': '400'
+              }
+              ..bar = Bar()
+                ..style = {
+                'height': '200'
+              };
+            }
+          ''',
+          expectedOutput: '''
+            class Foo {
+              Map style;
+              Bar bar;
+            }
+            
+            class Bar {
+              Map style;
+            }
+            
+            main() {
+              Foo()
+              ${getCheckboxComment(keysOfModdedValues:['width'])}
+              ..style = {
+                'width': 400,
+              }
+              ..bar = Bar()
+                ${getCheckboxComment(keysOfModdedValues:['height'])}
+                ..style = {
+                  'height': 200,
+                };
+            }
+          ''',
+        );
+      });
     });
 
     test('adds a validate variable comment when the map value is a variable', () {

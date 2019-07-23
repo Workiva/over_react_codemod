@@ -123,15 +123,13 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           cleanStyleMapString += '}';
           cleanStyleMapString.trim();
 
-            if (affectedValues.isNotEmpty) {
-              yieldPatch(cascade.offset, cascade.end,
-                  getString(styleMap: cleanStyleMapString,
-                      affectedValues: affectedValues,
-                      addExtraLine: isInline,
-                      containsAVariable: containsAVariable));
-            }
-
-          break;
+          if (affectedValues.isNotEmpty) {
+            yieldPatch(cascade.offset, cascade.end,
+                getString(styleMap: cleanStyleMapString,
+                    affectedValues: affectedValues,
+                    addExtraLine: isInline,
+                    containsAVariable: containsAVariable));
+          }
         }
       }
     }
