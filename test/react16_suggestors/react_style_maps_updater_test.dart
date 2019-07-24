@@ -31,7 +31,7 @@ main() {
 
       test('is a single value within a style map', () {
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: 2,
           input: '''
             $classSetupBoilerPlate
             main() {
@@ -58,7 +58,7 @@ main() {
 
       test('is a single value within a style map using double quotes', () {
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: 2,
           input: '''
             $classSetupBoilerPlate
             main() {
@@ -76,7 +76,7 @@ main() {
               ..id = 'number1'
               ${getCheckboxComment(keysOfModdedValues: ['width'])}
               ..style = {
-                'width': 40,
+                "width": 40,
               };
             }
           ''',
@@ -85,7 +85,7 @@ main() {
 
       test('is a single value within an inline style map', () {
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: 2,
           input: '''
             $classSetupBoilerPlate
             main() {
@@ -97,7 +97,7 @@ main() {
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: ['width'])}
-              ..style = {'width': 40,};
+              ..style = {"width": 40,};
             }
           ''',
         );
@@ -105,7 +105,7 @@ main() {
 
       test('are multiple values within a style map', () {
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: 4,
           input: '''
             $classSetupBoilerPlate
             main() {
@@ -138,7 +138,7 @@ main() {
 
       test('is a ternary expression', () {
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: 4,
           input: '''
             $classSetupBoilerPlate
             main() {
@@ -169,7 +169,7 @@ main() {
 
       test('a null check', () {
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: 4,
           input: '''
             $classSetupBoilerPlate
             main() {
@@ -200,7 +200,7 @@ main() {
 
       test('a null check with two variables', () {
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: 3,
           input: '''
             $classSetupBoilerPlate
             main() {
@@ -261,7 +261,7 @@ main() {
         );
       });
 
-      test('is a function call', () {
+      test('a function call', () {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
@@ -296,7 +296,7 @@ main() {
 
       test('is a nested component', () {
         testSuggestor(
-          expectedPatchCount: 2,
+          expectedPatchCount: 4,
           input: '''
             class Foo {
               Map style;
@@ -427,6 +427,39 @@ main() {
         ''',
       );
     });
+
+    test('does not override comments', () {
+      testSuggestor(
+        expectedPatchCount: 4,
+        input: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ..style = {
+                'width': '40',
+                // Test Comment
+                'height': '40%',
+                'fontSize': '12',
+                'margin': '25',
+              };
+            }
+          ''',
+        expectedOutput: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ..style = {
+                'width': 40,
+                // Test Comment
+                'height': '40%',
+                'fontSize': 12,
+                'margin': 25,
+              };
+            }
+          ''',
+      );
+    });
   });
 }
 
@@ -441,7 +474,7 @@ String getCheckboxComment({
     //$willBeRemovedCommentSuffix''';
 
 String manualVariableCheckComment({List<String> keysOfModdedValues: const []}) =>
-    '''// [ ] Check this box upon manual validation that the style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty
+    '''// [ ] Check this box upon manual validation that this style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty
         ? 'for the following keys: ${keysOfModdedValues.join(', ')}.'
         : 'for the keys that are simple string variables.'} 
     $styleMapExample

@@ -34,37 +34,40 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
           dynamic stylesObject = getStyles(cascade);
 
-          Map newStyleMap = {};
           List<String> affectedValues = [];
-          String cleanStyleMapString = '{\n';
-          bool containsAVariable = false;
+          bool styleMapContainsAVariable = false;
           bool isAVariable = false;
           bool isAFunction = false;
-          bool isInline = sourceFile.getLine(cascade.offset) ==
-              sourceFile.getLine(cascade.parent.offset);
-          bool isSetProperty = cascade.toString().contains('setProperty');
 
           if (stylesObject is MapLiteral) {
-            stylesObject.entries.forEach((node) {
-              String cleanedCssPropertyKey = cleanString(node.beginToken);
+            stylesObject.entries.forEach((MapLiteralEntry node) {
               String originalCssPropertyKey = node.beginToken.toString();
-              String cleanedCssPropertyValue = '';
+              String cleanedCssPropertyKey = cleanString(originalCssPropertyKey);
 
               List endToken = node.childEntities.toList();
               endToken.removeRange(0, 2);
+              String originalCssPropertyValue = endToken.join(" ");
+              String cleanedCssPropertyValue = cleanString(originalCssPropertyValue);
 
-              String originalCssKeyValue = endToken.join(" ");
+              bool nodeContainsAVariable = nodeIsLikelyAVariable(originalCssPropertyValue);
 
-              bool isAnExpression = nodeIsLikelyAnExpression(
-                  originalCssKeyValue);
-              bool wasModified = false;
+              if (nodeContainsAVariable) {
+                affectedValues.add(cleanedCssPropertyKey);
 
-              if (isAnExpression) {
-                originalCssKeyValue.split(' ').forEach((String property) {
-                  String cleanPropertyValue = cleanString(property);
+                if (!styleMapContainsAVariable) {
+                  styleMapContainsAVariable = true;
+                }
+              }
 
-                  if (num.tryParse(cleanPropertyValue) != null) {
-                    cleanedCssPropertyValue += '$cleanPropertyValue ';
+              if (nodeIsLikelyAnExpression(originalCssPropertyValue)) {
+                bool wasModified = false;
+                cleanedCssPropertyValue  = '';
+
+                originalCssPropertyValue.split(' ').forEach((String property) {
+                  String cleanedPropertySubString = cleanString(property);
+
+                  if (isANumber(cleanedPropertySubString)) {
+                    cleanedCssPropertyValue += '$cleanedPropertySubString ';
                     wasModified = true;
                   } else {
                     cleanedCssPropertyValue += '$property ';
@@ -73,22 +76,30 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                   cleanedCssPropertyValue = cleanedCssPropertyValue.trim();
                 });
 
-                newStyleMap.addAll(
-                    {originalCssPropertyKey: cleanedCssPropertyValue});
-
                 if (wasModified) {
                   affectedValues.add(cleanedCssPropertyKey);
+                  cleanedCssPropertyValue += ',';
+                  yieldPatch(node.offset, node.end + 1, '$originalCssPropertyKey:'
+                      ' $cleanedCssPropertyValue');
                 }
-              }
+              } else {
+                if (isAString(originalCssPropertyValue)) {
+                  if (isANumber(cleanedCssPropertyValue)) {
+                    num end = node.end;
+                    cleanedCssPropertyValue += ',';
 
-              if (nodeIsLikelyAVariable(originalCssKeyValue)) {
-                containsAVariable = true;
-                affectedValues.add(cleanedCssPropertyKey);
-              }
+                    if (end + 1 != cascade.end) {
+                      end += 1;
+                    }
 
-              if (!isAnExpression) {
-                newStyleMap.addAll(
-                    {originalCssPropertyKey: originalCssKeyValue});
+                    yieldPatch(node.offset, end, '$originalCssPropertyKey:'
+                        ' $cleanedCssPropertyValue');
+
+                    if (!affectedValues.contains(cleanedCssPropertyKey)) {
+                      affectedValues.add(cleanedCssPropertyKey);
+                    }
+                  }
+                }
               }
             });
           } else if (stylesObject is SimpleIdentifier) {
@@ -97,39 +108,13 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
             isAFunction = true;
           }
 
-
-          if (isAVariable || isAFunction) {
-            yieldPatch(cascade.beginToken.previous.end, cascade.offset,
-                getString(isAVariable: isAVariable, isAFunction: isAFunction,
-                    affectedValues: affectedValues));
-          }
-
-          newStyleMap.forEach((key, value) {
-            if ((value.toString()).contains("\'") ||
-                (value.toString()).contains("\"")) {
-              String cleanValue = cleanString(value);
-
-              if (num.tryParse(cleanValue) != null) {
-                cleanStyleMapString +=
-                '${key.toString().replaceAll('"', "'")}: $cleanValue,\n';
-                affectedValues.add(cleanString(key));
-              } else {
-                cleanStyleMapString += '$key: $value,\n';
-              }
-            } else {
-              cleanStyleMapString += '$key: $value,\n';
-            }
-          });
-
-          cleanStyleMapString += '}';
-          cleanStyleMapString.trim();
-
-          if (affectedValues.isNotEmpty) {
-            yieldPatch(cascade.offset, cascade.end,
-                getString(styleMap: cleanStyleMapString,
-                    affectedValues: affectedValues,
-                    addExtraLine: isInline,
-                    containsAVariable: containsAVariable));
+          if (affectedValues.isNotEmpty || isAVariable || isAFunction) {
+            yieldPatch(cascade.offset, cascade.offset,
+            getString(isAVariable: isAVariable,
+                styleMapContainsAVariable: styleMapContainsAVariable,
+                isAFunction:
+                isAFunction,
+                affectedValues: affectedValues, addExtraLine: sourceFile.getLine(cascade.offset) == sourceFile.getLine(cascade.parent.offset)));
           }
         }
       }
@@ -138,82 +123,61 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 }
 
 String getString({String styleMap, List affectedValues = const [], bool
-isAVariable = false, bool containsAVariable = false, bool isAFunction =
+isAVariable = false, bool styleMapContainsAVariable = false, bool isAFunction =
 false, bool addExtraLine = false}) {
   String checkboxWithAffectedValues = '// [ ] Check this box upon manual '
       'validation that this style map uses a valid value for the following '
       'keys: ${affectedValues.join(', ')}.';
 
   String variableCheckbox = '// [ ] Check this box upon manual validation '
-      'that the style map is receiving a value that is valid for the keys '
+      'that this style map is receiving a value that is valid for the keys '
       'that are simple string variables.';
 
   String variableCheckboxWithAffectedValues = '// [ ] Check this box upon '
-      'manual validation that the style map is receiving a value that is '
+      'manual validation that this style map is receiving a value that is '
       'valid for the following keys: ${affectedValues.join(', ')}.';
 
   String willBeRemovedSuffix = '//$willBeRemovedCommentSuffix';
 
-  String functionCheckbox =
-  '''// [ ] Check this box upon manual validation that the method called to set the style prop does not return any simple, unitless strings instead of nums.''';
+  String functionCheckbox = '// [ ] Check this box upon manual validation '
+      'that the method called to set the style prop does not return any '
+      'simple, unitless strings instead of nums.';
 
-  if (!isAVariable && !isAFunction && !containsAVariable && !addExtraLine) {
-    return '''
-    $checkboxWithAffectedValues
-    $styleMapExample
-    $willBeRemovedSuffix
-    ..style = $styleMap
-    ''';
-  } else if (!isAVariable && !isAFunction && !containsAVariable && addExtraLine) {
-    return '''
-    
-    $checkboxWithAffectedValues
-    $styleMapExample
-    $willBeRemovedSuffix
-    ..style = $styleMap
-    ''';
-  } else if ((isAVariable || containsAVariable)) {
+  if ((isAVariable || styleMapContainsAVariable)) {
     if (affectedValues.isNotEmpty) {
-      if (styleMap != null) {
-        return '''
-        $variableCheckboxWithAffectedValues
-        $styleMapExample
-        $willBeRemovedSuffix
-        ..style = $styleMap
-        ''';
-      } else {
-        return '''
-      
-        $variableCheckboxWithAffectedValues
-        $styleMapExample
-        $willBeRemovedSuffix
-        ''';
-      }
+      return '''
+      $variableCheckboxWithAffectedValues
+      $styleMapExample
+      $willBeRemovedSuffix
+      ''';
     } else {
-      if (styleMap != null) {
-        return '''
-        
-        $variableCheckbox
-        $styleMapExample
-        $willBeRemovedSuffix
-        ..style = $styleMap
-        ''';
-      } else {
-        return '''
-      
-        $variableCheckbox
-        $styleMapExample
-        $willBeRemovedSuffix
-        ''';
-      }
+      return '''
+      $variableCheckbox
+      $styleMapExample
+      $willBeRemovedSuffix
+      ''';
     }
   } else if (isAFunction) {
       return '''
-       
        $functionCheckbox
        $styleMapExample
        $willBeRemovedSuffix
        ''';
+  } else {
+    if (addExtraLine) {
+      return '''
+    
+      $checkboxWithAffectedValues
+      $styleMapExample
+      $willBeRemovedSuffix
+      ''';
+    } else {
+      return '''
+      $checkboxWithAffectedValues
+      $styleMapExample
+      $willBeRemovedSuffix
+      ''';
+    }
   }
 }
 
@@ -221,23 +185,14 @@ String cleanString(dynamic elementToClean) {
   return elementToClean.toString().replaceAll("\'","").replaceAll("\"","");
 }
 
-bool nodeIsLikelyAnExpression(String node) {
-  bool containsTernaryNotation = node.contains('?') && node.contains(':');
-  bool containsNullNotation = node.contains('??');
+bool nodeIsLikelyAnExpression(String node) =>
+    node.contains('?') && node.contains(':') || node.contains('??');
 
-  if (containsNullNotation || containsTernaryNotation) return true;
+bool isANumber(String node) => num.tryParse(node) != null;
 
-  return false;
-}
+bool isAString(String node) => node.contains('"') || node.contains('\'');
 
-bool nodeIsLikelyAVariable(String node) {
-  bool isAString = node.contains('"') || node.contains('\'');
-  bool isANumber = num.tryParse(node) != null;
-
-  if (!isAString && !isANumber) return true;
-
-  return false;
-}
+bool nodeIsLikelyAVariable(String node) => !isAString(node) && !isANumber(node);
 
 dynamic getStyles(Expression cascade) {
   List styleCascadeEntities = cascade.childEntities.toList();
