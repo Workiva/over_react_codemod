@@ -460,6 +460,24 @@ main() {
           ''',
       );
     });
+
+    test('does not run on setProperty', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+            $classSetupBoilerPlate
+            main() {
+              DivElement()..style.setProperty('width', '400');
+            }
+          ''',
+        expectedOutput: '''
+            $classSetupBoilerPlate
+            main() {
+              DivElement()..style.setProperty('width', '400');
+            }
+          ''',
+      );
+    });
   });
 }
 

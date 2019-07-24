@@ -30,8 +30,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
     for (Expression cascade in node.cascadeSections) {
       if (!hasValidationComment(node, sourceFile)) {
-        if (cascade.childEntities.first.toString().contains('style')) {
-
+        if (cascade.toString().contains('style') && !cascade.toString().contains('setProperty')) {
           dynamic stylesObject = getStyles(cascade);
 
           List<String> affectedValues = [];
