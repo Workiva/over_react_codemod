@@ -18,8 +18,11 @@ import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:source_span/source_span.dart';
 
-/// Suggestor that migrates `react_dom.render` usages to be compatible with
-/// React 16 and inserts comments in situations where validation is required.
+/// Suggestor that updates to React 16's StyleMap standard.
+///
+/// Specifically, this suggestor looks for instances where a simple unitless
+/// string literal is passed to a CSS property without a unit. React 16
+/// specifies that such cases should be a num instead of a string.
 class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
@@ -31,26 +34,51 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     for (Expression cascade in node.cascadeSections) {
       if (!hasValidationComment(node, sourceFile)) {
         if (cascade.toString().contains('style') && !cascade.toString().contains('setProperty')) {
+
+          /// A style map, method invocation, or a variable
           dynamic stylesObject = getStyles(cascade);
 
+          /// CSS properties that were modified by the script or need to be
+          /// manually checked
           List<String> affectedValues = [];
+
+          // Variables that affect the writing of the comment that goes above
+          // the style prop. There are different messages patched based on
+          // these booleans.
           bool styleMapContainsAVariable = false;
           bool isAVariable = false;
           bool isAFunction = false;
+          bool isForCustomProps = cascade.toString().toLowerCase().contains('props');
 
           if (stylesObject is MapLiteral) {
-            stylesObject.entries.forEach((MapLiteralEntry node) {
-              String originalCssPropertyKey = node.beginToken.toString();
+            stylesObject.entries.forEach((MapLiteralEntry cssPropertyRow) {
+              String originalCssPropertyKey = cssPropertyRow.beginToken.toString();
               String cleanedCssPropertyKey = cleanString(originalCssPropertyKey);
 
-              List endToken = node.childEntities.toList();
+              // We cannot simply do `cssPropertyRow.endToken` because if the
+              // "end token" is an expression, it only returns the last
+              // value in the ternary. Removing the beginning token keeps the
+              // ternary intact.
+              List endToken = cssPropertyRow.childEntities.toList();
               endToken.removeRange(0, 2);
               String originalCssPropertyValue = endToken.join(" ");
               String cleanedCssPropertyValue = cleanString(originalCssPropertyValue);
 
-              bool nodeContainsAVariable = nodeIsLikelyAVariable(originalCssPropertyValue);
+              bool rowContainsAVariable = nodeIsLikelyAVariable(originalCssPropertyValue);
 
-              if (nodeContainsAVariable) {
+              num end = cssPropertyRow.end;
+
+              // If the codemod does not override the commas originally in
+              // the code, the formatting can be undesirable. As a result,
+              // the codemod manually places a comma after a modified
+              // property. To do this, the script needs to override the
+              // already existing comma (one character after the row end)
+              // without overriding the closing bracket (cascade.end).
+              if (end + 1 != cascade.end) {
+                end += 1;
+              }
+
+              if (rowContainsAVariable) {
                 affectedValues.add(cleanedCssPropertyKey);
 
                 if (!styleMapContainsAVariable) {
@@ -62,6 +90,8 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                 bool wasModified = false;
                 cleanedCssPropertyValue  = '';
 
+                // Loop through each part of the ternary, keeping track if
+                // any of the values are strings that should be nums.
                 originalCssPropertyValue.split(' ').forEach((String property) {
                   String cleanedPropertySubString = cleanString(property);
 
@@ -78,20 +108,15 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                 if (wasModified) {
                   affectedValues.add(cleanedCssPropertyKey);
                   cleanedCssPropertyValue += ',';
-                  yieldPatch(node.offset, node.end + 1, '$originalCssPropertyKey:'
+                  yieldPatch(cssPropertyRow.offset, end, '$originalCssPropertyKey:'
                       ' $cleanedCssPropertyValue');
                 }
               } else {
                 if (isAString(originalCssPropertyValue)) {
                   if (isANumber(cleanedCssPropertyValue)) {
-                    num end = node.end;
                     cleanedCssPropertyValue += ',';
 
-                    if (end + 1 != cascade.end) {
-                      end += 1;
-                    }
-
-                    yieldPatch(node.offset, end, '$originalCssPropertyKey:'
+                    yieldPatch(cssPropertyRow.offset, end, '$originalCssPropertyKey:'
                         ' $cleanedCssPropertyValue');
 
                     if (!affectedValues.contains(cleanedCssPropertyKey)) {
@@ -107,13 +132,17 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
             isAFunction = true;
           }
 
-          if (affectedValues.isNotEmpty || isAVariable || isAFunction) {
+          // Patch the comment at the top of the style map based upon the
+          // edits made.
+          if (affectedValues.isNotEmpty || isAVariable || isAFunction || isForCustomProps) {
             yieldPatch(cascade.offset, cascade.offset,
             getString(isAVariable: isAVariable,
                 styleMapContainsAVariable: styleMapContainsAVariable,
-                isAFunction:
-                isAFunction,
-                affectedValues: affectedValues, addExtraLine: sourceFile.getLine(cascade.offset) == sourceFile.getLine(cascade.parent.offset)));
+                isAFunction: isAFunction,
+                affectedValues: affectedValues,
+                addExtraLine: sourceFile.getLine(cascade.offset) ==
+                    sourceFile.getLine(cascade.parent.offset),
+                isForCustomProps: isForCustomProps));
           }
         }
       }
@@ -121,9 +150,14 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
   }
 }
 
-String getString({String styleMap, List affectedValues = const [], bool
-isAVariable = false, bool styleMapContainsAVariable = false, bool isAFunction =
-false, bool addExtraLine = false}) {
+String getString({String styleMap,
+  List affectedValues = const [],
+  bool isAVariable = false,
+  bool styleMapContainsAVariable = false,
+  bool isAFunction = false,
+  bool addExtraLine = false,
+  bool isForCustomProps = false,
+}) {
   String checkboxWithAffectedValues = '// [ ] Check this box upon manual '
       'validation that this style map uses a valid value for the following '
       'keys: ${affectedValues.join(', ')}.';
@@ -142,7 +176,13 @@ false, bool addExtraLine = false}) {
       'that the method called to set the style prop does not return any '
       'simple, unitless strings instead of nums.';
 
-  if ((isAVariable || styleMapContainsAVariable)) {
+  if (isForCustomProps) {
+    return '''
+    $variableCheckbox
+    $styleMapExample
+    $willBeRemovedSuffix
+    ''';
+  } else if ((isAVariable || styleMapContainsAVariable)) {
     if (affectedValues.isNotEmpty) {
       return '''
       $variableCheckboxWithAffectedValues
@@ -193,6 +233,9 @@ bool isAString(String node) => node.contains('"') || node.contains('\'');
 
 bool nodeIsLikelyAVariable(String node) => !isAString(node) && !isANumber(node);
 
+/// Removes the '...style' and '=' entities and returns the third entity.
+///
+/// The third entity will be the style map, a method invocation, or a variable.
 dynamic getStyles(Expression cascade) {
   List styleCascadeEntities = cascade.childEntities.toList();
   List cleanedChildEntities = List.from(styleCascadeEntities);

@@ -478,6 +478,35 @@ main() {
           ''',
       );
     });
+
+    test('adds a comment for custom props', () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ..datePickerProps = {
+                style: {
+                  'width': '40',
+                }
+              };
+            }
+          ''',
+        expectedOutput: '''
+            $classSetupBoilerPlate
+            main() {
+              Foo()
+              ${manualVariableCheckComment()}
+              ..datePickerProps = {
+                style: {
+                  'width': '40',
+                }
+              };
+            }
+          ''',
+      );
+    });
   });
 }
 
@@ -506,6 +535,7 @@ String getFunctionComment() =>
 final classSetupBoilerPlate = '''
   class Foo {
     Map style;
+    Map datePickerProps;
     String id;
   }
 ''';
