@@ -294,41 +294,6 @@ main() {
         );
       });
 
-      test('is a call to setProperty', () {
-        testSuggestor(
-          expectedPatchCount: 1,
-          input: '''
-            class Foo {
-              Style style;
-            }
-            
-            class Style {
-              void setProperty(prop, value) {}
-            }
-            
-            main() {
-              Foo()
-              ..style.setProperty('width', '800')..style.setProperty('height', '400');
-            }
-          ''',
-          expectedOutput: '''
-            class Foo {
-              Style style;
-            }
-            
-            class Style {
-              void setProperty(prop, value) {}
-            }
-            
-            main() {
-              Foo()
-              ${getCheckboxComment(keysOfModdedValues: ['width', 'height'])}
-              ..style.setProperty('width', 800)..style.setProperty('height', 400);
-            }
-          ''',
-        );
-      });
-
       test('is a nested component', () {
         testSuggestor(
           expectedPatchCount: 2,
@@ -469,23 +434,22 @@ String getCheckboxComment({
   bool checked: false,
   List<String> keysOfModdedValues: const [],
 }) =>
-    '''// ${checked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map uses a valid num ${keysOfModdedValues.isNotEmpty
+    '''// ${checked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map uses a valid value ${keysOfModdedValues.isNotEmpty
             ? 'for the following keys: ${keysOfModdedValues.join(', ')}.'
             : 'for the keys that are numbers.'}
+    $styleMapExample   
     //$willBeRemovedCommentSuffix''';
 
 String manualVariableCheckComment({List<String> keysOfModdedValues: const []}) =>
-    '''// [ ] Check this box upon manual validation that the style map is receiving a value that is a num ${keysOfModdedValues.isNotEmpty
+    '''// [ ] Check this box upon manual validation that the style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty
         ? 'for the following keys: ${keysOfModdedValues.join(', ')}.'
-        : 'for the keys that are simple string variables. For example, \'width\': \'40\'.'}
+        : 'for the keys that are simple string variables.'} 
+    $styleMapExample
     //$willBeRemovedCommentSuffix''';
 
 String getFunctionComment() =>
-  '''// [ ] Check this box upon manual validation that the method called to set the style prop returns nums instead of simple string literals without units. 
- 
-  // Incorrect: 'width': '40'
-  // Correct: 'width': 40 or 'width': '40px' or 'width': '4em'
- 
+  '''// [ ] Check this box upon manual validation that the method called to set the style prop does not return any simple, unitless strings instead of nums.
+  $styleMapExample
   //$willBeRemovedCommentSuffix''';
 
 final classSetupBoilerPlate = '''

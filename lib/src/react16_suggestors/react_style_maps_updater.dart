@@ -28,11 +28,12 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
   visitCascadeExpression(CascadeExpression node) {
     super.visitCascadeExpression(node);
 
-    if (!hasValidationComment(node, sourceFile)) {
-      for (Expression cascade in node.cascadeSections) {
+    for (Expression cascade in node.cascadeSections) {
+      if (!hasValidationComment(node, sourceFile)) {
         if (cascade.childEntities.first.toString().contains('style')) {
 
-          dynamic styleMap = getStyles(cascade);
+          dynamic stylesObject = getStyles(cascade);
+
           Map newStyleMap = {};
           List<String> affectedValues = [];
           String cleanStyleMapString = '{\n';
@@ -41,9 +42,10 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           bool isAFunction = false;
           bool isInline = sourceFile.getLine(cascade.offset) ==
               sourceFile.getLine(cascade.parent.offset);
+          bool isSetProperty = cascade.toString().contains('setProperty');
 
-          if (styleMap is MapLiteral) {
-            styleMap.entries.forEach((node) {
+          if (stylesObject is MapLiteral) {
+            stylesObject.entries.forEach((node) {
               String cleanedCssPropertyKey = cleanString(node.beginToken);
               String originalCssPropertyKey = node.beginToken.toString();
               String cleanedCssPropertyValue = '';
@@ -89,13 +91,12 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                     {originalCssPropertyKey: originalCssKeyValue});
               }
             });
-          } else if (styleMap is SimpleIdentifier) {
+          } else if (stylesObject is SimpleIdentifier) {
             isAVariable = true;
-          } else if (styleMap is MethodInvocation) {
+          } else if (stylesObject is MethodInvocation) {
             isAFunction = true;
           }
 
-          if (newStyleMap == null) return;
 
           if (isAVariable || isAFunction) {
             yieldPatch(cascade.beginToken.previous.end, cascade.offset,
@@ -140,28 +141,26 @@ String getString({String styleMap, List affectedValues = const [], bool
 isAVariable = false, bool containsAVariable = false, bool isAFunction =
 false, bool addExtraLine = false}) {
   String checkboxWithAffectedValues = '// [ ] Check this box upon manual '
-      'validation that this style map uses a valid num for the following keys: ${affectedValues.join(', ')}.';
+      'validation that this style map uses a valid value for the following '
+      'keys: ${affectedValues.join(', ')}.';
 
   String variableCheckbox = '// [ ] Check this box upon manual validation '
-      'that the style map is receiving a value that is a num for the keys '
-      'that are simple string variables. For example, \'width\': \'40\'.';
+      'that the style map is receiving a value that is valid for the keys '
+      'that are simple string variables.';
 
   String variableCheckboxWithAffectedValues = '// [ ] Check this box upon '
-      'manual validation that the style map is receiving a value that is a '
-      'num for the following keys: ${affectedValues.join(', ')}.';
+      'manual validation that the style map is receiving a value that is '
+      'valid for the following keys: ${affectedValues.join(', ')}.';
 
   String willBeRemovedSuffix = '//$willBeRemovedCommentSuffix';
 
   String functionCheckbox =
-  '''// [ ] Check this box upon manual validation that the method called to set the style prop returns nums instead of simple string literals without units. 
- 
-  // Incorrect: 'width': '40'
-  // Correct: 'width': 40 or 'width': '40px' or 'width': '4em'
-  ''';
+  '''// [ ] Check this box upon manual validation that the method called to set the style prop does not return any simple, unitless strings instead of nums.''';
 
   if (!isAVariable && !isAFunction && !containsAVariable && !addExtraLine) {
     return '''
     $checkboxWithAffectedValues
+    $styleMapExample
     $willBeRemovedSuffix
     ..style = $styleMap
     ''';
@@ -169,6 +168,7 @@ false, bool addExtraLine = false}) {
     return '''
     
     $checkboxWithAffectedValues
+    $styleMapExample
     $willBeRemovedSuffix
     ..style = $styleMap
     ''';
@@ -177,6 +177,7 @@ false, bool addExtraLine = false}) {
       if (styleMap != null) {
         return '''
         $variableCheckboxWithAffectedValues
+        $styleMapExample
         $willBeRemovedSuffix
         ..style = $styleMap
         ''';
@@ -184,6 +185,7 @@ false, bool addExtraLine = false}) {
         return '''
       
         $variableCheckboxWithAffectedValues
+        $styleMapExample
         $willBeRemovedSuffix
         ''';
       }
@@ -192,6 +194,7 @@ false, bool addExtraLine = false}) {
         return '''
         
         $variableCheckbox
+        $styleMapExample
         $willBeRemovedSuffix
         ..style = $styleMap
         ''';
@@ -199,6 +202,7 @@ false, bool addExtraLine = false}) {
         return '''
       
         $variableCheckbox
+        $styleMapExample
         $willBeRemovedSuffix
         ''';
       }
@@ -207,6 +211,7 @@ false, bool addExtraLine = false}) {
       return '''
        
        $functionCheckbox
+       $styleMapExample
        $willBeRemovedSuffix
        ''';
   }
@@ -251,8 +256,7 @@ bool hasValidationComment(AstNode node, SourceFile sourceFile) {
   for (var comment in allComments(node.root.beginToken)) {
     final commentLine = sourceFile.getLine(comment.end);
 
-    if (commentLine == line || commentLine == line + 1 || commentLine == line
-        + 2 || commentLine == line + 3) {
+    if (commentLine == line || commentLine == line + 1) {
       commentText = sourceFile.getText(comment.offset, comment.end);
       break;
     }
