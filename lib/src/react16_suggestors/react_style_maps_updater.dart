@@ -21,8 +21,8 @@ import 'package:source_span/source_span.dart';
 /// Suggestor that updates to React 16's StyleMap standard.
 ///
 /// Specifically, this suggestor looks for instances where a simple unitless
-/// string literal is passed to a CSS property without a unit. React 16
-/// specifies that such cases should be a num instead of a string.
+/// string literal is passed to a CSS property. React 16 specifies that such
+/// cases should be a num instead of a string.
 class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
