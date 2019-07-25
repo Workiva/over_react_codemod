@@ -28,17 +28,35 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
+//    final lifecycleMethods = ['componentWillMount', 'componentWillReceiveProps', 'componentWillUpdate', 'getDerivedStateFromError','getDerivedStateFromProps','getSnapshotBeforeUpdate','shouldComponentUpdate','render','componentDidMount','componentDidUpdate','componentWillUnmount','componentDidCatch'];
+
     final parent = node.parent;
+//    final methodDecl = (node.thisOrAncestorMatching((ancestor) {
+//      return ancestor is MethodDeclaration;
+//    }) as MethodDeclaration)?.name;
 
     if (node.methodName.name != 'render' ||
-        !const ['react_dom', 'reactDom'].contains(node.realTarget.toSource())) {
+        !const ['react_dom', 'reactDom'].contains(node.realTarget?.toSource?.call()) ||
+        !isInLifecycleMethod(node)) {
       return;
     }
 
     FluentComponentUsage usage;
     final renderFirstArg = node.argumentList.arguments.first;
+
+    // Wrap render in ErrorBoundary
+    if(!renderFirstArg.toString().startsWith('ErrorBoundary')) {
+      yieldPatch(renderFirstArg.offset, renderFirstArg.offset, 'ErrorBoundary()(');
+      yieldPatch(renderFirstArg.end, renderFirstArg.end, ')');
+    }
+
     if (renderFirstArg is InvocationExpression) {
       usage = getComponentUsage(renderFirstArg);
+    }
+
+    String comment;
+    if(usage == null) {
+      comment = '\n // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely.$willBeRemovedCommentSuffix\n';
     }
 
     if (parent is VariableDeclaration || parent is AssignmentExpression) {
@@ -49,20 +67,20 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         // > Instances of this class are always children of the class [VariableDeclarationList]
         yieldPatch(parent.equals.offset, parent.equals.end, ';');
         // Add this on the render call and not before the parent so that dupe comments aren't added on subsequent runs.
-        yieldPatch(parent.equals.end, parent.equals.end,
-            '\n // [ ] Check this box upon manual validation of this ref and its typing.$willBeRemovedCommentSuffix\n');
+        yieldPatch(node.realTarget.offset, node.realTarget.offset,
+            comment ?? '\n // [ ] Check this box upon manual validation of this ref and its typing.$willBeRemovedCommentSuffix\n');
         refVariableName = parent.name.name;
       } else if (parent is AssignmentExpression) {
         yieldPatch(parent.offset, parent.rightHandSide.offset, '');
         // Add this on the render call and not before the parent so that dupe comments aren't added on subsequent runs.
         yieldPatch(parent.rightHandSide.offset, parent.rightHandSide.offset,
-            '// [ ] Check this box upon manual validation of this ref.$willBeRemovedCommentSuffix\n');
+            comment ?? '// [ ] Check this box upon manual validation of this ref.$willBeRemovedCommentSuffix\n');
         refVariableName = parent.leftHandSide.toSource();
       } else {
         throw StateError('should never get here');
       }
 
-      if (usage != null) {
+      if (usage != null && !renderFirstArg.toString().contains('..ref')) {
         // add the ref
         final builderExpression = usage.node.function;
         if (builderExpression is! ParenthesizedExpression) {
@@ -73,8 +91,6 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         if (builderExpression is! ParenthesizedExpression) {
           yieldPatch(builderExpression.end, builderExpression.end, ')');
         }
-
-        // todo check for existing ref
       }
       // TODO remove? this case doesn't seem necessary
       // else {
@@ -83,15 +99,9 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       //       '\n // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely.$willBeRemovedCommentSuffix\n');
       // }
     } else {
-      if (!hasValidationComment(node, sourceFile)) {
-        if (usage != null) {
-          // todo only add when there's an existing ref
-          yieldPatch(parent.offset, parent.offset,
-              '// [ ] Check this box upon manual validation of this ref.$willBeRemovedCommentSuffix\n');
-        } else {
-          yieldPatch(node.offset, node.offset,
-              '\n // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely.$willBeRemovedCommentSuffix\n');
-        }
+      if (!hasValidationComment(node, sourceFile) && renderFirstArg.toString().contains('..ref')) {
+        yieldPatch(node.realTarget.offset, node.realTarget.offset,
+            comment ?? '// [ ] Check this box upon manual validation of this ref.$willBeRemovedCommentSuffix\n');
       }
     }
   }
@@ -128,5 +138,17 @@ Iterable allComments(Token beginToken) sync* {
       currentComment = currentComment.next;
     }
     currentToken = currentToken.next;
+  }
+}
+
+bool isInLifecycleMethod(AstNode node) {
+  final lifecycleMethods = ['componentWillMount', 'componentWillReceiveProps', 'componentWillUpdate', 'getDerivedStateFromError','getDerivedStateFromProps','getSnapshotBeforeUpdate','shouldComponentUpdate','render','componentDidMount','componentDidUpdate','componentWillUnmount','componentDidCatch'];
+
+  if (node == null) {
+    return false;
+  } else if (lifecycleMethods.contains(node.beginToken.toString())) {
+    return true;
+  } else {
+    return isInLifecycleMethod(node.parent);
   }
 }
