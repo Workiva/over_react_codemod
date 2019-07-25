@@ -128,5 +128,5 @@ Iterable allComments(Token beginToken) sync* {
       currentComment = currentComment.next;
     }
     currentToken = currentToken.next;
-  };
+  }
 }
