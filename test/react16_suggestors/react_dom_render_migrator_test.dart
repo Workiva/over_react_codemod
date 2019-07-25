@@ -156,7 +156,7 @@ main() {
         ''',
         expectedOutput: '''
           main() {
-            render() => $checkboxComment
+            void render() => $checkboxComment
             react_dom.render(ErrorBoundary()((Foo()..ref = ((ref) => fooRef = ref))()), mountNode);
           }
         ''',
