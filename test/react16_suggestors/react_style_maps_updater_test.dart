@@ -124,7 +124,11 @@ main() {
             main() {
               Foo()
               ..id = 'number1'
-              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ${getCheckboxComment(keysOfModdedValues: [
+            'width',
+            'fontSize',
+            'margin'
+          ])}
               ..style = {
                 'width': 40,
                 'height': '40%',
@@ -155,7 +159,11 @@ main() {
             $classSetupBoilerPlate
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ${getCheckboxComment(keysOfModdedValues: [
+            'width',
+            'fontSize',
+            'margin'
+          ])}
               ..style = {
                 'width': isWide ? 40 : 20,
                 'height': '40%',
@@ -186,7 +194,11 @@ main() {
             $classSetupBoilerPlate
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ${getCheckboxComment(keysOfModdedValues: [
+            'width',
+            'fontSize',
+            'margin'
+          ])}
               ..style = {
                 'width': isWide ?? 40,
                 'height': '40%',
@@ -217,7 +229,11 @@ main() {
             $classSetupBoilerPlate
             main() {
               Foo()
-              ${manualVariableCheckComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ${manualVariableCheckComment(keysOfModdedValues: [
+            'width',
+            'fontSize',
+            'margin'
+          ])}
               ..style = {
                 'width': isWide ?? isNotWide,
                 'height': '40%',
@@ -236,7 +252,11 @@ main() {
             $classSetupBoilerPlate
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ${getCheckboxComment(keysOfModdedValues: [
+            'width',
+            'fontSize',
+            'margin'
+          ])}
               ..style = {
                 'width': isWide ? 40 : 20,
                 'height': '40%',
@@ -249,7 +269,11 @@ main() {
             $classSetupBoilerPlate
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ${getCheckboxComment(keysOfModdedValues: [
+            'width',
+            'fontSize',
+            'margin'
+          ])}
               ..style = {
                 'width': isWide ? 40 : 20,
                 'height': '40%',
@@ -330,12 +354,12 @@ main() {
             
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues:['width'])}
+              ${getCheckboxComment(keysOfModdedValues: ['width'])}
               ..style = {
                 'width': 400,
               }
               ..bar = Bar()
-                ${getCheckboxComment(keysOfModdedValues:['height'])}
+                ${getCheckboxComment(keysOfModdedValues: ['height'])}
                 ..style = {
                   'height': 200,
                 };
@@ -345,7 +369,8 @@ main() {
       });
     });
 
-    test('adds a validate variable comment when the map value is a variable', () {
+    test('adds a validate variable comment when the map value is a variable',
+        () {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
@@ -369,7 +394,7 @@ main() {
     });
 
     test('adds a validate variable comment when the key value is a variable',
-            () {
+        () {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
@@ -419,7 +444,9 @@ main() {
           $classSetupBoilerPlate
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: ['width'], checked: true)}
+              ${getCheckboxComment(keysOfModdedValues: [
+          'width'
+        ], checked: true)}
               ..style = {
                 'width': '40px',
               };
@@ -448,7 +475,11 @@ main() {
             $classSetupBoilerPlate
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
+              ${getCheckboxComment(keysOfModdedValues: [
+          'width',
+          'fontSize',
+          'margin'
+        ])}
               ..style = {
                 'width': 40,
                 // Test Comment
@@ -514,21 +545,18 @@ String getCheckboxComment({
   bool checked: false,
   List<String> keysOfModdedValues: const [],
 }) =>
-    '''// ${checked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map uses a valid value ${keysOfModdedValues.isNotEmpty
-            ? 'for the following keys: ${keysOfModdedValues.join(', ')}.'
-            : 'for the keys that are numbers.'}
+    '''// ${checked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map uses a valid value ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are numbers.'}
     $styleMapExample   
     //$willBeRemovedCommentSuffix''';
 
-String manualVariableCheckComment({List<String> keysOfModdedValues: const []}) =>
-    '''// [ ] Check this box upon manual validation that this style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty
-        ? 'for the following keys: ${keysOfModdedValues.join(', ')}.'
-        : 'for the keys that are simple string variables.'} 
+String manualVariableCheckComment(
+        {List<String> keysOfModdedValues: const []}) =>
+    '''// [ ] Check this box upon manual validation that this style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are simple string variables.'} 
     $styleMapExample
     //$willBeRemovedCommentSuffix''';
 
 String getFunctionComment() =>
-  '''// [ ] Check this box upon manual validation that the method called to set the style prop does not return any simple, unitless strings instead of nums.
+    '''// [ ] Check this box upon manual validation that the method called to set the style prop does not return any simple, unitless strings instead of nums.
   $styleMapExample
   //$willBeRemovedCommentSuffix''';
 

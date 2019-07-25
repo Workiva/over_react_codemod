@@ -26,15 +26,14 @@ import 'package:source_span/source_span.dart';
 class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-
   @override
   visitCascadeExpression(CascadeExpression node) {
     super.visitCascadeExpression(node);
 
     for (Expression cascade in node.cascadeSections) {
       if (!hasValidationComment(node, sourceFile)) {
-        if (cascade.toString().contains('style') && !cascade.toString().contains('setProperty')) {
-
+        if (cascade.toString().contains('style') &&
+            !cascade.toString().contains('setProperty')) {
           /// A style map, method invocation, or a variable
           dynamic stylesObject = getStyles(cascade);
 
@@ -48,12 +47,15 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           bool styleMapContainsAVariable = false;
           bool isAVariable = false;
           bool isAFunction = false;
-          bool isForCustomProps = cascade.toString().toLowerCase().contains('props');
+          bool isForCustomProps =
+              cascade.toString().toLowerCase().contains('props');
 
           if (stylesObject is MapLiteral) {
             stylesObject.entries.forEach((MapLiteralEntry cssPropertyRow) {
-              String originalCssPropertyKey = cssPropertyRow.beginToken.toString();
-              String cleanedCssPropertyKey = cleanString(originalCssPropertyKey);
+              String originalCssPropertyKey =
+                  cssPropertyRow.beginToken.toString();
+              String cleanedCssPropertyKey =
+                  cleanString(originalCssPropertyKey);
 
               // We cannot simply do `cssPropertyRow.endToken` because if the
               // "end token" is an expression, it only returns the last
@@ -62,9 +64,11 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
               List endToken = cssPropertyRow.childEntities.toList();
               endToken.removeRange(0, 2);
               String originalCssPropertyValue = endToken.join(" ");
-              String cleanedCssPropertyValue = cleanString(originalCssPropertyValue);
+              String cleanedCssPropertyValue =
+                  cleanString(originalCssPropertyValue);
 
-              bool rowContainsAVariable = nodeIsLikelyAVariable(originalCssPropertyValue);
+              bool rowContainsAVariable =
+                  nodeIsLikelyAVariable(originalCssPropertyValue);
 
               num end = cssPropertyRow.end;
 
@@ -88,7 +92,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
               if (nodeIsLikelyAnExpression(originalCssPropertyValue)) {
                 bool wasModified = false;
-                cleanedCssPropertyValue  = '';
+                cleanedCssPropertyValue = '';
 
                 // Loop through each part of the ternary, keeping track if
                 // any of the values are strings that should be nums.
@@ -108,7 +112,10 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                 if (wasModified) {
                   affectedValues.add(cleanedCssPropertyKey);
                   cleanedCssPropertyValue += ',';
-                  yieldPatch(cssPropertyRow.offset, end, '$originalCssPropertyKey:'
+                  yieldPatch(
+                      cssPropertyRow.offset,
+                      end,
+                      '$originalCssPropertyKey:'
                       ' $cleanedCssPropertyValue');
                 }
               } else {
@@ -116,7 +123,10 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                   if (isANumber(cleanedCssPropertyValue)) {
                     cleanedCssPropertyValue += ',';
 
-                    yieldPatch(cssPropertyRow.offset, end, '$originalCssPropertyKey:'
+                    yieldPatch(
+                        cssPropertyRow.offset,
+                        end,
+                        '$originalCssPropertyKey:'
                         ' $cleanedCssPropertyValue');
 
                     if (!affectedValues.contains(cleanedCssPropertyKey)) {
@@ -134,15 +144,21 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
           // Patch the comment at the top of the style map based upon the
           // edits made.
-          if (affectedValues.isNotEmpty || isAVariable || isAFunction || isForCustomProps) {
-            yieldPatch(cascade.offset, cascade.offset,
-            getString(isAVariable: isAVariable,
-                styleMapContainsAVariable: styleMapContainsAVariable,
-                isAFunction: isAFunction,
-                affectedValues: affectedValues,
-                addExtraLine: sourceFile.getLine(cascade.offset) ==
-                    sourceFile.getLine(cascade.parent.offset),
-                isForCustomProps: isForCustomProps));
+          if (affectedValues.isNotEmpty ||
+              isAVariable ||
+              isAFunction ||
+              isForCustomProps) {
+            yieldPatch(
+                cascade.offset,
+                cascade.offset,
+                getString(
+                    isAVariable: isAVariable,
+                    styleMapContainsAVariable: styleMapContainsAVariable,
+                    isAFunction: isAFunction,
+                    affectedValues: affectedValues,
+                    addExtraLine: sourceFile.getLine(cascade.offset) ==
+                        sourceFile.getLine(cascade.parent.offset),
+                    isForCustomProps: isForCustomProps));
           }
         }
       }
@@ -150,7 +166,8 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
   }
 }
 
-String getString({String styleMap,
+String getString({
+  String styleMap,
   List affectedValues = const [],
   bool isAVariable = false,
   bool styleMapContainsAVariable = false,
@@ -197,7 +214,7 @@ String getString({String styleMap,
       ''';
     }
   } else if (isAFunction) {
-      return '''
+    return '''
        $functionCheckbox
        $styleMapExample
        $willBeRemovedSuffix
@@ -221,7 +238,7 @@ String getString({String styleMap,
 }
 
 String cleanString(dynamic elementToClean) {
-  return elementToClean.toString().replaceAll("\'","").replaceAll("\"","");
+  return elementToClean.toString().replaceAll("\'", "").replaceAll("\"", "");
 }
 
 bool nodeIsLikelyAnExpression(String node) =>
@@ -277,5 +294,6 @@ Iterable allComments(Token beginToken) sync* {
       currentComment = currentComment.next;
     }
     currentToken = currentToken.next;
-  };
+  }
+  ;
 }
