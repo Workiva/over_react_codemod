@@ -28,36 +28,15 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    final lifecycleMethods = [
-      'componentWillMount',
-      'componentWillReceiveProps',
-      'componentWillUpdate',
-      'getDerivedStateFromError',
-      'getDerivedStateFromProps',
-      'getSnapshotBeforeUpdate',
-      'shouldComponentUpdate',
-      'render',
-      'componentDidMount',
-      'componentDidUpdate',
-      'componentWillUnmount',
-      'componentDidCatch'
-    ];
-
     final parent = node.parent;
-
-    final methodDecl = (node.thisOrAncestorMatching((ancestor) {
-      return ancestor is MethodDeclaration;
-    }) as MethodDeclaration)
-        ?.name;
 
     if (node.methodName.name != 'render' ||
         !const ['react_dom', 'reactDom']
             .contains(node.realTarget?.toSource?.call()) ||
         !isInLifecycleMethod(node)) {
-      print('aw darn');
       return;
     }
-    print('passed first check');
+
     FluentComponentUsage usage;
     final renderFirstArg = node.argumentList.arguments.first;
 
@@ -69,7 +48,6 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     }
 
     if (renderFirstArg is InvocationExpression) {
-      print('am I a method invocation?');
       usage = getComponentUsage(renderFirstArg);
     }
 
@@ -187,17 +165,14 @@ bool isInLifecycleMethod(AstNode node) {
     'componentWillUnmount',
     'componentDidCatch'
   ];
+
   if (node == null) {
     return false;
-  } else if (lifecycleMethods.contains(node.beginToken.toString())) {
+  } else if ((node is MethodDeclaration) &&
+      node.name != null &&
+      lifecycleMethods.contains(node.name.toString())) {
     return true;
   } else {
-    if (node.childEntities.length > 1) {
-      if (lifecycleMethods
-          .contains(node.childEntities.elementAt(1).toString())) {
-        return true;
-      }
-    }
     return isInLifecycleMethod(node.parent);
   }
 }

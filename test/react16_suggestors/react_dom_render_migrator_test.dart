@@ -27,15 +27,15 @@ main() {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               react_dom.render(Foo()(), mountNode);
             }
           }
         ''',
         expectedOutput: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               react_dom.render(ErrorBoundary()(Foo()()), mountNode);
             }
           }
@@ -47,15 +47,15 @@ main() {
       testSuggestor(
         expectedPatchCount: 7,
         input: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var instance = react_dom.render(Foo()(), mountNode);
             }
           }
         ''',
         expectedOutput: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var instance;
               $checkboxCommentWithType
               react_dom.render(ErrorBoundary()((Foo()
@@ -71,16 +71,16 @@ main() {
       testSuggestor(
         expectedPatchCount: 7,
         input: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var instance;
               instance = react_dom.render(Foo()(), mountNode);
             }
           }
         ''',
         expectedOutput: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var instance;
               $checkboxComment
               react_dom.render(ErrorBoundary()((Foo()
@@ -96,8 +96,8 @@ main() {
       testSuggestor(
         expectedPatchCount: 5,
         input: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var instance = react_dom.render((Foo()
                 ..id = 'foo'
               )(), mountNode);
@@ -105,8 +105,8 @@ main() {
           }
         ''',
         expectedOutput: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var instance;
               $checkboxCommentWithType
               react_dom.render(ErrorBoundary()((Foo()
@@ -123,8 +123,8 @@ main() {
       testSuggestor(
         expectedPatchCount: 3,
         input: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var fooRef;
               react_dom.render((Foo()
                 ..ref = (ref) { fooRef = ref; }
@@ -133,8 +133,8 @@ main() {
           }
         ''',
         expectedOutput: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var fooRef;
               $checkboxComment
               react_dom.render(ErrorBoundary()((Foo()
@@ -150,12 +150,12 @@ main() {
       testSuggestor(
         expectedPatchCount: 3,
         input: '''
-          main() {
+          class MainClass {
             void render() => react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
           }
         ''',
         expectedOutput: '''
-          main() {
+          class MainClass {
             void render() => $checkboxComment
             react_dom.render(ErrorBoundary()((Foo()..ref = ((ref) => fooRef = ref))()), mountNode);
           }
@@ -168,8 +168,8 @@ main() {
       testSuggestor(
 //        expectedPatchCount: 1,
         input: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var fooRef = react_dom.render((Foo()
                 ..ref = (ref) { somethingElse = ref; }
               )(), mountNode);
@@ -177,8 +177,8 @@ main() {
           }
         ''',
         expectedOutput: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var fooRef;
               $checkboxCommentWithType
               react_dom.render(ErrorBoundary()((Foo()
@@ -194,8 +194,8 @@ main() {
       testSuggestor(
         expectedPatchCount: 16,
         input: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var instance1 = react_dom.render(foo(), mountNode);
 
               var instance2 = react_dom.render(foo, mountNode);
@@ -207,8 +207,8 @@ main() {
           }
         ''',
         expectedOutput: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var instance1;
               $checkboxCommentExpressionRef
               react_dom.render(ErrorBoundary()(foo()), mountNode);
@@ -232,8 +232,8 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var fooRef;
               ${getCheckboxComment(checked: true)}
               react_dom.render(ErrorBoundary()((Foo()
@@ -249,8 +249,8 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
-          main() {
-            render() {
+          class MainClass {
+            void render() {
               var fooRef;
               ${getCheckboxComment(checked: true)}
               react_dom.render(ErrorBoundary()((Foo()
@@ -279,7 +279,7 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
-          main() {
+          class MainClass {
             var instance = react_dom.render(Foo()(), mountNode);
           }
         ''',
