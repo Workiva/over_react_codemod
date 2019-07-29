@@ -102,6 +102,11 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       //   yieldPatch(node.offset, node.offset,
       //       '\n // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely.$willBeRemovedCommentSuffix\n');
       // }
+    } else if (parent is ArgumentList && !hasValidationComment(node, sourceFile)) {
+      yieldPatch(
+          node.realTarget.offset,
+          node.realTarget.offset,
+          manualUpdateComment);
     } else {
       if (!hasValidationComment(node, sourceFile) &&
           renderFirstArg.toString().contains('..ref')) {
@@ -168,7 +173,7 @@ bool isInLifecycleMethod(AstNode node) {
 
   if (node == null) {
     return false;
-  } else if ((node is MethodDeclaration) &&
+  } else if (node is MethodDeclaration &&
       node.name != null &&
       lifecycleMethods.contains(node.name.toString())) {
     return true;

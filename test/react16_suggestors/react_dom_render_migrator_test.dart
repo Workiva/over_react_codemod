@@ -92,6 +92,26 @@ main() {
       );
     });
 
+    test('simple usage as an argument', () {
+      testSuggestor(
+        expectedPatchCount: 3,
+        input: '''
+          class MainClass {
+            void render() {
+              var instance = getDartComponent(react_dom.render(Foo()(), mountNode));
+            }
+          }
+        ''',
+        expectedOutput: '''
+          class MainClass {
+            void render() { 
+              var instance = getDartComponent($manualUpdateComment react_dom.render(ErrorBoundary()(Foo()()), mountNode));
+            }
+          }
+        ''',
+      );
+    });
+
     test('simple usage with existing other props', () {
       testSuggestor(
         expectedPatchCount: 5,
@@ -252,7 +272,7 @@ main() {
           class MainClass {
             void render() {
               var fooRef;
-              ${getCheckboxComment(checked: true)}
+              ${getCheckboxComment(checked: false)}
               react_dom.render(ErrorBoundary()((Foo()
                 ..ref = (ref) { fooRef = ref; }
               )()), mountNode);
