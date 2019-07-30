@@ -108,7 +108,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         !hasValidationComment(node, sourceFile)) {
       // Add this on the render call and not before the parent so that dupe comments aren't added on subsequent runs.
       yieldPatch(node.realTarget.offset, node.realTarget.offset,
-          '// [ ] Check this box upon manually updating this argument to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
+          '\n// [ ] Check this box upon manually updating this argument to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
     } else if ((parent is ReturnStatement ||
             parent is ExpressionFunctionBody) &&
         functionDecl?.beginToken.toString() != 'void' &&

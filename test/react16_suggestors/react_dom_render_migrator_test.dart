@@ -90,7 +90,7 @@ main() {
         ''',
         expectedOutput: '''
           main() {
-            var instance = getDartComponent(${getCheckboxManualUpdate(toUpdate: 'argument')}
+            var instance = getDartComponent( \n${getCheckboxManualUpdate(toUpdate: 'argument')}
             react_dom.render(ErrorBoundary()(Foo()()), mountNode));
           }
         ''',
