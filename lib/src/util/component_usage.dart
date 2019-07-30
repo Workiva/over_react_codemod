@@ -40,9 +40,9 @@ class FluentComponentUsage {
     return null;
   }
 
-  bool get isDom => const ['DomProps', 'SvgProps'].contains(builder.staticType?.name);
+  bool get isDom =>
+      const ['DomProps', 'SvgProps'].contains(builder.staticType?.name);
   bool get isSvg => const ['SvgProps'].contains(builder.staticType?.name);
-
 
   /// Whether the invocation contains one or more children passed as arguments instead of a list.
   bool get hasVariadicChildren =>
@@ -105,9 +105,9 @@ FluentComponentUsage getComponentUsage(InvocationExpression node) {
       if (builderName != null) {
         isComponent =
             new RegExp(r'(?:^|\.)Dom\.[a-z0-9]+$').hasMatch(builderName) ||
-            new RegExp(r'factory|builder', caseSensitive: false)
-                .hasMatch(builderName) ||
-            new RegExp(r'(?:^|\.)[A-Z][^\.]*$').hasMatch(builderName);
+                new RegExp(r'factory|builder', caseSensitive: false)
+                    .hasMatch(builderName) ||
+                new RegExp(r'(?:^|\.)[A-Z][^\.]*$').hasMatch(builderName);
       }
     } else if (builder is Identifier) {
       isComponent =
@@ -160,9 +160,6 @@ bool hasChildComponent(ArgumentList arguments) {
 
   return detector.detected;
 }
-
-
-
 
 /// Attempt to find and return the closest expression that encloses the [node]
 /// and is an independent Flutter `Widget`.  Return `null` if nothing found.

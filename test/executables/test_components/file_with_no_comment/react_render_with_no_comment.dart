@@ -6,7 +6,6 @@ import "dart:html";
 void main() {
   setClientConfiguration();
 
-  var instance = react_dom.render(react.div()(
-    "Hello!"
-  ), querySelector('#content'));
+  var instance =
+      react_dom.render(react.div()("Hello!"), querySelector('#content'));
 }

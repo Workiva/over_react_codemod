@@ -7,7 +7,6 @@ void main() {
   setClientConfiguration();
 
   // [ ] Check this box upon manual validation
-  var instance = react_dom.render(react.div()(
-    "Hello!"
-  ), querySelector('#content'));
+  var instance =
+      react_dom.render(react.div()("Hello!"), querySelector('#content'));
 }
