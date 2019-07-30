@@ -29,16 +29,16 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     super.visitMethodInvocation(node);
 
     final parent = node.parent;
-    bool isInTest = node.thisOrAncestorMatching((ancestor) {
+    MethodInvocation inTest = node.thisOrAncestorMatching((ancestor) {
       return (ancestor is MethodInvocation &&
           (ancestor.methodName.toString() == 'test' ||
               ancestor.methodName.toString() == 'group'));
-    }) != null;
+    });
 
     if (node.methodName.name != 'render' ||
         !const ['react_dom', 'reactDom']
             .contains(node.realTarget?.toSource?.call()) ||
-        isInTest) {
+        inTest != null) {
       return;
     }
 
@@ -48,7 +48,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       return ancestor is FunctionDeclaration;
     });
 
-    // Wrap render in ErrorBoundary
+    // Wrap render in ErrorBoundary.
     if (!renderFirstArg.toString().startsWith('ErrorBoundary')) {
       yieldPatch(
           renderFirstArg.offset, renderFirstArg.offset, 'ErrorBoundary()(');
@@ -93,7 +93,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       }
 
       if (usage != null && !renderFirstArg.toString().contains('..ref')) {
-        // add the ref
+        // Add the ref
         final builderExpression = usage.node.function;
         if (builderExpression is! ParenthesizedExpression) {
           yieldPatch(builderExpression.offset, builderExpression.offset, '(');
@@ -104,25 +104,22 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           yieldPatch(builderExpression.end, builderExpression.end, ')');
         }
       }
-      // TODO remove? this case doesn't seem necessary
-      // else {
-      //   // add a space after newline so that comment gets indented by dartfmt
-      //   yieldPatch(node.offset, node.offset,
-      //       '\n // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely.$willBeRemovedCommentSuffix\n');
-      // }
     } else if (parent is ArgumentList &&
         !hasValidationComment(node, sourceFile)) {
+      // Add this on the render call and not before the parent so that dupe comments aren't added on subsequent runs.
       yieldPatch(node.realTarget.offset, node.realTarget.offset,
           '// [ ] Check this box upon manually updating this argument to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
     } else if ((parent is ReturnStatement ||
             parent is ExpressionFunctionBody) &&
         functionDecl?.beginToken.toString() != 'void' &&
         !hasValidationComment(node, sourceFile)) {
+      // Add this on the render call and not before the parent so that dupe comments aren't added on subsequent runs.
       yieldPatch(node.realTarget.offset, node.realTarget.offset,
           '// [ ] Check this box upon manually updating this return to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
     } else {
       if (!hasValidationComment(node, sourceFile) &&
           renderFirstArg.toString().contains('..ref')) {
+        // Add this on the render call and not before the parent so that dupe comments aren't added on subsequent runs.
         yieldPatch(
             node.realTarget.offset,
             node.realTarget.offset,

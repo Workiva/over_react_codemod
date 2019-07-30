@@ -195,9 +195,8 @@ main() {
     });
 
     test('existing ref and assignment', () {
-      // TODO do we even care about this case?
       testSuggestor(
-//        expectedPatchCount: 1,
+        expectedPatchCount: 4,
         input: '''
           main() {
             var fooRef = react_dom.render((Foo()
@@ -287,7 +286,7 @@ main() {
         input: '''
           main() {
             test('simple test', () {
-              var instance2 = react_dom.render(Foo()(), mountNode);
+              var instance = react_dom.render(Foo()(), mountNode);
             });
           }
         ''',
