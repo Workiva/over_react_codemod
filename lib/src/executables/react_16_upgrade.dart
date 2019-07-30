@@ -41,11 +41,10 @@ void main(List<String> args) {
     changesRequiredOutput: _changesRequiredOutput,
   );
 
-  // TODO write tests
   final logger = Logger('over_react_codemod.fixmes');
   for (var dartFile in query.generateFilePaths()) {
     final dartSource = File(dartFile).readAsStringSync();
-    if (dartSource.contains(fixmePrefix)) {
+    if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
       logger.severe('Unaddressed over_react_codemod FIXME within $dartSource');
       exitCode = 1;
     }
