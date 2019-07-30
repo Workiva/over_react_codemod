@@ -23,19 +23,6 @@ main() {
       );
     });
 
-    test('simple usage in a test', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          main() {
-            test('simple test', () {
-              var instance2 = react_dom.render(Foo()(), mountNode);
-            });
-          }
-        ''',
-      );
-    });
-
     test('render without usage of return value', () {
       testSuggestor(
         expectedPatchCount: 2,
@@ -103,7 +90,25 @@ main() {
         ''',
         expectedOutput: '''
           main() {
-            var instance = getDartComponent($manualUpdateComment react_dom.render(ErrorBoundary()(Foo()()), mountNode));
+            var instance = getDartComponent(${getCheckboxManualUpdate(toUpdate: 'argument')}
+            react_dom.render(ErrorBoundary()(Foo()()), mountNode));
+          }
+        ''',
+      );
+    });
+
+    test('simple usage as a return value', () {
+      testSuggestor(
+        expectedPatchCount: 3,
+        input: '''
+          main() {
+            return react_dom.render(Foo()(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            return ${getCheckboxManualUpdate(toUpdate: 'return')}
+            react_dom.render(ErrorBoundary()(Foo()()), mountNode);
           }
         ''',
       );
@@ -155,7 +160,7 @@ main() {
       );
     });
 
-    test('simple usage with existing ref in an arrow function', () {
+    test('simple usage with existing ref in a void arrow function', () {
       testSuggestor(
         expectedPatchCount: 3,
         input: '''
@@ -166,6 +171,23 @@ main() {
         expectedOutput: '''
           main() {
             void render() => $checkboxComment
+            react_dom.render(ErrorBoundary()((Foo()..ref = ((ref) => fooRef = ref))()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('simple usage with existing ref in an arrow function', () {
+      testSuggestor(
+        expectedPatchCount: 3,
+        input: '''
+          main() {
+            render() => react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            render() => ${getCheckboxManualUpdate(toUpdate: 'return')} 
             react_dom.render(ErrorBoundary()((Foo()..ref = ((ref) => fooRef = ref))()), mountNode);
           }
         ''',
@@ -281,6 +303,13 @@ String getCheckboxComment({
     '// ${checked ? '[x]' : '[ ]'}'
     ' Check this box upon manual validation of this ref'
     '${includeTypeMessage ? ' and its typing' : ''}.'
+    '$willBeRemovedCommentSuffix';
+
+String getCheckboxManualUpdate({
+  String toUpdate = 'argument',
+}) =>
+    '// [ ] Check this box upon manually updating this $toUpdate '
+    'to use a callback ref instead of the return value of `react_dom.render`.'
     '$willBeRemovedCommentSuffix';
 
 final checkboxComment = getCheckboxComment();

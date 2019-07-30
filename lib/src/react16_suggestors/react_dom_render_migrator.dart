@@ -29,16 +29,24 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     super.visitMethodInvocation(node);
 
     final parent = node.parent;
+    bool isInTest = node.thisOrAncestorMatching((ancestor) {
+      return (ancestor is MethodInvocation &&
+          (ancestor.methodName.toString() == 'test' ||
+              ancestor.methodName.toString() == 'group'));
+    }) != null;
 
     if (node.methodName.name != 'render' ||
         !const ['react_dom', 'reactDom']
             .contains(node.realTarget?.toSource?.call()) ||
-        isInTest(node)) {
+        isInTest) {
       return;
     }
 
     FluentComponentUsage usage;
     final renderFirstArg = node.argumentList.arguments.first;
+    FunctionDeclaration functionDecl = node.thisOrAncestorMatching((ancestor) {
+      return ancestor is FunctionDeclaration;
+    });
 
     // Wrap render in ErrorBoundary
     if (!renderFirstArg.toString().startsWith('ErrorBoundary')) {
@@ -104,8 +112,14 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       // }
     } else if (parent is ArgumentList &&
         !hasValidationComment(node, sourceFile)) {
-      yieldPatch(
-          node.realTarget.offset, node.realTarget.offset, manualUpdateComment);
+      yieldPatch(node.realTarget.offset, node.realTarget.offset,
+          '// [ ] Check this box upon manually updating this argument to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
+    } else if ((parent is ReturnStatement ||
+            parent is ExpressionFunctionBody) &&
+        functionDecl?.beginToken.toString() != 'void' &&
+        !hasValidationComment(node, sourceFile)) {
+      yieldPatch(node.realTarget.offset, node.realTarget.offset,
+          '// [ ] Check this box upon manually updating this return to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
     } else {
       if (!hasValidationComment(node, sourceFile) &&
           renderFirstArg.toString().contains('..ref')) {
@@ -150,17 +164,5 @@ Iterable allComments(Token beginToken) sync* {
       currentComment = currentComment.next;
     }
     currentToken = currentToken.next;
-  }
-}
-
-bool isInTest(AstNode node) {
-  if (node == null) {
-    return false;
-  } else if (node is MethodInvocation &&
-      (node.methodName.toString() == 'test' ||
-          node.methodName.toString() == 'group')) {
-    return true;
-  } else {
-    return isInTest(node.parent);
   }
 }
