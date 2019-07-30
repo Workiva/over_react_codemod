@@ -44,6 +44,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
 
     FluentComponentUsage usage;
     final renderFirstArg = node.argumentList.arguments.first;
+
+    // Get function declaration to determine return value type.
     FunctionDeclaration functionDecl = node.thisOrAncestorMatching((ancestor) {
       return ancestor is FunctionDeclaration;
     });
@@ -106,20 +108,19 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       }
     } else if (parent is ArgumentList &&
         !hasValidationComment(node, sourceFile)) {
-      // Add this on the render call and not before the parent so that dupe comments aren't added on subsequent runs.
+      // Add comment to manually update if return value of `react_dom.render` is used as an argument.
       yieldPatch(node.realTarget.offset, node.realTarget.offset,
           '\n// [ ] Check this box upon manually updating this argument to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
     } else if ((parent is ReturnStatement ||
             parent is ExpressionFunctionBody) &&
         functionDecl?.beginToken.toString() != 'void' &&
         !hasValidationComment(node, sourceFile)) {
-      // Add this on the render call and not before the parent so that dupe comments aren't added on subsequent runs.
+      // Add comment to manually update if return value of `react_dom.render` is used in a return statement (including non-void arrow functions).
       yieldPatch(node.realTarget.offset, node.realTarget.offset,
           '// [ ] Check this box upon manually updating this return to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
     } else {
       if (!hasValidationComment(node, sourceFile) &&
           renderFirstArg.toString().contains('..ref')) {
-        // Add this on the render call and not before the parent so that dupe comments aren't added on subsequent runs.
         yieldPatch(
             node.realTarget.offset,
             node.realTarget.offset,
