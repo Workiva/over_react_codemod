@@ -33,7 +33,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     if (node.methodName.name != 'render' ||
         !const ['react_dom', 'reactDom']
             .contains(node.realTarget?.toSource?.call()) ||
-        !isInLifecycleMethod(node)) {
+        isInTest(node)) {
       return;
     }
 
@@ -102,11 +102,10 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       //   yieldPatch(node.offset, node.offset,
       //       '\n // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely.$willBeRemovedCommentSuffix\n');
       // }
-    } else if (parent is ArgumentList && !hasValidationComment(node, sourceFile)) {
+    } else if (parent is ArgumentList &&
+        !hasValidationComment(node, sourceFile)) {
       yieldPatch(
-          node.realTarget.offset,
-          node.realTarget.offset,
-          manualUpdateComment);
+          node.realTarget.offset, node.realTarget.offset, manualUpdateComment);
     } else {
       if (!hasValidationComment(node, sourceFile) &&
           renderFirstArg.toString().contains('..ref')) {
@@ -152,32 +151,16 @@ Iterable allComments(Token beginToken) sync* {
     }
     currentToken = currentToken.next;
   }
-  ;
 }
 
-bool isInLifecycleMethod(AstNode node) {
-  final lifecycleMethods = [
-    'componentWillMount',
-    'componentWillReceiveProps',
-    'componentWillUpdate',
-    'getDerivedStateFromError',
-    'getDerivedStateFromProps',
-    'getSnapshotBeforeUpdate',
-    'shouldComponentUpdate',
-    'render',
-    'componentDidMount',
-    'componentDidUpdate',
-    'componentWillUnmount',
-    'componentDidCatch'
-  ];
-
+bool isInTest(AstNode node) {
   if (node == null) {
     return false;
-  } else if (node is MethodDeclaration &&
-      node.name != null &&
-      lifecycleMethods.contains(node.name.toString())) {
+  } else if (node is MethodInvocation &&
+      (node.methodName.toString() == 'test' ||
+          node.methodName.toString() == 'group')) {
     return true;
   } else {
-    return isInLifecycleMethod(node.parent);
+    return isInTest(node.parent);
   }
 }

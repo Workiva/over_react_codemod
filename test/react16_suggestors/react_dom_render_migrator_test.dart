@@ -23,265 +23,6 @@ main() {
       );
     });
 
-    test('render without usage of return value', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          class MainClass {
-            void render() {
-              react_dom.render(Foo()(), mountNode);
-            }
-          }
-        ''',
-        expectedOutput: '''
-          class MainClass {
-            void render() {
-              react_dom.render(ErrorBoundary()(Foo()()), mountNode);
-            }
-          }
-        ''',
-      );
-    });
-
-    test('simple usage', () {
-      testSuggestor(
-        expectedPatchCount: 7,
-        input: '''
-          class MainClass {
-            void render() {
-              var instance = react_dom.render(Foo()(), mountNode);
-            }
-          }
-        ''',
-        expectedOutput: '''
-          class MainClass {
-            void render() {
-              var instance;
-              $checkboxCommentWithType
-              react_dom.render(ErrorBoundary()((Foo()
-                ..ref = (ref) { instance = ref; }
-              )()), mountNode);
-            }
-          }
-        ''',
-      );
-    });
-
-    test('simple usage assignment to existing variable', () {
-      testSuggestor(
-        expectedPatchCount: 7,
-        input: '''
-          class MainClass {
-            void render() {
-              var instance;
-              instance = react_dom.render(Foo()(), mountNode);
-            }
-          }
-        ''',
-        expectedOutput: '''
-          class MainClass {
-            void render() {
-              var instance;
-              $checkboxComment
-              react_dom.render(ErrorBoundary()((Foo()
-                ..ref = (ref) { instance = ref; }
-              )()), mountNode);
-            }
-          }
-        ''',
-      );
-    });
-
-    test('simple usage as an argument', () {
-      testSuggestor(
-        expectedPatchCount: 3,
-        input: '''
-          class MainClass {
-            void render() {
-              var instance = getDartComponent(react_dom.render(Foo()(), mountNode));
-            }
-          }
-        ''',
-        expectedOutput: '''
-          class MainClass {
-            void render() { 
-              var instance = getDartComponent($manualUpdateComment react_dom.render(ErrorBoundary()(Foo()()), mountNode));
-            }
-          }
-        ''',
-      );
-    });
-
-    test('simple usage with existing other props', () {
-      testSuggestor(
-        expectedPatchCount: 5,
-        input: '''
-          class MainClass {
-            void render() {
-              var instance = react_dom.render((Foo()
-                ..id = 'foo'
-              )(), mountNode);
-            }
-          }
-        ''',
-        expectedOutput: '''
-          class MainClass {
-            void render() {
-              var instance;
-              $checkboxCommentWithType
-              react_dom.render(ErrorBoundary()((Foo()
-                ..ref = (ref) { instance = ref; }
-                ..id = 'foo'
-              )()), mountNode);
-            }
-          }
-        ''',
-      );
-    });
-
-    test('simple usage with existing ref', () {
-      testSuggestor(
-        expectedPatchCount: 3,
-        input: '''
-          class MainClass {
-            void render() {
-              var fooRef;
-              react_dom.render((Foo()
-                ..ref = (ref) { fooRef = ref; }
-              )(), mountNode);
-            }
-          }
-        ''',
-        expectedOutput: '''
-          class MainClass {
-            void render() {
-              var fooRef;
-              $checkboxComment
-              react_dom.render(ErrorBoundary()((Foo()
-                ..ref = (ref) { fooRef = ref; }
-              )()), mountNode);
-            }
-          }
-        ''',
-      );
-    });
-
-    test('simple usage with existing ref in an arrow function', () {
-      testSuggestor(
-        expectedPatchCount: 3,
-        input: '''
-          class MainClass {
-            void render() => react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
-          }
-        ''',
-        expectedOutput: '''
-          class MainClass {
-            void render() => $checkboxComment
-            react_dom.render(ErrorBoundary()((Foo()..ref = ((ref) => fooRef = ref))()), mountNode);
-          }
-        ''',
-      );
-    });
-
-    test('existing ref and assignment', () {
-      // TODO do we even care about this case?
-      testSuggestor(
-//        expectedPatchCount: 1,
-        input: '''
-          class MainClass {
-            void render() {
-              var fooRef = react_dom.render((Foo()
-                ..ref = (ref) { somethingElse = ref; }
-              )(), mountNode);
-            }
-          }
-        ''',
-        expectedOutput: '''
-          class MainClass {
-            void render() {
-              var fooRef;
-              $checkboxCommentWithType
-              react_dom.render(ErrorBoundary()((Foo()
-                ..ref = (ref) { somethingElse = ref; }
-              )()), mountNode);
-            }
-          }
-        ''',
-      );
-    });
-
-    test('simple usage with non-component usage', () {
-      testSuggestor(
-        expectedPatchCount: 16,
-        input: '''
-          class MainClass {
-            void render() {
-              var instance1 = react_dom.render(foo(), mountNode);
-
-              var instance2 = react_dom.render(foo, mountNode);
-
-              instance3 = react_dom.render(foo(), mountNode);
-
-              instance4 = react_dom.render(foo, mountNode);
-            }
-          }
-        ''',
-        expectedOutput: '''
-          class MainClass {
-            void render() {
-              var instance1;
-              $checkboxCommentExpressionRef
-              react_dom.render(ErrorBoundary()(foo()), mountNode);
-
-              var instance2;
-              $checkboxCommentExpressionRef
-              react_dom.render(ErrorBoundary()(foo), mountNode);
-
-              $checkboxCommentExpressionRef
-              react_dom.render(ErrorBoundary()(foo()), mountNode);
-
-              $checkboxCommentExpressionRef
-              react_dom.render(ErrorBoundary()(foo), mountNode);
-            }
-          }
-        ''',
-      );
-    });
-
-    test('simple usage with validated ref', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          class MainClass {
-            void render() {
-              var fooRef;
-              ${getCheckboxComment(checked: true)}
-              react_dom.render(ErrorBoundary()((Foo()
-                ..ref = (ref) { fooRef = ref; }
-              )()), mountNode);
-            }
-          }
-        ''',
-      );
-    });
-
-    test('simple usage with unvalidated ref', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          class MainClass {
-            void render() {
-              var fooRef;
-              ${getCheckboxComment(checked: false)}
-              react_dom.render(ErrorBoundary()((Foo()
-                ..ref = (ref) { fooRef = ref; }
-              )()), mountNode);
-            }
-          }
-        ''',
-      );
-    });
-
     test('simple usage in a test', () {
       testSuggestor(
         expectedPatchCount: 0,
@@ -295,12 +36,237 @@ main() {
       );
     });
 
-    test('simple usage outside of a lifecycle method', () {
+    test('render without usage of return value', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          main() {
+            react_dom.render(Foo()(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            react_dom.render(ErrorBoundary()(Foo()()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('simple usage', () {
+      testSuggestor(
+        expectedPatchCount: 7,
+        input: '''
+          main() {
+            var instance = react_dom.render(Foo()(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            var instance;
+            $checkboxCommentWithType
+            react_dom.render(ErrorBoundary()((Foo()
+              ..ref = (ref) { instance = ref; }
+            )()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('simple usage assignment to existing variable', () {
+      testSuggestor(
+        expectedPatchCount: 7,
+        input: '''
+          main() {
+            var instance;
+            instance = react_dom.render(Foo()(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            var instance;
+            $checkboxComment
+            react_dom.render(ErrorBoundary()((Foo()
+              ..ref = (ref) { instance = ref; }
+            )()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('simple usage as an argument', () {
+      testSuggestor(
+        expectedPatchCount: 3,
+        input: '''
+          main() {
+            var instance = getDartComponent(react_dom.render(Foo()(), mountNode));
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            var instance = getDartComponent($manualUpdateComment react_dom.render(ErrorBoundary()(Foo()()), mountNode));
+          }
+        ''',
+      );
+    });
+
+    test('simple usage with existing other props', () {
+      testSuggestor(
+        expectedPatchCount: 5,
+        input: '''
+          main() {
+            var instance = react_dom.render((Foo()
+              ..id = 'foo'
+            )(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            var instance;
+            $checkboxCommentWithType
+            react_dom.render(ErrorBoundary()((Foo()
+              ..ref = (ref) { instance = ref; }
+              ..id = 'foo'
+            )()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('simple usage with existing ref', () {
+      testSuggestor(
+        expectedPatchCount: 3,
+        input: '''
+          main() {
+            var fooRef;
+            react_dom.render((Foo()
+              ..ref = (ref) { fooRef = ref; }
+            )(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            var fooRef;
+            $checkboxComment
+            react_dom.render(ErrorBoundary()((Foo()
+              ..ref = (ref) { fooRef = ref; }
+            )()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('simple usage with existing ref in an arrow function', () {
+      testSuggestor(
+        expectedPatchCount: 3,
+        input: '''
+          main() {
+            void render() => react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            void render() => $checkboxComment
+            react_dom.render(ErrorBoundary()((Foo()..ref = ((ref) => fooRef = ref))()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('existing ref and assignment', () {
+      // TODO do we even care about this case?
+      testSuggestor(
+//        expectedPatchCount: 1,
+        input: '''
+          main() {
+            var fooRef = react_dom.render((Foo()
+              ..ref = (ref) { somethingElse = ref; }
+            )(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            var fooRef;
+            $checkboxCommentWithType
+            react_dom.render(ErrorBoundary()((Foo()
+              ..ref = (ref) { somethingElse = ref; }
+            )()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('simple usage with non-component usage', () {
+      testSuggestor(
+        expectedPatchCount: 16,
+        input: '''
+          main() {
+            var instance1 = react_dom.render(foo(), mountNode);
+
+            var instance2 = react_dom.render(foo, mountNode);
+
+            instance3 = react_dom.render(foo(), mountNode);
+
+            instance4 = react_dom.render(foo, mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          main() {
+            var instance1;
+            $checkboxCommentExpressionRef
+            react_dom.render(ErrorBoundary()(foo()), mountNode);
+
+            var instance2;
+            $checkboxCommentExpressionRef
+            react_dom.render(ErrorBoundary()(foo), mountNode);
+
+            $checkboxCommentExpressionRef
+            react_dom.render(ErrorBoundary()(foo()), mountNode);
+
+            $checkboxCommentExpressionRef
+            react_dom.render(ErrorBoundary()(foo), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('simple usage with validated ref', () {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
-          class MainClass {
-            var instance = react_dom.render(Foo()(), mountNode);
+          main() {
+            var fooRef;
+            ${getCheckboxComment(checked: true)}
+            react_dom.render(ErrorBoundary()((Foo()
+              ..ref = (ref) { fooRef = ref; }
+            )()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('simple usage with unvalidated ref', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          main() {
+            var fooRef;
+            ${getCheckboxComment(checked: false)}
+            react_dom.render(ErrorBoundary()((Foo()
+              ..ref = (ref) { fooRef = ref; }
+            )()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('simple usage in a test', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          main() {
+            test('simple test', () {
+              var instance2 = react_dom.render(Foo()(), mountNode);
+            });
           }
         ''',
       );
