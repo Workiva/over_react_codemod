@@ -311,7 +311,7 @@ main() {
 
 String getCheckboxComment({
   bool includeTypeMessage = false,
-  bool checked: false,
+  bool checked = false,
 }) =>
     '// ${checked ? '[x]' : '[ ]'}'
     ' Check this box upon manual validation of this ref'
