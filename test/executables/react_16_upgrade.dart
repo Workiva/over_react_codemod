@@ -25,7 +25,7 @@ ProcessResult runUpgrade({String onDirectory}) {
 }
 
 main() {
-  group('React1_16_upgrade', () {
+  group('React_16_upgrade', () {
     test('exits with a status of 1 when there is a comment', () {
       final result = runUpgrade(
           onDirectory: 'test/executables/test_components/file_with_comment');
