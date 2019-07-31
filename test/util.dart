@@ -177,7 +177,7 @@ void Function({
 void testSuggestor({
   @required Suggestor suggestor,
   @required String input,
-  @required String expectedOutput,
+  String expectedOutput,
   int expectedPatchCount,
   bool shouldDartfmtOutput = true,
   bool testIdempotency = true,
