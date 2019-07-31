@@ -104,10 +104,10 @@ FluentComponentUsage getComponentUsage(InvocationExpression node) {
 
       if (builderName != null) {
         isComponent =
-            new RegExp(r'(?:^|\.)Dom\.[a-z0-9]+$').hasMatch(builderName) ||
-                new RegExp(r'factory|builder', caseSensitive: false)
+             RegExp(r'(?:^|\.)Dom\.[a-z0-9]+$').hasMatch(builderName) ||
+                 RegExp(r'factory|builder', caseSensitive: false)
                     .hasMatch(builderName) ||
-                new RegExp(r'(?:^|\.)[A-Z][^\.]*$').hasMatch(builderName);
+                 RegExp(r'(?:^|\.)[A-Z][^\.]*$').hasMatch(builderName);
       }
     } else if (builder is Identifier) {
       isComponent =

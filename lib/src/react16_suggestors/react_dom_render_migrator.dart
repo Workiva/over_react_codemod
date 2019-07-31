@@ -28,24 +28,29 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-//    final lifecycleMethods = ['componentWillMount', 'componentWillReceiveProps', 'componentWillUpdate', 'getDerivedStateFromError','getDerivedStateFromProps','getSnapshotBeforeUpdate','shouldComponentUpdate','render','componentDidMount','componentDidUpdate','componentWillUnmount','componentDidCatch'];
-
     final parent = node.parent;
-//    final methodDecl = (node.thisOrAncestorMatching((ancestor) {
-//      return ancestor is MethodDeclaration;
-//    }) as MethodDeclaration)?.name;
+    MethodInvocation inTest = node.thisOrAncestorMatching((ancestor) {
+      return (ancestor is MethodInvocation &&
+          (ancestor.methodName.toString() == 'test' ||
+              ancestor.methodName.toString() == 'group'));
+    });
 
     if (node.methodName.name != 'render' ||
         !const ['react_dom', 'reactDom']
             .contains(node.realTarget?.toSource?.call()) ||
-        !isInLifecycleMethod(node)) {
+        inTest != null) {
       return;
     }
 
     FluentComponentUsage usage;
     final renderFirstArg = node.argumentList.arguments.first;
 
-    // Wrap render in ErrorBoundary
+    // Get function declaration to determine return value type.
+    FunctionDeclaration functionDecl = node.thisOrAncestorMatching((ancestor) {
+      return ancestor is FunctionDeclaration;
+    });
+
+    // Wrap render in ErrorBoundary.
     if (!renderFirstArg.toString().startsWith('ErrorBoundary')) {
       yieldPatch(
           renderFirstArg.offset, renderFirstArg.offset, 'ErrorBoundary()(');
@@ -90,7 +95,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       }
 
       if (usage != null && !renderFirstArg.toString().contains('..ref')) {
-        // add the ref
+        // Add the ref
         final builderExpression = usage.node.function;
         if (builderExpression is! ParenthesizedExpression) {
           yieldPatch(builderExpression.offset, builderExpression.offset, '(');
@@ -101,12 +106,18 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           yieldPatch(builderExpression.end, builderExpression.end, ')');
         }
       }
-      // TODO remove? this case doesn't seem necessary
-      // else {
-      //   // add a space after newline so that comment gets indented by dartfmt
-      //   yieldPatch(node.offset, node.offset,
-      //       '\n // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely.$willBeRemovedCommentSuffix\n');
-      // }
+    } else if (parent is ArgumentList &&
+        !hasValidationComment(node, sourceFile)) {
+      // Add comment to manually update if return value of `react_dom.render` is used as an argument.
+      yieldPatch(node.realTarget.offset, node.realTarget.offset,
+          '\n// [ ] Check this box upon manually updating this argument to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
+    } else if ((parent is ReturnStatement ||
+            parent is ExpressionFunctionBody) &&
+        functionDecl?.beginToken.toString() != 'void' &&
+        !hasValidationComment(node, sourceFile)) {
+      // Add comment to manually update if return value of `react_dom.render` is used in a return statement (including non-void arrow functions).
+      yieldPatch(node.realTarget.offset, node.realTarget.offset,
+          '// [ ] Check this box upon manually updating this return to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
     } else {
       if (!hasValidationComment(node, sourceFile) &&
           renderFirstArg.toString().contains('..ref')) {
@@ -151,30 +162,5 @@ Iterable allComments(Token beginToken) sync* {
       currentComment = currentComment.next;
     }
     currentToken = currentToken.next;
-  }
-}
-
-bool isInLifecycleMethod(AstNode node) {
-  final lifecycleMethods = [
-    'componentWillMount',
-    'componentWillReceiveProps',
-    'componentWillUpdate',
-    'getDerivedStateFromError',
-    'getDerivedStateFromProps',
-    'getSnapshotBeforeUpdate',
-    'shouldComponentUpdate',
-    'render',
-    'componentDidMount',
-    'componentDidUpdate',
-    'componentWillUnmount',
-    'componentDidCatch'
-  ];
-
-  if (node == null) {
-    return false;
-  } else if (lifecycleMethods.contains(node.beginToken.toString())) {
-    return true;
-  } else {
-    return isInLifecycleMethod(node.parent);
   }
 }
