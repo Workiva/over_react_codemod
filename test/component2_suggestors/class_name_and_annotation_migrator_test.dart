@@ -94,7 +94,7 @@ main() {
 
     test('annotation with args and extending stateful class updates', () {
       testSuggestor(
-        expectedPatchCount: 3,
+        expectedPatchCount: 2,
         input: '''
           @Component(isWrapper: true)
           class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
@@ -108,7 +108,7 @@ main() {
 
     test('AbstractComponent class annotation updates', () {
       testSuggestor(
-        expectedPatchCount: 5,
+        expectedPatchCount: 2,
         input: '''
           @AbstractComponent(isWrapper: true)
           abstract class FooComponent extends UiStatefulComponent<FooProps, FooState>{}

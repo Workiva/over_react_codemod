@@ -25,51 +25,53 @@ import '../util.dart';
 class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-
   ClassNameAndAnnotationMigrator();
 
-  Iterable<String> get migrateAnnotations => overReact16AnnotationNamesToMigrate;
+  Iterable<String> get migrateAnnotations =>
+      overReact16AnnotationNamesToMigrate;
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
-    if (!node.metadata.any((m) => migrateAnnotations.contains(m.name.name) || overReact16AnnotationNames.contains(m.name.name))) {
+    if (!node.metadata.any((m) =>
+        migrateAnnotations.contains(m.name.name) ||
+        overReact16AnnotationNames.contains(m.name.name))) {
       // Only looking for classes annotated with `@Props()`, `@State()`,
       // `@AbstractProps()`, or `@AbstractState()`. If [renameMixins] is true,
       // also includes `@PropsMixin()` and `@StateMixin()`.
       return;
     }
 
-    Iterable<Annotation> annotationRefs = node.metadata.where((m) => migrateAnnotations.contains(m.name.name));
-    annotationRefs.forEach((annotationRef){
+    Iterable<Annotation> annotationRefs =
+        node.metadata.where((m) => migrateAnnotations.contains(m.name.name));
+    annotationRefs.forEach((annotationRef) {
       if (annotationRef.name.toString().contains('2')) return;
       yieldPatch(
-        annotationRef.name.offset,
         annotationRef.name.end,
-        annotationRef.name.toString() + '2',
+        annotationRef.name.end,
+        '2',
       );
     });
 
-
-    if (node.extendsClause.superclass.name.toString() == 'UiComponent' || node.extendsClause.superclass.name.toString() == 'UiStatefulComponent'){
+    if (node.extendsClause.superclass.name.toString() == 'UiComponent' ||
+        node.extendsClause.superclass.name.toString() ==
+            'UiStatefulComponent') {
       yieldPatch(
-        node.extendsClause.superclass.name.offset,
         node.extendsClause.superclass.name.end,
-        node.extendsClause.superclass.name.toString() + '2',
+        node.extendsClause.superclass.name.end,
+        '2',
       );
-   } else {
+    } else {
       return;
     }
   }
 }
 
 @Component()
-class Whatever extends UiComponent<bool> {
+class Whatever extends UiComponent<bool> {}
 
-}
+class UiComponent<T> {}
 
-class UiComponent<T> {
-}
 class Component {
   const Component();
 }

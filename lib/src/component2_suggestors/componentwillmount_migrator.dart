@@ -25,14 +25,14 @@ import '../util.dart';
 class ComponentWillMountMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-
   ComponentWillMountMigrator();
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     ClassDeclaration containingClass = node.parent;
-    if (containingClass.metadata.any((m) => overReact16AnnotationNames.contains(m.name.name))){
+    if (containingClass.metadata
+        .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
       if (node.name.toSource() == 'componentWillMount') {
         yieldPatch(
           node.name.offset,

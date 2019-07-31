@@ -91,7 +91,6 @@ void main() {
       'PropsAndStateMixinMetaRemover': Ignoreable(
         PropsAndStateMixinMetaRemover(),
       ),
-
       'PropsAndStateMixinUsageConsolidator': Ignoreable(
         PropsAndStateMixinUsageConsolidator(),
       ),

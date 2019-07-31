@@ -33,7 +33,7 @@ final formatter = new DartFormatter();
 // https://github.com/dart-lang/dart_style/blob/master/test/utils.dart#L55
 void testSuggestorsDir(Map<String, Suggestor> suggestorMap, String testDir) {
   final testFiles =
-  Directory(testDir).listSync(followLinks: false, recursive: true);
+      Directory(testDir).listSync(followLinks: false, recursive: true);
   testFiles.sort((a, b) => a.path.compareTo(b.path));
 
   for (var testFile in testFiles) {
@@ -56,9 +56,9 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
     var dartfmtOutputAll = false;
     suggestorName =
         suggestorName.replaceAllMapped(_dartfmtOutputPattern, (match) {
-          dartfmtOutputAll = true;
-          return '';
-        });
+      dartfmtOutputAll = true;
+      return '';
+    });
 
     // Let the test specify whether to test for idempotency by re-running the
     // suggestor on the suggestor's output.
@@ -95,9 +95,9 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       var shouldDartfmtOutput = dartfmtOutputAll;
       description =
           description.replaceAllMapped(_dartfmtOutputPattern, (match) {
-            shouldDartfmtOutput = true;
-            return '';
-          });
+        shouldDartfmtOutput = true;
+        return '';
+      });
 
       var testIdempotency = testIdempotencyAll;
       description = description.replaceAllMapped(_idempotentPattern, (match) {
@@ -114,7 +114,7 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
 
       description = description.trim();
       description =
-      description.isEmpty ? 'line ${i + 1}' : 'line ${i + 1}: $description';
+          description.isEmpty ? 'line ${i + 1}' : 'line ${i + 1}: $description';
 
       var input = '';
       while (!lines[i].startsWith('<<<')) {
@@ -151,11 +151,11 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
 
 /// Returns a version of [testSuggestor] with [suggestor] curried.
 void Function({
-@required String input,
-@required String expectedOutput,
-int expectedPatchCount,
-bool shouldDartfmtOutput,
-bool testIdempotency,
+  @required String input,
+  @required String expectedOutput,
+  int expectedPatchCount,
+  bool shouldDartfmtOutput,
+  bool testIdempotency,
 }) getSuggestorTester(Suggestor suggestor) {
   return ({
     @required String input,
@@ -214,7 +214,7 @@ void testSuggestor({
 
   if (testIdempotency) {
     final sourceFile =
-    SourceFile.fromString(modifiedInput, url: 'modifiedInput');
+        SourceFile.fromString(modifiedInput, url: 'modifiedInput');
     final patches = suggestor.generatePatches(sourceFile);
     var doubleModifiedInput =
         applyPatches(sourceFile, patches).trimRight() + '\n';
