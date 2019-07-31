@@ -33,6 +33,42 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
+
+    String extendsName = node.extendsClause?.superclass?.name?.toString?.call();
+    if (extendsName == null) return;
+
+    // Get the name of the react.dart import.
+    String reactImportName;
+    var importList = (node.thisOrAncestorMatching((ancestor) {
+      return ancestor is CompilationUnit;
+    }) as CompilationUnit)
+        .directives;
+    ImportDirective reactImport = importList.firstWhere(
+        (dir) => dir.toString().contains('package:react/react.dart'),
+        orElse: () => null);
+
+    if (reactImport != null) {
+      int importNameLocation = reactImport.childEntities
+              .toList()
+              .lastIndexWhere((i) => i.toString() == 'as') +
+          1;
+
+      if (importNameLocation != null ||
+          importNameLocation < reactImport.length) {
+        reactImportName =
+            reactImport.childEntities.elementAt(importNameLocation).toString();
+      }
+    }
+
+    if (reactImportName != null &&
+        extendsName == '$reactImportName.Component') {
+      yieldPatch(
+        node.extendsClause.superclass.name.end,
+        node.extendsClause.superclass.name.end,
+        '2',
+      );
+    }
+
     if (!node.metadata.any((m) =>
         migrateAnnotations.contains(m.name.name) ||
         overReact16AnnotationNames.contains(m.name.name))) {
@@ -53,9 +89,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
       );
     });
 
-    if (node.extendsClause.superclass.name.toString() == 'UiComponent' ||
-        node.extendsClause.superclass.name.toString() ==
-            'UiStatefulComponent') {
+    if (extendsName == 'UiComponent' || extendsName == 'UiStatefulComponent') {
       yieldPatch(
         node.extendsClause.superclass.name.end,
         node.extendsClause.superclass.name.end,
@@ -65,13 +99,4 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
       return;
     }
   }
-}
-
-@Component()
-class Whatever extends UiComponent<bool> {}
-
-class UiComponent<T> {}
-
-class Component {
-  const Component();
 }

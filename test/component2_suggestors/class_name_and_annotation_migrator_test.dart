@@ -119,5 +119,43 @@ main() {
         ''',
       );
     });
+
+    test('extending class imported from react.dart updates', () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+          import 'package:react/react.dart' as react;
+          import 'package:react/react_dom.dart' as react_dom;
+        
+          class FooComponent extends react.Component{}
+        ''',
+        expectedOutput: '''
+          import 'package:react/react.dart' as react;
+          import 'package:react/react_dom.dart' as react_dom;
+
+          class FooComponent extends react.Component2{}
+        ''',
+      );
+    });
+
+    test(
+        'extending class imported from react.dart with different import name updates',
+        () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+          import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react/react.dart' as foo;
+        
+          class FooComponent extends foo.Component{}
+        ''',
+        expectedOutput: '''
+          import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react/react.dart' as foo;
+
+          class FooComponent extends foo.Component2{}
+        ''',
+      );
+    });
   });
 }
