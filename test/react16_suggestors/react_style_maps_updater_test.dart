@@ -331,7 +331,7 @@ main() {
         );
       });
 
-      test('is variadic children', () {
+      test('are variadic children', () {
         testSuggestor(
           expectedPatchCount: 4,
           input: '''
