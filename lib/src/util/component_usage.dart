@@ -111,13 +111,13 @@ FluentComponentUsage getComponentUsage(InvocationExpression node) {
       }
     } else if (builder is Identifier) {
       isComponent =
-          new RegExp(r'builder', caseSensitive: false).hasMatch(builder.name);
+          RegExp(r'builder', caseSensitive: false).hasMatch(builder.name);
     }
   }
 
   if (!isComponent) return null;
 
-  return new FluentComponentUsage._(node, cascadeExpression, builder);
+  return FluentComponentUsage._(node, cascadeExpression, builder);
 }
 
 /// A visitor that detects whether a given node is a [FluentComponentUsage].
@@ -155,7 +155,7 @@ class ComponentDetector extends SimpleAstVisitor<void> {
 ///
 /// Usages that aren't directly arguments (nested within other structures) are not detected.
 bool hasChildComponent(ArgumentList arguments) {
-  var detector = new ComponentDetector();
+  var detector = ComponentDetector();
   arguments.visitChildren(detector);
 
   return detector.detected;
