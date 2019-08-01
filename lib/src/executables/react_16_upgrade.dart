@@ -18,6 +18,7 @@ import 'package:logging/logging.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react_dom_render_migrator.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react_style_maps_updater.dart';
 
 const _changesRequiredOutput = """
 To update your code, switch to Dart 2.1.0 and run the following commands:
@@ -35,6 +36,7 @@ void main(List<String> args) {
     query,
     [
       ReactDomRenderMigrator(),
+      ReactStyleMapsUpdater(),
     ],
     args: args,
     defaultYes: true,
