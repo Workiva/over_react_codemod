@@ -9,7 +9,7 @@ main() {
     final testSuggestor = getSuggestorTester(ReactStyleMapsUpdater());
 
     group('updates correctly when there', () {
-      test('is an empty file correctly', () {
+      test('is an empty file', () {
         testSuggestor(expectedPatchCount: 0, input: '');
       });
 
