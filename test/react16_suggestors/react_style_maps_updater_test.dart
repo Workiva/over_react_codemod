@@ -8,8 +8,8 @@ main() {
   group('ReactStyleMapUpdater', () {
     final testSuggestor = getSuggestorTester(ReactStyleMapsUpdater());
 
-    group('updates', () {
-      test('an empty file correctly when there', () {
+    group('updates correctly when there', () {
+      test('is an empty file correctly', () {
         testSuggestor(expectedPatchCount: 0, input: '');
       });
 
@@ -17,7 +17,6 @@ main() {
         testSuggestor(
           expectedPatchCount: 0,
           input: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..id = 'number1'
@@ -33,7 +32,6 @@ main() {
         testSuggestor(
           expectedPatchCount: 2,
           input: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..id = 'number1'
@@ -43,7 +41,6 @@ main() {
             }
           ''',
           expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..id = 'number1'
@@ -60,7 +57,6 @@ main() {
         testSuggestor(
           expectedPatchCount: 2,
           input: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..id = 'number1'
@@ -70,7 +66,6 @@ main() {
             }
           ''',
           expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..id = 'number1'
@@ -87,13 +82,11 @@ main() {
         testSuggestor(
           expectedPatchCount: 2,
           input: '''
-            $classSetupBoilerPlate
             main() {
               Foo()..style = {"width": "40"};
             }
           ''',
           expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: ['width'])}
@@ -107,7 +100,6 @@ main() {
         testSuggestor(
           expectedPatchCount: 4,
           input: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..id = 'number1'
@@ -120,7 +112,6 @@ main() {
             }
           ''',
           expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..id = 'number1'
@@ -144,7 +135,6 @@ main() {
         testSuggestor(
           expectedPatchCount: 4,
           input: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..style = {
@@ -156,7 +146,6 @@ main() {
             }
           ''',
           expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: [
@@ -175,11 +164,10 @@ main() {
         );
       });
 
-      test('a null check', () {
+      test('is a null check', () {
         testSuggestor(
           expectedPatchCount: 4,
           input: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..style = {
@@ -191,7 +179,6 @@ main() {
             }
           ''',
           expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: [
@@ -210,11 +197,10 @@ main() {
         );
       });
 
-      test('a null check with two variables', () {
+      test('is a null check with two variables', () {
         testSuggestor(
           expectedPatchCount: 3,
           input: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..style = {
@@ -226,7 +212,6 @@ main() {
             }
           ''',
           expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ${manualVariableCheckComment(keysOfModdedValues: [
@@ -249,7 +234,6 @@ main() {
         testSuggestor(
           expectedPatchCount: 0,
           input: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: [
@@ -266,7 +250,6 @@ main() {
             }
           ''',
           expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: [
@@ -285,11 +268,10 @@ main() {
         );
       });
 
-      test('a function call', () {
+      test('is a function call', () {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
-            $classSetupBoilerPlate
             main() {
               Map getStyleMap() {
                 return {
@@ -302,7 +284,6 @@ main() {
             }
           ''',
           expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               Map getStyleMap() {
                 return {
@@ -318,19 +299,10 @@ main() {
         );
       });
 
-      test('is a nested component', () {
+      test('is a component as prop value', () {
         testSuggestor(
           expectedPatchCount: 4,
           input: '''
-            class Foo {
-              Map style;
-              Bar bar;
-            }
-            
-            class Bar {
-              Map style;
-            }
-            
             main() {
               Foo()
               ..style = {
@@ -343,15 +315,6 @@ main() {
             }
           ''',
           expectedOutput: '''
-            class Foo {
-              Map style;
-              Bar bar;
-            }
-            
-            class Bar {
-              Map style;
-            }
-            
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: ['width'])}
@@ -367,6 +330,38 @@ main() {
           ''',
         );
       });
+
+      test('is variadic children', () {
+        testSuggestor(
+          expectedPatchCount: 4,
+          input: '''
+            main() {
+              (Foo()
+              ..id = 'number1'
+              ..style = {'width': '40',}
+              )(
+                (Bar()
+                ..style = {'width': '60',}
+                )(),
+              );
+            }
+          ''',
+          expectedOutput: '''
+            main() {
+              (Foo()
+              ..id = 'number1'
+              ${getCheckboxComment(keysOfModdedValues: ['width'])}
+              ..style = {'width': 40,})(
+                (Bar()
+                  ${getCheckboxComment(keysOfModdedValues: ['width'])}
+                  ..style = {
+                    'width': 60,
+                  })(),
+              );
+            }
+          ''',
+        );
+      });
     });
 
     test('adds a validate variable comment when the map value is a variable',
@@ -374,7 +369,6 @@ main() {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
-          $classSetupBoilerPlate
             main() {
               var bar = {'width': '40'};
               Foo()
@@ -382,7 +376,6 @@ main() {
             }
         ''',
         expectedOutput: '''
-          $classSetupBoilerPlate
           main() {
             var bar = {'width': '40'};
             Foo()
@@ -398,9 +391,7 @@ main() {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
-          $classSetupBoilerPlate
             main() {
-              var bar = '40';
               Foo()
               ..style = {
                 'width': bar,
@@ -408,9 +399,7 @@ main() {
             }
         ''',
         expectedOutput: '''
-          $classSetupBoilerPlate
           main() {
-            var bar = '40';
             Foo()
             ${manualVariableCheckComment(keysOfModdedValues: ['width'])}
             ..style = {
@@ -425,7 +414,6 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
-          $classSetupBoilerPlate
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: ['width'])}
@@ -441,7 +429,6 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
-          $classSetupBoilerPlate
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: [
@@ -459,7 +446,6 @@ main() {
       testSuggestor(
         expectedPatchCount: 4,
         input: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..style = {
@@ -472,7 +458,6 @@ main() {
             }
           ''',
         expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: [
@@ -496,13 +481,11 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
-            $classSetupBoilerPlate
             main() {
               DivElement()..style.setProperty('width', '400');
             }
           ''',
         expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               DivElement()..style.setProperty('width', '400');
             }
@@ -514,7 +497,6 @@ main() {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ..datePickerProps = {
@@ -525,7 +507,6 @@ main() {
             }
           ''',
         expectedOutput: '''
-            $classSetupBoilerPlate
             main() {
               Foo()
               ${manualVariableCheckComment()}
@@ -542,15 +523,15 @@ main() {
 }
 
 String getCheckboxComment({
-  bool checked: false,
-  List<String> keysOfModdedValues: const [],
+  bool checked = false,
+  List<String> keysOfModdedValues = const [],
 }) =>
     '''// ${checked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map uses a valid value ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are numbers.'}
     $styleMapExample   
     //$willBeRemovedCommentSuffix''';
 
 String manualVariableCheckComment(
-        {List<String> keysOfModdedValues: const []}) =>
+        {List<String> keysOfModdedValues = const []}) =>
     '''// [ ] Check this box upon manual validation that this style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are simple string variables.'} 
     $styleMapExample
     //$willBeRemovedCommentSuffix''';
@@ -559,11 +540,3 @@ String getFunctionComment() =>
     '''// [ ] Check this box upon manual validation that the method called to set the style prop does not return any simple, unitless strings instead of nums.
   $styleMapExample
   //$willBeRemovedCommentSuffix''';
-
-final classSetupBoilerPlate = '''
-  class Foo {
-    Map style;
-    Map datePickerProps;
-    String id;
-  }
-''';
