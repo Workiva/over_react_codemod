@@ -37,51 +37,39 @@ main() {
     });
 
     test('is a function as the first parameter', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
+      testSuggestor(expectedPatchCount: 1, input: '''
           main() {
             setState(getUpdatedState());
           }
-        ''',
-        expectedOutput: '''
+        ''', expectedOutput: '''
           main() {
             setStateWithUpdater(getUpdatedState());
           }
-        '''
-      );
+        ''');
     });
 
     test('is a variable as the first parameter', () {
-      testSuggestor(
-          expectedPatchCount: 0,
-          input: '''
+      testSuggestor(expectedPatchCount: 0, input: '''
           main() {
             setState(stateMap);
           }
-        ''',
-          expectedOutput: '''
+        ''', expectedOutput: '''
           main() {
             setState(stateMap);
           }
-        '''
-      );
+        ''');
     });
 
     test('is a new state being passed in', () {
-      testSuggestor(
-          expectedPatchCount: 0,
-          input: '''
+      testSuggestor(expectedPatchCount: 0, input: '''
           main() {
             setState(newState()..foo = 'bar');
           }
-        ''',
-          expectedOutput: '''
+        ''', expectedOutput: '''
           main() {
             setState(newState()..foo = 'bar');
           }
-        '''
-      );
+        ''');
     });
   });
 }

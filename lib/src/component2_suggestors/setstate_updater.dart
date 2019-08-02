@@ -31,9 +31,8 @@ class SetStateUpdater extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    if (node.methodName.name == 'setState' && node.argumentList.arguments
-        .first is MethodInvocation) {
-
+    if (node.methodName.name == 'setState' &&
+        node.argumentList.arguments.first is MethodInvocation) {
       int length = node.toString().indexOf('(');
 
       yieldPatch(node.offset, node.offset + length, 'setStateWithUpdater');
