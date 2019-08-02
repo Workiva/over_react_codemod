@@ -43,7 +43,7 @@ main() {
           @Component2()
           class FooComponent extends UiComponent2 {
               componentWillMount(){
-                  //yep
+                  // method body
               }
           }
         ''',
@@ -51,7 +51,7 @@ main() {
           @Component2()
           class FooComponent extends UiComponent2 {
               init(){
-                  //yep
+                  // method body
               }
           }
         ''',
@@ -65,7 +65,7 @@ main() {
           @Component2()
           class FooComponent extends UiComponent2 {
               void componentWillMount(){
-                  //yep
+                  // method body
               }
           }
         ''',
@@ -73,7 +73,30 @@ main() {
           @Component2()
           class FooComponent extends UiComponent2 {
               void init(){
-                  //yep
+                  // method body
+              }
+          }
+        ''',
+      );
+    });
+
+    test('remove super calls to componentWillMount', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          @Component2()
+          class FooComponent extends UiComponent2 {
+              void componentWillMount(){
+                  super.componentWillMount();
+                  // method body
+              }
+          }
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends UiComponent2 {
+              void init(){
+                  // method body
               }
           }
         ''',
@@ -87,7 +110,7 @@ main() {
           @Component()
           class FooComponent extends UiComponent {
               void componentWillMount(){
-                  //yep
+                  // method body
               }
           }
         ''',
