@@ -39,6 +39,19 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
           node.name.end,
           'init',
         );
+        if (node.body is BlockFunctionBody) {
+          NodeList statementList =
+              (node.body as BlockFunctionBody).block.statements;
+          statementList.forEach((statement) {
+            if (statement.toString().startsWith('super.componentWillMount()')) {
+              yieldPatch(
+                statement.offset,
+                statement.end,
+                '',
+              );
+            }
+          });
+        }
       }
     }
   }

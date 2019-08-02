@@ -122,15 +122,15 @@ main() {
 
     test('extending class imported from react.dart updates', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: 2,
         input: '''
-          import 'package:react/react.dart' as react;
+          import 'package:react/react.dart' as react show Component;
           import 'package:react/react_dom.dart' as react_dom;
         
           class FooComponent extends react.Component{}
         ''',
         expectedOutput: '''
-          import 'package:react/react.dart' as react;
+          import 'package:react/react.dart' as react show Component2;
           import 'package:react/react_dom.dart' as react_dom;
 
           class FooComponent extends react.Component2{}
