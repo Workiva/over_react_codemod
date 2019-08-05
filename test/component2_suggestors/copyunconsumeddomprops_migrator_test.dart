@@ -21,20 +21,20 @@ main() {
   group('CopyUnconsumedDomPropsMigrator', () {
     final testSuggestor = getSuggestorTester(CopyUnconsumedDomPropsMigrator());
 
-//    test('empty file', () {
-//      testSuggestor(expectedPatchCount: 0, input: '');
-//    });
-//
-//    test('no matches', () {
-//      testSuggestor(
-//        expectedPatchCount: 0,
-//        input: '''
-//          library foo;
-//          var a = 'b';
-//          class Foo {}
-//        ''',
-//      );
-//    });
+    test('empty file', () {
+      testSuggestor(expectedPatchCount: 0, input: '');
+    });
+
+    test('no matches', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          library foo;
+          var a = 'b';
+          class Foo {}
+        ''',
+      );
+    });
 
     test('copyUnconsumedDomProps updates', () {
       testSuggestor(

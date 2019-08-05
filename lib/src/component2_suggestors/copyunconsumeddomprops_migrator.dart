@@ -23,7 +23,6 @@ class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
 
   @override
   visitMethodInvocation(MethodInvocation node) {
-    // TODO: implement visitMethodInvocation
     super.visitMethodInvocation(node);
 
     if (node.methodName.toString() == 'addProps') {
@@ -32,7 +31,7 @@ class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
 
       if (firstArg.toString() == 'copyUnconsumedDomProps()' ||
           firstArg.toString() == 'copyUnconsumedProps()') {
-        // Update argument name.
+        // Update argument.
         yieldPatch(firstArg.offset, firstArg.end,
             'addUnconsumed${firstArg.toString().contains('Dom') ? 'Dom' : ''}Props');
 

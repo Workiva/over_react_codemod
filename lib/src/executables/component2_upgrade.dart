@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/component2_suggestors/class_name_and_annotation_migrator.dart';
 import 'package:over_react_codemod/src/component2_suggestors/componentwillmount_migrator.dart';
+import 'package:over_react_codemod/src/component2_suggestors/copyunconsumeddomprops_migrator.dart';
 
 const _changesRequiredOutput = """
 To update your code, switch to Dart 2.1.0 and run the following commands:
@@ -35,19 +36,10 @@ void main(List<String> args) {
     [
       ClassNameAndAnnotationMigrator(),
       ComponentWillMountMigrator(),
+      CopyUnconsumedDomPropsMigrator(),
     ],
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
-
-//  // TODO write tests
-//  final logger = Logger('over_react_codemod.fixmes');
-//  for (var dartFile in query.generateFilePaths()) {
-//    final dartSource = File(dartFile).readAsStringSync();
-//    if (dartSource.contains(fixmePrefix)) {
-//      logger.severe('Unaddressed over_react_codemod FIXME within $dartSource');
-//      exitCode = 1;
-//    }
-//  }
 }
