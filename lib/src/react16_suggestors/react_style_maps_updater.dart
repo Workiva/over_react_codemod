@@ -16,7 +16,8 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
-import 'package:source_span/source_span.dart';
+
+import './react16_utilities.dart';
 
 /// Suggestor that updates to React 16's StyleMap standard.
 ///
@@ -39,7 +40,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
           /// CSS properties that were modified by the script or need to be
           /// manually checked
-          List<String> affectedValues = [];
+          List<String> listOfVariables = [];
 
           // Variables that affect the writing of the comment that goes above
           // the style prop. There are different messages patched based on
@@ -47,28 +48,32 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           bool styleMapContainsAVariable = false;
           bool isAVariable = false;
           bool isAFunction = false;
+          bool isOther = false;
           bool isForCustomProps =
               cascade.toString().toLowerCase().contains('props');
 
           if (stylesObject is MapLiteral) {
             stylesObject.entries.forEach((MapLiteralEntry cssPropertyRow) {
-              String originalCssPropertyKey =
-                  cssPropertyRow.beginToken.toString();
-              String cleanedCssPropertyKey =
-                  cleanString(originalCssPropertyKey);
+              final propertyKey = cssPropertyRow.key;
+              String originalCssPropertyKey = propertyKey.toSource();
+              String cleanedCssPropertyKey = cleanString(propertyKey);
 
-              // We cannot simply do `cssPropertyRow.endToken` because if the
-              // "end token" is an expression, it only returns the last
-              // value in the ternary. Removing the beginning token keeps the
-              // ternary intact.
-              List endToken = cssPropertyRow.childEntities.toList();
-              endToken.removeRange(0, 2);
-              String originalCssPropertyValue = endToken.join(" ");
-              String cleanedCssPropertyValue =
-                  cleanString(originalCssPropertyValue);
+              final cssPropertyValue = cssPropertyRow.value;
+              String cleanedCssPropertyValue = cleanString(cssPropertyValue);
 
-              bool rowContainsAVariable =
-                  nodeIsLikelyAVariable(originalCssPropertyValue);
+              /// Marks the current CSS property as containing a variable.
+              ///
+              /// Used to keep track of what properties in the style map
+              /// contain variables.
+              void flagAsVariable() {
+                if (!listOfVariables.contains(cleanedCssPropertyKey)) {
+                  listOfVariables.add(cleanedCssPropertyKey);
+                }
+
+                if (!styleMapContainsAVariable) {
+                  styleMapContainsAVariable = true;
+                }
+              }
 
               num end = cssPropertyRow.end;
 
@@ -78,76 +83,70 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
               // property. To do this, the script needs to override the
               // already existing comma (one character after the row end)
               // without overriding the closing bracket (cascade.end).
-              if (end + 1 != cascade.end) {
-                end += 1;
+              final nextToken = cssPropertyRow.endToken.next;
+              if (nextToken.type == TokenType.COMMA) {
+                end = nextToken.end;
               }
 
-              if (rowContainsAVariable) {
-                affectedValues.add(cleanedCssPropertyKey);
+              if (cssPropertyValue is ConditionalExpression ||
+                  cssPropertyValue is BinaryExpression) {
+                dynamic ternaryExpressions;
 
-                if (!styleMapContainsAVariable) {
-                  styleMapContainsAVariable = true;
+                if (cssPropertyValue is ConditionalExpression) {
+                  ternaryExpressions = [
+                    cssPropertyValue.thenExpression,
+                    cssPropertyValue.elseExpression
+                  ];
+                } else if (cssPropertyValue is BinaryExpression) {
+                  ternaryExpressions = [
+                    cssPropertyValue.leftOperand,
+                    cssPropertyValue.rightOperand
+                  ];
                 }
-              }
 
-              if (nodeIsLikelyAnExpression(originalCssPropertyValue)) {
-                bool wasModified = false;
-                cleanedCssPropertyValue = '';
-
-                // Loop through each part of the ternary, keeping track if
-                // any of the values are strings that should be nums.
-                originalCssPropertyValue.split(' ').forEach((String property) {
+                ternaryExpressions.forEach((Expression property) {
                   String cleanedPropertySubString = cleanString(property);
 
+                  if (property is SimpleIdentifier) flagAsVariable();
+
                   if (isANumber(cleanedPropertySubString)) {
-                    cleanedCssPropertyValue += '$cleanedPropertySubString ';
-                    wasModified = true;
-                  } else {
-                    cleanedCssPropertyValue += '$property ';
+                    yieldPatch(property.offset, property.end,
+                        cleanedPropertySubString);
                   }
-
-                  cleanedCssPropertyValue = cleanedCssPropertyValue.trim();
                 });
+              } else if (cssPropertyValue is SimpleStringLiteral ||
+                  cssPropertyValue is SimpleIdentifier ||
+                  cssPropertyValue is IntegerLiteral) {
+                if (cssPropertyValue is SimpleIdentifier) flagAsVariable();
 
-                if (wasModified) {
-                  affectedValues.add(cleanedCssPropertyKey);
-                  cleanedCssPropertyValue += ',';
-                  yieldPatch(
-                      cssPropertyRow.offset,
-                      end,
-                      '$originalCssPropertyKey:'
-                      ' $cleanedCssPropertyValue');
-                }
-              } else {
-                if (isAString(originalCssPropertyValue)) {
+                if (isAString(cssPropertyValue)) {
                   if (isANumber(cleanedCssPropertyValue)) {
-                    cleanedCssPropertyValue += ',';
-
                     yieldPatch(
                         cssPropertyRow.offset,
                         end,
                         '$originalCssPropertyKey:'
-                        ' $cleanedCssPropertyValue');
-
-                    if (!affectedValues.contains(cleanedCssPropertyKey)) {
-                      affectedValues.add(cleanedCssPropertyKey);
-                    }
+                        ' $cleanedCssPropertyValue,');
                   }
                 }
+              } else {
+                isOther = true;
               }
             });
           } else if (stylesObject is SimpleIdentifier) {
             isAVariable = true;
           } else if (stylesObject is MethodInvocation) {
             isAFunction = true;
+          } else {
+            isOther = true;
           }
 
           // Patch the comment at the top of the style map based upon the
           // edits made.
-          if (affectedValues.isNotEmpty ||
+          if (listOfVariables.isNotEmpty ||
               isAVariable ||
               isAFunction ||
-              isForCustomProps) {
+              isForCustomProps ||
+              isOther) {
             yieldPatch(
                 cascade.offset,
                 cascade.offset,
@@ -155,10 +154,11 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                     isAVariable: isAVariable,
                     styleMapContainsAVariable: styleMapContainsAVariable,
                     isAFunction: isAFunction,
-                    affectedValues: affectedValues,
+                    affectedValues: listOfVariables,
                     addExtraLine: sourceFile.getLine(cascade.offset) ==
                         sourceFile.getLine(cascade.parent.offset),
-                    isForCustomProps: isForCustomProps));
+                    isForCustomProps: isForCustomProps,
+                    isOther: isOther));
           }
         }
       }
@@ -174,6 +174,7 @@ String getString({
   bool isAFunction = false,
   bool addExtraLine = false,
   bool isForCustomProps = false,
+  bool isOther = false,
 }) {
   String checkboxWithAffectedValues = '// [ ] Check this box upon manual '
       'validation that this style map uses a valid value for the following '
@@ -199,7 +200,7 @@ String getString({
     $styleMapExample
     $willBeRemovedSuffix
     ''';
-  } else if ((isAVariable || styleMapContainsAVariable)) {
+  } else if (isAVariable || styleMapContainsAVariable || isOther) {
     if (affectedValues.isNotEmpty) {
       return '''
       $variableCheckboxWithAffectedValues
@@ -238,17 +239,16 @@ String getString({
 }
 
 String cleanString(dynamic elementToClean) {
-  return elementToClean.toString().replaceAll("\'", "").replaceAll("\"", "");
-}
+  if (elementToClean is SimpleStringLiteral) return elementToClean.value;
 
-bool nodeIsLikelyAnExpression(String node) =>
-    node.contains('?') && node.contains(':') || node.contains('??');
+  if (elementToClean is String) return elementToClean;
+
+  return elementToClean.toString();
+}
 
 bool isANumber(String node) => num.tryParse(node) != null;
 
-bool isAString(String node) => node.contains('"') || node.contains('\'');
-
-bool nodeIsLikelyAVariable(String node) => !isAString(node) && !isANumber(node);
+bool isAString(AstNode node) => node is SimpleStringLiteral;
 
 /// Removes the '...style' and '=' entities and returns the third entity.
 ///
@@ -260,40 +260,4 @@ dynamic getStyles(Expression cascade) {
   cleanedChildEntities.removeRange(0, 2);
 
   return cleanedChildEntities.first;
-}
-
-bool hasValidationComment(AstNode node, SourceFile sourceFile) {
-  final line = sourceFile.getLine(node.offset);
-
-  // Find the comment associated with this line; doesn't work with visitor for some reason.
-  String commentText;
-  for (var comment in allComments(node.root.beginToken)) {
-    final commentLine = sourceFile.getLine(comment.end);
-
-    if (commentLine == line || commentLine == line + 1) {
-      commentText = sourceFile.getText(comment.offset, comment.end);
-      break;
-    }
-  }
-
-  return commentText?.contains(manualValidationCommentSubstring) ?? false;
-}
-
-/// Returns an iterable of all the comments from [beginToken] to the end of the
-/// file.
-///
-/// Comments are part of the normal stream, and need to be accessed via
-/// [Token.precedingComments], so it's difficult to iterate over them without
-/// this method.
-Iterable allComments(Token beginToken) sync* {
-  var currentToken = beginToken;
-  while (!currentToken.isEof) {
-    var currentComment = currentToken.precedingComments;
-    while (currentComment != null) {
-      yield currentComment;
-      currentComment = currentComment.next;
-    }
-    currentToken = currentToken.next;
-  }
-  ;
 }

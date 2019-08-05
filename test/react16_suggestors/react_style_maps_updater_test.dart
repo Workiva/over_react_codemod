@@ -30,7 +30,7 @@ main() {
 
       test('is a single value within a style map', () {
         testSuggestor(
-          expectedPatchCount: 2,
+          expectedPatchCount: 1,
           input: '''
             main() {
               Foo()
@@ -44,7 +44,6 @@ main() {
             main() {
               Foo()
               ..id = 'number1'
-              ${getCheckboxComment(keysOfModdedValues: ['width'])}
               ..style = {
                 'width': 40,
               };
@@ -55,7 +54,7 @@ main() {
 
       test('is a single value within a style map using double quotes', () {
         testSuggestor(
-          expectedPatchCount: 2,
+          expectedPatchCount: 1,
           input: '''
             main() {
               Foo()
@@ -69,7 +68,6 @@ main() {
             main() {
               Foo()
               ..id = 'number1'
-              ${getCheckboxComment(keysOfModdedValues: ['width'])}
               ..style = {
                 "width": 40,
               };
@@ -80,7 +78,7 @@ main() {
 
       test('is a single value within an inline style map', () {
         testSuggestor(
-          expectedPatchCount: 2,
+          expectedPatchCount: 1,
           input: '''
             main() {
               Foo()..style = {"width": "40"};
@@ -89,7 +87,6 @@ main() {
           expectedOutput: '''
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: ['width'])}
               ..style = {"width": 40,};
             }
           ''',
@@ -98,7 +95,7 @@ main() {
 
       test('are multiple values within a style map', () {
         testSuggestor(
-          expectedPatchCount: 4,
+          expectedPatchCount: 3,
           input: '''
             main() {
               Foo()
@@ -115,11 +112,6 @@ main() {
             main() {
               Foo()
               ..id = 'number1'
-              ${getCheckboxComment(keysOfModdedValues: [
-            'width',
-            'fontSize',
-            'margin'
-          ])}
               ..style = {
                 'width': 40,
                 'height': '40%',
@@ -148,11 +140,6 @@ main() {
           expectedOutput: '''
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: [
-            'width',
-            'fontSize',
-            'margin'
-          ])}
               ..style = {
                 'width': isWide ? 40 : 20,
                 'height': '40%',
@@ -181,11 +168,7 @@ main() {
           expectedOutput: '''
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: [
-            'width',
-            'fontSize',
-            'margin'
-          ])}
+              ${manualVariableCheckComment(keysOfModdedValues: ['width'])}
               ..style = {
                 'width': isWide ?? 40,
                 'height': '40%',
@@ -216,8 +199,6 @@ main() {
               Foo()
               ${manualVariableCheckComment(keysOfModdedValues: [
             'width',
-            'fontSize',
-            'margin'
           ])}
               ..style = {
                 'width': isWide ?? isNotWide,
@@ -301,7 +282,7 @@ main() {
 
       test('is a component as prop value', () {
         testSuggestor(
-          expectedPatchCount: 4,
+          expectedPatchCount: 2,
           input: '''
             main() {
               Foo()
@@ -317,12 +298,10 @@ main() {
           expectedOutput: '''
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: ['width'])}
               ..style = {
                 'width': 400,
               }
               ..bar = Bar()
-                ${getCheckboxComment(keysOfModdedValues: ['height'])}
                 ..style = {
                   'height': 200,
                 };
@@ -333,7 +312,7 @@ main() {
 
       test('are variadic children', () {
         testSuggestor(
-          expectedPatchCount: 4,
+          expectedPatchCount: 2,
           input: '''
             main() {
               (Foo()
@@ -350,16 +329,56 @@ main() {
             main() {
               (Foo()
               ..id = 'number1'
-              ${getCheckboxComment(keysOfModdedValues: ['width'])}
               ..style = {'width': 40,})(
                 (Bar()
-                  ${getCheckboxComment(keysOfModdedValues: ['width'])}
                   ..style = {
                     'width': 60,
                   })(),
               );
             }
           ''',
+        );
+      });
+
+      test('is an unexpected property value', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            main() {
+              Foo()
+              ..style = {
+                'width': foo.bar,
+              };
+            }
+          ''',
+          expectedOutput: '''
+            main() {
+              Foo()
+              ${manualVariableCheckComment()}
+              ..style = {
+                'width': foo.bar,
+              };
+            }
+        ''',
+        );
+      });
+
+      test('is an unexpected style prop value', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            main() {
+              Foo()
+              ..style = foo.bar;
+            }
+          ''',
+          expectedOutput: '''
+            main() {
+              Foo()
+              ${manualVariableCheckComment()}
+              ..style = foo.bar;
+            }
+        ''',
         );
       });
     });
@@ -444,7 +463,7 @@ main() {
 
     test('does not override comments', () {
       testSuggestor(
-        expectedPatchCount: 4,
+        expectedPatchCount: 3,
         input: '''
             main() {
               Foo()
@@ -460,11 +479,6 @@ main() {
         expectedOutput: '''
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: [
-          'width',
-          'fontSize',
-          'margin'
-        ])}
               ..style = {
                 'width': 40,
                 // Test Comment
@@ -500,7 +514,7 @@ main() {
             main() {
               Foo()
               ..datePickerProps = {
-                style: {
+                'style': {
                   'width': '40',
                 }
               };
@@ -511,7 +525,7 @@ main() {
               Foo()
               ${manualVariableCheckComment()}
               ..datePickerProps = {
-                style: {
+                'style': {
                   'width': '40',
                 }
               };
