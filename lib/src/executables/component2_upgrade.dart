@@ -35,8 +35,8 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     [
-      ClassNameAndAnnotationMigrator(),
-      ComponentWillMountMigrator(),
+//      ClassNameAndAnnotationMigrator(),
+//      ComponentWillMountMigrator(),
       SetStateUpdater(),
     ],
     args: args,

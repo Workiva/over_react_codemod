@@ -18,10 +18,8 @@ import 'package:codemod/codemod.dart';
 import '../constants.dart';
 import '../util.dart';
 
-/// Suggestor that renames all props and state classes to have the required `_$`
-/// prefix.
-///
-/// If [includeMixins] is true, props and state mixins will also be renamed.
+/// Suggestor that updates a [setState] call to [setStateWithUpdater] in the
+/// case that the first argument is a function.
 class SetStateUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
@@ -31,8 +29,13 @@ class SetStateUpdater extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    if (node.methodName.name == 'setState' &&
-        node.argumentList.arguments.first is MethodInvocation) {
+    if (node.argumentList.arguments.isEmpty) return;
+
+    final firstArg = node.argumentList.arguments.first;
+
+    if (node.methodName.name == 'setState' && firstArg is MethodInvocation) {
+      if (firstArg.methodName.name == 'newState') return;
+
       int length = node.toString().indexOf('(');
 
       yieldPatch(node.offset, node.offset + length, 'setStateWithUpdater');

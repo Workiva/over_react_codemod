@@ -63,6 +63,18 @@ main() {
     test('is a new state being passed in', () {
       testSuggestor(expectedPatchCount: 0, input: '''
           main() {
+            setState(newState());
+          }
+        ''', expectedOutput: '''
+          main() {
+            setState(newState());
+          }
+        ''');
+    });
+
+    test('is a new state being passed and being set', () {
+      testSuggestor(expectedPatchCount: 0, input: '''
+          main() {
             setState(newState()..foo = 'bar');
           }
         ''', expectedOutput: '''
