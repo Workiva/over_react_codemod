@@ -14,7 +14,6 @@
 
 import 'dart:io';
 
-import 'package:logging/logging.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/component2_suggestors/class_name_and_annotation_migrator.dart';
 import 'package:over_react_codemod/src/component2_suggestors/componentwillmount_migrator.dart';
@@ -22,7 +21,7 @@ import 'package:over_react_codemod/src/component2_suggestors/setstate_updater.da
 
 const _changesRequiredOutput = """
 To update your code, switch to Dart 2.1.0 and run the following commands:
-  pub global activate component2_upgrade ^1.1.0
+  pub global activate over_react_codemod ^1.1.0
   pub global run over_react_codemod:component2_upgrade
 Then, review the the changes, address any FIXMEs, and commit.
 """;
@@ -35,8 +34,8 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     [
-//      ClassNameAndAnnotationMigrator(),
-//      ComponentWillMountMigrator(),
+      ClassNameAndAnnotationMigrator(),
+      ComponentWillMountMigrator(),
       SetStateUpdater(),
     ],
     args: args,
