@@ -48,14 +48,14 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           bool styleMapContainsAVariable = false;
           bool isAVariable = false;
           bool isAFunction = false;
-          bool isUnknown = false;
+          bool isOther = false;
           bool isForCustomProps =
               cascade.toString().toLowerCase().contains('props');
 
           if (stylesObject is MapLiteral) {
             stylesObject.entries.forEach((MapLiteralEntry cssPropertyRow) {
               final propertyKey = cssPropertyRow.key;
-              String originalCssPropertyKey = propertyKey.toString();
+              String originalCssPropertyKey = propertyKey.toSource();
               String cleanedCssPropertyKey = cleanString(propertyKey);
 
               final cssPropertyValue = cssPropertyRow.value;
@@ -88,6 +88,8 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                 end = nextToken.end;
               }
 
+              print(cssPropertyValue.runtimeType);
+
               if (cssPropertyValue is ConditionalExpression ||
                   cssPropertyValue is BinaryExpression) {
                 dynamic ternaryExpressions;
@@ -114,7 +116,9 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                         cleanedPropertySubString);
                   }
                 });
-              } else {
+              } else if (cssPropertyValue is SimpleStringLiteral ||
+                  cssPropertyValue is SimpleIdentifier ||
+                  cssPropertyValue is IntegerLiteral) {
                 if (cssPropertyValue is SimpleIdentifier) flagAsVariable();
 
                 if (isAString(cssPropertyValue)) {
@@ -126,6 +130,8 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                         ' $cleanedCssPropertyValue,');
                   }
                 }
+              } else {
+                isOther = true;
               }
             });
           } else if (stylesObject is SimpleIdentifier) {
@@ -133,7 +139,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           } else if (stylesObject is MethodInvocation) {
             isAFunction = true;
           } else {
-            isUnknown = true;
+            isOther = true;
           }
 
           // Patch the comment at the top of the style map based upon the
@@ -142,7 +148,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
               isAVariable ||
               isAFunction ||
               isForCustomProps ||
-              isUnknown) {
+              isOther) {
             yieldPatch(
                 cascade.offset,
                 cascade.offset,
@@ -154,7 +160,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                     addExtraLine: sourceFile.getLine(cascade.offset) ==
                         sourceFile.getLine(cascade.parent.offset),
                     isForCustomProps: isForCustomProps,
-                    isUnknown: isUnknown));
+                    isOther: isOther));
           }
         }
       }
@@ -170,7 +176,7 @@ String getString({
   bool isAFunction = false,
   bool addExtraLine = false,
   bool isForCustomProps = false,
-  bool isUnknown = false,
+  bool isOther = false,
 }) {
   String checkboxWithAffectedValues = '// [ ] Check this box upon manual '
       'validation that this style map uses a valid value for the following '
@@ -196,7 +202,7 @@ String getString({
     $styleMapExample
     $willBeRemovedSuffix
     ''';
-  } else if (isAVariable || styleMapContainsAVariable || isUnknown) {
+  } else if (isAVariable || styleMapContainsAVariable || isOther) {
     if (affectedValues.isNotEmpty) {
       return '''
       $variableCheckboxWithAffectedValues
@@ -244,7 +250,7 @@ String cleanString(dynamic elementToClean) {
 
 bool isANumber(String node) => num.tryParse(node) != null;
 
-bool isAString(dynamic node) => node is SimpleStringLiteral;
+bool isAString(AstNode node) => node is SimpleStringLiteral;
 
 /// Removes the '...style' and '=' entities and returns the third entity.
 ///

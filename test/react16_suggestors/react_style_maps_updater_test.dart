@@ -339,6 +339,48 @@ main() {
           ''',
         );
       });
+
+      test('is an unexpected property value', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            main() {
+              Foo()
+              ..style = {
+                'width': foo.bar,
+              };
+            }
+          ''',
+          expectedOutput: '''
+            main() {
+              Foo()
+              ${manualVariableCheckComment()}
+              ..style = {
+                'width': foo.bar,
+              };
+            }
+        ''',
+        );
+      });
+
+      test('is an unexpected style prop value', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            main() {
+              Foo()
+              ..style = foo.bar;
+            }
+          ''',
+          expectedOutput: '''
+            main() {
+              Foo()
+              ${manualVariableCheckComment()}
+              ..style = foo.bar;
+            }
+        ''',
+        );
+      });
     });
 
     test('adds a validate variable comment when the map value is a variable',
@@ -421,7 +463,7 @@ main() {
 
     test('does not override comments', () {
       testSuggestor(
-        expectedPatchCount: 4,
+        expectedPatchCount: 3,
         input: '''
             main() {
               Foo()
@@ -437,11 +479,6 @@ main() {
         expectedOutput: '''
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: [
-          'width',
-          'fontSize',
-          'margin'
-        ])}
               ..style = {
                 'width': 40,
                 // Test Comment
