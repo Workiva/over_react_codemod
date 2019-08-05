@@ -88,8 +88,6 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                 end = nextToken.end;
               }
 
-              print(cssPropertyValue.runtimeType);
-
               if (cssPropertyValue is ConditionalExpression ||
                   cssPropertyValue is BinaryExpression) {
                 dynamic ternaryExpressions;
