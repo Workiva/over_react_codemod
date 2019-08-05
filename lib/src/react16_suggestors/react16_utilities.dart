@@ -4,10 +4,17 @@ import 'package:source_span/source_span.dart';
 
 import 'constants.dart';
 
+/// Returns whether or not the source file contains the React 16 validation
+/// required comment.
+///
+/// Can be used to determine whether or not the file has been modified
+/// already. This is useful (in combination with [allComments] because the
+/// visitor used for visiting comments does not work as expected, making it
+/// difficult to iterate over comments.
 bool hasValidationComment(AstNode node, SourceFile sourceFile) {
   final line = sourceFile.getLine(node.offset);
 
-  // Find the comment associated with this line; doesn't work with visitor for some reason.
+  // Find the comment associated with this line.
   String commentText;
   for (var comment in allComments(node.root.beginToken)) {
     final commentLine = sourceFile.getLine(comment.end);
