@@ -16,7 +16,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
 import '../constants.dart';
-import '../util.dart';
 
 /// Suggestor that renames all props and state classes to have the required `_$`
 /// prefix.
