@@ -17,10 +17,11 @@ import 'package:codemod/codemod.dart';
 
 import '../constants.dart';
 
-/// Suggestor that renames all props and state classes to have the required `_$`
-/// prefix.
+/// Suggestor that replaces `UiComponent` with `UiComponent2` in extends clauses
+/// and updates the annotation to `@Component2()`.
 ///
-/// If [includeMixins] is true, props and state mixins will also be renamed.
+/// The same update is made for `UiStatefulComponent` and `react.Component`
+/// (including instances where `react.Component` is used for typing).
 class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
@@ -39,6 +40,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
         i.toString().startsWith('show Component') &&
         !i.toString().contains('Component2'));
 
+    // Update imported class.
     if (showNameLocation != -1) {
       var showName = node.childEntities.elementAt(showNameLocation);
       yieldPatch(
@@ -75,6 +77,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
       }
     }
 
+    // Update imported type.
     if (reactImportName != null &&
         node.toString() == '$reactImportName.Component') {
       yieldPatch(
@@ -101,6 +104,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
       return;
     }
 
+    // Update annotation.
     Iterable<Annotation> annotationRefs =
         node.metadata.where((m) => migrateAnnotations.contains(m.name.name));
     annotationRefs.forEach((annotationRef) {
@@ -112,6 +116,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
       );
     });
 
+    // Update extends clause.
     if (extendsName == 'UiComponent' || extendsName == 'UiStatefulComponent') {
       yieldPatch(
         node.extendsClause.superclass.name.end,

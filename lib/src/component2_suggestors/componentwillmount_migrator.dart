@@ -16,12 +16,9 @@ import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
 import '../constants.dart';
-import '../util.dart';
 
-/// Suggestor that renames all props and state classes to have the required `_$`
-/// prefix.
-///
-/// If [includeMixins] is true, props and state mixins will also be renamed.
+/// Suggestor that renames `componentWillUnmount` to `init` and removes
+/// super calls to be compatible with UiComponent2.
 class ComponentWillMountMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
@@ -33,12 +30,15 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
     ClassDeclaration containingClass = node.parent;
     if (containingClass.metadata
         .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
+      // Update method name.
       if (node.name.toSource() == 'componentWillMount') {
         yieldPatch(
           node.name.offset,
           node.name.end,
           'init',
         );
+
+        // Remove super call.
         if (node.body is BlockFunctionBody) {
           NodeList statementList =
               (node.body as BlockFunctionBody).block.statements;
