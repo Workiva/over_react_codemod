@@ -28,6 +28,7 @@ class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
     if (node.name.toString() == 'componentDidUpdate') {
       var lastArg =
           node.parameters.childEntities.lastWhere((t) => t.toString() != ')');
+
       if (lastArg.toString() != ']') {
         yieldPatch(lastArg.end, lastArg.end, ', [snapshot]');
       }

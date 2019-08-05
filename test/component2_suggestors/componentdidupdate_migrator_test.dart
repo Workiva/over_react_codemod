@@ -57,5 +57,20 @@ main() {
         ''',
       );
     });
+
+    test('componentDidUpdate does not update if optional third argument exists',
+        () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          @Component2()
+          class FooComponent extends UiComponent2 {
+              componentDidUpdate(Map prevProps, Map prevState, [_]) {
+                  // method body
+              }
+          }
+        ''',
+      );
+    });
   });
 }
