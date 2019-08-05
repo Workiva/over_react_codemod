@@ -15,7 +15,7 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
-/// Suggestor that updates `copyUnconsumedDomProps` usage.
+/// Suggestor that updates `copyUnconsumedDomProps` and `copyUnconsumedProps` usages.
 class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
