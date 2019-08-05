@@ -16,7 +16,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
 import '../constants.dart';
-import '../util.dart';
 
 /// Suggestor that renames all props and state classes to have the required `_$`
 /// prefix.
@@ -51,11 +50,8 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   }
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
-    super.visitClassDeclaration(node);
-
-    String extendsName = node.extendsClause?.superclass?.name?.toString?.call();
-    if (extendsName == null) return;
+  visitTypeName(TypeName node) {
+    super.visitTypeName(node);
 
     // Get the name of the react.dart import.
     String reactImportName;
@@ -80,13 +76,21 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     }
 
     if (reactImportName != null &&
-        extendsName == '$reactImportName.Component') {
+        node.toString() == '$reactImportName.Component') {
       yieldPatch(
-        node.extendsClause.superclass.name.end,
-        node.extendsClause.superclass.name.end,
+        node.end,
+        node.end,
         '2',
       );
     }
+  }
+
+  @override
+  visitClassDeclaration(ClassDeclaration node) {
+    super.visitClassDeclaration(node);
+
+    String extendsName = node.extendsClause?.superclass?.name?.toString?.call();
+    if (extendsName == null) return;
 
     if (!node.metadata.any((m) =>
         migrateAnnotations.contains(m.name.name) ||
