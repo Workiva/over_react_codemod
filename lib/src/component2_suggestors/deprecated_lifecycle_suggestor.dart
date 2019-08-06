@@ -35,7 +35,7 @@ class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
         .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
       if (node.name.toSource() == 'componentWillUpdate') {
         if (!hasComment(node, sourceFile,
-            'FIXME: componentWillUpdate has been deprecated')) {
+            'FIXME: [componentWillUpdate] has been deprecated')) {
           yieldPatch(
             node.offset,
             node.offset,
@@ -46,7 +46,7 @@ class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
 
       if (node.name.toSource() == 'componentWillReceiveProps') {
         if (!hasComment(node, sourceFile,
-            'FIXME: componentWillReceiveProps has been deprecated')) {
+            'FIXME: [componentWillReceiveProps] has been deprecated')) {
           yieldPatch(
             node.offset,
             node.offset,
