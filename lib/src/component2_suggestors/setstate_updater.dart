@@ -15,9 +15,6 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
-import '../constants.dart';
-import '../util.dart';
-
 /// Suggestor that updates a [setState] call to [setStateWithUpdater] in the
 /// case that the first argument is a function.
 class SetStateUpdater extends GeneralizingAstVisitor
