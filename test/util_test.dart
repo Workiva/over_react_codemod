@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/ast/token.dart';
 @TestOn('vm')
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/token.dart';
 
 import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
@@ -201,18 +200,16 @@ void overReactExample() {}''';
         ''';
 
       final astNode = parseCompilationUnit(content);
-      int counter;
+      int commentCount;
 
       setUp(() {
-        counter = 0;
+        commentCount = 0;
       });
 
       test('correctly iterates over all comments', () {
-        for (var comment in allComments(astNode.beginToken)) {
-          counter++;
-        }
+        commentCount = allComments(astNode.beginToken).length;
 
-        expect(counter, equals(3));
+        expect(commentCount, equals(3));
       });
 
       test('only finds comments after the provided starting node', () {
@@ -224,11 +221,9 @@ void overReactExample() {}''';
           firstVar = firstVar.next;
         }
 
-        for (var comment in allComments(firstVar)) {
-          counter++;
-        }
+        commentCount = allComments(firstVar).length;
 
-        expect(counter, equals(1));
+        expect(commentCount, equals(1));
       });
     });
   });

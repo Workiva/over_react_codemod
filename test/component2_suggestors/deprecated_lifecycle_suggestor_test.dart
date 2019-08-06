@@ -17,7 +17,7 @@ import 'package:over_react_codemod/src/component2_suggestors'
 import 'package:test/test.dart';
 
 import '../util.dart';
-import '../../lib/src/component2_suggestors/component2_constants.dart';
+import 'package:over_react_codemod/src/component2_suggestors/component2_constants.dart';
 
 main() {
   group('ComponentWillMountMigrator', () {
