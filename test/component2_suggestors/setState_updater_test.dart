@@ -83,5 +83,35 @@ main() {
           }
         ''');
     });
+
+    group('is a function expression', () {
+      test('', () {
+        testSuggestor(expectedPatchCount: 1, input: '''
+          main() {
+            setState((prevState, props) {
+              // return ...;
+            });
+          }
+        ''', expectedOutput: '''
+          main() {
+            setStateWithUpdater((prevState, props) {
+              // return ...;
+            });
+          }
+        ''');
+      });
+
+      test('using arrow notation', () {
+        testSuggestor(expectedPatchCount: 1, input: '''
+          main() {
+            setState((prevState, props) => newState());
+          }
+        ''', expectedOutput: '''
+          main() {
+            setStateWithUpdater((prevState, props) => newState());
+          }
+        ''');
+      });
+    });
   });
 }

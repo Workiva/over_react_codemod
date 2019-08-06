@@ -23,8 +23,6 @@ import '../util.dart';
 class SetStateUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  SetStateUpdater();
-
   @override
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
@@ -33,12 +31,15 @@ class SetStateUpdater extends GeneralizingAstVisitor
 
     final firstArg = node.argumentList.arguments.first;
 
-    if (node.methodName.name == 'setState' && firstArg is MethodInvocation) {
-      if (firstArg.methodName.name == 'newState') return;
-
+    if (node.methodName.name == 'setState') {
       int length = node.toString().indexOf('(');
 
-      yieldPatch(node.offset, node.offset + length, 'setStateWithUpdater');
+      if (firstArg is MethodInvocation &&
+          firstArg.methodName.name == 'newState') return;
+
+      if (firstArg is MethodInvocation || firstArg is FunctionExpression) {
+        yieldPatch(node.offset, node.offset + length, 'setStateWithUpdater');
+      }
     }
   }
 }
