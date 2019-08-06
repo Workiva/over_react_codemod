@@ -25,8 +25,6 @@ import '../constants.dart';
 class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  ClassNameAndAnnotationMigrator();
-
   Iterable<String> get migrateAnnotations =>
       overReact16AnnotationNamesToMigrate;
 
@@ -34,15 +32,17 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   visitImportDirective(ImportDirective node) {
     super.visitImportDirective(node);
 
-    if (!node.toString().contains('package:react/react.dart')) return;
+    if (node.uri?.stringValue != 'package:react/react.dart' ||
+        node.combinators.isEmpty) return;
 
-    int showNameLocation = node.childEntities.toList().lastIndexWhere((i) =>
-        i.toString().startsWith('show Component') &&
-        !i.toString().contains('Component2'));
+    var showNamesList = (node.combinators.first as ShowCombinator)?.shownNames;
+    var showName = showNamesList?.firstWhere(
+      (name) => name.toSource() == 'Component',
+      orElse: () => null,
+    );
 
     // Update imported class.
-    if (showNameLocation != -1) {
-      var showName = node.childEntities.elementAt(showNameLocation);
+    if (showName != null) {
       yieldPatch(
         showName.end,
         showName.end,
@@ -56,30 +56,21 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     super.visitTypeName(node);
 
     // Get the name of the react.dart import.
-    String reactImportName;
-    var importList = (node.thisOrAncestorMatching((ancestor) {
+    CompilationUnit importList = node.thisOrAncestorMatching((ancestor) {
       return ancestor is CompilationUnit;
-    }) as CompilationUnit)
-        .directives;
-    ImportDirective reactImport = importList.firstWhere(
-        (dir) => dir.toString().contains('package:react/react.dart'),
+    });
+
+    ImportDirective reactImport = importList.directives.lastWhere(
+        (dir) =>
+            (dir as ImportDirective)?.uri?.stringValue ==
+            'package:react/react.dart',
         orElse: () => null);
 
-    if (reactImport != null) {
-      int importNameLocation = reactImport.childEntities
-              .toList()
-              .lastIndexWhere((i) => i.toString() == 'as') +
-          1;
-
-      if (importNameLocation != 0) {
-        reactImportName =
-            reactImport.childEntities.elementAt(importNameLocation).toString();
-      }
-    }
+    String reactImportName = reactImport?.prefix?.name;
 
     // Update imported type.
     if (reactImportName != null &&
-        node.toString() == '$reactImportName.Component') {
+        node.toSource() == '$reactImportName.Component') {
       yieldPatch(
         node.end,
         node.end,
@@ -92,7 +83,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    String extendsName = node.extendsClause?.superclass?.name?.toString?.call();
+    String extendsName = node.extendsClause?.superclass?.name?.name;
     if (extendsName == null) return;
 
     if (!node.metadata.any((m) =>
@@ -107,8 +98,10 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     // Update annotation.
     Iterable<Annotation> annotationRefs =
         node.metadata.where((m) => migrateAnnotations.contains(m.name.name));
+
     annotationRefs.forEach((annotationRef) {
-      if (annotationRef.name.toString().contains('2')) return;
+      if (annotationRef.name.name.contains('2')) return;
+
       yieldPatch(
         annotationRef.name.end,
         annotationRef.name.end,
