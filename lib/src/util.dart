@@ -341,8 +341,7 @@ String stripPrivateGeneratedPrefix(String value) {
       : value;
 }
 
-/// Returns whether or not the source file contains the React 16 validation
-/// required comment.
+/// Returns whether or not the source file contains a specific comment.
 ///
 /// Can be used to determine whether or not the file has been modified
 /// already. This is useful (in combination with [allComments] because the
