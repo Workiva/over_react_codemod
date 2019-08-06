@@ -19,18 +19,14 @@ import 'package:codemod/codemod.dart';
 class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  ComponentDidUpdateMigrator();
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
 
-    if (node.name.toString() == 'componentDidUpdate') {
-      var lastArg =
-          node.parameters.childEntities.lastWhere((p) => p.toString() != ')');
-
-      if (lastArg.toString() != ']') {
-        yieldPatch(lastArg.end, lastArg.end, ', [snapshot]');
+    if (node.name.name == 'componentDidUpdate') {
+      if (node.parameters.parameters.length == 2) {
+        yieldPatch(node.parameters.rightParenthesis.offset, node.parameters.rightParenthesis.offset, ', [snapshot]');
       }
     }
   }
