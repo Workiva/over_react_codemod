@@ -31,8 +31,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     final parent = node.parent;
     MethodInvocation inTest = node.thisOrAncestorMatching((ancestor) {
       return (ancestor is MethodInvocation &&
-          (ancestor.methodName.toString() == 'test' ||
-              ancestor.methodName.toString() == 'group'));
+          (ancestor.methodName.name == 'test' ||
+              ancestor.methodName.name == 'group'));
     });
 
     if (node.methodName.name != 'render' ||
@@ -51,7 +51,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     });
 
     // Wrap render in ErrorBoundary.
-    if (!renderFirstArg.toString().startsWith('ErrorBoundary')) {
+    if (!renderFirstArg.toSource().startsWith('ErrorBoundary')) {
       yieldPatch(
           renderFirstArg.offset, renderFirstArg.offset, 'ErrorBoundary()(');
       yieldPatch(renderFirstArg.end, renderFirstArg.end, ')');
@@ -94,7 +94,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         throw StateError('should never get here');
       }
 
-      if (usage != null && !renderFirstArg.toString().contains('..ref')) {
+      if (usage != null && !renderFirstArg.toSource().contains('..ref')) {
         // Add the ref
         final builderExpression = usage.node.function;
         if (builderExpression is! ParenthesizedExpression) {
@@ -113,14 +113,14 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           '\n// [ ] Check this box upon manually updating this argument to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
     } else if ((parent is ReturnStatement ||
             parent is ExpressionFunctionBody) &&
-        functionDecl?.beginToken.toString() != 'void' &&
+        functionDecl?.returnType?.toSource() != 'void' &&
         !hasValidationComment(node, sourceFile)) {
       // Add comment to manually update if return value of `react_dom.render` is used in a return statement (including non-void arrow functions).
       yieldPatch(node.realTarget.offset, node.realTarget.offset,
           '// [ ] Check this box upon manually updating this return to use a callback ref instead of the return value of `react_dom.render`.$willBeRemovedCommentSuffix\n');
     } else {
       if (!hasValidationComment(node, sourceFile) &&
-          renderFirstArg.toString().contains('..ref')) {
+          renderFirstArg.toSource().contains('..ref')) {
         yieldPatch(
             node.realTarget.offset,
             node.realTarget.offset,

@@ -33,8 +33,8 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
     for (Expression cascade in node.cascadeSections) {
       if (!hasValidationComment(node, sourceFile)) {
-        if (cascade.toString().contains('style') &&
-            !cascade.toString().contains('setProperty')) {
+        if (cascade.toSource().contains('style') &&
+            !cascade.toSource().contains('setProperty')) {
           /// A style map, method invocation, or a variable
           dynamic stylesObject = getStyles(cascade);
 
@@ -50,7 +50,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           bool isAFunction = false;
           bool isOther = false;
           bool isForCustomProps =
-              cascade.toString().toLowerCase().contains('props');
+              cascade.toSource().toLowerCase().contains('props');
 
           if (stylesObject is MapLiteral) {
             stylesObject.entries.forEach((MapLiteralEntry cssPropertyRow) {
@@ -243,7 +243,7 @@ String cleanString(dynamic elementToClean) {
 
   if (elementToClean is String) return elementToClean;
 
-  return elementToClean.toString();
+  return elementToClean.toSource();
 }
 
 bool isANumber(String node) => num.tryParse(node) != null;
