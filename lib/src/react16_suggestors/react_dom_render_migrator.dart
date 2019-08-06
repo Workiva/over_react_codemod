@@ -52,8 +52,15 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     // Wrap render in ErrorBoundary.
     if (!renderFirstArg.toSource().startsWith('ErrorBoundary')) {
       yieldPatch(
-          renderFirstArg.offset, renderFirstArg.offset, 'ErrorBoundary()(');
-      yieldPatch(renderFirstArg.end, renderFirstArg.end, ')');
+        renderFirstArg.offset,
+        renderFirstArg.offset,
+        'ErrorBoundary()(',
+      );
+      yieldPatch(
+        renderFirstArg.end,
+        renderFirstArg.end,
+        ')',
+      );
     }
 
     if (renderFirstArg is InvocationExpression) {
@@ -74,29 +81,39 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       // Edit assignment
       if (parent is VariableDeclaration) {
         // Instances of this class are always children of the class [VariableDeclarationList]
-        yieldPatch(parent.equals.offset, parent.equals.end, ';');
+        yieldPatch(
+          parent.equals.offset,
+          parent.equals.end,
+          ';',
+        );
 
         // Add this on the render call and not before the parent so that dupe
         // comments aren't added on subsequent runs.
         yieldPatch(
-            node.realTarget.offset,
-            node.realTarget.offset,
-            comment ??
-                '\n // [ ] Check this box upon manual validation of this ref and '
-                'its typing.$willBeRemovedCommentSuffix\n');
+          node.realTarget.offset,
+          node.realTarget.offset,
+          comment ??
+              '\n // [ ] Check this box upon manual validation of this ref and '
+              'its typing.$willBeRemovedCommentSuffix\n',
+        );
 
         refVariableName = parent.name.name;
       } else if (parent is AssignmentExpression) {
-        yieldPatch(parent.offset, parent.rightHandSide.offset, '');
+        yieldPatch(
+          parent.offset,
+          parent.rightHandSide.offset,
+          '',
+        );
 
         // Add this on the render call and not before the parent so that dupe
         // comments aren't added on subsequent runs.
         yieldPatch(
-            parent.rightHandSide.offset,
-            parent.rightHandSide.offset,
-            comment ??
-                '// [ ] Check this box upon manual validation of this ref.'
-                '$willBeRemovedCommentSuffix\n');
+          parent.rightHandSide.offset,
+          parent.rightHandSide.offset,
+          comment ??
+              '// [ ] Check this box upon manual validation of this ref.'
+              '$willBeRemovedCommentSuffix\n',
+        );
 
         refVariableName = parent.leftHandSide.toSource();
       } else {
@@ -108,14 +125,25 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         final builderExpression = usage.node.function;
 
         if (builderExpression is! ParenthesizedExpression) {
-          yieldPatch(builderExpression.offset, builderExpression.offset, '(');
+          yieldPatch(
+            builderExpression.offset,
+            builderExpression.offset,
+            '(',
+          );
         }
 
-        yieldPatch(usage.builder.end, usage.builder.end,
-            '\n  ..ref = (ref) { $refVariableName = ref; }\n');
+        yieldPatch(
+          usage.builder.end,
+          usage.builder.end,
+          '\n  ..ref = (ref) { $refVariableName = ref; }\n',
+        );
 
         if (builderExpression is! ParenthesizedExpression) {
-          yieldPatch(builderExpression.end, builderExpression.end, ')');
+          yieldPatch(
+            builderExpression.end,
+            builderExpression.end,
+            ')',
+          );
         }
       }
     } else if (parent is ArgumentList &&
@@ -123,11 +151,12 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       // Add comment to manually update if return value of `react_dom.render` is
       // used as an argument.
       yieldPatch(
-          node.realTarget.offset,
-          node.realTarget.offset,
-          '\n// [ ] Check this box upon manually updating this argument to use a '
-          'callback ref instead of the return value of `react_dom.render`.'
-          '$willBeRemovedCommentSuffix\n');
+        node.realTarget.offset,
+        node.realTarget.offset,
+        '\n// [ ] Check this box upon manually updating this argument to use a '
+            'callback ref instead of the return value of `react_dom.render`.'
+            '$willBeRemovedCommentSuffix\n',
+      );
     } else if ((parent is ReturnStatement ||
             parent is ExpressionFunctionBody) &&
         functionDecl?.returnType?.toSource() != 'void' &&
@@ -135,20 +164,22 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       // Add comment to manually update if return value of `react_dom.render` is
       // used in a return statement (including non-void arrow functions).
       yieldPatch(
-          node.realTarget.offset,
-          node.realTarget.offset,
-          '// [ ] Check this box upon manually updating this return to use a '
-          'callback ref instead of the return value of `react_dom.render`.'
-          '$willBeRemovedCommentSuffix\n');
+        node.realTarget.offset,
+        node.realTarget.offset,
+        '// [ ] Check this box upon manually updating this return to use a '
+            'callback ref instead of the return value of `react_dom.render`.'
+            '$willBeRemovedCommentSuffix\n',
+      );
     } else {
       if (!hasValidationComment(node, sourceFile) &&
           renderFirstArg.toSource().contains('..ref')) {
         yieldPatch(
-            node.realTarget.offset,
-            node.realTarget.offset,
-            comment ??
-                '// [ ] Check this box upon manual validation of this ref.'
-                '$willBeRemovedCommentSuffix\n');
+          node.realTarget.offset,
+          node.realTarget.offset,
+          comment ??
+              '// [ ] Check this box upon manual validation of this ref.'
+              '$willBeRemovedCommentSuffix\n',
+        );
       }
     }
   }
