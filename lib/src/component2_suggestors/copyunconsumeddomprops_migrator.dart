@@ -19,6 +19,7 @@ import 'package:codemod/codemod.dart';
 class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+
   @override
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
