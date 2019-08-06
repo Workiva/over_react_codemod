@@ -19,21 +19,18 @@ import 'package:codemod/codemod.dart';
 class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  CopyUnconsumedDomPropsMigrator();
-
   @override
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    if (node.methodName.toString() == 'addProps') {
-      var firstArg = node.argumentList.childEntities
-          .firstWhere((a) => a.toString() != '(');
+    if (node.methodName.name == 'addProps') {
+      var firstArg = node.argumentList.arguments.first;
 
-      if (firstArg.toString() == 'copyUnconsumedDomProps()' ||
-          firstArg.toString() == 'copyUnconsumedProps()') {
+      if (firstArg.toSource() == 'copyUnconsumedDomProps()' ||
+          firstArg.toSource() == 'copyUnconsumedProps()') {
         // Update argument.
         yieldPatch(firstArg.offset, firstArg.end,
-            'addUnconsumed${firstArg.toString().contains('Dom') ? 'Dom' : ''}Props');
+            'addUnconsumed${firstArg.toSource().contains('Dom') ? 'Dom' : ''}Props');
 
         // Rename `addProps` to `modifyProps`.
         yieldPatch(node.methodName.offset, node.methodName.end, 'modifyProps');
