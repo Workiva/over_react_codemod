@@ -20,7 +20,7 @@ import 'package:test/test.dart';
 ProcessResult runUpgrade({String onDirectory}) {
   Process.runSync('pub', ['get'], workingDirectory: onDirectory);
 
-  return Process.runSync('pub', ['run', 'over_react_codemod:react16_upgrade'],
+  return Process.runSync('pub', ['run', 'over_react_codemod:react_16_upgrade'],
       workingDirectory: onDirectory);
 }
 
