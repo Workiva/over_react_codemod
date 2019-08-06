@@ -18,8 +18,9 @@ bool hasValidationComment(AstNode node, SourceFile sourceFile) {
   String commentText;
   for (var comment in allComments(node.root.beginToken)) {
     final commentLine = sourceFile.getLine(comment.end);
-
-    if (commentLine == line || commentLine == line + 1) {
+    if (commentLine == line ||
+        commentLine == line + 1 ||
+        commentLine == line - 1) {
       commentText = sourceFile.getText(comment.offset, comment.end);
       break;
     }
@@ -44,5 +45,4 @@ Iterable allComments(Token beginToken) sync* {
     }
     currentToken = currentToken.next;
   }
-  ;
 }

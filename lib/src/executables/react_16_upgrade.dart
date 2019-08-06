@@ -21,7 +21,7 @@ import 'package:over_react_codemod/src/react16_suggestors/react_dom_render_migra
 import 'package:over_react_codemod/src/react16_suggestors/react_style_maps_updater.dart';
 
 const _changesRequiredOutput = """
-To update your code, switch to Dart 2.1.0 and run the following commands:
+To update your code, switch to React 16 and run the following commands:
   pub global activate over_react_codemod ^1.1.0
   pub global run over_react_codemod:react_16_upgrade
 Then, review the the changes, address any FIXMEs, and commit.
