@@ -9,7 +9,7 @@ String methodDeprecationMessage({methodName}) {
       '.org/docs/react-component.html#updating-componentwillReceiveProps';
 
   return '''
-        /// FIXME: [$methodName] has been deprecated and should be updated to its replacement. 
+        /// FIXME: [$methodName] has been deprecated and is now considered unsafe. 
         ///
         /// Please see the doc comment for [$methodName] or visit 
         /// $updateInstructionLink
