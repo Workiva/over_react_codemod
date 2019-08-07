@@ -27,6 +27,18 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
+    CompilationUnit importList = node.thisOrAncestorMatching((ancestor) {
+      return ancestor is CompilationUnit;
+    });
+
+    ImportDirective reactDomImport = importList.directives.lastWhere(
+        (dir) =>
+            (dir as ImportDirective)?.uri?.stringValue ==
+            'package:react/react_dom.dart',
+        orElse: () => null);
+
+    String reactDomImportNamespace = reactDomImport?.prefix?.name;
+
     final parent = node.parent;
     MethodInvocation inTest = node.thisOrAncestorMatching((ancestor) {
       return (ancestor is MethodInvocation &&
@@ -35,8 +47,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     });
 
     if (node.methodName.name != 'render' ||
-        !const ['react_dom', 'reactDom']
-            .contains(node.realTarget?.toSource?.call()) ||
+        reactDomImportNamespace != node.realTarget?.toSource?.call() ||
         inTest != null) {
       return;
     }
@@ -166,7 +177,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       yieldPatch(
         node.realTarget.offset,
         node.realTarget.offset,
-        '// [ ] Check this box upon manually updating this return to use a '
+        '// [ ] Check this box upon manually updating this variable to be set using a '
             'callback ref instead of the return value of `react_dom.render`.'
             '$willBeRemovedCommentSuffix\n',
       );

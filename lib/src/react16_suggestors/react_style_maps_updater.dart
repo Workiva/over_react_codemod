@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
@@ -36,7 +37,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
         if (cascade.toSource().contains('style') &&
             !cascade.toSource().contains('setProperty')) {
           /// A style map, method invocation, or a variable
-          dynamic stylesObject = getStyles(cascade);
+          SyntacticEntity stylesObject = getStyles(cascade);
 
           /// CSS properties that were modified by the script or need to be
           /// manually checked
@@ -70,12 +71,10 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                   listOfVariables.add(cleanedCssPropertyKey);
                 }
 
-                if (!styleMapContainsAVariable) {
-                  styleMapContainsAVariable = true;
-                }
+                styleMapContainsAVariable = true;
               }
 
-              num end = cssPropertyRow.end;
+              var end = cssPropertyRow.end;
 
               // If the codemod does not override the commas originally in
               // the code, the formatting can be undesirable. As a result,
@@ -90,7 +89,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
               if (cssPropertyValue is ConditionalExpression ||
                   cssPropertyValue is BinaryExpression) {
-                dynamic ternaryExpressions;
+                List<Expression> ternaryExpressions;
 
                 if (cssPropertyValue is ConditionalExpression) {
                   ternaryExpressions = [
@@ -104,7 +103,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                   ];
                 }
 
-                ternaryExpressions.forEach((Expression property) {
+                ternaryExpressions.forEach((property) {
                   String cleanedPropertySubString = cleanString(property);
 
                   if (property is SimpleIdentifier) flagAsVariable();
@@ -168,7 +167,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
 String getString({
   String styleMap,
-  List affectedValues = const [],
+  List<String> affectedValues = const [],
   bool isAVariable = false,
   bool styleMapContainsAVariable = false,
   bool isAFunction = false,
@@ -253,9 +252,9 @@ bool isAString(AstNode node) => node is SimpleStringLiteral;
 /// Removes the '...style' and '=' entities and returns the third entity.
 ///
 /// The third entity will be the style map, a method invocation, or a variable.
-dynamic getStyles(Expression cascade) {
-  List styleCascadeEntities = cascade.childEntities.toList();
-  List cleanedChildEntities = List.from(styleCascadeEntities);
+SyntacticEntity getStyles(Expression cascade) {
+  List<SyntacticEntity> styleCascadeEntities = cascade.childEntities.toList();
+  final cleanedChildEntities = List<SyntacticEntity>.from(styleCascadeEntities);
 
   cleanedChildEntities.removeRange(0, 2);
 
