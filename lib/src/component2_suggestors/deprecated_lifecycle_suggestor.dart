@@ -19,7 +19,7 @@ import './component2_constants.dart';
 import '../constants.dart';
 import '../util.dart';
 
-/// Suggestor that adds ea "fix me" comment prompting consumers to update
+/// Suggestor that adds a "fix me" comment prompting consumers to update
 /// [componentWillReceiveProps] and [componentWillUpdate] to their "unsafe"
 /// React 16 versions.
 class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor

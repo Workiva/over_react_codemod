@@ -1,10 +1,20 @@
 const revertInstructions = '/// These updates are opt-in and can be '
     'rolled back if you do not wish to do the update at this time.';
 
-String methodDeprecationMessage({methodName}) =>
-    '/// FIXME: [$methodName] has been '
-    'deprecated and should be updated to [unsafe_$methodName]. Please see '
-    'the doc comment for [$methodName] for more details on updating.';
+String methodDeprecationMessage({methodName}) {
+  final updateInstructionLink = methodName == 'componentWillUpdate'
+      ? 'https://reactjs.org/docs/react-component'
+          '.html#updating-componentwillupdate'
+      : 'https://reactjs'
+      '.org/docs/react-component.html#updating-componentwillReceiveProps';
+
+  return '''
+        /// FIXME: [$methodName] has been deprecated and should be updated to its replacement. 
+        ///
+        /// Please see the doc comment for [$methodName] or visit 
+        /// $updateInstructionLink
+        /// for more details on updating.''';
+}
 
 String getComponentWillUpdateComment() => '''
   ${methodDeprecationMessage(methodName: 'componentWillUpdate')}

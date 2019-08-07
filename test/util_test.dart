@@ -209,7 +209,7 @@ void overReactExample() {}''';
       test('correctly iterates over all comments', () {
         commentCount = allComments(astNode.beginToken).length;
 
-        expect(commentCount, equals(3));
+        expect(commentCount, 3);
       });
 
       test('only finds comments after the provided starting node', () {
@@ -223,7 +223,7 @@ void overReactExample() {}''';
 
         commentCount = allComments(firstVar).length;
 
-        expect(commentCount, equals(1));
+        expect(commentCount, 1);
       });
     });
   });

@@ -38,7 +38,28 @@ main() {
       );
     });
 
-    test('adds a FIXME comment for componentWillUpdate', () {
+    test('adds a FIXME comment for componentWillUpdate with override', () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+          @Component2()
+          class FooComponent extends UiComponent2 {
+              @override
+              componentWillUpdate(){}
+          }
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends UiComponent2 {
+              ${getComponentWillUpdateComment()}
+              @override
+              componentWillUpdate(){}
+          }
+        ''',
+      );
+    });
+
+    test('adds a FIXME comment for componentWillUpdate without override', () {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
@@ -57,7 +78,30 @@ main() {
       );
     });
 
-    test('adds a FIXME comment for componentWillReceiveProps', () {
+    test('adds a FIXME comment for componentWillReceiveProps with override',
+        () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+          @Component2()
+          class FooComponent extends UiComponent2 {
+              @override
+              componentWillReceiveProps(){}
+          }
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends UiComponent2 {
+              ${getComponentWillReceivePropsComment()}
+              @override
+              componentWillReceiveProps(){}
+          }
+        ''',
+      );
+    });
+
+    test('adds a FIXME comment for componentWillReceiveProps without override',
+        () {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
@@ -84,8 +128,10 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
+              @override
               componentWillUpdate(){}
-          
+              
+              @override
               componentWillReceiveProps(){}
           }
         ''',
@@ -93,9 +139,11 @@ main() {
           @Component2()
           class FooComponent extends UiComponent2 {
               ${getComponentWillUpdateComment()}
+              @override
               componentWillUpdate(){}
           
               ${getComponentWillReceivePropsComment()}
+              @override
               componentWillReceiveProps(){}
           }
         ''',
