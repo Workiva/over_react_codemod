@@ -16,6 +16,7 @@ import 'dart:io';
 
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/component2_suggestors/class_name_and_annotation_migrator.dart';
+import 'package:over_react_codemod/src/component2_suggestors/componentdidupdate_migrator.dart';
 import 'package:over_react_codemod/src/component2_suggestors/componentwillmount_migrator.dart';
 
 const _changesRequiredOutput = """
@@ -35,6 +36,7 @@ void main(List<String> args) {
     [
       ClassNameAndAnnotationMigrator(),
       ComponentWillMountMigrator(),
+      ComponentDidUpdateMigrator(),
     ],
     args: args,
     defaultYes: true,
