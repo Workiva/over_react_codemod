@@ -37,7 +37,11 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
             'package:react/react_dom.dart',
         orElse: () => null);
 
-    String reactDomImportNamespace = reactDomImport?.prefix?.name;
+    if (reactDomImport == null) {
+      return;
+    }
+
+    String reactDomImportNamespace = reactDomImport.prefix?.name;
 
     final parent = node.parent;
     MethodInvocation inTest = node.thisOrAncestorMatching((ancestor) {

@@ -356,6 +356,77 @@ main() {
         ''',
       );
     });
+
+    test('import with double quotes', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          import "package:react/react_dom.dart" as react_dom;
+
+          main() {
+            react_dom.render(Foo()(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import "package:react/react_dom.dart" as react_dom;
+
+          main() {
+            react_dom.render(ErrorBoundary()(Foo()()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('different import namespace', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          import 'package:react/react_dom.dart' as different_namespace;
+
+          main() {
+            different_namespace.render(Foo()(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import 'package:react/react_dom.dart' as different_namespace;
+
+          main() {
+            different_namespace.render(ErrorBoundary()(Foo()()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('no import namespace', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          import 'package:react/react_dom.dart';
+        
+          main() {
+            render(Foo()(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import 'package:react/react_dom.dart';
+        
+          main() {
+            render(ErrorBoundary()(Foo()()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('no react_dom.dart import', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          main() {
+            render(Foo()(), mountNode);
+          }
+        ''',
+      );
+    });
   });
 }
 
