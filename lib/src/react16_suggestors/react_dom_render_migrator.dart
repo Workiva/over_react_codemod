@@ -33,8 +33,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
 
     ImportDirective reactDomImport = importList.directives.lastWhere(
         (dir) =>
-            (dir as ImportDirective)?.uri?.stringValue ==
-            'package:react/react_dom.dart',
+            dir is ImportDirective &&
+            dir.uri?.stringValue == 'package:react/react_dom.dart',
         orElse: () => null);
 
     if (reactDomImport == null) {
