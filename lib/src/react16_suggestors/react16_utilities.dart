@@ -7,11 +7,19 @@ import 'constants.dart';
 /// Returns whether or not the source file contains the React 16 validation
 /// required comment.
 ///
+/// Related: [hasComment]
+bool hasValidationComment(AstNode node, SourceFile sourceFile) {
+  return hasComment(node, sourceFile, manualValidationCommentSubstring);
+}
+
+/// Returns whether or not the node passed in has the passed in comment above
+/// or below it.
+///
 /// Can be used to determine whether or not the file has been modified
 /// already. This is useful (in combination with [allComments] because the
 /// visitor used for visiting comments does not work as expected, making it
 /// difficult to iterate over comments.
-bool hasValidationComment(AstNode node, SourceFile sourceFile) {
+bool hasComment(AstNode node, SourceFile sourceFile, String comment) {
   final line = sourceFile.getLine(node.offset);
 
   // Find the comment associated with this line.
@@ -26,7 +34,7 @@ bool hasValidationComment(AstNode node, SourceFile sourceFile) {
     }
   }
 
-  return commentText?.contains(manualValidationCommentSubstring) ?? false;
+  return commentText?.contains(comment) ?? false;
 }
 
 /// Returns an iterable of all the comments from [beginToken] to the end of the

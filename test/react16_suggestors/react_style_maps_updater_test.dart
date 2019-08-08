@@ -533,6 +533,40 @@ main() {
           ''',
       );
     });
+
+    test('does not run twice', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+            main() {
+              Foo()
+              ${manualVariableCheckComment(keysOfModdedValues: [
+          'width'
+        ], isChecked: true)}
+              ..style = {
+                'width': isWide ?? 40,
+                'height': '40%',
+                'fontSize': 12,
+                'margin': 25,
+              };
+            }
+          ''',
+        expectedOutput: '''
+            main() {
+              Foo()
+              ${manualVariableCheckComment(keysOfModdedValues: [
+          'width'
+        ], isChecked: true)}
+              ..style = {
+                'width': isWide ?? 40,
+                'height': '40%',
+                'fontSize': 12,
+                'margin': 25,
+              };
+            }
+          ''',
+      );
+    });
   });
 }
 
@@ -545,8 +579,8 @@ String getCheckboxComment({
     //$willBeRemovedCommentSuffix''';
 
 String manualVariableCheckComment(
-        {List<String> keysOfModdedValues = const []}) =>
-    '''// [ ] Check this box upon manual validation that this style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are simple string variables.'} 
+        {List<String> keysOfModdedValues = const [], isChecked = false}) =>
+    '''// ${isChecked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are simple string variables.'} 
     $styleMapExample
     //$willBeRemovedCommentSuffix''';
 

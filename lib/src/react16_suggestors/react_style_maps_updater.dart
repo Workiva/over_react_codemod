@@ -33,7 +33,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     super.visitCascadeExpression(node);
 
     for (Expression cascade in node.cascadeSections) {
-      if (!hasValidationComment(node, sourceFile)) {
+      if (!hasComment(cascade, sourceFile, willBeRemovedCommentSuffix)) {
         if (cascade.toSource().contains('style') &&
             !cascade.toSource().contains('setProperty')) {
           /// A style map, method invocation, or a variable
