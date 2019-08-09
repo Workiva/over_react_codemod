@@ -15,6 +15,8 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
+import '../constants.dart';
+
 /// Suggestor that adds an optional `snapshot` argument to `componentDidUpdate`.
 class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
@@ -23,10 +25,15 @@ class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
 
-    if (node.name.name == 'componentDidUpdate') {
-      if (node.parameters.parameters.length == 2) {
-        yieldPatch(node.parameters.rightParenthesis.offset,
-            node.parameters.rightParenthesis.offset, ', [snapshot]');
+    ClassDeclaration containingClass = node.parent;
+
+    if (containingClass.metadata
+        .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
+      if (node.name.name == 'componentDidUpdate') {
+        if (node.parameters.parameters.length == 2) {
+          yieldPatch(node.parameters.rightParenthesis.offset,
+              node.parameters.rightParenthesis.offset, ', [snapshot]');
+        }
       }
     }
   }

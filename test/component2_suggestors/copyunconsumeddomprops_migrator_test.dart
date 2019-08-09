@@ -91,5 +91,22 @@ main() {
         ''',
       );
     });
+
+    test('does not change copyUnconsumedProps for non-component2 classes', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          @Component()
+          class FooComponent extends UiComponent {
+            @override
+            render() {
+              return (Dom.span()
+                ..addProps(copyUnconsumedDomProps())
+              )(props.children);
+            }
+          }
+        ''',
+      );
+    });
   });
 }

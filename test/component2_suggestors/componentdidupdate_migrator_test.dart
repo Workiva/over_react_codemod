@@ -72,5 +72,19 @@ main() {
         ''',
       );
     });
+
+    test('does not change componentDidUpdate for non-component2 classes', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          @Component()
+          class FooComponent extends UiComponent {
+            componentDidUpdate(Map prevProps, Map prevState) {
+                  // method body
+            }
+          }
+        ''',
+      );
+    });
   });
 }
