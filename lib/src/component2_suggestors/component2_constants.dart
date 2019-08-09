@@ -1,12 +1,11 @@
+import 'package:meta/meta.dart';
+
 const revertInstructions = '/// These updates are opt-in and can be '
     'rolled back if you do not wish to do the update at this time.';
 
-String methodDeprecationMessage({methodName}) {
-  final updateInstructionLink = methodName == 'componentWillUpdate'
-      ? 'https://reactjs.org/docs/react-component'
-          '.html#updating-componentwillupdate'
-      : 'https://reactjs'
-      '.org/docs/react-component.html#updating-componentwillReceiveProps';
+String methodDeprecationMessage({@required methodName}) {
+  final updateInstructionLink =
+      'https://reactjs.org/docs/react-component.html#updating-$methodName';
 
   return '''
         /// FIXME: [$methodName] has been deprecated and is now considered unsafe. 

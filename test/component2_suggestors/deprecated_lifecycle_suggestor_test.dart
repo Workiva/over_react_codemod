@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/component2_suggestors'
-    '/deprecated_lifecycle_suggestor.dart';
+import 'package:over_react_codemod/src/component2_suggestors/deprecated_lifecycle_suggestor.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
 import 'package:over_react_codemod/src/component2_suggestors/component2_constants.dart';
 
 main() {
-  group('ComponentWillMountMigrator', () {
+  group('DeprecatedLifecycleSuggestor', () {
     final testSuggestor = getSuggestorTester(DeprecatedLifecycleSuggestor());
 
     test('empty file', () {

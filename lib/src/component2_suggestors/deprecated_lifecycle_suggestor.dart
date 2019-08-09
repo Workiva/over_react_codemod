@@ -25,15 +25,13 @@ import '../util.dart';
 class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  DeprecatedLifecycleSuggestor();
-
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     ClassDeclaration containingClass = node.parent;
     if (containingClass.metadata
         .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
-      if (node.name.toSource() == 'componentWillUpdate') {
+      if (node.name.name == 'componentWillUpdate') {
         if (!hasComment(node, sourceFile,
             'FIXME: [componentWillUpdate] has been deprecated')) {
           yieldPatch(
@@ -44,7 +42,7 @@ class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
         }
       }
 
-      if (node.name.toSource() == 'componentWillReceiveProps') {
+      if (node.name.name == 'componentWillReceiveProps') {
         if (!hasComment(node, sourceFile,
             'FIXME: [componentWillReceiveProps] has been deprecated')) {
           yieldPatch(
