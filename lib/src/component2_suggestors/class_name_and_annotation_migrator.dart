@@ -17,15 +17,14 @@ import 'package:codemod/codemod.dart';
 
 import '../constants.dart';
 
-/// Suggestor that renames all props and state classes to have the required `_$`
-/// prefix.
+/// Suggestor that replaces `UiComponent` with `UiComponent2` in extends clauses
+/// and updates the annotation to `@Component2()`.
 ///
-/// If [includeMixins] is true, props and state mixins will also be renamed.
+/// The same update is made for `UiStatefulComponent` and `react.Component`
+/// (including instances where `react.Component` is used for typing).
 class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  ClassNameAndAnnotationMigrator();
-
   Iterable<String> get migrateAnnotations =>
       overReact16AnnotationNamesToMigrate;
 
@@ -33,54 +32,18 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   visitImportDirective(ImportDirective node) {
     super.visitImportDirective(node);
 
-    if (!node.toString().contains('package:react/react.dart')) return;
-
-    int showNameLocation = node.childEntities.toList().lastIndexWhere((i) =>
-        i.toString().startsWith('show Component') &&
-        !i.toString().contains('Component2'));
-
-    if (showNameLocation != -1) {
-      var showName = node.childEntities.elementAt(showNameLocation);
-      yieldPatch(
-        showName.end,
-        showName.end,
-        '2',
-      );
-    }
-  }
-
-  @override
-  visitTypeName(TypeName node) {
-    super.visitTypeName(node);
-
-    // Get the name of the react.dart import.
-    String reactImportName;
-    var importList = (node.thisOrAncestorMatching((ancestor) {
-      return ancestor is CompilationUnit;
-    }) as CompilationUnit)
-        .directives;
-    ImportDirective reactImport = importList.firstWhere(
-        (dir) => dir.toString().contains('package:react/react.dart'),
-        orElse: () => null);
-
-    if (reactImport != null) {
-      int importNameLocation = reactImport.childEntities
-              .toList()
-              .lastIndexWhere((i) => i.toString() == 'as') +
-          1;
-
-      if (importNameLocation != 0) {
-        reactImportName =
-            reactImport.childEntities.elementAt(importNameLocation).toString();
-      }
+    if (node.uri?.stringValue != 'package:react/react.dart' ||
+        node.combinators.isEmpty) {
+      return;
     }
 
-    if (reactImportName != null &&
-        node.toString() == '$reactImportName.Component') {
+    // Add Component2 to import show list.
+    var showNamesList = (node.combinators.first as ShowCombinator)?.shownNames;
+    if (!showNamesList.any((name) => name.toSource() == 'Component2')) {
       yieldPatch(
-        node.end,
-        node.end,
-        '2',
+        showNamesList.last.end,
+        showNamesList.last.end,
+        ', Component2',
       );
     }
   }
@@ -89,37 +52,67 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    String extendsName = node.extendsClause?.superclass?.name?.toString?.call();
-    if (extendsName == null) return;
-
-    if (!node.metadata.any((m) =>
-        migrateAnnotations.contains(m.name.name) ||
-        overReact16AnnotationNames.contains(m.name.name))) {
-      // Only looking for classes annotated with `@Props()`, `@State()`,
-      // `@AbstractProps()`, or `@AbstractState()`. If [renameMixins] is true,
-      // also includes `@PropsMixin()` and `@StateMixin()`.
+    var extendsName = node.extendsClause?.superclass?.name;
+    if (extendsName == null) {
       return;
     }
 
-    Iterable<Annotation> annotationRefs =
-        node.metadata.where((m) => migrateAnnotations.contains(m.name.name));
-    annotationRefs.forEach((annotationRef) {
-      if (annotationRef.name.toString().contains('2')) return;
-      yieldPatch(
-        annotationRef.name.end,
-        annotationRef.name.end,
-        '2',
-      );
+    // Get the name of the react.dart import.
+    CompilationUnit importList = node.thisOrAncestorMatching((ancestor) {
+      return ancestor is CompilationUnit;
     });
 
-    if (extendsName == 'UiComponent' || extendsName == 'UiStatefulComponent') {
+    ImportDirective reactImport = importList.directives.lastWhere(
+        (dir) =>
+            (dir as ImportDirective)?.uri?.stringValue ==
+            'package:react/react.dart',
+        orElse: () => null);
+
+    String reactImportName = reactImport?.prefix?.name;
+
+    if (reactImportName != null &&
+        extendsName.name == '$reactImportName.Component') {
+      // Update `react.Component` extends clause.
       yieldPatch(
-        node.extendsClause.superclass.name.end,
-        node.extendsClause.superclass.name.end,
+        extendsName.end,
+        extendsName.end,
         '2',
       );
     } else {
-      return;
+      if (!node.metadata.any((m) =>
+          migrateAnnotations.contains(m.name.name) ||
+          overReact16AnnotationNames.contains(m.name.name))) {
+        // Only looking for classes annotated with `@Props()`, `@State()`,
+        // `@AbstractProps()`, or `@AbstractState()`. If [renameMixins] is true,
+        // also includes `@PropsMixin()` and `@StateMixin()`.
+        return;
+      }
+
+      // Update annotation.
+      Iterable<Annotation> annotationRefs =
+          node.metadata.where((m) => migrateAnnotations.contains(m.name.name));
+
+      annotationRefs.forEach((annotationRef) {
+        if (annotationRef.name.name.contains('2')) {
+          return;
+        }
+
+        yieldPatch(
+          annotationRef.name.end,
+          annotationRef.name.end,
+          '2',
+        );
+      });
+
+      if (extendsName.name == 'UiComponent' ||
+          extendsName.name == 'UiStatefulComponent') {
+        // Update `UiComponent` or `UiStatefulComponent` extends clause.
+        yieldPatch(
+          extendsName.end,
+          extendsName.end,
+          '2',
+        );
+      }
     }
   }
 }

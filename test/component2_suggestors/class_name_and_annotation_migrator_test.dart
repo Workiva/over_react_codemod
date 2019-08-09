@@ -130,7 +130,7 @@ main() {
           class FooComponent extends react.Component{}
         ''',
         expectedOutput: '''
-          import 'package:react/react.dart' as react show Component2;
+          import 'package:react/react.dart' as react show Component, Component2;
           import 'package:react/react_dom.dart' as react_dom;
 
           class FooComponent extends react.Component2{}
@@ -144,40 +144,16 @@ main() {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
-          import 'package:react/react_dom.dart' as react_dom;
-          import 'package:react/react.dart' as foo;
+          import "package:react/react_dom.dart" as react_dom;
+          import "package:react/react.dart" as foo;
         
           class FooComponent extends foo.Component{}
         ''',
         expectedOutput: '''
-          import 'package:react/react_dom.dart' as react_dom;
-          import 'package:react/react.dart' as foo;
+          import "package:react/react_dom.dart" as react_dom;
+          import "package:react/react.dart" as foo;
 
           class FooComponent extends foo.Component2{}
-        ''',
-      );
-    });
-
-    test('react.Component type name updates', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          import 'package:react/react.dart' as react;
-          import 'package:react/react_dom.dart' as react_dom;
-
-          react.Component render() {
-            react.Component component = getDartComponent(react_dom.render(Foo()(), mountNode));
-            return component;
-          }
-        ''',
-        expectedOutput: '''
-          import 'package:react/react.dart' as react;
-          import 'package:react/react_dom.dart' as react_dom;
-
-          react.Component2 render() {
-            react.Component2 component = getDartComponent(react_dom.render(Foo()(), mountNode));
-            return component;
-          }
         ''',
       );
     });
