@@ -29,10 +29,7 @@ class SetStateUpdater extends GeneralizingAstVisitor
     final firstArg = node.argumentList.arguments.first;
 
     if (node.methodName.name == 'setState') {
-      if (firstArg is MethodInvocation &&
-          firstArg.methodName.name == 'newState') return;
-
-      if (firstArg is MethodInvocation || firstArg is FunctionExpression) {
+      if (firstArg is FunctionExpression) {
         yieldPatch(
             node.methodName.offset, node.methodName.end, 'setStateWithUpdater');
       }
