@@ -49,8 +49,13 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   }
 
   @override
-  visitTypeName(TypeName node) {
-    super.visitTypeName(node);
+  visitClassDeclaration(ClassDeclaration node) {
+    super.visitClassDeclaration(node);
+
+    var extendsName = node.extendsClause?.superclass?.name;
+    if (extendsName == null) {
+      return;
+    }
 
     // Get the name of the react.dart import.
     CompilationUnit importList = node.thisOrAncestorMatching((ancestor) {
@@ -65,56 +70,49 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
 
     String reactImportName = reactImport?.prefix?.name;
 
-    // Update imported type.
     if (reactImportName != null &&
-        node.toSource() == '$reactImportName.Component') {
+        extendsName.name == '$reactImportName.Component') {
+      // Update `react.Component` extends clause.
       yieldPatch(
-        node.end,
-        node.end,
-        '2',
-      );
-    }
-  }
-
-  @override
-  visitClassDeclaration(ClassDeclaration node) {
-    super.visitClassDeclaration(node);
-
-    String extendsName = node.extendsClause?.superclass?.name?.name;
-    if (extendsName == null) return;
-
-    if (!node.metadata.any((m) =>
-        migrateAnnotations.contains(m.name.name) ||
-        overReact16AnnotationNames.contains(m.name.name))) {
-      // Only looking for classes annotated with `@Props()`, `@State()`,
-      // `@AbstractProps()`, or `@AbstractState()`. If [renameMixins] is true,
-      // also includes `@PropsMixin()` and `@StateMixin()`.
-      return;
-    }
-
-    // Update annotation.
-    Iterable<Annotation> annotationRefs =
-        node.metadata.where((m) => migrateAnnotations.contains(m.name.name));
-
-    annotationRefs.forEach((annotationRef) {
-      if (annotationRef.name.name.contains('2')) return;
-
-      yieldPatch(
-        annotationRef.name.end,
-        annotationRef.name.end,
-        '2',
-      );
-    });
-
-    // Update extends clause.
-    if (extendsName == 'UiComponent' || extendsName == 'UiStatefulComponent') {
-      yieldPatch(
-        node.extendsClause.superclass.name.end,
-        node.extendsClause.superclass.name.end,
+        extendsName.end,
+        extendsName.end,
         '2',
       );
     } else {
-      return;
+      if (!node.metadata.any((m) =>
+          migrateAnnotations.contains(m.name.name) ||
+          overReact16AnnotationNames.contains(m.name.name))) {
+        // Only looking for classes annotated with `@Props()`, `@State()`,
+        // `@AbstractProps()`, or `@AbstractState()`. If [renameMixins] is true,
+        // also includes `@PropsMixin()` and `@StateMixin()`.
+        return;
+      }
+
+      // Update annotation.
+      Iterable<Annotation> annotationRefs =
+          node.metadata.where((m) => migrateAnnotations.contains(m.name.name));
+
+      annotationRefs.forEach((annotationRef) {
+        if (annotationRef.name.name.contains('2')) {
+          return;
+        }
+
+        yieldPatch(
+          annotationRef.name.end,
+          annotationRef.name.end,
+          '2',
+        );
+      });
+
+      if (extendsName.name == 'UiComponent' ||
+          extendsName.name == 'UiStatefulComponent') {
+        // Update `UiComponent` or `UiStatefulComponent` extends clause.
+        yieldPatch(
+          extendsName.end,
+          extendsName.end,
+          '2',
+        );
+      }
     }
   }
 }

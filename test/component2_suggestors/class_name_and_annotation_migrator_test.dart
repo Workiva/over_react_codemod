@@ -157,29 +157,5 @@ main() {
         ''',
       );
     });
-
-    test('react.Component type name updates', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          import 'package:react/react.dart' as react;
-          import 'package:react/react_dom.dart' as react_dom;
-
-          react.Component render() {
-            react.Component component = getDartComponent(react_dom.render(Foo()(), mountNode));
-            return component;
-          }
-        ''',
-        expectedOutput: '''
-          import 'package:react/react.dart' as react;
-          import 'package:react/react_dom.dart' as react_dom;
-
-          react.Component2 render() {
-            react.Component2 component = getDartComponent(react_dom.render(Foo()(), mountNode));
-            return component;
-          }
-        ''',
-      );
-    });
   });
 }
