@@ -130,7 +130,7 @@ main() {
           class FooComponent extends react.Component{}
         ''',
         expectedOutput: '''
-          import 'package:react/react.dart' as react show Component2;
+          import 'package:react/react.dart' as react show Component, Component2;
           import 'package:react/react_dom.dart' as react_dom;
 
           class FooComponent extends react.Component2{}
@@ -144,14 +144,14 @@ main() {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
-          import 'package:react/react_dom.dart' as react_dom;
-          import 'package:react/react.dart' as foo;
+          import "package:react/react_dom.dart" as react_dom;
+          import "package:react/react.dart" as foo;
         
           class FooComponent extends foo.Component{}
         ''',
         expectedOutput: '''
-          import 'package:react/react_dom.dart' as react_dom;
-          import 'package:react/react.dart' as foo;
+          import "package:react/react_dom.dart" as react_dom;
+          import "package:react/react.dart" as foo;
 
           class FooComponent extends foo.Component2{}
         ''',

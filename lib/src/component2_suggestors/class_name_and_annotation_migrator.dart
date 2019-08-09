@@ -33,20 +33,17 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     super.visitImportDirective(node);
 
     if (node.uri?.stringValue != 'package:react/react.dart' ||
-        node.combinators.isEmpty) return;
+        node.combinators.isEmpty) {
+      return;
+    }
 
+    // Add Component2 to import show list.
     var showNamesList = (node.combinators.first as ShowCombinator)?.shownNames;
-    var showName = showNamesList?.firstWhere(
-      (name) => name.toSource() == 'Component',
-      orElse: () => null,
-    );
-
-    // Update imported class.
-    if (showName != null) {
+    if (!showNamesList.any((name) => name.toSource() == 'Component2')) {
       yieldPatch(
-        showName.end,
-        showName.end,
-        '2',
+        showNamesList.last.end,
+        showNamesList.last.end,
+        ', Component2',
       );
     }
   }
