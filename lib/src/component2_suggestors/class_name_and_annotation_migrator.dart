@@ -64,8 +64,8 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
 
     ImportDirective reactImport = importList.directives.lastWhere(
         (dir) =>
-            (dir as ImportDirective)?.uri?.stringValue ==
-            'package:react/react.dart',
+            dir is ImportDirective &&
+            dir.uri?.stringValue == 'package:react/react.dart',
         orElse: () => null);
 
     String reactImportName = reactImport?.prefix?.name;
