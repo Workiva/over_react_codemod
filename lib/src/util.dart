@@ -381,5 +381,4 @@ Iterable<Token> allComments(Token beginToken) sync* {
     }
     currentToken = currentToken.next;
   }
-  ;
 }
