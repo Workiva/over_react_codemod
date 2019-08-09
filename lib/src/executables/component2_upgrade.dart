@@ -16,8 +16,10 @@ import 'dart:io';
 
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/component2_suggestors/class_name_and_annotation_migrator.dart';
+import 'package:over_react_codemod/src/component2_suggestors/componentdidupdate_migrator.dart';
 import 'package:over_react_codemod/src/component2_suggestors/componentwillmount_migrator.dart';
 import 'package:over_react_codemod/src/component2_suggestors/setstate_updater.dart';
+import 'package:over_react_codemod/src/component2_suggestors/copyunconsumeddomprops_migrator.dart';
 
 const _changesRequiredOutput = """
 To update your code, switch to Dart 2.1.0 and run the following commands:
@@ -37,6 +39,8 @@ void main(List<String> args) {
       ClassNameAndAnnotationMigrator(),
       ComponentWillMountMigrator(),
       SetStateUpdater(),
+      ComponentDidUpdateMigrator(),
+      CopyUnconsumedDomPropsMigrator(),
     ],
     args: args,
     defaultYes: true,

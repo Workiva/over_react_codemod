@@ -26,7 +26,7 @@ final _pathPattern = RegExp(r'\(path ([\w./]+)\)');
 final _dartfmtOutputPattern = RegExp(r'\s*@dartfmt_output');
 final _idempotentPattern = RegExp(r'\s*@idempotent');
 
-final formatter = new DartFormatter();
+final formatter = DartFormatter();
 
 // This testing approach is similar to what dart_style does for their formatting
 // tests since it is pretty much entirely input >> output.
@@ -152,14 +152,14 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
 /// Returns a version of [testSuggestor] with [suggestor] curried.
 void Function({
   @required String input,
-  @required String expectedOutput,
+  String expectedOutput,
   int expectedPatchCount,
   bool shouldDartfmtOutput,
   bool testIdempotency,
 }) getSuggestorTester(Suggestor suggestor) {
   return ({
     @required String input,
-    @required String expectedOutput,
+    String expectedOutput,
     int expectedPatchCount,
     bool shouldDartfmtOutput = true,
     bool testIdempotency = true,
@@ -177,11 +177,11 @@ void Function({
 void testSuggestor({
   @required Suggestor suggestor,
   @required String input,
-  @required String expectedOutput,
+  String expectedOutput,
   int expectedPatchCount,
   bool shouldDartfmtOutput = true,
   bool testIdempotency = true,
-  String inputUrl: 'input',
+  String inputUrl = 'input',
 }) {
   if (expectedOutput == null) {
     expectedOutput = input;
