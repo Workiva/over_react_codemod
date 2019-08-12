@@ -108,7 +108,8 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
                   if (property is SimpleIdentifier) flagAsVariable();
 
-                  if (isANumber(cleanedPropertySubString)) {
+                  if (isANumber(cleanedPropertySubString) &&
+                      !isANumber(property.toSource())) {
                     yieldPatch(property.offset, property.end,
                         cleanedPropertySubString);
                   }
@@ -128,7 +129,10 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                   }
                 }
               } else {
-                isOther = true;
+                if (cssPropertyValue is! DoubleLiteral &&
+                    cssPropertyValue is! IntegerLiteral) {
+                  isOther = true;
+                }
               }
             });
           } else if (stylesObject is SimpleIdentifier) {
@@ -192,6 +196,11 @@ String getString({
   String functionCheckbox = '// [ ] Check this box upon manual validation '
       'that the method called to set the style prop does not return any '
       'simple, unitless strings instead of nums.';
+
+  print(isAFunction);
+  print(isAVariable);
+  print(styleMapContainsAVariable);
+  print(isOther);
 
   if (isForCustomProps) {
     return '''

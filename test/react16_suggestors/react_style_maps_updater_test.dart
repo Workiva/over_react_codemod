@@ -211,6 +211,37 @@ main() {
         );
       });
 
+      test('is a mathmatical expression', () {
+        testSuggestor(
+          expectedPatchCount: 3,
+          input: '''
+            main() {
+              Foo()
+              ..style = {
+                'width': width / 10,
+                'height': '40%',
+                'fontSize': '12',
+                'margin': '25',
+              };
+            }
+          ''',
+          expectedOutput: '''
+            main() {
+              Foo()
+              ${manualVariableCheckComment(keysOfModdedValues: [
+            'width',
+          ])}
+              ..style = {
+                'width': width / 10,
+                'height': '40%',
+                'fontSize': 12,
+                'margin': 25,
+              };
+            }
+          ''',
+        );
+      });
+
       test('is an expression that has already been updated', () {
         testSuggestor(
           expectedPatchCount: 0,
