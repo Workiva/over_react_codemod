@@ -9,3 +9,5 @@ const styleMapExample = '''
     // If the property accepts a numerical value:
     // Incorrect: 'width': '40'
     // Correct: 'width': 40 or 'width': '40px' or 'width': '4em' etc''';
+
+const reactVersionRange = '>=4.7.0 <6.0.0';
