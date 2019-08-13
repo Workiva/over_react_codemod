@@ -197,11 +197,6 @@ String getString({
       'that the method called to set the style prop does not return any '
       'simple, unitless strings instead of nums.';
 
-  print(isAFunction);
-  print(isAVariable);
-  print(styleMapContainsAVariable);
-  print(isOther);
-
   if (isForCustomProps) {
     return '''
     $variableCheckbox
