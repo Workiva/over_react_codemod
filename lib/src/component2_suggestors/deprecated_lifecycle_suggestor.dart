@@ -31,24 +31,18 @@ class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
     ClassDeclaration containingClass = node.parent;
     if (containingClass.metadata
         .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
-      if (node.name.name == 'componentWillUpdate') {
-        if (!hasComment(node, sourceFile,
-            'FIXME: [componentWillUpdate] has been deprecated')) {
-          yieldPatch(
-            node.offset,
-            node.offset,
-            '${getComponentWillUpdateComment()}\n',
-          );
-        }
-      }
+      var deprecatedLifecycleMethods = [
+        'componentWillUpdate',
+        'componentWillReceiveProps',
+      ];
 
-      if (node.name.name == 'componentWillReceiveProps') {
+      if (deprecatedLifecycleMethods.contains(node.name.name)) {
         if (!hasComment(node, sourceFile,
-            'FIXME: [componentWillReceiveProps] has been deprecated')) {
+            'FIXME: [${node.name.name}] has been deprecated')) {
           yieldPatch(
             node.offset,
             node.offset,
-            '${getComponentWillReceivePropsComment()}\n',
+            '${getDeperecationMessage(node.name.name)}\n',
           );
         }
       }
