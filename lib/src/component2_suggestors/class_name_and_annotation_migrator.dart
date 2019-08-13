@@ -16,7 +16,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
 import '../constants.dart';
-import 'component2_utilities.dart';
 
 /// Suggestor that replaces `UiComponent` with `UiComponent2` in extends clauses
 /// and updates the annotation to `@Component2()`.
@@ -58,8 +57,18 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
       return;
     }
 
-    String reactImportName =
-        getImportNamespace(node, 'package:react/react.dart');
+    // Get the name of the react.dart import.
+    CompilationUnit importList = node.thisOrAncestorMatching((ancestor) {
+      return ancestor is CompilationUnit;
+    });
+
+    ImportDirective reactImport = importList.directives.lastWhere(
+        (dir) =>
+            dir is ImportDirective &&
+            dir.uri?.stringValue == 'package:react/react.dart',
+        orElse: () => null);
+
+    String reactImportName = reactImport?.prefix?.name;
 
     if (reactImportName != null &&
         extendsName.name == '$reactImportName.Component') {

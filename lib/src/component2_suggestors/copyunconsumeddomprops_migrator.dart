@@ -15,7 +15,7 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
-import 'component2_utilities.dart';
+import '../constants.dart';
 
 /// Suggestor that updates `copyUnconsumedDomProps` and `copyUnconsumedProps` usages.
 class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
@@ -29,7 +29,9 @@ class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
       return ancestor is ClassDeclaration;
     });
 
-    if (extendsComponent2(containingClass)) {
+    if (containingClass != null &&
+        containingClass.metadata
+            .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
       if (node.methodName.name == 'addProps') {
         var firstArg = node.argumentList.arguments.first;
 

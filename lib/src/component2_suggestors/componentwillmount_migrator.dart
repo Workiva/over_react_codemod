@@ -15,7 +15,7 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
-import 'component2_utilities.dart';
+import '../constants.dart';
 
 /// Suggestor that renames `componentWillUnmount` to `init` and removes
 /// super calls to be compatible with UiComponent2.
@@ -27,8 +27,8 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
     super.visitMethodDeclaration(node);
 
     ClassDeclaration containingClass = node.parent;
-
-    if (extendsComponent2(containingClass)) {
+    if (containingClass.metadata
+        .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
       // Update method name.
       if (node.name.name == 'componentWillMount') {
         yieldPatch(

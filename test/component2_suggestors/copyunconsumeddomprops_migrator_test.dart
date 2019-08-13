@@ -68,10 +68,8 @@ main() {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
-          import 'package:react/react.dart' as react;
-          
           @Component2()
-          class FooComponent extends react.Component2 {
+          class FooComponent extends UiComponent2<FooProps> {
             @override
             render() {
               return (Dom.span()
@@ -81,10 +79,8 @@ main() {
           }
         ''',
         expectedOutput: '''
-          import 'package:react/react.dart' as react;
-        
           @Component2()
-          class FooComponent extends react.Component2 {
+          class FooComponent extends UiComponent2<FooProps> {
             @override
             render() {
               return (Dom.span()

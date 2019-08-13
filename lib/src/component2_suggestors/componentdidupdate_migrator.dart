@@ -14,7 +14,8 @@
 
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/component2_suggestors/component2_utilities.dart';
+
+import '../constants.dart';
 
 /// Suggestor that adds an optional `snapshot` argument to `componentDidUpdate`.
 class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
@@ -26,7 +27,8 @@ class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
 
     ClassDeclaration containingClass = node.parent;
 
-    if (extendsComponent2(containingClass)) {
+    if (containingClass.metadata
+        .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
       if (node.name.name == 'componentDidUpdate') {
         if (node.parameters.parameters.length == 2) {
           yieldPatch(node.parameters.rightParenthesis.offset,
