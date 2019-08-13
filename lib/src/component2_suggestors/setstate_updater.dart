@@ -15,25 +15,23 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
-import '../constants.dart';
-
-/// Suggestor that adds an optional `snapshot` argument to `componentDidUpdate`.
-class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
+/// Suggestor that updates a [setState] call to [setStateWithUpdater] in the
+/// case that the first argument is a function.
+class SetStateUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
-    super.visitMethodDeclaration(node);
+  visitMethodInvocation(MethodInvocation node) {
+    super.visitMethodInvocation(node);
 
-    ClassDeclaration containingClass = node.parent;
+    if (node.argumentList.arguments.isEmpty) return;
 
-    if (containingClass.metadata
-        .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
-      if (node.name.name == 'componentDidUpdate') {
-        if (node.parameters.parameters.length == 2) {
-          yieldPatch(node.parameters.rightParenthesis.offset,
-              node.parameters.rightParenthesis.offset, ', [snapshot]');
-        }
+    final firstArg = node.argumentList.arguments.first;
+
+    if (node.methodName.name == 'setState') {
+      if (firstArg is FunctionExpression) {
+        yieldPatch(
+            node.methodName.offset, node.methodName.end, 'setStateWithUpdater');
       }
     }
   }

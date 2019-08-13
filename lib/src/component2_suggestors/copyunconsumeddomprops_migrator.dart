@@ -15,6 +15,8 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
+import '../constants.dart';
+
 /// Suggestor that updates `copyUnconsumedDomProps` and `copyUnconsumedProps` usages.
 class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
@@ -23,17 +25,26 @@ class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    if (node.methodName.name == 'addProps') {
-      var firstArg = node.argumentList.arguments.first;
+    ClassDeclaration containingClass = node.thisOrAncestorMatching((ancestor) {
+      return ancestor is ClassDeclaration;
+    });
 
-      if (firstArg.toSource() == 'copyUnconsumedDomProps()' ||
-          firstArg.toSource() == 'copyUnconsumedProps()') {
-        // Update argument.
-        yieldPatch(firstArg.offset, firstArg.end,
-            'addUnconsumed${firstArg.toSource().contains('Dom') ? 'Dom' : ''}Props');
+    if (containingClass != null &&
+        containingClass.metadata
+            .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
+      if (node.methodName.name == 'addProps') {
+        var firstArg = node.argumentList.arguments.first;
 
-        // Rename `addProps` to `modifyProps`.
-        yieldPatch(node.methodName.offset, node.methodName.end, 'modifyProps');
+        if (firstArg.toSource() == 'copyUnconsumedDomProps()' ||
+            firstArg.toSource() == 'copyUnconsumedProps()') {
+          // Update argument.
+          yieldPatch(firstArg.offset, firstArg.end,
+              'addUnconsumed${firstArg.toSource().contains('Dom') ? 'Dom' : ''}Props');
+
+          // Rename `addProps` to `modifyProps`.
+          yieldPatch(
+              node.methodName.offset, node.methodName.end, 'modifyProps');
+        }
       }
     }
   }
