@@ -24,7 +24,7 @@ const String privateGeneratedPrefix = '$privatePrefix$generatedPrefix';
 const String overReactGeneratedExtension = '.over_react.g.dart';
 
 /// Names of all the over_react annotations.
-const List<String> overReactAnnotationNames = const [
+const List<String> overReactAnnotationNames = [
   'Factory',
   'Component',
   'Props',
@@ -37,18 +37,18 @@ const List<String> overReactAnnotationNames = const [
 ];
 
 /// Names of all the over_react annotations.
-const List<String> overReact16AnnotationNamesToMigrate = const [
+const List<String> overReact16AnnotationNamesToMigrate = [
   'Component',
   'AbstractComponent',
 ];
 
 /// Names of all the over_react annotations.
-const List<String> overReact16AnnotationNames = const [
+const List<String> overReact16AnnotationNames = [
   'Component2',
   'AbstractComponent2',
 ];
 
-const List<String> overReactPropsStateAnnotationNames = const [
+const List<String> overReactPropsStateAnnotationNames = [
   'Props',
   'State',
   'AbstractProps',
@@ -59,7 +59,7 @@ const List<String> overReactPropsStateAnnotationNames = const [
 
 /// Annotation names for over_react's props and state classes, excluding the
 /// mixin annotations.
-const List<String> overReactPropsStateNonMixinAnnotationNames = const [
+const List<String> overReactPropsStateNonMixinAnnotationNames = [
   'Props',
   'State',
   'AbstractProps',
@@ -67,7 +67,7 @@ const List<String> overReactPropsStateNonMixinAnnotationNames = const [
 ];
 
 /// Annotation names for over_react's props and state mixins.
-const List<String> overReactMixinAnnotationNames = const [
+const List<String> overReactMixinAnnotationNames = [
   'PropsMixin',
   'StateMixin',
 ];

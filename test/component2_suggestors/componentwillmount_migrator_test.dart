@@ -62,16 +62,20 @@ main() {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
+          import 'package:react/react.dart' as react;
+          
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends react.Component2 {
               void componentWillMount(){
                   // method body
               }
           }
         ''',
         expectedOutput: '''
+          import 'package:react/react.dart' as react;
+          
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends react.Component2 {
               void init(){
                   // method body
               }
