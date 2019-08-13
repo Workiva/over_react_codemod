@@ -22,5 +22,162 @@ import '../util.dart';
 main() {
   group('React16PubspecUpdater', () {
     final testSuggestor = getSuggestorTester(React16PubspecUpdater(VersionConstraint.parse(reactVersionRange)));
+
+    test('does nothing if there is no dependency key', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        shouldDartfmtOutput: false,
+        input: '''
+          name: nothing
+          verion: 0.0.0
+        ''',
+        expectedOutput: '''
+          name: nothing
+          verion: 0.0.0
+        ''',
+      );
+    });
+
+    test('adds dependency if missing', () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        shouldDartfmtOutput: false,
+        input: '''
+          dependencies:
+            test: 1.5.1
+        ''',
+        expectedOutput: '''
+          dependencies:
+            react: '>=4.7.0 <6.0.0'
+            test: 1.5.1
+        ''',
+      );
+    });
+
+    group('updates the caret syntax', () {
+      test('', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          input: '''
+          react: ^4.6.1
+          test: 1.5.1
+        ''',
+          expectedOutput: '''
+          react: '>=4.7.0 <6.0.0'
+          test: 1.5.1
+        ''',
+        );
+      });
+
+      test('with single quotes', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          input: '''
+          react: '^4.6.1'
+          test: 1.5.1
+        ''',
+          expectedOutput: '''
+          react: '>=4.7.0 <6.0.0'
+          test: 1.5.1
+        ''',
+        );
+      });
+
+      test('with double quotes', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          input: '''
+          react: '^4.6.1'
+          test: 1.5.1
+        ''',
+          expectedOutput: '''
+          react: '>=4.7.0 <6.0.0'
+          test: 1.5.1
+        ''',
+        );
+      });
+    });
+
+    group('updates the range syntax', () {
+      test('with single quotes', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          input: '''
+          react: '>=4.5.0 <4.6.5'
+          test: 1.5.1
+        ''',
+          expectedOutput: '''
+          react: '>=4.7.0 <6.0.0'
+          test: 1.5.1
+        ''',
+        );
+      });
+
+      test('with double quotes', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          input: '''
+          react: ">=4.5.0 <4.6.5"
+          test: 1.5.1
+        ''',
+          expectedOutput: '''
+          react: ">=4.7.0 <6.0.0"
+          test: 1.5.1
+        ''',
+        );
+      });
+    });
+
+    group('updates mid-only range', () {
+      test('', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          input: '''
+          react: >=4.5.0
+          test: 1.5.1
+        ''',
+          expectedOutput: '''
+          react: '>=4.7.0 <6.0.0'
+          test: 1.5.1
+        ''',
+        );
+      });
+
+      test('with single quotes', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          input: '''
+          react: '>=4.5.0'
+          test: 1.5.1
+        ''',
+          expectedOutput: '''
+          react: '>=4.7.0 <6.0.0'
+          test: 1.5.1
+        ''',
+        );
+      });
+
+      test('with double quotes', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          input: '''
+          react: ">=4.5.0"
+          test: 1.5.1
+        ''',
+          expectedOutput: '''
+          react: ">=4.7.0 <6.0.0"
+          test: 1.5.1
+        ''',
+        );
+      });
+    });
   });
 }

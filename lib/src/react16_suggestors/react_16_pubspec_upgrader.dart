@@ -43,7 +43,7 @@ class React16PubspecUpdater implements Suggestor {
 
   /// Regex that matches the `dependencies:` key in a pubspec.yaml.
   static final RegExp dependenciesKey = RegExp(
-    r'^dependencies:$',
+    r'^\s*dependencies:$',
     multiLine: true,
   );
 
@@ -81,8 +81,9 @@ class React16PubspecUpdater implements Suggestor {
       }
     } else {
       // react is missing in pubspec.yaml, so add it.
-      final dependeniesKeyMatch = dependenciesKey.firstMatch(contents);
-      if (dependeniesKeyMatch != null) {
+      final dependenciesKeyMatch = dependenciesKey.firstMatch(contents);
+
+      if (dependenciesKeyMatch != null) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
         if (newValue.contains(' ')) {
@@ -91,7 +92,7 @@ class React16PubspecUpdater implements Suggestor {
 
         yield Patch(
           sourceFile,
-          sourceFile.span(dependeniesKeyMatch.end, dependeniesKeyMatch.end),
+          sourceFile.span(dependenciesKeyMatch.end, dependenciesKeyMatch.end),
           '\n  react: $newValue',
         );
       }
