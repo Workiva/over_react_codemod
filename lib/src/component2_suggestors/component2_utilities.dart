@@ -32,7 +32,7 @@ String getImportNamespace(AstNode node, String uri) {
 /// Returns whether or not [classNode] extends Component2 (either by having the
 /// `@Component2` annotation or by extending `react.Component2`).
 bool extendsComponent2(ClassDeclaration classNode) {
-  var extendsName = classNode.extendsClause?.superclass?.name;
+  var extendsName = classNode?.extendsClause?.superclass?.name;
   if (extendsName == null) {
     return false;
   }
