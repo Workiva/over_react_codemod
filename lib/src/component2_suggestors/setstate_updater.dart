@@ -15,6 +15,8 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
+import 'component2_utilities.dart';
+
 /// Suggestor that updates a [setState] call to [setStateWithUpdater] in the
 /// case that the first argument is a function.
 class SetStateUpdater extends GeneralizingAstVisitor
@@ -24,14 +26,23 @@ class SetStateUpdater extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    if (node.argumentList.arguments.isEmpty) return;
+    ClassDeclaration containingClass = node.thisOrAncestorMatching((ancestor) {
+      return ancestor is ClassDeclaration;
+    });
 
-    final firstArg = node.argumentList.arguments.first;
+    if (extendsComponent2(containingClass)) {
+      if (node.argumentList.arguments.isEmpty) return;
 
-    if (node.methodName.name == 'setState') {
-      if (firstArg is FunctionExpression) {
-        yieldPatch(
-            node.methodName.offset, node.methodName.end, 'setStateWithUpdater');
+      final firstArg = node.argumentList.arguments.first;
+
+      if (node.methodName.name == 'setState') {
+        if (firstArg is FunctionExpression) {
+          yieldPatch(
+            node.methodName.offset,
+            node.methodName.end,
+            'setStateWithUpdater',
+          );
+        }
       }
     }
   }
