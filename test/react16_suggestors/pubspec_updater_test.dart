@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/react16_suggestors/react_16_pubspec_upgrader.dart';
+import 'package:over_react_codemod/src/react16_suggestors/pubspec_upgrader.dart';
 import 'package:test/test.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
@@ -26,7 +26,7 @@ main() {
   // formatting is unavailable.
   group('React16PubspecUpdater', () {
     final testSuggestor = getSuggestorTester(
-        React16PubspecUpdater(VersionConstraint.parse(reactVersionRange)));
+        PubspecUpdater(VersionConstraint.parse(reactVersionRange)));
 
     test('does nothing if there is no dependency key', () {
       testSuggestor(

@@ -22,7 +22,7 @@ import 'package:source_span/source_span.dart';
 /// If `react` is already listed, but the minimum bound is not high enough,
 /// the version constraint will be updated. If `react` is missing from
 /// the file, it will be added.
-class React16PubspecUpdater implements Suggestor {
+class PubspecUpdater implements Suggestor {
   /// Version constraint that ensures a version of over_react compatible with
   /// the new forwards- and backwards-compatible component boilerplate.
   static final VersionRange dart1And2Constraint =
@@ -48,7 +48,7 @@ class React16PubspecUpdater implements Suggestor {
 
   final VersionRange targetConstraint;
 
-  React16PubspecUpdater(this.targetConstraint);
+  PubspecUpdater(this.targetConstraint);
 
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {

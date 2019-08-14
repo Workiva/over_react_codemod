@@ -16,7 +16,7 @@ import 'dart:io';
 
 import 'package:codemod/codemod.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react_16_pubspec_upgrader.dart';
+import 'package:over_react_codemod/src/react16_suggestors/pubspec_upgrader.dart';
 import '../react16_suggestors/constants.dart';
 
 const _changesRequiredOutput = """
@@ -36,7 +36,7 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     [
-      React16PubspecUpdater(reactVersionConstraint),
+      PubspecUpdater(reactVersionConstraint),
     ],
     args: args,
     defaultYes: true,
