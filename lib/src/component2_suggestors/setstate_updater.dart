@@ -34,6 +34,10 @@ class SetStateUpdater extends GeneralizingAstVisitor
       return ancestor is ClassDeclaration;
     });
 
+    if(noPartialUpgrades && !canBeFullyUpgradedToComponent2(containingClass)) {
+      return;
+    }
+
     if (extendsComponent2(containingClass)) {
       if (node.argumentList.arguments.isEmpty) return;
 

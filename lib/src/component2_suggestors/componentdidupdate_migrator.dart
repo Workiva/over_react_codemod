@@ -30,6 +30,10 @@ class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
 
     ClassDeclaration containingClass = node.parent;
 
+    if(noPartialUpgrades && !canBeFullyUpgradedToComponent2(containingClass)) {
+      return;
+    }
+
     if (extendsComponent2(containingClass)) {
       if (node.name.name == 'componentDidUpdate') {
         if (node.parameters.parameters.length == 2) {

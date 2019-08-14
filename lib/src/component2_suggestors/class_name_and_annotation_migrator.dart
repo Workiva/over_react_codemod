@@ -57,6 +57,10 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
+    if(noPartialUpgrades && !canBeFullyUpgradedToComponent2(node)) {
+      return;
+    }
+
     var extendsName = node.extendsClause?.superclass?.name;
     if (extendsName == null) {
       return;

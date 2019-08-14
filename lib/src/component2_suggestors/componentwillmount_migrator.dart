@@ -32,6 +32,10 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
 
     ClassDeclaration containingClass = node.parent;
 
+    if(noPartialUpgrades && !canBeFullyUpgradedToComponent2(containingClass)) {
+      return;
+    }
+
     if (extendsComponent2(containingClass)) {
       // Update method name.
       if (node.name.name == 'componentWillMount') {
