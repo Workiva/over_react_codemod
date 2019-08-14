@@ -85,7 +85,8 @@ bool canBeFullyUpgradedToComponent2(ClassDeclaration classNode) {
     return false;
   }
 
-  // Check that all lifecycle methods will be updated by codemods.
+  // Check that all lifecycle methods contained in the class will be
+  // updated by a codemod.
   var lifecycleMethodsWithCodemods = [
     'componentWillMount',
     'init',
