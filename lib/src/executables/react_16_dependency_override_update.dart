@@ -21,7 +21,7 @@ import 'package:path/path.dart' as p;
 const _changesRequiredOutput = """
   To update your pubspec, run the following commands:
   pub global activate over_react_codemod ^1.1.0
-  pub global run over_react_codemod:react_16_dependency_override_updater
+  pub global run over_react_codemod:react_16_dependency_override_update
 Then, review the the changes and commit.
 """;
 

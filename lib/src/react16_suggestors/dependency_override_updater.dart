@@ -84,6 +84,7 @@ class DependencyOverrideUpdater implements Suggestor {
         yield Patch(
             sourceFile,
             sourceFile.span(span, span),
+            '\n'
             'dependency_overrides:\n'
             '$dependencyOverrides');
       }
