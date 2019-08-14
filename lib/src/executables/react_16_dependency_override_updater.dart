@@ -15,8 +15,8 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
-import 'package:path/path.dart' as p;
 import 'package:over_react_codemod/src/react16_suggestors/dependency_override_updater.dart';
+import 'package:path/path.dart' as p;
 
 const _changesRequiredOutput = """
   To update your pubspec, run the following commands:

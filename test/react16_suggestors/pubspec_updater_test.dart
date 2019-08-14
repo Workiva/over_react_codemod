@@ -32,14 +32,14 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         shouldDartfmtOutput: false,
-        input: '''
-          name: nothing
-          verion: 0.0.0
-        ''',
-        expectedOutput: '''
-          name: nothing
-          verion: 0.0.0
-''',
+        input: ''
+            'name: nothing\n'
+            'verion: 0.0.0\n'
+            '',
+        expectedOutput: ''
+            'name: nothing\n'
+            'verion: 0.0.0\n'
+            '',
       );
     });
 
@@ -47,15 +47,15 @@ main() {
       testSuggestor(
         expectedPatchCount: 1,
         shouldDartfmtOutput: false,
-        input: '''
-dependencies:
-  test: 1.5.1
-        ''',
-        expectedOutput: '''
-dependencies:
-  react: '>=4.7.0 <6.0.0'
-  test: 1.5.1
-''',
+        input: ''
+            'dependencies:\n'
+            '  test: 1.5.1\n'
+            '',
+        expectedOutput: ''
+            'dependencies:\n'
+            '  react: \'>=4.7.0 <6.0.0\'\n'
+            '  test: 1.5.1\n'
+            '',
       );
     });
 
@@ -64,10 +64,10 @@ dependencies:
         testSuggestor(
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
-          input: '''
-            react: ^4.6.1
-            test: 1.5.1
-          ''',
+          input: ''
+              'react: ^4.6.1\n'
+              'test: 1.5.1\n'
+              '',
           expectedOutput: getExpectedOutput(),
         );
       });
@@ -76,10 +76,10 @@ dependencies:
         testSuggestor(
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
-          input: '''
-            react: '^4.6.1'
-            test: 1.5.1
-          ''',
+          input: ''
+              'react: \'^4.6.1\'\n'
+              'test: 1.5.1\n'
+              '',
           expectedOutput: getExpectedOutput(),
         );
       });
@@ -88,10 +88,10 @@ dependencies:
         testSuggestor(
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
-          input: '''
-            react: "^4.6.1"
-            test: 1.5.1
-          ''',
+          input: ''
+              'react: "^4.6.1"\n'
+              'test: 1.5.1\n'
+              '',
           expectedOutput: getExpectedOutput(usesDoubleQuotes: true),
         );
       });
@@ -102,10 +102,10 @@ dependencies:
         testSuggestor(
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
-          input: '''
-            react: '>=4.5.0 <4.6.5'
-            test: 1.5.1
-          ''',
+          input: ''
+              'react: \'>=4.5.0 <4.6.5\'\n'
+              'test: 1.5.1\n'
+              '',
           expectedOutput: getExpectedOutput(),
         );
       });
@@ -114,10 +114,10 @@ dependencies:
         testSuggestor(
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
-          input: '''
-            react: ">=4.5.0 <4.6.5"
-            test: 1.5.1
-          ''',
+          input: ''
+              'react: ">=4.5.0 <4.6.5"\n'
+              'test: 1.5.1\n'
+              '',
           expectedOutput: getExpectedOutput(usesDoubleQuotes: true),
         );
       });
@@ -128,10 +128,10 @@ dependencies:
         testSuggestor(
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
-          input: '''
-            react: >=4.5.0
-            test: 1.5.1
-          ''',
+          input: ''
+              'react: >=4.5.0\n'
+              'test: 1.5.1\n'
+              '',
           expectedOutput: getExpectedOutput(),
         );
       });
@@ -140,10 +140,10 @@ dependencies:
         testSuggestor(
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
-          input: '''
-            react: '>=4.5.0'
-            test: 1.5.1
-          ''',
+          input: ''
+              'react: \'>=4.5.0\'\n'
+              'test: 1.5.1\n'
+              '',
           expectedOutput: getExpectedOutput(),
         );
       });
@@ -152,10 +152,10 @@ dependencies:
         testSuggestor(
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
-          input: '''
-            react: ">=4.5.0"
-            test: 1.5.1
-          ''',
+          input: ''
+              'react: ">=4.5.0"\n'
+              'test: 1.5.1\n'
+              '',
           expectedOutput: getExpectedOutput(usesDoubleQuotes: true),
         );
       });
@@ -166,14 +166,10 @@ dependencies:
 String getExpectedOutput({
   bool usesDoubleQuotes = false,
 }) {
-  // It's a weird way of doing things, but if the version string is
-  // interpolated directly (e.g. creating a local variable with the version
-  // string wrapped in either single or double quotes), an extra set of
-  // quotes are included.
   String quotes = usesDoubleQuotes ? '"' : "'";
 
-  return '''
-            react: $quotes>=4.7.0 <6.0.0$quotes
-            test: 1.5.1
-''';
+  return ''
+      'react: $quotes>=4.7.0 <6.0.0$quotes\n'
+      'test: 1.5.1\n'
+      '';
 }

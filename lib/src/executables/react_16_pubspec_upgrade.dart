@@ -15,8 +15,10 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_upgrader.dart';
+import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
+
 import '../react16_suggestors/constants.dart';
 
 const _changesRequiredOutput = """
@@ -29,17 +31,19 @@ Then, review the the changes and commit.
 void main(List<String> args) {
   final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
 
-  final query = FileQuery.dir(
-    pathFilter: isDartFile,
-    recursive: true,
+  final pubspecYamlQuery = FileQuery.dir(
+    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
   );
-  exitCode = runInteractiveCodemodSequence(
-    query,
-    [
-      PubspecUpdater(reactVersionConstraint),
-    ],
+
+  exitCode = runInteractiveCodemod(
+    pubspecYamlQuery,
+    PubspecUpdater(reactVersionConstraint),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
+
+  if (exitCode > 0) {
+    return;
+  }
 }
