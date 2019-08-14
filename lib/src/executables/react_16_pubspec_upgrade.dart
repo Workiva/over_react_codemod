@@ -20,11 +20,10 @@ import 'package:over_react_codemod/src/react16_suggestors/react_16_pubspec_upgra
 import '../react16_suggestors/constants.dart';
 
 const _changesRequiredOutput = """
-  To update your code, change your `react` dependency version in `pubspec.yaml` to `^5.0.0` and run the following commands:
-  pub get
+  To update your pubspec, run the following commands:
   pub global activate over_react_codemod ^1.1.0
   pub global run over_react_codemod:react_16_pubspec_upgrade
-Then, review the the changes, address any FIXMEs, and commit.
+Then, review the the changes and commit.
 """;
 
 void main(List<String> args) {
