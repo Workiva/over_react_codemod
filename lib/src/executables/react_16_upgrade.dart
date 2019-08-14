@@ -48,7 +48,8 @@ void main(List<String> args) {
   for (var dartFile in query.generateFilePaths()) {
     final dartSource = File(dartFile).readAsStringSync();
     if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
-      logger.severe('Unaddressed over_react_codemod FIXME within $dartSource');
+      logger.severe('over_react_codemod validation comments are unaddressed '
+          'in $dartFile');
       exitCode = 1;
     }
   }
