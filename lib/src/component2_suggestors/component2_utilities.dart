@@ -49,3 +49,56 @@ bool extendsComponent2(ClassDeclaration classNode) {
     return false;
   }
 }
+
+/// Returns whether or not [classNode] can be fully upgraded to Component2.
+///
+/// In order for a component to be fully upgradable, the component must:
+///
+/// * extend directly from `UiComponent`/`UiStatefulComponent`/`react.Component`
+/// * contain only the lifecycle methods that the codemod updates:
+///   * `componentWillMount` (updated to `init`)
+///   * `render`
+///   * `componentDidUpdate`
+bool canBeFullyUpgradedToComponent2(ClassDeclaration classNode) {
+  var extendsName = classNode?.extendsClause?.superclass?.name;
+  if (extendsName == null) {
+    return false;
+  }
+
+  // Check that class extends directly from Component classes.
+  String reactImportName =
+      getImportNamespace(classNode, 'package:react/react.dart');
+
+  var componentClassNames = [
+    'UiComponent',
+    'UiComponent2',
+    'UiStatefulComponent',
+    'UiStatefulComponent2',
+  ];
+
+  if (reactImportName != null) {
+    componentClassNames.add('$reactImportName.Component');
+    componentClassNames.add('$reactImportName.Component2');
+  }
+
+  if (!componentClassNames.contains(extendsName.name)) {
+    return false;
+  }
+
+  // Check that all lifecycle methods will be updated by codemods.
+  var lifecycleMethodsWithCodemods = [
+    'componentWillMount',
+    'init',
+    'render',
+    'componentDidUpdate',
+  ];
+
+  for (var member in classNode.members) {
+    if (member is MethodDeclaration &&
+        !lifecycleMethodsWithCodemods.contains(member.name.name)) {
+      return false;
+    }
+  }
+
+  return true;
+}
