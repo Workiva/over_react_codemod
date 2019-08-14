@@ -20,8 +20,13 @@ import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import '../util.dart';
 
 main() {
+  // Odd formatting is required within some of the tests because the test
+  // suggestor formatting needs to be flagged as off. This is because parsing
+  // will throw due to the pubspec syntax being unexpected. Consequently,
+  // formatting is unavailable.
   group('React16PubspecUpdater', () {
-    final testSuggestor = getSuggestorTester(React16PubspecUpdater(VersionConstraint.parse(reactVersionRange)));
+    final testSuggestor = getSuggestorTester(
+        React16PubspecUpdater(VersionConstraint.parse(reactVersionRange)));
 
     test('does nothing if there is no dependency key', () {
       testSuggestor(
@@ -34,7 +39,7 @@ main() {
         expectedOutput: '''
           name: nothing
           verion: 0.0.0
-        ''',
+''',
       );
     });
 
@@ -43,14 +48,14 @@ main() {
         expectedPatchCount: 1,
         shouldDartfmtOutput: false,
         input: '''
-          dependencies:
-            test: 1.5.1
+dependencies:
+  test: 1.5.1
         ''',
         expectedOutput: '''
-          dependencies:
-            react: '>=4.7.0 <6.0.0'
-            test: 1.5.1
-        ''',
+dependencies:
+  react: '>=4.7.0 <6.0.0'
+  test: 1.5.1
+''',
       );
     });
 
@@ -60,13 +65,10 @@ main() {
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: '''
-          react: ^4.6.1
-          test: 1.5.1
-        ''',
-          expectedOutput: '''
-          react: '>=4.7.0 <6.0.0'
-          test: 1.5.1
-        ''',
+            react: ^4.6.1
+            test: 1.5.1
+          ''',
+          expectedOutput: getExpectedOutput(),
         );
       });
 
@@ -75,13 +77,10 @@ main() {
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: '''
-          react: '^4.6.1'
-          test: 1.5.1
-        ''',
-          expectedOutput: '''
-          react: '>=4.7.0 <6.0.0'
-          test: 1.5.1
-        ''',
+            react: '^4.6.1'
+            test: 1.5.1
+          ''',
+          expectedOutput: getExpectedOutput(),
         );
       });
 
@@ -90,13 +89,10 @@ main() {
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: '''
-          react: '^4.6.1'
-          test: 1.5.1
-        ''',
-          expectedOutput: '''
-          react: '>=4.7.0 <6.0.0'
-          test: 1.5.1
-        ''',
+            react: "^4.6.1"
+            test: 1.5.1
+          ''',
+          expectedOutput: getExpectedOutput(usesDoubleQuotes: true),
         );
       });
     });
@@ -107,13 +103,10 @@ main() {
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: '''
-          react: '>=4.5.0 <4.6.5'
-          test: 1.5.1
-        ''',
-          expectedOutput: '''
-          react: '>=4.7.0 <6.0.0'
-          test: 1.5.1
-        ''',
+            react: '>=4.5.0 <4.6.5'
+            test: 1.5.1
+          ''',
+          expectedOutput: getExpectedOutput(),
         );
       });
 
@@ -122,13 +115,10 @@ main() {
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: '''
-          react: ">=4.5.0 <4.6.5"
-          test: 1.5.1
-        ''',
-          expectedOutput: '''
-          react: ">=4.7.0 <6.0.0"
-          test: 1.5.1
-        ''',
+            react: ">=4.5.0 <4.6.5"
+            test: 1.5.1
+          ''',
+          expectedOutput: getExpectedOutput(usesDoubleQuotes: true),
         );
       });
     });
@@ -139,13 +129,10 @@ main() {
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: '''
-          react: >=4.5.0
-          test: 1.5.1
-        ''',
-          expectedOutput: '''
-          react: '>=4.7.0 <6.0.0'
-          test: 1.5.1
-        ''',
+            react: >=4.5.0
+            test: 1.5.1
+          ''',
+          expectedOutput: getExpectedOutput(),
         );
       });
 
@@ -154,13 +141,10 @@ main() {
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: '''
-          react: '>=4.5.0'
-          test: 1.5.1
-        ''',
-          expectedOutput: '''
-          react: '>=4.7.0 <6.0.0'
-          test: 1.5.1
-        ''',
+            react: '>=4.5.0'
+            test: 1.5.1
+          ''',
+          expectedOutput: getExpectedOutput(),
         );
       });
 
@@ -169,15 +153,27 @@ main() {
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: '''
-          react: ">=4.5.0"
-          test: 1.5.1
-        ''',
-          expectedOutput: '''
-          react: ">=4.7.0 <6.0.0"
-          test: 1.5.1
-        ''',
+            react: ">=4.5.0"
+            test: 1.5.1
+          ''',
+          expectedOutput: getExpectedOutput(usesDoubleQuotes: true),
         );
       });
     });
   });
+}
+
+String getExpectedOutput({
+  bool usesDoubleQuotes = false,
+}) {
+  // It's a weird way of doing things, but if the version string is
+  // interpolated directly (e.g. creating a local variable with the version
+  // string wrapped in either single or double quotes), an extra set of
+  // quotes are included.
+  String quotes = usesDoubleQuotes ? '"' : "'";
+
+  return '''
+            react: $quotes>=4.7.0 <6.0.0$quotes
+            test: 1.5.1
+''';
 }

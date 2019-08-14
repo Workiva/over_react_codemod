@@ -1,4 +1,3 @@
-
 // Copyright 2019 Workiva Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,13 +26,13 @@ class React16PubspecUpdater implements Suggestor {
   /// Version constraint that ensures a version of over_react compatible with
   /// the new forwards- and backwards-compatible component boilerplate.
   static final VersionRange dart1And2Constraint =
-  VersionConstraint.parse('^1.30.2');
+      VersionConstraint.parse('^1.30.2');
 
   /// Version constraint that ensures a version of over_react compatible with
   /// the Dart 2 builder and also opens the range up to over_react 2.x which is
   /// the first release that drops support for Dart 1.
   static final VersionRange dart2Constraint =
-  VersionConstraint.parse('>=1.30.2 <3.0.0');
+      VersionConstraint.parse('>=1.30.2 <3.0.0');
 
   /// Regex that matches the dependency constraint declaration for over_react.
   static final RegExp reactDep = RegExp(
