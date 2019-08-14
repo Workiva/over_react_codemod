@@ -20,6 +20,10 @@ import 'package:over_react_codemod/src/component2_suggestors/component2_utilitie
 class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  final bool noPartialUpgrades;
+
+  ComponentDidUpdateMigrator({this.noPartialUpgrades = false});
+
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);

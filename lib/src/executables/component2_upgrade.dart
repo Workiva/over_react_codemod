@@ -21,6 +21,7 @@ import 'package:over_react_codemod/src/component2_suggestors/componentwillmount_
 import 'package:over_react_codemod/src/component2_suggestors/setstate_updater.dart';
 import 'package:over_react_codemod/src/component2_suggestors/copyunconsumeddomprops_migrator.dart';
 
+const _noPartialUpgradesFlag = '--no-partial-upgrades';
 const _changesRequiredOutput = """
 To update your code, switch to Dart 2.1.0 and run the following commands:
   pub global activate over_react_codemod ^1.1.0
@@ -29,6 +30,9 @@ Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
+  final noPartialUpgrades = args.contains(_noPartialUpgradesFlag);
+  args.removeWhere((arg) => arg == _noPartialUpgradesFlag);
+
   final query = FileQuery.dir(
     pathFilter: isDartFile,
     recursive: true,
@@ -36,11 +40,11 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     [
-      ClassNameAndAnnotationMigrator(),
-      ComponentWillMountMigrator(),
-      SetStateUpdater(),
-      ComponentDidUpdateMigrator(),
-      CopyUnconsumedDomPropsMigrator(),
+      ClassNameAndAnnotationMigrator(noPartialUpgrades: noPartialUpgrades),
+      ComponentWillMountMigrator(noPartialUpgrades: noPartialUpgrades),
+      SetStateUpdater(noPartialUpgrades: noPartialUpgrades),
+      ComponentDidUpdateMigrator(noPartialUpgrades: noPartialUpgrades),
+      CopyUnconsumedDomPropsMigrator(noPartialUpgrades: noPartialUpgrades),
     ],
     args: args,
     defaultYes: true,
