@@ -90,7 +90,10 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: true);
+          testUtilityFunction(
+              input: input,
+              expectedValue: true,
+              functionToTest: extendsComponent2);
         });
 
         group('extends UiStatefulComponent2,', () {
@@ -101,7 +104,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: true);
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends react.Component2,', () {
@@ -113,7 +120,10 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: true);
+          testUtilityFunction(
+              input: input,
+              expectedValue: true,
+              functionToTest: extendsComponent2);
         });
 
         group('has the @Component2 annotation,', () {
@@ -124,7 +134,10 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: true);
+          testUtilityFunction(
+              input: input,
+              expectedValue: true,
+              functionToTest: extendsComponent2);
         });
 
         group('has the @AbstractComponent2 annotation,', () {
@@ -135,7 +148,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: true);
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: extendsComponent2,
+          );
         });
       });
 
@@ -148,7 +165,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends UiStatefulComponent,', () {
@@ -159,7 +180,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends react.Component,', () {
@@ -171,7 +196,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('has the @Component annotation,', () {
@@ -182,7 +211,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('has the @AbstractComponent annotation,', () {
@@ -193,7 +226,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends nothing', () {
@@ -203,23 +240,31 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
       });
     });
   });
 }
 
-void testExtendsComponent2({String input, bool expectedValue}) {
+void testUtilityFunction({
+  String input,
+  bool expectedValue,
+  bool Function(ClassDeclaration) functionToTest,
+}) {
   test('returns $expectedValue', () {
     CompilationUnit unit = parseCompilationUnit(input);
     expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
     unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
       if (expectedValue) {
-        expect(extendsComponent2(classNode), isTrue);
+        expect(functionToTest(classNode), isTrue);
       } else {
-        expect(extendsComponent2(classNode), isFalse);
+        expect(functionToTest(classNode), isFalse);
       }
     });
   });
