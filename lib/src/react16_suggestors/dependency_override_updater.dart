@@ -58,7 +58,7 @@ class DependencyOverrideUpdater implements Suggestor {
 
     if ((overReactDepMatch != null && reactDependencyMatch != null) &&
         (overReactOverrideMatch == null && reactOverrideMatch == null)) {
-      String dependencyOverrides = ''
+      final dependencyOverrides = ''
           '  react:\n'
           '    git:\n'
           '      url: git@github.com:cleandart/react-dart.git\n'

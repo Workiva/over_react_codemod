@@ -12,18 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/react16_suggestors/pubspec_upgrader.dart';
-import 'package:test/test.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
+import 'package:over_react_codemod/src/react16_suggestors/pubspec_upgrader.dart';
+import 'package:pub_semver/pub_semver.dart';
+import 'package:test/test.dart';
 
 import '../util.dart';
 
 main() {
-  // Odd formatting is required within some of the tests because the test
-  // suggestor formatting needs to be flagged as off. This is because parsing
-  // will throw due to the pubspec syntax being unexpected. Consequently,
-  // formatting is unavailable.
   group('React16PubspecUpdater', () {
     final testSuggestor = getSuggestorTester(
         PubspecUpdater(VersionConstraint.parse(reactVersionRange)));
