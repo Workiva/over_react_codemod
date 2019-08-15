@@ -14,10 +14,10 @@ authors:
   - Sebastian Malysa <sebastian.malysa@workiva.com>
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.2.0 <3.0.0"
 
 dependencies:
-  analyzer: ^0.33.6+1
+  analyzer: '>=0.37.0 <0.39.0'
   args: ^1.5.1
   codemod: ^0.1.3
   meta: ^1.1.6
@@ -37,3 +37,9 @@ dev_dependencies:
 executables:
   dart2_upgrade:
   component2_upgrade:
+
+dependency_overrides:
+  codemod:
+    git:
+      url: git@github.com:Workiva/dart_codemod.git
+      ref: CPLAT-7009-increase-analyzer-upper-bound
