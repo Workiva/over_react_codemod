@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 
@@ -53,8 +54,8 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           bool isForCustomProps =
               cascade.toSource().toLowerCase().contains('props');
 
-          if (stylesObject is MapLiteral) {
-            stylesObject.entries.forEach((MapLiteralEntry cssPropertyRow) {
+          if (stylesObject is SetOrMapLiteral) {
+            stylesObject.elements.whereType<MapLiteralEntry>().forEach((cssPropertyRow) {
               final propertyKey = cssPropertyRow.key;
               String originalCssPropertyKey = propertyKey.toSource();
               String cleanedCssPropertyKey = cleanString(propertyKey);
