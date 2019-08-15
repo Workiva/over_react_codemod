@@ -14,7 +14,7 @@ authors:
   - Sebastian Malysa <sebastian.malysa@workiva.com>
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.4.0 <3.0.0"
 
 dependencies:
   analyzer: '>=0.37.0 <0.39.0'
