@@ -87,15 +87,30 @@ bool canBeFullyUpgradedToComponent2(ClassDeclaration classNode) {
 
   // Check that all lifecycle methods contained in the class will be
   // updated by a codemod.
+  final lifecycleMethods = [
+    'componentWillMount',
+    'componentWillReceiveProps',
+    'componentWillUpdate',
+    'getDerivedStateFromError',
+    'getDerivedStateFromProps',
+    'getSnapshotBeforeUpdate',
+    'shouldComponentUpdate',
+    'render',
+    'componentDidMount',
+    'componentDidUpdate',
+    'componentWillUnmount',
+    'componentDidCatch',
+  ];
+
   var lifecycleMethodsWithCodemods = [
     'componentWillMount',
-    'init',
     'render',
     'componentDidUpdate',
   ];
 
   for (var member in classNode.members) {
     if (member is MethodDeclaration &&
+        lifecycleMethods.contains(member.name.name) &&
         !lifecycleMethodsWithCodemods.contains(member.name.name)) {
       return false;
     }

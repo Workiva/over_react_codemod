@@ -248,6 +248,126 @@ void main() {
         });
       });
     });
+
+    group('canBeFullyUpgradedToComponent2()', () {
+      group('(fully upgradable) when a class extends UiComponent', () {
+        group('and has no lifecycle methods', () {
+          final input = '''
+            @Component
+            class FooComponent extends UiComponent {
+              // class body
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: canBeFullyUpgradedToComponent2,
+          );
+        });
+
+        group('and contains lifecycle methods that are all updated by codemods',
+            () {
+          final input = '''
+            @Component
+            class FooComponent extends UiComponent {
+              @override
+              componentWillMount() {
+                // method body
+              }
+              
+              @override
+              render() {
+                // method body
+              }
+              
+              @override
+              componentDidUpdate() {
+                // method body
+              }
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: canBeFullyUpgradedToComponent2,
+          );
+        });
+
+        group('and contains non-lifecycle methods', () {
+          final input = '''
+            @Component
+            class FooComponent extends UiComponent {
+              eventHander() {
+                // method body
+              }
+              
+              @override
+              render() {
+                // method body
+              }
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: canBeFullyUpgradedToComponent2,
+          );
+        });
+      });
+
+      group('(not fully upgradable) when a class', () {
+        group('extends non-Component/Component2 classes', () {
+          final input = '''
+            @Component
+            class FooComponent extends AbstractFooComponent {
+              // class body
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: canBeFullyUpgradedToComponent2,
+          );
+        });
+
+        group('contains a lifecycle method not updated by a codemod', () {
+          final input = '''
+            @Component
+            class FooComponent extends UiComponent {
+              @override
+              componentWillMount() {
+                // method body
+              }
+              
+              @override
+              render() {
+                // method body
+              }
+              
+              @override
+              componentDidUpdate() {
+                // method body
+              }
+              
+              @override
+              componentWillUnmount() {
+              
+              }
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: canBeFullyUpgradedToComponent2,
+          );
+        });
+      });
+    });
   });
 }
 
