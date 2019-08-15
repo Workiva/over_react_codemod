@@ -16,8 +16,8 @@ import 'package:analyzer/analyzer.dart';
 import 'package:codemod/codemod.dart';
 
 import './component2_constants.dart';
-import '../constants.dart';
 import '../util.dart';
+import 'component2_utilities.dart';
 
 /// Suggestor that adds a "fix me" comment prompting consumers to update
 /// [componentWillReceiveProps] and [componentWillUpdate] to their respective
@@ -28,9 +28,9 @@ class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
+
     ClassDeclaration containingClass = node.parent;
-    if (containingClass.metadata
-        .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
+    if (extendsComponent2(containingClass)) {
       var deprecatedLifecycleMethods = [
         'componentWillUpdate',
         'componentWillReceiveProps',
