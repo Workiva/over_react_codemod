@@ -22,19 +22,19 @@ class DollarPropsMigrator implements Suggestor {
   static final RegExp dollarPropsPattern = RegExp(
     // constructor keyword + at least one whitespace char
     r'(?:const|new)\s+'
-        // optional over_react import prefix + optional whitespace
-        r'(?:\w+\s*\.\s*)?'
-        // $Props constructor + optional whitespace
-        r'\$Props\s*'
-        // opening paren + optional whitespace
-        r'\(\s*'
-        // props arg, including optional import prefix
-        // (GROUP 2)
-        r'([\w$.]+)'
-        // optional whitespace + optional trailing comma + optional whitespace
-        r'\s*(?:,)?\s*'
-        // closing paren
-        r'\)',
+    // optional over_react import prefix + optional whitespace
+    r'(?:\w+\s*\.\s*)?'
+    // $Props constructor + optional whitespace
+    r'\$Props\s*'
+    // opening paren + optional whitespace
+    r'\(\s*'
+    // props arg, including optional import prefix
+    // (GROUP 2)
+    r'([\w$.]+)'
+    // optional whitespace + optional trailing comma + optional whitespace
+    r'\s*(?:,)?\s*'
+    // closing paren
+    r'\)',
   );
 
   @override

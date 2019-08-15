@@ -55,7 +55,9 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
               cascade.toSource().toLowerCase().contains('props');
 
           if (stylesObject is SetOrMapLiteral) {
-            stylesObject.elements.whereType<MapLiteralEntry>().forEach((cssPropertyRow) {
+            stylesObject.elements
+                .whereType<MapLiteralEntry>()
+                .forEach((cssPropertyRow) {
               final propertyKey = cssPropertyRow.key;
               String originalCssPropertyKey = propertyKey.toSource();
               String cleanedCssPropertyKey = cleanString(propertyKey);
