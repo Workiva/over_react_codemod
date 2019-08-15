@@ -250,8 +250,8 @@ void main() {
     });
 
     group('canBeFullyUpgradedToComponent2()', () {
-      group('(fully upgradable) when a class extends UiComponent', () {
-        group('and has no lifecycle methods', () {
+      group('(fully upgradable) when a class', () {
+        group('extends UiComponent and has no lifecycle methods', () {
           final input = '''
             @Component
             class FooComponent extends UiComponent {
@@ -266,11 +266,12 @@ void main() {
           );
         });
 
-        group('and contains lifecycle methods that are all updated by codemods',
+        group(
+            'extends UiStatefulComponent and contains lifecycle methods that are all updated by codemods',
             () {
           final input = '''
             @Component
-            class FooComponent extends UiComponent {
+            class FooComponent extends UiStatefulComponent {
               @override
               componentWillMount() {
                 // method body
@@ -282,7 +283,7 @@ void main() {
               }
               
               @override
-              componentDidUpdate() {
+              componentDidUpdate(Map prevProps, Map prevState) {
                 // method body
               }
             }
@@ -295,7 +296,7 @@ void main() {
           );
         });
 
-        group('and contains non-lifecycle methods', () {
+        group('extends UiComponent and contains non-lifecycle methods', () {
           final input = '''
             @Component
             class FooComponent extends UiComponent {
@@ -305,6 +306,34 @@ void main() {
               
               @override
               render() {
+                // method body
+              }
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: canBeFullyUpgradedToComponent2,
+          );
+        });
+
+        group('is already upgraded to Component2', () {
+          final input = '''
+            @Component2
+            class FooComponent extends UiComponent2 {
+              @override
+              init() {
+                // method body
+              }
+              
+              @override
+              render() {
+                // method body
+              }
+              
+              @override
+              componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {
                 // method body
               }
             }
@@ -349,7 +378,7 @@ void main() {
               }
               
               @override
-              componentDidUpdate() {
+              componentDidUpdate(Map prevProps, Map prevState) {
                 // method body
               }
               
