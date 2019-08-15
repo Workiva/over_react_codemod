@@ -43,4 +43,3 @@ dependency_overrides:
   codemod:
     git:
       url: git@github.com:Workiva/dart_codemod.git
-      ref: CPLAT-7009-increase-analyzer-upper-bound
