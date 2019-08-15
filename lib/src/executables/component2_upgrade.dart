@@ -18,6 +18,7 @@ import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/component2_suggestors/class_name_and_annotation_migrator.dart';
 import 'package:over_react_codemod/src/component2_suggestors/componentdidupdate_migrator.dart';
 import 'package:over_react_codemod/src/component2_suggestors/componentwillmount_migrator.dart';
+import 'package:over_react_codemod/src/component2_suggestors/deprecated_lifecycle_suggestor.dart';
 import 'package:over_react_codemod/src/component2_suggestors/setstate_updater.dart';
 import 'package:over_react_codemod/src/component2_suggestors/copyunconsumeddomprops_migrator.dart';
 
@@ -42,6 +43,7 @@ void main(List<String> args) {
     [
       ClassNameAndAnnotationMigrator(noPartialUpgrades: noPartialUpgrades),
       ComponentWillMountMigrator(noPartialUpgrades: noPartialUpgrades),
+      DeprecatedLifecycleSuggestor(noPartialUpgrades: noPartialUpgrades),
       SetStateUpdater(noPartialUpgrades: noPartialUpgrades),
       ComponentDidUpdateMigrator(noPartialUpgrades: noPartialUpgrades),
       CopyUnconsumedDomPropsMigrator(noPartialUpgrades: noPartialUpgrades),
