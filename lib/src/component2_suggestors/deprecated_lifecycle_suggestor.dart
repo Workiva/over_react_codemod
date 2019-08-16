@@ -35,6 +35,11 @@ class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
     super.visitMethodDeclaration(node);
 
     ClassDeclaration containingClass = node.parent;
+
+    if (noPartialUpgrades && !canBeFullyUpgradedToComponent2(containingClass)) {
+      return;
+    }
+
     if (extendsComponent2(containingClass)) {
       var deprecatedLifecycleMethods = [
         'componentWillUpdate',
