@@ -38,7 +38,14 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
     for (Expression cascade in node.cascadeSections) {
       if (!hasComment(cascade, sourceFile, willBeRemovedCommentSuffix)) {
-        if (cascade is AssignmentExpression && cascade.leftHandSide.toSource().contains('style')) {
+        var isStylePropAssignment = false;
+        if (cascade is AssignmentExpression) {
+          final lhs = cascade.leftHandSide;
+          if (lhs is PropertyAccess && lhs.propertyName.name == 'style') {
+            isStylePropAssignment = true;
+          }
+        }
+        if (isStylePropAssignment) {
           /// A style map, method invocation, or a variable
           final stylesObject = getStyles(cascade);
 

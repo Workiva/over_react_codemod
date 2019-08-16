@@ -588,7 +588,7 @@ main() {
       );
     });
 
-    test('does not run on setProperty', () {
+    test('does not run on DOM style setProperty', () {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
@@ -596,9 +596,19 @@ main() {
               DivElement()..style.setProperty('width', '400');
             }
           ''',
-        expectedOutput: '''
+      );
+    });
+
+    test('does not run on DOM style property assignments in various forms', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
             main() {
-              DivElement()..style.setProperty('width', '400');
+              style.width = '400';
+              style..width = '400';
+              DivElement().style.width = '400';
+              DivElement()..style.width = '400';
+              DivElement().style..width = '400';
             }
           ''',
       );
