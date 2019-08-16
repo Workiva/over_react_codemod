@@ -16,7 +16,7 @@
 /// codemod or suggestor.
 library over_react_codemod.src.util;
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;

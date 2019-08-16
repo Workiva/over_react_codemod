@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 
 import '../constants.dart';
@@ -23,6 +24,8 @@ import 'component2_utilities.dart';
 ///
 /// The same update is made for `UiStatefulComponent` and `react.Component`
 /// (including instances where `react.Component` is used for typing).
+/// `react.dart` imports are also updated to show Component2 as well
+/// as Component.
 class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
