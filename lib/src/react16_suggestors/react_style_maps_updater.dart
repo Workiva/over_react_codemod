@@ -29,16 +29,18 @@ import './react16_utilities.dart';
 class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+
+  static final _cssValueSuffixPattern = new RegExp(r'\b(?:rem|em|ex|vh|vw|vmin|vmax|%|px|cm|mm|in|pt|pc|ch)$');
+
   @override
   visitCascadeExpression(CascadeExpression node) {
     super.visitCascadeExpression(node);
 
     for (Expression cascade in node.cascadeSections) {
       if (!hasComment(cascade, sourceFile, willBeRemovedCommentSuffix)) {
-        if (cascade.toSource().contains('style') &&
-            !cascade.toSource().contains('setProperty')) {
+        if (cascade is AssignmentExpression && cascade.leftHandSide.toSource().contains('style')) {
           /// A style map, method invocation, or a variable
-          SyntacticEntity stylesObject = getStyles(cascade);
+          final stylesObject = getStyles(cascade);
 
           /// CSS properties that were modified by the script or need to be
           /// manually checked
@@ -51,8 +53,6 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           bool isAVariable = false;
           bool isAFunction = false;
           bool isOther = false;
-          bool isForCustomProps =
-              cascade.toSource().toLowerCase().contains('props');
 
           if (stylesObject is SetOrMapLiteral) {
             stylesObject.elements
@@ -109,9 +109,9 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                 ternaryExpressions.forEach((property) {
                   String cleanedPropertySubString = cleanString(property);
 
-                  if (property is SimpleIdentifier) flagAsVariable();
-
-                  if (isANumber(cleanedPropertySubString) &&
+                  if (property is SimpleIdentifier) {
+                    flagAsVariable();
+                  } else if (isANumber(cleanedPropertySubString) &&
                       !isANumber(property.toSource())) {
                     yieldPatch(property.offset, property.end,
                         cleanedPropertySubString);
@@ -131,11 +131,25 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                         ' $cleanedCssPropertyValue,');
                   }
                 }
-              } else {
-                if (cssPropertyValue is! DoubleLiteral &&
-                    cssPropertyValue is! IntegerLiteral) {
-                  isOther = true;
+              } else if (cssPropertyValue is StringInterpolation) {
+                final lastElement = cssPropertyValue.elements.isEmpty ? null : cssPropertyValue.elements.last;
+                if (lastElement is! InterpolationString || !_cssValueSuffixPattern.hasMatch((lastElement as InterpolationString).value)) {
+                  flagAsVariable();
                 }
+              } else if (cssPropertyValue is MethodInvocation) {
+                var invocation = cssPropertyValue;
+                // Handle `toRem(1).toString()`
+                if (invocation.methodName.name == 'toString' && invocation.target is MethodInvocation) {
+                  invocation = invocation.target;
+                }
+
+                if (!const ['toPx', 'toRem'].contains(invocation.methodName.name)) {
+                  flagAsVariable();
+                }
+              } else if (cssPropertyValue is DoubleLiteral || cssPropertyValue is IntegerLiteral) {
+                // do nothing
+              } else {
+                flagAsVariable();
               }
             });
           } else if (stylesObject is SimpleIdentifier) {
@@ -151,7 +165,6 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           if (listOfVariables.isNotEmpty ||
               isAVariable ||
               isAFunction ||
-              isForCustomProps ||
               isOther) {
             yieldPatch(
                 cascade.offset,
@@ -163,7 +176,6 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                     affectedValues: listOfVariables,
                     addExtraLine: sourceFile.getLine(cascade.offset) ==
                         sourceFile.getLine(cascade.parent.offset),
-                    isForCustomProps: isForCustomProps,
                     isOther: isOther));
           }
         }
@@ -200,13 +212,7 @@ String getString({
       'that the method called to set the style prop does not return any '
       'simple, unitless strings instead of nums.';
 
-  if (isForCustomProps) {
-    return '''
-    $variableCheckbox
-    $styleMapExample
-    $willBeRemovedSuffix
-    ''';
-  } else if (isAVariable || styleMapContainsAVariable || isOther) {
+  if (isAVariable || styleMapContainsAVariable || isOther) {
     if (affectedValues.isNotEmpty) {
       return '''
       $variableCheckboxWithAffectedValues
