@@ -21,7 +21,7 @@ ProcessResult runUpgrade({String onDirectory}) {
   Process.runSync('pub', ['get'], workingDirectory: onDirectory);
 
   return Process.runSync(
-      'pub', ['global', 'run', 'over_react_codemod:react_16_upgrade'],
+      'pub', ['run', 'over_react_codemod:react_16_upgrade'],
       workingDirectory: onDirectory);
 }
 

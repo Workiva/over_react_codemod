@@ -2,8 +2,14 @@ name: file_with_no_comment
 version: 0.0.0
 private: true
 environment:
-  sdk: '>=2.1.0 <3.0.0'
+  sdk: '>=2.4.0 <3.0.0'
 dev_dependencies:
   over_react_codemod:
     path: ../../../..
+
+dependency_overrides:
+  codemod:
+    git:
+      url: https://github.com/Workiva/dart_codemod.git
+      ref: master
     
