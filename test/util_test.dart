@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:analyzer/dart/analysis/utilities.dart';
 @TestOn('vm')
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:analyzer/dart/ast/token.dart';
 
 import 'package:over_react_codemod/src/constants.dart';
-import 'package:over_react_codemod/src/util.dart';
 
 void main() {
   group('Utils', () {

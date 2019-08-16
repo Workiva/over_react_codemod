@@ -24,6 +24,8 @@ import 'component2_utilities.dart';
 ///
 /// The same update is made for `UiStatefulComponent` and `react.Component`
 /// (including instances where `react.Component` is used for typing).
+/// `react.dart` imports are also updated to show Component2 as well
+/// as Component.
 class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
