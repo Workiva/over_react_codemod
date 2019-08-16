@@ -242,6 +242,43 @@ main() {
         );
       });
 
+      test('is on a unitless or non-number property', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            main() {
+              Foo()
+              ..style = {
+                'zIndex': '5',
+                'position': 'absolute',
+              };
+            }
+          ''',
+        );
+      });
+
+      test('is on a custom property', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            main() {
+              Foo()
+              ..style = {
+                '--foo': '5',
+              };
+            }
+          ''',
+          expectedOutput: '''
+            main() {
+              Foo()
+              ..style = {
+                '--foo': 5,
+              };
+            }
+          ''',
+        );
+      });
+
       test('is a toRem/toPx call', () {
         testSuggestor(
           expectedPatchCount: 0,

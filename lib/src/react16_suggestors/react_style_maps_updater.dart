@@ -87,6 +87,11 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           String originalCssPropertyKey = propertyKey.toSource();
           String cleanedCssPropertyKey = cleanString(propertyKey);
 
+          if (_unitlessNumberProperties.contains(cleanedCssPropertyKey) ||
+              _nonLengthValueProperties.contains(cleanedCssPropertyKey)) {
+            return;
+          }
+
           final cssPropertyValue = cssPropertyRow.value;
           String cleanedCssPropertyValue = cleanString(cssPropertyValue);
 
@@ -299,3 +304,90 @@ SyntacticEntity getStyles(Expression cascade) {
 
   return cleanedChildEntities.first;
 }
+
+/// A non-exhaustive set of CSS property names whose values can be numbers
+/// without units.
+const _unitlessNumberProperties = const {
+  'animationIterationCount',
+  'borderImageOutset',
+  'borderImageSlice',
+  'borderImageWidth',
+  'boxFlex',
+  'boxFlexGroup',
+  'boxOrdinalGroup',
+  'columnCount',
+  'columns',
+  'flex',
+  'flexGrow',
+  'flexPositive',
+  'flexShrink',
+  'flexNegative',
+  'flexOrder',
+  'gridRow',
+  'gridRowEnd',
+  'gridRowSpan',
+  'gridRowStart',
+  'gridColumn',
+  'gridColumnEnd',
+  'gridColumnSpan',
+  'gridColumnStart',
+  'fontWeight',
+  'lineClamp',
+  'lineHeight',
+  'opacity',
+  'order',
+  'orphans',
+  'tabSize',
+  'widows',
+  'zIndex',
+  'zoom',
+
+  // SVG-related properties
+  'fillOpacity',
+  'floodOpacity',
+  'stopOpacity',
+  'strokeDasharray',
+  'strokeDashoffset',
+  'strokeMiterlimit',
+  'strokeOpacity',
+  'strokeWidth',
+};
+
+/// A non-exhaustive set of CSS property names whose values never represent
+/// CSS lengths (absolute lengths like px/pt, relative lengths like %/rem).
+const _nonLengthValueProperties = const {
+  'backgroundAttachment',
+  'backgroundColor',
+  'backgroundImage',
+  'borderBottomColor',
+  'borderBottomStyle',
+  'borderColor',
+  'borderLeftColor',
+  'borderLeftStyle',
+  'borderRightColor',
+  'borderRightStyle',
+  'borderStyle',
+  'borderTopColor',
+  'borderTopStyle',
+  'clear',
+  'color',
+  'cursor',
+  'display',
+  'float',
+  'cssFloat',
+  'font',
+  'fontFamily',
+  'fontVariant',
+  'listStyle',
+  'listStyleImage',
+  'listStyleType',
+  'overflow',
+  'pageBreakAfter',
+  'pageBreakBefore',
+  'position',
+  'textAlign',
+  'textDecoration',
+  'textTransform',
+  'verticalAlign',
+  'visibility',
+};
