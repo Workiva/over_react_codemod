@@ -308,6 +308,22 @@ main() {
         );
       });
 
+      test('is on an instance creation expression', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            main() {
+              new NotAPropsClass()
+                ..style = something
+                ..style = getSomething()
+                ..style = {
+                  'width': '40',
+                };
+            }
+          ''',
+        );
+      });
+
       test('is an expression that has already been updated', () {
         testSuggestor(
           expectedPatchCount: 0,
