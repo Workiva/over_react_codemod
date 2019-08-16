@@ -29,8 +29,8 @@ import './react16_utilities.dart';
 class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-
-  static final _cssValueSuffixPattern = new RegExp(r'\b(?:rem|em|ex|vh|vw|vmin|vmax|%|px|cm|mm|in|pt|pc|ch)$');
+  static final _cssValueSuffixPattern =
+      new RegExp(r'\b(?:rem|em|ex|vh|vw|vmin|vmax|%|px|cm|mm|in|pt|pc|ch)$');
 
   @override
   visitCascadeExpression(CascadeExpression node) {
@@ -139,21 +139,28 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                   }
                 }
               } else if (cssPropertyValue is StringInterpolation) {
-                final lastElement = cssPropertyValue.elements.isEmpty ? null : cssPropertyValue.elements.last;
-                if (lastElement is! InterpolationString || !_cssValueSuffixPattern.hasMatch((lastElement as InterpolationString).value)) {
+                final lastElement = cssPropertyValue.elements.isEmpty
+                    ? null
+                    : cssPropertyValue.elements.last;
+                if (lastElement is! InterpolationString ||
+                    !_cssValueSuffixPattern
+                        .hasMatch((lastElement as InterpolationString).value)) {
                   flagAsVariable();
                 }
               } else if (cssPropertyValue is MethodInvocation) {
                 var invocation = cssPropertyValue;
                 // Handle `toRem(1).toString()`
-                if (invocation.methodName.name == 'toString' && invocation.target is MethodInvocation) {
+                if (invocation.methodName.name == 'toString' &&
+                    invocation.target is MethodInvocation) {
                   invocation = invocation.target;
                 }
 
-                if (!const ['toPx', 'toRem'].contains(invocation.methodName.name)) {
+                if (!const ['toPx', 'toRem']
+                    .contains(invocation.methodName.name)) {
                   flagAsVariable();
                 }
-              } else if (cssPropertyValue is DoubleLiteral || cssPropertyValue is IntegerLiteral) {
+              } else if (cssPropertyValue is DoubleLiteral ||
+                  cssPropertyValue is IntegerLiteral) {
                 // do nothing
               } else {
                 flagAsVariable();

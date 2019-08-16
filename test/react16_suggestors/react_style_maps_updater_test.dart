@@ -294,10 +294,10 @@ main() {
             main() {
               Foo()
                 ${getCheckboxComment(keysOfModdedValues: [
-                  'width',
-                  'height',
-                  'fontSize'
-                ])}
+            'width',
+            'height',
+            'fontSize'
+          ])}
                 ..style = {
                   'width': '\$width',
                   'height': '\${getHeight()}foo',
