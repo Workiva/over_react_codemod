@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/component2_suggestors/component2_utilities.dart';
 import 'package:test/test.dart';
 
@@ -29,7 +30,7 @@ void main() {
           }
         ''';
 
-        CompilationUnit unit = parseCompilationUnit(input);
+        CompilationUnit unit = parseString(content: input).unit;
         expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
         unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
@@ -50,7 +51,7 @@ void main() {
           }
         ''';
 
-        CompilationUnit unit = parseCompilationUnit(input);
+        CompilationUnit unit = parseString(content: input).unit;
         expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
         unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
@@ -68,7 +69,7 @@ void main() {
           }
         ''';
 
-        CompilationUnit unit = parseCompilationUnit(input);
+        CompilationUnit unit = parseString(content: input).unit;
         expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
         unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
@@ -212,7 +213,7 @@ void main() {
 
 void testExtendsComponent2({String input, bool expectedValue}) {
   test('returns $expectedValue', () {
-    CompilationUnit unit = parseCompilationUnit(input);
+    CompilationUnit unit = parseString(content: input).unit;
     expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
     unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {

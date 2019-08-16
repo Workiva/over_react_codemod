@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:analyzer/dart/analysis/utilities.dart';
 @TestOn('vm')
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart';
 
 import 'package:over_react_codemod/src/constants.dart';
@@ -172,7 +172,7 @@ void overReactExample() {}''';
         ''';
 
       final sourceFile = SourceFile.fromString(content);
-      final astNode = parseCompilationUnit(content);
+      final astNode = parseString(content: content).unit;
 
       test('correctly finds a comment', () {
         expect(hasComment(astNode, sourceFile, 'Comment0'), isTrue);
@@ -199,7 +199,7 @@ void overReactExample() {}''';
           }
         ''';
 
-      final astNode = parseCompilationUnit(content);
+      final astNode = parseString(content: content).unit;
       int commentCount;
 
       setUp(() {
