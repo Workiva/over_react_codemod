@@ -54,7 +54,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           bool isForCustomProps =
               cascade.toSource().toLowerCase().contains('props');
 
-          if (stylesObject is SetOrMapLiteral && stylesObject.isMap) {
+          if (stylesObject is SetOrMapLiteral) {
             stylesObject.elements
                 .whereType<MapLiteralEntry>()
                 .forEach((cssPropertyRow) {
