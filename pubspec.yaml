@@ -42,4 +42,5 @@ executables:
 dependency_overrides:
   codemod:
     git:
-      url: git@github.com:Workiva/dart_codemod.git
+      url: https://github.com/Workiva/dart_codemod.git
+      ref: master
