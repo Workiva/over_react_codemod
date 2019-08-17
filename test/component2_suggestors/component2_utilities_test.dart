@@ -385,7 +385,7 @@ void main() {
               
               @override
               componentWillUnmount() {
-              
+                // method body
               }
             }
           ''';

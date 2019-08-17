@@ -41,11 +41,11 @@ main() {
         expectedPatchCount: 1,
         input: '''
           @Component()
-          class FooComponent extends SomeOtherClass{}
+          class FooComponent extends AbstractComponent {}
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends SomeOtherClass{}
+          class FooComponent extends AbstractComponent{}
         ''',
       );
     });
@@ -55,11 +55,59 @@ main() {
         expectedPatchCount: 2,
         input: '''
           @Component()
-          class FooComponent extends UiComponent<FooProps>{}
+          class FooComponent extends UiComponent<FooProps> {
+            eventHandler() {
+              // method body
+            }
+            
+            @override
+            componentWillMount() {
+              // method body
+            }
+            
+            @override
+            render() {
+              // method body
+            }
+            
+            @override
+            componentDidUpdate(Map prevProps, Map prevState) {
+              // method body
+            }
+            
+            @override
+            componentWillUnmount() {
+              // method body
+            }
+          }
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2<FooProps>{}
+          class FooComponent extends UiComponent2<FooProps> {
+            eventHandler() {
+              // method body
+            }
+            
+            @override
+            componentWillMount() {
+              // method body
+            }
+            
+            @override
+            render() {
+              // method body
+            }
+            
+            @override
+            componentDidUpdate(Map prevProps, Map prevState) {
+              // method body
+            }
+            
+            @override
+            componentWillUnmount() {
+              // method body
+            }
+          }
         ''',
       );
     });
@@ -69,11 +117,31 @@ main() {
         expectedPatchCount: 1,
         input: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
+          class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+            @override
+            shouldComponentUpdate() {
+              // method body
+            }
+            
+            @override
+            render() {
+              // method body
+            }
+          }
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent2<FooProps, FooState>{}
+          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+            @override
+            shouldComponentUpdate() {
+              // method body
+            }
+            
+            @override
+            render() {
+              // method body
+            }
+          }
         ''',
       );
     });
@@ -83,39 +151,66 @@ main() {
         expectedPatchCount: 2,
         input: '''
           @Component(isWrapper: true)
-          class FooComponent extends UiComponent<FooProps>{}
+          class FooComponent extends UiComponent<FooProps> {
+            @override
+            componentWillMount() {
+              // method body
+            }
+            
+            @override
+            componentDidMount() {
+              // method body
+            }
+          }
         ''',
         expectedOutput: '''
           @Component2(isWrapper: true)
-          class FooComponent extends UiComponent2<FooProps>{}
+          class FooComponent extends UiComponent2<FooProps> {
+            @override
+            componentWillMount() {
+              // method body
+            }
+            
+            @override
+            componentDidMount() {
+              // method body
+            }
+          }
         ''',
       );
     });
 
-    test('annotation with args and extending stateful class updates', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          @Component(isWrapper: true)
-          class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
-        ''',
-        expectedOutput: '''
-          @Component2(isWrapper: true)
-          class FooComponent extends UiStatefulComponent2<FooProps, FooState>{}
-        ''',
-      );
-    });
-
-    test('AbstractComponent class annotation updates', () {
+    test('AbstractComponent annotation and extending stateful class updates',
+        () {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
           @AbstractComponent(isWrapper: true)
-          abstract class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
+          abstract class AbstractFooComponent extends UiStatefulComponent {
+            @override
+            componentWillMount() {
+              // method body
+            }
+
+            @override
+            shouldComponentUpdate() {
+              // method body
+            }
+          }
         ''',
         expectedOutput: '''
           @AbstractComponent2(isWrapper: true)
-          abstract class FooComponent extends UiStatefulComponent2<FooProps, FooState>{}
+          abstract class AbstractFooComponent extends UiStatefulComponent2 {
+            @override
+            componentWillMount() {
+              // method body
+            }
+
+            @override
+            shouldComponentUpdate() {
+              // method body
+            }
+          }
         ''',
       );
     });
@@ -127,13 +222,33 @@ main() {
           import 'package:react/react.dart' as react show Component;
           import 'package:react/react_dom.dart' as react_dom;
         
-          class FooComponent extends react.Component{}
+          class FooComponent extends react.Component {
+            @override
+            componentDidUpdate(Map prevProps, Map prevState) {
+              // method body
+            }
+            
+            @override
+            componentWillReceiveProps() {
+              // method body
+            }
+          }
         ''',
         expectedOutput: '''
           import 'package:react/react.dart' as react show Component, Component2;
           import 'package:react/react_dom.dart' as react_dom;
 
-          class FooComponent extends react.Component2{}
+          class FooComponent extends react.Component2 {
+            @override
+            componentDidUpdate(Map prevProps, Map prevState) {
+              // method body
+            }
+            
+            @override
+            componentWillReceiveProps() {
+              // method body
+            }
+          }
         ''',
       );
     });
@@ -147,13 +262,42 @@ main() {
           import "package:react/react_dom.dart" as react_dom;
           import "package:react/react.dart" as foo;
         
-          class FooComponent extends foo.Component{}
+          class FooComponent extends foo.Component {}
         ''',
         expectedOutput: '''
           import "package:react/react_dom.dart" as react_dom;
           import "package:react/react.dart" as foo;
 
-          class FooComponent extends foo.Component2{}
+          class FooComponent extends foo.Component2 {}
+        ''',
+      );
+    });
+
+    test('already updated annotation and extending class does not update', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          @Component2
+          class FooComponent extends UiComponent2 {
+            eventHandler() {
+              // method body
+            }
+            
+            @override
+            init() {
+              // method body
+            }
+            
+            @override
+            render() {
+              // method body
+            }
+            
+            @override
+            componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {
+              // method body
+            }
+          }
         ''',
       );
     });

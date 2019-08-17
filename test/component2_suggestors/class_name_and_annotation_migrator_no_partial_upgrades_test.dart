@@ -37,120 +37,492 @@ main() {
       );
     });
 
-    test('annotation with non-based extending class updates', () {
+    test('annotation with non-based extending class does not update', () {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
           @Component()
-          class FooComponent extends SomeOtherClass{}
+          class FooComponent extends AbstractComponent {}
         ''',
       );
     });
 
-    test('annotation and extending class updates', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          @Component()
-          class FooComponent extends UiComponent<FooProps>{}
-        ''',
-        expectedOutput: '''
-          @Component2()
-          class FooComponent extends UiComponent2<FooProps>{}
-        ''',
-      );
+    group('annotation and extending class', () {
+      test('updates when all lifecycle methods have codemods', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            @Component()
+            class FooComponent extends UiComponent<FooProps> {
+              eventHandler() {
+                // method body
+              }
+
+              @override
+              componentWillMount() {
+                // method body
+              }
+
+              @override
+              render() {
+                // method body
+              }
+
+              @override
+              componentDidUpdate(Map prevProps, Map prevState) {
+                // method body
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends UiComponent2<FooProps> {
+              eventHandler() {
+                // method body
+              }
+
+              @override
+              componentWillMount() {
+                // method body
+              }
+
+              @override
+              render() {
+                // method body
+              }
+
+              @override
+              componentDidUpdate(Map prevProps, Map prevState) {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
+
+      test('updates with no lifecycle methods', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            @Component()
+            class FooComponent extends UiComponent<FooProps> {}
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends UiComponent2<FooProps> {}
+          ''',
+        );
+      });
+
+      test('does not update when one or more lifecycle method has no codemod',
+          () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @Component()
+            class FooComponent extends UiComponent<FooProps> {
+              eventHandler() {
+                // method body
+              }
+
+              @override
+              componentWillMount() {
+                // method body
+              }
+
+              @override
+              render() {
+                // method body
+              }
+
+              @override
+              componentDidUpdate(Map prevProps, Map prevState) {
+                // method body
+              }
+
+              @override
+              componentWillUnmount() {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
     });
 
-    test('extending class only needs updating', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
-          @Component2()
-          class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
-        ''',
-        expectedOutput: '''
-          @Component2()
-          class FooComponent extends UiStatefulComponent2<FooProps, FooState>{}
-        ''',
-      );
+    group('extending class only needs updating', () {
+      test('updates when all lifecycle methods have codemods', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            @Component2()
+            class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+              @override
+              void render() {
+                // method body
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+              @override
+              void render() {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
+
+      test('does not update when one or more lifecycle method has no codemod',
+          () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @Component2()
+            class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+              @override
+              shouldComponentUpdate() {
+                // method body
+              }
+            
+              @override
+              void render() {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
     });
 
-    test('annotation with args and extending class updates', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          @Component(isWrapper: true)
-          class FooComponent extends UiComponent<FooProps>{}
-        ''',
-        expectedOutput: '''
-          @Component2(isWrapper: true)
-          class FooComponent extends UiComponent2<FooProps>{}
-        ''',
-      );
+    group('annotation with args and extending class', () {
+      test('updates when all lifecycle methods have codemods', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            @Component(isWrapper: true)
+            class FooComponent extends UiComponent<FooProps> {
+              eventHandler() {
+                // method body
+              }
+
+              @override
+              render() {
+                // method body
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @Component2(isWrapper: true)
+            class FooComponent extends UiComponent2<FooProps> {
+              eventHandler() {
+                // method body
+              }
+
+              @override
+              render() {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
+
+      test('does not update when one or more lifecycle method has no codemod',
+          () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @Component(isWrapper: true)
+            class FooComponent extends UiComponent<FooProps> {
+              @override
+              componentWillMount() {
+                // method body
+              }
+
+              @override
+              componentDidMount() {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
+
+      test('is non-Component does not update', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @Component(isWrapper: true)
+            class FooComponent extends AbstractComponent<FooProps> {
+              @override
+              render() {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
     });
 
-    test('annotation with args and extending stateful class updates', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          @Component(isWrapper: true)
-          class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
-        ''',
-        expectedOutput: '''
-          @Component2(isWrapper: true)
-          class FooComponent extends UiStatefulComponent2<FooProps, FooState>{}
-        ''',
-      );
+    group('AbstractComponent annotation and extending stateful class', () {
+      test('updates when all lifecycle methods have codemods', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            @AbstractComponent(isWrapper: true)
+            abstract class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+              @override
+              componentWillMount() {
+                // method body
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @AbstractComponent2(isWrapper: true)
+            abstract class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+              @override
+              componentWillMount() {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
+
+      test('does not update when one or more lifecycle method has no codemod',
+          () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @AbstractComponent(isWrapper: true)
+            abstract class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+              @override
+              componentWillMount() {
+                // method body
+              }
+
+              @override
+              shouldComponentUpdate() {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
+
+      test('is non-Component does not update', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @AbstractComponent(isWrapper: true)
+            abstract class FooComponent extends AbstractStatefulComponent<FooProps, FooState> {}
+          ''',
+        );
+      });
     });
 
-    test('AbstractComponent class annotation updates', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          @AbstractComponent(isWrapper: true)
-          abstract class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
-        ''',
-        expectedOutput: '''
-          @AbstractComponent2(isWrapper: true)
-          abstract class FooComponent extends UiStatefulComponent2<FooProps, FooState>{}
-        ''',
-      );
+    group('extending class imported from react.dart', () {
+      test('updates when all lifecycle methods have codemods', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            import 'package:react/react.dart' as react show Component;
+            import 'package:react/react_dom.dart' as react_dom;
+          
+            class FooComponent extends react.Component {
+              @override
+              void componentDidUpdate(Map prevProps, Map prevState) {
+                // method body
+              }
+            }
+          ''',
+          expectedOutput: '''
+            import 'package:react/react.dart' as react show Component, Component2;
+            import 'package:react/react_dom.dart' as react_dom;
+  
+            class FooComponent extends react.Component2 {
+              @override
+              void componentDidUpdate(Map prevProps, Map prevState) {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
+
+      test('does not update when one or more lifecycle method has no codemod',
+          () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            import 'package:react/react.dart' as react show Component;
+            import 'package:react/react_dom.dart' as react_dom;
+          
+            class FooComponent extends react.Component {
+              @override
+              componentDidUpdate(Map prevProps, Map prevState) {
+                // method body
+              }
+              
+              @override
+              componentWillReceiveProps() {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
+
+      test(
+          'with different import name updates when all lifecycle methods have codemods',
+          () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            import "package:react/react_dom.dart" as react_dom;
+            import "package:react/react.dart" as foo;
+          
+            class FooComponent extends foo.Component {}
+          ''',
+          expectedOutput: '''
+            import "package:react/react_dom.dart" as react_dom;
+            import "package:react/react.dart" as foo;
+  
+            class FooComponent extends foo.Component2 {}
+          ''',
+        );
+      });
     });
 
-    test('extending class imported from react.dart updates', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          import 'package:react/react.dart' as react show Component;
-          import 'package:react/react_dom.dart' as react_dom;
+    group('react.dart import show Component', () {
+      test('updates if one or more component in the file updates', () {
+        testSuggestor(
+          expectedPatchCount: 3,
+          input: '''
+            import "package:react/react_dom.dart" as react_dom;
+            import "package:react/react.dart" as react show Component;
+          
+            class FooComponent extends react.Component {
+              @override
+              componentWillReceiveProps() {
+                // method body
+              }
+            }
+            
+            class FooComponent extends react.Component {
+              @override
+              componentDidUpdate(Map prevProps, Map prevState) {
+                // method body
+              }
+            }
+            
+            class FooComponent extends react.Component {}
+            
+            class FooComponent extends react.Component {
+              @override
+              shouldComponentUpdate() {
+                // method body
+              }
+              
+              @override
+              render() {
+                // method body
+              }
+            }
+          ''',
+          expectedOutput: '''
+            import "package:react/react_dom.dart" as react_dom;
+            import "package:react/react.dart" as react show Component, Component2;
+          
+            class FooComponent extends react.Component {
+              @override
+              componentWillReceiveProps() {
+                // method body
+              }
+            }
+            
+            class FooComponent extends react.Component2 {
+              @override
+              componentDidUpdate(Map prevProps, Map prevState) {
+                // method body
+              }
+            }
+            
+            class FooComponent extends react.Component2 {}
+            
+            class FooComponent extends react.Component {
+              @override
+              shouldComponentUpdate() {
+                // method body
+              }
+              
+              @override
+              render() {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
 
-          class FooComponent extends react.Component{}
-        ''',
-        expectedOutput: '''
-          import 'package:react/react.dart' as react show Component, Component2;
-          import 'package:react/react_dom.dart' as react_dom;
-
-          class FooComponent extends react.Component2{}
-        ''',
-      );
+      test('does not update if all components in the file do not update', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            import "package:react/react_dom.dart" as react_dom;
+            import "package:react/react.dart" as react show Component;
+          
+            class FooComponent extends react.Component {
+              @override
+              componentWillReceiveProps() {
+                // method body
+              }
+            }
+            
+            class FooComponent extends react.Component {
+              @override
+              shouldComponentUpdate() {
+                // method body
+              }
+              
+              @override
+              render() {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
     });
 
-    test(
-        'extending class imported from react.dart with different import name updates',
-        () {
+    test('already updated annotation and extending class does not update', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: 0,
         input: '''
-          import "package:react/react_dom.dart" as react_dom;
-          import "package:react/react.dart" as foo;
-
-          class FooComponent extends foo.Component{}
-        ''',
-        expectedOutput: '''
-          import "package:react/react_dom.dart" as react_dom;
-          import "package:react/react.dart" as foo;
-
-          class FooComponent extends foo.Component2{}
+          @Component2
+          class FooComponent extends UiComponent2 {
+            eventHandler() {
+              // method body
+            }
+            
+            @override
+            init() {
+              // method body
+            }
+            
+            @override
+            render() {
+              // method body
+            }
+            
+            @override
+            componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {
+              // method body
+            }
+          }
         ''',
       );
     });
