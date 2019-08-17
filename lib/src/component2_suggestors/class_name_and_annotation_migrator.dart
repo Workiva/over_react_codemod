@@ -45,9 +45,25 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
       return;
     }
 
+    CompilationUnit unit = node.thisOrAncestorMatching((ancestor) {
+      return ancestor is CompilationUnit;
+    });
+
+    // Check if the import needs to show Component2.
+    bool shouldUpdateImport = true;
+    if (noPartialUpgrades) {
+      shouldUpdateImport = false;
+      unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+        if (canBeFullyUpgradedToComponent2(classNode)) {
+          shouldUpdateImport = true;
+        }
+      });
+    }
+
     // Add Component2 to import show list.
     var showNamesList = (node.combinators.first as ShowCombinator)?.shownNames;
-    if (!showNamesList.any((name) => name.toSource() == 'Component2')) {
+    if (shouldUpdateImport &&
+        !showNamesList.any((name) => name.toSource() == 'Component2')) {
       yieldPatch(
         showNamesList.last.end,
         showNamesList.last.end,
