@@ -41,11 +41,11 @@ main() {
         expectedPatchCount: 1,
         input: '''
           @Component()
-          class FooComponent extends SomeOtherClass{}
+          class FooComponent extends AbstractComponent {}
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends SomeOtherClass{}
+          class FooComponent extends AbstractComponent {}
         ''',
       );
     });
@@ -55,11 +55,11 @@ main() {
         expectedPatchCount: 2,
         input: '''
           @Component()
-          class FooComponent extends UiComponent<FooProps>{}
+          class FooComponent extends UiComponent<FooProps> {}
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2<FooProps>{}
+          class FooComponent extends UiComponent2<FooProps> {}
         ''',
       );
     });
@@ -69,11 +69,11 @@ main() {
         expectedPatchCount: 1,
         input: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
+          class FooComponent extends UiStatefulComponent<FooProps, FooState> {}
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent2<FooProps, FooState>{}
+          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {}
         ''',
       );
     });
@@ -83,11 +83,11 @@ main() {
         expectedPatchCount: 2,
         input: '''
           @Component(isWrapper: true)
-          class FooComponent extends UiComponent<FooProps>{}
+          class FooComponent extends UiComponent<FooProps> {}
         ''',
         expectedOutput: '''
           @Component2(isWrapper: true)
-          class FooComponent extends UiComponent2<FooProps>{}
+          class FooComponent extends UiComponent2<FooProps> {}
         ''',
       );
     });
@@ -97,11 +97,11 @@ main() {
         expectedPatchCount: 2,
         input: '''
           @Component(isWrapper: true)
-          class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
+          class FooComponent extends UiStatefulComponent<FooProps, FooState> {}
         ''',
         expectedOutput: '''
           @Component2(isWrapper: true)
-          class FooComponent extends UiStatefulComponent2<FooProps, FooState>{}
+          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {}
         ''',
       );
     });
@@ -111,7 +111,7 @@ main() {
         expectedPatchCount: 2,
         input: '''
           @AbstractComponent(isWrapper: true)
-          abstract class FooComponent extends UiStatefulComponent<FooProps, FooState>{}
+          abstract class FooComponent extends UiStatefulComponent<FooProps, FooState> {}
         ''',
         expectedOutput: '''
           @AbstractComponent2(isWrapper: true)
@@ -127,13 +127,13 @@ main() {
           import 'package:react/react.dart' as react show Component;
           import 'package:react/react_dom.dart' as react_dom;
         
-          class FooComponent extends react.Component{}
+          class FooComponent extends react.Component {}
         ''',
         expectedOutput: '''
           import 'package:react/react.dart' as react show Component, Component2;
           import 'package:react/react_dom.dart' as react_dom;
 
-          class FooComponent extends react.Component2{}
+          class FooComponent extends react.Component2 {}
         ''',
       );
     });
@@ -147,13 +147,23 @@ main() {
           import "package:react/react_dom.dart" as react_dom;
           import "package:react/react.dart" as foo;
         
-          class FooComponent extends foo.Component{}
+          class FooComponent extends foo.Component {}
         ''',
         expectedOutput: '''
           import "package:react/react_dom.dart" as react_dom;
           import "package:react/react.dart" as foo;
 
-          class FooComponent extends foo.Component2{}
+          class FooComponent extends foo.Component2 {}
+        ''',
+      );
+    });
+
+    test('already updated annotation and extending class does not change', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          @Component2
+          class FooComponent extends UiComponent2 {}
         ''',
       );
     });
