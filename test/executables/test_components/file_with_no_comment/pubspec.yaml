@@ -6,10 +6,3 @@ environment:
 dev_dependencies:
   over_react_codemod:
     path: ../../../..
-
-dependency_overrides:
-  codemod:
-    git:
-      url: https://github.com/Workiva/dart_codemod.git
-      ref: master
-    
