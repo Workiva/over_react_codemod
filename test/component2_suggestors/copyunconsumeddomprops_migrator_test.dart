@@ -48,6 +48,11 @@ main() {
                 ..addProps(copyUnconsumedDomProps())
               )(props.children);
             }
+            
+            @override
+            componentWillUnmount() {
+              // method body
+            }
           }
         ''',
         expectedOutput: '''
@@ -58,6 +63,11 @@ main() {
               return (Dom.span()
                 ..modifyProps(addUnconsumedDomProps)
               )(props.children);
+            }
+            
+            @override
+            componentWillUnmount() {
+              // method body
             }
           }
         ''',
@@ -78,6 +88,11 @@ main() {
                 ..addProps(copyUnconsumedProps())
               )(props.children);
             }
+            
+            @override
+            componentWillUnmount() {
+              // method body
+            }
           }
         ''',
         expectedOutput: '''
@@ -90,6 +105,11 @@ main() {
               return (Dom.span()
                 ..modifyProps(addUnconsumedProps)
               )(props.children);
+            }
+            
+            @override
+            componentWillUnmount() {
+              // method body
             }
           }
         ''',
