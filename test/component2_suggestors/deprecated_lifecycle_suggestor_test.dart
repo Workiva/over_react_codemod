@@ -43,16 +43,16 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              @override
-              componentWillUpdate(){}
+            @override
+            componentWillUpdate(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              ${getDeperecationMessage('componentWillUpdate')}
-              @override
-              componentWillUpdate(){}
+            ${getDeperecationMessage('componentWillUpdate')}
+            @override
+            componentWillUpdate(){}
           }
         ''',
       );
@@ -64,14 +64,14 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              componentWillUpdate(){}
+            componentWillUpdate(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              ${getDeperecationMessage('componentWillUpdate')}
-              componentWillUpdate(){}
+            ${getDeperecationMessage('componentWillUpdate')}
+            componentWillUpdate(){}
           }
         ''',
       );
@@ -84,16 +84,16 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              @override
-              componentWillReceiveProps(){}
+            @override
+            componentWillReceiveProps(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              ${getDeperecationMessage('componentWillReceiveProps')}
-              @override
-              componentWillReceiveProps(){}
+            ${getDeperecationMessage('componentWillReceiveProps')}
+            @override
+            componentWillReceiveProps(){}
           }
         ''',
       );
@@ -106,14 +106,14 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              componentWillReceiveProps(){}
+            componentWillReceiveProps(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              ${getDeperecationMessage('componentWillReceiveProps')}
-              componentWillReceiveProps(){}
+            ${getDeperecationMessage('componentWillReceiveProps')}
+            componentWillReceiveProps(){}
           }
         ''',
       );
@@ -127,23 +127,23 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              @override
-              componentWillUpdate(){}
-              
-              @override
-              componentWillReceiveProps(){}
+            @override
+            componentWillUpdate(){}
+            
+            @override
+            componentWillReceiveProps(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              ${getDeperecationMessage('componentWillUpdate')}
-              @override
-              componentWillUpdate(){}
-          
-              ${getDeperecationMessage('componentWillReceiveProps')}
-              @override
-              componentWillReceiveProps(){}
+            ${getDeperecationMessage('componentWillUpdate')}
+            @override
+            componentWillUpdate(){}
+        
+            ${getDeperecationMessage('componentWillReceiveProps')}
+            @override
+            componentWillReceiveProps(){}
           }
         ''',
       );

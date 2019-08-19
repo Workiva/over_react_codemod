@@ -37,79 +37,74 @@ main() {
       );
     });
 
-    test('does not add a FIXME comment for componentWillUpdate with override',
-        () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+    group('does not add a FIXME comment', () {
+      test('for componentWillUpdate with override', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               @override
               componentWillUpdate(){}
-          }
-        ''',
-      );
-    });
+            }
+          ''',
+        );
+      });
 
-    test(
-        'does not add a FIXME comment for componentWillUpdate without override',
-        () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+      test('componentWillUpdate without override', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               componentWillUpdate(){}
-          }
-        ''',
-      );
-    });
+            }
+          ''',
+        );
+      });
 
-    test(
-        'does not add a FIXME comment for componentWillReceiveProps with override',
-        () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+      test('componentWillReceiveProps with override', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               @override
               componentWillReceiveProps(){}
-          }
-        ''',
-      );
-    });
+            }
+          ''',
+        );
+      });
 
-    test(
-        'does not add a FIXME comment for componentWillReceiveProps without override',
-        () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+      test('componentWillReceiveProps without override', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               componentWillReceiveProps(){}
-          }
-        ''',
-      );
-    });
+            }
+          ''',
+        );
+      });
 
-    test(
-        'does not add two FIXME comments when both componentWillUpdate and '
-        'componentWillReceiveProps is present', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+      test(
+          'when both componentWillUpdate and componentWillReceiveProps is present',
+          () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               @override
               componentWillUpdate(){}
-
+              
               @override
               componentWillReceiveProps(){}
-          }
-        ''',
-      );
+            }
+          ''',
+        );
+      });
     });
   });
 }
