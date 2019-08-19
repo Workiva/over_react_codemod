@@ -22,7 +22,7 @@ import 'package:source_span/source_span.dart';
 /// If `react` is already listed, but the minimum bound is not high enough,
 /// the version constraint will be updated. If `react` is missing from
 /// the file, it will be added.
-class PubspecUpdater implements Suggestor {
+class PubspecReactUpdater implements Suggestor {
   /// Regex that matches the dependency constraint declaration for react.
   static final RegExp reactDep = RegExp(
     r'''^\s*react:\s*["']?([\d\s<>=^.]+)["']?\s*$''',
@@ -37,7 +37,7 @@ class PubspecUpdater implements Suggestor {
 
   final VersionRange targetConstraint;
 
-  PubspecUpdater(this.targetConstraint);
+  PubspecReactUpdater(this.targetConstraint);
 
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {

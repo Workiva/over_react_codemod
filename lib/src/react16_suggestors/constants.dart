@@ -11,3 +11,5 @@ const styleMapExample = '''
     // Correct: 'width': 40 or 'width': '40px' or 'width': '4em' etc''';
 
 const reactVersionRange = '>=4.7.0 <6.0.0';
+
+const overReactVersionRange = '>=2.4.0 <4.0.0';
