@@ -14,13 +14,12 @@
 
 @TestOn('vm')
 import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
-import 'package:analyzer/dart/ast/token.dart';
-
-import 'package:over_react_codemod/src/constants.dart';
 
 void main() {
   group('Utils', () {
