@@ -30,10 +30,10 @@ main() {
         testSuggestor(
           expectedPatchCount: 0,
           input: '''
-          library foo;
-          var a = 'b';
-          class Foo {}
-        ''',
+            library foo;
+            var a = 'b';
+            class Foo {}
+          ''',
         );
       });
 
@@ -75,22 +75,16 @@ main() {
             expectedPatchCount: 1,
             input: '''
               @Component2()
-              class FooComponent extends UiComponent2 {
-                @override
-                componentWillReceiveProps(Map newProps) {
-                  super.componentWillReceiveProps(newProps);
-                  
+              class FooComponent extends AbstractComponent {
+                helperFunction() {
                   setState((prevState, props) => newState());
                 }
               }
             ''',
             expectedOutput: '''
               @Component2()
-              class FooComponent extends UiComponent2 {
-                @override
-                componentWillReceiveProps(Map newProps) {
-                  super.componentWillReceiveProps(newProps);
-                  
+              class FooComponent extends AbstractComponent {
+                helperFunction() {
                   setStateWithUpdater((prevState, props) => newState());
                 }
               }

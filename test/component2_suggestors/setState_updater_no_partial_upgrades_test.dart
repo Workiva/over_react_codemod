@@ -18,38 +18,45 @@ import 'package:test/test.dart';
 import '../util.dart';
 
 main() {
-  group('SetStateUpdater', () {
+  group('SetStateUpdater with --no-partial-upgrades flag', () {
     final testSuggestor =
         getSuggestorTester(SetStateUpdater(noPartialUpgrades: true));
 
-    group('updates correctly when there', () {
-      test('is an empty file', () {
-        testSuggestor(expectedPatchCount: 0, input: '');
-      });
+    test('is an empty file', () {
+      testSuggestor(expectedPatchCount: 0, input: '');
+    });
 
-      test('are no matches', () {
-        testSuggestor(
-          expectedPatchCount: 0,
-          input: '''
+    test('are no matches', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
           library foo;
           var a = 'b';
           class Foo {}
         ''',
-        );
-      });
+      );
+    });
 
+    group('updates correctly when setState', () {
       group('is a function expression', () {
-        test('', () {
+        test('in a class that is fully upgradable', () {
           testSuggestor(
-            expectedPatchCount: 0,
+            expectedPatchCount: 1,
             input: '''
               @Component2()
               class FooComponent extends UiComponent2 {
-                @override
-                componentWillReceiveProps(Map newProps) {
-                  super.componentWillReceiveProps(newProps);
-
+                helperFunction() {
                   setState((prevState, props) {
+                    // return ...;
+                  });
+                }
+              }
+            ''',
+            expectedOutput: '''
+              @Component2()
+              class FooComponent extends UiComponent2 {
+                helperFunction() {
+                  setStateWithUpdater((prevState, props) {
                     // return ...;
                   });
                 }
@@ -58,21 +65,98 @@ main() {
           );
         });
 
-        test('using arrow notation', () {
-          testSuggestor(
-            expectedPatchCount: 0,
-            input: '''
-              @Component2()
-              class FooComponent extends UiComponent2 {
-                @override
-                componentWillReceiveProps(Map newProps) {
-                  super.componentWillReceiveProps(newProps);
-
-                  setState((prevState, props) => newState());
+        group('in a class that is not fully upgradable', () {
+          test('--extends from a non-Component class', () {
+            testSuggestor(
+              expectedPatchCount: 0,
+              input: '''
+                @Component2()
+                class FooComponent extends AbstractComponent {
+                  helperFunction() {
+                    setState((prevState, props) {
+                      // return ...;
+                    });
+                  }
                 }
-              }
-            ''',
-          );
+              ''',
+            );
+          });
+
+          test('-- has lifecycle methods without codemods', () {
+            testSuggestor(
+              expectedPatchCount: 0,
+              input: '''
+                @Component2()
+                class FooComponent extends UiComponent2 {
+                  @override
+                  componentWillReceiveProps(Map newProps) {
+                    super.componentWillReceiveProps(newProps);
+  
+                    setState((prevState, props) {
+                      // return ...;
+                    });
+                  }
+                }
+              ''',
+            );
+          });
+        });
+
+        group('using arrow notation', () {
+          test('in a class that is fully upgradable', () {
+            testSuggestor(
+              expectedPatchCount: 1,
+              input: '''
+                @Component2()
+                class FooComponent extends UiComponent2 {
+                  helperFunction() {
+                    setState((prevState, props) => newState());
+                  }
+                }
+              ''',
+              expectedOutput: '''
+                @Component2()
+                class FooComponent extends UiComponent2 {
+                  helperFunction() {
+                    setStateWithUpdater((prevState, props) => newState());
+                  }
+                }
+              ''',
+            );
+          });
+
+          group('in a class that is not fully upgradable', () {
+            test('--extends from a non-Component class', () {
+              testSuggestor(
+                expectedPatchCount: 0,
+                input: '''
+                  @Component2()
+                  class FooComponent extends AbstractComponent {
+                    helperFunction() {
+                      setState((prevState, props) => newState());
+                    }
+                  }
+                ''',
+              );
+            });
+
+            test('-- has lifecycle methods without codemods', () {
+              testSuggestor(
+                expectedPatchCount: 0,
+                input: '''
+                  @Component2()
+                  class FooComponent extends UiComponent2 {
+                    @override
+                    componentWillReceiveProps(Map newProps) {
+                      super.componentWillReceiveProps(newProps);
+                      
+                      setState((prevState, props) => newState());
+                    }
+                  }
+                ''',
+              );
+            });
+          });
         });
       });
     });
