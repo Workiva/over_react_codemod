@@ -50,9 +50,7 @@ main() {
             }
             
             @override
-            componentWillUnmount() {
-              // method body
-            }
+            componentWillUnmount() {}
           }
         ''',
         expectedOutput: '''
@@ -66,9 +64,7 @@ main() {
             }
             
             @override
-            componentWillUnmount() {
-              // method body
-            }
+            componentWillUnmount() {}
           }
         ''',
       );
@@ -90,9 +86,7 @@ main() {
             }
             
             @override
-            componentWillUnmount() {
-              // method body
-            }
+            componentWillUnmount() {}
           }
         ''',
         expectedOutput: '''
@@ -108,9 +102,7 @@ main() {
             }
             
             @override
-            componentWillUnmount() {
-              // method body
-            }
+            componentWillUnmount() {}
           }
         ''',
       );

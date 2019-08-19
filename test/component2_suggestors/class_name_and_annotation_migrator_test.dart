@@ -56,57 +56,37 @@ main() {
         input: '''
           @Component()
           class FooComponent extends UiComponent<FooProps> {
-            eventHandler() {
-              // method body
-            }
+            eventHandler() {}
             
             @override
-            componentWillMount() {
-              // method body
-            }
+            componentWillMount() {}
             
             @override
-            render() {
-              // method body
-            }
+            render() {}
             
             @override
-            componentDidUpdate(Map prevProps, Map prevState) {
-              // method body
-            }
+            componentDidUpdate(Map prevProps, Map prevState) {}
             
             @override
-            componentWillUnmount() {
-              // method body
-            }
+            componentWillUnmount() {}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2<FooProps> {
-            eventHandler() {
-              // method body
-            }
+            eventHandler() {}
             
             @override
-            componentWillMount() {
-              // method body
-            }
+            componentWillMount() {}
             
             @override
-            render() {
-              // method body
-            }
+            render() {}
             
             @override
-            componentDidUpdate(Map prevProps, Map prevState) {
-              // method body
-            }
+            componentDidUpdate(Map prevProps, Map prevState) {}
             
             @override
-            componentWillUnmount() {
-              // method body
-            }
+            componentWillUnmount() {}
           }
         ''',
       );
@@ -119,28 +99,20 @@ main() {
           @Component2()
           class FooComponent extends UiStatefulComponent<FooProps, FooState> {
             @override
-            shouldComponentUpdate() {
-              // method body
-            }
+            shouldComponentUpdate() {}
             
             @override
-            render() {
-              // method body
-            }
+            render() {}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
-            shouldComponentUpdate() {
-              // method body
-            }
+            shouldComponentUpdate() {}
             
             @override
-            render() {
-              // method body
-            }
+            render() {}
           }
         ''',
       );
@@ -153,28 +125,20 @@ main() {
           @Component(isWrapper: true)
           class FooComponent extends UiComponent<FooProps> {
             @override
-            componentWillMount() {
-              // method body
-            }
+            componentWillMount() {}
             
             @override
-            componentDidMount() {
-              // method body
-            }
+            componentDidMount() {}
           }
         ''',
         expectedOutput: '''
           @Component2(isWrapper: true)
           class FooComponent extends UiComponent2<FooProps> {
             @override
-            componentWillMount() {
-              // method body
-            }
+            componentWillMount() {}
             
             @override
-            componentDidMount() {
-              // method body
-            }
+            componentDidMount() {}
           }
         ''',
       );
@@ -188,28 +152,20 @@ main() {
           @AbstractComponent(isWrapper: true)
           abstract class AbstractFooComponent extends UiStatefulComponent {
             @override
-            componentWillMount() {
-              // method body
-            }
+            componentWillMount() {}
 
             @override
-            shouldComponentUpdate() {
-              // method body
-            }
+            shouldComponentUpdate() {}
           }
         ''',
         expectedOutput: '''
           @AbstractComponent2(isWrapper: true)
           abstract class AbstractFooComponent extends UiStatefulComponent2 {
             @override
-            componentWillMount() {
-              // method body
-            }
+            componentWillMount() {}
 
             @override
-            shouldComponentUpdate() {
-              // method body
-            }
+            shouldComponentUpdate() {}
           }
         ''',
       );
@@ -224,14 +180,10 @@ main() {
         
           class FooComponent extends react.Component {
             @override
-            componentDidUpdate(Map prevProps, Map prevState) {
-              // method body
-            }
+            componentDidUpdate(Map prevProps, Map prevState) {}
             
             @override
-            componentWillReceiveProps() {
-              // method body
-            }
+            componentWillReceiveProps() {}
           }
         ''',
         expectedOutput: '''
@@ -240,14 +192,10 @@ main() {
 
           class FooComponent extends react.Component2 {
             @override
-            componentDidUpdate(Map prevProps, Map prevState) {
-              // method body
-            }
+            componentDidUpdate(Map prevProps, Map prevState) {}
             
             @override
-            componentWillReceiveProps() {
-              // method body
-            }
+            componentWillReceiveProps() {}
           }
         ''',
       );
@@ -279,24 +227,16 @@ main() {
         input: '''
           @Component2
           class FooComponent extends UiComponent2 {
-            eventHandler() {
-              // method body
-            }
+            eventHandler() {}
             
             @override
-            init() {
-              // method body
-            }
+            init() {}
             
             @override
-            render() {
-              // method body
-            }
+            render() {}
             
             @override
-            componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {
-              // method body
-            }
+            componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {}
           }
         ''',
       );

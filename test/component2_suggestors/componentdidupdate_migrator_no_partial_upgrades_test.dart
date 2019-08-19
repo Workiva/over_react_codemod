@@ -86,9 +86,7 @@ main() {
                 }
                 
                 @override
-                componentWillUnmount() {
-                  // method body
-                }
+                componentWillUnmount() {}
               }
             ''',
           );

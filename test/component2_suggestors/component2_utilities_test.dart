@@ -274,19 +274,13 @@ void main() {
             @Component
             class FooComponent extends UiStatefulComponent {
               @override
-              componentWillMount() {
-                // method body
-              }
+              componentWillMount() {}
               
               @override
-              render() {
-                // method body
-              }
+              render() {}
               
               @override
-              componentDidUpdate(Map prevProps, Map prevState) {
-                // method body
-              }
+              componentDidUpdate(Map prevProps, Map prevState) {}
             }
           ''';
 
@@ -301,14 +295,10 @@ void main() {
           final input = '''
             @Component
             class FooComponent extends UiComponent {
-              eventHander() {
-                // method body
-              }
+              eventHander() {}
               
               @override
-              render() {
-                // method body
-              }
+              render() {}
             }
           ''';
 
@@ -324,19 +314,13 @@ void main() {
             @Component2
             class FooComponent extends UiComponent2 {
               @override
-              init() {
-                // method body
-              }
+              init() {}
               
               @override
-              render() {
-                // method body
-              }
+              render() {}
               
               @override
-              componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {
-                // method body
-              }
+              componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {}
             }
           ''';
 
@@ -369,24 +353,16 @@ void main() {
             @Component
             class FooComponent extends UiComponent {
               @override
-              componentWillMount() {
-                // method body
-              }
+              componentWillMount() {}
               
               @override
-              render() {
-                // method body
-              }
+              render() {}
               
               @override
-              componentDidUpdate(Map prevProps, Map prevState) {
-                // method body
-              }
+              componentDidUpdate(Map prevProps, Map prevState) {}
               
               @override
-              componentWillUnmount() {
-                // method body
-              }
+              componentWillUnmount() {}
             }
           ''';
 
