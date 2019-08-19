@@ -18,7 +18,7 @@ import 'package:test/test.dart';
 import '../util.dart';
 
 main() {
-  group('ComponentDidUpdateMigrator', () {
+  group('ComponentDidUpdateMigrator with --no-partial-upgrades flag', () {
     final testSuggestor =
         getSuggestorTester(ComponentDidUpdateMigrator(noPartialUpgrades: true));
 
@@ -37,26 +37,63 @@ main() {
       );
     });
 
-    test('componentDidUpdate method updates', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+    group('componentDidUpdate method', () {
+      test('updates if containing class is fully upgradeable', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               componentDidUpdate(Map prevProps, Map prevState) {
-                  // method body
+                // method body
               }
-          }
-        ''',
-        expectedOutput: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {
                 // method body
               }
-          }
-        ''',
-      );
+            }
+          ''',
+        );
+      });
+
+      group('does not update if containing class is not fully upgradable', () {
+        test('-- extends from non-Component class', () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: '''
+              @Component2()
+              class FooComponent extends AbstractComponent {
+                componentDidUpdate(Map prevProps, Map prevState) {
+                  // method body
+                }
+              }
+            ''',
+          );
+        });
+
+        test('-- has lifecycle methods without codemods', () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: '''
+              @Component2()
+              class FooComponent extends UiComponent2 {
+                componentDidUpdate(Map prevProps, Map prevState) {
+                  // method body
+                }
+                
+                @override
+                componentWillUnmount() {
+                  // method body
+                }
+              }
+            ''',
+          );
+        });
+      });
     });
 
     test('componentDidUpdate does not update if optional third argument exists',
@@ -66,9 +103,9 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              componentDidUpdate(Map prevProps, Map prevState, [_]) {
-                  // method body
-              }
+            componentDidUpdate(Map prevProps, Map prevState, [_]) {
+              // method body
+            }
           }
         ''',
       );
@@ -81,7 +118,7 @@ main() {
           @Component()
           class FooComponent extends UiComponent {
             componentDidUpdate(Map prevProps, Map prevState) {
-                  // method body
+              // method body
             }
           }
         ''',

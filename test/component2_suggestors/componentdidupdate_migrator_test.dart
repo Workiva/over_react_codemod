@@ -36,26 +36,50 @@ main() {
       );
     });
 
-    test('componentDidUpdate method updates', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+    group('componentDidUpdate method updates', () {
+      test('when containing class extends from Component2 class', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               componentDidUpdate(Map prevProps, Map prevState) {
-                  // method body
+                // method body
               }
-          }
-        ''',
-        expectedOutput: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {
                 // method body
               }
-          }
-        ''',
-      );
+            }
+          ''',
+        );
+      });
+
+      test('when containing class has @Component2 annotation', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            @Component2()
+            class FooComponent extends AbstractComponent {
+              componentDidUpdate(Map prevProps, Map prevState) {
+                // method body
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends AbstractComponent {
+              componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
     });
 
     test('componentDidUpdate does not update if optional third argument exists',
@@ -65,9 +89,9 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              componentDidUpdate(Map prevProps, Map prevState, [_]) {
-                  // method body
-              }
+            componentDidUpdate(Map prevProps, Map prevState, [_]) {
+              // method body
+            }
           }
         ''',
       );
@@ -80,7 +104,7 @@ main() {
           @Component()
           class FooComponent extends UiComponent {
             componentDidUpdate(Map prevProps, Map prevState) {
-                  // method body
+              // method body
             }
           }
         ''',
