@@ -76,7 +76,7 @@ main() {
             input: '''
               @Component2()
               class FooComponent extends AbstractComponent {
-                helperFunction() {
+                someMethod() {
                   setState((prevState, props) => newState());
                 }
               }
@@ -84,7 +84,7 @@ main() {
             expectedOutput: '''
               @Component2()
               class FooComponent extends AbstractComponent {
-                helperFunction() {
+                someMethod() {
                   setStateWithUpdater((prevState, props) => newState());
                 }
               }

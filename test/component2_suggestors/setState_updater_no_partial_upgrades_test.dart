@@ -45,7 +45,7 @@ main() {
             input: '''
               @Component2()
               class FooComponent extends UiComponent2 {
-                helperFunction() {
+                someMethod() {
                   setState((prevState, props) {
                     // return ...;
                   });
@@ -55,7 +55,7 @@ main() {
             expectedOutput: '''
               @Component2()
               class FooComponent extends UiComponent2 {
-                helperFunction() {
+                someMethod() {
                   setStateWithUpdater((prevState, props) {
                     // return ...;
                   });
@@ -72,7 +72,7 @@ main() {
               input: '''
                 @Component2()
                 class FooComponent extends AbstractComponent {
-                  helperFunction() {
+                  someMethod() {
                     setState((prevState, props) {
                       // return ...;
                     });
@@ -109,7 +109,7 @@ main() {
               input: '''
                 @Component2()
                 class FooComponent extends UiComponent2 {
-                  helperFunction() {
+                  someMethod() {
                     setState((prevState, props) => newState());
                   }
                 }
@@ -117,7 +117,7 @@ main() {
               expectedOutput: '''
                 @Component2()
                 class FooComponent extends UiComponent2 {
-                  helperFunction() {
+                  someMethod() {
                     setStateWithUpdater((prevState, props) => newState());
                   }
                 }
@@ -132,7 +132,7 @@ main() {
                 input: '''
                   @Component2()
                   class FooComponent extends AbstractComponent {
-                    helperFunction() {
+                    someMethod() {
                       setState((prevState, props) => newState());
                     }
                   }
