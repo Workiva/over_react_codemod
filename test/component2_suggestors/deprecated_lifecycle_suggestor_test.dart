@@ -78,17 +78,17 @@ main() {
     });
 
     test('adds a FIXME comment for componentWillReceiveProps with override',
-            () {
-          testSuggestor(
-            expectedPatchCount: 1,
-            input: '''
+        () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
               @override
               componentWillReceiveProps(){}
           }
         ''',
-            expectedOutput: '''
+        expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
               ${getDeperecationMessage('componentWillReceiveProps')}
@@ -96,32 +96,32 @@ main() {
               componentWillReceiveProps(){}
           }
         ''',
-          );
-        });
+      );
+    });
 
     test('adds a FIXME comment for componentWillReceiveProps without override',
-            () {
-          testSuggestor(
-            expectedPatchCount: 1,
-            input: '''
+        () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
               componentWillReceiveProps(){}
           }
         ''',
-            expectedOutput: '''
+        expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
               ${getDeperecationMessage('componentWillReceiveProps')}
               componentWillReceiveProps(){}
           }
         ''',
-          );
-        });
+      );
+    });
 
     test(
         'adds two FIXME comments when both componentWillUpdate and '
-            'componentWillReceiveProps is present', () {
+        'componentWillReceiveProps is present', () {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
