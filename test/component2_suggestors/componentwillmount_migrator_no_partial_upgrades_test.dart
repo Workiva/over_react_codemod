@@ -49,7 +49,7 @@ main() {
               }
             }
           ''',
-            expectedOutput: '''
+          expectedOutput: '''
             @Component2()
             class FooComponent extends UiComponent2 {
               init(){
@@ -135,7 +135,7 @@ main() {
               }
             }
           ''',
-            expectedOutput: '''
+          expectedOutput: '''
             @Component2()
             class FooComponent extends UiComponent2 {
               void init(){
