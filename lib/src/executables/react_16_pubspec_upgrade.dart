@@ -31,7 +31,8 @@ const _changesRequiredOutput = """
 
 void main(List<String> args) {
   final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
-  final overReactVersionConstraint = VersionConstraint.parse(overReactVersionRange);
+  final overReactVersionConstraint =
+      VersionConstraint.parse(overReactVersionRange);
 
   final pubspecYamlQuery = FileQuery.dir(
     pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
