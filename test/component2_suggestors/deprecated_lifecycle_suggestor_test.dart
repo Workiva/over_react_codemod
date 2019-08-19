@@ -43,16 +43,16 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-            @override
-            componentWillUpdate(){}
+              @override
+              componentWillUpdate(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-            ${getDeperecationMessage('componentWillUpdate')}
-            @override
-            componentWillUpdate(){}
+              ${getDeperecationMessage('componentWillUpdate')}
+              @override
+              componentWillUpdate(){}
           }
         ''',
       );
@@ -64,86 +64,86 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-            componentWillUpdate(){}
+              componentWillUpdate(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-            ${getDeperecationMessage('componentWillUpdate')}
-            componentWillUpdate(){}
+              ${getDeperecationMessage('componentWillUpdate')}
+              componentWillUpdate(){}
           }
         ''',
       );
     });
 
     test('adds a FIXME comment for componentWillReceiveProps with override',
-        () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
+            () {
+          testSuggestor(
+            expectedPatchCount: 1,
+            input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-            @override
-            componentWillReceiveProps(){}
+              @override
+              componentWillReceiveProps(){}
           }
         ''',
-        expectedOutput: '''
+            expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-            ${getDeperecationMessage('componentWillReceiveProps')}
-            @override
-            componentWillReceiveProps(){}
+              ${getDeperecationMessage('componentWillReceiveProps')}
+              @override
+              componentWillReceiveProps(){}
           }
         ''',
-      );
-    });
+          );
+        });
 
     test('adds a FIXME comment for componentWillReceiveProps without override',
-        () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
+            () {
+          testSuggestor(
+            expectedPatchCount: 1,
+            input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-            componentWillReceiveProps(){}
+              componentWillReceiveProps(){}
           }
         ''',
-        expectedOutput: '''
+            expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-            ${getDeperecationMessage('componentWillReceiveProps')}
-            componentWillReceiveProps(){}
+              ${getDeperecationMessage('componentWillReceiveProps')}
+              componentWillReceiveProps(){}
           }
         ''',
-      );
-    });
+          );
+        });
 
     test(
         'adds two FIXME comments when both componentWillUpdate and '
-        'componentWillReceiveProps is present', () {
+            'componentWillReceiveProps is present', () {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-            @override
-            componentWillUpdate(){}
-            
-            @override
-            componentWillReceiveProps(){}
+              @override
+              componentWillUpdate(){}
+              
+              @override
+              componentWillReceiveProps(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-            ${getDeperecationMessage('componentWillUpdate')}
-            @override
-            componentWillUpdate(){}
-        
-            ${getDeperecationMessage('componentWillReceiveProps')}
-            @override
-            componentWillReceiveProps(){}
+              ${getDeperecationMessage('componentWillUpdate')}
+              @override
+              componentWillUpdate(){}
+          
+              ${getDeperecationMessage('componentWillReceiveProps')}
+              @override
+              componentWillReceiveProps(){}
           }
         ''',
       );
