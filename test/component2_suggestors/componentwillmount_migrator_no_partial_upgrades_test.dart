@@ -18,7 +18,7 @@ import 'package:test/test.dart';
 import '../util.dart';
 
 main() {
-  group('ComponentWillMountMigrator', () {
+  group('ComponentWillMountMigrator with --no-partial-upgrades flag', () {
     final testSuggestor =
         getSuggestorTester(ComponentWillMountMigrator(noPartialUpgrades: true));
 
@@ -37,26 +37,63 @@ main() {
       );
     });
 
-    test('componentWillMount method updates', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+    group('componentWillMount method', () {
+      test('updates if containing class is fully upgradable', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               componentWillMount(){
-                  // method body
+                // method body
               }
-          }
-        ''',
-        expectedOutput: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+            }
+          ''',
+            expectedOutput: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               init(){
-                  // method body
+                // method body
               }
-          }
-        ''',
-      );
+            }
+          ''',
+        );
+      });
+
+      group('does not update if containing class is not fully upgradable', () {
+        test('-- extends from non-Component class', () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: '''
+              @Component2()
+              class FooComponent extends AbstractComponent {
+                componentWillMount(){
+                  // method body
+                }
+              }
+            ''',
+          );
+        });
+
+        test('-- has lifecycle methods without codemods', () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: '''
+              @Component2()
+              class FooComponent extends UiComponent2 {
+                componentWillMount(){
+                  // method body
+                }
+                
+                @override
+                componentWillUnmount() {
+                  // method body
+                }
+              }
+            ''',
+          );
+        });
+      });
     });
 
     test('componentWillMount method with return type updates', () {
@@ -67,9 +104,9 @@ main() {
 
           @Component2()
           class FooComponent extends react.Component2 {
-              void componentWillMount(){
-                  // method body
-              }
+            void componentWillMount(){
+              // method body
+            }
           }
         ''',
         expectedOutput: '''
@@ -77,35 +114,74 @@ main() {
 
           @Component2()
           class FooComponent extends react.Component2 {
-              void init(){
-                  // method body
-              }
+            void init(){
+              // method body
+            }
           }
         ''',
       );
     });
 
-    test('remove super calls to componentWillMount', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+    group('super calls to componentWillMount', () {
+      test('are removed if containing class is fully upgradable', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
               void componentWillMount(){
+                super.componentWillMount();
+                // method body
+              }
+            }
+          ''',
+            expectedOutput: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
+              void init(){
+                // method body
+              }
+            }
+          ''',
+        );
+      });
+
+      group('are not removed if containing class is not fully upgradable', () {
+        test('-- extends from non-Component class', () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: '''
+              @Component2()
+              class FooComponent extends AbstractComponent {
+                void componentWillMount(){
                   super.componentWillMount();
                   // method body
+                }
               }
-          }
-        ''',
-        expectedOutput: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
-              void init(){
+            ''',
+          );
+        });
+
+        test('-- has lifecycle methods without codemods', () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: '''
+              @Component2()
+              class FooComponent extends UiComponent2 {
+                void componentWillMount(){
+                  super.componentWillMount();
                   // method body
+                }
+                
+                @override
+                componentWillUnmount() {
+                  // method body
+                }
               }
-          }
-        ''',
-      );
+            ''',
+          );
+        });
+      });
     });
 
     test('does not change componentWillMount for non-component2 classes', () {
@@ -114,9 +190,9 @@ main() {
         input: '''
           @Component()
           class FooComponent extends UiComponent {
-              void componentWillMount(){
-                  // method body
-              }
+            void componentWillMount(){
+              // method body
+            }
           }
         ''',
       );

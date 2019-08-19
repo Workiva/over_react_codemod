@@ -46,12 +46,22 @@ main() {
               componentDidUpdate(Map prevProps, Map prevState) {
                 // method body
               }
+              
+              @override
+              componentWillUnmount() {
+                // method body
+              }
             }
           ''',
           expectedOutput: '''
             @Component2()
             class FooComponent extends UiComponent2 {
               componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {
+                // method body
+              }
+              
+              @override
+              componentWillUnmount() {
                 // method body
               }
             }

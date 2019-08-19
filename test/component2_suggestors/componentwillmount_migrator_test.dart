@@ -42,17 +42,27 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              componentWillMount(){
-                  // method body
-              }
+            componentWillMount(){
+              // method body
+            }
+            
+            @override
+            componentWillUnmount() {
+              // method body
+            }
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              init(){
-                  // method body
-              }
+            init(){
+              // method body
+            }
+            
+            @override
+            componentWillUnmount() {
+              // method body
+            }
           }
         ''',
       );
@@ -66,9 +76,9 @@ main() {
           
           @Component2()
           class FooComponent extends react.Component2 {
-              void componentWillMount(){
-                  // method body
-              }
+            void componentWillMount(){
+              // method body
+            }
           }
         ''',
         expectedOutput: '''
@@ -76,9 +86,9 @@ main() {
           
           @Component2()
           class FooComponent extends react.Component2 {
-              void init(){
-                  // method body
-              }
+            void init(){
+              // method body
+            }
           }
         ''',
       );
@@ -90,18 +100,28 @@ main() {
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              void componentWillMount(){
-                  super.componentWillMount();
-                  // method body
-              }
+            void componentWillMount(){
+              super.componentWillMount();
+              // method body
+            }
+            
+            @override
+            componentWillUnmount() {
+              // method body
+            }
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              void init(){
-                  // method body
-              }
+            void init(){
+              // method body
+            }
+            
+            @override
+            componentWillUnmount() {
+              // method body
+            }
           }
         ''',
       );
@@ -113,9 +133,9 @@ main() {
         input: '''
           @Component()
           class FooComponent extends UiComponent {
-              void componentWillMount(){
-                  // method body
-              }
+            void componentWillMount(){
+              // method body
+            }
           }
         ''',
       );

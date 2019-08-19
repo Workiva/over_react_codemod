@@ -38,7 +38,7 @@ main() {
     });
 
     group('componentDidUpdate method', () {
-      test('updates if containing class is fully upgradeable', () {
+      test('updates if containing class is fully upgradable', () {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
