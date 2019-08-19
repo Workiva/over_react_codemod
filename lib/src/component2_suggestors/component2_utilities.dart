@@ -59,7 +59,7 @@ bool extendsComponent2(ClassDeclaration classNode) {
 ///   * `componentWillMount` (updated to `init`)
 ///   * `render`
 ///   * `componentDidUpdate`
-bool canBeFullyUpgradedToComponent2(ClassDeclaration classNode) {
+bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
   var extendsName = classNode?.extendsClause?.superclass?.name;
   if (extendsName == null) {
     return false;

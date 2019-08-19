@@ -54,7 +54,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     if (noPartialUpgrades) {
       shouldUpdateImport = false;
       unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-        if (canBeFullyUpgradedToComponent2(classNode)) {
+        if (fullyUpgradableToComponent2(classNode)) {
           shouldUpdateImport = true;
         }
       });
@@ -76,7 +76,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (noPartialUpgrades && !canBeFullyUpgradedToComponent2(node)) {
+    if (noPartialUpgrades && !fullyUpgradableToComponent2(node)) {
       return;
     }
 

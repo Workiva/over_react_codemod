@@ -263,7 +263,7 @@ void main() {
           testUtilityFunction(
             input: input,
             expectedValue: true,
-            functionToTest: canBeFullyUpgradedToComponent2,
+            functionToTest: fullyUpgradableToComponent2,
           );
         });
 
@@ -293,7 +293,7 @@ void main() {
           testUtilityFunction(
             input: input,
             expectedValue: true,
-            functionToTest: canBeFullyUpgradedToComponent2,
+            functionToTest: fullyUpgradableToComponent2,
           );
         });
 
@@ -315,7 +315,7 @@ void main() {
           testUtilityFunction(
             input: input,
             expectedValue: true,
-            functionToTest: canBeFullyUpgradedToComponent2,
+            functionToTest: fullyUpgradableToComponent2,
           );
         });
 
@@ -343,7 +343,7 @@ void main() {
           testUtilityFunction(
             input: input,
             expectedValue: true,
-            functionToTest: canBeFullyUpgradedToComponent2,
+            functionToTest: fullyUpgradableToComponent2,
           );
         });
       });
@@ -360,7 +360,7 @@ void main() {
           testUtilityFunction(
             input: input,
             expectedValue: false,
-            functionToTest: canBeFullyUpgradedToComponent2,
+            functionToTest: fullyUpgradableToComponent2,
           );
         });
 
@@ -393,7 +393,7 @@ void main() {
           testUtilityFunction(
             input: input,
             expectedValue: false,
-            functionToTest: canBeFullyUpgradedToComponent2,
+            functionToTest: fullyUpgradableToComponent2,
           );
         });
       });
