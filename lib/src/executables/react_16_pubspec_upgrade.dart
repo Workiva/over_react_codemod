@@ -26,7 +26,7 @@ const _changesRequiredOutput = """
   To update your pubspec, run the following commands:
   pub global activate over_react_codemod ^1.1.0
   pub global run over_react_codemod:react_16_pubspec_upgrade
-Then, review the the changes and commit.
+  Then, review the the changes and commit.
 """;
 
 void main(List<String> args) {
@@ -35,6 +35,7 @@ void main(List<String> args) {
 
   final pubspecYamlQuery = FileQuery.dir(
     pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
+    recursive: true,
   );
 
   final suggestors = [
@@ -42,9 +43,9 @@ void main(List<String> args) {
     PubspecOverReactUpgrader(overReactVersionConstraint)
   ];
 
-  exitCode = runInteractiveCodemodSequence(
+  exitCode = runInteractiveCodemod(
     pubspecYamlQuery,
-    suggestors,
+    AggregateSuggestor(suggestors),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
