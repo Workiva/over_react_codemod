@@ -45,7 +45,7 @@ main() {
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends AbstractComponent{}
+          class FooComponent extends AbstractComponent {}
         ''',
       );
     });
