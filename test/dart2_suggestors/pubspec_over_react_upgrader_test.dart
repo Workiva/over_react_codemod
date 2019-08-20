@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
