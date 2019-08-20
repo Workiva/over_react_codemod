@@ -48,7 +48,7 @@ class PubspecReactUpdater implements Suggestor {
       final line = reactMatch.group(0);
       final constraintValue = reactMatch.group(1);
       final constraint = VersionConstraint.parse(constraintValue);
-      if (constraint is VersionRange && constraint.min < targetConstraint.min) {
+      if (constraint is VersionRange) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
         if (newValue.contains(' ') &&
