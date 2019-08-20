@@ -17,7 +17,7 @@ import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
-import '../shared_pubspec_test.dart';
+import '../shared_pubspec_tests.dart';
 import '../util.dart';
 
 main() {
