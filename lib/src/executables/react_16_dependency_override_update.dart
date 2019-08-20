@@ -28,6 +28,7 @@ Then, review the the changes and commit.
 void main(List<String> args) {
   final pubspecYamlQuery = FileQuery.dir(
     pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
+    recursive: true,
   );
 
   exitCode = runInteractiveCodemod(
