@@ -55,7 +55,8 @@ class PubspecOverReactUpgrader implements Suggestor {
 
   PubspecOverReactUpgrader(this.targetConstraint) : shouldAlwaysUpdate = false;
 
-  PubspecOverReactUpgrader.alwaysUpdate(this.targetConstraint) : shouldAlwaysUpdate = true;
+  PubspecOverReactUpgrader.alwaysUpdate(this.targetConstraint)
+      : shouldAlwaysUpdate = true;
 
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
@@ -66,8 +67,8 @@ class PubspecOverReactUpgrader implements Suggestor {
       final line = overReactMatch.group(0);
       final constraintValue = overReactMatch.group(1);
       final constraint = VersionConstraint.parse(constraintValue);
-      if (constraint is VersionRange && (constraint.min < targetConstraint
-          .min || shouldAlwaysUpdate)) {
+      if (constraint is VersionRange &&
+          (constraint.min < targetConstraint.min || shouldAlwaysUpdate)) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
         if (newValue.contains(' ') &&

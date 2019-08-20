@@ -3,14 +3,14 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 void sharedPubspecTest({
-  @required Function({bool usesDoubleQuotes, bool shouldAddSpace}) getExpectedOutput,
+  @required
+      Function({bool usesDoubleQuotes, bool shouldAddSpace}) getExpectedOutput,
   @required Function testSuggestor,
   @required String dependency,
   @required VersionRange startingRange,
   bool shouldUpdateMidRange,
   String midVersionRange,
 }) {
-
   test('does nothing if there is no dependency key', () {
     testSuggestor(
       expectedPatchCount: 0,
@@ -57,13 +57,16 @@ void sharedPubspecTest({
     if (midVersionRange != null) {
       assert(midVersionRange != null);
 
-      String output = shouldUpdateMidRange ? getExpectedOutput()
+      String output = shouldUpdateMidRange
+          ? getExpectedOutput()
           : ''
           '$dependency: $midVersionRange\n'
           'test: 1.5.1\n'
           '';
 
-      test('${shouldUpdateMidRange ? '' : 'except'} when the version is within the expected range', () {
+      test(
+          '${shouldUpdateMidRange ? '' : 'except'} when the version is within the expected range',
+          () {
         testSuggestor(
           expectedPatchCount: shouldUpdateMidRange ? 1 : 0,
           shouldDartfmtOutput: false,

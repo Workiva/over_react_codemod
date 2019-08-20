@@ -31,25 +31,28 @@ main() {
       final defaultTestSuggestor = getSuggestorTester(
           PubspecOverReactUpgrader(VersionConstraint.parse(versionRange)));
 
-      sharedPubspecTest(testSuggestor: defaultTestSuggestor,
-          getExpectedOutput: getExpectedOutput,
-          startingRange: startingTestRange,
-          dependency: dependency,
-          midVersionRange: midRangeMark,
-          shouldUpdateMidRange: false,
+      sharedPubspecTest(
+        testSuggestor: defaultTestSuggestor,
+        getExpectedOutput: getExpectedOutput,
+        startingRange: startingTestRange,
+        dependency: dependency,
+        midVersionRange: midRangeMark,
+        shouldUpdateMidRange: false,
       );
     });
 
     group('with shouldAlwaysUpdate true', () {
       final defaultTestSuggestor = getSuggestorTester(
-            PubspecOverReactUpgrader.alwaysUpdate(VersionConstraint.parse(versionRange)));
+          PubspecOverReactUpgrader.alwaysUpdate(
+              VersionConstraint.parse(versionRange)));
 
-      sharedPubspecTest(testSuggestor: defaultTestSuggestor,
-          getExpectedOutput: getExpectedOutput,
-          startingRange: startingTestRange,
-          dependency: dependency,
-          midVersionRange: midRangeMark,
-          shouldUpdateMidRange: true,
+      sharedPubspecTest(
+        testSuggestor: defaultTestSuggestor,
+        getExpectedOutput: getExpectedOutput,
+        startingRange: startingTestRange,
+        dependency: dependency,
+        midVersionRange: midRangeMark,
+        shouldUpdateMidRange: true,
       );
     });
   });
