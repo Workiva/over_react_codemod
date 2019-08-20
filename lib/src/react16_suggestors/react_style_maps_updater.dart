@@ -29,144 +29,187 @@ import './react16_utilities.dart';
 class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  static final _cssValueSuffixPattern =
+      new RegExp(r'\b(?:rem|em|ex|vh|vw|vmin|vmax|%|px|cm|mm|in|pt|pc|ch)$');
+
   @override
   visitCascadeExpression(CascadeExpression node) {
     super.visitCascadeExpression(node);
 
+    // UiProps instances can't be created via constructors, so we want to skip
+    // these to avoid false positives on classes with a style prop.
+    //
+    // Make sure to only skip if a `new`/`const` keyword is present, since
+    // component factory invocations can be parsed by Dart 2 as
+    // InstanceCreationExpression even though they're MethodInvocations in
+    // the resolved AST.
+    {
+      final target = node.target;
+      if (target is InstanceCreationExpression && target.keyword != null) {
+        return;
+      }
+    }
+
     for (Expression cascade in node.cascadeSections) {
-      if (!hasComment(cascade, sourceFile, willBeRemovedCommentSuffix)) {
-        if (cascade.toSource().contains('style') &&
-            !cascade.toSource().contains('setProperty')) {
-          /// A style map, method invocation, or a variable
-          SyntacticEntity stylesObject = getStyles(cascade);
+      if (hasComment(cascade, sourceFile, willBeRemovedCommentSuffix)) {
+        continue;
+      }
 
-          /// CSS properties that were modified by the script or need to be
-          /// manually checked
-          List<String> listOfVariables = [];
+      var isStylePropAssignment = false;
+      if (cascade is AssignmentExpression) {
+        final lhs = cascade.leftHandSide;
+        if (lhs is PropertyAccess && lhs.propertyName.name == 'style') {
+          isStylePropAssignment = true;
+        }
+      }
+      if (!isStylePropAssignment) continue;
 
-          // Variables that affect the writing of the comment that goes above
-          // the style prop. There are different messages patched based on
-          // these booleans.
-          bool styleMapContainsAVariable = false;
-          bool isAVariable = false;
-          bool isAFunction = false;
-          bool isOther = false;
-          bool isForCustomProps =
-              cascade.toSource().toLowerCase().contains('props');
+      /// A style map, method invocation, or a variable
+      final stylesObject = getStyles(cascade);
 
-          if (stylesObject is SetOrMapLiteral) {
-            stylesObject.elements
-                .whereType<MapLiteralEntry>()
-                .forEach((cssPropertyRow) {
-              final propertyKey = cssPropertyRow.key;
-              String originalCssPropertyKey = propertyKey.toSource();
-              String cleanedCssPropertyKey = cleanString(propertyKey);
+      /// CSS properties that were modified by the script or need to be
+      /// manually checked
+      List<String> listOfVariables = [];
 
-              final cssPropertyValue = cssPropertyRow.value;
-              String cleanedCssPropertyValue = cleanString(cssPropertyValue);
+      // Variables that affect the writing of the comment that goes above
+      // the style prop. There are different messages patched based on
+      // these booleans.
+      bool styleMapContainsAVariable = false;
+      bool isAVariable = false;
+      bool isAFunction = false;
+      bool isOther = false;
 
-              /// Marks the current CSS property as containing a variable.
-              ///
-              /// Used to keep track of what properties in the style map
-              /// contain variables.
-              void flagAsVariable() {
-                if (!listOfVariables.contains(cleanedCssPropertyKey)) {
-                  listOfVariables.add(cleanedCssPropertyKey);
-                }
+      if (stylesObject is SetOrMapLiteral) {
+        stylesObject.elements
+            .whereType<MapLiteralEntry>()
+            .forEach((cssPropertyRow) {
+          final propertyKey = cssPropertyRow.key;
+          String originalCssPropertyKey = propertyKey.toSource();
+          String cleanedCssPropertyKey = cleanString(propertyKey);
 
-                styleMapContainsAVariable = true;
-              }
+          if (_unitlessNumberProperties.contains(cleanedCssPropertyKey) ||
+              _nonLengthValueProperties.contains(cleanedCssPropertyKey)) {
+            return;
+          }
 
-              var end = cssPropertyRow.end;
+          final cssPropertyValue = cssPropertyRow.value;
+          String cleanedCssPropertyValue = cleanString(cssPropertyValue);
 
-              // If the codemod does not override the commas originally in
-              // the code, the formatting can be undesirable. As a result,
-              // the codemod manually places a comma after a modified
-              // property. To do this, the script needs to override the
-              // already existing comma (one character after the row end)
-              // without overriding the closing bracket (cascade.end).
-              final nextToken = cssPropertyRow.endToken.next;
-              if (nextToken.type == TokenType.COMMA) {
-                end = nextToken.end;
-              }
+          /// Marks the current CSS property as containing a variable.
+          ///
+          /// Used to keep track of what properties in the style map
+          /// contain variables.
+          void flagAsVariable() {
+            if (!listOfVariables.contains(cleanedCssPropertyKey)) {
+              listOfVariables.add(cleanedCssPropertyKey);
+            }
 
-              if (cssPropertyValue is ConditionalExpression ||
-                  cssPropertyValue is BinaryExpression) {
-                List<Expression> ternaryExpressions;
+            styleMapContainsAVariable = true;
+          }
 
-                if (cssPropertyValue is ConditionalExpression) {
-                  ternaryExpressions = [
-                    cssPropertyValue.thenExpression,
-                    cssPropertyValue.elseExpression
-                  ];
-                } else if (cssPropertyValue is BinaryExpression) {
-                  ternaryExpressions = [
-                    cssPropertyValue.leftOperand,
-                    cssPropertyValue.rightOperand
-                  ];
-                }
+          var end = cssPropertyRow.end;
 
-                ternaryExpressions.forEach((property) {
-                  String cleanedPropertySubString = cleanString(property);
+          // If the codemod does not override the commas originally in
+          // the code, the formatting can be undesirable. As a result,
+          // the codemod manually places a comma after a modified
+          // property. To do this, the script needs to override the
+          // already existing comma (one character after the row end)
+          // without overriding the closing bracket (cascade.end).
+          final nextToken = cssPropertyRow.endToken.next;
+          if (nextToken.type == TokenType.COMMA) {
+            end = nextToken.end;
+          }
 
-                  if (property is SimpleIdentifier) flagAsVariable();
+          if (cssPropertyValue is ConditionalExpression ||
+              cssPropertyValue is BinaryExpression) {
+            List<Expression> ternaryExpressions;
 
-                  if (isANumber(cleanedPropertySubString) &&
-                      !isANumber(property.toSource())) {
-                    yieldPatch(property.offset, property.end,
-                        cleanedPropertySubString);
-                  }
-                });
-              } else if (cssPropertyValue is SimpleStringLiteral ||
-                  cssPropertyValue is SimpleIdentifier ||
-                  cssPropertyValue is IntegerLiteral) {
-                if (cssPropertyValue is SimpleIdentifier) flagAsVariable();
+            if (cssPropertyValue is ConditionalExpression) {
+              ternaryExpressions = [
+                cssPropertyValue.thenExpression,
+                cssPropertyValue.elseExpression
+              ];
+            } else if (cssPropertyValue is BinaryExpression) {
+              ternaryExpressions = [
+                cssPropertyValue.leftOperand,
+                cssPropertyValue.rightOperand
+              ];
+            }
 
-                if (isAString(cssPropertyValue)) {
-                  if (isANumber(cleanedCssPropertyValue)) {
-                    yieldPatch(
-                        cssPropertyRow.offset,
-                        end,
-                        '$originalCssPropertyKey:'
-                        ' $cleanedCssPropertyValue,');
-                  }
-                }
-              } else {
-                if (cssPropertyValue is! DoubleLiteral &&
-                    cssPropertyValue is! IntegerLiteral) {
-                  isOther = true;
-                }
+            ternaryExpressions.forEach((property) {
+              String cleanedPropertySubString = cleanString(property);
+
+              if (property is SimpleIdentifier) {
+                flagAsVariable();
+              } else if (isANumber(cleanedPropertySubString) &&
+                  !isANumber(property.toSource())) {
+                yieldPatch(
+                    property.offset, property.end, cleanedPropertySubString);
               }
             });
-          } else if (stylesObject is SimpleIdentifier) {
-            isAVariable = true;
-          } else if (stylesObject is MethodInvocation) {
-            isAFunction = true;
-          } else {
-            isOther = true;
-          }
+          } else if (cssPropertyValue is SimpleStringLiteral ||
+              cssPropertyValue is SimpleIdentifier ||
+              cssPropertyValue is IntegerLiteral) {
+            if (cssPropertyValue is SimpleIdentifier) flagAsVariable();
 
-          // Patch the comment at the top of the style map based upon the
-          // edits made.
-          if (listOfVariables.isNotEmpty ||
-              isAVariable ||
-              isAFunction ||
-              isForCustomProps ||
-              isOther) {
-            yieldPatch(
-                cascade.offset,
-                cascade.offset,
-                getString(
-                    isAVariable: isAVariable,
-                    styleMapContainsAVariable: styleMapContainsAVariable,
-                    isAFunction: isAFunction,
-                    affectedValues: listOfVariables,
-                    addExtraLine: sourceFile.getLine(cascade.offset) ==
-                        sourceFile.getLine(cascade.parent.offset),
-                    isForCustomProps: isForCustomProps,
-                    isOther: isOther));
+            if (isAString(cssPropertyValue)) {
+              if (isANumber(cleanedCssPropertyValue)) {
+                yieldPatch(
+                    cssPropertyRow.offset,
+                    end,
+                    '$originalCssPropertyKey:'
+                    ' $cleanedCssPropertyValue,');
+              }
+            }
+          } else if (cssPropertyValue is StringInterpolation) {
+            final lastElement = cssPropertyValue.elements.isEmpty
+                ? null
+                : cssPropertyValue.elements.last;
+            if (lastElement is! InterpolationString ||
+                !_cssValueSuffixPattern
+                    .hasMatch((lastElement as InterpolationString).value)) {
+              flagAsVariable();
+            }
+          } else if (cssPropertyValue is MethodInvocation) {
+            var invocation = cssPropertyValue;
+            // Handle `toRem(1).toString()`
+            if (invocation.methodName.name == 'toString' &&
+                invocation.target is MethodInvocation) {
+              invocation = invocation.target;
+            }
+
+            if (!const ['toPx', 'toRem'].contains(invocation.methodName.name)) {
+              flagAsVariable();
+            }
+          } else if (cssPropertyValue is DoubleLiteral ||
+              cssPropertyValue is IntegerLiteral) {
+            // do nothing
+          } else {
+            flagAsVariable();
           }
-        }
+        });
+      } else if (stylesObject is SimpleIdentifier) {
+        isAVariable = true;
+      } else if (stylesObject is MethodInvocation) {
+        isAFunction = true;
+      } else {
+        isOther = true;
+      }
+
+      // Patch the comment at the top of the style map based upon the
+      // edits made.
+      if (listOfVariables.isNotEmpty || isAVariable || isAFunction || isOther) {
+        yieldPatch(
+            cascade.offset,
+            cascade.offset,
+            getString(
+                isAVariable: isAVariable,
+                styleMapContainsAVariable: styleMapContainsAVariable,
+                isAFunction: isAFunction,
+                affectedValues: listOfVariables,
+                addExtraLine: sourceFile.getLine(cascade.offset) ==
+                    sourceFile.getLine(cascade.parent.offset),
+                isOther: isOther));
       }
     }
   }
@@ -200,13 +243,7 @@ String getString({
       'that the method called to set the style prop does not return any '
       'simple, unitless strings instead of nums.';
 
-  if (isForCustomProps) {
-    return '''
-    $variableCheckbox
-    $styleMapExample
-    $willBeRemovedSuffix
-    ''';
-  } else if (isAVariable || styleMapContainsAVariable || isOther) {
+  if (isAVariable || styleMapContainsAVariable || isOther) {
     if (affectedValues.isNotEmpty) {
       return '''
       $variableCheckboxWithAffectedValues
@@ -267,3 +304,90 @@ SyntacticEntity getStyles(Expression cascade) {
 
   return cleanedChildEntities.first;
 }
+
+/// A non-exhaustive set of CSS property names whose values can be numbers
+/// without units.
+const _unitlessNumberProperties = const {
+  'animationIterationCount',
+  'borderImageOutset',
+  'borderImageSlice',
+  'borderImageWidth',
+  'boxFlex',
+  'boxFlexGroup',
+  'boxOrdinalGroup',
+  'columnCount',
+  'columns',
+  'flex',
+  'flexGrow',
+  'flexPositive',
+  'flexShrink',
+  'flexNegative',
+  'flexOrder',
+  'gridRow',
+  'gridRowEnd',
+  'gridRowSpan',
+  'gridRowStart',
+  'gridColumn',
+  'gridColumnEnd',
+  'gridColumnSpan',
+  'gridColumnStart',
+  'fontWeight',
+  'lineClamp',
+  'lineHeight',
+  'opacity',
+  'order',
+  'orphans',
+  'tabSize',
+  'widows',
+  'zIndex',
+  'zoom',
+
+  // SVG-related properties
+  'fillOpacity',
+  'floodOpacity',
+  'stopOpacity',
+  'strokeDasharray',
+  'strokeDashoffset',
+  'strokeMiterlimit',
+  'strokeOpacity',
+  'strokeWidth',
+};
+
+/// A non-exhaustive set of CSS property names whose values never represent
+/// CSS lengths (absolute lengths like px/pt, relative lengths like %/rem).
+const _nonLengthValueProperties = const {
+  'backgroundAttachment',
+  'backgroundColor',
+  'backgroundImage',
+  'borderBottomColor',
+  'borderBottomStyle',
+  'borderColor',
+  'borderLeftColor',
+  'borderLeftStyle',
+  'borderRightColor',
+  'borderRightStyle',
+  'borderStyle',
+  'borderTopColor',
+  'borderTopStyle',
+  'clear',
+  'color',
+  'cursor',
+  'display',
+  'float',
+  'cssFloat',
+  'font',
+  'fontFamily',
+  'fontVariant',
+  'listStyle',
+  'listStyleImage',
+  'listStyleType',
+  'overflow',
+  'pageBreakAfter',
+  'pageBreakBefore',
+  'position',
+  'textAlign',
+  'textDecoration',
+  'textTransform',
+  'verticalAlign',
+  'visibility',
+};
