@@ -38,10 +38,13 @@ Map packagesToCheckFor = {
 };
 
 getDependencyVersion(String packageName) {
-  if ( pubspecYaml.containsKey('dependencies') && pubspecYaml['dependencies'].containsKey(packageName) ) {
+  if (pubspecYaml.containsKey('dependencies') &&
+      pubspecYaml['dependencies'].containsKey(packageName)) {
     return VersionConstraint.parse(pubspecYaml['dependencies'][packageName]);
-  } else if ( pubspecYaml.containsKey('dev_dependencies') && pubspecYaml['dev_dependencies'].containsKey(packageName) ) {
-    return VersionConstraint.parse(pubspecYaml['dev_dependencies'][packageName]);
+  } else if (pubspecYaml.containsKey('dev_dependencies') &&
+      pubspecYaml['dev_dependencies'].containsKey(packageName)) {
+    return VersionConstraint.parse(
+        pubspecYaml['dev_dependencies'][packageName]);
   }
   return null;
 }
@@ -52,7 +55,7 @@ void main(List<String> args) {
   final entrylogger = Logger('over_react_codemod.precheck');
   try {
     pubspecYaml = loadYaml(File('pubspec.yaml').readAsStringSync());
-  } catch(e) {
+  } catch (e) {
     entrylogger.fine('This repo does not have a pubspec.yaml');
     exitCode = 0;
   }
@@ -66,8 +69,10 @@ void main(List<String> args) {
     }
     if (constraint != null) {
       if (!constraint.isAny &&
-          constraint.allowsAny(VersionConstraint.parse(packagesToCheckFor[constraintPackage][0])) &&
-          constraint.allowsAny(VersionConstraint.parse(packagesToCheckFor[constraintPackage][1]))) {
+          constraint.allowsAny(VersionConstraint.parse(
+              packagesToCheckFor[constraintPackage][0])) &&
+          constraint.allowsAny(VersionConstraint.parse(
+              packagesToCheckFor[constraintPackage][1]))) {
         final query = FileQuery.dir(
           pathFilter: isDartFile,
           recursive: true,
@@ -93,13 +98,14 @@ void main(List<String> args) {
           }
         }
       } else {
-        entrylogger.fine('This repo does not appear to be in React 16 transition.');
+        entrylogger
+            .fine('This repo does not appear to be in React 16 transition.');
         exitCode = 0;
       }
     } else {
-        entrylogger.fine('This repo does not use React.');
-        exitCode = 0;
-      }
+      entrylogger.fine('This repo does not use React.');
+      exitCode = 0;
+    }
   } catch (e) {
     entrylogger.fine(e);
     exitCode = 0;

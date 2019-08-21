@@ -21,7 +21,8 @@ ProcessResult runUpgrade({String onDirectory}) {
   // This command is equivalent to `pub run over_react_codemod:react16_upgrade`
   // but allows us to not need to run pub get on each of these fake packages because over_react/react.dart have not been
   // released yet these tests will fail a pub get
-  return Process.runSync('dart', ['--enable-asserts', '../../../../bin/react16_upgrade.dart'],
+  return Process.runSync(
+      'dart', ['--enable-asserts', '../../../../bin/react16_upgrade.dart'],
       workingDirectory: onDirectory);
 }
 
@@ -55,35 +56,40 @@ main() {
 
       test('the version is not in transition', () {
         final result = runUpgrade(
-            onDirectory: 'test/executables/test_components/package_without_match');
+            onDirectory:
+                'test/executables/test_components/package_without_match');
 
         expect(result.exitCode, equals(0));
       });
 
       test('a version of react is in transition', () {
         final result = runUpgrade(
-            onDirectory: 'test/executables/test_components/package_with_react_match');
+            onDirectory:
+                'test/executables/test_components/package_with_react_match');
 
         expect(result.exitCode, equals(0));
       });
 
       test('a version of over_react is in transition', () {
         final result = runUpgrade(
-            onDirectory: 'test/executables/test_components/package_with_over_react_match');
+            onDirectory:
+                'test/executables/test_components/package_with_over_react_match');
 
         expect(result.exitCode, equals(0));
       });
 
       test('pubspec.yaml has neither react or over_react deps', () {
         final result = runUpgrade(
-            onDirectory: 'test/executables/test_components/package_without_either_package');
+            onDirectory:
+                'test/executables/test_components/package_without_either_package');
 
         expect(result.exitCode, equals(0));
       });
 
       test('a package does not have a pubspec.yaml', () {
         final result = runUpgrade(
-            onDirectory: 'test/executables/test_components/package_without_pubspec');
+            onDirectory:
+                'test/executables/test_components/package_without_pubspec');
 
         expect(result.exitCode, equals(0));
       });
