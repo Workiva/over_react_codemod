@@ -29,18 +29,6 @@ class DependencyOverrideUpdater implements Suggestor {
     multiLine: true,
   );
 
-  /// Regex that matches the dependency override for over_react.
-  static final RegExp overReactDepUrl = RegExp(
-    r'''^\s*url: git@github\.com:Workiva\/over_react.*$''',
-    multiLine: true,
-  );
-
-  /// Regex that matches the dependency override for react.
-  static final RegExp reactDepUrl = RegExp(
-    r'''^\s*url: git@github\.com:cleandart\/react-dart.*$''',
-    multiLine: true,
-  );
-
   /// Regex that matches the `dependency_overrides:` key in a pubspec.yaml.
   static final RegExp dependencyOverrideKey = RegExp(
     r'^dependency_overrides:$',
@@ -50,14 +38,16 @@ class DependencyOverrideUpdater implements Suggestor {
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
     final contents = sourceFile.getText(0);
-    final overReactOverrideMatch = overReactDepUrl.firstMatch(contents);
-    final reactOverrideMatch = reactDepUrl.firstMatch(contents);
+    final containsOverReactOverride = containsDependencyOverride(
+        dependency: 'over_react', fileContent: contents);
+    final containsReactOverride = containsDependencyOverride(
+        dependency: 'react-dart', fileContent: contents);
     final reactDependencyMatch = reactDep.firstMatch(contents);
     final overReactDepMatch = reactDep.firstMatch(contents);
     final dependencyOverridesMatch = dependencyOverrideKey.firstMatch(contents);
 
     if ((overReactDepMatch != null && reactDependencyMatch != null) &&
-        (overReactOverrideMatch == null && reactOverrideMatch == null)) {
+        (!containsOverReactOverride && !containsReactOverride)) {
       final dependencyOverrides = ''
           '  react:\n'
           '    git:\n'
@@ -93,4 +83,19 @@ class DependencyOverrideUpdater implements Suggestor {
 
   @override
   bool shouldSkip(_) => false;
+}
+
+bool containsDependencyOverride({String dependency, String fileContent}) {
+  final regexString = r'''^\s*\w{0,4}\s*:\s*[\s\S]*(.com){0,1}.\w*\/''' +
+      dependency +
+      r'''[\s\S]*\n{0,1}$''';
+
+  final dependencyRegex = RegExp(
+    regexString,
+    multiLine: true,
+  );
+
+  final regexMatch = dependencyRegex.firstMatch(fileContent);
+
+  return regexMatch != null;
 }
