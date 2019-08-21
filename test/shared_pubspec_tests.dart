@@ -26,6 +26,25 @@ void sharedPubspecTest({
     );
   });
 
+  test('does nothing if the dependency matches the target already', () {
+    testSuggestor(
+      expectedPatchCount: 0,
+      shouldDartfmtOutput: false,
+      input: ''
+          'name: nothing\n'
+          'verion: 0.0.0\n'
+          'dependencies:\n'
+          '${getExpectedOutput(shouldAddSpace: true)}'
+          '',
+      expectedOutput: ''
+          'name: nothing\n'
+          'verion: 0.0.0\n'
+          'dependencies:\n'
+          '${getExpectedOutput(shouldAddSpace: true)}'
+          '',
+    );
+  });
+
   test('adds dependency if missing', () {
     testSuggestor(
       expectedPatchCount: 1,
