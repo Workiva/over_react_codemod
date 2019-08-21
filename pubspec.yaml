@@ -34,6 +34,7 @@ dev_dependencies:
   mockito: ^4.0.0
   pedantic: ^1.4.0
   test: ^1.5.1
+  react: ^4.6.1
 
 executables:
   dart2_upgrade:
