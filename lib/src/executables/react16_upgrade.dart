@@ -24,7 +24,7 @@ const _changesRequiredOutput = """
   To update your code, change your `react` dependency version in `pubspec.yaml` to `^5.0.0` and run the following commands:
   pub get
   pub global activate over_react_codemod ^1.1.0
-  pub global run over_react_codemod:react_16_upgrade
+  pub global run over_react_codemod:react16_upgrade
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
