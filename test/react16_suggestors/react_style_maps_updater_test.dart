@@ -242,6 +242,125 @@ main() {
         );
       });
 
+      test('is on a unitless or non-number property', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            main() {
+              Foo()
+              ..style = {
+                'zIndex': '5',
+                'position': 'absolute',
+              };
+            }
+          ''',
+        );
+      });
+
+      test('is on a custom property', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            main() {
+              Foo()
+              ..style = {
+                '--foo': '5',
+              };
+            }
+          ''',
+          expectedOutput: '''
+            main() {
+              Foo()
+              ..style = {
+                '--foo': 5,
+              };
+            }
+          ''',
+        );
+      });
+
+      test('is a toRem/toPx call', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            main() {
+              Foo()
+              ..style = {
+                'width': toRem(width),
+                'height': toPx(height),
+              };
+            }
+          ''',
+        );
+      });
+
+      test('is a toRem/toPx call with a toString at the end', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            main() {
+              Foo()
+              ..style = {
+                'fontSize': toRem('12').toString(),
+                'margin': toPx('25').toString(),
+              };
+            }
+          ''',
+        );
+      });
+
+      test('is an interpolated string ending in a known CSS unit', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: r'''
+            main() {
+              Foo()
+                ..style = {
+                  'width': '${width}rem',
+                  'width': '${getHeight()}px',
+                };
+            }
+          ''',
+        );
+      });
+
+      test('is an interpolated string not ending in a known CSS unit', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            main() {
+              Foo()
+                ${getCheckboxComment(keysOfModdedValues: [
+            'width',
+            'height',
+            'fontSize'
+          ])}
+                ..style = {
+                  'width': '\$width',
+                  'height': '\${getHeight()}foo',
+                  'fontSize': '\${getFontSize()}notpx',
+                };
+            }
+          ''',
+        );
+      });
+
+      test('is on an instance creation expression', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            main() {
+              new NotAPropsClass()
+                ..style = something
+                ..style = getSomething()
+                ..style = {
+                  'width': '40',
+                };
+            }
+          ''',
+        );
+      });
+
       test('is an expression that has already been updated', () {
         testSuggestor(
           expectedPatchCount: 0,
@@ -385,7 +504,7 @@ main() {
           expectedOutput: '''
             main() {
               Foo()
-              ${manualVariableCheckComment()}
+              ${manualVariableCheckComment(keysOfModdedValues: ['width'])}
               ..style = {
                 'width': foo.bar,
               };
@@ -522,7 +641,7 @@ main() {
       );
     });
 
-    test('does not run on setProperty', () {
+    test('does not run on DOM style setProperty', () {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
@@ -530,36 +649,45 @@ main() {
               DivElement()..style.setProperty('width', '400');
             }
           ''',
-        expectedOutput: '''
+      );
+    });
+
+    test('does not run on DOM style property assignments in various forms', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
             main() {
-              DivElement()..style.setProperty('width', '400');
+              style.width = '400';
+              style..width = '400';
+              DivElement().style.width = '400';
+              DivElement()..style.width = '400';
+              DivElement().style..width = '400';
             }
           ''',
       );
     });
 
-    test('adds a comment for custom props', () {
+    test('works for custom props maps containing styles', () {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
             main() {
               Foo()
-              ..datePickerProps = {
-                'style': {
+              ..datePickerProps = (domProps()
+                ..style = {
                   'width': '40',
                 }
-              };
+              );
             }
           ''',
         expectedOutput: '''
             main() {
               Foo()
-              ${manualVariableCheckComment()}
-              ..datePickerProps = {
-                'style': {
-                  'width': '40',
+              ..datePickerProps = (domProps()
+                ..style = {
+                  'width': 40,
                 }
-              };
+              );
             }
           ''',
       );

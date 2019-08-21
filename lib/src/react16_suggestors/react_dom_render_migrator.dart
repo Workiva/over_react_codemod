@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
@@ -109,7 +110,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           node.realTarget.offset,
           comment ??
               '\n // [ ] Check this box upon manual validation of this ref and '
-              'its typing.$willBeRemovedCommentSuffix\n',
+                  'its typing.$willBeRemovedCommentSuffix\n',
         );
 
         refVariableName = parent.name.name;
@@ -127,7 +128,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           parent.rightHandSide.offset,
           comment ??
               '// [ ] Check this box upon manual validation of this ref.'
-              '$willBeRemovedCommentSuffix\n',
+                  '$willBeRemovedCommentSuffix\n',
         );
 
         refVariableName = parent.leftHandSide.toSource();
@@ -169,8 +170,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         node.realTarget.offset,
         node.realTarget.offset,
         '\n// [ ] Check this box upon manually updating this argument to use a '
-            'callback ref instead of the return value of `react_dom.render`.'
-            '$willBeRemovedCommentSuffix\n',
+        'callback ref instead of the return value of `react_dom.render`.'
+        '$willBeRemovedCommentSuffix\n',
       );
     } else if ((parent is ReturnStatement ||
             parent is ExpressionFunctionBody) &&
@@ -182,8 +183,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         node.realTarget.offset,
         node.realTarget.offset,
         '// [ ] Check this box upon manually updating this variable to be set using a '
-            'callback ref instead of the return value of `react_dom.render`.'
-            '$willBeRemovedCommentSuffix\n',
+        'callback ref instead of the return value of `react_dom.render`.'
+        '$willBeRemovedCommentSuffix\n',
       );
     } else {
       if (!hasValidationComment(node, sourceFile) &&
@@ -193,7 +194,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           node.realTarget.offset,
           comment ??
               '// [ ] Check this box upon manual validation of this ref.'
-              '$willBeRemovedCommentSuffix\n',
+                  '$willBeRemovedCommentSuffix\n',
         );
       }
     }
