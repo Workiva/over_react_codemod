@@ -18,19 +18,22 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 ProcessResult runUpgrade({String onDirectory}) {
-  Process.runSync('pub', ['get'], workingDirectory: onDirectory);
-
-  return Process.runSync('pub', ['run', 'over_react_codemod:react16_upgrade'],
+  // This command is equivalent to `pub run over_react_codemod:react16_upgrade`
+  // but allows us to not need to run pub get on each of these fake packages because over_react/react.dart have not been
+  // released yet these tests will fail a pub get
+  return Process.runSync('dart', ['--enable-asserts', '../../../../bin/react16_upgrade.dart'],
       workingDirectory: onDirectory);
 }
 
 main() {
   group('React16_upgrade', () {
-    test('exits with a status of 1 when there is a comment', () {
-      final result = runUpgrade(
-          onDirectory: 'test/executables/test_components/file_with_comment');
+    group('exits with a status of 1 when', () {
+      test('there is a comment', () {
+        final result = runUpgrade(
+            onDirectory: 'test/executables/test_components/file_with_comment');
 
-      expect(result.exitCode, equals(1));
+        expect(result.exitCode, equals(1));
+      });
     });
 
     group('exits with a status of 0 when', () {
@@ -46,6 +49,41 @@ main() {
         final result = runUpgrade(
             onDirectory:
                 'test/executables/test_components/file_with_validated_comment');
+
+        expect(result.exitCode, equals(0));
+      });
+
+      test('the version is not in transition', () {
+        final result = runUpgrade(
+            onDirectory: 'test/executables/test_components/package_without_match');
+
+        expect(result.exitCode, equals(0));
+      });
+
+      test('a version of react is in transition', () {
+        final result = runUpgrade(
+            onDirectory: 'test/executables/test_components/package_with_react_match');
+
+        expect(result.exitCode, equals(0));
+      });
+
+      test('a version of over_react is in transition', () {
+        final result = runUpgrade(
+            onDirectory: 'test/executables/test_components/package_with_over_react_match');
+
+        expect(result.exitCode, equals(0));
+      });
+
+      test('pubspec.yaml has neither react or over_react deps', () {
+        final result = runUpgrade(
+            onDirectory: 'test/executables/test_components/package_without_either_package');
+
+        expect(result.exitCode, equals(0));
+      });
+
+      test('a package does not have a pubspec.yaml', () {
+        final result = runUpgrade(
+            onDirectory: 'test/executables/test_components/package_without_pubspec');
 
         expect(result.exitCode, equals(0));
       });

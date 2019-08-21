@@ -24,6 +24,7 @@ dependencies:
   path: ^1.6.2
   pub_semver: ^1.4.2
   source_span: ^1.4.1
+  yaml: any
 
 dev_dependencies:
   dart_dev: ^2.0.1
@@ -32,7 +33,6 @@ dev_dependencies:
   meta: ^1.1.7
   mockito: ^4.0.0
   pedantic: ^1.4.0
-  react: ^4.6.1
   test: ^1.5.1
 
 executables:

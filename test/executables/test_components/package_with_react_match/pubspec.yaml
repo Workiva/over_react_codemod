@@ -1,9 +1,9 @@
-name: file_with_comment
+name: package_with_match
 version: 0.0.0
 private: true
 environment:
   sdk: '>=2.4.0 <3.0.0'
-dev_dependencies:
+dependencies:
   react: '>=3.0.0 <=6.0.0'
   over_react_codemod:
     path: ../../../..
