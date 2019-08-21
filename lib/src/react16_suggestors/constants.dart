@@ -20,6 +20,5 @@ const willBeRemovedCommentSuffix =
     ' This will be removed once the transition to React 16 is complete.';
 
 const styleMapExample = '''
-    // If the property accepts a numerical value:
-    // Incorrect: 'width': '40'
-    // Correct: 'width': 40 or 'width': '40px' or 'width': '4em' etc''';
+    // CSS number strings are no longer auto-converted to px. Ensure values are of type `num`, or have units.
+    // Incorrect value for 'width': '40'. Correct values: 40, '40px', '4em'.''';
