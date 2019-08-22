@@ -39,17 +39,18 @@ main() {
 
     test('render without usage of return value', () {
       testSuggestor(
-        expectedPatchCount: 2,
+        expectedPatchCount: 3,
         input: '''
           import 'package:react/react_dom.dart' as react_dom;
-        
+
           main() {
             react_dom.render(Foo()(), mountNode);
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-        
+
           main() {
             react_dom.render(ErrorBoundary()(Foo()()), mountNode);
           }
@@ -61,15 +62,17 @@ main() {
       testSuggestor(
         expectedPatchCount: 7,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var instance = react_dom.render(Foo()(), mountNode);
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var instance;
             $checkboxCommentWithType
@@ -85,16 +88,18 @@ main() {
       testSuggestor(
         expectedPatchCount: 7,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var instance;
             instance = react_dom.render(Foo()(), mountNode);
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var instance;
             $checkboxComment
@@ -110,15 +115,17 @@ main() {
       testSuggestor(
         expectedPatchCount: 3,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var instance = getDartComponent(react_dom.render(Foo()(), mountNode));
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var instance = getDartComponent( \n$getArgumentCheckboxManualUpdate
             react_dom.render(ErrorBoundary()(Foo()()), mountNode));
@@ -131,15 +138,17 @@ main() {
       testSuggestor(
         expectedPatchCount: 3,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             return react_dom.render(Foo()(), mountNode);
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             return $getVariableCheckboxManualUpdate
             react_dom.render(ErrorBoundary()(Foo()()), mountNode);
@@ -152,8 +161,9 @@ main() {
       testSuggestor(
         expectedPatchCount: 5,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var instance = react_dom.render((Foo()
               ..id = 'foo'
@@ -161,8 +171,9 @@ main() {
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var instance;
             $checkboxCommentWithType
@@ -179,8 +190,9 @@ main() {
       testSuggestor(
         expectedPatchCount: 3,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var fooRef;
             react_dom.render((Foo()
@@ -189,8 +201,9 @@ main() {
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var fooRef;
             $checkboxComment
@@ -206,15 +219,17 @@ main() {
       testSuggestor(
         expectedPatchCount: 3,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             void render() => react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             void render() => $checkboxComment
             react_dom.render(ErrorBoundary()((Foo()..ref = ((ref) => fooRef = ref))()), mountNode);
@@ -227,17 +242,19 @@ main() {
       testSuggestor(
         expectedPatchCount: 3,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             render() => react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
-            render() => $getVariableCheckboxManualUpdate 
+            render() => $getVariableCheckboxManualUpdate
             react_dom.render(ErrorBoundary()((Foo()..ref = ((ref) => fooRef = ref))()), mountNode);
           }
         ''',
@@ -248,8 +265,9 @@ main() {
       testSuggestor(
         expectedPatchCount: 4,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var fooRef = react_dom.render((Foo()
               ..ref = (ref) { somethingElse = ref; }
@@ -257,8 +275,9 @@ main() {
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var fooRef;
             $checkboxCommentWithType
@@ -274,8 +293,9 @@ main() {
       testSuggestor(
         expectedPatchCount: 16,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var instance1 = react_dom.render(foo(), mountNode);
 
@@ -287,8 +307,9 @@ main() {
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var instance1;
             $checkboxCommentExpressionRef
@@ -312,8 +333,9 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var fooRef;
             ${getCheckboxComment(checked: true)}
@@ -329,8 +351,9 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             var fooRef;
             ${getCheckboxComment(checked: false)}
@@ -346,8 +369,9 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
-          
+
           main() {
             test('simple test', () {
               var instance = react_dom.render(Foo()(), mountNode);
@@ -361,6 +385,7 @@ main() {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
+          import 'package:over_react/over_react.dart';
           import "package:react/react_dom.dart" as react_dom;
 
           main() {
@@ -368,6 +393,7 @@ main() {
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import "package:react/react_dom.dart" as react_dom;
 
           main() {
@@ -381,6 +407,7 @@ main() {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as different_namespace;
 
           main() {
@@ -388,6 +415,7 @@ main() {
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as different_namespace;
 
           main() {
@@ -401,15 +429,17 @@ main() {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart';
-        
+
           main() {
             render(Foo()(), mountNode);
           }
         ''',
         expectedOutput: '''
+          import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart';
-        
+
           main() {
             render(ErrorBoundary()(Foo()()), mountNode);
           }
@@ -423,6 +453,27 @@ main() {
         input: '''
           main() {
             render(Foo()(), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('no import of over_react but is wrapped with ErrorBoundary', () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+          import 'package:react/react_dom.dart';
+
+          main() {
+            render(ErrorBoundary()(Foo()()), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:react/react_dom.dart';
+
+          main() {
+            render(ErrorBoundary()(Foo()()), mountNode);
           }
         ''',
       );
