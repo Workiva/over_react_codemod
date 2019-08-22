@@ -71,17 +71,14 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       return ancestor is FunctionDeclaration;
     });
 
-    void addOverReactPatch(int offset){
+    void addOverReactPatch(int offset) {
       yieldPatch(
-        reactDomImport.offset,
-        reactDomImport.offset,
-        'import \'package:over_react/over_react.dart\';\n'
-      );
+          offset, offset, 'import \'package:over_react/over_react.dart\';\n');
     }
 
     // Wrap render in ErrorBoundary.
     if (!renderFirstArg.toSource().startsWith('ErrorBoundary')) {
-      if (overReactImport == null){
+      if (overReactImport == null) {
         addOverReactPatch(renderFirstArg.offset);
       }
       yieldPatch(
@@ -94,7 +91,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         renderFirstArg.end,
         ')',
       );
-    } else if (renderFirstArg.toSource().startsWith('ErrorBoundary') && overReactImport == null){
+    } else if (renderFirstArg.toSource().startsWith('ErrorBoundary') &&
+        overReactImport == null) {
       addOverReactPatch(renderFirstArg.offset);
     }
 
