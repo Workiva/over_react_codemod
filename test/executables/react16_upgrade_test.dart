@@ -20,12 +20,12 @@ import 'package:test/test.dart';
 ProcessResult runUpgrade({String onDirectory}) {
   Process.runSync('pub', ['get'], workingDirectory: onDirectory);
 
-  return Process.runSync('pub', ['run', 'over_react_codemod:react_16_upgrade'],
+  return Process.runSync('pub', ['run', 'over_react_codemod:react16_upgrade'],
       workingDirectory: onDirectory);
 }
 
 main() {
-  group('React_16_upgrade', () {
+  group('React16_upgrade', () {
     test('exits with a status of 1 when there is a comment', () {
       final result = runUpgrade(
           onDirectory: 'test/executables/test_components/file_with_comment');
