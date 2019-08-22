@@ -79,7 +79,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     // Wrap render in ErrorBoundary.
     if (!renderFirstArg.toSource().startsWith('ErrorBoundary')) {
       if (overReactImport == null) {
-        addOverReactPatch(renderFirstArg.offset);
+        addOverReactPatch(reactDomImport.offset);
       }
       yieldPatch(
         renderFirstArg.offset,
@@ -93,7 +93,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       );
     } else if (renderFirstArg.toSource().startsWith('ErrorBoundary') &&
         overReactImport == null) {
-      addOverReactPatch(renderFirstArg.offset);
+      addOverReactPatch(reactDomImport.offset);
     }
 
     if (renderFirstArg is InvocationExpression) {
