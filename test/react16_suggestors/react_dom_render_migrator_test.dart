@@ -478,6 +478,29 @@ main() {
         ''',
       );
     });
+
+    test('doesnt add over_react if it imports web_skin_dart/ui_core instead', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          import 'package:web_skin_dart/ui_core.dart';
+          import 'package:react/react_dom.dart';
+
+          main() {
+            render(ErrorBoundary()(Foo()()), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import 'package:web_skin_dart/ui_core.dart';
+          import 'package:react/react_dom.dart';
+
+          main() {
+            render(ErrorBoundary()(Foo()()), mountNode);
+          }
+        ''',
+      );
+    });
+
   });
 }
 

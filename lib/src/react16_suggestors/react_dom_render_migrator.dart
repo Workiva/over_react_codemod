@@ -35,7 +35,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     ImportDirective overReactImport = importList.directives.lastWhere(
         (dir) =>
             dir is ImportDirective &&
-            dir.uri?.stringValue == 'package:over_react/over_react.dart',
+            (dir.uri?.stringValue == 'package:over_react/over_react.dart'
+                || dir.uri?.stringValue == 'package:web_skin_dart/ui_core.dart'),
         orElse: () => null);
 
     ImportDirective reactDomImport = importList.directives.lastWhere(
