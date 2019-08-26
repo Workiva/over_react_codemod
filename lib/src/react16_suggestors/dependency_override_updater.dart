@@ -43,7 +43,7 @@ class DependencyOverrideUpdater implements Suggestor {
     final containsReactOverride = containsDependencyOverride(
         dependency: 'react-dart', fileContent: contents);
     final reactDependencyMatch = reactDep.firstMatch(contents);
-    final overReactDepMatch = reactDep.firstMatch(contents);
+    final overReactDepMatch = overReactDep.firstMatch(contents);
     final dependencyOverridesMatch = dependencyOverrideKey.firstMatch(contents);
 
     if ((overReactDepMatch != null && reactDependencyMatch != null) &&
