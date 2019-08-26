@@ -69,7 +69,8 @@ void componentDidUpdateTests({bool allowPartialUpgrades}) {
       );
     });
 
-    group('${allowPartialUpgrades ? 'updates' : 'does not update'} if '
+    group(
+        '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
         'containing class is not fully upgradable', () {
       test('-- extends from non-Component class', () {
         testSuggestor(
