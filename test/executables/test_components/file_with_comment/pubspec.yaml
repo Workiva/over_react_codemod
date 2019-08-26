@@ -4,6 +4,6 @@ private: true
 environment:
   sdk: '>=2.4.0 <3.0.0'
 dev_dependencies:
-  react: '>=3.0.0 <=6.0.0'
+  react: '>=4.0.0 <6.0.0'
   over_react_codemod:
     path: ../../../..

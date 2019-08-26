@@ -37,7 +37,7 @@ Map packagesToCheckFor = {
   'over_react': ['^2.0.0', '^3.0.0']
 };
 
-getDependencyVersion(String packageName) {
+VersionConstraint  getDependencyVersion(String packageName) {
   if (pubspecYaml.containsKey('dependencies') &&
       pubspecYaml['dependencies'].containsKey(packageName)) {
     return VersionConstraint.parse(pubspecYaml['dependencies'][packageName]);
