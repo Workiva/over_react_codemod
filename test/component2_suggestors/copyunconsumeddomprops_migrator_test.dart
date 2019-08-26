@@ -19,24 +19,35 @@ import '../util.dart';
 
 main() {
   group('CopyUnconsumedDomPropsMigrator', () {
-    final testSuggestor = getSuggestorTester(CopyUnconsumedDomPropsMigrator());
+    copyUnconsumedDomPropsTests(allowPartialUpgrades: true);
+  });
 
-    test('empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
-    });
+  group('CopyUnconsumedDomPropsMigrator with --no-partial-upgrades flag', () {
+    copyUnconsumedDomPropsTests(allowPartialUpgrades: false);
+  });
+}
 
-    test('no matches', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          library foo;
-          var a = 'b';
-          class Foo {}
-        ''',
-      );
-    });
+copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
+  final testSuggestor = getSuggestorTester(CopyUnconsumedDomPropsMigrator(
+      allowPartialUpgrades: allowPartialUpgrades));
 
-    test('copyUnconsumedDomProps updates', () {
+  test('empty file', () {
+    testSuggestor(expectedPatchCount: 0, input: '');
+  });
+
+  test('no matches', () {
+    testSuggestor(
+      expectedPatchCount: 0,
+      input: '''
+        library foo;
+        var a = 'b';
+        class Foo {}
+      ''',
+    );
+  });
+
+  group('copyUnconsumedDomProps', () {
+    test('updates if containing class is fully upgradable', () {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
@@ -48,9 +59,6 @@ main() {
                 ..addProps(copyUnconsumedDomProps())
               )(props.children);
             }
-            
-            @override
-            componentWillUnmount() {}
           }
         ''',
         expectedOutput: '''
@@ -62,20 +70,85 @@ main() {
                 ..modifyProps(addUnconsumedDomProps)
               )(props.children);
             }
-            
-            @override
-            componentWillUnmount() {}
           }
         ''',
       );
     });
 
-    test('copyUnconsumedProps updates', () {
+    group(
+        '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
+        'containing class is not fully upgradable', () {
+      test('-- extends from non-Component class', () {
+        testSuggestor(
+          expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+          input: '''
+            @Component2()
+            class FooComponent extends AbstractComponent<FooProps> {
+              @override
+              render() {
+                return (Dom.span()
+                  ..addProps(copyUnconsumedDomProps())
+                )(props.children);
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends AbstractComponent<FooProps> {
+              @override
+              render() {
+                return (Dom.span()
+                  ..${allowPartialUpgrades ? 'modifyProps(addUnconsumedDomProps)' : 'addProps(copyUnconsumedDomProps())'}
+                )(props.children);
+              }
+            }
+          ''',
+        );
+      });
+
+      test('-- has lifecycle methods without codemods', () {
+        testSuggestor(
+          expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2<FooProps> {
+              @override
+              render() {
+                return (Dom.span()
+                  ..addProps(copyUnconsumedDomProps())
+                )(props.children);
+              }
+              
+              @override
+              componentWillUnmount() {}
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends UiComponent2<FooProps> {
+              @override
+              render() {
+                return (Dom.span()
+                  ..${allowPartialUpgrades ? 'modifyProps(addUnconsumedDomProps)' : 'addProps(copyUnconsumedDomProps())'}
+                )(props.children);
+              }
+              
+              @override
+              componentWillUnmount() {}
+            }
+          ''',
+        );
+      });
+    });
+  });
+
+  group('copyUnconsumedProps', () {
+    test('updates if containing class is fully upgradable', () {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
           import 'package:react/react.dart' as react;
-          
+
           @Component2()
           class FooComponent extends react.Component2 {
             @override
@@ -84,14 +157,11 @@ main() {
                 ..addProps(copyUnconsumedProps())
               )(props.children);
             }
-            
-            @override
-            componentWillUnmount() {}
           }
         ''',
         expectedOutput: '''
           import 'package:react/react.dart' as react;
-        
+
           @Component2()
           class FooComponent extends react.Component2 {
             @override
@@ -100,29 +170,96 @@ main() {
                 ..modifyProps(addUnconsumedProps)
               )(props.children);
             }
-            
-            @override
-            componentWillUnmount() {}
           }
         ''',
       );
     });
 
-    test('does not change copyUnconsumedProps for non-component2 classes', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          @Component()
-          class FooComponent extends UiComponent {
-            @override
-            render() {
-              return (Dom.span()
-                ..addProps(copyUnconsumedDomProps())
-              )(props.children);
+    group(
+        '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
+        'containing class is not fully upgradable', () {
+      test('-- extends from non-Component class', () {
+        testSuggestor(
+          expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+          input: '''
+            @Component2()
+            class FooComponent extends AbstractComponent {
+              @override
+              render() {
+                return (Dom.span()
+                  ..addProps(copyUnconsumedProps())
+                )(props.children);
+              }
             }
-          }
-        ''',
-      );
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends AbstractComponent {
+              @override
+              render() {
+                return (Dom.span()
+                  ..${allowPartialUpgrades ? 'modifyProps(addUnconsumedProps)' : 'addProps(copyUnconsumedProps())'}
+                )(props.children);
+              }
+            }
+          ''',
+        );
+      });
+
+      test('-- has lifecycle methods without codemods', () {
+        testSuggestor(
+          expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+          input: '''
+            import 'package:react/react.dart' as react;
+  
+            @Component2()
+            class FooComponent extends react.Component2 {
+              @override
+              render() {
+                return (Dom.span()
+                  ..addProps(copyUnconsumedProps())
+                )(props.children);
+              }
+              
+              @override
+              componentWillUnmount() {}
+            }
+          ''',
+          expectedOutput: '''
+            import 'package:react/react.dart' as react;
+  
+            @Component2()
+            class FooComponent extends react.Component2 {
+              @override
+              render() {
+                return (Dom.span()
+                  ..${allowPartialUpgrades ? 'modifyProps(addUnconsumedProps)' : 'addProps(copyUnconsumedProps())'}
+                )(props.children);
+              }
+              
+              @override
+              componentWillUnmount() {}
+            }
+          ''',
+        );
+      });
     });
+  });
+
+  test('does not change copyUnconsumedProps for non-component2 classes', () {
+    testSuggestor(
+      expectedPatchCount: 0,
+      input: '''
+        @Component()
+        class FooComponent extends UiComponent {
+          @override
+          render() {
+            return (Dom.span()
+              ..addProps(copyUnconsumedDomProps())
+            )(props.children);
+          }
+        }
+      ''',
+    );
   });
 }
