@@ -479,7 +479,8 @@ main() {
       );
     });
 
-    test('doesnt add over_react if it imports web_skin_dart/ui_core instead', () {
+    test('doesnt add over_react if it imports web_skin_dart/ui_core instead',
+        () {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
@@ -500,7 +501,6 @@ main() {
         ''',
       );
     });
-
   });
 }
 
