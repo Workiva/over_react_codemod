@@ -32,6 +32,15 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       return ancestor is CompilationUnit;
     });
 
+    ImportDirective overReactImport = importList.directives.lastWhere(
+        (dir) =>
+            dir is ImportDirective &&
+            (dir.uri?.stringValue == 'package:over_react/over_react.dart' ||
+                // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
+                dir.uri?.stringValue ==
+                    'package:' 'web_skin_dart/ui_core.dart'),
+        orElse: () => null);
+
     ImportDirective reactDomImport = importList.directives.lastWhere(
         (dir) =>
             dir is ImportDirective &&
@@ -65,8 +74,16 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       return ancestor is FunctionDeclaration;
     });
 
+    void addOverReactPatch(int offset) {
+      yieldPatch(
+          offset, offset, 'import \'package:over_react/over_react.dart\';\n');
+    }
+
     // Wrap render in ErrorBoundary.
     if (!renderFirstArg.toSource().startsWith('ErrorBoundary')) {
+      if (overReactImport == null) {
+        addOverReactPatch(reactDomImport.offset);
+      }
       yieldPatch(
         renderFirstArg.offset,
         renderFirstArg.offset,
@@ -77,6 +94,9 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         renderFirstArg.end,
         ')',
       );
+    } else if (renderFirstArg.toSource().startsWith('ErrorBoundary') &&
+        overReactImport == null) {
+      addOverReactPatch(reactDomImport.offset);
     }
 
     if (renderFirstArg is InvocationExpression) {
