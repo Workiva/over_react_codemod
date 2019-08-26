@@ -22,9 +22,9 @@ import 'component2_utilities.dart';
 class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final bool noPartialUpgrades;
+  final bool allowPartialUpgrades;
 
-  CopyUnconsumedDomPropsMigrator({this.noPartialUpgrades = false});
+  CopyUnconsumedDomPropsMigrator({this.allowPartialUpgrades = true});
 
   @override
   visitMethodInvocation(MethodInvocation node) {
@@ -34,7 +34,8 @@ class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
       return ancestor is ClassDeclaration;
     });
 
-    if (noPartialUpgrades && !fullyUpgradableToComponent2(containingClass)) {
+    if (!allowPartialUpgrades &&
+        !fullyUpgradableToComponent2(containingClass)) {
       return;
     }
 

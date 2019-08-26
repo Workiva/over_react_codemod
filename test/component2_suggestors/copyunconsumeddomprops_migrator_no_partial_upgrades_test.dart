@@ -20,7 +20,7 @@ import '../util.dart';
 main() {
   group('CopyUnconsumedDomPropsMigrator with --no-partial-upgrades flag', () {
     final testSuggestor = getSuggestorTester(
-        CopyUnconsumedDomPropsMigrator(noPartialUpgrades: true));
+        CopyUnconsumedDomPropsMigrator(allowPartialUpgrades: false));
 
     test('empty file', () {
       testSuggestor(expectedPatchCount: 0, input: '');

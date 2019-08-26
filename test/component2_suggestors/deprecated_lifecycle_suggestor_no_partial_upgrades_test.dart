@@ -20,7 +20,7 @@ import '../util.dart';
 main() {
   group('DeprecatedLifecycleSuggestor with --no-partial-upgrades flag', () {
     final testSuggestor = getSuggestorTester(
-        DeprecatedLifecycleSuggestor(noPartialUpgrades: true));
+        DeprecatedLifecycleSuggestor(allowPartialUpgrades: false));
 
     test('empty file', () {
       testSuggestor(expectedPatchCount: 0, input: '');

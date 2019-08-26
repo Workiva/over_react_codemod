@@ -19,8 +19,8 @@ import '../util.dart';
 
 main() {
   group('ComponentDidUpdateMigrator with --no-partial-upgrades flag', () {
-    final testSuggestor =
-        getSuggestorTester(ComponentDidUpdateMigrator(noPartialUpgrades: true));
+    final testSuggestor = getSuggestorTester(
+        ComponentDidUpdateMigrator(allowPartialUpgrades: false));
 
     test('empty file', () {
       testSuggestor(expectedPatchCount: 0, input: '');

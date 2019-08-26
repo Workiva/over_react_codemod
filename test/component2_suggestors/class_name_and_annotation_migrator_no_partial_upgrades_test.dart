@@ -20,7 +20,7 @@ import '../util.dart';
 main() {
   group('ClassNameAndAnnotationMigrator with --no-partial-upgrades flag', () {
     final testSuggestor = getSuggestorTester(
-        ClassNameAndAnnotationMigrator(noPartialUpgrades: true));
+        ClassNameAndAnnotationMigrator(allowPartialUpgrades: false));
 
     test('empty file', () {
       testSuggestor(expectedPatchCount: 0, input: '');

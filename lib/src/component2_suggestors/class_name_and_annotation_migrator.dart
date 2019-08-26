@@ -29,9 +29,9 @@ import 'component2_utilities.dart';
 class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final bool noPartialUpgrades;
+  final bool allowPartialUpgrades;
 
-  ClassNameAndAnnotationMigrator({this.noPartialUpgrades = false});
+  ClassNameAndAnnotationMigrator({this.allowPartialUpgrades = true});
 
   Iterable<String> get migrateAnnotations =>
       overReact16AnnotationNamesToMigrate;
@@ -51,7 +51,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
 
     // Check if the import needs to show Component2.
     bool shouldUpdateImport = true;
-    if (noPartialUpgrades) {
+    if (!allowPartialUpgrades) {
       shouldUpdateImport = false;
       unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
         if (fullyUpgradableToComponent2(classNode)) {
@@ -76,7 +76,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (noPartialUpgrades && !fullyUpgradableToComponent2(node)) {
+    if (!allowPartialUpgrades && !fullyUpgradableToComponent2(node)) {
       return;
     }
 

@@ -21,9 +21,9 @@ import 'package:over_react_codemod/src/component2_suggestors/component2_utilitie
 class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final bool noPartialUpgrades;
+  final bool allowPartialUpgrades;
 
-  ComponentDidUpdateMigrator({this.noPartialUpgrades = false});
+  ComponentDidUpdateMigrator({this.allowPartialUpgrades = true});
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
@@ -31,7 +31,8 @@ class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
 
     ClassDeclaration containingClass = node.parent;
 
-    if (noPartialUpgrades && !fullyUpgradableToComponent2(containingClass)) {
+    if (!allowPartialUpgrades &&
+        !fullyUpgradableToComponent2(containingClass)) {
       return;
     }
 

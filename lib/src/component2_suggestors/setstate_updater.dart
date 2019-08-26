@@ -23,9 +23,9 @@ import 'component2_utilities.dart';
 class SetStateUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final bool noPartialUpgrades;
+  final bool allowPartialUpgrades;
 
-  SetStateUpdater({this.noPartialUpgrades = false});
+  SetStateUpdater({this.allowPartialUpgrades = true});
 
   @override
   visitMethodInvocation(MethodInvocation node) {
@@ -35,7 +35,8 @@ class SetStateUpdater extends GeneralizingAstVisitor
       return ancestor is ClassDeclaration;
     });
 
-    if (noPartialUpgrades && !fullyUpgradableToComponent2(containingClass)) {
+    if (!allowPartialUpgrades &&
+        !fullyUpgradableToComponent2(containingClass)) {
       return;
     }
 

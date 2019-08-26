@@ -31,7 +31,7 @@ Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
-  final noPartialUpgrades = args.contains(_noPartialUpgradesFlag);
+  final allowPartialUpgrades = !args.contains(_noPartialUpgradesFlag);
   args.removeWhere((arg) => arg == _noPartialUpgradesFlag);
 
   final query = FileQuery.dir(
@@ -41,12 +41,14 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     [
-      ClassNameAndAnnotationMigrator(noPartialUpgrades: noPartialUpgrades),
-      ComponentWillMountMigrator(noPartialUpgrades: noPartialUpgrades),
-      DeprecatedLifecycleSuggestor(noPartialUpgrades: noPartialUpgrades),
-      SetStateUpdater(noPartialUpgrades: noPartialUpgrades),
-      ComponentDidUpdateMigrator(noPartialUpgrades: noPartialUpgrades),
-      CopyUnconsumedDomPropsMigrator(noPartialUpgrades: noPartialUpgrades),
+      ClassNameAndAnnotationMigrator(
+          allowPartialUpgrades: allowPartialUpgrades),
+      ComponentWillMountMigrator(allowPartialUpgrades: allowPartialUpgrades),
+      DeprecatedLifecycleSuggestor(allowPartialUpgrades: allowPartialUpgrades),
+      SetStateUpdater(allowPartialUpgrades: allowPartialUpgrades),
+      ComponentDidUpdateMigrator(allowPartialUpgrades: allowPartialUpgrades),
+      CopyUnconsumedDomPropsMigrator(
+          allowPartialUpgrades: allowPartialUpgrades),
     ],
     args: args,
     defaultYes: true,

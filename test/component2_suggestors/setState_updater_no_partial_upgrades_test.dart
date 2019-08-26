@@ -20,7 +20,7 @@ import '../util.dart';
 main() {
   group('SetStateUpdater with --no-partial-upgrades flag', () {
     final testSuggestor =
-        getSuggestorTester(SetStateUpdater(noPartialUpgrades: true));
+        getSuggestorTester(SetStateUpdater(allowPartialUpgrades: false));
 
     test('is an empty file', () {
       testSuggestor(expectedPatchCount: 0, input: '');

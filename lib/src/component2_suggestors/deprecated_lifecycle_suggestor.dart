@@ -26,9 +26,9 @@ import 'component2_utilities.dart';
 class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final bool noPartialUpgrades;
+  final bool allowPartialUpgrades;
 
-  DeprecatedLifecycleSuggestor({this.noPartialUpgrades = false});
+  DeprecatedLifecycleSuggestor({this.allowPartialUpgrades = true});
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
@@ -36,7 +36,8 @@ class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
 
     ClassDeclaration containingClass = node.parent;
 
-    if (noPartialUpgrades && !fullyUpgradableToComponent2(containingClass)) {
+    if (!allowPartialUpgrades &&
+        !fullyUpgradableToComponent2(containingClass)) {
       return;
     }
 
