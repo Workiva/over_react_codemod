@@ -479,12 +479,14 @@ main() {
       );
     });
 
+    // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
     test('doesnt add over_react if it imports web_skin_dart/ui_core instead',
         () {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
-          import 'package:web_skin_dart/ui_core.dart';
+          import 'package:'''
+            '''web_skin_dart/ui_core.dart';
           import 'package:react/react_dom.dart';
 
           main() {
@@ -492,7 +494,8 @@ main() {
           }
         ''',
         expectedOutput: '''
-          import 'package:web_skin_dart/ui_core.dart';
+          import 'package:'''
+            '''web_skin_dart/ui_core.dart';
           import 'package:react/react_dom.dart';
 
           main() {
