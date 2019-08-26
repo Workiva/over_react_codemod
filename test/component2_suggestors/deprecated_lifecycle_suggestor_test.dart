@@ -20,130 +20,140 @@ import '../util.dart';
 
 main() {
   group('DeprecatedLifecycleSuggestor', () {
-    final testSuggestor = getSuggestorTester(DeprecatedLifecycleSuggestor());
+    deprecatedLifecycleTests(allowPartialUpgrades: true);
+  });
 
-    test('empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
-    });
+  group('DeprecatedLifecycleSuggestor with --no-partial-upgrades flag', () {
+    deprecatedLifecycleTests(allowPartialUpgrades: false);
+  });
+}
 
-    test('no matches', () {
+deprecatedLifecycleTests({bool allowPartialUpgrades}) {
+  final testSuggestor = getSuggestorTester(
+      DeprecatedLifecycleSuggestor(allowPartialUpgrades: allowPartialUpgrades));
+
+  test('empty file', () {
+    testSuggestor(expectedPatchCount: 0, input: '');
+  });
+
+  test('no matches', () {
+    testSuggestor(
+      expectedPatchCount: 0,
+      input: '''
+        library foo;
+        var a = 'b';
+        class Foo {}
+      ''',
+    );
+  });
+
+  group('${allowPartialUpgrades ? 'adds' : 'does not add'} a FIXME comment',
+      () {
+    test('for componentWillUpdate with override', () {
       testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          library foo;
-          var a = 'b';
-          class Foo {}
-        ''',
-      );
-    });
-
-    test('adds a FIXME comment for componentWillUpdate with override', () {
-      testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              @override
-              componentWillUpdate(){}
+            @override
+            componentWillUpdate(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              ${getDeperecationMessage('componentWillUpdate')}
-              @override
-              componentWillUpdate(){}
+            ${allowPartialUpgrades ? getDeperecationMessage('componentWillUpdate') : ''}
+            @override
+            componentWillUpdate(){}
           }
         ''',
       );
     });
 
-    test('adds a FIXME comment for componentWillUpdate without override', () {
+    test('componentWillUpdate without override', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              componentWillUpdate(){}
+            componentWillUpdate(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              ${getDeperecationMessage('componentWillUpdate')}
-              componentWillUpdate(){}
+            ${allowPartialUpgrades ? getDeperecationMessage('componentWillUpdate') : ''}
+            componentWillUpdate(){}
           }
         ''',
       );
     });
 
-    test('adds a FIXME comment for componentWillReceiveProps with override',
-        () {
+    test('componentWillReceiveProps with override', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              @override
-              componentWillReceiveProps(){}
+            @override
+            componentWillReceiveProps(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              ${getDeperecationMessage('componentWillReceiveProps')}
-              @override
-              componentWillReceiveProps(){}
+            ${allowPartialUpgrades ? getDeperecationMessage('componentWillReceiveProps') : ''}
+            @override
+            componentWillReceiveProps(){}
           }
         ''',
       );
     });
 
-    test('adds a FIXME comment for componentWillReceiveProps without override',
-        () {
+    test('componentWillReceiveProps without override', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              componentWillReceiveProps(){}
+            componentWillReceiveProps(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              ${getDeperecationMessage('componentWillReceiveProps')}
-              componentWillReceiveProps(){}
+            ${allowPartialUpgrades ? getDeperecationMessage('componentWillReceiveProps') : ''}
+            componentWillReceiveProps(){}
           }
         ''',
       );
     });
 
     test(
-        'adds two FIXME comments when both componentWillUpdate and '
-        'componentWillReceiveProps is present', () {
+        'when both componentWillUpdate and componentWillReceiveProps is present',
+        () {
       testSuggestor(
-        expectedPatchCount: 2,
+        expectedPatchCount: allowPartialUpgrades ? 2 : 0,
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              @override
-              componentWillUpdate(){}
-              
-              @override
-              componentWillReceiveProps(){}
+            @override
+            componentWillUpdate(){}
+            
+            @override
+            componentWillReceiveProps(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              ${getDeperecationMessage('componentWillUpdate')}
-              @override
-              componentWillUpdate(){}
-          
-              ${getDeperecationMessage('componentWillReceiveProps')}
-              @override
-              componentWillReceiveProps(){}
+            ${allowPartialUpgrades ? getDeperecationMessage('componentWillUpdate') : ''}
+            @override
+            componentWillUpdate(){}
+        
+            ${allowPartialUpgrades ? getDeperecationMessage('componentWillReceiveProps') : ''}
+            @override
+            componentWillReceiveProps(){}
           }
         ''',
       );
