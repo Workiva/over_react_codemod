@@ -42,8 +42,12 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     }
 
     // Add Component2 to import show list.
-    var showNamesList = (node.combinators.first as ShowCombinator)?.shownNames;
-    if (!showNamesList.any((name) => name.toSource() == 'Component2')) {
+    var showNamesList = (node.combinators.firstWhere(
+            (combinator) => combinator is ShowCombinator,
+            orElse: () => null) as ShowCombinator)
+        ?.shownNames;
+    if (showNamesList != null &&
+        !showNamesList.any((name) => name.toSource() == 'Component2')) {
       yieldPatch(
         showNamesList.last.end,
         showNamesList.last.end,

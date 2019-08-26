@@ -138,6 +138,24 @@ main() {
       );
     });
 
+    test('import from react.dart hide combinator does not update', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          import 'package:react/react.dart' as react hide Component;
+          
+          @Component
+          class FooComponent extends UiComponent {}
+        ''',
+        expectedOutput: '''
+          import 'package:react/react.dart' as react hide Component;
+          
+          @Component2
+          class FooComponent extends UiComponent2 {}
+        ''',
+      );
+    });
+
     test(
         'extending class imported from react.dart with different import name updates',
         () {
