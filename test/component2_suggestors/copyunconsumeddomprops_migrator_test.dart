@@ -70,7 +70,6 @@ main() {
         input: '''
           import 'package:react/react.dart' as react;
           
-          @Component2()
           class FooComponent extends react.Component2 {
             @override
             render() {
@@ -83,7 +82,6 @@ main() {
         expectedOutput: '''
           import 'package:react/react.dart' as react;
         
-          @Component2()
           class FooComponent extends react.Component2 {
             @override
             render() {

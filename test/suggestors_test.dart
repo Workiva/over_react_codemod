@@ -112,25 +112,4 @@ void main() {
     };
     testSuggestorsDir(suggestorMap, 'test/dart2_suggestors');
   });
-
-  group('Component2 migration suggestors', () {
-    // In the `.suggestor_test` for this suggestor, the tests are written with
-    // the assumption that any library with a name of `match` or a path of
-    // `match.dart` needs the part directive, and this setup is why that works.
-    final mockCollector = MockCollector();
-    when(mockCollector.byName).thenReturn(['match']);
-    when(mockCollector.byPath).thenReturn([p.canonicalize('match.dart')]);
-    final generatedPartDirectiveAdder =
-        Ignoreable(GeneratedPartDirectiveAdder(mockCollector));
-
-    final suggestorMap = {
-      'ClassNameAndAnnotationMigrator': Ignoreable(
-        ClassNameAndAnnotationMigrator(),
-      ),
-      'ComponentWillMountMigrator': Ignoreable(
-        ComponentWillMountMigrator(),
-      ),
-    };
-    testSuggestorsDir(suggestorMap, 'test/component2_suggestors');
-  });
 }
