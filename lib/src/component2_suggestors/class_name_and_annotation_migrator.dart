@@ -30,7 +30,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   Iterable<String> get migrateAnnotations =>
-      overReact16AnnotationNamesToMigrate;
+      overReact16ComponentClassNamesToMigrate;
 
   @override
   visitImportDirective(ImportDirective node) {
@@ -79,7 +79,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     } else {
       if (!node.metadata.any((m) =>
           migrateAnnotations.contains(m.name.name) ||
-          overReact16AnnotationNames.contains(m.name.name))) {
+          overReact16Component2ClassNames.contains(m.name.name))) {
         // Only looking for classes annotated with `@Props()`, `@State()`,
         // `@AbstractProps()`, or `@AbstractState()`. If [renameMixins] is true,
         // also includes `@PropsMixin()` and `@StateMixin()`.

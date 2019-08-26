@@ -43,7 +43,7 @@ bool extendsComponent2(ClassDeclaration classNode) {
   if ((reactImportName != null &&
           extendsName.name == '$reactImportName.Component2') ||
       classNode.metadata
-          .any((m) => overReact16AnnotationNames.contains(m.name.name))) {
+          .any((m) => overReact16Component2ClassNames.contains(m.name.name))) {
     return true;
   } else {
     return false;
