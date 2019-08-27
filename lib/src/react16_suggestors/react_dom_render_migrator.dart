@@ -28,23 +28,21 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    CompilationUnit importList = node.thisOrAncestorMatching((ancestor) {
-      return ancestor is CompilationUnit;
-    });
+    final imports = node
+        .thisOrAncestorOfType<CompilationUnit>()
+        .directives
+        .whereType<ImportDirective>()
+        .toList();
 
-    ImportDirective overReactImport = importList.directives.lastWhere(
+    final overReactImport = imports.lastWhere(
         (dir) =>
-            dir is ImportDirective &&
-            (dir.uri?.stringValue == 'package:over_react/over_react.dart' ||
-                // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
-                dir.uri?.stringValue ==
-                    'package:' 'web_skin_dart/ui_core.dart'),
+            dir.uri?.stringValue == 'package:over_react/over_react.dart' ||
+            // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
+            dir.uri?.stringValue == 'package:' 'web_skin_dart/ui_core.dart',
         orElse: () => null);
 
-    ImportDirective reactDomImport = importList.directives.lastWhere(
-        (dir) =>
-            dir is ImportDirective &&
-            dir.uri?.stringValue == 'package:react/react_dom.dart',
+    final reactDomImport = imports.lastWhere(
+        (dir) => dir.uri?.stringValue == 'package:react/react_dom.dart',
         orElse: () => null);
 
     if (reactDomImport == null) {
@@ -53,16 +51,14 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
 
     String reactDomImportNamespace = reactDomImport.prefix?.name;
 
-    final parent = node.parent;
-    MethodInvocation inTest = node.thisOrAncestorMatching((ancestor) {
-      return (ancestor is MethodInvocation &&
-          (ancestor.methodName.name == 'test' ||
-              ancestor.methodName.name == 'group'));
-    });
+    final testAncestor = node.thisOrAncestorMatching((ancestor) =>
+        ancestor is MethodInvocation &&
+        const {'test', 'group'}.contains(ancestor.methodName.name));
+    final inTest = testAncestor != null;
 
     if (node.methodName.name != 'render' ||
         reactDomImportNamespace != node.realTarget?.toSource?.call() ||
-        inTest != null) {
+        inTest) {
       return;
     }
 
@@ -111,6 +107,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           '$willBeRemovedCommentSuffix\n';
     }
 
+    final parent = node.parent;
     if (parent is VariableDeclaration || parent is AssignmentExpression) {
       String refVariableName;
 

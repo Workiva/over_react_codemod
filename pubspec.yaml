@@ -11,7 +11,11 @@ authors:
   - Corwin Sheahan <corwin.sheahan@workiva.com>
   - Evan Weible <evan.weible@workiva.com>
   - George Lesica <george.lesica@workiva.com>
+  - Greg Littlefield <greg.littlefield@workiva.com>
+  - Joe Bingham <joe.bingham@workiva.com>
+  - Keal Jones <keal.jones@workiva.com>
   - Sebastian Malysa <sebastian.malysa@workiva.com>
+  - Sydney Jodon <sydney.jodon@workiva.com>
 
 environment:
   sdk: ">=2.4.0 <3.0.0"
