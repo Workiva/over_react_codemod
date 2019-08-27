@@ -12,86 +12,148 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
 @TestOn('vm')
 
 import 'dart:io';
+
 import 'package:test/test.dart';
+import 'package:path/path.dart' as p;
+
+import '../dart_project_faker.dart';
+
+final String unaddressedComment =
+    'void main() {\n'
+    '  // [ ] Check this box upon manual validation that the component rendered by this expression uses a ref safely. '
+    'This will be removed once the transition to React 16 is complete.\n'
+    '}\n';
+final String noComment = 'void main() {}';
+final String validatedComment =
+    'void main() {\n'
+    '  // [x] Check this box upon manual validation\n'
+    '}\n';
+
+final reactPackageName = 'react';
+final overReactPackageName = 'over_react';
+
+final tansitionPubspecFaker = PubspecFaker(dependencies: [DependencyFaker('react', version: '">=4.0.0 <6.0.0"')]);
+
+final versionChecksToTest = [
+
+    // Codemod comment validation
+    DartProjectFakerTestConfig(
+      testName: 'exits with status code 1 when there is an unaddressed comment',
+      mainDartContents: unaddressedComment,
+      dependencies: tansitionPubspecFaker.dependencies,
+      expectedExitCode: 1
+    ),
+    DartProjectFakerTestConfig(
+      testName: 'exits with status code 0 when there is no comment',
+      mainDartContents: noComment,
+      dependencies: tansitionPubspecFaker.dependencies,
+      expectedExitCode: 0
+    ),
+    DartProjectFakerTestConfig(
+      testName: 'exits with status code 0 when there is a validated comment',
+      mainDartContents: validatedComment,
+      dependencies: tansitionPubspecFaker.dependencies,
+      expectedExitCode: 0
+    ),
+
+    // Pubspec checks
+    DartProjectFakerTestConfig(
+      testName: 'does not run the codemod when project does not have a pubspec.yaml or if it is no parsable',
+      includePubspecFile: false,
+      shouldRunCodemod: false,
+    ),
+
+    DartProjectFakerTestConfig(
+      testName: 'does not run the codemod when project does not have react or over_react as dependencies',
+      dependencies: [],
+      shouldRunCodemod: false,
+    ),
+
+    // React-dart version tests
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(reactPackageName, version: 'any')], shouldRunCodemod: false),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(reactPackageName, version: '^4.0.0')], shouldRunCodemod: false),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(reactPackageName, version: '^4.1.0')], shouldRunCodemod: false),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(reactPackageName, version: '">=4.0.0 <6.0.0"')], shouldRunCodemod: true),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(reactPackageName, version: '">=4.1.0 <6.0.0"')], shouldRunCodemod: true),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(reactPackageName, version: '^5.0.0')], shouldRunCodemod: false),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(reactPackageName, version: '^5.1.0')], shouldRunCodemod: false),
+
+    // OverReact version tests
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(overReactPackageName, version: 'any')], shouldRunCodemod: false),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(overReactPackageName, version: '^2.0.0')], shouldRunCodemod: false),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(overReactPackageName, version: '^2.1.0')], shouldRunCodemod: false),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(overReactPackageName, version: '">=2.0.0 <4.0.0"')], shouldRunCodemod: true),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(overReactPackageName, version: '">=2.1.0 <4.0.0"')], shouldRunCodemod: true),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(overReactPackageName, version: '^3.0.0')], shouldRunCodemod: false),
+    DartProjectFakerTestConfig(dependencies: [DependencyFaker(overReactPackageName, version: '^3.1.0')], shouldRunCodemod: false),
+
+    // Edge Cases
+    DartProjectFakerTestConfig(
+      testName: 'runs the codemod when project has both react & over_react in transition',
+      dependencies: [
+        DependencyFaker(overReactPackageName, version: '">=2.0.0 <4.0.0"'),
+        DependencyFaker(reactPackageName, version: '">=4.0.0 <6.0.0"'),
+      ],
+      shouldRunCodemod: true,
+    ),
+
+    DartProjectFakerTestConfig(
+      testName: 'does not run the codemod when project has both react & over_react but over_react is not in transition',
+      dependencies: [
+        DependencyFaker(overReactPackageName, version: '^2.0.0'),
+        DependencyFaker(reactPackageName, version: '">=4.0.0 <6.0.0"'),
+      ],
+      shouldRunCodemod: false,
+    ),
+
+    DartProjectFakerTestConfig(
+      testName: 'does not run the codemod when project has both react & over_react but react is not in transition',
+      dependencies: [
+        DependencyFaker(overReactPackageName, version: '">=2.0.0 <4.0.0"'),
+        DependencyFaker(reactPackageName, version: '^4.0.0'),
+      ],
+      shouldRunCodemod: false,
+    ),
+  ];
+
 
 ProcessResult runUpgrade({String onDirectory}) {
   // This command is equivalent to `pub run over_react_codemod:react16_upgrade`
   // but allows us to not need to run pub get on each of these fake packages because over_react/react.dart have not been
   // released yet these tests will fail a pub get
-  return Process.runSync(
-      'dart', ['--enable-asserts', '../../../../bin/react16_upgrade.dart'],
-      workingDirectory: onDirectory);
+  var result = Process.runSync(
+      'dart', ['--enable-asserts', p.join(Directory.current.path, 'bin/react16_upgrade.dart')],
+      workingDirectory: onDirectory,
+    );
+  // Show output from command
+  print(result.stdout);
+  return result;
+}
+
+ProcessResult runUpgradeWithFakeDartProject({PubspecFaker pubspecFaker, String mainDartContents}) {
+  var testPackage = DartProjectFaker(
+    pubspecFaker: pubspecFaker ?? tansitionPubspecFaker,
+    mainDartContents: mainDartContents
+  );
+  return runUpgrade(onDirectory: (testPackage.dir.path));
 }
 
 main() {
   group('React16_upgrade', () {
-    group('exits with a status of 1 when', () {
-      test('there is a comment', () {
-        final result = runUpgrade(
-            onDirectory: 'test/executables/test_components/file_with_comment');
-
-        expect(result.exitCode, equals(1));
-      });
-    });
-
-    group('exits with a status of 0 when', () {
-      test('there is no comment', () {
-        final result = runUpgrade(
-            onDirectory:
-                'test/executables/test_components/file_with_no_comment');
-
-        expect(result.exitCode, equals(0));
-      });
-
-      test('there is a validated comment', () {
-        final result = runUpgrade(
-            onDirectory:
-                'test/executables/test_components/file_with_validated_comment');
-
-        expect(result.exitCode, equals(0));
-      });
-
-      test('the version is not in transition', () {
-        final result = runUpgrade(
-            onDirectory:
-                'test/executables/test_components/package_without_match');
-
-        expect(result.exitCode, equals(0));
-      });
-
-      test('a version of react is in transition', () {
-        final result = runUpgrade(
-            onDirectory:
-                'test/executables/test_components/package_with_react_match');
-
-        expect(result.exitCode, equals(0));
-      });
-
-      test('a version of over_react is in transition', () {
-        final result = runUpgrade(
-            onDirectory:
-                'test/executables/test_components/package_with_over_react_match');
-
-        expect(result.exitCode, equals(0));
-      });
-
-      test('pubspec.yaml has neither react or over_react deps', () {
-        final result = runUpgrade(
-            onDirectory:
-                'test/executables/test_components/package_without_either_package');
-
-        expect(result.exitCode, equals(0));
-      });
-
-      test('a package does not have a pubspec.yaml', () {
-        final result = runUpgrade(
-            onDirectory:
-                'test/executables/test_components/package_without_pubspec');
-
-        expect(result.exitCode, equals(0));
+    versionChecksToTest.forEach((dartProjectTestConfig){
+      test(dartProjectTestConfig.testName, () {
+        final result = runUpgradeWithFakeDartProject(
+          pubspecFaker: PubspecFaker(
+              dependencies: dartProjectTestConfig.dependencies,
+              createPubspecFile: dartProjectTestConfig.includePubspecFile
+          ),
+          mainDartContents: dartProjectTestConfig.mainDartContents ?? unaddressedComment,
+        );
+        expect(result.exitCode, dartProjectTestConfig.expectedExitCode, reason: result.stderr);
       });
     });
   });

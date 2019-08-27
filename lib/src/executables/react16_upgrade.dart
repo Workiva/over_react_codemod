@@ -30,84 +30,111 @@ const _changesRequiredOutput = """
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
+String react16CodemodName = 'React16 Codemod';
+
 YamlMap pubspecYaml;
 
-Map packagesToCheckFor = {
-  'react': ['^4.0.0', '^5.0.0'],
-  'over_react': ['^2.0.0', '^3.0.0']
+Map<String, List<VersionConstraint>> packagesToCheckFor = {
+  'react': [
+    VersionConstraint.parse('^4.0.0'),
+    VersionConstraint.parse('^5.0.0')
+  ],
+  'over_react': [
+    VersionConstraint.parse('^2.0.0'),
+    VersionConstraint.parse('^3.0.0')
+  ]
 };
 
-VersionConstraint  getDependencyVersion(String packageName) {
-  if (pubspecYaml.containsKey('dependencies') &&
-      pubspecYaml['dependencies'].containsKey(packageName)) {
-    return VersionConstraint.parse(pubspecYaml['dependencies'][packageName]);
-  } else if (pubspecYaml.containsKey('dev_dependencies') &&
-      pubspecYaml['dev_dependencies'].containsKey(packageName)) {
-    return VersionConstraint.parse(
-        pubspecYaml['dev_dependencies'][packageName]);
+VersionConstraint getDependencyVersion(String packageName) {
+  try {
+    if (
+      pubspecYaml.containsKey('dependencies') &&
+      pubspecYaml['dependencies'].containsKey(packageName)
+    ) {
+      return VersionConstraint.parse(pubspecYaml['dependencies'][packageName]);
+    } else if (
+      pubspecYaml.containsKey('dev_dependencies') &&
+      pubspecYaml['dev_dependencies'].containsKey(packageName)
+    ) {
+      return VersionConstraint.parse(pubspecYaml['dev_dependencies'][packageName]);
+    }
+  } catch(e) {
+    return null;
   }
   return null;
 }
 
 void main(List<String> args) {
-  String constraintPackage;
-  VersionConstraint constraint;
-  final entrylogger = Logger('over_react_codemod.precheck');
+  Map<String, bool> inTransition = {};
+  bool foundReactOrOverReact = false;
+
+  final react16CodemodLogger = Logger('over_react_codemod.react16');
+  react16CodemodLogger.onRecord.listen((LogRecord record){
+    print(record.message);
+  });
+  react16CodemodLogger.info('Checking if project needs to run $react16CodemodName...');
   try {
     pubspecYaml = loadYaml(File('pubspec.yaml').readAsStringSync());
   } catch (e) {
-    entrylogger.fine('This repo does not have a pubspec.yaml');
+    if (e is FileSystemException) {
+      react16CodemodLogger.warning('Could not find pubspec.yaml, exiting codemod.');
+    } else if (e is YamlException || e is ArgumentError) {
+      react16CodemodLogger.warning('pubspec.yaml is unable to be parsed, exiting codemod.');
+    }
     exitCode = 0;
   }
-  try {
-    for (var package in packagesToCheckFor.entries) {
-      constraint = getDependencyVersion(package.key);
-      if (constraint != null) {
-        constraintPackage = package.key;
-        break;
-      }
-    }
+  for (var package in packagesToCheckFor.entries) {
+    var constraint = getDependencyVersion(package.key);
     if (constraint != null) {
-      if (!constraint.isAny &&
-          constraint.allowsAny(VersionConstraint.parse(
-              packagesToCheckFor[constraintPackage][0])) &&
-          constraint.allowsAny(VersionConstraint.parse(
-              packagesToCheckFor[constraintPackage][1]))) {
-        final query = FileQuery.dir(
-          pathFilter: isDartFile,
-          recursive: true,
-        );
-        exitCode = runInteractiveCodemodSequence(
-          query,
-          [
-            ReactDomRenderMigrator(),
-            ReactStyleMapsUpdater(),
-          ],
-          args: args,
-          defaultYes: true,
-          changesRequiredOutput: _changesRequiredOutput,
-        );
+      foundReactOrOverReact = true;
+      react16CodemodLogger.info('Found ${package.key} with version ${constraint}');
+    }
+    if (
+      constraint != null &&
+      !constraint.isAny &&
+      constraint.allowsAny(package.value[0]) &&
+      constraint.allowsAny(package.value[1])
+    ) {
+      inTransition[package.key] = true;
+    }
+  }
+  if (foundReactOrOverReact) {
+    react16CodemodLogger.info(inTransition);
+    react16CodemodLogger.info(!inTransition.values.any((val)=>val==false));
+    if (inTransition.isNotEmpty && !inTransition.values.any((val)=>val==false)) {
+      react16CodemodLogger.info('Starting $react16CodemodName...');
+      final query = FileQuery.dir(
+        pathFilter: isDartFile,
+        recursive: true,
+      );
+      exitCode = runInteractiveCodemodSequence(
+        query,
+        [
+          ReactDomRenderMigrator(),
+          ReactStyleMapsUpdater(),
+        ],
+        args: args,
+        defaultYes: true,
+        changesRequiredOutput: _changesRequiredOutput,
+      );
 
-        final logger = Logger('over_react_codemod.fixmes');
-        for (var dartFile in query.generateFilePaths()) {
-          final dartSource = File(dartFile).readAsStringSync();
-          if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
-            logger.severe(
-                'over_react_codemod validation comments are unaddressed in $dartFile');
-            exitCode = 1;
-          }
+      final logger = Logger('over_react_codemod.fixmes');
+      for (var dartFile in query.generateFilePaths()) {
+        final dartSource = File(dartFile).readAsStringSync();
+        if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
+          logger.severe(
+              'over_react_codemod validation comments are unaddressed in $dartFile');
+          exitCode = 1;
         }
-      } else {
-        entrylogger
-            .fine('This repo does not appear to be in React 16 transition.');
-        exitCode = 0;
       }
+      react16CodemodLogger.info('Finished Running $react16CodemodName!');
     } else {
-      entrylogger.fine('This repo does not use React.');
+      react16CodemodLogger.warning('pubspec.yaml does not have transition versions of react or over_react, exiting codemod.');
       exitCode = 0;
     }
-  } catch (e) {
-    entrylogger.fine(e);
+  } else {
+    react16CodemodLogger.warning('Could not find react or over_react in pubspec, exiting codemod.');
     exitCode = 0;
   }
+  react16CodemodLogger.info('We are all done here, Byeee!');
 }
