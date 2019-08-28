@@ -148,8 +148,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
         expectedPatchCount: 2,
         input: '''
           import 'package:react/react.dart' as react;
-
-          @Component2()
+          
           class FooComponent extends react.Component2 {
             @override
             render() {
@@ -161,8 +160,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
         ''',
         expectedOutput: '''
           import 'package:react/react.dart' as react;
-
-          @Component2()
+        
           class FooComponent extends react.Component2 {
             @override
             render() {

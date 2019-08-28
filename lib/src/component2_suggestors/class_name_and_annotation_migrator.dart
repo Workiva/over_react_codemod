@@ -34,7 +34,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   ClassNameAndAnnotationMigrator({this.allowPartialUpgrades = true});
 
   Iterable<String> get migrateAnnotations =>
-      overReact16AnnotationNamesToMigrate;
+      overReact16ComponentClassNamesToMigrate;
 
   @override
   visitImportDirective(ImportDirective node) {
@@ -61,8 +61,11 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     }
 
     // Add Component2 to import show list.
-    var showNamesList = (node.combinators.first as ShowCombinator)?.shownNames;
-    if (shouldUpdateImport &&
+    var showNamesList = (node.combinators.firstWhere(
+            (combinator) => combinator is ShowCombinator,
+            orElse: () => null) as ShowCombinator)
+        ?.shownNames;
+    if (shouldUpdateImport && showNamesList != null &&
         !showNamesList.any((name) => name.toSource() == 'Component2')) {
       yieldPatch(
         showNamesList.last.end,
@@ -99,7 +102,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     } else {
       if (!node.metadata.any((m) =>
           migrateAnnotations.contains(m.name.name) ||
-          overReact16AnnotationNames.contains(m.name.name))) {
+          overReact16Component2ClassNames.contains(m.name.name))) {
         // Only looking for classes annotated with `@Props()`, `@State()`,
         // `@AbstractProps()`, or `@AbstractState()`. If [renameMixins] is true,
         // also includes `@PropsMixin()` and `@StateMixin()`.

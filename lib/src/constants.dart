@@ -36,14 +36,14 @@ const List<String> overReactAnnotationNames = [
   'StateMixin',
 ];
 
-/// Names of all the over_react annotations.
-const List<String> overReact16AnnotationNamesToMigrate = [
+/// Names of all the over_react Component class names to migrate.
+const List<String> overReact16ComponentClassNamesToMigrate = [
   'Component',
   'AbstractComponent',
 ];
 
-/// Names of all the over_react annotations.
-const List<String> overReact16AnnotationNames = [
+/// Names of all the over_react Component2 class names.
+const List<String> overReact16Component2ClassNames = [
   'Component2',
   'AbstractComponent2',
 ];
