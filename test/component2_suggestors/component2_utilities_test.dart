@@ -130,7 +130,7 @@ void main() {
         group('has the @Component2 annotation,', () {
           final input = '''          
             @Component2
-            class FooComponent extends AbstractFooComponent {
+            class FooComponent extends SomeOtherClass {
               // class body
             }
           ''';
@@ -144,7 +144,7 @@ void main() {
         group('has the @AbstractComponent2 annotation,', () {
           final input = '''       
             @AbstractComponent2   
-            class AbstractFooComponent extends AbstractComponent {
+            class AbstractFooComponent extends SomeOtherClass {
               // class body
             }
           ''';
@@ -207,7 +207,7 @@ void main() {
         group('has the @Component annotation,', () {
           final input = '''          
             @Component
-            class FooComponent extends AbstractFooComponent {
+            class FooComponent extends SomeOtherClass {
               // class body
             }
           ''';
@@ -222,7 +222,7 @@ void main() {
         group('has the @AbstractComponent annotation,', () {
           final input = '''       
             @AbstractComponent   
-            class AbstractFooComponent extends AbstractComponent {
+            class AbstractFooComponent extends SomeOtherClass {
               // class body
             }
           ''';
@@ -333,10 +333,10 @@ void main() {
       });
 
       group('(not fully upgradable) when a class', () {
-        group('extends non-Component/Component2 classes', () {
+        group('extends non-base classes', () {
           final input = '''
             @Component
-            class FooComponent extends AbstractFooComponent {
+            class FooComponent extends SomeOtherClass {
               // class body
             }
           ''';

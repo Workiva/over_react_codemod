@@ -83,7 +83,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
             @Component2()
-            class FooComponent extends AbstractComponent<FooProps> {
+            class FooComponent extends SomeOtherClass<FooProps> {
               @override
               render() {
                 return (Dom.span()
@@ -94,7 +94,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
           ''',
           expectedOutput: '''
             @Component2()
-            class FooComponent extends AbstractComponent<FooProps> {
+            class FooComponent extends SomeOtherClass<FooProps> {
               @override
               render() {
                 return (Dom.span()
@@ -181,7 +181,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
             @Component2()
-            class FooComponent extends AbstractComponent {
+            class FooComponent extends SomeOtherClass {
               @override
               render() {
                 return (Dom.span()
@@ -192,7 +192,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
           ''',
           expectedOutput: '''
             @Component2()
-            class FooComponent extends AbstractComponent {
+            class FooComponent extends SomeOtherClass {
               @override
               render() {
                 return (Dom.span()

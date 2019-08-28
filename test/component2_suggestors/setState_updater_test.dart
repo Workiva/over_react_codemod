@@ -80,7 +80,7 @@ setStateTests({bool allowPartialUpgrades}) {
             expectedPatchCount: allowPartialUpgrades ? 1 : 0,
             input: '''
               @Component2()
-              class FooComponent extends AbstractComponent {
+              class FooComponent extends SomeOtherClass {
                 someMethod() {
                   setState((prevState, props) {
                     // return ...;
@@ -90,7 +90,7 @@ setStateTests({bool allowPartialUpgrades}) {
             ''',
             expectedOutput: '''
               @Component2()
-              class FooComponent extends AbstractComponent {
+              class FooComponent extends SomeOtherClass {
                 someMethod() {
                   ${allowPartialUpgrades ? 'setStateWithUpdater' : 'setState'}((prevState, props) {
                     // return ...;
@@ -163,7 +163,7 @@ setStateTests({bool allowPartialUpgrades}) {
               expectedPatchCount: allowPartialUpgrades ? 1 : 0,
               input: '''
                 @Component2()
-                class FooComponent extends AbstractComponent {
+                class FooComponent extends SomeOtherClass {
                   someMethod() {
                     setState((prevState, props) => newState());
                   }
@@ -171,7 +171,7 @@ setStateTests({bool allowPartialUpgrades}) {
               ''',
               expectedOutput: '''
                 @Component2()
-                class FooComponent extends AbstractComponent {
+                class FooComponent extends SomeOtherClass {
                   someMethod() {
                     ${allowPartialUpgrades ? 'setStateWithUpdater' : 'setState'}((prevState, props) => newState());
                   }

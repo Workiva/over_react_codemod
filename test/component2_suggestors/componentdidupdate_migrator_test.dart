@@ -77,7 +77,7 @@ void componentDidUpdateTests({bool allowPartialUpgrades}) {
           expectedPatchCount: allowPartialUpgrades ? 1 : 0,
           input: '''
             @Component2()
-            class FooComponent extends AbstractComponent {
+            class FooComponent extends SomeOtherClass {
               componentDidUpdate(Map prevProps, Map prevState) {
                 // method body
               }
@@ -85,7 +85,7 @@ void componentDidUpdateTests({bool allowPartialUpgrades}) {
           ''',
           expectedOutput: '''
             @Component2()
-            class FooComponent extends AbstractComponent {
+            class FooComponent extends SomeOtherClass {
               componentDidUpdate(Map prevProps, Map prevState${allowPartialUpgrades ? ', [snapshot]' : ''}) {
                 // method body
               }

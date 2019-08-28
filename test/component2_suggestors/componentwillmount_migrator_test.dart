@@ -77,7 +77,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
           expectedPatchCount: allowPartialUpgrades ? 1 : 0,
           input: '''
             @Component2()
-            class FooComponent extends AbstractComponent {
+            class FooComponent extends SomeOtherClass {
               componentWillMount(){
                 // method body
               }
@@ -85,7 +85,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
           ''',
           expectedOutput: '''
             @Component2()
-            class FooComponent extends AbstractComponent {
+            class FooComponent extends SomeOtherClass {
               ${allowPartialUpgrades ? 'init' : 'componentWillMount'}(){
                 // method body
               }
@@ -233,7 +233,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
-          class FooComponent extends AbstractComponent {
+          class FooComponent extends SomeOtherClass {
             void componentWillMount(){
               super.componentWillMount();
               // method body
@@ -242,7 +242,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends AbstractComponent {
+          class FooComponent extends SomeOtherClass {
             void ${allowPartialUpgrades ? 'init' : 'componentWillMount'}(){
               super.componentWillMount();
               // method body

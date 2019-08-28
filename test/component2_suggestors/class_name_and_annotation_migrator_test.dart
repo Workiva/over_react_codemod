@@ -53,11 +53,11 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades}) {
       expectedPatchCount: allowPartialUpgrades ? 1 : 0,
       input: '''
         @Component()
-        class FooComponent extends AbstractComponent {}
+        class FooComponent extends SomeOtherClass {}
       ''',
       expectedOutput: '''
         @Component${allowPartialUpgrades ? '2' : ''}()
-        class FooComponent extends AbstractComponent {}
+        class FooComponent extends SomeOtherClass {}
       ''',
     );
   });
@@ -268,14 +268,14 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades}) {
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component(isWrapper: true)
-          class FooComponent extends AbstractComponent<FooProps> {
+          class FooComponent extends SomeOtherClass<FooProps> {
             @override
             render() {}
           }
         ''',
         expectedOutput: '''
           @Component${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
-          class FooComponent extends AbstractComponent<FooProps> {
+          class FooComponent extends SomeOtherClass<FooProps> {
             @override
             render() {}
           }
@@ -340,11 +340,11 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades}) {
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @AbstractComponent(isWrapper: true)
-          abstract class FooComponent extends AbstractStatefulComponent<FooProps, FooState> {}
+          abstract class FooComponent extends SomeOtherClass<FooProps, FooState> {}
         ''',
         expectedOutput: '''
           @AbstractComponent${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
-          abstract class FooComponent extends AbstractStatefulComponent<FooProps, FooState> {}
+          abstract class FooComponent extends SomeOtherClass<FooProps, FooState> {}
         ''',
       );
     });
