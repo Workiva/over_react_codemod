@@ -17,11 +17,6 @@ import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-// Component 2
-import 'package:over_react_codemod/src/component2_suggestors/componentwillmount_migrator.dart';
-import 'package:over_react_codemod/src/component2_suggestors/class_name_and_annotation_migrator.dart';
-
-// Dart 2
 import 'package:over_react_codemod/src/dart2_suggestors/component_default_props_migrator.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/dollar_prop_keys_migrator.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/dollar_props_migrator.dart';
