@@ -41,14 +41,14 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     [
-      ClassNameAndAnnotationMigrator(
-          allowPartialUpgrades: allowPartialUpgrades),
+      // This suggestor needs to be run first in order for subsequent suggestors
+      // to run when converting Component to Component2 for the first time.
+      ClassNameAndAnnotationMigrator(allowPartialUpgrades: allowPartialUpgrades),
       ComponentWillMountMigrator(allowPartialUpgrades: allowPartialUpgrades),
       DeprecatedLifecycleSuggestor(allowPartialUpgrades: allowPartialUpgrades),
       SetStateUpdater(allowPartialUpgrades: allowPartialUpgrades),
       ComponentDidUpdateMigrator(allowPartialUpgrades: allowPartialUpgrades),
-      CopyUnconsumedDomPropsMigrator(
-          allowPartialUpgrades: allowPartialUpgrades),
+      CopyUnconsumedDomPropsMigrator(allowPartialUpgrades: allowPartialUpgrades),
     ],
     args: args,
     defaultYes: true,
