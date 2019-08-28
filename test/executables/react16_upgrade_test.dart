@@ -36,16 +36,16 @@ main() {
     group('exits with a status of 0 when', () {
       test('there is no comment', () {
         final result = runUpgrade(
-            onDirectory: 'test/executables/test_component'
-                's/file_with_no_comment');
+            onDirectory:
+                'test/executables/test_components/file_with_no_comment');
 
         expect(result.exitCode, equals(0));
       });
 
       test('there is a validated comment', () {
         final result = runUpgrade(
-            onDirectory: 'test/executables/test_component'
-                's/file_with_validated_comment');
+            onDirectory:
+                'test/executables/test_components/file_with_validated_comment');
 
         expect(result.exitCode, equals(0));
       });

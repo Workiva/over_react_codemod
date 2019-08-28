@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
@@ -27,14 +28,21 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    CompilationUnit importList = node.thisOrAncestorMatching((ancestor) {
-      return ancestor is CompilationUnit;
-    });
+    final imports = node
+        .thisOrAncestorOfType<CompilationUnit>()
+        .directives
+        .whereType<ImportDirective>()
+        .toList();
 
-    ImportDirective reactDomImport = importList.directives.lastWhere(
+    final overReactImport = imports.lastWhere(
         (dir) =>
-            dir is ImportDirective &&
-            dir.uri?.stringValue == 'package:react/react_dom.dart',
+            dir.uri?.stringValue == 'package:over_react/over_react.dart' ||
+            // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
+            dir.uri?.stringValue == 'package:' 'web_skin_dart/ui_core.dart',
+        orElse: () => null);
+
+    final reactDomImport = imports.lastWhere(
+        (dir) => dir.uri?.stringValue == 'package:react/react_dom.dart',
         orElse: () => null);
 
     if (reactDomImport == null) {
@@ -43,16 +51,14 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
 
     String reactDomImportNamespace = reactDomImport.prefix?.name;
 
-    final parent = node.parent;
-    MethodInvocation inTest = node.thisOrAncestorMatching((ancestor) {
-      return (ancestor is MethodInvocation &&
-          (ancestor.methodName.name == 'test' ||
-              ancestor.methodName.name == 'group'));
-    });
+    final testAncestor = node.thisOrAncestorMatching((ancestor) =>
+        ancestor is MethodInvocation &&
+        const {'test', 'group'}.contains(ancestor.methodName.name));
+    final inTest = testAncestor != null;
 
     if (node.methodName.name != 'render' ||
         reactDomImportNamespace != node.realTarget?.toSource?.call() ||
-        inTest != null) {
+        inTest) {
       return;
     }
 
@@ -64,8 +70,16 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       return ancestor is FunctionDeclaration;
     });
 
+    void addOverReactPatch(int offset) {
+      yieldPatch(
+          offset, offset, 'import \'package:over_react/over_react.dart\';\n');
+    }
+
     // Wrap render in ErrorBoundary.
     if (!renderFirstArg.toSource().startsWith('ErrorBoundary')) {
+      if (overReactImport == null) {
+        addOverReactPatch(reactDomImport.offset);
+      }
       yieldPatch(
         renderFirstArg.offset,
         renderFirstArg.offset,
@@ -76,6 +90,9 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         renderFirstArg.end,
         ')',
       );
+    } else if (renderFirstArg.toSource().startsWith('ErrorBoundary') &&
+        overReactImport == null) {
+      addOverReactPatch(reactDomImport.offset);
     }
 
     if (renderFirstArg is InvocationExpression) {
@@ -90,6 +107,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           '$willBeRemovedCommentSuffix\n';
     }
 
+    final parent = node.parent;
     if (parent is VariableDeclaration || parent is AssignmentExpression) {
       String refVariableName;
 
@@ -109,7 +127,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           node.realTarget.offset,
           comment ??
               '\n // [ ] Check this box upon manual validation of this ref and '
-              'its typing.$willBeRemovedCommentSuffix\n',
+                  'its typing.$willBeRemovedCommentSuffix\n',
         );
 
         refVariableName = parent.name.name;
@@ -127,7 +145,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           parent.rightHandSide.offset,
           comment ??
               '// [ ] Check this box upon manual validation of this ref.'
-              '$willBeRemovedCommentSuffix\n',
+                  '$willBeRemovedCommentSuffix\n',
         );
 
         refVariableName = parent.leftHandSide.toSource();
@@ -169,8 +187,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         node.realTarget.offset,
         node.realTarget.offset,
         '\n// [ ] Check this box upon manually updating this argument to use a '
-            'callback ref instead of the return value of `react_dom.render`.'
-            '$willBeRemovedCommentSuffix\n',
+        'callback ref instead of the return value of `react_dom.render`.'
+        '$willBeRemovedCommentSuffix\n',
       );
     } else if ((parent is ReturnStatement ||
             parent is ExpressionFunctionBody) &&
@@ -182,8 +200,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         node.realTarget.offset,
         node.realTarget.offset,
         '// [ ] Check this box upon manually updating this variable to be set using a '
-            'callback ref instead of the return value of `react_dom.render`.'
-            '$willBeRemovedCommentSuffix\n',
+        'callback ref instead of the return value of `react_dom.render`.'
+        '$willBeRemovedCommentSuffix\n',
       );
     } else {
       if (!hasValidationComment(node, sourceFile) &&
@@ -193,7 +211,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           node.realTarget.offset,
           comment ??
               '// [ ] Check this box upon manual validation of this ref.'
-              '$willBeRemovedCommentSuffix\n',
+                  '$willBeRemovedCommentSuffix\n',
         );
       }
     }
