@@ -93,9 +93,9 @@ void sharedPubspecTest({
       String output = shouldUpdateMidRange
           ? getExpectedOutput()
           : ''
-          '$dependency: $midVersionRange\n'
-          'test: 1.5.1\n'
-          '';
+              '$dependency: $midVersionRange\n'
+              'test: 1.5.1\n'
+              '';
 
       test(
           '${shouldUpdateMidRange ? '' : 'except'} when the version is within the expected range',
