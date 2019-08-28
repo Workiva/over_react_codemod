@@ -43,12 +43,14 @@ void main(List<String> args) {
     [
       // This suggestor needs to be run first in order for subsequent suggestors
       // to run when converting Component to Component2 for the first time.
-      ClassNameAndAnnotationMigrator(allowPartialUpgrades: allowPartialUpgrades),
+      ClassNameAndAnnotationMigrator(
+          allowPartialUpgrades: allowPartialUpgrades),
       ComponentWillMountMigrator(allowPartialUpgrades: allowPartialUpgrades),
       DeprecatedLifecycleSuggestor(allowPartialUpgrades: allowPartialUpgrades),
       SetStateUpdater(allowPartialUpgrades: allowPartialUpgrades),
       ComponentDidUpdateMigrator(allowPartialUpgrades: allowPartialUpgrades),
-      CopyUnconsumedDomPropsMigrator(allowPartialUpgrades: allowPartialUpgrades),
+      CopyUnconsumedDomPropsMigrator(
+          allowPartialUpgrades: allowPartialUpgrades),
     ],
     args: args,
     defaultYes: true,
