@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'package:path/path.dart' as p;
 
@@ -15,10 +14,11 @@ class DartProjectFaker {
     try {
       dir = Directory.systemTemp.createTempSync();
       if (pubspecFaker.createPubspecFile) {
-        File(p.join(dir.path, 'pubspec.yaml')).writeAsStringSync(pubspecFaker.toString());
+        File(p.join(dir.path, 'pubspec.yaml'))
+            .writeAsStringSync(pubspecFaker.toString());
       }
       File(p.join(dir.path, 'main.dart')).writeAsStringSync(mainDartContents);
-    } catch(e){
+    } catch (e) {
       print(e);
     }
   }
@@ -32,24 +32,24 @@ class PubspecFaker {
   List<DependencyFaker> dependencies;
   bool createPubspecFile;
 
-  PubspecFaker({
-    this.name = 'fake_package',
-    this.version = '0.0.0',
-    this.isPrivate = true,
-    this.sdkVersion = '">=2.4.0 <3.0.0"',
-    this.dependencies = const [],
-    this.createPubspecFile = true
-  });
+  PubspecFaker(
+      {this.name = 'fake_package',
+      this.version = '0.0.0',
+      this.isPrivate = true,
+      this.sdkVersion = '">=2.4.0 <3.0.0"',
+      this.dependencies = const [],
+      this.createPubspecFile = true});
 
-  void removeDependencyWhere(Function callback){
+  void removeDependencyWhere(Function callback) {
     dependencies.removeWhere(callback);
   }
 
-  void addDependencies(List<DependencyFaker> new_dependencies){
+  void addDependencies(List<DependencyFaker> new_dependencies) {
     dependencies.addAll(new_dependencies);
   }
 
-  void addDependency(String name, { String version = 'any', bool asDev = false, bool Function() shouldAdd}) {
+  void addDependency(String name,
+      {String version = 'any', bool asDev = false, bool Function() shouldAdd}) {
     if ((shouldAdd != null && shouldAdd() == false) ? false : true) {
       dependencies.add(DependencyFaker(name, version: version, asDev: asDev));
     }
@@ -61,23 +61,29 @@ class PubspecFaker {
 
   @override
   String toString() {
-    return
-      'name: $name\n' +
-      'version: $version\n' +
-      'private: $isPrivate\n' +
-      'environment:\n' +
-      '  sdk: $sdkVersion\n' +
-      (dependencies.isNotEmpty ?
-        'dependencies: \n' +
-        dependencies.where((dep) => dep.asDev == false).map((dep) => dep.toString()).join('\n')
-        : ''
-      ) +
-      (dependencies.isNotEmpty && (dependencies.firstWhere((dep) => dep.asDev == true, orElse: () => null) != null) ?
-        'dev_dependencies: \n' +
-        dependencies.where((dep) => dep.asDev == true).map((dep) => dep.toString()).join('\n')
-        : ''
-      ) +
-      '\n';
+    return 'name: $name\n' +
+        'version: $version\n' +
+        'private: $isPrivate\n' +
+        'environment:\n' +
+        '  sdk: $sdkVersion\n' +
+        (dependencies.isNotEmpty
+            ? 'dependencies: \n' +
+                dependencies
+                    .where((dep) => dep.asDev == false)
+                    .map((dep) => dep.toString())
+                    .join('\n')
+            : '') +
+        (dependencies.isNotEmpty &&
+                (dependencies.firstWhere((dep) => dep.asDev == true,
+                        orElse: () => null) !=
+                    null)
+            ? 'dev_dependencies: \n' +
+                dependencies
+                    .where((dep) => dep.asDev == true)
+                    .map((dep) => dep.toString())
+                    .join('\n')
+            : '') +
+        '\n';
   }
 }
 
@@ -86,10 +92,11 @@ class DependencyFaker {
   String version;
   bool asDev;
 
-  DependencyFaker(this.name, {this.version = 'any', this.asDev = false}){
+  DependencyFaker(this.name, {this.version = 'any', this.asDev = false}) {
     // Check if the version string is wrapped with quotes or not and if not add them.
-    if (version.contains(RegExp('[\>\<\=\ ]')) && !version.startsWith(RegExp('[\'\"]'))) {
-      this.version = '"'+version+'"';
+    if (version.contains(RegExp('[\>\<\=\ ]')) &&
+        !version.startsWith(RegExp('[\'\"]'))) {
+      this.version = '"' + version + '"';
     }
   }
 
@@ -130,14 +137,20 @@ class DartProjectFakerTestConfig {
     this.shouldRunCodemod = false,
     this.includePubspecFile = true,
   }) {
-    if (testName != null){
+    if (testName != null) {
       _testName = testName;
     }
-    if (expectedExitCode != null){
+    if (expectedExitCode != null) {
       _expectedExitCode = expectedExitCode;
     }
   }
 
-  String get testName => _testName ?? ((shouldRunCodemod ? 'runs' : 'does not run') + ' the codemod with dependencies: ' +
-  dependencies.map((dep) => dep.toString().trim().replaceAll(': ', ' on version ')).join(', '));
+  String get testName =>
+      _testName ??
+      ((shouldRunCodemod ? 'runs' : 'does not run') +
+          ' the codemod with dependencies: ' +
+          dependencies
+              .map((dep) =>
+                  dep.toString().trim().replaceAll(': ', ' on version '))
+              .join(', '));
 }

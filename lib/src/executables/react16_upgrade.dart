@@ -47,18 +47,15 @@ Map<String, List<VersionConstraint>> packagesToCheckFor = {
 
 VersionConstraint getDependencyVersion(String packageName) {
   try {
-    if (
-      pubspecYaml.containsKey('dependencies') &&
-      pubspecYaml['dependencies'].containsKey(packageName)
-    ) {
+    if (pubspecYaml.containsKey('dependencies') &&
+        pubspecYaml['dependencies'].containsKey(packageName)) {
       return VersionConstraint.parse(pubspecYaml['dependencies'][packageName]);
-    } else if (
-      pubspecYaml.containsKey('dev_dependencies') &&
-      pubspecYaml['dev_dependencies'].containsKey(packageName)
-    ) {
-      return VersionConstraint.parse(pubspecYaml['dev_dependencies'][packageName]);
+    } else if (pubspecYaml.containsKey('dev_dependencies') &&
+        pubspecYaml['dev_dependencies'].containsKey(packageName)) {
+      return VersionConstraint.parse(
+          pubspecYaml['dev_dependencies'][packageName]);
     }
-  } catch(e) {
+  } catch (e) {
     return null;
   }
   return null;
@@ -69,17 +66,20 @@ void main(List<String> args) {
   bool foundReactOrOverReact = false;
 
   final react16CodemodLogger = Logger('over_react_codemod.react16');
-  react16CodemodLogger.onRecord.listen((LogRecord record){
+  react16CodemodLogger.onRecord.listen((LogRecord record) {
     print(record.message);
   });
-  react16CodemodLogger.info('Checking if project needs to run $react16CodemodName...');
+  react16CodemodLogger
+      .info('Checking if project needs to run $react16CodemodName...');
   try {
     pubspecYaml = loadYaml(File('pubspec.yaml').readAsStringSync());
   } catch (e) {
     if (e is FileSystemException) {
-      react16CodemodLogger.warning('Could not find pubspec.yaml, exiting codemod.');
+      react16CodemodLogger
+          .warning('Could not find pubspec.yaml, exiting codemod.');
     } else if (e is YamlException || e is ArgumentError) {
-      react16CodemodLogger.warning('pubspec.yaml is unable to be parsed, exiting codemod.');
+      react16CodemodLogger
+          .warning('pubspec.yaml is unable to be parsed, exiting codemod.');
     }
     exitCode = 0;
   }
@@ -87,21 +87,21 @@ void main(List<String> args) {
     var constraint = getDependencyVersion(package.key);
     if (constraint != null) {
       foundReactOrOverReact = true;
-      react16CodemodLogger.info('Found ${package.key} with version ${constraint}');
+      react16CodemodLogger
+          .info('Found ${package.key} with version ${constraint}');
     }
-    if (
-      constraint != null &&
-      !constraint.isAny &&
-      constraint.allowsAny(package.value[0]) &&
-      constraint.allowsAny(package.value[1])
-    ) {
+    if (constraint != null &&
+        !constraint.isAny &&
+        constraint.allowsAny(package.value[0]) &&
+        constraint.allowsAny(package.value[1])) {
       inTransition[package.key] = true;
     }
   }
   if (foundReactOrOverReact) {
     react16CodemodLogger.info(inTransition);
-    react16CodemodLogger.info(!inTransition.values.any((val)=>val==false));
-    if (inTransition.isNotEmpty && !inTransition.values.any((val)=>val==false)) {
+    react16CodemodLogger.info(!inTransition.values.any((val) => val == false));
+    if (inTransition.isNotEmpty &&
+        !inTransition.values.any((val) => val == false)) {
       react16CodemodLogger.info('Starting $react16CodemodName...');
       final query = FileQuery.dir(
         pathFilter: isDartFile,
@@ -129,11 +129,13 @@ void main(List<String> args) {
       }
       react16CodemodLogger.info('Finished Running $react16CodemodName!');
     } else {
-      react16CodemodLogger.warning('pubspec.yaml does not have transition versions of react or over_react, exiting codemod.');
+      react16CodemodLogger.warning(
+          'pubspec.yaml does not have transition versions of react or over_react, exiting codemod.');
       exitCode = 0;
     }
   } else {
-    react16CodemodLogger.warning('Could not find react or over_react in pubspec, exiting codemod.');
+    react16CodemodLogger.warning(
+        'Could not find react or over_react in pubspec, exiting codemod.');
     exitCode = 0;
   }
   react16CodemodLogger.info('We are all done here, Byeee!');
