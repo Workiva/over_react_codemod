@@ -65,7 +65,8 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
             (combinator) => combinator is ShowCombinator,
             orElse: () => null) as ShowCombinator)
         ?.shownNames;
-    if (shouldUpdateImport && showNamesList != null &&
+    if (shouldUpdateImport &&
+        showNamesList != null &&
         !showNamesList.any((name) => name.toSource() == 'Component2')) {
       yieldPatch(
         showNamesList.last.end,

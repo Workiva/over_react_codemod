@@ -156,22 +156,22 @@ componentWillMountTests({bool allowPartialUpgrades}) {
         testSuggestor(
           expectedPatchCount: 2,
           input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
-            void componentWillMount(){
-              super.componentWillMount();
-              // method body
+            @Component2()
+            class FooComponent extends UiComponent2 {
+              void componentWillMount(){
+                super.componentWillMount();
+                // method body
+              }
             }
-          }
-        ''',
+          ''',
           expectedOutput: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
-            void init(){
-              // method body
+            @Component2()
+            class FooComponent extends UiComponent2 {
+              void init(){
+                // method body
+              }
             }
-          }
-        ''',
+          ''',
         );
       });
 
@@ -179,22 +179,22 @@ componentWillMountTests({bool allowPartialUpgrades}) {
         testSuggestor(
           expectedPatchCount: 2,
           input: '''
-          @Component2()
-          class FooComponent extends UiStatefulComponent2 {
+            @Component2()
+            class FooComponent extends UiStatefulComponent2 {
               void componentWillMount(){
-                  super.componentWillMount();
-                  // method body
+                super.componentWillMount();
+                // method body
               }
-          }
-        ''',
+            }
+          ''',
           expectedOutput: '''
-          @Component2()
-          class FooComponent extends UiStatefulComponent2 {
+            @Component2()
+            class FooComponent extends UiStatefulComponent2 {
               void init(){
-                  // method body
+                // method body
               }
-          }
-        ''',
+            }
+          ''',
         );
       });
 
@@ -202,91 +202,88 @@ componentWillMountTests({bool allowPartialUpgrades}) {
         testSuggestor(
           expectedPatchCount: 2,
           input: '''
-          import 'package:react/react.dart' as react;
-          
-          @Component2()
-          class FooComponent extends react.Component2 {
+            import 'package:react/react.dart' as react;
+            
+            @Component2()
+            class FooComponent extends react.Component2 {
               void componentWillMount(){
-                  super.componentWillMount();
-                  // method body
+                super.componentWillMount();
+                // method body
               }
-          }
-        ''',
+            }
+          ''',
           expectedOutput: '''
-          import 'package:react/react.dart' as react;
-          
-          @Component2()
-          class FooComponent extends react.Component2 {
+            import 'package:react/react.dart' as react;
+            
+            @Component2()
+            class FooComponent extends react.Component2 {
               void init(){
-                  // method body
+                // method body
               }
-          }
-        ''',
+            }
+          ''',
         );
       });
     });
 
     test(
         'does not remove super calls to componentWillMount for non-base extending classes',
-            () {
-          testSuggestor(
-            expectedPatchCount: 1,
-            input: '''
+        () {
+      testSuggestor(
+        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+        input: '''
           @Component2()
           class FooComponent extends AbstractComponent {
-              void componentWillMount(){
-                  super.componentWillMount();
-                  // method body
-              }
+            void componentWillMount(){
+              super.componentWillMount();
+              // method body
+            }
           }
         ''',
-            expectedOutput: '''
+        expectedOutput: '''
           @Component2()
           class FooComponent extends AbstractComponent {
-              void init(){
-                  super.componentWillMount();
-                  // method body
-              }
+            void ${allowPartialUpgrades ? 'init' : 'componentWillMount'}(){
+              super.componentWillMount();
+              // method body
             }
-          ''',
-          );
-        });
+          }
+        ''',
+      );
+    });
 
-    group(
+    test(
         'are ${allowPartialUpgrades ? '' : 'not '}removed if containing class'
-        ' is not fully upgradable', () {
-      test('-- has lifecycle methods without codemods', () {
-        testSuggestor(
-          expectedPatchCount: allowPartialUpgrades ? 2 : 0,
-          input: '''
-            @Component2()
-            class FooComponent extends UiComponent2 {
-              void componentWillMount(){
-                super.componentWillMount();
-                // method body
-              }
-              
-              @override
-              componentWillUnmount() {}
+        ' has lifecycle methods without codemods', () {
+      testSuggestor(
+        expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+        input: '''
+          @Component2()
+          class FooComponent extends UiComponent2 {
+            void componentWillMount(){
+              super.componentWillMount();
+              // method body
             }
-          ''',
-          expectedOutput: '''
-            @Component2()
-            class FooComponent extends UiComponent2 {
-              void ${allowPartialUpgrades ? 'init' : 'componentWillMount'}(){
-                ${allowPartialUpgrades ? '' : 'super.componentWillMount();'}
-                // method body
-              }
-              
-              @override
-              componentWillUnmount() {}
+            
+            @override
+            componentWillUnmount() {}
+          }
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends UiComponent2 {
+            void ${allowPartialUpgrades ? 'init' : 'componentWillMount'}(){
+              ${allowPartialUpgrades ? '' : 'super.componentWillMount();'}
+              // method body
             }
-          ''',
-        );
-      });
-      });
+            
+            @override
+            componentWillUnmount() {}
+          }
+        ''',
+      );
+    });
   });
-
 
   test('does not change componentWillMount for non-component2 classes', () {
     testSuggestor(
@@ -300,5 +297,5 @@ componentWillMountTests({bool allowPartialUpgrades}) {
         }
       ''',
     );
-    });
+  });
 }
