@@ -37,6 +37,8 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     [
+      // This suggestor needs to be run first in order for subsequent suggestors
+      // to run when converting Component to Component2 for the first time.
       ClassNameAndAnnotationMigrator(),
       ComponentWillMountMigrator(),
       DeprecatedLifecycleSuggestor(),
