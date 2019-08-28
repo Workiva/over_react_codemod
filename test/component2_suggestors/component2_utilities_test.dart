@@ -120,7 +120,7 @@ void main() {
         group('has the @Component2 annotation,', () {
           final input = '''          
             @Component2
-            class FooComponent extends AbstractFooComponent {
+            class FooComponent extends SomeOtherClass {
               // class body
             }
           ''';
@@ -131,7 +131,7 @@ void main() {
         group('has the @AbstractComponent2 annotation,', () {
           final input = '''       
             @AbstractComponent2   
-            class AbstractFooComponent extends AbstractComponent {
+            class AbstractFooComponent extends SomeOtherClass {
               // class body
             }
           ''';
@@ -178,7 +178,7 @@ void main() {
         group('has the @Component annotation,', () {
           final input = '''          
             @Component
-            class FooComponent extends AbstractFooComponent {
+            class FooComponent extends SomeOtherClass {
               // class body
             }
           ''';
@@ -189,7 +189,7 @@ void main() {
         group('has the @AbstractComponent annotation,', () {
           final input = '''       
             @AbstractComponent   
-            class AbstractFooComponent extends AbstractComponent {
+            class AbstractFooComponent extends SomeOtherClass {
               // class body
             }
           ''';

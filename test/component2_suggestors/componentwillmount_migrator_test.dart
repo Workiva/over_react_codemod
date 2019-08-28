@@ -166,7 +166,7 @@ main() {
         expectedPatchCount: 1,
         input: '''
           @Component2()
-          class FooComponent extends AbstractComponent {
+          class FooComponent extends SomeOtherClass {
               void componentWillMount(){
                   super.componentWillMount();
                   // method body
@@ -175,7 +175,7 @@ main() {
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends AbstractComponent {
+          class FooComponent extends SomeOtherClass {
               void init(){
                   super.componentWillMount();
                   // method body

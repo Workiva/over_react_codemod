@@ -41,11 +41,11 @@ main() {
         expectedPatchCount: 1,
         input: '''
           @Component()
-          class FooComponent extends AbstractComponent {}
+          class FooComponent extends SomeOtherClass {}
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends AbstractComponent {}
+          class FooComponent extends SomeOtherClass {}
         ''',
       );
     });
@@ -106,7 +106,23 @@ main() {
       );
     });
 
-    test('AbstractComponent class annotation updates', () {
+    test('AbstractComponent class annotation and extending class updates', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          @AbstractComponent(isWrapper: true)
+          abstract class FooComponent extends UiComponent<FooProps, FooState> {}
+        ''',
+        expectedOutput: '''
+          @AbstractComponent2(isWrapper: true)
+          abstract class FooComponent extends UiComponent2<FooProps, FooState>{}
+        ''',
+      );
+    });
+
+    test(
+        'AbstractComponent class annotation and extending stateful class updates',
+        () {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
