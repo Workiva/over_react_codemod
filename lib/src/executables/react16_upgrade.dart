@@ -21,12 +21,12 @@ import 'package:over_react_codemod/src/react16_suggestors/react_dom_render_migra
 import 'package:over_react_codemod/src/react16_suggestors/react_style_maps_updater.dart';
 
 const _changesRequiredOutput = """
-  To update your code, go through the following steps:
-  pub global activate over_react_codemod ^1.1.0
+  To update your code, run the following commanands in your repository:
+  pub global activate over_react_codemod
   pub get
   pub global run over_react_codemod:react16_pubspec_upgrade
   pub global run over_react_codemod:react16_upgrade
-  If you format your repo: ddev format .
+  ddev format . (If you format this repository).
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
