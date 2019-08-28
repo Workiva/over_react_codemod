@@ -84,10 +84,11 @@ main() {
       );
     });
 
-    test('remove super calls to componentWillMount', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
+    group('remove super calls to componentWillMount', () {
+      test('for UiComponent2 extending class', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
               void componentWillMount(){
@@ -96,10 +97,87 @@ main() {
               }
           }
         ''',
-        expectedOutput: '''
+          expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
               void init(){
+                  // method body
+              }
+          }
+        ''',
+        );
+      });
+
+      test('for UiStatefulComponent2 extending class', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+          @Component2()
+          class FooComponent extends UiStatefulComponent2 {
+              void componentWillMount(){
+                  super.componentWillMount();
+                  // method body
+              }
+          }
+        ''',
+          expectedOutput: '''
+          @Component2()
+          class FooComponent extends UiStatefulComponent2 {
+              void init(){
+                  // method body
+              }
+          }
+        ''',
+        );
+      });
+
+      test('for react.Component2 extending class', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+          import 'package:react/react.dart' as react;
+          
+          @Component2()
+          class FooComponent extends react.Component2 {
+              void componentWillMount(){
+                  super.componentWillMount();
+                  // method body
+              }
+          }
+        ''',
+          expectedOutput: '''
+          import 'package:react/react.dart' as react;
+          
+          @Component2()
+          class FooComponent extends react.Component2 {
+              void init(){
+                  // method body
+              }
+          }
+        ''',
+        );
+      });
+    });
+
+    test(
+        'do not remove super calls to componentWillMount for non-base extending classes',
+        () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+          @Component2()
+          class FooComponent extends AbstractComponent {
+              void componentWillMount(){
+                  super.componentWillMount();
+                  // method body
+              }
+          }
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends AbstractComponent {
+              void init(){
+                  super.componentWillMount();
                   // method body
               }
           }

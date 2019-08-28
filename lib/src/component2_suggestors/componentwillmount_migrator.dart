@@ -38,8 +38,20 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
           'init',
         );
 
-        // Remove super call.
-        if (node.body is BlockFunctionBody) {
+        // Remove super call if containing class extends from base classes.
+        String extendsName = containingClass.extendsClause.superclass.name.name;
+        String reactImportName =
+            getImportNamespace(containingClass, 'package:react/react.dart');
+        var componentClassNames = [
+          'UiComponent2',
+          'UiStatefulComponent2',
+        ];
+        if (reactImportName != null) {
+          componentClassNames.add('$reactImportName.Component2');
+        }
+
+        if (componentClassNames.contains(extendsName) &&
+            node.body is BlockFunctionBody) {
           NodeList statementList =
               (node.body as BlockFunctionBody).block.statements;
 
