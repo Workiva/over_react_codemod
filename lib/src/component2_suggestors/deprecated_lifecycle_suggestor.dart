@@ -15,9 +15,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 
 import './component2_constants.dart';
-import '../util.dart';
 import 'component2_utilities.dart';
 
 /// Suggestor that adds a "fix me" comment prompting consumers to update

@@ -28,7 +28,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   static final _cssValueSuffixPattern =
-      new RegExp(r'\b(?:rem|em|ex|vh|vw|vmin|vmax|%|px|cm|mm|in|pt|pc|ch)$');
+      RegExp(r'\b(?:rem|em|ex|vh|vw|vmin|vmax|%|px|cm|mm|in|pt|pc|ch)$');
 
   @override
   visitCascadeExpression(CascadeExpression node) {
