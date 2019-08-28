@@ -89,6 +89,9 @@ void main(List<String> args) {
       foundReactOrOverReact = true;
       react16CodemodLogger
           .info('Found ${package.key} with version ${constraint}');
+      // Found it so lets add it to the in transition list to false until its
+      // validated that we know it is in transtition.
+      inTransition[package.key] = false;
     }
     if (constraint != null &&
         !constraint.isAny &&
@@ -99,7 +102,6 @@ void main(List<String> args) {
   }
   if (foundReactOrOverReact) {
     react16CodemodLogger.info(inTransition);
-    react16CodemodLogger.info(!inTransition.values.any((val) => val == false));
     if (inTransition.isNotEmpty &&
         !inTransition.values.any((val) => val == false)) {
       react16CodemodLogger.info('Starting $react16CodemodName...');
