@@ -43,7 +43,7 @@ const _helpFlag = '--help';
 const _helpFlagAbbr = '-h';
 const _changesRequiredOutput = """
 To update your code, switch to Dart 2.1.0 and run the following commands:
-  pub global activate over_react_codemod ^1.1.0
+  pub global activate over_react_codemod
   pub global run over_react_codemod:dart2_upgrade --backwards-compat
 Then, review and commit the changes.
 """;

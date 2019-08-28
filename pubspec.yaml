@@ -11,7 +11,11 @@ authors:
   - Corwin Sheahan <corwin.sheahan@workiva.com>
   - Evan Weible <evan.weible@workiva.com>
   - George Lesica <george.lesica@workiva.com>
+  - Greg Littlefield <greg.littlefield@workiva.com>
+  - Joe Bingham <joe.bingham@workiva.com>
+  - Keal Jones <keal.jones@workiva.com>
   - Sebastian Malysa <sebastian.malysa@workiva.com>
+  - Sydney Jodon <sydney.jodon@workiva.com>
 
 environment:
   sdk: ">=2.4.0 <3.0.0"
@@ -20,6 +24,7 @@ dependencies:
   analyzer: '>=0.37.0 <0.39.0'
   args: ^1.5.1
   codemod: ^0.1.5
+  logging: ^0.11.3+2
   meta: ^1.1.6
   path: ^1.6.2
   pub_semver: ^1.4.2
@@ -36,4 +41,5 @@ dev_dependencies:
 
 executables:
   dart2_upgrade:
+  react16_upgrade:
   component2_upgrade:
