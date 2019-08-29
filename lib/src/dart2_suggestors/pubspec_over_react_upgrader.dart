@@ -16,6 +16,8 @@ import 'package:codemod/codemod.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 
+import '../constants.dart';
+
 /// Suggestor that attempts to update `pubspec.yaml` files to ensure a safe
 /// minimum bound on the `over_react` dependency.
 ///
@@ -35,16 +37,10 @@ class PubspecOverReactUpgrader implements Suggestor {
       VersionConstraint.parse('>=1.30.2 <3.0.0');
 
   /// Regex that matches the dependency constraint declaration for over_react.
-  static final RegExp overReactDep = RegExp(
-    r'''^\s*over_react:\s*["']?([\d\s<>=^.]+)["']?\s*$''',
-    multiLine: true,
-  );
+  static final RegExp overReactDep = overReactDependencyRegExp;
 
   /// Regex that matches the `dependencies:` key in a pubspec.yaml.
-  static final RegExp dependenciesKey = RegExp(
-    r'^dependencies:$',
-    multiLine: true,
-  );
+  static final RegExp dependenciesKey = dependencyRegExp;
 
   /// Constraint to update over_react to.
   final VersionRange targetConstraint;
@@ -72,7 +68,7 @@ class PubspecOverReactUpgrader implements Suggestor {
     if (overReactMatch != null) {
       // over_react is already in pubspec.yaml
       final line = overReactMatch.group(0);
-      final constraintValue = overReactMatch.group(1);
+      final constraintValue = overReactMatch.group(2);
       final constraint = VersionConstraint.parse(constraintValue);
       if (constraint is VersionRange &&
           (constraint.min < targetConstraint.min ||

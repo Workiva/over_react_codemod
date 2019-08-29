@@ -16,6 +16,8 @@ import 'package:codemod/codemod.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 
+import '../constants.dart';
+
 /// Suggestor that attempts to update `pubspec.yaml` files to ensure a safe
 /// minimum bound on the `react` dependency.
 ///
@@ -24,16 +26,9 @@ import 'package:source_span/source_span.dart';
 /// the file, it will be added.
 class PubspecReactUpdater implements Suggestor {
   /// Regex that matches the dependency constraint declaration for react.
-  static final RegExp reactDep = RegExp(
-    r'''^\s*react:\s*["']?([\d\s<>=^.]+)["']?\s*$''',
-    multiLine: true,
-  );
+  static final RegExp reactDep = reactDependencyRegExp;
 
-  /// Regex that matches the `dependencies:` key in a pubspec.yaml.
-  static final RegExp dependenciesKey = RegExp(
-    r'^\s*dependencies:$',
-    multiLine: true,
-  );
+  static final RegExp dependenciesKey = dependencyRegExp;
 
   final VersionRange targetConstraint;
 
@@ -43,17 +38,24 @@ class PubspecReactUpdater implements Suggestor {
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
     final contents = sourceFile.getText(0);
     final reactMatch = reactDep.firstMatch(contents);
+    bool mightNeedYamlEscaping(String scalarValue) =>
+        // Values starting with `>` need escaping.
+    // Whitelist a non-exhaustive list of allowable characters,
+    // flagging that the value should be escaped when we're not sure.
+    !RegExp(r'^[^>][-+.<>=^ \w]*$').hasMatch(scalarValue);
+
     if (reactMatch != null) {
       // react is already in pubspec.yaml
       final line = reactMatch.group(0);
-      final constraintValue = reactMatch.group(1);
+      final constraintValue = reactMatch.group(2);
       final constraint = VersionConstraint.parse(constraintValue);
       if (constraint is VersionRange && constraint != targetConstraint) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
-        if (newValue.contains(' ') &&
-            !line.contains("'") &&
-            !line.contains('"')) {
+        
+        if (mightNeedYamlEscaping(newValue)
+            && !line.contains("'")
+            && !line.contains("\"")) {
           newValue = "'$newValue'";
         }
 
@@ -74,7 +76,7 @@ class PubspecReactUpdater implements Suggestor {
       if (dependenciesKeyMatch != null) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
-        if (newValue.contains(' ')) {
+        if (mightNeedYamlEscaping(newValue)) {
           newValue = "'$newValue'";
         }
 

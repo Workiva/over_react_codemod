@@ -69,3 +69,24 @@ const String stateMetaType = 'StateMeta';
 /// Comment text that is attached to the props/state companion classes.
 const String temporaryCompanionClassComment =
     'This will be removed once the transition to Dart 2 is complete.';
+
+final RegExp reactDependencyRegExp = RegExp(
+  r'''^\s*react:\s*(["']?)(.+)\1\s*$''',
+  multiLine: true,
+);
+
+final RegExp overReactDependencyRegExp = RegExp(
+  r'''^\s*over_react:\s*(["']?)(.+)\1\s*$''',
+  multiLine: true,
+);
+
+final RegExp dependencyRegExp = RegExp(
+  r'^dependencies:$',
+  multiLine: true,
+);
+
+
+final RegExp dependencyOverrideRegExp = RegExp(
+  r'^dependency_overrides:\s*$',
+  multiLine: true,
+);

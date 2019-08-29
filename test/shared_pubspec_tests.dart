@@ -31,11 +31,11 @@ void sharedPubspecTest({
       shouldDartfmtOutput: false,
       input: ''
           'name: nothing\n'
-          'verion: 0.0.0\n'
+          'version: 0.0.0\n'
           '',
       expectedOutput: ''
           'name: nothing\n'
-          'verion: 0.0.0\n'
+          'version: 0.0.0\n'
           '',
     );
   });
@@ -46,13 +46,13 @@ void sharedPubspecTest({
       shouldDartfmtOutput: false,
       input: ''
           'name: nothing\n'
-          'verion: 0.0.0\n'
+          'version: 0.0.0\n'
           'dependencies:\n'
           '${getExpectedOutput(shouldAddSpace: true)}'
           '',
       expectedOutput: ''
           'name: nothing\n'
-          'verion: 0.0.0\n'
+          'version: 0.0.0\n'
           'dependencies:\n'
           '${getExpectedOutput(shouldAddSpace: true)}'
           '',

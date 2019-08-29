@@ -15,25 +15,12 @@
 import 'package:codemod/codemod.dart';
 import 'package:source_span/source_span.dart';
 
+import '../constants.dart';
+
 /// Suggestor that adds overrides for over_react and react in the pubspec.
 class DependencyOverrideUpdater implements Suggestor {
-  /// Regex that matches the dependency constraint declaration for over_react.
-  static final RegExp overReactDep = RegExp(
-    r'''^\s*over_react:\s*["']?([\d\s<>=^.]+)["']?\s*$''',
-    multiLine: true,
-  );
-
-  /// Regex that matches the dependency constraint declaration for react.
-  static final RegExp reactDep = RegExp(
-    r'''^\s*react:\s*["']?([\d\s<>=^.]+)["']?\s*$''',
-    multiLine: true,
-  );
-
   /// Regex that matches the `dependency_overrides:` key in a pubspec.yaml.
-  static final RegExp dependencyOverrideKey = RegExp(
-    r'^dependency_overrides:$',
-    multiLine: true,
-  );
+  static final RegExp dependencyOverrideKey = dependencyOverrideRegExp;
 
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
@@ -42,12 +29,9 @@ class DependencyOverrideUpdater implements Suggestor {
         dependency: 'over_react', fileContent: contents);
     final containsReactOverride = containsDependencyOverride(
         dependency: 'react-dart', fileContent: contents);
-    final reactDependencyMatch = reactDep.firstMatch(contents);
-    final overReactDepMatch = overReactDep.firstMatch(contents);
     final dependencyOverridesMatch = dependencyOverrideKey.firstMatch(contents);
 
-    if ((overReactDepMatch != null && reactDependencyMatch != null) &&
-        (!containsOverReactOverride && !containsReactOverride)) {
+    if (!containsOverReactOverride && !containsReactOverride) {
       final dependencyOverrides = ''
           '  react:\n'
           '    git:\n'
@@ -60,20 +44,21 @@ class DependencyOverrideUpdater implements Suggestor {
           '';
 
       final lineCount = sourceFile.lines - 1;
-      var span = sourceFile.getOffset(lineCount);
+      var insertionOffset = sourceFile.getOffset(lineCount);
 
       if (dependencyOverridesMatch != null) {
         final lineAfterOverrideSectionStart =
             sourceFile.getLine(dependencyOverridesMatch.end) + 1;
 
-        span = sourceFile.getOffset(lineAfterOverrideSectionStart);
+        insertionOffset = sourceFile.getOffset(lineAfterOverrideSectionStart);
 
-        yield Patch(
-            sourceFile, sourceFile.span(span, span), '$dependencyOverrides');
+        yield Patch(sourceFile,
+            sourceFile.span(insertionOffset, insertionOffset),
+            '$dependencyOverrides');
       } else {
         yield Patch(
             sourceFile,
-            sourceFile.span(span, span),
+            sourceFile.span(insertionOffset, insertionOffset),
             '\n'
             'dependency_overrides:\n'
             '$dependencyOverrides');
@@ -95,7 +80,5 @@ bool containsDependencyOverride({String dependency, String fileContent}) {
     multiLine: true,
   );
 
-  final regexMatch = dependencyRegex.firstMatch(fileContent);
-
-  return regexMatch != null;
+  return dependencyRegex.firstMatch(fileContent) != null;
 }

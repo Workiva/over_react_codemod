@@ -20,7 +20,7 @@ import '../shared_pubspec_tests.dart';
 import '../util.dart';
 
 main() {
-  group('PubspecReactUpdater', () {
+  group('PubspecOverReactUpdater', () {
     final versionRange = '>=1.30.2 <3.0.0';
     final dependency = 'over_react';
     final midRangeMark = '^2.0.0';

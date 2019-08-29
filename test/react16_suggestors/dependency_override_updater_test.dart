@@ -25,29 +25,50 @@ main() {
       test('the pubspec is empty', () {
         // The output has a new line because the testSuggester appends one.
         testSuggestor(
-          expectedPatchCount: 0,
+          expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: '',
           expectedOutput: '\n'
+              'dependency_overrides:\n'
+              '  react:\n'
+              '    git:\n'
+              '      url: git@github.com:cleandart/react-dart.git\n'
+              '      ref: 5.0.0-wip\n'
+              '  over_react:\n'
+              '    git:\n'
+              '      url: git@github.com:Workiva/over_react.git\n'
+              '      ref: 3.0.0-wip\n'
               '',
         );
       });
 
       test('react and over_react are not dependencies', () {
         testSuggestor(
-          expectedPatchCount: 0,
+          expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: ''
               'dependencies:\n'
               '  test: 1.5.1\n'
+              '\n'
               'dev_dependencies:\n'
               '  dart_dev: ^2.0.1\n'
               '',
           expectedOutput: ''
               'dependencies:\n'
               '  test: 1.5.1\n'
+              '\n'
               'dev_dependencies:\n'
               '  dart_dev: ^2.0.1\n'
+              '\n'
+              'dependency_overrides:\n'
+              '  react:\n'
+              '    git:\n'
+              '      url: git@github.com:cleandart/react-dart.git\n'
+              '      ref: 5.0.0-wip\n'
+              '  over_react:\n'
+              '    git:\n'
+              '      url: git@github.com:Workiva/over_react.git\n'
+              '      ref: 3.0.0-wip\n'
               '',
         );
       });

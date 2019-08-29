@@ -24,8 +24,8 @@ import '../react16_suggestors/constants.dart';
 
 const _changesRequiredOutput = """
   To update your pubspec, run the following commands:
-  pub global activate over_react_codemod ^1.1.0
-  pub global run over_react_codemod:react_16_pubspec_upgrade
+  pub global activate over_react_codemod
+  pub global run over_react_codemod:react16_pubspec_upgrade
   Then, review the the changes and commit.
 """;
 
@@ -51,8 +51,4 @@ void main(List<String> args) {
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
-
-  if (exitCode > 0) {
-    return;
-  }
 }
