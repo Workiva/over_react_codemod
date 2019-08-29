@@ -189,7 +189,7 @@ main() {
       );
     });
 
-    test('does not override previous dependency overrides', () {
+    test('preserves existing, unrelated dependency overrides', () {
       testSuggestor(
         expectedPatchCount: 1,
         shouldDartfmtOutput: false,

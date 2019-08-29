@@ -49,7 +49,13 @@ class PubspecOverReactUpgrader implements Suggestor {
   /// considering whether to write a patch.
   final bool shouldIgnoreMin;
 
-  PubspecOverReactUpgrader(this.targetConstraint) : shouldIgnoreMin = false;
+  /// Whether or not the codemod should add `over_react` if it is not already
+  /// found.
+  final bool shouldAddDependencies;
+
+  PubspecOverReactUpgrader(this.targetConstraint,
+      {this.shouldAddDependencies = true})
+      : shouldIgnoreMin = false;
 
   /// Constructor used to ignore checks and ensure that the codemod always
   /// tries to update the constraint.
@@ -58,7 +64,8 @@ class PubspecOverReactUpgrader implements Suggestor {
   /// range, rather than a target upper or lower bound. The only time this
   /// will not update the pubspec is if the target version range is equal to
   /// the version that is already there (avoiding an empty patch error).
-  PubspecOverReactUpgrader.alwaysUpdate(this.targetConstraint)
+  PubspecOverReactUpgrader.alwaysUpdate(this.targetConstraint,
+      {this.shouldAddDependencies = true})
       : shouldIgnoreMin = true;
 
   @override
@@ -70,9 +77,43 @@ class PubspecOverReactUpgrader implements Suggestor {
       final line = overReactMatch.group(0);
       final constraintValue = overReactMatch.group(2);
       final constraint = VersionConstraint.parse(constraintValue);
-      if (constraint is VersionRange &&
-          (constraint.min < targetConstraint.min ||
-              (shouldIgnoreMin && constraint != targetConstraint))) {
+
+      bool shouldUpdateVersionRange() {
+        if (constraint is VersionRange) {
+          // Short circuit if the constraints are the same.
+          if (targetConstraint == constraint) return false;
+
+          // If max is null, the dependency is >= with no upper limit.
+          if (constraint?.max == null) {
+            // In that case, we need the min to be at least as high as our
+            // target. If it is, do not update.
+            if (constraint.min >= targetConstraint.min) {
+              return false;
+            }
+
+            return true;
+          } else {
+            // If there is a maximum, and it is higher than target max (but the
+            // lower bound is still greater or equal to the target) do not
+            // update.
+            if (constraint.max >= targetConstraint.max) {
+              // If the codemod is asserting a specific minimum, the
+              // constraint min does not matter.
+              if (shouldIgnoreMin) {
+                return true;
+              } else if (constraint.min >= targetConstraint.min) {
+                return false;
+              }
+            }
+
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      if (shouldUpdateVersionRange()) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
         if (newValue.contains(' ') &&
@@ -91,7 +132,7 @@ class PubspecOverReactUpgrader implements Suggestor {
           ),
         );
       }
-    } else {
+    } else if (shouldAddDependencies) {
       // over_react is missing in pubspec.yaml, so add it.
       final dependeniesKeyMatch = dependenciesKey.firstMatch(contents);
       if (dependeniesKeyMatch != null) {

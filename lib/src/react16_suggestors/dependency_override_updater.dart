@@ -31,7 +31,30 @@ class DependencyOverrideUpdater implements Suggestor {
         dependency: 'react-dart', fileContent: contents);
     final dependencyOverridesMatch = dependencyOverrideKey.firstMatch(contents);
 
-    if (!containsOverReactOverride && !containsReactOverride) {
+    if (containsOverReactOverride != null) {
+      yield Patch(
+          sourceFile,
+          sourceFile.span(
+              containsOverReactOverride.start, containsOverReactOverride.end),
+          '  over_react:\n'
+          '    git:\n'
+          '      url: git@github.com:Workiva/over_react.git\n'
+          '      ref: 3.0.0-wip\n');
+    }
+
+    if (containsReactOverride != null) {
+      yield Patch(
+          sourceFile,
+          sourceFile.span(
+              containsReactOverride.start, containsReactOverride.end),
+          '  react:\n'
+          '    git:\n'
+          '      url: git@github.com:cleandart/react-dart.git\n'
+          '      ref: 5.0.0-wip\n');
+    }
+
+    if (containsOverReactOverride == null && containsReactOverride == null) {
+      // TODO update these versions to the dev branch after major release.
       final dependencyOverrides = ''
           '  react:\n'
           '    git:\n'
@@ -52,7 +75,8 @@ class DependencyOverrideUpdater implements Suggestor {
 
         insertionOffset = sourceFile.getOffset(lineAfterOverrideSectionStart);
 
-        yield Patch(sourceFile,
+        yield Patch(
+            sourceFile,
             sourceFile.span(insertionOffset, insertionOffset),
             '$dependencyOverrides');
       } else {
@@ -70,7 +94,8 @@ class DependencyOverrideUpdater implements Suggestor {
   bool shouldSkip(_) => false;
 }
 
-bool containsDependencyOverride({String dependency, String fileContent}) {
+RegExpMatch containsDependencyOverride(
+    {String dependency, String fileContent}) {
   final regexString = r'''^\s*\w{0,4}\s*:\s*[\s\S]*(.com){0,1}.\w*\/''' +
       dependency +
       r'''[\s\S]*\n{0,1}$''';
@@ -80,5 +105,5 @@ bool containsDependencyOverride({String dependency, String fileContent}) {
     multiLine: true,
   );
 
-  return dependencyRegex.firstMatch(fileContent) != null;
+  return dependencyRegex.firstMatch(fileContent);
 }

@@ -30,12 +30,26 @@ main() {
       final defaultTestSuggestor = getSuggestorTester(
           PubspecOverReactUpgrader(VersionConstraint.parse(versionRange)));
 
+      final doNotAddDependencies = getSuggestorTester(PubspecOverReactUpgrader(
+          VersionConstraint.parse(versionRange),
+          shouldAddDependencies: false));
+
       sharedPubspecTest(
         testSuggestor: defaultTestSuggestor,
         getExpectedOutput: getExpectedOutput,
         startingRange: startingTestRange,
         dependency: dependency,
         midVersionRange: midRangeMark,
+        shouldUpdateMidRange: false,
+      );
+
+      sharedPubspecTest(
+        testSuggestor: doNotAddDependencies,
+        getExpectedOutput: getExpectedOutput,
+        startingRange: startingTestRange,
+        dependency: dependency,
+        midVersionRange: midRangeMark,
+        shouldAddDependencies: false,
         shouldUpdateMidRange: false,
       );
     });

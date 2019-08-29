@@ -22,6 +22,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../react16_suggestors/constants.dart';
 
+const _doNotAddDependencyFlag = '--do-not-add-dependencies';
 const _changesRequiredOutput = """
   To update your pubspec, run the following commands:
   pub global activate over_react_codemod
@@ -30,6 +31,8 @@ const _changesRequiredOutput = """
 """;
 
 void main(List<String> args) {
+  final shouldAddDependencies = !args.contains(_doNotAddDependencyFlag);
+
   final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
   final overReactVersionConstraint =
       VersionConstraint.parse(overReactVersionRange);
@@ -40,8 +43,10 @@ void main(List<String> args) {
   );
 
   final suggestors = [
-    PubspecReactUpdater(reactVersionConstraint),
-    PubspecOverReactUpgrader(overReactVersionConstraint)
+    PubspecReactUpdater(reactVersionConstraint,
+        shouldAddDependencies: shouldAddDependencies),
+    PubspecOverReactUpgrader(overReactVersionConstraint,
+        shouldAddDependencies: shouldAddDependencies)
   ];
 
   exitCode = runInteractiveCodemod(

@@ -19,6 +19,8 @@ import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react_dom_render_migrator.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react_style_maps_updater.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
+import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
@@ -29,10 +31,13 @@ Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
+  Process.runSync('pub', [
+    'global',
+    'run',
+    'over_react_codemod:react_16_pubspec_upgrade',
+    '--do-not-add-dependencies'
+  ]);
 
-  Process.runSync('pub',
-      ['global', 'run', 'over_react_codemod:react_16_pubspec_upgrade']);
-  
   final query = FileQuery.dir(
     pathFilter: isDartFile,
     recursive: true,

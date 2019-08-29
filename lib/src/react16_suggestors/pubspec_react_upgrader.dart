@@ -31,8 +31,10 @@ class PubspecReactUpdater implements Suggestor {
   static final RegExp dependenciesKey = dependencyRegExp;
 
   final VersionRange targetConstraint;
+  final bool shouldAddDependencies;
 
-  PubspecReactUpdater(this.targetConstraint);
+  PubspecReactUpdater(this.targetConstraint,
+      {this.shouldAddDependencies = true});
 
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
@@ -40,22 +42,50 @@ class PubspecReactUpdater implements Suggestor {
     final reactMatch = reactDep.firstMatch(contents);
     bool mightNeedYamlEscaping(String scalarValue) =>
         // Values starting with `>` need escaping.
-    // Whitelist a non-exhaustive list of allowable characters,
-    // flagging that the value should be escaped when we're not sure.
-    !RegExp(r'^[^>][-+.<>=^ \w]*$').hasMatch(scalarValue);
+        // Whitelist a non-exhaustive list of allowable characters,
+        // flagging that the value should be escaped when we're not sure.
+        !RegExp(r'^[^>][-+.<>=^ \w]*$').hasMatch(scalarValue);
 
     if (reactMatch != null) {
       // react is already in pubspec.yaml
       final line = reactMatch.group(0);
       final constraintValue = reactMatch.group(2);
       final constraint = VersionConstraint.parse(constraintValue);
-      if (constraint is VersionRange && constraint != targetConstraint) {
+
+      bool shouldUpdateVersionRange() {
+        if (constraint is VersionRange) {
+          // If this is null, the dependency is >= with no upper limit.
+          if (constraint?.max == null) {
+            // In that case, we need the min to be at least as high as our
+            // target. If it is, do not update.
+            if (constraint.min >= targetConstraint.min) {
+              return false;
+            }
+
+            return true;
+          } else {
+            // If there is a maximum, and it is higher than target max (but the
+            // lower bound is still greater or equal to the target) do not
+            // update.
+            if (constraint.max >= targetConstraint.max &&
+                constraint.min >= targetConstraint.min) {
+              return false;
+            }
+
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      if (shouldUpdateVersionRange()) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
-        
-        if (mightNeedYamlEscaping(newValue)
-            && !line.contains("'")
-            && !line.contains("\"")) {
+
+        if (mightNeedYamlEscaping(newValue) &&
+            !line.contains("'") &&
+            !line.contains("\"")) {
           newValue = "'$newValue'";
         }
 
@@ -69,7 +99,7 @@ class PubspecReactUpdater implements Suggestor {
           ),
         );
       }
-    } else {
+    } else if (shouldAddDependencies) {
       // react is missing in pubspec.yaml, so add it.
       final dependenciesKeyMatch = dependenciesKey.firstMatch(contents);
 

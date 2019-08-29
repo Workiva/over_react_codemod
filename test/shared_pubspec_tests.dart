@@ -22,9 +22,13 @@ void sharedPubspecTest({
   @required Function testSuggestor,
   @required String dependency,
   @required VersionRange startingRange,
-  bool shouldUpdateMidRange,
+  bool shouldAddDependencies = true,
+  bool shouldUpdate = true,
+  bool shouldUpdateMidRange = false,
   String midVersionRange,
 }) {
+  final patchCount = shouldUpdate ? 1 : 0;
+
   test('does nothing if there is no dependency key', () {
     testSuggestor(
       expectedPatchCount: 0,
@@ -59,9 +63,11 @@ void sharedPubspecTest({
     );
   });
 
-  test('adds dependency if missing', () {
+  test(
+      '${shouldAddDependencies ? 'does not add the' : 'adds the'} dependency '
+      'if missing', () {
     testSuggestor(
-      expectedPatchCount: 1,
+      expectedPatchCount: shouldAddDependencies ? 1 : 0,
       shouldDartfmtOutput: false,
       input: ''
           'dependencies:\n'
@@ -69,7 +75,7 @@ void sharedPubspecTest({
           '',
       expectedOutput: ''
           'dependencies:\n'
-          '${getExpectedOutput(shouldAddSpace: true)}'
+          '${shouldAddDependencies ? getExpectedOutput(shouldAddSpace: true) : '  test: 1.5.1\n'}'
           '',
     );
   });
@@ -77,62 +83,71 @@ void sharedPubspecTest({
   group('updates the caret syntax', () {
     test('', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         input: ''
             '$dependency: ^${startingRange.min}\n'
             'test: 1.5.1\n'
             '',
-        expectedOutput: getExpectedOutput(),
+        expectedOutput: shouldUpdate
+            ? getExpectedOutput()
+            : ''
+                '$dependency: ^${startingRange.min}\n'
+                'test: 1.5.1\n'
+                '',
       );
     });
 
-    if (midVersionRange != null) {
-      assert(midVersionRange != null);
-
-      String output = shouldUpdateMidRange
-          ? getExpectedOutput()
-          : ''
-              '$dependency: $midVersionRange\n'
-              'test: 1.5.1\n'
-              '';
-
-      test(
-          '${shouldUpdateMidRange ? '' : 'except'} when the version is within the expected range',
-          () {
-        testSuggestor(
-          expectedPatchCount: shouldUpdateMidRange ? 1 : 0,
-          shouldDartfmtOutput: false,
-          input: ''
-              '$dependency: $midVersionRange\n'
-              'test: 1.5.1\n'
-              '',
-          expectedOutput: output,
-        );
-      });
-    }
+    test(
+        '${shouldUpdateMidRange ? '' : 'except'} when the version is within the expected range',
+        () {
+      testSuggestor(
+        expectedPatchCount: shouldUpdateMidRange ? 1 : 0,
+        shouldDartfmtOutput: false,
+        input: ''
+            '$dependency: $midVersionRange\n'
+            'test: 1.5.1\n'
+            '',
+        expectedOutput: shouldUpdateMidRange
+            ? getExpectedOutput()
+            : ''
+                '$dependency: $midVersionRange\n'
+                'test: 1.5.1\n'
+                '',
+      );
+    });
 
     test('with single quotes', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         input: ''
             '$dependency: \'^${startingRange.min}\'\n'
             'test: 1.5.1\n'
             '',
-        expectedOutput: getExpectedOutput(),
+        expectedOutput: shouldUpdate
+            ? getExpectedOutput()
+            : ''
+                '$dependency: \'^${startingRange.min}\'\n'
+                'test: 1.5.1\n'
+                '',
       );
     });
 
     test('with double quotes', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         input: ''
             '$dependency: "^${startingRange.min}"\n'
             'test: 1.5.1\n'
             '',
-        expectedOutput: getExpectedOutput(usesDoubleQuotes: true),
+        expectedOutput: shouldUpdate
+            ? getExpectedOutput(usesDoubleQuotes: true)
+            : ''
+                '$dependency: "^${startingRange.min}"\n'
+                'test: 1.5.1\n'
+                '',
       );
     });
   });
@@ -140,25 +155,35 @@ void sharedPubspecTest({
   group('updates the range syntax', () {
     test('with single quotes', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         input: ''
             '$dependency: \'$startingRange\'\n'
             'test: 1.5.1\n'
             '',
-        expectedOutput: getExpectedOutput(),
+        expectedOutput: shouldUpdate
+            ? getExpectedOutput()
+            : ''
+                '$dependency: \'$startingRange\'\n'
+                'test: 1.5.1\n'
+                '',
       );
     });
 
     test('with double quotes', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         input: ''
             '$dependency: "$startingRange"\n'
             'test: 1.5.1\n'
             '',
-        expectedOutput: getExpectedOutput(usesDoubleQuotes: true),
+        expectedOutput: shouldUpdate
+            ? getExpectedOutput(usesDoubleQuotes: true)
+            : ''
+                '$dependency: "$startingRange"\n'
+                'test: 1.5.1\n'
+                '',
       );
     });
   });
@@ -166,37 +191,52 @@ void sharedPubspecTest({
   group('updates mid-only range', () {
     test('', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         input: ''
             '$dependency: >=${startingRange.min}\n'
             'test: 1.5.1\n'
             '',
-        expectedOutput: getExpectedOutput(),
+        expectedOutput: shouldUpdate
+            ? getExpectedOutput()
+            : ''
+                '$dependency: >=${startingRange.min}\n'
+                'test: 1.5.1\n'
+                '',
       );
     });
 
     test('with single quotes', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         input: ''
             '$dependency: \'>=${startingRange.min}\'\n'
             'test: 1.5.1\n'
             '',
-        expectedOutput: getExpectedOutput(),
+        expectedOutput: shouldUpdate
+            ? getExpectedOutput()
+            : ''
+                '$dependency: \'>=${startingRange.min}\'\n'
+                'test: 1.5.1\n'
+                '',
       );
     });
 
     test('with double quotes', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         input: ''
             '$dependency: ">=${startingRange.min}"\n'
             'test: 1.5.1\n'
             '',
-        expectedOutput: getExpectedOutput(usesDoubleQuotes: true),
+        expectedOutput: shouldUpdate
+            ? getExpectedOutput(usesDoubleQuotes: true)
+            : ''
+                '$dependency: ">=${startingRange.min}"\n'
+                'test: 1.5.1\n'
+                '',
       );
     });
   });

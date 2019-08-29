@@ -85,7 +85,6 @@ final RegExp dependencyRegExp = RegExp(
   multiLine: true,
 );
 
-
 final RegExp dependencyOverrideRegExp = RegExp(
   r'^dependency_overrides:\s*$',
   multiLine: true,

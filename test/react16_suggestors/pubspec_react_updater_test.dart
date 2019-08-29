@@ -25,13 +25,43 @@ main() {
     final testSuggestor = getSuggestorTester(
         PubspecReactUpdater(VersionConstraint.parse(reactVersionRange)));
 
-    sharedPubspecTest(
-        testSuggestor: testSuggestor,
-        getExpectedOutput: getExpectedOutput,
-        startingRange: VersionConstraint.parse('>=4.6.1 <4.6.5'),
-        dependency: 'react',
-        shouldUpdateMidRange: true,
-        midVersionRange: '^4.6.3');
+    final doNotAddDependencies = getSuggestorTester(PubspecReactUpdater(
+        VersionConstraint.parse(reactVersionRange),
+        shouldAddDependencies: false));
+
+    group('when there are no special cases', () {
+      sharedPubspecTest(
+          testSuggestor: testSuggestor,
+          getExpectedOutput: getExpectedOutput,
+          startingRange: VersionConstraint.parse('>=4.6.1 <4.6.5'),
+          dependency: 'react',
+          shouldUpdateMidRange: true,
+          midVersionRange: '^4.6.3');
+    });
+
+    group('when the codemod should not add dependencies', () {
+      sharedPubspecTest(
+          testSuggestor: doNotAddDependencies,
+          getExpectedOutput: getExpectedOutput,
+          startingRange: VersionConstraint.parse('>=4.6.1 <4.6.5'),
+          dependency: 'react',
+          shouldUpdateMidRange: true,
+          midVersionRange: '^4.6.3',
+          shouldAddDependencies: false);
+    });
+
+    group(
+        'when the codemod should not update because the version range is '
+        'acceptable', () {
+      sharedPubspecTest(
+          testSuggestor: testSuggestor,
+          getExpectedOutput: getExpectedOutput,
+          startingRange: VersionConstraint.parse('^5.0.0'),
+          dependency: 'react',
+          shouldUpdate: false,
+          shouldUpdateMidRange: false,
+          midVersionRange: '^5.5.3');
+    });
   });
 }
 
