@@ -28,9 +28,14 @@ class PubspecReactUpdater implements Suggestor {
   /// Regex that matches the dependency constraint declaration for react.
   static final RegExp reactDep = reactDependencyRegExp;
 
+  /// Regex that matches the dependency pubspec.yaml key.
   static final RegExp dependenciesKey = dependencyRegExp;
 
+  /// Constraint to update react to.
   final VersionRange targetConstraint;
+
+  /// Whether or not the dependency should be added if it is not already
+  /// present.
   final bool shouldAddDependencies;
 
   PubspecReactUpdater(this.targetConstraint,
@@ -54,7 +59,7 @@ class PubspecReactUpdater implements Suggestor {
 
       bool shouldUpdateVersionRange() {
         if (constraint is VersionRange) {
-          // If this is null, the dependency is >= with no upper limit.
+          // If this is null, the dependency is set to >= with no upper limit.
           if (constraint?.max == null) {
             // In that case, we need the min to be at least as high as our
             // target. If it is, do not update.
