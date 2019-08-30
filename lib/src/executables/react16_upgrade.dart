@@ -89,14 +89,18 @@ void main(List<String> args) {
     pubspecYaml = loadYaml(File('pubspec.yaml').readAsStringSync());
   } catch (e, stackTrace) {
     if (e is FileSystemException) {
-      react16CodemodLogger
-          .warning('Could not find pubspec.yaml, exiting codemod.', e, stackTrace);
+      react16CodemodLogger.warning(
+          'Could not find pubspec.yaml, exiting codemod.', e, stackTrace);
     } else if (e is YamlException) {
-      react16CodemodLogger
-          .warning('pubspec.yaml is unable to be parsed, exiting codemod.', e, stackTrace);
+      react16CodemodLogger.warning(
+          'pubspec.yaml is unable to be parsed, exiting codemod.',
+          e,
+          stackTrace);
     } else {
-      react16CodemodLogger
-          .warning('pubspec.yaml is unable to be parsed, exiting codemod.', e, stackTrace);
+      react16CodemodLogger.warning(
+          'pubspec.yaml is unable to be parsed, exiting codemod.',
+          e,
+          stackTrace);
     }
   }
   for (var package in packagesToCheckFor.entries) {
@@ -117,8 +121,7 @@ void main(List<String> args) {
     }
   }
   if (foundReactOrOverReact) {
-    if (inTransition.isNotEmpty &&
-        inTransition.values.every((val) => val)) {
+    if (inTransition.isNotEmpty && inTransition.values.every((val) => val)) {
       react16CodemodLogger.info('Starting $react16CodemodName...');
       final query = FileQuery.dir(
         pathFilter: isDartFile,
@@ -148,8 +151,8 @@ void main(List<String> args) {
     } else {
       react16CodemodLogger.warning(
           'pubspec.yaml does not have transition versions of react or over_react; exiting codemod.\n' +
-          'if you would like to run the react 16 codemod first run ' +
-          '`pub global run over_react_codemod:react16_pubspec_upgrade`');
+              'if you would like to run the react 16 codemod first run ' +
+              '`pub global run over_react_codemod:react16_pubspec_upgrade`');
       exitCode = 0;
     }
   } else {
