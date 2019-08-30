@@ -22,6 +22,8 @@ import 'package:over_react_codemod/src/react16_suggestors/react_style_maps_updat
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
+final react16CodemodLogger = Logger('over_react_codemod.react16');
+
 const _changesRequiredOutput = """
   To update your code, change your `react` dependency version in `pubspec.yaml` to `^5.0.0` and run the following commands:
   pub get
@@ -46,19 +48,19 @@ Map<String, List<VersionConstraint>> packagesToCheckFor = {
 };
 
 VersionConstraint getDependencyVersion(String packageName) {
+  if (pubspecYaml == null) return null;
+
   try {
-    if (pubspecYaml.containsKey('dependencies') &&
-        pubspecYaml['dependencies'].containsKey(packageName)) {
+    if (pubspecYaml['dependencies'] != null &&
+        pubspecYaml['dependencies'][packageName] != null) {
       return VersionConstraint.parse(pubspecYaml['dependencies'][packageName]);
-    } else if (pubspecYaml.containsKey('dev_dependencies') &&
-        pubspecYaml['dev_dependencies'].containsKey(packageName)) {
+    } else if (pubspecYaml['dev_dependencies'] != null &&
+        pubspecYaml['dev_dependencies'][packageName] != null) {
       return VersionConstraint.parse(
           pubspecYaml['dev_dependencies'][packageName]);
     }
-  } catch (e, st) {
-    print(e);
-    print(st);
-    return null;
+  } catch (e, stackTrace) {
+    react16CodemodLogger.warning('Unexpected Error.', e, stackTrace);
   }
   return null;
 }
@@ -67,7 +69,6 @@ void main(List<String> args) {
   Map<String, bool> inTransition = {};
   bool foundReactOrOverReact = false;
 
-  final react16CodemodLogger = Logger('over_react_codemod.react16');
   react16CodemodLogger.onRecord.listen((rec) {
     // These need to use `print`, not stdio, so that they are picked up properly
     // by the `test` package's custom print handler.
@@ -90,7 +91,7 @@ void main(List<String> args) {
   } catch (e, stackTrace) {
     if (e is FileSystemException) {
       react16CodemodLogger.warning(
-          'Could not find pubspec.yaml, exiting codemod.', e, stackTrace);
+          'Could not find pubspec.yaml; exiting codemod.', e);
     } else if (e is YamlException) {
       react16CodemodLogger.warning(
           'pubspec.yaml is unable to be parsed; exiting codemod.',

@@ -63,10 +63,10 @@ class PubspecFaker {
         '  sdk: $sdkVersion\n' +
         (dependencies.isNotEmpty
             ? 'dependencies: \n' +
-                dependencies.where((dep) => dep.asDev).join('\n')
+                dependencies.where((dep) => !dep.asDev).join('\n')
             : '') +
         (dependencies.isNotEmpty &&
-                (dependencies.firstWhere((dep) => dep.asDev == true,
+                (dependencies.firstWhere((dep) => dep.asDev,
                         orElse: () => null) !=
                     null)
             ? 'dev_dependencies: \n' +
