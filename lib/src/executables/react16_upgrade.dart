@@ -21,6 +21,10 @@ import 'package:over_react_codemod/src/react16_suggestors/react_dom_render_migra
 import 'package:over_react_codemod/src/react16_suggestors/react_style_maps_updater.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
+import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
+
+import '../react16_suggestors/constants.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
@@ -30,14 +34,32 @@ const _changesRequiredOutput = """
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
-void main(List<String> args) {
-  Process.runSync('pub', [
-    'global',
-    'run',
-    'over_react_codemod:react_16_pubspec_upgrade',
-    '--do-not-add-dependencies'
-  ]);
+Future main(List<String> args) async {
+  // Update Pubspec
+  final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
+  final overReactVersionConstraint =
+      VersionConstraint.parse(overReactVersionRange);
 
+  final pubspecYamlQuery = FileQuery.dir(
+    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
+    recursive: true,
+  );
+
+  final pubspecSuggestors = [
+    PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
+    PubspecOverReactUpgrader(overReactVersionConstraint,
+        shouldAddDependencies: false)
+  ];
+
+  exitCode = runInteractiveCodemod(
+    pubspecYamlQuery,
+    AggregateSuggestor(pubspecSuggestors),
+    args: args,
+    defaultYes: true,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
+
+  // Update Componentry
   final query = FileQuery.dir(
     pathFilter: isDartFile,
     recursive: true,
