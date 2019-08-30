@@ -70,18 +70,15 @@ void main(List<String> args) {
   bool foundReactOrOverReact = false;
 
   react16CodemodLogger.onRecord.listen((rec) {
-    // These need to use `print`, not stdio, so that they are picked up properly
-    // by the `test` package's custom print handler.
-    // Otherwise, these logs interfere with parsing test's JSON output.
     if (rec.message != '') {
       final prefix = '[${rec.level}] ${rec.loggerName}: ';
       print('$prefix${rec.message}');
     }
     if (rec.error != null) {
-      print(rec.error.toString());
+      print(rec.error);
     }
     if (rec.stackTrace != null) {
-      print(rec.stackTrace.toString());
+      print(rec.stackTrace);
     }
   });
   react16CodemodLogger
@@ -152,7 +149,7 @@ void main(List<String> args) {
     } else {
       react16CodemodLogger.warning(
           'pubspec.yaml does not have transition versions of react or over_react; exiting codemod.\n' +
-              'if you would like to run the react 16 codemod first run ' +
+              'If you would like to run the React 16 codemod, first run ' +
               '`pub global run over_react_codemod:react16_pubspec_upgrade`');
       exitCode = 0;
     }

@@ -65,10 +65,7 @@ class PubspecFaker {
             ? 'dependencies: \n' +
                 dependencies.where((dep) => !dep.asDev).join('\n')
             : '') +
-        (dependencies.isNotEmpty &&
-                (dependencies.firstWhere((dep) => dep.asDev,
-                        orElse: () => null) !=
-                    null)
+        (dependencies.any((dep) => dep.asDev)
             ? 'dev_dependencies: \n' +
                 dependencies.where((dep) => dep.asDev).join('\n')
             : '') +
