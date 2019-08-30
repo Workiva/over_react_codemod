@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
 @TestOn('vm')
+
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -169,12 +169,12 @@ ProcessResult runUpgradeWithFakeDartProject(
   var testPackage = DartProjectFaker(
       pubspecFaker: pubspecFaker ?? tansitionPubspecFaker,
       mainDartContents: mainDartContents);
-  return runUpgrade(onDirectory: (testPackage.dir.path));
+  return runUpgrade(onDirectory: testPackage.dir.path);
 }
 
 main() {
   group('React16_upgrade', () {
-    versionChecksToTest.forEach((dartProjectTestConfig) {
+    for (var dartProjectTestConfig in versionChecksToTest) {
       test(dartProjectTestConfig.testName, () {
         final result = runUpgradeWithFakeDartProject(
           pubspecFaker: PubspecFaker(
@@ -186,6 +186,6 @@ main() {
         expect(result.exitCode, dartProjectTestConfig.expectedExitCode,
             reason: result.stderr);
       });
-    });
+    }
   });
 }

@@ -30,7 +30,7 @@ const _changesRequiredOutput = """
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
-String react16CodemodName = 'React16 Codemod';
+const String react16CodemodName = 'React16 Codemod';
 
 YamlMap pubspecYaml;
 
@@ -55,7 +55,9 @@ VersionConstraint getDependencyVersion(String packageName) {
       return VersionConstraint.parse(
           pubspecYaml['dev_dependencies'][packageName]);
     }
-  } catch (e) {
+  } catch (e, st) {
+    print(e);
+    print(st);
     return null;
   }
   return null;
@@ -66,22 +68,36 @@ void main(List<String> args) {
   bool foundReactOrOverReact = false;
 
   final react16CodemodLogger = Logger('over_react_codemod.react16');
-  react16CodemodLogger.onRecord.listen((LogRecord record) {
-    print(record.message);
+  react16CodemodLogger.onRecord.listen((rec) {
+    // These need to use `print`, not stdio, so that they are picked up properly
+    // by the `test` package's custom print handler.
+    // Otherwise, these logs interfere with parsing test's JSON output.
+    if (rec.message != '') {
+      final prefix = '[${rec.level}] ${rec.loggerName}: ';
+      print('$prefix${rec.message}');
+    }
+    if (rec.error != null) {
+      print(rec.error.toString());
+    }
+    if (rec.stackTrace != null) {
+      print(rec.stackTrace.toString());
+    }
   });
   react16CodemodLogger
       .info('Checking if project needs to run $react16CodemodName...');
   try {
     pubspecYaml = loadYaml(File('pubspec.yaml').readAsStringSync());
-  } catch (e) {
+  } catch (e, stackTrace) {
     if (e is FileSystemException) {
       react16CodemodLogger
-          .warning('Could not find pubspec.yaml, exiting codemod.');
-    } else if (e is YamlException || e is ArgumentError) {
+          .warning('Could not find pubspec.yaml, exiting codemod.', e, stackTrace);
+    } else if (e is YamlException) {
       react16CodemodLogger
-          .warning('pubspec.yaml is unable to be parsed, exiting codemod.');
+          .warning('pubspec.yaml is unable to be parsed, exiting codemod.', e, stackTrace);
+    } else {
+      react16CodemodLogger
+          .warning('pubspec.yaml is unable to be parsed, exiting codemod.', e, stackTrace);
     }
-    exitCode = 0;
   }
   for (var package in packagesToCheckFor.entries) {
     var constraint = getDependencyVersion(package.key);
@@ -101,9 +117,8 @@ void main(List<String> args) {
     }
   }
   if (foundReactOrOverReact) {
-    react16CodemodLogger.info(inTransition);
     if (inTransition.isNotEmpty &&
-        !inTransition.values.any((val) => val == false)) {
+        inTransition.values.every((val) => val)) {
       react16CodemodLogger.info('Starting $react16CodemodName...');
       final query = FileQuery.dir(
         pathFilter: isDartFile,
@@ -132,12 +147,14 @@ void main(List<String> args) {
       react16CodemodLogger.info('Finished Running $react16CodemodName!');
     } else {
       react16CodemodLogger.warning(
-          'pubspec.yaml does not have transition versions of react or over_react, exiting codemod.');
+          'pubspec.yaml does not have transition versions of react or over_react; exiting codemod.\n' +
+          'if you would like to run the react 16 codemod first run ' +
+          '`pub global run over_react_codemod:react16_pubspec_upgrade`');
       exitCode = 0;
     }
   } else {
     react16CodemodLogger.warning(
-        'Could not find react or over_react in pubspec, exiting codemod.');
+        'Could not find react or over_react in pubspec; exiting codemod.');
     exitCode = 0;
   }
   react16CodemodLogger.info('We are all done here, Byeee!');

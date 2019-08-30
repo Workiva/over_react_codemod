@@ -10,17 +10,12 @@ class DartProjectFaker {
   DartProjectFaker({this.pubspecFaker, this.mainDartContents}) {
     pubspecFaker ??= PubspecFaker();
     mainDartContents ??= 'void main() {}';
-
-    try {
       dir = Directory.systemTemp.createTempSync();
       if (pubspecFaker.createPubspecFile) {
         File(p.join(dir.path, 'pubspec.yaml'))
             .writeAsStringSync(pubspecFaker.toString());
       }
       File(p.join(dir.path, 'main.dart')).writeAsStringSync(mainDartContents);
-    } catch (e) {
-      print(e);
-    }
   }
 }
 
