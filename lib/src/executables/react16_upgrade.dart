@@ -93,12 +93,12 @@ void main(List<String> args) {
           'Could not find pubspec.yaml, exiting codemod.', e, stackTrace);
     } else if (e is YamlException) {
       react16CodemodLogger.warning(
-          'pubspec.yaml is unable to be parsed, exiting codemod.',
+          'pubspec.yaml is unable to be parsed; exiting codemod.',
           e,
           stackTrace);
     } else {
       react16CodemodLogger.warning(
-          'pubspec.yaml is unable to be parsed, exiting codemod.',
+          'pubspec.yaml is unable to be parsed; exiting codemod.',
           e,
           stackTrace);
     }

@@ -35,7 +35,7 @@ class PubspecFaker {
       this.dependencies = const [],
       this.createPubspecFile = true});
 
-  void removeDependencyWhere(Function callback) {
+  void removeDependencyWhere(bool Function(DependencyFaker) callback) {
     dependencies.removeWhere(callback);
   }
 
@@ -45,7 +45,7 @@ class PubspecFaker {
 
   void addDependency(String name,
       {String version = 'any', bool asDev = false, bool Function() shouldAdd}) {
-    if ((shouldAdd != null && shouldAdd() == false) ? false : true) {
+    if (shouldAdd?.call() ?? true) {
       dependencies.add(DependencyFaker(name, version: version, asDev: asDev));
     }
   }
@@ -63,20 +63,14 @@ class PubspecFaker {
         '  sdk: $sdkVersion\n' +
         (dependencies.isNotEmpty
             ? 'dependencies: \n' +
-                dependencies
-                    .where((dep) => dep.asDev == false)
-                    .map((dep) => dep.toString())
-                    .join('\n')
+                dependencies.where((dep) => dep.asDev).join('\n')
             : '') +
         (dependencies.isNotEmpty &&
                 (dependencies.firstWhere((dep) => dep.asDev == true,
                         orElse: () => null) !=
                     null)
             ? 'dev_dependencies: \n' +
-                dependencies
-                    .where((dep) => dep.asDev == true)
-                    .map((dep) => dep.toString())
-                    .join('\n')
+                dependencies.where((dep) => dep.asDev).join('\n')
             : '') +
         '\n';
   }
@@ -110,9 +104,7 @@ class DartProjectFakerTestConfig {
   /// default: `false`
   bool shouldRunCodemod = false;
 
-  int _expectedExitCode;
-  set expectedExitCode(int v) => _expectedExitCode = v;
-  int get expectedExitCode => _expectedExitCode ?? (shouldRunCodemod ? 1 : 0);
+  int expectedExitCode;
 
   bool includePubspecFile;
 
@@ -132,12 +124,9 @@ class DartProjectFakerTestConfig {
     this.shouldRunCodemod = false,
     this.includePubspecFile = true,
   }) {
-    if (testName != null) {
-      _testName = testName;
-    }
-    if (expectedExitCode != null) {
-      _expectedExitCode = expectedExitCode;
-    }
+    _testName = testName;
+
+    this.expectedExitCode = expectedExitCode ?? (shouldRunCodemod ? 1 : 0);
   }
 
   String get testName =>
