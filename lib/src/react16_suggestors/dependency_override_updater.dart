@@ -14,6 +14,7 @@
 
 import 'package:codemod/codemod.dart';
 import 'package:source_span/source_span.dart';
+import 'package:yaml/yaml.dart';
 
 import '../constants.dart';
 
@@ -25,67 +26,93 @@ class DependencyOverrideUpdater implements Suggestor {
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
     final contents = sourceFile.getText(0);
-    final containsOverReactOverride = containsDependencyOverride(
-        dependency: 'over_react', fileContent: contents);
-    final containsReactOverride = containsDependencyOverride(
-        dependency: 'react-dart', fileContent: contents);
-    final dependencyOverridesMatch = dependencyOverrideKey.firstMatch(contents);
+    final dependencyOverrideSectionKey =
+        dependencyOverrideKey.firstMatch(contents);
 
-    if (containsOverReactOverride != null) {
-      yield Patch(
-          sourceFile,
-          sourceFile.span(
-              containsOverReactOverride.start, containsOverReactOverride.end),
-          '  over_react:\n'
-          '    git:\n'
-          '      url: git@github.com:Workiva/over_react.git\n'
-          '      ref: 3.0.0-wip\n');
-    }
+    // This needs to be kept track of because the patches are applied all at
+    // once, so even though we will add the dependency_override key the file
+    // won't be aware until all the patching is done.
+    bool shouldAddDependencyOverrideKey = dependencyOverrideSectionKey == null;
 
-    if (containsReactOverride != null) {
-      yield Patch(
-          sourceFile,
-          sourceFile.span(
-              containsReactOverride.start, containsReactOverride.end),
-          '  react:\n'
-          '    git:\n'
-          '      url: git@github.com:cleandart/react-dart.git\n'
-          '      ref: 5.0.0-wip\n');
-    }
+    // Each override has its own object to keep track of what the dependency
+    // override is and what it needs to be overridden with.
+    // TODO update these versions to the dev branch after major release.
+    final reactDependencyOverride = DependencyOverrideItem(
+        'react',
+        '  react:\n'
+            '    git:\n'
+            '      url: https://github.com/cleandart/react-dart.git\n'
+            '      ref: 5.0.0-wip\n');
 
-    if (containsOverReactOverride == null && containsReactOverride == null) {
-      // TODO update these versions to the dev branch after major release.
-      final dependencyOverrides = ''
-          '  react:\n'
-          '    git:\n'
-          '      url: git@github.com:cleandart/react-dart.git\n'
-          '      ref: 5.0.0-wip\n'
-          '  over_react:\n'
-          '    git:\n'
-          '      url: git@github.com:Workiva/over_react.git\n'
-          '      ref: 3.0.0-wip\n'
-          '';
+    final overReactDependencyOverride = DependencyOverrideItem(
+        'over_react',
+        '  over_react:\n'
+            '    git:\n'
+            '      url: https://github.com/Workiva/over_react.git\n'
+            '      ref: 3.0.0-wip\n');
 
-      final lineCount = sourceFile.lines - 1;
-      var insertionOffset = sourceFile.getOffset(lineCount);
+    final dependenciesToUpdate = [
+      reactDependencyOverride,
+      overReactDependencyOverride
+    ];
 
-      if (dependencyOverridesMatch != null) {
-        final lineAfterOverrideSectionStart =
-            sourceFile.getLine(dependencyOverridesMatch.end) + 1;
+    final parsedYamlMap = loadYaml(contents);
 
-        insertionOffset = sourceFile.getOffset(lineAfterOverrideSectionStart);
+    for (var i = 0; i < dependenciesToUpdate.length; i++) {
+      final dependency = dependenciesToUpdate[i].dependency;
+      final overrideString = dependenciesToUpdate[i].overrideString;
 
-        yield Patch(
-            sourceFile,
-            sourceFile.span(insertionOffset, insertionOffset),
-            '$dependencyOverrides');
+      if (fileContainsDependencyOverride(
+          dependency: dependency, yamlContent: parsedYamlMap)) {
+        // The regex that can be used to find the location of the override.
+        final dependencyRegex = getDependencyRegEx(
+            dependency: dependency, yamlContent: parsedYamlMap);
+        final dependencyMatch = dependencyRegex.firstMatch(contents);
+
+        if (dependencyMatch != null) {
+          // startPoint is needed because a new line would be added to the
+          // top of the patch. This controls whether we need to move the
+          // starting line up one or keep it the default.
+          int startPoint = dependencyMatch.start;
+
+          if (sourceFile.getLine(dependencyOverrideSectionKey.end) !=
+              sourceFile.getLine(dependencyMatch.start - 1)) {
+            startPoint = dependencyMatch.start - 1;
+          }
+
+          yield Patch(sourceFile,
+              sourceFile.span(startPoint, dependencyMatch.end), overrideString);
+        }
       } else {
-        yield Patch(
-            sourceFile,
-            sourceFile.span(insertionOffset, insertionOffset),
-            '\n'
-            'dependency_overrides:\n'
-            '$dependencyOverrides');
+        int insertionOffset;
+        int insertionLine;
+
+        // If the section already exists, insert new dependencies directly
+        // below the key. If not, insert at the end of the file.
+        if (dependencyOverrideSectionKey != null) {
+          insertionLine =
+              sourceFile.getLine(dependencyOverrideSectionKey.end) + 1;
+        } else {
+          insertionLine = sourceFile.lines - 1;
+        }
+
+        insertionOffset = sourceFile.getOffset(insertionLine);
+
+        if (!shouldAddDependencyOverrideKey) {
+          yield Patch(
+              sourceFile,
+              sourceFile.span(insertionOffset, insertionOffset),
+              '$overrideString');
+        } else {
+          yield Patch(
+              sourceFile,
+              sourceFile.span(insertionOffset, insertionOffset),
+              '\n'
+              'dependency_overrides:\n'
+              '$overrideString');
+
+          shouldAddDependencyOverrideKey = false;
+        }
       }
     }
   }
@@ -94,16 +121,64 @@ class DependencyOverrideUpdater implements Suggestor {
   bool shouldSkip(_) => false;
 }
 
-RegExpMatch containsDependencyOverride(
-    {String dependency, String fileContent}) {
-  final regexString = r'''^\s*\w{0,4}\s*:\s*[\s\S]*(.com){0,1}.\w*\/''' +
-      dependency +
-      r'''[\s\S]*\n{0,1}$''';
+bool fileContainsDependencyOverride({String dependency, YamlMap yamlContent}) {
+  if (yamlContent == null) return false;
 
-  final dependencyRegex = RegExp(
-    regexString,
-    multiLine: true,
-  );
+  if (yamlContent['dependency_overrides'] != null) {
+    if (yamlContent['dependency_overrides'][dependency] != null) {
+      return true;
+    }
+  }
 
-  return dependencyRegex.firstMatch(fileContent);
+  return false;
+}
+
+// Method that builds the RegEx that will match the dependency in the pubspec.
+RegExp getDependencyRegEx({String dependency, YamlMap yamlContent}) {
+  if (yamlContent == null) throw Exception('Invalid yaml content');
+
+  if (yamlContent['dependency_overrides'] != null) {
+    if (yamlContent['dependency_overrides'][dependency] != null) {
+      // If the override uses git
+      if (yamlContent['dependency_overrides'][dependency]['git'] != null) {
+        // A git override can either use a ref to refer to a specific branch,
+        // or default to master by not specifying a particular ref.
+        if (yamlContent['dependency_overrides'][dependency]['git']['ref'] !=
+            null) {
+          return RegExp(
+              r'''^\s*(''' +
+                  dependency +
+                  r'''):\s*git:\s*url:\s*(.+)\s*ref:\s*(.*?)$''',
+              multiLine: true);
+        } else {
+          return RegExp(
+              r'''^\s*(''' + dependency + r'''):\s+git:\s+url:\s*(.+)$''',
+              multiLine: true);
+        }
+
+        // If the override uses path.
+      } else if (yamlContent['dependency_overrides'][dependency]['path'] !=
+          null) {
+        return RegExp(r'''^\s*(''' + dependency + r''''):\s+path:\s+(.+)$''',
+            multiLine: true);
+
+        // If this is the case then the override is simply specifying a new
+        // version.
+      } else {
+        return RegExp(r'''^\s*''' + dependency + r'''':\s*(["']?)(.+)\1\s*$''',
+            multiLine: true);
+      }
+    }
+  }
+
+  throw Exception('Unable to determine dependency override structure.');
+}
+
+// Simply data structure to allow for strong typing while succinctly
+// specifying what dependency needs to be overridden and the override string.
+class DependencyOverrideItem {
+  String dependency;
+  String overrideString;
+
+  DependencyOverrideItem(this.dependency, this.overrideString);
 }

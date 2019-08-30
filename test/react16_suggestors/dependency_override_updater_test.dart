@@ -21,22 +21,22 @@ main() {
   group('DependencyOverrideUpdater', () {
     final testSuggestor = getSuggestorTester(DependencyOverrideUpdater());
 
-    group('does nothing if', () {
+    group('adds the dependencies if', () {
       test('the pubspec is empty', () {
         // The output has a new line because the testSuggester appends one.
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: 2,
           shouldDartfmtOutput: false,
           input: '',
           expectedOutput: '\n'
               'dependency_overrides:\n'
               '  react:\n'
               '    git:\n'
-              '      url: git@github.com:cleandart/react-dart.git\n'
+              '      url: https://github.com/cleandart/react-dart.git\n'
               '      ref: 5.0.0-wip\n'
               '  over_react:\n'
               '    git:\n'
-              '      url: git@github.com:Workiva/over_react.git\n'
+              '      url: https://github.com/Workiva/over_react.git\n'
               '      ref: 3.0.0-wip\n'
               '',
         );
@@ -44,7 +44,7 @@ main() {
 
       test('react and over_react are not dependencies', () {
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: 2,
           shouldDartfmtOutput: false,
           input: ''
               'dependencies:\n'
@@ -63,11 +63,11 @@ main() {
               'dependency_overrides:\n'
               '  react:\n'
               '    git:\n'
-              '      url: git@github.com:cleandart/react-dart.git\n'
+              '      url: https://github.com/cleandart/react-dart.git\n'
               '      ref: 5.0.0-wip\n'
               '  over_react:\n'
               '    git:\n'
-              '      url: git@github.com:Workiva/over_react.git\n'
+              '      url: https://github.com/Workiva/over_react.git\n'
               '      ref: 3.0.0-wip\n'
               '',
         );
@@ -76,7 +76,7 @@ main() {
       group('the dependencies are already being overridden via', () {
         test('git (SSH)', () {
           testSuggestor(
-            expectedPatchCount: 0,
+            expectedPatchCount: 2,
             shouldDartfmtOutput: false,
             input: ''
                 'dependencies:\n'
@@ -97,14 +97,52 @@ main() {
                 '      url: git@github.com:Workiva/over_react.git\n'
                 '      ref: 3.0.0-wip\n'
                 '',
+            expectedOutput: ''
+                'dependencies:\n'
+                '  test: 1.5.1\n'
+                '  react: ^4.6.0\n'
+                '  over_react: ^2.0.0\n'
+                '\n'
+                'dev_dependencies:\n'
+                '  dart_dev: ^2.0.1\n'
+                '\n'
+                'dependency_overrides:\n'
+                '  react:\n'
+                '    git:\n'
+                '      url: https://github.com/cleandart/react-dart.git\n'
+                '      ref: 5.0.0-wip\n'
+                '  over_react:\n'
+                '    git:\n'
+                '      url: https://github.com/Workiva/over_react.git\n'
+                '      ref: 3.0.0-wip\n'
+                '',
           );
         });
 
         test('git (HTTPS)', () {
           testSuggestor(
-            expectedPatchCount: 0,
+            expectedPatchCount: 2,
             shouldDartfmtOutput: false,
             input: ''
+                'dependencies:\n'
+                '  test: 1.5.1\n'
+                '  react: ^4.6.0\n'
+                '  over_react: ^2.0.0\n'
+                '\n'
+                'dev_dependencies:\n'
+                '  dart_dev: ^2.0.1\n'
+                '\n'
+                'dependency_overrides:\n'
+                '  react:\n'
+                '    git:\n'
+                '      url: https://github.com/cleandart/react-dart.git\n'
+                '      ref: 5.0.0-wip\n'
+                '  over_react:\n'
+                '    git:\n'
+                '      url: https://github.com/Workiva/over_react.git\n'
+                '      ref: 3.0.0-wip\n'
+                '',
+            expectedOutput: ''
                 'dependencies:\n'
                 '  test: 1.5.1\n'
                 '  react: ^4.6.0\n'
@@ -128,7 +166,7 @@ main() {
 
         test('path', () {
           testSuggestor(
-            expectedPatchCount: 0,
+            expectedPatchCount: 2,
             shouldDartfmtOutput: false,
             input: ''
                 'dependencies:\n'
@@ -142,11 +180,11 @@ main() {
                 'dependency_overrides:\n'
                 '  react:\n'
                 '    git:\n'
-                '      url: /example/path/repos/react-dart.git\n'
+                '      url: https://github.com/cleandart/react-dart.git\n'
                 '      ref: 5.0.0-wip\n'
                 '  over_react:\n'
                 '    git:\n'
-                '      path: /example/path/repos/over_react\n'
+                '      url: https://github.com/Workiva/over_react.git\n'
                 '      ref: 3.0.0-wip\n'
                 '',
           );
@@ -156,7 +194,7 @@ main() {
 
     test('adds dependency if missing', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: 2,
         shouldDartfmtOutput: false,
         input: ''
             'dependencies:\n'
@@ -179,11 +217,11 @@ main() {
             'dependency_overrides:\n'
             '  react:\n'
             '    git:\n'
-            '      url: git@github.com:cleandart/react-dart.git\n'
+            '      url: https://github.com/cleandart/react-dart.git\n'
             '      ref: 5.0.0-wip\n'
             '  over_react:\n'
             '    git:\n'
-            '      url: git@github.com:Workiva/over_react.git\n'
+            '      url: https://github.com/Workiva/over_react.git\n'
             '      ref: 3.0.0-wip\n'
             '',
       );
@@ -191,8 +229,9 @@ main() {
 
     test('preserves existing, unrelated dependency overrides', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: 2,
         shouldDartfmtOutput: false,
+        testIdempotency: false,
         input: ''
             'dependencies:\n'
             '  test: 1.5.1\n'
@@ -220,11 +259,11 @@ main() {
             'dependency_overrides:\n'
             '  react:\n'
             '    git:\n'
-            '      url: git@github.com:cleandart/react-dart.git\n'
+            '      url: https://github.com/cleandart/react-dart.git\n'
             '      ref: 5.0.0-wip\n'
             '  over_react:\n'
             '    git:\n'
-            '      url: git@github.com:Workiva/over_react.git\n'
+            '      url: https://github.com/Workiva/over_react.git\n'
             '      ref: 3.0.0-wip\n'
             '  foo:\n'
             '    git:\n'
@@ -236,8 +275,9 @@ main() {
 
     test('does not override sections after dependency_overrides', () {
       testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: 2,
         shouldDartfmtOutput: false,
+        testIdempotency: false,
         input: ''
             'dependencies:\n'
             '  test: 1.5.1\n'
@@ -269,11 +309,11 @@ main() {
             'dependency_overrides:\n'
             '  react:\n'
             '    git:\n'
-            '      url: git@github.com:cleandart/react-dart.git\n'
+            '      url: https://github.com/cleandart/react-dart.git\n'
             '      ref: 5.0.0-wip\n'
             '  over_react:\n'
             '    git:\n'
-            '      url: git@github.com:Workiva/over_react.git\n'
+            '      url: https://github.com/Workiva/over_react.git\n'
             '      ref: 3.0.0-wip\n'
             '  foo:\n'
             '    git:\n'
