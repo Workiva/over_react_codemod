@@ -4,16 +4,23 @@ import 'package:path/path.dart' as p;
 /// Creates a temporary package with a `pubspec.yaml` and `main.dart` file
 class DartTempProjectCreator {
   Directory dir;
-  PubspecCreator pubspecCreator;
+  List<PubspecCreator> pubspecCreators;
   String mainDartContents;
 
-  DartTempProjectCreator({this.pubspecCreator, this.mainDartContents}) {
-    pubspecCreator ??= PubspecCreator();
+  DartTempProjectCreator(
+      {PubspecCreator pubspecCreator,
+      this.pubspecCreators,
+      this.mainDartContents}) {
+    if (pubspecCreator != null && pubspecCreators != null) {
+      throw new ArgumentError(
+          'Cannot specify both pubspecCreator and pubspecCreators');
+    }
+
+    pubspecCreators ??= [pubspecCreator ?? PubspecCreator()];
     mainDartContents ??= 'void main() {}';
     dir = Directory.systemTemp.createTempSync();
-    if (pubspecCreator.createPubspecFile) {
-      File(p.join(dir.path, 'pubspec.yaml'))
-          .writeAsStringSync(pubspecCreator.toString());
+    for (var pubspecCreator in pubspecCreators) {
+      pubspecCreator.create(dir.path);
     }
     File(p.join(dir.path, 'main.dart')).writeAsStringSync(mainDartContents);
   }
@@ -25,7 +32,7 @@ class PubspecCreator {
   bool isPrivate;
   String sdkVersion;
   List<DependencyCreator> dependencies;
-  bool createPubspecFile;
+  String path;
 
   PubspecCreator(
       {this.name = 'fake_package',
@@ -33,7 +40,13 @@ class PubspecCreator {
       this.isPrivate = true,
       this.sdkVersion = '">=2.4.0 <3.0.0"',
       this.dependencies = const [],
-      this.createPubspecFile = true});
+      this.path = ''});
+
+  void create(String rootDir) {
+    final parentDir = p.join(rootDir, path);
+    Directory(parentDir).createSync(recursive: true);
+    File(p.join(parentDir, 'pubspec.yaml')).writeAsStringSync(toString());
+  }
 
   void removeDependencyWhere(bool Function(DependencyCreator) callback) {
     dependencies.removeWhere(callback);
@@ -132,31 +145,42 @@ class DartProjectCreatorTestConfig {
 
   int expectedExitCode;
 
-  bool includePubspecFile;
-
   String mainDartContents;
 
-  PubspecCreator pubspecCreator;
-
-  /// The dependencies to test in the pubspec.yaml.
-  List<DependencyCreator> dependencies;
+  List<PubspecCreator> pubspecCreators;
 
   DartProjectCreatorTestConfig({
     String testName,
     int expectedExitCode,
-    this.dependencies,
+    List<DependencyCreator> dependencies,
     this.mainDartContents,
-    this.pubspecCreator,
+    this.pubspecCreators,
     this.shouldRunCodemod = false,
-    this.includePubspecFile = true,
   }) {
     _testName = testName;
+
+    if (pubspecCreators != null && dependencies != null) {
+      throw new ArgumentError(
+          'Cannot specify both pubspecCreators and dependencies');
+    }
+    pubspecCreators ??= [new PubspecCreator(dependencies: dependencies ?? [])];
 
     this.expectedExitCode = expectedExitCode ?? (shouldRunCodemod ? 1 : 0);
   }
 
-  String get testName =>
-      _testName ??
-      'returns exit code ${expectedExitCode ?? (shouldRunCodemod ? 1 : 0)} with dependencies: ' +
-          dependencies.map((dep) => dep.toString()).join(', ');
+  String get testName {
+    if (_testName != null) return _testName;
+
+    var name =
+        'returns exit code ${expectedExitCode ?? (shouldRunCodemod ? 1 : 0)} with ';
+    if (pubspecCreators.isEmpty) {
+      name += 'no pubspecs';
+    } else {
+      name += pubspecCreators.map((creator) {
+        return 'pubspec at ${creator.path.isEmpty ? 'root' : 'path ${creator.path}'} '
+            'with dependencies: ${creator.dependencies.join(', ')}';
+      }).join(';');
+    }
+    return name;
+  }
 }

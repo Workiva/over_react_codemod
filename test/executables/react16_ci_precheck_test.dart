@@ -13,7 +13,6 @@
 // limitations under the License.
 
 @TestOn('vm')
-
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -32,7 +31,7 @@ final versionChecksToTest = [
   DartProjectCreatorTestConfig(
     testName:
         'returns status code 0 when project does not have a pubspec.yaml or if it is no parsable',
-    includePubspecFile: false,
+    pubspecCreators: [],
     expectedExitCode: 0,
   ),
 
@@ -160,23 +159,13 @@ ProcessResult runCiPrecheck({String onDirectory}) {
   return result;
 }
 
-ProcessResult runCiPrecheckWithFakeDartProject(
-    {PubspecCreator pubspecCreator, String mainDartContents}) {
-  var testPackage = DartTempProjectCreator(
-      pubspecCreator: pubspecCreator ?? tansitionPubspecCreator,
-      mainDartContents: mainDartContents);
-  return runCiPrecheck(onDirectory: testPackage.dir.path);
-}
-
 main() {
   group('React16_ci_precheck', () {
     for (var dartProjectTestConfig in versionChecksToTest) {
       test(dartProjectTestConfig.testName, () {
-        final result = runCiPrecheckWithFakeDartProject(
-          pubspecCreator: PubspecCreator(
-              dependencies: dartProjectTestConfig.dependencies,
-              createPubspecFile: dartProjectTestConfig.includePubspecFile),
-        );
+        var testPackage = DartTempProjectCreator(
+            pubspecCreators: dartProjectTestConfig.pubspecCreators);
+        final result = runCiPrecheck(onDirectory: testPackage.dir.path);
         expect(result.exitCode, dartProjectTestConfig.expectedExitCode,
             reason: result.stderr);
       });

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 @TestOn('vm')
-
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -71,25 +70,15 @@ ProcessResult runUpgrade({String onDirectory}) {
   return result;
 }
 
-ProcessResult runUpgradeWithFakeDartProject(
-    {PubspecCreator pubspecCreator, String mainDartContents}) {
-  var testPackage = DartTempProjectCreator(
-      pubspecCreator: pubspecCreator ?? tansitionPubspecCreator,
-      mainDartContents: mainDartContents);
-  return runUpgrade(onDirectory: testPackage.dir.path);
-}
-
 main() {
   group('React16_upgrade', () {
     for (var dartProjectTestConfig in versionChecksToTest) {
       test(dartProjectTestConfig.testName, () {
-        final result = runUpgradeWithFakeDartProject(
-          pubspecCreator: PubspecCreator(
-              dependencies: dartProjectTestConfig.dependencies,
-              createPubspecFile: dartProjectTestConfig.includePubspecFile),
-          mainDartContents:
-              dartProjectTestConfig.mainDartContents ?? unaddressedComment,
-        );
+        final testPackage = DartTempProjectCreator(
+            pubspecCreators: dartProjectTestConfig.pubspecCreators,
+            mainDartContents:
+                dartProjectTestConfig.mainDartContents ?? unaddressedComment);
+        final result = runUpgrade(onDirectory: testPackage.dir.path);
         expect(result.exitCode, dartProjectTestConfig.expectedExitCode,
             reason: result.stderr);
       });
