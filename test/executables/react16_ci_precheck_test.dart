@@ -31,63 +31,85 @@ final versionChecksToTest = [
   // Pubspec checks
   DartProjectCreatorTestConfig(
     testName:
-        'does not run the codemod when project does not have a pubspec.yaml or if it is no parsable',
+        'returns status code 0 when project does not have a pubspec.yaml or if it is no parsable',
     includePubspecFile: false,
-    shouldRunCodemod: false,
+    expectedExitCode: 1,
   ),
 
   DartProjectCreatorTestConfig(
     testName:
         'does not run the codemod when project does not have react or over_react as dependencies',
     dependencies: [],
-    shouldRunCodemod: false,
+    expectedExitCode: 0,
   ),
 
   // React-dart version tests
   DartProjectCreatorTestConfig(
-      dependencies: [DependencyCreator(reactPackageName, version: 'any')],
-      shouldRunCodemod: false),
+    dependencies: [DependencyCreator(reactPackageName, version: 'any')],
+    expectedExitCode: 0,
+  ),
   DartProjectCreatorTestConfig(
-      dependencies: [DependencyCreator(reactPackageName, version: '^4.0.0')],
-      shouldRunCodemod: false),
+    dependencies: [DependencyCreator(reactPackageName, version: '^4.0.0')],
+    expectedExitCode: 0,
+  ),
   DartProjectCreatorTestConfig(
-      dependencies: [DependencyCreator(reactPackageName, version: '^4.1.0')],
-      shouldRunCodemod: false),
-  DartProjectCreatorTestConfig(dependencies: [
-    DependencyCreator(reactPackageName, version: '">=4.0.0 <6.0.0"')
-  ], shouldRunCodemod: true),
-  DartProjectCreatorTestConfig(dependencies: [
-    DependencyCreator(reactPackageName, version: '">=4.1.0 <6.0.0"')
-  ], shouldRunCodemod: true),
+    dependencies: [DependencyCreator(reactPackageName, version: '^4.1.0')],
+    expectedExitCode: 0,
+  ),
   DartProjectCreatorTestConfig(
-      dependencies: [DependencyCreator(reactPackageName, version: '^5.0.0')],
-      shouldRunCodemod: false),
+    dependencies: [
+      DependencyCreator(reactPackageName, version: '">=4.0.0 <6.0.0"')
+    ],
+    expectedExitCode: 1,
+  ),
   DartProjectCreatorTestConfig(
-      dependencies: [DependencyCreator(reactPackageName, version: '^5.1.0')],
-      shouldRunCodemod: false),
+    dependencies: [
+      DependencyCreator(reactPackageName, version: '">=4.1.0 <6.0.0"')
+    ],
+    expectedExitCode: 1,
+  ),
+  DartProjectCreatorTestConfig(
+    dependencies: [DependencyCreator(reactPackageName, version: '^5.0.0')],
+    expectedExitCode: 0,
+  ),
+  DartProjectCreatorTestConfig(
+    dependencies: [DependencyCreator(reactPackageName, version: '^5.1.0')],
+    expectedExitCode: 0,
+  ),
 
   // OverReact version tests
   DartProjectCreatorTestConfig(
-      dependencies: [DependencyCreator(overReactPackageName, version: 'any')],
-      shouldRunCodemod: false),
-  DartProjectCreatorTestConfig(dependencies: [
-    DependencyCreator(overReactPackageName, version: '^2.0.0')
-  ], shouldRunCodemod: false),
-  DartProjectCreatorTestConfig(dependencies: [
-    DependencyCreator(overReactPackageName, version: '^2.1.0')
-  ], shouldRunCodemod: false),
-  DartProjectCreatorTestConfig(dependencies: [
-    DependencyCreator(overReactPackageName, version: '">=2.0.0 <4.0.0"')
-  ], shouldRunCodemod: true),
-  DartProjectCreatorTestConfig(dependencies: [
-    DependencyCreator(overReactPackageName, version: '">=2.1.0 <4.0.0"')
-  ], shouldRunCodemod: true),
-  DartProjectCreatorTestConfig(dependencies: [
-    DependencyCreator(overReactPackageName, version: '^3.0.0')
-  ], shouldRunCodemod: false),
-  DartProjectCreatorTestConfig(dependencies: [
-    DependencyCreator(overReactPackageName, version: '^3.1.0')
-  ], shouldRunCodemod: false),
+    dependencies: [DependencyCreator(overReactPackageName, version: 'any')],
+    expectedExitCode: 0,
+  ),
+  DartProjectCreatorTestConfig(
+    dependencies: [DependencyCreator(overReactPackageName, version: '^2.0.0')],
+    expectedExitCode: 0,
+  ),
+  DartProjectCreatorTestConfig(
+    dependencies: [DependencyCreator(overReactPackageName, version: '^2.1.0')],
+    expectedExitCode: 0,
+  ),
+  DartProjectCreatorTestConfig(
+    dependencies: [
+      DependencyCreator(overReactPackageName, version: '">=2.0.0 <4.0.0"')
+    ],
+    expectedExitCode: 1,
+  ),
+  DartProjectCreatorTestConfig(
+    dependencies: [
+      DependencyCreator(overReactPackageName, version: '">=2.1.0 <4.0.0"')
+    ],
+    expectedExitCode: 1,
+  ),
+  DartProjectCreatorTestConfig(
+    dependencies: [DependencyCreator(overReactPackageName, version: '^3.0.0')],
+    expectedExitCode: 0,
+  ),
+  DartProjectCreatorTestConfig(
+    dependencies: [DependencyCreator(overReactPackageName, version: '^3.1.0')],
+    expectedExitCode: 0,
+  ),
 
   // Edge Cases
   DartProjectCreatorTestConfig(
@@ -97,7 +119,7 @@ final versionChecksToTest = [
       DependencyCreator(overReactPackageName, version: '">=2.0.0 <4.0.0"'),
       DependencyCreator(reactPackageName, version: '">=4.0.0 <6.0.0"'),
     ],
-    shouldRunCodemod: true,
+    expectedExitCode: 1,
   ),
 
   DartProjectCreatorTestConfig(
@@ -107,7 +129,7 @@ final versionChecksToTest = [
       DependencyCreator(overReactPackageName, version: '^2.0.0'),
       DependencyCreator(reactPackageName, version: '">=4.0.0 <6.0.0"'),
     ],
-    shouldRunCodemod: false,
+    expectedExitCode: 0,
   ),
 
   DartProjectCreatorTestConfig(
@@ -117,7 +139,7 @@ final versionChecksToTest = [
       DependencyCreator(overReactPackageName, version: '">=2.0.0 <4.0.0"'),
       DependencyCreator(reactPackageName, version: '^4.0.0'),
     ],
-    shouldRunCodemod: false,
+    expectedExitCode: 0,
   ),
 ];
 

@@ -76,12 +76,15 @@ void main(List<String> args) {
   } catch (e, stackTrace) {
     if (e is FileSystemException) {
       ciLogger.warning('Could not find pubspec.yaml; exiting codemod.', e);
+      return;
     } else if (e is YamlException) {
       ciLogger.warning('pubspec.yaml is unable to be parsed; exiting codemod.',
           e, stackTrace);
+      return;
     } else {
       ciLogger.warning('pubspec.yaml is unable to be parsed; exiting codemod.',
           e, stackTrace);
+      return;
     }
   }
   for (var package in packagesToCheckFor.entries) {
