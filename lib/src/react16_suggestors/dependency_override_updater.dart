@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:codemod/codemod.dart';
+import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -58,9 +59,9 @@ class DependencyOverrideUpdater implements Suggestor {
 
     final parsedYamlMap = loadYaml(contents);
 
-    for (var i = 0; i < dependenciesToUpdate.length; i++) {
-      final dependency = dependenciesToUpdate[i].dependency;
-      final overrideString = dependenciesToUpdate[i].overrideString;
+    for (var dependencyOverride in dependenciesToUpdate) {
+      final dependency = dependencyOverride.dependency;
+      final overrideString = dependencyOverride.overrideString;
 
       if (fileContainsDependencyOverride(
           dependency: dependency, yamlContent: parsedYamlMap)) {
@@ -121,7 +122,8 @@ class DependencyOverrideUpdater implements Suggestor {
   bool shouldSkip(_) => false;
 }
 
-bool fileContainsDependencyOverride({String dependency, YamlMap yamlContent}) {
+bool fileContainsDependencyOverride(
+    {@required String dependency, @required YamlMap yamlContent}) {
   if (yamlContent == null) return false;
 
   if (yamlContent['dependency_overrides'] != null) {
@@ -134,7 +136,8 @@ bool fileContainsDependencyOverride({String dependency, YamlMap yamlContent}) {
 }
 
 // Method that builds the RegEx that will match the dependency in the pubspec.
-RegExp getDependencyRegEx({String dependency, YamlMap yamlContent}) {
+RegExp getDependencyRegEx(
+    {@required String dependency, @required YamlMap yamlContent}) {
   if (yamlContent == null) throw Exception('Invalid yaml content');
 
   if (yamlContent['dependency_overrides'] != null) {
@@ -148,7 +151,7 @@ RegExp getDependencyRegEx({String dependency, YamlMap yamlContent}) {
           return RegExp(
               r'''^\s*(''' +
                   dependency +
-                  r'''):\s*git:\s*url:\s*(.+)\s*ref:\s*(.*?)$''',
+                  r'''):\s*git:\s*url:\s*(.+)\s*ref:\s*(.+)$''',
               multiLine: true);
         } else {
           return RegExp(
@@ -174,8 +177,8 @@ RegExp getDependencyRegEx({String dependency, YamlMap yamlContent}) {
   throw Exception('Unable to determine dependency override structure.');
 }
 
-// Simply data structure to allow for strong typing while succinctly
-// specifying what dependency needs to be overridden and the override string.
+/// Simple data structure to allow for strong typing while succinctly
+/// specifying what dependency needs to be overridden and the override string.
 class DependencyOverrideItem {
   String dependency;
   String overrideString;

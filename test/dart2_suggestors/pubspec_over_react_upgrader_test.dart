@@ -73,12 +73,9 @@ main() {
 
 String getExpectedOutput({
   bool shouldAddSpace = false,
-  bool usesDoubleQuotes = false,
 }) {
-  String quotes = usesDoubleQuotes ? '"' : "'";
-
   return ''
-      '${shouldAddSpace ? '  ' : ''}over_react: $quotes>=1.30.2 <3.0.0$quotes\n'
+      '${shouldAddSpace ? '  ' : ''}over_react: ">=1.30.2 <3.0.0"\n'
       '${shouldAddSpace ? '  ' : ''}test: 1.5.1\n'
       '';
 }

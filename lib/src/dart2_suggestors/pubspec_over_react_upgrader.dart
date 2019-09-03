@@ -17,6 +17,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 
 import '../constants.dart';
+import '../util.dart';
 
 /// Suggestor that attempts to update `pubspec.yaml` files to ensure a safe
 /// minimum bound on the `over_react` dependency.
@@ -35,12 +36,6 @@ class PubspecOverReactUpgrader implements Suggestor {
   /// the first release that drops support for Dart 1.
   static final VersionRange dart2Constraint =
       VersionConstraint.parse('>=1.30.2 <3.0.0');
-
-  /// Regex that matches the dependency constraint declaration for over_react.
-  static final RegExp overReactDep = overReactDependencyRegExp;
-
-  /// Regex that matches the `dependencies:` key in a pubspec.yaml.
-  static final RegExp dependenciesKey = dependencyRegExp;
 
   /// Constraint to update over_react to.
   final VersionRange targetConstraint;
@@ -71,75 +66,37 @@ class PubspecOverReactUpgrader implements Suggestor {
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
     final contents = sourceFile.getText(0);
-    final overReactMatch = overReactDep.firstMatch(contents);
+    final overReactMatch = overReactDependencyRegExp.firstMatch(contents);
     if (overReactMatch != null) {
       // over_react is already in pubspec.yaml
-      final line = overReactMatch.group(0);
       final constraintValue = overReactMatch.group(2);
       final constraint = VersionConstraint.parse(constraintValue);
 
-      bool shouldUpdateVersionRange() {
-        if (constraint is VersionRange) {
-          // Short circuit if the constraints are the same.
-          if (targetConstraint == constraint) return false;
-
-          // If max is null, the dependency is >= with no upper limit.
-          if (constraint?.max == null) {
-            // In that case, we need the min to be at least as high as our
-            // target. If it is, do not update.
-            if (constraint.min >= targetConstraint.min) {
-              return false;
-            }
-
-            return true;
-          } else {
-            // If there is a maximum, and it is higher than target max (but the
-            // lower bound is still greater or equal to the target) do not
-            // update.
-            if (constraint.max >= targetConstraint.max) {
-              // If the codemod is asserting a specific minimum, the
-              // constraint min does not matter.
-              if (shouldIgnoreMin) {
-                return true;
-              } else if (constraint.min >= targetConstraint.min) {
-                return false;
-              }
-            }
-
-            return true;
-          }
-        }
-
-        return false;
-      }
-
-      if (shouldUpdateVersionRange()) {
+      if (shouldUpdateVersionRange(
+          targetConstraint: targetConstraint,
+          constraint: constraint,
+          shouldIgnoreMin: shouldIgnoreMin)) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
-        if (newValue.contains(' ') &&
-            !line.contains("'") &&
-            !line.contains('"')) {
-          newValue = "'$newValue'";
+        if (mightNeedYamlEscaping(newValue)) {
+          newValue = '"$newValue"';
         }
 
         // Update the version constraint to ensure a safe minimum bound.
         yield Patch(
           sourceFile,
           sourceFile.span(overReactMatch.start, overReactMatch.end),
-          line.replaceFirst(
-            constraintValue,
-            newValue,
-          ),
+          'over_react: $newValue',
         );
       }
     } else if (shouldAddDependencies) {
       // over_react is missing in pubspec.yaml, so add it.
-      final dependeniesKeyMatch = dependenciesKey.firstMatch(contents);
+      final dependeniesKeyMatch = dependencyRegExp.firstMatch(contents);
       if (dependeniesKeyMatch != null) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
         if (newValue.contains(' ')) {
-          newValue = "'$newValue'";
+          newValue = '"$newValue"';
         }
 
         yield Patch(

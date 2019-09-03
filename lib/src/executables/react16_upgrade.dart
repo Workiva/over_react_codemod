@@ -30,7 +30,7 @@ const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
   pub global run over_react_codemod:react16_upgrade
-  pub run dart_dev format . (If you format this repository).
+  pub run dart_dev format (If you format this repository).
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
@@ -45,19 +45,21 @@ Future main(List<String> args) async {
     recursive: true,
   );
 
-  final pubspecSuggestors = [
-    PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
-    PubspecOverReactUpgrader(overReactVersionConstraint,
-        shouldAddDependencies: false)
-  ];
-
   exitCode = runInteractiveCodemod(
     pubspecYamlQuery,
-    AggregateSuggestor(pubspecSuggestors),
+    AggregateSuggestor([
+      PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
+      PubspecOverReactUpgrader(overReactVersionConstraint,
+          shouldAddDependencies: false)
+    ]),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
+
+  if (exitCode > 0) {
+    return;
+  }
 
   // Update Componentry
   final query = FileQuery.dir(

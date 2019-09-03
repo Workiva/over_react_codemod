@@ -231,6 +231,11 @@ main() {
       testSuggestor(
         expectedPatchCount: 2,
         shouldDartfmtOutput: false,
+        // On this test, and the following tests, idemopotency is disabled
+        // because of the codemod's tendency to add a line between already the
+        // existing and the new overrides being added (only after the initial
+        // run). The behavior is minor but finding a solution to stop it is
+        // non-trivial.
         testIdempotency: false,
         input: ''
             'dependencies:\n'
@@ -323,6 +328,41 @@ main() {
             'executables:\n'
             '  dart2_upgrade:\n'
             '  react_16_upgrade:\n'
+            '',
+      );
+    });
+
+    test('does not fail if there is no trailing new line.', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        shouldDartfmtOutput: false,
+        testIdempotency: false,
+        input: ''
+            'dependencies:\n'
+            '  test: 1.5.1\n'
+            '  react: ^4.6.0\n'
+            '  over_react: ^2.0.0\n'
+            '\n'
+            'dev_dependencies:\n'
+            '  dart_dev: ^2.0.1\n',
+        expectedOutput: ''
+            'dependencies:\n'
+            '  test: 1.5.1\n'
+            '  react: ^4.6.0\n'
+            '  over_react: ^2.0.0\n'
+            '\n'
+            'dev_dependencies:\n'
+            '  dart_dev: ^2.0.1\n'
+            '\n'
+            'dependency_overrides:\n'
+            '  react:\n'
+            '    git:\n'
+            '      url: https://github.com/cleandart/react-dart.git\n'
+            '      ref: 5.0.0-wip\n'
+            '  over_react:\n'
+            '    git:\n'
+            '      url: https://github.com/Workiva/over_react.git\n'
+            '      ref: 3.0.0-wip\n'
             '',
       );
     });

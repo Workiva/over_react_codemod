@@ -17,6 +17,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 
 import '../constants.dart';
+import '../util.dart';
 
 /// Suggestor that attempts to update `pubspec.yaml` files to ensure a safe
 /// minimum bound on the `react` dependency.
@@ -25,12 +26,6 @@ import '../constants.dart';
 /// the version constraint will be updated. If `react` is missing from
 /// the file, it will be added.
 class PubspecReactUpdater implements Suggestor {
-  /// Regex that matches the dependency constraint declaration for react.
-  static final RegExp reactDep = reactDependencyRegExp;
-
-  /// Regex that matches the dependency pubspec.yaml key.
-  static final RegExp dependenciesKey = dependencyRegExp;
-
   /// Constraint to update react to.
   final VersionRange targetConstraint;
 
@@ -44,75 +39,37 @@ class PubspecReactUpdater implements Suggestor {
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
     final contents = sourceFile.getText(0);
-    final reactMatch = reactDep.firstMatch(contents);
-    bool mightNeedYamlEscaping(String scalarValue) =>
-        // Values starting with `>` need escaping.
-        // Whitelist a non-exhaustive list of allowable characters,
-        // flagging that the value should be escaped when we're not sure.
-        !RegExp(r'^[^>][-+.<>=^ \w]*$').hasMatch(scalarValue);
+    final reactMatch = reactDependencyRegExp.firstMatch(contents);
 
     if (reactMatch != null) {
       // react is already in pubspec.yaml
-      final line = reactMatch.group(0);
       final constraintValue = reactMatch.group(2);
       final constraint = VersionConstraint.parse(constraintValue);
 
-      bool shouldUpdateVersionRange() {
-        if (constraint is VersionRange) {
-          // If this is null, the dependency is set to >= with no upper limit.
-          if (constraint?.max == null) {
-            // In that case, we need the min to be at least as high as our
-            // target. If it is, do not update.
-            if (constraint.min >= targetConstraint.min) {
-              return false;
-            }
-
-            return true;
-          } else {
-            // If there is a maximum, and it is higher than target max (but the
-            // lower bound is still greater or equal to the target) do not
-            // update.
-            if (constraint.max >= targetConstraint.max &&
-                constraint.min >= targetConstraint.min) {
-              return false;
-            }
-
-            return true;
-          }
-        }
-
-        return false;
-      }
-
-      if (shouldUpdateVersionRange()) {
+      if (shouldUpdateVersionRange(
+          constraint: constraint, targetConstraint: targetConstraint)) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
 
-        if (mightNeedYamlEscaping(newValue) &&
-            !line.contains("'") &&
-            !line.contains("\"")) {
-          newValue = "'$newValue'";
+        if (mightNeedYamlEscaping(newValue)) {
+          newValue = '"$newValue"';
         }
 
         // Update the version constraint to ensure a safe minimum bound.
         yield Patch(
-          sourceFile,
-          sourceFile.span(reactMatch.start, reactMatch.end),
-          line.replaceFirst(
-            constraintValue,
-            newValue,
-          ),
-        );
+            sourceFile,
+            sourceFile.span(reactMatch.start, reactMatch.end),
+            'react: $newValue');
       }
     } else if (shouldAddDependencies) {
       // react is missing in pubspec.yaml, so add it.
-      final dependenciesKeyMatch = dependenciesKey.firstMatch(contents);
+      final dependenciesKeyMatch = dependencyRegExp.firstMatch(contents);
 
       if (dependenciesKeyMatch != null) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
         if (mightNeedYamlEscaping(newValue)) {
-          newValue = "'$newValue'";
+          newValue = '"$newValue"';
         }
 
         yield Patch(

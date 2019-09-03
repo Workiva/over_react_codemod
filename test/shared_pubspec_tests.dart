@@ -17,8 +17,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 void sharedPubspecTest({
-  @required
-      Function({bool usesDoubleQuotes, bool shouldAddSpace}) getExpectedOutput,
+  @required Function({bool shouldAddSpace}) getExpectedOutput,
   @required Function testSuggestor,
   @required String dependency,
   @required VersionRange startingRange,
@@ -64,7 +63,7 @@ void sharedPubspecTest({
   });
 
   test(
-      '${shouldAddDependencies ? 'does not add the' : 'adds the'} dependency '
+      '${shouldAddDependencies ? 'adds the' : 'does not add the'} dependency '
       'if missing', () {
     testSuggestor(
       expectedPatchCount: shouldAddDependencies ? 1 : 0,
@@ -143,7 +142,7 @@ void sharedPubspecTest({
             'test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput(usesDoubleQuotes: true)
+            ? getExpectedOutput()
             : ''
                 '$dependency: "^${startingRange.min}"\n'
                 'test: 1.5.1\n'
@@ -179,7 +178,7 @@ void sharedPubspecTest({
             'test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput(usesDoubleQuotes: true)
+            ? getExpectedOutput()
             : ''
                 '$dependency: "$startingRange"\n'
                 'test: 1.5.1\n'
@@ -232,7 +231,7 @@ void sharedPubspecTest({
             'test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput(usesDoubleQuotes: true)
+            ? getExpectedOutput()
             : ''
                 '$dependency: ">=${startingRange.min}"\n'
                 'test: 1.5.1\n'
