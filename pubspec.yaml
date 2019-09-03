@@ -39,3 +39,4 @@ dev_dependencies:
 executables:
   dart2_upgrade:
   react16_upgrade:
+  react16_ci_precheck:
