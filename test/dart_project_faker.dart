@@ -62,17 +62,17 @@ class PubspecFaker {
         'environment:\n' +
         '  sdk: $sdkVersion\n' +
         (dependencies.isNotEmpty
-            ? 'dependencies: \n' +
+            ? '\ndependencies: \n' +
                 dependencies
                     .where((dep) => !(dep.asDev || dep.asOverride))
                     .join('\n')
             : '') +
         (dependencies.any((dep) => dep.asDev)
-            ? 'dev_dependencies: \n' +
+            ? '\ndev_dependencies: \n' +
                 dependencies.where((dep) => dep.asDev).join('\n')
             : '') +
         (dependencies.any((dep) => dep.asOverride)
-            ? 'dependency_overrides: \n' +
+            ? '\ndependency_overrides: \n' +
                 dependencies.where((dep) => dep.asOverride).join('\n')
             : '') +
         '\n';
