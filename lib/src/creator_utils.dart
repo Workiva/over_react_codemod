@@ -157,9 +157,6 @@ class DartProjectCreatorTestConfig {
 
   String get testName =>
       _testName ??
-          'returns exit code ${expectedExitCode ?? (shouldRunCodemod ? 1 : 0)} with dependencies: ' +
-          dependencies
-              .map((dep) =>
-                  dep.toString())
-              .join(', ');
+      'returns exit code ${expectedExitCode ?? (shouldRunCodemod ? 1 : 0)} with dependencies: ' +
+          dependencies.map((dep) => dep.toString()).join(', ');
 }
