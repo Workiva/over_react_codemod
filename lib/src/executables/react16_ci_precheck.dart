@@ -75,18 +75,13 @@ void main(List<String> args) {
     pubspecYaml = loadYaml(File('pubspec.yaml').readAsStringSync());
   } catch (e, stackTrace) {
     if (e is FileSystemException) {
-      ciLogger.warning(
-          'Could not find pubspec.yaml; exiting codemod.', e);
+      ciLogger.warning('Could not find pubspec.yaml; exiting codemod.', e);
     } else if (e is YamlException) {
-      ciLogger.warning(
-          'pubspec.yaml is unable to be parsed; exiting codemod.',
-          e,
-          stackTrace);
+      ciLogger.warning('pubspec.yaml is unable to be parsed; exiting codemod.',
+          e, stackTrace);
     } else {
-      ciLogger.warning(
-          'pubspec.yaml is unable to be parsed; exiting codemod.',
-          e,
-          stackTrace);
+      ciLogger.warning('pubspec.yaml is unable to be parsed; exiting codemod.',
+          e, stackTrace);
     }
   }
   for (var package in packagesToCheckFor.entries) {
@@ -95,16 +90,15 @@ void main(List<String> args) {
       ciLogger.info('Found ${package.key} with version ${constraint}');
       // Found it so lets add it to the in transition list to false until its
       // validated that we know it is in transtition.
-      inTransition[package.key] = (
-        !constraint.isAny &&
-        constraint.allowsAny(package.value[0]) &&
-        constraint.allowsAny(package.value[1])
-      );
+      inTransition[package.key] = (!constraint.isAny &&
+          constraint.allowsAny(package.value[0]) &&
+          constraint.allowsAny(package.value[1]));
     }
   }
   if (inTransition.isNotEmpty) {
     if (inTransition.values.every((val) => val)) {
-      ciLogger.info('Pubspec is in transition! The React 16 codemod should run.');
+      ciLogger
+          .info('Pubspec is in transition! The React 16 codemod should run.');
       exitCode = 1;
     } else {
       ciLogger.warning(
@@ -113,7 +107,8 @@ void main(List<String> args) {
               '`pub global run over_react_codemod:react16_upgrade`');
     }
   } else {
-    ciLogger.warning('Could not find react or over_react in pubspec; exiting codemod.');
+    ciLogger.warning(
+        'Could not find react or over_react in pubspec; exiting codemod.');
   }
   ciLogger.info('We are all done here, Byeee!');
 }

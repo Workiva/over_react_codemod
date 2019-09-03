@@ -70,24 +70,24 @@ final versionChecksToTest = [
   DartProjectCreatorTestConfig(
       dependencies: [DependencyCreator(overReactPackageName, version: 'any')],
       shouldRunCodemod: false),
-  DartProjectCreatorTestConfig(
-      dependencies: [DependencyCreator(overReactPackageName, version: '^2.0.0')],
-      shouldRunCodemod: false),
-  DartProjectCreatorTestConfig(
-      dependencies: [DependencyCreator(overReactPackageName, version: '^2.1.0')],
-      shouldRunCodemod: false),
+  DartProjectCreatorTestConfig(dependencies: [
+    DependencyCreator(overReactPackageName, version: '^2.0.0')
+  ], shouldRunCodemod: false),
+  DartProjectCreatorTestConfig(dependencies: [
+    DependencyCreator(overReactPackageName, version: '^2.1.0')
+  ], shouldRunCodemod: false),
   DartProjectCreatorTestConfig(dependencies: [
     DependencyCreator(overReactPackageName, version: '">=2.0.0 <4.0.0"')
   ], shouldRunCodemod: true),
   DartProjectCreatorTestConfig(dependencies: [
     DependencyCreator(overReactPackageName, version: '">=2.1.0 <4.0.0"')
   ], shouldRunCodemod: true),
-  DartProjectCreatorTestConfig(
-      dependencies: [DependencyCreator(overReactPackageName, version: '^3.0.0')],
-      shouldRunCodemod: false),
-  DartProjectCreatorTestConfig(
-      dependencies: [DependencyCreator(overReactPackageName, version: '^3.1.0')],
-      shouldRunCodemod: false),
+  DartProjectCreatorTestConfig(dependencies: [
+    DependencyCreator(overReactPackageName, version: '^3.0.0')
+  ], shouldRunCodemod: false),
+  DartProjectCreatorTestConfig(dependencies: [
+    DependencyCreator(overReactPackageName, version: '^3.1.0')
+  ], shouldRunCodemod: false),
 
   // Edge Cases
   DartProjectCreatorTestConfig(
