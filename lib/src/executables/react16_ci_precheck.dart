@@ -14,16 +14,16 @@
 
 import 'dart:io';
 
+import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 final ciLogger = Logger('over_react_codemod.react16_ci_check');
 
 const String CI_CHECK_NAME = 'React16 CI Precheck';
 const String react16CodemodName = 'React16 Codemod';
-
-YamlMap pubspecYaml;
 
 Map<String, List<VersionConstraint>> packagesToCheckFor = {
   'react': [
@@ -36,7 +36,8 @@ Map<String, List<VersionConstraint>> packagesToCheckFor = {
   ]
 };
 
-VersionConstraint getDependencyVersion(String packageName) {
+VersionConstraint getDependencyVersion(
+    YamlMap pubspecYaml, String packageName) {
   if (pubspecYaml == null) return null;
 
   try {
@@ -55,8 +56,6 @@ VersionConstraint getDependencyVersion(String packageName) {
 }
 
 void main(List<String> args) {
-  Map<String, bool> inTransition = {};
-
   ciLogger.onRecord.listen((rec) {
     if (rec.message != '') {
       final prefix = '[${rec.level}] $CI_CHECK_NAME: ';
@@ -71,24 +70,58 @@ void main(List<String> args) {
   });
   ciLogger.info('Checking if project needs to run React16 codemod...');
 
+  final pubspecYamlQuery = FileQuery.dir(
+    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
+    recursive: true,
+  );
+
+  List<String> paths;
   try {
-    pubspecYaml = loadYaml(File('pubspec.yaml').readAsStringSync());
+    paths = pubspecYamlQuery.generateFilePaths().toList();
+  } catch (e, st) {
+    ciLogger.severe('Error listing pubspec.yaml files.', e, st);
+    return;
+  }
+
+  if (paths.isEmpty) {
+    ciLogger.warning('No pubspec.yaml files found; exiting codemod.');
+  } else {
+    ciLogger.info('Found pubspec.yaml files:\n'
+        '${paths.map((path) => '- $path').join('\n')}');
+    if (paths.every(isInTransition)) {
+      ciLogger.info(
+          'All pubspecs are in transition! The React 16 codemod should run.');
+      exitCode = 1;
+    } else {
+      ciLogger.warning('Not all pubspec.yaml files are in transition.');
+    }
+  }
+
+  ciLogger.info('We are all done here, Byeee!');
+}
+
+bool isInTransition(String pubspecYamlPath) {
+  YamlMap pubspecYaml;
+  try {
+    pubspecYaml = loadYaml(File(pubspecYamlPath).readAsStringSync());
   } catch (e, stackTrace) {
     if (e is FileSystemException) {
       ciLogger.warning('Could not find pubspec.yaml; exiting codemod.', e);
-      return;
+      return false;
     } else if (e is YamlException) {
       ciLogger.warning('pubspec.yaml is unable to be parsed; exiting codemod.',
           e, stackTrace);
-      return;
+      return false;
     } else {
       ciLogger.warning('pubspec.yaml is unable to be parsed; exiting codemod.',
           e, stackTrace);
-      return;
+      return false;
     }
   }
+
+  final inTransition = <String, bool>{};
   for (var package in packagesToCheckFor.entries) {
-    var constraint = getDependencyVersion(package.key);
+    var constraint = getDependencyVersion(pubspecYaml, package.key);
     if (constraint != null) {
       ciLogger.info('Found ${package.key} with version ${constraint}');
       // Found it so lets add it to the in transition list to false until its
@@ -102,7 +135,7 @@ void main(List<String> args) {
     if (inTransition.values.every((val) => val)) {
       ciLogger
           .info('Pubspec is in transition! The React 16 codemod should run.');
-      exitCode = 1;
+      return true;
     } else {
       ciLogger.warning(
           'pubspec.yaml does not have transition versions of react or over_react; exiting codemod.\n' +
@@ -113,5 +146,6 @@ void main(List<String> args) {
     ciLogger.warning(
         'Could not find react or over_react in pubspec; exiting codemod.');
   }
-  ciLogger.info('We are all done here, Byeee!');
+
+  return false;
 }
