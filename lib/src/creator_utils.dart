@@ -2,32 +2,32 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 /// Creates a temporary package with a `pubspec.yaml` and `main.dart` file
-class DartProjectFaker {
+class DartTempProjectCreator {
   Directory dir;
-  PubspecFaker pubspecFaker;
+  PubspecCreator pubspecCreator;
   String mainDartContents;
 
-  DartProjectFaker({this.pubspecFaker, this.mainDartContents}) {
-    pubspecFaker ??= PubspecFaker();
+  DartTempProjectCreator({this.pubspecCreator, this.mainDartContents}) {
+    pubspecCreator ??= PubspecCreator();
     mainDartContents ??= 'void main() {}';
     dir = Directory.systemTemp.createTempSync();
-    if (pubspecFaker.createPubspecFile) {
+    if (pubspecCreator.createPubspecFile) {
       File(p.join(dir.path, 'pubspec.yaml'))
-          .writeAsStringSync(pubspecFaker.toString());
+          .writeAsStringSync(pubspecCreator.toString());
     }
     File(p.join(dir.path, 'main.dart')).writeAsStringSync(mainDartContents);
   }
 }
 
-class PubspecFaker {
+class PubspecCreator {
   String name;
   String version;
   bool isPrivate;
   String sdkVersion;
-  List<DependencyFaker> dependencies;
+  List<DependencyCreator> dependencies;
   bool createPubspecFile;
 
-  PubspecFaker(
+  PubspecCreator(
       {this.name = 'fake_package',
       this.version = '0.0.0',
       this.isPrivate = true,
@@ -35,18 +35,18 @@ class PubspecFaker {
       this.dependencies = const [],
       this.createPubspecFile = true});
 
-  void removeDependencyWhere(bool Function(DependencyFaker) callback) {
+  void removeDependencyWhere(bool Function(DependencyCreator) callback) {
     dependencies.removeWhere(callback);
   }
 
-  void addDependencies(List<DependencyFaker> new_dependencies) {
+  void addDependencies(List<DependencyCreator> new_dependencies) {
     dependencies.addAll(new_dependencies);
   }
 
   void addDependency(String name,
       {String version = 'any', bool asDev = false, bool Function() shouldAdd}) {
     if (shouldAdd?.call() ?? true) {
-      dependencies.add(DependencyFaker(name, version: version, asDev: asDev));
+      dependencies.add(DependencyCreator(name, version: version, asDev: asDev));
     }
   }
 
@@ -79,7 +79,7 @@ class PubspecFaker {
   }
 }
 
-class DependencyFaker {
+class DependencyCreator {
   String name;
   String version;
   String ref;
@@ -87,7 +87,7 @@ class DependencyFaker {
   String pathOverride;
   bool asDev;
 
-  DependencyFaker(
+  DependencyCreator(
     this.name, {
     this.version = 'any',
     this.asDev = false,
@@ -122,7 +122,7 @@ class DependencyFaker {
 }
 
 /// A test helper class to configure versions of a pubspec to test
-class DartProjectFakerTestConfig {
+class DartProjectCreatorTestConfig {
   String _testName;
 
   /// Wether or not the codemod is expected to run based on the dependencies provided.
@@ -136,17 +136,17 @@ class DartProjectFakerTestConfig {
 
   String mainDartContents;
 
-  PubspecFaker pubspecFaker;
+  PubspecCreator pubspecCreator;
 
   /// The dependencies to test in the pubspec.yaml.
-  List<DependencyFaker> dependencies;
+  List<DependencyCreator> dependencies;
 
-  DartProjectFakerTestConfig({
+  DartProjectCreatorTestConfig({
     String testName,
     int expectedExitCode,
     this.dependencies,
     this.mainDartContents,
-    this.pubspecFaker,
+    this.pubspecCreator,
     this.shouldRunCodemod = false,
     this.includePubspecFile = true,
   }) {
