@@ -33,12 +33,12 @@ final versionChecksToTest = [
     testName:
         'returns status code 0 when project does not have a pubspec.yaml or if it is no parsable',
     includePubspecFile: false,
-    expectedExitCode: 1,
+    expectedExitCode: 0,
   ),
 
   DartProjectCreatorTestConfig(
     testName:
-        'does not run the codemod when project does not have react or over_react as dependencies',
+        'returns status code 0 when project does not have react or over_react as dependencies',
     dependencies: [],
     expectedExitCode: 0,
   ),

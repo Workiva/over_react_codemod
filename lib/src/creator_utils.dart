@@ -157,10 +157,9 @@ class DartProjectCreatorTestConfig {
 
   String get testName =>
       _testName ??
-      ((shouldRunCodemod ? 'runs' : 'does not run') +
-          ' the codemod with dependencies: ' +
+          'returns exit code ${expectedExitCode ?? (shouldRunCodemod ? 1 : 0)} with dependencies: ' +
           dependencies
               .map((dep) =>
-                  dep.toString().trim().replaceAll(': ', ' on version '))
-              .join(', '));
+                  dep.toString())
+              .join(', ');
 }
