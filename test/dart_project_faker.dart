@@ -63,7 +63,9 @@ class PubspecFaker {
         '  sdk: $sdkVersion\n' +
         (dependencies.isNotEmpty
             ? 'dependencies: \n' +
-                dependencies.where((dep) => !(dep.asDev || dep.asOverride)).join('\n')
+                dependencies
+                    .where((dep) => !(dep.asDev || dep.asOverride))
+                    .join('\n')
             : '') +
         (dependencies.any((dep) => dep.asDev)
             ? 'dev_dependencies: \n' +
@@ -85,15 +87,17 @@ class DependencyFaker {
   String pathOverride;
   bool asDev;
 
-  DependencyFaker(this.name, {
+  DependencyFaker(
+    this.name, {
     this.version = 'any',
     this.asDev = false,
     this.gitOverride = '',
     this.pathOverride = '',
     this.ref,
   }) {
-    if (pathOverride.isNotEmpty && gitOverride.isNotEmpty){
-      throw ArgumentError('Cannot provide both git and path overrides on single dep.');
+    if (pathOverride.isNotEmpty && gitOverride.isNotEmpty) {
+      throw ArgumentError(
+          'Cannot provide both git and path overrides on single dep.');
     }
     // Check if the version string is wrapped with quotes or not and if not add them.
     if (version.contains(RegExp('[\>\<\=\ ]')) &&
@@ -110,7 +114,7 @@ class DependencyFaker {
       var temp = '  $name:\n';
       if (gitOverride.isNotEmpty) temp += '    git:\n      url: $gitOverride\n';
       if (pathOverride.isNotEmpty) temp += '    path: $pathOverride\n';
-      if (ref != null)  temp += '      ref: $ref\n';
+      if (ref != null) temp += '      ref: $ref\n';
       return temp;
     }
     return '  $name: $version';
