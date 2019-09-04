@@ -22,15 +22,16 @@ import 'component2_utilities.dart';
 /// Suggestor that replaces `UiComponent` with `UiComponent2` in extends clauses
 /// and updates the annotation to `@Component2()`.
 ///
-/// The same update is made for `UiStatefulComponent` and `react.Component`
-/// (including instances where `react.Component` is used for typing).
+/// The same update is made for `UiStatefulComponent`, `FluxUiComponent`,
+/// `FluxUiStatefulComponent` and `react.Component` (including instances where
+/// `react.Component` is used for typing).
 /// `react.dart` imports are also updated to show Component2 as well
 /// as Component.
 class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   Iterable<String> get migrateAnnotations =>
-      overReact16ComponentClassNamesToMigrate;
+      overReact16ComponentAnnotationNamesToMigrate;
 
   @override
   visitImportDirective(ImportDirective node) {
@@ -79,7 +80,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     } else {
       if (!node.metadata.any((m) =>
           migrateAnnotations.contains(m.name.name) ||
-          overReact16Component2ClassNames.contains(m.name.name))) {
+          overReact16Component2AnnotationNames.contains(m.name.name))) {
         // Only looking for classes annotated with `@Props()`, `@State()`,
         // `@AbstractProps()`, or `@AbstractState()`. If [renameMixins] is true,
         // also includes `@PropsMixin()` and `@StateMixin()`.
@@ -103,7 +104,9 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
       });
 
       if (extendsName.name == 'UiComponent' ||
-          extendsName.name == 'UiStatefulComponent') {
+          extendsName.name == 'UiStatefulComponent' ||
+          extendsName.name == 'FluxUiComponent' ||
+          extendsName.name == 'FluxUiStatefulComponent') {
         // Update `UiComponent` or `UiStatefulComponent` extends clause.
         yieldPatch(
           extendsName.end,

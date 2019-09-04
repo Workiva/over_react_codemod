@@ -90,7 +90,7 @@ main() {
           expectedPatchCount: 2,
           input: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends FluxUiComponent2 {
               void componentWillMount(){
                   super.componentWillMount();
                   // method body
@@ -99,7 +99,7 @@ main() {
         ''',
           expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends FluxUiComponent2 {
               void init(){
                   // method body
               }

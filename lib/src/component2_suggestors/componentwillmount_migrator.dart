@@ -45,6 +45,8 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
         var componentClassNames = [
           'UiComponent2',
           'UiStatefulComponent2',
+          'FluxUiComponent2',
+          'FluxUiStatefulComponent2',
         ];
         if (reactImportName != null) {
           componentClassNames.add('$reactImportName.Component2');

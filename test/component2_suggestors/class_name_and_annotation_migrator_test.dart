@@ -64,6 +64,34 @@ main() {
       );
     });
 
+    test('annotation and extending FluxUiComponent class updates', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          @Component()
+          class FooComponent extends FluxUiComponent<FooProps> {}
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends FluxUiComponent2<FooProps> {}
+        ''',
+      );
+    });
+
+    test('annotation and extending FluxUiStatefulComponent class updates', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          @Component()
+          class FooComponent extends FluxUiStatefulComponent<FooProps> {}
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends FluxUiStatefulComponent2<FooProps> {}
+        ''',
+      );
+    });
+
     test('extending class only needs updating', () {
       testSuggestor(
         expectedPatchCount: 1,
@@ -160,13 +188,13 @@ main() {
         input: '''
           import 'package:react/react.dart' as react hide Component;
           
-          @Component
+          @Component()
           class FooComponent extends UiComponent {}
         ''',
         expectedOutput: '''
           import 'package:react/react.dart' as react hide Component;
           
-          @Component2
+          @Component2()
           class FooComponent extends UiComponent2 {}
         ''',
       );

@@ -75,7 +75,7 @@ main() {
             expectedPatchCount: 1,
             input: '''
               @Component2()
-              class FooComponent extends UiComponent2 {
+              class FooComponent extends FluxUiStatefulComponent2 {
                 @override
                 componentWillReceiveProps(Map newProps) {
                   super.componentWillReceiveProps(newProps);
@@ -86,7 +86,7 @@ main() {
             ''',
             expectedOutput: '''
               @Component2()
-              class FooComponent extends UiComponent2 {
+              class FooComponent extends FluxUiStatefulComponent2 {
                 @override
                 componentWillReceiveProps(Map newProps) {
                   super.componentWillReceiveProps(newProps);

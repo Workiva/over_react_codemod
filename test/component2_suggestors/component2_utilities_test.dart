@@ -163,6 +163,28 @@ void main() {
           testExtendsComponent2(input: input, expectedValue: false);
         });
 
+        group('extends FluxUiComponent,', () {
+          final input = '''
+            @Component          
+            class FooComponent extends FluxUiComponent {
+              // class body
+            }
+          ''';
+
+          testExtendsComponent2(input: input, expectedValue: false);
+        });
+
+        group('extends FluxUiStatefulComponent,', () {
+          final input = '''
+            @Component          
+            class FooComponent extends FluxUiStatefulComponent {
+              // class body
+            }
+          ''';
+
+          testExtendsComponent2(input: input, expectedValue: false);
+        });
+
         group('extends react.Component,', () {
           final input = '''          
             import 'package:react/react.dart' as react;

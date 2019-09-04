@@ -63,13 +63,13 @@ main() {
         expectedPatchCount: 1,
         input: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends FluxUiComponent2 {
               componentWillUpdate(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends FluxUiComponent2 {
               ${getDeperecationMessage('componentWillUpdate')}
               componentWillUpdate(){}
           }
@@ -105,13 +105,13 @@ main() {
         expectedPatchCount: 1,
         input: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends FluxUiStatefulComponent2 {
               componentWillReceiveProps(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends FluxUiStatefulComponent2 {
               ${getDeperecationMessage('componentWillReceiveProps')}
               componentWillReceiveProps(){}
           }
