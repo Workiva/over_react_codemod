@@ -212,13 +212,13 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validateYaml,
         input: ''
-            '$dependency: >=${startingRange.min}\n'
+            '$dependency: ">=${startingRange.min}"\n'
             'test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                '$dependency: >=${startingRange.min}\n'
+                '$dependency: ">=${startingRange.min}"\n'
                 'test: 1.5.1\n'
                 '',
       );
