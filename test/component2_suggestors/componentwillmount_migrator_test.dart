@@ -166,8 +166,8 @@ componentWillMountTests({
       });
 
       group(
-          '${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} if '
-          'containing class is not fully upgradable', () {
+          'that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
+          () {
         test('-- extends from non-Component class', () {
           testSuggestor(
             expectedPatchCount:

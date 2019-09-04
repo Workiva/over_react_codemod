@@ -26,9 +26,17 @@ main() {
     copyUnconsumedDomPropsTests(allowPartialUpgrades: false);
   });
 
-  group('CopyUnconsumedDomPropsMigrator with --upgrade-abstract-components',
+  group(
+      'CopyUnconsumedDomPropsMigrator with --upgrade-abstract-components flag',
       () {
     copyUnconsumedDomPropsTests(shouldUpgradeAbstractComponents: true);
+  });
+
+  group(
+      'CopyUnconsumedDomPropsMigrator with --no-partial-upgrades and --upgrade-abstract-components flag',
+      () {
+    copyUnconsumedDomPropsTests(
+        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
   });
 }
 
@@ -148,6 +156,106 @@ copyUnconsumedDomPropsTests({
             }
           ''',
         );
+      });
+    });
+
+    group('in an abstract class', () {
+      test(
+          'that is fully upgradable ${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
+          () {
+        testSuggestor(
+          expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
+          input: '''
+            @AbstractComponent2()
+            abstract class FooComponent extends UiComponent2<FooProps> {
+              @override
+              render() {
+                return (Dom.span()
+                  ..addProps(copyUnconsumedDomProps())
+                )(props.children);
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @AbstractComponent2()
+            abstract class FooComponent extends UiComponent2<FooProps> {
+              @override
+              render() {
+                return (Dom.span()
+                  ..${shouldUpgradeAbstractComponents ? 'modifyProps(addUnconsumedDomProps)' : 'addProps(copyUnconsumedDomProps())'}
+                )(props.children);
+              }
+            }
+          ''',
+        );
+      });
+
+      group(
+          'that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
+          () {
+        test('-- extends from non-Component class', () {
+          testSuggestor(
+            expectedPatchCount:
+                allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+            input: '''
+              @AbstractComponent2()
+              abstract class FooComponent extends SomeOtherClass<FooProps> {
+                @override
+                render() {
+                  return (Dom.span()
+                    ..addProps(copyUnconsumedDomProps())
+                  )(props.children);
+                }
+              }
+            ''',
+            expectedOutput: '''
+              @AbstractComponent2()
+              abstract class FooComponent extends SomeOtherClass<FooProps> {
+                @override
+                render() {
+                  return (Dom.span()
+                    ..${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'modifyProps(addUnconsumedDomProps)' : 'addProps(copyUnconsumedDomProps())'}
+                  )(props.children);
+                }
+              }
+            ''',
+          );
+        });
+
+        test('-- has lifecycle methods without codemods', () {
+          testSuggestor(
+            expectedPatchCount:
+                allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+            input: '''
+              @AbstractComponent2()
+              abstract class FooComponent extends UiComponent2<FooProps> {
+                @override
+                render() {
+                  return (Dom.span()
+                    ..addProps(copyUnconsumedDomProps())
+                  )(props.children);
+                }
+                
+                @override
+                componentWillUnmount() {}
+              }
+            ''',
+            expectedOutput: '''
+              @AbstractComponent2()
+              abstract class FooComponent extends UiComponent2<FooProps> {
+                @override
+                render() {
+                  return (Dom.span()
+                    ..${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'modifyProps(addUnconsumedDomProps)' : 'addProps(copyUnconsumedDomProps())'}
+                  )(props.children);
+                }
+                
+                @override
+                componentWillUnmount() {}
+              }
+            ''',
+          );
+        });
       });
     });
   });
