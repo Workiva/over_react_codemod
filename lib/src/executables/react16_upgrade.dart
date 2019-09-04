@@ -57,7 +57,7 @@ Future main(List<String> args) async {
     changesRequiredOutput: _changesRequiredOutput,
   );
 
-  if (exitCode > 0) {
+  if (exitCode != 0) {
     return;
   }
 
