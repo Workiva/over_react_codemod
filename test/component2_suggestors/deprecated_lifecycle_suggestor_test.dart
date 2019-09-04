@@ -27,8 +27,16 @@ main() {
     deprecatedLifecycleTests(allowPartialUpgrades: false);
   });
 
-  group('DeprecatedLifecycleSuggestor with --upgrade-abstract-components', () {
+  group('DeprecatedLifecycleSuggestor with --upgrade-abstract-components flag',
+      () {
     deprecatedLifecycleTests(shouldUpgradeAbstractComponents: true);
+  });
+
+  group(
+      'DeprecatedLifecycleSuggestor with --no-partial-upgrades and --upgrade-abstract-components flag',
+      () {
+    deprecatedLifecycleTests(
+        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
   });
 }
 
@@ -98,6 +106,27 @@ deprecatedLifecycleTests({
       );
     });
 
+    test('componentWillUpdate in an abstract class', () {
+      testSuggestor(
+        expectedPatchCount: allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+        input: '''
+          @AbstractComponent2()
+          abstract class FooComponent extends FluxUiComponent2 {
+            @override
+            componentWillUpdate(){}
+          }
+        ''',
+        expectedOutput: '''
+          @AbstractComponent2()
+          abstract class FooComponent extends FluxUiComponent2 {
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? getDeperecationMessage('componentWillUpdate') : ''}
+            @override
+            componentWillUpdate(){}
+          }
+        ''',
+      );
+    });
+
     test('componentWillReceiveProps with override', () {
       testSuggestor(
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
@@ -132,6 +161,27 @@ deprecatedLifecycleTests({
           @Component2()
           class FooComponent extends FluxUiStatefulComponent2 {
             ${allowPartialUpgrades ? getDeperecationMessage('componentWillReceiveProps') : ''}
+            componentWillReceiveProps(){}
+          }
+        ''',
+      );
+    });
+
+    test('componentWillReceiveProps in an abstract class', () {
+      testSuggestor(
+        expectedPatchCount: allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+        input: '''
+          @AbstractComponent2()
+          abstract class FooComponent extends FluxUiStatefulComponent2 {
+            @override
+            componentWillReceiveProps(){}
+          }
+        ''',
+        expectedOutput: '''
+          @AbstractComponent2()
+          abstract class FooComponent extends FluxUiStatefulComponent2 {
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? getDeperecationMessage('componentWillReceiveProps') : ''}
+            @override
             componentWillReceiveProps(){}
           }
         ''',
