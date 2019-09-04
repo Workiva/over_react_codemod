@@ -26,8 +26,15 @@ main() {
     setStateTests(allowPartialUpgrades: false);
   });
 
-  group('SetStateUpdater with --upgrade-abstract-components', () {
+  group('SetStateUpdater with --upgrade-abstract-components flag', () {
     setStateTests(shouldUpgradeAbstractComponents: true);
+  });
+
+  group(
+      'SetStateUpdater with --no-partial-upgrades and --upgrade-abstract-components flag',
+      () {
+    setStateTests(
+        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
   });
 }
 
@@ -140,6 +147,100 @@ setStateTests({
               }
             ''',
           );
+        });
+      });
+
+      group('in an abstract class', () {
+        test('that is fully upgradable', () {
+          testSuggestor(
+            expectedPatchCount: shouldUpgradeAbstractComponents ? 1 : 0,
+            input: '''
+              @AbstractComponent2()
+              abstract class FooComponent extends UiComponent2 {
+                someMethod() {
+                  setState((prevState, props) {
+                    // return ...;
+                  });
+                }
+              }
+            ''',
+            expectedOutput: '''
+              @AbstractComponent2()
+              abstract class FooComponent extends UiComponent2 {
+                someMethod() {
+                  ${shouldUpgradeAbstractComponents ? 'setStateWithUpdater' : 'setState'}((prevState, props) {
+                    // return ...;
+                  });
+                }
+              }
+            ''',
+          );
+        });
+
+        group('that is not fully upgradable', () {
+          test('--extends from a non-Component class', () {
+            testSuggestor(
+              expectedPatchCount:
+                  allowPartialUpgrades && shouldUpgradeAbstractComponents
+                      ? 1
+                      : 0,
+              input: '''
+                @AbstractComponent2()
+                abstract class FooComponent extends SomeOtherClass {
+                  someMethod() {
+                    setState((prevState, props) {
+                      // return ...;
+                    });
+                  }
+                }
+              ''',
+              expectedOutput: '''
+                @AbstractComponent2()
+                abstract class FooComponent extends SomeOtherClass {
+                  someMethod() {
+                    ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'setStateWithUpdater' : 'setState'}((prevState, props) {
+                      // return ...;
+                    });
+                  }
+                }
+              ''',
+            );
+          });
+
+          test('-- has lifecycle methods without codemods', () {
+            testSuggestor(
+              expectedPatchCount:
+                  allowPartialUpgrades && shouldUpgradeAbstractComponents
+                      ? 1
+                      : 0,
+              input: '''
+                @AbstractComponent2()
+                abstract class FooComponent extends UiComponent2 {
+                  @override
+                  componentWillReceiveProps(Map newProps) {
+                    super.componentWillReceiveProps(newProps);
+  
+                    setState((prevState, props) {
+                      // return ...;
+                    });
+                  }
+                }
+              ''',
+              expectedOutput: '''
+                @AbstractComponent2()
+                abstract class FooComponent extends UiComponent2 {
+                  @override
+                  componentWillReceiveProps(Map newProps) {
+                    super.componentWillReceiveProps(newProps);
+  
+                    ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'setStateWithUpdater' : 'setState'}((prevState, props) {
+                      // return ...;
+                    });
+                  }
+                }
+              ''',
+            );
+          });
         });
       });
 

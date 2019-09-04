@@ -108,7 +108,8 @@ deprecatedLifecycleTests({
 
     test('componentWillUpdate in an abstract class', () {
       testSuggestor(
-        expectedPatchCount: allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+        expectedPatchCount:
+            allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
         input: '''
           @AbstractComponent2()
           abstract class FooComponent extends FluxUiComponent2 {
@@ -169,7 +170,8 @@ deprecatedLifecycleTests({
 
     test('componentWillReceiveProps in an abstract class', () {
       testSuggestor(
-        expectedPatchCount: allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+        expectedPatchCount:
+            allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
         input: '''
           @AbstractComponent2()
           abstract class FooComponent extends FluxUiStatefulComponent2 {
