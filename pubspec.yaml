@@ -44,4 +44,3 @@ executables:
   dart2_upgrade:
   react16_upgrade:
   react16_dependency_override_update:
-  react16_pubspec_upgrade:
