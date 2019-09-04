@@ -38,8 +38,10 @@ class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
       return ancestor is ClassDeclaration;
     });
 
-    if (!allowPartialUpgrades &&
-        !fullyUpgradableToComponent2(containingClass)) {
+    if ((!allowPartialUpgrades &&
+            !fullyUpgradableToComponent2(containingClass)) ||
+        (!shouldUpgradeAbstractComponents &&
+            canBeExtendedFrom(containingClass))) {
       return;
     }
 
