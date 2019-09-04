@@ -19,7 +19,7 @@ import '../util.dart';
 
 main() {
   group('ClassNameAndAnnotationMigrator', () {
-    classNameAndAnnotationTests(allowPartialUpgrades: true);
+    classNameAndAnnotationTests();
   });
 
   group('ClassNameAndAnnotationMigrator with --no-partial-upgrades flag', () {
@@ -27,7 +27,7 @@ main() {
   });
 }
 
-void classNameAndAnnotationTests({bool allowPartialUpgrades}) {
+void classNameAndAnnotationTests({bool allowPartialUpgrades = true}) {
   final testSuggestor = getSuggestorTester(ClassNameAndAnnotationMigrator(
       allowPartialUpgrades: allowPartialUpgrades));
 

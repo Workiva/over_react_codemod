@@ -20,7 +20,7 @@ import '../util.dart';
 
 main() {
   group('DeprecatedLifecycleSuggestor', () {
-    deprecatedLifecycleTests(allowPartialUpgrades: true);
+    deprecatedLifecycleTests();
   });
 
   group('DeprecatedLifecycleSuggestor with --no-partial-upgrades flag', () {
@@ -28,7 +28,7 @@ main() {
   });
 }
 
-deprecatedLifecycleTests({bool allowPartialUpgrades}) {
+deprecatedLifecycleTests({bool allowPartialUpgrades = true}) {
   final testSuggestor = getSuggestorTester(
       DeprecatedLifecycleSuggestor(allowPartialUpgrades: allowPartialUpgrades));
 

@@ -19,7 +19,7 @@ import '../util.dart';
 
 main() {
   group('ComponentWillMountMigrator', () {
-    componentWillMountTests(allowPartialUpgrades: true);
+    componentWillMountTests();
   });
 
   group('ComponentWillMountMigrator with --no-partial-upgrades flag', () {
@@ -27,7 +27,7 @@ main() {
   });
 }
 
-componentWillMountTests({bool allowPartialUpgrades}) {
+componentWillMountTests({bool allowPartialUpgrades = true}) {
   final testSuggestor = getSuggestorTester(
       ComponentWillMountMigrator(allowPartialUpgrades: allowPartialUpgrades));
 

@@ -19,7 +19,7 @@ import '../util.dart';
 
 main() {
   group('SetStateUpdater', () {
-    setStateTests(allowPartialUpgrades: true);
+    setStateTests();
   });
 
   group('SetStateUpdater with --no-partial-upgrades flag', () {
@@ -27,7 +27,7 @@ main() {
   });
 }
 
-setStateTests({bool allowPartialUpgrades}) {
+setStateTests({bool allowPartialUpgrades = true}) {
   final testSuggestor = getSuggestorTester(
       SetStateUpdater(allowPartialUpgrades: allowPartialUpgrades));
 

@@ -19,7 +19,7 @@ import '../util.dart';
 
 main() {
   group('CopyUnconsumedDomPropsMigrator', () {
-    copyUnconsumedDomPropsTests(allowPartialUpgrades: true);
+    copyUnconsumedDomPropsTests();
   });
 
   group('CopyUnconsumedDomPropsMigrator with --no-partial-upgrades flag', () {
@@ -27,7 +27,7 @@ main() {
   });
 }
 
-copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
+copyUnconsumedDomPropsTests({bool allowPartialUpgrades = true}) {
   final testSuggestor = getSuggestorTester(CopyUnconsumedDomPropsMigrator(
       allowPartialUpgrades: allowPartialUpgrades));
 
