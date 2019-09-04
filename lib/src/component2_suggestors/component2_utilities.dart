@@ -123,3 +123,19 @@ bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
 
   return true;
 }
+
+/// Returns whether or not [classNode] can be extended from.
+///
+/// Returns true if one of the following is true:
+///
+/// * `abstract` keyword on [classNode]
+/// * Generic parameters on [classNode]
+/// * `@AbstractProps` in the same file
+bool canBeExtendedFrom(ClassDeclaration classNode) {
+  if (classNode.abstractKeyword != null ||
+      classNode.root.toSource().contains('@AbstractProps')) {
+    return true;
+  }
+  // todo: check for generic parameters
+  return false;
+}
