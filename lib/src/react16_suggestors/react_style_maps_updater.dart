@@ -28,7 +28,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   static final _cssValueSuffixPattern =
-      new RegExp(r'\b(?:rem|em|ex|vh|vw|vmin|vmax|%|px|cm|mm|in|pt|pc|ch)$');
+      RegExp(r'\b(?:rem|em|ex|vh|vw|vmin|vmax|%|px|cm|mm|in|pt|pc|ch)$');
 
   @override
   visitCascadeExpression(CascadeExpression node) {
@@ -281,7 +281,7 @@ bool isANumber(String node) => num.tryParse(node) != null;
 
 /// A non-exhaustive set of CSS property names whose values can be numbers
 /// without units.
-const _unitlessNumberProperties = const {
+const _unitlessNumberProperties = {
   'animationIterationCount',
   'borderImageOutset',
   'borderImageSlice',
@@ -329,7 +329,7 @@ const _unitlessNumberProperties = const {
 
 /// A non-exhaustive set of CSS property names whose values never represent
 /// CSS lengths (absolute lengths like px/pt, relative lengths like %/rem).
-const _nonLengthValueProperties = const {
+const _nonLengthValueProperties = {
   'backgroundAttachment',
   'backgroundColor',
   'backgroundImage',
