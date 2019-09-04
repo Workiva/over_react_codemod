@@ -26,12 +26,16 @@ main() {
     componentDidUpdateTests(allowPartialUpgrades: false);
   });
 
-  group('ComponentDidUpdateMigrator with --upgrade-abstract-components flag', () {
+  group('ComponentDidUpdateMigrator with --upgrade-abstract-components flag',
+      () {
     componentDidUpdateTests(shouldUpgradeAbstractComponents: true);
   });
 
-  group('ComponentDidUpdateMigrator with --no-partial-upgrades and --upgrade-abstract-components flag', () {
-    componentDidUpdateTests(allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
+  group(
+      'ComponentDidUpdateMigrator with --no-partial-upgrades and --upgrade-abstract-components flag',
+      () {
+    componentDidUpdateTests(
+        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
   });
 }
 
@@ -137,7 +141,9 @@ void componentDidUpdateTests({
     });
 
     group('in an abstract class', () {
-      test('that is fully upgradable ${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}', () {
+      test(
+          'that is fully upgradable ${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
+          () {
         testSuggestor(
           expectedPatchCount: shouldUpgradeAbstractComponents ? 1 : 0,
           input: '''
@@ -159,10 +165,13 @@ void componentDidUpdateTests({
         );
       });
 
-      group('that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}', () {
+      group(
+          'that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
+          () {
         test('-- extends from non-Component class', () {
           testSuggestor(
-            expectedPatchCount: allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+            expectedPatchCount:
+                allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
             input: '''
               @AbstractComponent2()
               abstract class FooComponent extends SomeOtherClass {
@@ -184,7 +193,8 @@ void componentDidUpdateTests({
 
         test('-- has lifecycle methods without codemods', () {
           testSuggestor(
-            expectedPatchCount: allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+            expectedPatchCount:
+                allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
             input: '''
               @AbstractComponent2()
               abstract class FooComponent extends UiComponent2 {
