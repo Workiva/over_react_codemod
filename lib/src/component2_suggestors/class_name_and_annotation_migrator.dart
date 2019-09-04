@@ -32,7 +32,8 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     implements Suggestor {
   final bool shouldUpgradeAbstractComponents;
 
-  ClassNameAndAnnotationMigrator({this.shouldUpgradeAbstractComponents = false});
+  ClassNameAndAnnotationMigrator(
+      {this.shouldUpgradeAbstractComponents = false});
 
   Iterable<String> get migrateAnnotations =>
       overReact16ComponentAnnotationNamesToMigrate;

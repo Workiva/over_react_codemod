@@ -31,7 +31,8 @@ Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
-  final shouldUpgradeAbstractComponents = args.contains(_upgradeAbstractComponentsFlag);
+  final shouldUpgradeAbstractComponents =
+      args.contains(_upgradeAbstractComponentsFlag);
   args.removeWhere((arg) => arg == _upgradeAbstractComponentsFlag);
 
   final query = FileQuery.dir(
@@ -43,12 +44,18 @@ void main(List<String> args) {
     [
       // This suggestor needs to be run first in order for subsequent suggestors
       // to run when converting Component to Component2 for the first time.
-      ClassNameAndAnnotationMigrator(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
-      ComponentWillMountMigrator(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
-      DeprecatedLifecycleSuggestor(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
-      SetStateUpdater(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
-      ComponentDidUpdateMigrator(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
-      CopyUnconsumedDomPropsMigrator(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
+      ClassNameAndAnnotationMigrator(
+          shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
+      ComponentWillMountMigrator(
+          shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
+      DeprecatedLifecycleSuggestor(
+          shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
+      SetStateUpdater(
+          shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
+      ComponentDidUpdateMigrator(
+          shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
+      CopyUnconsumedDomPropsMigrator(
+          shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
     ],
     args: args,
     defaultYes: true,

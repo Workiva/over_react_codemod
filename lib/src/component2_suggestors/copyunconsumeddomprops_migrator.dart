@@ -24,7 +24,8 @@ class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
     implements Suggestor {
   final bool shouldUpgradeAbstractComponents;
 
-  CopyUnconsumedDomPropsMigrator({this.shouldUpgradeAbstractComponents = false});
+  CopyUnconsumedDomPropsMigrator(
+      {this.shouldUpgradeAbstractComponents = false});
 
   @override
   visitMethodInvocation(MethodInvocation node) {
