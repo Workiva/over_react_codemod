@@ -113,6 +113,34 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades}) {
       );
     });
 
+    test('annotation and extending FluxUiComponent class updates', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          @Component()
+          class FooComponent extends FluxUiComponent<FooProps> {}
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends FluxUiComponent2<FooProps> {}
+        ''',
+      );
+    });
+
+    test('annotation and extending FluxUiStatefulComponent class updates', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          @Component()
+          class FooComponent extends FluxUiStatefulComponent<FooProps> {}
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends FluxUiStatefulComponent2<FooProps> {}
+        ''',
+      );
+    });
+
     test(
         '${allowPartialUpgrades ? 'updates' : 'does not update'} when one or '
         'more lifecycle method has no codemod', () {
@@ -312,7 +340,7 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades}) {
         expectedPatchCount: allowPartialUpgrades ? 2 : 0,
         input: '''
           @AbstractComponent(isWrapper: true)
-          abstract class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+          abstract class FooComponent extends FluxUiStatefulComponent<FooProps, FooState> {
             @override
             componentWillMount() {}
 
@@ -322,7 +350,7 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades}) {
         ''',
         expectedOutput: '''
           @AbstractComponent${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
-          abstract class FooComponent extends UiStatefulComponent${allowPartialUpgrades ? '2' : ''}<FooProps, FooState> {
+          abstract class FooComponent extends FluxUiStatefulComponent${allowPartialUpgrades ? '2' : ''}<FooProps, FooState> {
             @override
             componentWillMount() {}
 
@@ -413,13 +441,13 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades}) {
         input: '''
           import 'package:react/react.dart' as react hide Component;
           
-          @Component
+          @Component()
           class FooComponent extends UiComponent {}
         ''',
         expectedOutput: '''
           import 'package:react/react.dart' as react hide Component;
           
-          @Component2
+          @Component2()
           class FooComponent extends UiComponent2 {}
         ''',
       );

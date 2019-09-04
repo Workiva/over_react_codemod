@@ -140,7 +140,7 @@ setStateTests({bool allowPartialUpgrades}) {
             expectedPatchCount: 1,
             input: '''
               @Component2()
-              class FooComponent extends UiComponent2 {
+              class FooComponent extends FluxUiStatefulComponent2 {
                 someMethod() {
                   setState((prevState, props) => newState());
                 }
@@ -148,7 +148,7 @@ setStateTests({bool allowPartialUpgrades}) {
             ''',
             expectedOutput: '''
               @Component2()
-              class FooComponent extends UiComponent2 {
+              class FooComponent extends FluxUiStatefulComponent2 {
                 someMethod() {
                   setStateWithUpdater((prevState, props) => newState());
                 }

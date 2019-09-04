@@ -75,13 +75,13 @@ deprecatedLifecycleTests({bool allowPartialUpgrades}) {
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends FluxUiComponent2 {
             componentWillUpdate(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends FluxUiComponent2 {
             ${allowPartialUpgrades ? getDeperecationMessage('componentWillUpdate') : ''}
             componentWillUpdate(){}
           }
@@ -115,13 +115,13 @@ deprecatedLifecycleTests({bool allowPartialUpgrades}) {
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends FluxUiStatefulComponent2 {
             componentWillReceiveProps(){}
           }
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends FluxUiStatefulComponent2 {
             ${allowPartialUpgrades ? getDeperecationMessage('componentWillReceiveProps') : ''}
             componentWillReceiveProps(){}
           }

@@ -249,7 +249,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
       expectedPatchCount: 0,
       input: '''
         @Component()
-        class FooComponent extends UiComponent {
+        class FooComponent extends FluxUiComponent {
           @override
           render() {
             return (Dom.span()
