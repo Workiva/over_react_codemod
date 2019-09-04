@@ -17,7 +17,8 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 void sharedPubspecTest({
-  @required Function({bool shouldAddSpace}) getExpectedOutput,
+  @required
+      Function({bool shouldAddSpace, bool useSingleQuotes}) getExpectedOutput,
   @required Function testSuggestor,
   @required String dependency,
   @required VersionRange startingRange,
@@ -125,7 +126,7 @@ void sharedPubspecTest({
             'test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput()
+            ? getExpectedOutput(useSingleQuotes: true)
             : ''
                 '$dependency: \'^${startingRange.min}\'\n'
                 'test: 1.5.1\n'
@@ -161,7 +162,7 @@ void sharedPubspecTest({
             'test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput()
+            ? getExpectedOutput(useSingleQuotes: true)
             : ''
                 '$dependency: \'$startingRange\'\n'
                 'test: 1.5.1\n'
@@ -214,7 +215,7 @@ void sharedPubspecTest({
             'test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput()
+            ? getExpectedOutput(useSingleQuotes: true)
             : ''
                 '$dependency: \'>=${startingRange.min}\'\n'
                 'test: 1.5.1\n'

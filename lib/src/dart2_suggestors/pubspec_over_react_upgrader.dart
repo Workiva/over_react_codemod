@@ -67,10 +67,12 @@ class PubspecOverReactUpgrader implements Suggestor {
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
     final contents = sourceFile.getText(0);
     final overReactMatch = overReactDependencyRegExp.firstMatch(contents);
+
     if (overReactMatch != null) {
       // over_react is already in pubspec.yaml
       final constraintValue = overReactMatch.group(2);
       final constraint = VersionConstraint.parse(constraintValue);
+      final line = overReactMatch.group(0);
 
       if (shouldUpdateVersionRange(
           targetConstraint: targetConstraint,
@@ -78,7 +80,9 @@ class PubspecOverReactUpgrader implements Suggestor {
           shouldIgnoreMin: shouldIgnoreMin)) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
-        if (mightNeedYamlEscaping(newValue)) {
+        if (mightNeedYamlEscaping(newValue) &&
+            !line.contains("'") &&
+            !line.contains("\"")) {
           newValue = '"$newValue"';
         }
 
@@ -86,7 +90,10 @@ class PubspecOverReactUpgrader implements Suggestor {
         yield Patch(
           sourceFile,
           sourceFile.span(overReactMatch.start, overReactMatch.end),
-          'over_react: $newValue',
+          line.replaceFirst(
+            constraintValue,
+            newValue,
+          ),
         );
       }
     } else if (shouldAddDependencies) {

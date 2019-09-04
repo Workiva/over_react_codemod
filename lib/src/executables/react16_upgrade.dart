@@ -34,7 +34,7 @@ const _changesRequiredOutput = """
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
-Future main(List<String> args) async {
+void main(List<String> args) {
   // Update Pubspec
   final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
   final overReactVersionConstraint =

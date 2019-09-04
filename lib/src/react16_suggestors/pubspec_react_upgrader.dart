@@ -45,21 +45,28 @@ class PubspecReactUpdater implements Suggestor {
       // react is already in pubspec.yaml
       final constraintValue = reactMatch.group(2);
       final constraint = VersionConstraint.parse(constraintValue);
+      final line = reactMatch.group(0);
 
       if (shouldUpdateVersionRange(
           constraint: constraint, targetConstraint: targetConstraint)) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
 
-        if (mightNeedYamlEscaping(newValue)) {
+        if (mightNeedYamlEscaping(newValue) &&
+            !line.contains("'") &&
+            !line.contains("\"")) {
           newValue = '"$newValue"';
         }
 
         // Update the version constraint to ensure a safe minimum bound.
         yield Patch(
-            sourceFile,
-            sourceFile.span(reactMatch.start, reactMatch.end),
-            'react: $newValue');
+          sourceFile,
+          sourceFile.span(reactMatch.start, reactMatch.end),
+          line.replaceFirst(
+            constraintValue,
+            newValue,
+          ),
+        );
       }
     } else if (shouldAddDependencies) {
       // react is missing in pubspec.yaml, so add it.

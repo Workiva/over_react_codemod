@@ -18,6 +18,7 @@ import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 import '../constants.dart';
+import '../creator_utils.dart';
 
 /// Suggestor that adds overrides for over_react and react in the pubspec.
 class DependencyOverrideUpdater implements Suggestor {
@@ -38,30 +39,34 @@ class DependencyOverrideUpdater implements Suggestor {
     // Each override has its own object to keep track of what the dependency
     // override is and what it needs to be overridden with.
     // TODO update these versions to the dev branch after major release.
-    final reactDependencyOverride = DependencyOverrideItem(
-        'react',
-        '  react:\n'
-            '    git:\n'
-            '      url: https://github.com/cleandart/react-dart.git\n'
-            '      ref: 5.0.0-wip\n');
+    final reactDependencyOverride = DependencyCreator('react',
+        gitOverride: 'https://github.com/cleandart/react-dart.git',
+        ref: '5.0.0-wip');
 
-    final overReactDependencyOverride = DependencyOverrideItem(
-        'over_react',
-        '  over_react:\n'
-            '    git:\n'
-            '      url: https://github.com/Workiva/over_react.git\n'
-            '      ref: 3.0.0-wip\n');
+    final overReactDependencyOverride = DependencyCreator('over_react',
+        gitOverride: 'https://github.com/Workiva/over_react.git',
+        ref: '3.0.0-wip');
 
     final dependenciesToUpdate = [
       reactDependencyOverride,
       overReactDependencyOverride
     ];
 
-    final parsedYamlMap = loadYaml(contents);
+    YamlMap parsedYamlMap;
+
+    try {
+      parsedYamlMap = loadYaml(contents);
+    } catch (e, _) {
+      if (e is YamlException) {
+        throw Exception('Could not parse pubspec.yaml.');
+      } else {
+        throw Exception('Unexpected error loading pubspec.yaml.');
+      }
+    }
 
     for (var dependencyOverride in dependenciesToUpdate) {
-      final dependency = dependencyOverride.dependency;
-      final overrideString = dependencyOverride.overrideString;
+      final dependency = dependencyOverride.name;
+      final overrideString = dependencyOverride.toString();
 
       if (fileContainsDependencyOverride(
           dependency: dependency, yamlContent: parsedYamlMap)) {
@@ -162,26 +167,17 @@ RegExp getDependencyRegEx(
         // If the override uses path.
       } else if (yamlContent['dependency_overrides'][dependency]['path'] !=
           null) {
-        return RegExp(r'''^\s*(''' + dependency + r''''):\s+path:\s+(.+)$''',
+        return RegExp(r'''^\s*(''' + dependency + r'''):\s+path:\s+(.+)$''',
             multiLine: true);
 
         // If this is the case then the override is simply specifying a new
         // version.
       } else {
-        return RegExp(r'''^\s*''' + dependency + r'''':\s*(["']?)(.+)\1\s*$''',
+        return RegExp(r'''^\s*''' + dependency + r''':\s*(["']?)(.+)\1\s*$''',
             multiLine: true);
       }
     }
   }
 
   throw Exception('Unable to determine dependency override structure.');
-}
-
-/// Simple data structure to allow for strong typing while succinctly
-/// specifying what dependency needs to be overridden and the override string.
-class DependencyOverrideItem {
-  String dependency;
-  String overrideString;
-
-  DependencyOverrideItem(this.dependency, this.overrideString);
 }
