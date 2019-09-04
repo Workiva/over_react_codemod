@@ -22,8 +22,12 @@ class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final bool allowPartialUpgrades;
+  final bool shouldUpgradeAbstractComponents;
 
-  ComponentDidUpdateMigrator({this.allowPartialUpgrades = true});
+  ComponentDidUpdateMigrator({
+    this.allowPartialUpgrades = true,
+    this.shouldUpgradeAbstractComponents = false,
+  });
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {

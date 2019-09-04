@@ -31,8 +31,12 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final bool allowPartialUpgrades;
+  final bool shouldUpgradeAbstractComponents;
 
-  ClassNameAndAnnotationMigrator({this.allowPartialUpgrades = true});
+  ClassNameAndAnnotationMigrator({
+    this.allowPartialUpgrades = true,
+    this.shouldUpgradeAbstractComponents = false,
+  });
 
   Iterable<String> get migrateAnnotations =>
       overReact16ComponentAnnotationNamesToMigrate;

@@ -23,8 +23,12 @@ class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final bool allowPartialUpgrades;
+  final bool shouldUpgradeAbstractComponents;
 
-  CopyUnconsumedDomPropsMigrator({this.allowPartialUpgrades = true});
+  CopyUnconsumedDomPropsMigrator({
+    this.allowPartialUpgrades = true,
+    this.shouldUpgradeAbstractComponents = false,
+  });
 
   @override
   visitMethodInvocation(MethodInvocation node) {

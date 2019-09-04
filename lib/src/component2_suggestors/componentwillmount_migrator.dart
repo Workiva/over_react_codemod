@@ -24,8 +24,12 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final bool allowPartialUpgrades;
+  final bool shouldUpgradeAbstractComponents;
 
-  ComponentWillMountMigrator({this.allowPartialUpgrades = true});
+  ComponentWillMountMigrator({
+    this.allowPartialUpgrades = true,
+    this.shouldUpgradeAbstractComponents = false,
+  });
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
