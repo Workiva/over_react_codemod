@@ -25,11 +25,20 @@ main() {
   group('SetStateUpdater with --no-partial-upgrades flag', () {
     setStateTests(allowPartialUpgrades: false);
   });
+
+  group('SetStateUpdater with --upgrade-abstract-components', () {
+    setStateTests(shouldUpgradeAbstractComponents: true);
+  });
 }
 
-setStateTests({bool allowPartialUpgrades = true}) {
-  final testSuggestor = getSuggestorTester(
-      SetStateUpdater(allowPartialUpgrades: allowPartialUpgrades));
+setStateTests({
+  bool allowPartialUpgrades = true,
+  bool shouldUpgradeAbstractComponents = false,
+}) {
+  final testSuggestor = getSuggestorTester(SetStateUpdater(
+    allowPartialUpgrades: allowPartialUpgrades,
+    shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+  ));
 
   test('is an empty file', () {
     testSuggestor(expectedPatchCount: 0, input: '');

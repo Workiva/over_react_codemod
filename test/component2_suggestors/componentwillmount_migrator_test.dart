@@ -25,11 +25,20 @@ main() {
   group('ComponentWillMountMigrator with --no-partial-upgrades flag', () {
     componentWillMountTests(allowPartialUpgrades: false);
   });
+
+  group('ComponentWillMountMigrator with --upgrade-abstract-components', () {
+    componentWillMountTests(shouldUpgradeAbstractComponents: true);
+  });
 }
 
-componentWillMountTests({bool allowPartialUpgrades = true}) {
-  final testSuggestor = getSuggestorTester(
-      ComponentWillMountMigrator(allowPartialUpgrades: allowPartialUpgrades));
+componentWillMountTests({
+  bool allowPartialUpgrades = true,
+  bool shouldUpgradeAbstractComponents = false,
+}) {
+  final testSuggestor = getSuggestorTester(ComponentWillMountMigrator(
+    allowPartialUpgrades: allowPartialUpgrades,
+    shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+  ));
 
   test('empty file', () {
     testSuggestor(expectedPatchCount: 0, input: '');

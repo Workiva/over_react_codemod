@@ -25,11 +25,21 @@ main() {
   group('CopyUnconsumedDomPropsMigrator with --no-partial-upgrades flag', () {
     copyUnconsumedDomPropsTests(allowPartialUpgrades: false);
   });
+
+  group('CopyUnconsumedDomPropsMigrator with --upgrade-abstract-components',
+      () {
+    copyUnconsumedDomPropsTests(shouldUpgradeAbstractComponents: true);
+  });
 }
 
-copyUnconsumedDomPropsTests({bool allowPartialUpgrades = true}) {
+copyUnconsumedDomPropsTests({
+  bool allowPartialUpgrades = true,
+  bool shouldUpgradeAbstractComponents = false,
+}) {
   final testSuggestor = getSuggestorTester(CopyUnconsumedDomPropsMigrator(
-      allowPartialUpgrades: allowPartialUpgrades));
+    allowPartialUpgrades: allowPartialUpgrades,
+    shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+  ));
 
   test('empty file', () {
     testSuggestor(expectedPatchCount: 0, input: '');

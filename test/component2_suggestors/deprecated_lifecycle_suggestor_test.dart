@@ -26,11 +26,20 @@ main() {
   group('DeprecatedLifecycleSuggestor with --no-partial-upgrades flag', () {
     deprecatedLifecycleTests(allowPartialUpgrades: false);
   });
+
+  group('DeprecatedLifecycleSuggestor with --upgrade-abstract-components', () {
+    deprecatedLifecycleTests(shouldUpgradeAbstractComponents: true);
+  });
 }
 
-deprecatedLifecycleTests({bool allowPartialUpgrades = true}) {
-  final testSuggestor = getSuggestorTester(
-      DeprecatedLifecycleSuggestor(allowPartialUpgrades: allowPartialUpgrades));
+deprecatedLifecycleTests({
+  bool allowPartialUpgrades = true,
+  bool shouldUpgradeAbstractComponents = false,
+}) {
+  final testSuggestor = getSuggestorTester(DeprecatedLifecycleSuggestor(
+    allowPartialUpgrades: allowPartialUpgrades,
+    shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+  ));
 
   test('empty file', () {
     testSuggestor(expectedPatchCount: 0, input: '');

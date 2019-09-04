@@ -25,11 +25,21 @@ main() {
   group('ClassNameAndAnnotationMigrator with --no-partial-upgrades flag', () {
     classNameAndAnnotationTests(allowPartialUpgrades: false);
   });
+
+  group('ClassNameAndAnnotationMigrator with --upgrade-abstract-components',
+      () {
+    classNameAndAnnotationTests(shouldUpgradeAbstractComponents: true);
+  });
 }
 
-void classNameAndAnnotationTests({bool allowPartialUpgrades = true}) {
+void classNameAndAnnotationTests({
+  bool allowPartialUpgrades = true,
+  bool shouldUpgradeAbstractComponents = false,
+}) {
   final testSuggestor = getSuggestorTester(ClassNameAndAnnotationMigrator(
-      allowPartialUpgrades: allowPartialUpgrades));
+    allowPartialUpgrades: allowPartialUpgrades,
+    shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+  ));
 
   test('empty file', () {
     testSuggestor(expectedPatchCount: 0, input: '');
@@ -313,9 +323,11 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades = true}) {
   });
 
   group('AbstractComponent annotation and extending stateful class', () {
-    test('updates when all lifecycle methods have codemods', () {
+    test(
+        '${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} when all lifecycle methods have codemods',
+        () {
       testSuggestor(
-        expectedPatchCount: 2,
+        expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
         input: '''
           @AbstractComponent(isWrapper: true)
           abstract class FooComponent extends UiStatefulComponent<FooProps, FooState> {
@@ -324,8 +336,8 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades = true}) {
           }
         ''',
         expectedOutput: '''
-          @AbstractComponent2(isWrapper: true)
-          abstract class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          @AbstractComponent${shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
+          abstract class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''}<FooProps, FooState> {
             @override
             componentWillMount() {}
           }
@@ -334,10 +346,11 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades = true}) {
     });
 
     test(
-        '${allowPartialUpgrades ? 'updates' : 'does not update'} when one or '
+        '${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} when one or '
         'more lifecycle method has no codemod', () {
       testSuggestor(
-        expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+        expectedPatchCount:
+            allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
         input: '''
           @AbstractComponent(isWrapper: true)
           abstract class FooComponent extends FluxUiStatefulComponent<FooProps, FooState> {
@@ -349,8 +362,8 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades = true}) {
           }
         ''',
         expectedOutput: '''
-          @AbstractComponent${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
-          abstract class FooComponent extends FluxUiStatefulComponent${allowPartialUpgrades ? '2' : ''}<FooProps, FooState> {
+          @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
+          abstract class FooComponent extends FluxUiStatefulComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}<FooProps, FooState> {
             @override
             componentWillMount() {}
 
@@ -362,16 +375,17 @@ void classNameAndAnnotationTests({bool allowPartialUpgrades = true}) {
     });
 
     test(
-        'is non-Component ${allowPartialUpgrades ? 'updates' : 'does not update'}',
+        'is non-Component ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
         () {
       testSuggestor(
-        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+        expectedPatchCount:
+            allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
         input: '''
           @AbstractComponent(isWrapper: true)
           abstract class FooComponent extends SomeOtherClass<FooProps, FooState> {}
         ''',
         expectedOutput: '''
-          @AbstractComponent${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
+          @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
           abstract class FooComponent extends SomeOtherClass<FooProps, FooState> {}
         ''',
       );
