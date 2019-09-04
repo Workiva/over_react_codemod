@@ -179,8 +179,7 @@ class DartProjectCreatorTestConfig {
       name += pubspecCreators
           .map((creator) => 'pubspec'
               ' at ${creator.path.isEmpty ? 'root' : 'path ${creator.path}/pubspec.yaml'}'
-              ' with dependencies: ${creator.dependencies}'
-              '')
+              ' with dependencies: ${creator.dependencies}')
           .join(', ');
     }
     return name;

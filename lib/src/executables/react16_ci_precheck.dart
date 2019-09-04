@@ -117,7 +117,7 @@ bool isInTransition(String pubspecYamlPath) {
     pubspecYaml = loadYaml(File(pubspecYamlPath).readAsStringSync());
   } catch (e, stackTrace) {
     if (e is FileSystemException) {
-      ciLogger.warning('Could not find pubspec.yaml; exiting codemod.', e);
+      ciLogger.warning('Could not read pubspec.yaml; exiting codemod.', e);
       return false;
     } else if (e is YamlException) {
       ciLogger.warning('pubspec.yaml is unable to be parsed; exiting codemod.',
