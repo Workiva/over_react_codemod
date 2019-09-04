@@ -22,6 +22,7 @@ import 'package:over_react_codemod/src/component2_suggestors/deprecated_lifecycl
 import 'package:over_react_codemod/src/component2_suggestors/setstate_updater.dart';
 import 'package:over_react_codemod/src/component2_suggestors/copyunconsumeddomprops_migrator.dart';
 
+const _upgradeAbstractComponentsFlag = '--upgrade-abstract-components';
 const _changesRequiredOutput = """
 To update your code, switch to Dart 2.1.0 and run the following commands:
   pub global activate over_react_codemod ^1.1.0
@@ -30,6 +31,9 @@ Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
+  final shouldUpgradeAbstractComponents = args.contains(_upgradeAbstractComponentsFlag);
+  args.removeWhere((arg) => arg == _upgradeAbstractComponentsFlag);
+
   final query = FileQuery.dir(
     pathFilter: isDartFile,
     recursive: true,
@@ -39,12 +43,12 @@ void main(List<String> args) {
     [
       // This suggestor needs to be run first in order for subsequent suggestors
       // to run when converting Component to Component2 for the first time.
-      ClassNameAndAnnotationMigrator(),
-      ComponentWillMountMigrator(),
-      DeprecatedLifecycleSuggestor(),
-      SetStateUpdater(),
-      ComponentDidUpdateMigrator(),
-      CopyUnconsumedDomPropsMigrator(),
+      ClassNameAndAnnotationMigrator(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
+      ComponentWillMountMigrator(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
+      DeprecatedLifecycleSuggestor(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
+      SetStateUpdater(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
+      ComponentDidUpdateMigrator(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
+      CopyUnconsumedDomPropsMigrator(shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents),
     ],
     args: args,
     defaultYes: true,

@@ -30,6 +30,10 @@ import 'component2_utilities.dart';
 class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  final bool shouldUpgradeAbstractComponents;
+
+  ClassNameAndAnnotationMigrator({this.shouldUpgradeAbstractComponents = false});
+
   Iterable<String> get migrateAnnotations =>
       overReact16ComponentAnnotationNamesToMigrate;
 

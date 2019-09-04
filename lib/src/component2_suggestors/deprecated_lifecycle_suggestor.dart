@@ -26,6 +26,10 @@ import 'component2_utilities.dart';
 class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  final bool shouldUpgradeAbstractComponents;
+
+  DeprecatedLifecycleSuggestor({this.shouldUpgradeAbstractComponents = false});
+
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
