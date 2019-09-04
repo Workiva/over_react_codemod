@@ -26,9 +26,17 @@ main() {
     classNameAndAnnotationTests(allowPartialUpgrades: false);
   });
 
-  group('ClassNameAndAnnotationMigrator with --upgrade-abstract-components',
+  group(
+      'ClassNameAndAnnotationMigrator with --upgrade-abstract-components flag',
       () {
     classNameAndAnnotationTests(shouldUpgradeAbstractComponents: true);
+  });
+
+  group(
+      'ClassNameAndAnnotationMigrator with --no-partial-upgrades and --upgrade-abstract-components flag',
+      () {
+    classNameAndAnnotationTests(
+        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
   });
 }
 
