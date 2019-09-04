@@ -126,10 +126,10 @@ bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
 
 /// Returns whether or not [classNode] can be extended from.
 ///
-/// Returns true if one of the following is true:
+/// A component class can be extended from if one of the following is true:
 ///
-/// * `abstract` keyword on [classNode]
-/// * Generic parameters on [classNode]
+/// * `abstract` keyword on component class
+/// * Generic parameters on component class
 /// * `@AbstractProps` in the same file
 bool canBeExtendedFrom(ClassDeclaration classNode) {
   if (classNode.abstractKeyword != null ||
