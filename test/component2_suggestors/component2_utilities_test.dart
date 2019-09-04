@@ -196,7 +196,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends FluxUiStatefulComponent,', () {
@@ -207,7 +211,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends react.Component,', () {
@@ -274,7 +282,7 @@ void main() {
 
     group('canBeFullyUpgradedToComponent2()', () {
       group('(fully upgradable) when a class', () {
-        group('extends UiComponent and has no lifecycle methods', () {
+        group('extends a base class and has no lifecycle methods', () {
           final input = '''
             @Component
             class FooComponent extends UiComponent {
@@ -290,7 +298,7 @@ void main() {
         });
 
         group(
-            'extends UiStatefulComponent and contains lifecycle methods that are all updated by codemods',
+            'extends a base class and contains lifecycle methods that are all updated by codemods',
             () {
           final input = '''
             @Component
@@ -313,10 +321,10 @@ void main() {
           );
         });
 
-        group('extends UiComponent and contains non-lifecycle methods', () {
+        group('extends a base class and contains non-lifecycle methods', () {
           final input = '''
             @Component
-            class FooComponent extends UiComponent {
+            class FooComponent extends FluxUiComponent {
               eventHander() {}
               
               @override

@@ -54,7 +54,8 @@ bool extendsComponent2(ClassDeclaration classNode) {
 ///
 /// In order for a component to be fully upgradable, the component must:
 ///
-/// * extend directly from `UiComponent`/`UiStatefulComponent`/`react.Component`
+/// * extend directly from `UiComponent`, `UiStatefulComponent`,
+/// `FluxUiComponent`, `FluxUiStatefulComponent`, or `react.Component`
 /// * contain only the lifecycle methods that the codemod updates:
 ///   * `componentWillMount` (updated to `init`)
 ///   * `render`
@@ -74,6 +75,10 @@ bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
     'UiComponent2',
     'UiStatefulComponent',
     'UiStatefulComponent2',
+    'FluxUiComponent',
+    'FluxUiComponent2',
+    'FluxUiStatefulComponent',
+    'FluxUiStatefulComponent2',
   ];
 
   if (reactImportName != null) {
