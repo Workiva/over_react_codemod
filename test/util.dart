@@ -149,20 +149,24 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
   });
 }
 
-/// Returns a version of [testSuggestor] with [suggestor] curried.
-void Function({
+typedef SuggestorTester = void Function({
   @required String input,
   String expectedOutput,
   int expectedPatchCount,
   bool shouldDartfmtOutput,
   bool testIdempotency,
-}) getSuggestorTester(Suggestor suggestor) {
+  void Function(String contents) validateContents,
+});
+
+/// Returns a version of [testSuggestor] with [suggestor] curried.
+SuggestorTester getSuggestorTester(Suggestor suggestor) {
   return ({
     @required String input,
     String expectedOutput,
     int expectedPatchCount,
     bool shouldDartfmtOutput = true,
     bool testIdempotency = true,
+    void Function(String contents) validateContents,
   }) =>
       testSuggestor(
         suggestor: suggestor,
@@ -171,6 +175,7 @@ void Function({
         expectedPatchCount: expectedPatchCount,
         shouldDartfmtOutput: shouldDartfmtOutput,
         testIdempotency: testIdempotency,
+        validateContents: validateContents,
       );
 }
 
@@ -181,10 +186,16 @@ void testSuggestor({
   int expectedPatchCount,
   bool shouldDartfmtOutput = true,
   bool testIdempotency = true,
+  void Function(String contents) validateContents,
   String inputUrl = 'input',
 }) {
   if (expectedOutput == null) {
     expectedOutput = input;
+  }
+
+  if (validateContents != null) {
+    expect(() => validateContents(input), returnsNormally,
+        reason: 'input is invalid');
   }
 
   if (shouldDartfmtOutput) {
@@ -205,6 +216,10 @@ void testSuggestor({
           'Patches:\n$patches');
     }
     modifiedInput = applyPatches(sourceFile, patches).trimRight() + '\n';
+    if (validateContents != null) {
+      expect(() => validateContents(modifiedInput), returnsNormally,
+          reason: 'output is invalid');
+    }
     if (shouldDartfmtOutput) {
       modifiedInput = formatter.format(modifiedInput, uri: 'modifiedInput');
     }

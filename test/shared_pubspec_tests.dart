@@ -15,11 +15,19 @@
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
+
+import 'util.dart';
+
+/// Throws if [yaml] is invalid.
+void validateYaml(String yaml) {
+  loadYamlDocument(yaml);
+}
 
 void sharedPubspecTest({
   @required
       Function({bool shouldAddSpace, bool useSingleQuotes}) getExpectedOutput,
-  @required Function testSuggestor,
+  @required SuggestorTester testSuggestor,
   @required String dependency,
   @required VersionRange startingRange,
   bool shouldAddDependencies = true,
@@ -33,6 +41,7 @@ void sharedPubspecTest({
     testSuggestor(
       expectedPatchCount: 0,
       shouldDartfmtOutput: false,
+      validateContents: validateYaml,
       input: ''
           'name: nothing\n'
           'version: 0.0.0\n'
@@ -48,6 +57,7 @@ void sharedPubspecTest({
     testSuggestor(
       expectedPatchCount: 0,
       shouldDartfmtOutput: false,
+      validateContents: validateYaml,
       input: ''
           'name: nothing\n'
           'version: 0.0.0\n'
@@ -69,6 +79,7 @@ void sharedPubspecTest({
     testSuggestor(
       expectedPatchCount: shouldAddDependencies ? 1 : 0,
       shouldDartfmtOutput: false,
+      validateContents: validateYaml,
       input: ''
           'dependencies:\n'
           '  test: 1.5.1\n'
@@ -85,6 +96,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
+        validateContents: validateYaml,
         input: ''
             '$dependency: ^${startingRange.min}\n'
             'test: 1.5.1\n'
@@ -104,6 +116,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: shouldUpdateMidRange ? 1 : 0,
         shouldDartfmtOutput: false,
+        validateContents: validateYaml,
         input: ''
             '$dependency: $midVersionRange\n'
             'test: 1.5.1\n'
@@ -121,6 +134,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
+        validateContents: validateYaml,
         input: ''
             '$dependency: \'^${startingRange.min}\'\n'
             'test: 1.5.1\n'
@@ -138,6 +152,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
+        validateContents: validateYaml,
         input: ''
             '$dependency: "^${startingRange.min}"\n'
             'test: 1.5.1\n'
@@ -157,6 +172,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
+        validateContents: validateYaml,
         input: ''
             '$dependency: \'$startingRange\'\n'
             'test: 1.5.1\n'
@@ -174,6 +190,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
+        validateContents: validateYaml,
         input: ''
             '$dependency: "$startingRange"\n'
             'test: 1.5.1\n'
@@ -193,6 +210,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
+        validateContents: validateYaml,
         input: ''
             '$dependency: >=${startingRange.min}\n'
             'test: 1.5.1\n'
@@ -210,6 +228,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
+        validateContents: validateYaml,
         input: ''
             '$dependency: \'>=${startingRange.min}\'\n'
             'test: 1.5.1\n'
@@ -227,6 +246,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
+        validateContents: validateYaml,
         input: ''
             '$dependency: ">=${startingRange.min}"\n'
             'test: 1.5.1\n'
