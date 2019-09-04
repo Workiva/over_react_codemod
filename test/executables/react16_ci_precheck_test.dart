@@ -23,8 +23,9 @@ import 'package:over_react_codemod/src/creator_utils.dart';
 final reactPackageName = 'react';
 final overReactPackageName = 'over_react';
 
-final tansitionPubspecCreator = PubspecCreator(
-    dependencies: [DependencyCreator('react', version: '">=4.0.0 <6.0.0"')]);
+final transitionReactDep =
+    DependencyCreator('react', version: '">=4.0.0 <6.0.0"');
+final nonTransitionReactDep = DependencyCreator('react', version: '^4.0.0');
 
 final versionChecksToTest = [
   // Pubspec checks
@@ -139,6 +140,43 @@ final versionChecksToTest = [
       DependencyCreator(reactPackageName, version: '^4.0.0'),
     ],
     expectedExitCode: 0,
+  ),
+
+  // Multiple pubspecs
+  DartProjectCreatorTestConfig(
+    pubspecCreators: [
+      PubspecCreator(path: 'a', dependencies: [transitionReactDep]),
+      PubspecCreator(path: 'b', dependencies: [transitionReactDep]),
+    ],
+    expectedExitCode: 1,
+  ),
+  DartProjectCreatorTestConfig(
+    pubspecCreators: [
+      PubspecCreator(path: 'a', dependencies: [nonTransitionReactDep]),
+      PubspecCreator(path: 'b', dependencies: [nonTransitionReactDep]),
+    ],
+    expectedExitCode: 0,
+  ),
+  DartProjectCreatorTestConfig(
+    pubspecCreators: [
+      PubspecCreator(path: 'a', dependencies: []),
+      PubspecCreator(path: 'b', dependencies: []),
+    ],
+    expectedExitCode: 0,
+  ),
+  DartProjectCreatorTestConfig(
+    pubspecCreators: [
+      PubspecCreator(path: 'a', dependencies: [transitionReactDep]),
+      PubspecCreator(path: 'b', dependencies: [nonTransitionReactDep]),
+    ],
+    expectedExitCode: 1,
+  ),
+  DartProjectCreatorTestConfig(
+    pubspecCreators: [
+      PubspecCreator(path: 'a', dependencies: [transitionReactDep]),
+      PubspecCreator(path: 'b', dependencies: []),
+    ],
+    expectedExitCode: 1,
   ),
 ];
 

@@ -88,12 +88,15 @@ void main(List<String> args) {
   } else {
     ciLogger.info('Found pubspec.yaml files:\n'
         '${paths.map((path) => '- $path').join('\n')}');
-    if (paths.every(isInTransition)) {
+    if (paths.any(isInTransition)) {
+      // If there is any pubspec in transition, set the exit code.
+      // We want anyone attempting to be in transition to ensure all of their
+      // pubspec.yaml files are also in transition.
       ciLogger.info(
-          'All pubspecs are in transition! The React 16 codemod should run.');
+          'At least one pubspec is in transition! The React 16 codemod should run.');
       exitCode = 1;
     } else {
-      ciLogger.warning('Not all pubspec.yaml files are in transition.');
+      ciLogger.warning('No pubspec.yaml files are in transition.');
     }
   }
 
@@ -101,6 +104,8 @@ void main(List<String> args) {
 }
 
 bool isInTransition(String pubspecYamlPath) {
+  ciLogger.info('Checking $pubspecYamlPath');
+
   YamlMap pubspecYaml;
   try {
     pubspecYaml = loadYaml(File(pubspecYamlPath).readAsStringSync());
