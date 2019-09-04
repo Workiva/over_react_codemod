@@ -20,8 +20,23 @@ import 'package:yaml/yaml.dart';
 import 'util.dart';
 
 /// Throws if [yaml] is invalid.
-void validateYaml(String yaml) {
-  loadYamlDocument(yaml);
+void validatePubspecYaml(String yaml) {
+  final yamlDoc = loadYamlDocument(yaml);
+
+  expect(yamlDoc.contents, isA<YamlMap>());
+  final extraTopLevelKeys =
+      (yamlDoc.contents as YamlMap).keys.toSet().difference(const {
+    'name',
+    'version',
+    'author',
+    'executables',
+    'description',
+    'dependencies',
+    'dev_dependencies',
+    'dependency_overrides',
+  });
+  expect(extraTopLevelKeys, isEmpty,
+      reason: 'unexpected top-level keys in pubspec.yaml');
 }
 
 void sharedPubspecTest({
@@ -41,7 +56,7 @@ void sharedPubspecTest({
     testSuggestor(
       expectedPatchCount: 0,
       shouldDartfmtOutput: false,
-      validateContents: validateYaml,
+      validateContents: validatePubspecYaml,
       input: ''
           'name: nothing\n'
           'version: 0.0.0\n'
@@ -57,7 +72,7 @@ void sharedPubspecTest({
     testSuggestor(
       expectedPatchCount: 0,
       shouldDartfmtOutput: false,
-      validateContents: validateYaml,
+      validateContents: validatePubspecYaml,
       input: ''
           'name: nothing\n'
           'version: 0.0.0\n'
@@ -79,7 +94,7 @@ void sharedPubspecTest({
     testSuggestor(
       expectedPatchCount: shouldAddDependencies ? 1 : 0,
       shouldDartfmtOutput: false,
-      validateContents: validateYaml,
+      validateContents: validatePubspecYaml,
       input: ''
           'dependencies:\n'
           '  test: 1.5.1\n'
@@ -96,7 +111,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
-        validateContents: validateYaml,
+        validateContents: validatePubspecYaml,
         input: ''
             '$dependency: ^${startingRange.min}\n'
             'test: 1.5.1\n'
@@ -116,7 +131,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: shouldUpdateMidRange ? 1 : 0,
         shouldDartfmtOutput: false,
-        validateContents: validateYaml,
+        validateContents: validatePubspecYaml,
         input: ''
             '$dependency: $midVersionRange\n'
             'test: 1.5.1\n'
@@ -134,7 +149,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
-        validateContents: validateYaml,
+        validateContents: validatePubspecYaml,
         input: ''
             '$dependency: \'^${startingRange.min}\'\n'
             'test: 1.5.1\n'
@@ -152,7 +167,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
-        validateContents: validateYaml,
+        validateContents: validatePubspecYaml,
         input: ''
             '$dependency: "^${startingRange.min}"\n'
             'test: 1.5.1\n'
@@ -172,7 +187,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
-        validateContents: validateYaml,
+        validateContents: validatePubspecYaml,
         input: ''
             '$dependency: \'$startingRange\'\n'
             'test: 1.5.1\n'
@@ -190,7 +205,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
-        validateContents: validateYaml,
+        validateContents: validatePubspecYaml,
         input: ''
             '$dependency: "$startingRange"\n'
             'test: 1.5.1\n'
@@ -210,7 +225,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
-        validateContents: validateYaml,
+        validateContents: validatePubspecYaml,
         input: ''
             '$dependency: ">=${startingRange.min}"\n'
             'test: 1.5.1\n'
@@ -228,7 +243,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
-        validateContents: validateYaml,
+        validateContents: validatePubspecYaml,
         input: ''
             '$dependency: \'>=${startingRange.min}\'\n'
             'test: 1.5.1\n'
@@ -246,7 +261,7 @@ void sharedPubspecTest({
       testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
-        validateContents: validateYaml,
+        validateContents: validatePubspecYaml,
         input: ''
             '$dependency: ">=${startingRange.min}"\n'
             'test: 1.5.1\n'
