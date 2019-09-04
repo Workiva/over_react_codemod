@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
@@ -22,7 +23,6 @@ import 'package:yaml/yaml.dart';
 
 final ciLogger = Logger('over_react_codemod.react16_ci_check');
 
-const String CI_CHECK_NAME = 'React16 CI Precheck';
 const String react16CodemodName = 'React16 Codemod';
 
 Map<String, List<VersionConstraint>> packagesToCheckFor = {
@@ -55,11 +55,17 @@ VersionConstraint getDependencyVersion(
   return null;
 }
 
+final _maxLevelNameLength =
+    Level.LEVELS.map((level) => level.toString().length).reduce(max);
+
 void main(List<String> args) {
   ciLogger.onRecord.listen((rec) {
     if (rec.message != '') {
-      final prefix = '[${rec.level}] $CI_CHECK_NAME: ';
-      print('$prefix${rec.message}');
+      // Pad the level message to align the rest of the line
+      final levelPrefix = '[${rec.level}]'
+          .padRight(_maxLevelNameLength + '['.length + ']'.length);
+      final shortLoggerName = rec.loggerName.split('.').last;
+      print('$levelPrefix $shortLoggerName: ${rec.message}');
     }
     if (rec.error != null) {
       print(rec.error);
