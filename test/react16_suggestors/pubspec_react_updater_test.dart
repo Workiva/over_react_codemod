@@ -16,30 +16,9 @@ import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
-import 'package:yaml/yaml.dart';
 
 import '../shared_pubspec_tests.dart';
 import '../util.dart';
-
-void validatePubspecYaml(String yaml) {
-  final yamlDoc = loadYamlDocument(yaml);
-
-  expect(yamlDoc.contents, isA<YamlMap>());
-  final extraTopLevelKeys =
-      (yamlDoc.contents as YamlMap).keys.toSet().difference(const {
-    'name',
-    'version',
-    'author',
-    'executables',
-    'description',
-    'dependencies',
-    'dev_dependencies',
-    'dependency_overrides',
-  });
-  expect(extraTopLevelKeys, isEmpty,
-      reason: 'unexpected top-level keys in pubspec.yaml;'
-          ' could the dependencies be missing indentation?');
-}
 
 main() {
   group('PubspecReactUpdater', () {
@@ -54,20 +33,20 @@ main() {
       sharedPubspecTest(
           testSuggestor: testSuggestor,
           getExpectedOutput: getExpectedOutput,
-          startingRange: VersionConstraint.parse('>=4.6.1 <4.6.5'),
+          startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
           dependency: 'react',
           shouldUpdateMidRange: true,
-          midVersionRange: '^4.6.3');
+          midVersionRange: '^4.8.3');
     });
 
     group('when the codemod should not add dependencies', () {
       sharedPubspecTest(
           testSuggestor: doNotAddDependencies,
           getExpectedOutput: getExpectedOutput,
-          startingRange: VersionConstraint.parse('>=4.6.1 <4.6.5'),
+          startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
           dependency: 'react',
           shouldUpdateMidRange: true,
-          midVersionRange: '^4.6.3',
+          midVersionRange: '^4.8.3',
           shouldAddDependencies: false);
     });
 
@@ -108,7 +87,15 @@ main() {
   });
 }
 
-String getExpectedOutput() {
+String getExpectedOutput({bool useMidVersionMin = false}) {
+  if (useMidVersionMin) {
+    return ''
+        'dependencies:\n'
+        '  react: ">=4.8.3 <6.0.0"\n'
+        '  test: 1.5.1\n'
+        '';
+  }
+
   return ''
       'dependencies:\n'
       '  react: ">=4.7.0 <6.0.0"\n'

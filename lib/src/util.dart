@@ -272,26 +272,25 @@ final _usesOverReactRegex = RegExp(
   multiLine: true,
 );
 
+/// Method that creates a new dependency range by targeting a higher range.
+///
+/// This can be used to update dependency ranges without lowering a current
+/// constraint unintentionally.
 VersionRange generateNewVersionRange(
-    VersionRange currentRange, VersionRange targetRange,
-    {bool shouldOverrideLowerBound = false}) {
-  if (shouldOverrideLowerBound) {
-    return targetRange;
+    VersionRange currentRange, VersionRange targetRange) {
+  String versionRange;
+
+  if (currentRange.min > targetRange.min) {
+    versionRange = '>=${currentRange.min.toString()}';
   } else {
-    String versionRange;
-
-    if (currentRange.min > targetRange.min) {
-      versionRange = '>=${currentRange.min.toString()}';
-    } else {
-      versionRange = '>=${targetRange.min.toString()}';
-    }
-
-    if (targetRange.max != null) {
-      versionRange += ' <${targetRange.max.toString()}';
-    }
-
-    return VersionConstraint.parse(versionRange);
+    versionRange = '>=${targetRange.min.toString()}';
   }
+
+  if (targetRange.max != null) {
+    versionRange += ' <${targetRange.max.toString()}';
+  }
+
+  return VersionConstraint.parse(versionRange);
 }
 
 /// Return whether or not a particular pubspec.yaml dependency value string

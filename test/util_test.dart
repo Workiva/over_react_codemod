@@ -427,12 +427,5 @@ void sharedGenerateNewVersionRangeTests(
           generateNewVersionRange(currentRangeWithHigherMinBound, targetRange),
           expectedMixedRange);
     });
-
-    test('when shouldOverrideLowerBound is true', () {
-      expect(
-          generateNewVersionRange(currentRange, targetRange,
-              shouldOverrideLowerBound: true),
-          targetRange);
-    });
   });
 }

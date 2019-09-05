@@ -20,6 +20,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 final _patchesPattern = RegExp(r'\(patches (\d+)\)');
 final _pathPattern = RegExp(r'\(path ([\w./]+)\)');
@@ -241,4 +242,28 @@ void testSuggestor({
         reason: 'Should be idempotent, but changed in the second run.\n\n'
             'Original input:\n---------------\n$input');
   }
+}
+
+/// Throws if [yaml] is an invalid pubspec, either due to:
+///
+/// - being unparseable
+/// - having incorrect structure (this check is not comprehensive)
+void validatePubspecYaml(String yaml) {
+  final yamlDoc = loadYamlDocument(yaml);
+
+  expect(yamlDoc.contents, isA<YamlMap>());
+  final extraTopLevelKeys =
+      (yamlDoc.contents as YamlMap).keys.toSet().difference(const {
+    'name',
+    'version',
+    'author',
+    'executables',
+    'description',
+    'dependencies',
+    'dev_dependencies',
+    'dependency_overrides',
+  });
+  expect(extraTopLevelKeys, isEmpty,
+      reason: 'unexpected top-level keys in pubspec.yaml;'
+          ' could the dependencies be missing indentation?');
 }
