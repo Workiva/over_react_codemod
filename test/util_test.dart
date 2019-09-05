@@ -138,8 +138,7 @@ void overReactExample() {}''';
 
       group('updates correctly with an open ended target range', () {
         sharedGenerateNewVersionRangeTests(
-          currentRange: VersionConstraint.parse('>=1'
-              '.0.0 <2.0.0'),
+          currentRange: VersionConstraint.parse('>=1.0.0 <2.0.0'),
           currentRangeWithHigherMinBound:
               VersionConstraint.parse('>=1.2.0 <2.0.0'),
           targetRange: VersionConstraint.parse('>=1.0.0'),
