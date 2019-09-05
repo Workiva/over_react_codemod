@@ -40,8 +40,7 @@ void validatePubspecYaml(String yaml) {
 }
 
 void sharedPubspecTest({
-  @required
-      Function({bool shouldAddSpace, bool useSingleQuotes}) getExpectedOutput,
+  @required Function() getExpectedOutput,
   @required SuggestorTester testSuggestor,
   @required String dependency,
   @required VersionRange startingRange,
@@ -76,14 +75,12 @@ void sharedPubspecTest({
       input: ''
           'name: nothing\n'
           'version: 0.0.0\n'
-          'dependencies:\n'
-          '${getExpectedOutput(shouldAddSpace: true)}'
+          '${getExpectedOutput()}'
           '',
       expectedOutput: ''
           'name: nothing\n'
           'version: 0.0.0\n'
-          'dependencies:\n'
-          '${getExpectedOutput(shouldAddSpace: true)}'
+          '${getExpectedOutput()}'
           '',
     );
   });
@@ -100,8 +97,9 @@ void sharedPubspecTest({
           '  test: 1.5.1\n'
           '',
       expectedOutput: ''
-          'dependencies:\n'
-          '${shouldAddDependencies ? getExpectedOutput(shouldAddSpace: true) : '  test: 1.5.1\n'}'
+          '${shouldAddDependencies ? getExpectedOutput() : ''
+              'dependencies:\n'
+              '  test: 1.5.1\n'}'
           '',
     );
   });
@@ -113,14 +111,16 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            '$dependency: ^${startingRange.min}\n'
-            'test: 1.5.1\n'
+            'dependencies:\n'
+            '  $dependency: ^${startingRange.min}\n'
+            '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                '$dependency: ^${startingRange.min}\n'
-                'test: 1.5.1\n'
+                'dependencies:\n'
+                '  $dependency: ^${startingRange.min}\n'
+                '  test: 1.5.1\n'
                 '',
       );
     });
@@ -133,14 +133,16 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            '$dependency: $midVersionRange\n'
-            'test: 1.5.1\n'
+            'dependencies:\n'
+            '  $dependency: $midVersionRange\n'
+            '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdateMidRange
             ? getExpectedOutput()
             : ''
-                '$dependency: $midVersionRange\n'
-                'test: 1.5.1\n'
+                'dependencies:\n'
+                '  $dependency: $midVersionRange\n'
+                '  test: 1.5.1\n'
                 '',
       );
     });
@@ -151,14 +153,16 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            '$dependency: \'^${startingRange.min}\'\n'
-            'test: 1.5.1\n'
+            'dependencies:\n'
+            '  $dependency: \'^${startingRange.min}\'\n'
+            '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput(useSingleQuotes: true)
+            ? getExpectedOutput()
             : ''
-                '$dependency: \'^${startingRange.min}\'\n'
-                'test: 1.5.1\n'
+                'dependencies:\n'
+                '  $dependency: \'^${startingRange.min}\'\n'
+                '  test: 1.5.1\n'
                 '',
       );
     });
@@ -169,14 +173,16 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            '$dependency: "^${startingRange.min}"\n'
-            'test: 1.5.1\n'
+            'dependencies:\n'
+            '  $dependency: "^${startingRange.min}"\n'
+            '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                '$dependency: "^${startingRange.min}"\n'
-                'test: 1.5.1\n'
+                'dependencies:\n'
+                '  $dependency: "^${startingRange.min}"\n'
+                '  test: 1.5.1\n'
                 '',
       );
     });
@@ -189,14 +195,16 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            '$dependency: \'$startingRange\'\n'
-            'test: 1.5.1\n'
+            'dependencies:\n'
+            '  $dependency: \'$startingRange\'\n'
+            '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput(useSingleQuotes: true)
+            ? getExpectedOutput()
             : ''
-                '$dependency: \'$startingRange\'\n'
-                'test: 1.5.1\n'
+                'dependencies:\n'
+                '  $dependency: \'$startingRange\'\n'
+                '  test: 1.5.1\n'
                 '',
       );
     });
@@ -207,14 +215,16 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            '$dependency: "$startingRange"\n'
-            'test: 1.5.1\n'
+            'dependencies:\n'
+            '  $dependency: "$startingRange"\n'
+            '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                '$dependency: "$startingRange"\n'
-                'test: 1.5.1\n'
+                'dependencies:\n'
+                '  $dependency: "$startingRange"\n'
+                '  test: 1.5.1\n'
                 '',
       );
     });
@@ -227,14 +237,16 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            '$dependency: ">=${startingRange.min}"\n'
-            'test: 1.5.1\n'
+            'dependencies:\n'
+            '  $dependency: ">=${startingRange.min}"\n'
+            '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                '$dependency: ">=${startingRange.min}"\n'
-                'test: 1.5.1\n'
+                'dependencies:\n'
+                '  $dependency: ">=${startingRange.min}"\n'
+                '  test: 1.5.1\n'
                 '',
       );
     });
@@ -245,14 +257,16 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            '$dependency: \'>=${startingRange.min}\'\n'
-            'test: 1.5.1\n'
+            'dependencies:\n'
+            '  $dependency: \'>=${startingRange.min}\'\n'
+            '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput(useSingleQuotes: true)
+            ? getExpectedOutput()
             : ''
-                '$dependency: \'>=${startingRange.min}\'\n'
-                'test: 1.5.1\n'
+                'dependencies:\n'
+                '  $dependency: \'>=${startingRange.min}\'\n'
+                '  test: 1.5.1\n'
                 '',
       );
     });
@@ -263,14 +277,16 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            '$dependency: ">=${startingRange.min}"\n'
-            'test: 1.5.1\n'
+            'dependencies:\n'
+            '  $dependency: ">=${startingRange.min}"\n'
+            '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                '$dependency: ">=${startingRange.min}"\n'
-                'test: 1.5.1\n'
+                'dependencies:\n'
+                '  $dependency: ">=${startingRange.min}"\n'
+                '  test: 1.5.1\n'
                 '',
       );
     });

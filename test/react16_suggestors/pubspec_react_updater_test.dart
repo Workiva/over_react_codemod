@@ -65,14 +65,10 @@ main() {
   });
 }
 
-String getExpectedOutput({
-  bool shouldAddSpace = false,
-  bool useSingleQuotes = false,
-}) {
-  final quotes = useSingleQuotes ? '\'' : '"';
-
+String getExpectedOutput() {
   return ''
-      '${shouldAddSpace ? '  ' : ''}react: $quotes>=4.7.0 <6.0.0$quotes\n'
-      '${shouldAddSpace ? '  ' : ''}test: 1.5.1\n'
+      'dependencies:\n'
+      '  react: ">=4.7.0 <6.0.0"\n'
+      '  test: 1.5.1\n'
       '';
 }

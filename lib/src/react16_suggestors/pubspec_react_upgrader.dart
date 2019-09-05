@@ -52,21 +52,15 @@ class PubspecReactUpdater implements Suggestor {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
 
-        if (mightNeedYamlEscaping(newValue) &&
-            !line.contains("'") &&
-            !line.contains("\"")) {
+        if (mightNeedYamlEscaping(newValue)) {
           newValue = '"$newValue"';
         }
 
         // Update the version constraint to ensure a safe minimum bound.
         yield Patch(
-          sourceFile,
-          sourceFile.span(reactMatch.start, reactMatch.end),
-          line.replaceFirst(
-            constraintValue,
-            newValue,
-          ),
-        );
+            sourceFile,
+            sourceFile.span(reactMatch.start, reactMatch.end),
+            '  react: $newValue');
       }
     } else if (shouldAddDependencies) {
       // react is missing in pubspec.yaml, so add it.

@@ -71,14 +71,10 @@ main() {
   });
 }
 
-String getExpectedOutput({
-  bool shouldAddSpace = false,
-  bool useSingleQuotes = false,
-}) {
-  final quotes = useSingleQuotes ? '\'' : '"';
-
+String getExpectedOutput() {
   return ''
-      '${shouldAddSpace ? '  ' : ''}over_react: $quotes>=1.30.2 <3.0.0$quotes\n'
-      '${shouldAddSpace ? '  ' : ''}test: 1.5.1\n'
+      'dependencies:\n'
+      '  over_react: ">=1.30.2 <3.0.0"\n'
+      '  test: 1.5.1\n'
       '';
 }

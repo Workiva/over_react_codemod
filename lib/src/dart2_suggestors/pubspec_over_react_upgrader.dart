@@ -80,21 +80,15 @@ class PubspecOverReactUpgrader implements Suggestor {
           shouldIgnoreMin: shouldIgnoreMin)) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
-        if (mightNeedYamlEscaping(newValue) &&
-            !line.contains("'") &&
-            !line.contains("\"")) {
+        if (mightNeedYamlEscaping(newValue)) {
           newValue = '"$newValue"';
         }
 
         // Update the version constraint to ensure a safe minimum bound.
         yield Patch(
-          sourceFile,
-          sourceFile.span(overReactMatch.start, overReactMatch.end),
-          line.replaceFirst(
-            constraintValue,
-            newValue,
-          ),
-        );
+            sourceFile,
+            sourceFile.span(overReactMatch.start, overReactMatch.end),
+            '  over_react: $newValue');
       }
     } else if (shouldAddDependencies) {
       // over_react is missing in pubspec.yaml, so add it.
