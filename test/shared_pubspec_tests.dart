@@ -21,7 +21,7 @@ import 'util.dart';
 
 /// Throws if [yaml] is an invalid pubspec, either due to:
 ///
-/// - being unparseable 
+/// - being unparseable
 /// - having incorrect structure (this check is not comprehensive)
 void validatePubspecYaml(String yaml) {
   final yamlDoc = loadYamlDocument(yaml);
