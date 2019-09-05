@@ -16,9 +16,30 @@ import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 import '../shared_pubspec_tests.dart';
 import '../util.dart';
+
+void validatePubspecYaml(String yaml) {
+  final yamlDoc = loadYamlDocument(yaml);
+
+  expect(yamlDoc.contents, isA<YamlMap>());
+  final extraTopLevelKeys =
+      (yamlDoc.contents as YamlMap).keys.toSet().difference(const {
+    'name',
+    'version',
+    'author',
+    'executables',
+    'description',
+    'dependencies',
+    'dev_dependencies',
+    'dependency_overrides',
+  });
+  expect(extraTopLevelKeys, isEmpty,
+      reason: 'unexpected top-level keys in pubspec.yaml;'
+          ' could the dependencies be missing indentation?');
+}
 
 main() {
   group('PubspecReactUpdater', () {
@@ -61,6 +82,28 @@ main() {
           shouldUpdate: false,
           shouldUpdateMidRange: false,
           midVersionRange: '^5.5.3');
+    });
+
+    test('does not lower the lower bound', () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        shouldDartfmtOutput: false,
+        validateContents: validatePubspecYaml,
+        input: ''
+            'name: nothing\n'
+            'version: 0.0.0\n'
+            'dependencies:\n'
+            '  react: ">=4.8.0 <5.0.0"\n'
+            '  test: 1.5.1\n'
+            '',
+        expectedOutput: ''
+            'name: nothing\n'
+            'version: 0.0.0\n'
+            'dependencies:\n'
+            '  react: ">=4.8.0 <6.0.0"\n'
+            '  test: 1.5.1\n'
+            '',
+      );
     });
   });
 }

@@ -272,6 +272,30 @@ final _usesOverReactRegex = RegExp(
   multiLine: true,
 );
 
+VersionRange generateNewVersionRange(
+    VersionRange currentRange, VersionRange targetRange,
+    {bool shouldOverrideLowerBound = false}) {
+  if (shouldOverrideLowerBound) {
+    return targetRange;
+  } else {
+    String versionRange;
+
+    if (currentRange.min > targetRange.min) {
+      print(' I should be here');
+      versionRange = '>=${currentRange.min.toString()}';
+    } else {
+      print(' I should not be here');
+      versionRange = '>=${targetRange.min.toString()}';
+    }
+
+    if (targetRange.max != null) {
+      versionRange += ' <${targetRange.max.toString()}';
+    }
+
+    return VersionConstraint.parse(versionRange);
+  }
+}
+
 /// Return whether or not a particular pubspec.yaml dependency value string
 /// should be wrapped in quotations.
 bool mightNeedYamlEscaping(String scalarValue) =>
