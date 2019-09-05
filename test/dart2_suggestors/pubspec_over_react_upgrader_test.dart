@@ -19,11 +19,18 @@ import 'package:test/test.dart';
 import '../shared_pubspec_tests.dart';
 import '../util.dart';
 
+/// Variable used for testing how the codemod handles being given a
+/// constraint in the middle of the upgrade range.
+///
+/// Must be between the min and max constraints used in the testing group.
+/// This variable is also used by [getExpectedOutput] because the tests will
+/// use this variable as the lower bound when the codemod encounters the range.
+const midRangeMark = '2.0.0';
+
 main() {
   group('PubspecOverReactUpdater', () {
-    final versionRange = '>=1.30.2 <3.0.0';
-    final dependency = 'over_react';
-    final midRangeMark = '^2.0.0';
+    const versionRange = '>=1.30.2 <3.0.0';
+    const dependency = 'over_react';
     final startingTestRange = VersionConstraint.parse('>=1.0.0 <2.0.0');
 
     group('with shouldAlwaysUpdate false', () {
@@ -97,7 +104,7 @@ String getExpectedOutput({bool useMidVersionMin = false}) {
   if (useMidVersionMin) {
     return ''
         'dependencies:\n'
-        '  over_react: ">=2.0.0 <3.0.0"\n'
+        '  over_react: ">=$midRangeMark <3.0.0"\n'
         '  test: 1.5.1\n'
         '';
   }

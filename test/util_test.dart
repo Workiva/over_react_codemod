@@ -128,28 +128,31 @@ void overReactExample() {}''';
     group('generateNewVersionRange()', () {
       group('updates correctly with a basic range', () {
         sharedGenerateNewVersionRangeTests(
-          VersionConstraint.parse('>=0.5.0 <3.0.0'),
-          VersionConstraint.parse('>=1.5.0 <3.0.0'),
-          VersionConstraint.parse('>=1.0.0 <4.0.0'),
-          VersionConstraint.parse('>=1.5.0 <4.0.0'),
+          currentRange: VersionConstraint.parse('>=0.5.0 <3.0.0'),
+          currentRangeWithHigherMinBound:
+              VersionConstraint.parse('>=1.5.0 <3.0.0'),
+          targetRange: VersionConstraint.parse('>=1.0.0 <4.0.0'),
+          expectedMixedRange: VersionConstraint.parse('>=1.5.0 <4.0.0'),
         );
       });
 
       group('updates correctly with an open ended target range', () {
         sharedGenerateNewVersionRangeTests(
-          VersionConstraint.parse('>=1.0.0 <2.0.0'),
-          VersionConstraint.parse('>=1.2.0 <2.0.0'),
-          VersionConstraint.parse('>=1.0.0'),
-          VersionConstraint.parse('>=1.2.0'),
+          currentRange: VersionConstraint.parse('>=1'
+              '.0.0 <2.0.0'),
+          currentRangeWithHigherMinBound:
+              VersionConstraint.parse('>=1.2.0 <2.0.0'),
+          targetRange: VersionConstraint.parse('>=1.0.0'),
+          expectedMixedRange: VersionConstraint.parse('>=1.2.0'),
         );
       });
 
       group('updates correctly with an open ended current range', () {
         sharedGenerateNewVersionRangeTests(
-          VersionConstraint.parse('>=1.0.0'),
-          VersionConstraint.parse('>=1.2.0'),
-          VersionConstraint.parse('>=1.0.0 <2.0.0'),
-          VersionConstraint.parse('>=1.2.0 <2.0.0'),
+          currentRange: VersionConstraint.parse('>=1.0.0'),
+          currentRangeWithHigherMinBound: VersionConstraint.parse('>=1.2.0'),
+          targetRange: VersionConstraint.parse('>=1.0.0 <2.0.0'),
+          expectedMixedRange: VersionConstraint.parse('>=1.2.0 <2.0.0'),
         );
       });
     });
@@ -411,10 +414,10 @@ class Foo extends _\$Foo
 }
 
 void sharedGenerateNewVersionRangeTests(
-    VersionRange currentRange,
+    {VersionRange currentRange,
     VersionRange currentRangeWithHigherMinBound,
     VersionRange targetRange,
-    VersionRange expectedMixedRange) {
+    VersionRange expectedMixedRange}) {
   group('', () {
     test('', () {
       expect(generateNewVersionRange(currentRange, targetRange), targetRange);

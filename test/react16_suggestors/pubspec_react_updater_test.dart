@@ -20,11 +20,22 @@ import 'package:test/test.dart';
 import '../shared_pubspec_tests.dart';
 import '../util.dart';
 
+/// Variable used for testing how the codemod handles being given a
+/// constraint in the middle of the upgrade range.
+///
+/// Must be between the min and max constraints used in the testing group.
+/// This variable is also used by [getExpectedOutput] because the tests will
+/// use this variable as the lower bound when the codemod encounters the range.
+const midVersionMin = '4.8.3';
+
 main() {
   group('PubspecReactUpdater', () {
+    /// Suggestor used to test the default configurations.
     final testSuggestor = getSuggestorTester(
         PubspecReactUpdater(VersionConstraint.parse(reactVersionRange)));
 
+    /// Suggestor to test when the codemod should not add the dependency if
+    /// it does not encounter it.
     final doNotAddDependencies = getSuggestorTester(PubspecReactUpdater(
         VersionConstraint.parse(reactVersionRange),
         shouldAddDependencies: false));
@@ -36,7 +47,7 @@ main() {
           startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
           dependency: 'react',
           shouldUpdateMidRange: true,
-          midVersionRange: '^4.8.3');
+          midVersionRange: '^$midVersionMin');
     });
 
     group('when the codemod should not add dependencies', () {
@@ -46,7 +57,7 @@ main() {
           startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
           dependency: 'react',
           shouldUpdateMidRange: true,
-          midVersionRange: '^4.8.3',
+          midVersionRange: '^$midVersionMin',
           shouldAddDependencies: false);
     });
 
@@ -91,7 +102,7 @@ String getExpectedOutput({bool useMidVersionMin = false}) {
   if (useMidVersionMin) {
     return ''
         'dependencies:\n'
-        '  react: ">=4.8.3 <6.0.0"\n'
+        '  react: ">=$midVersionMin <6.0.0"\n'
         '  test: 1.5.1\n'
         '';
   }

@@ -13,12 +13,38 @@
 // limitations under the License.
 
 import 'package:meta/meta.dart';
-import 'package:over_react_codemod/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import 'util.dart';
 
+/// Testing suite used to validate codemods that update pubspec.yaml
+/// dependencies.
+///
+/// `getExpectedOutput` is used because the dependency name and version will
+/// change based on the dependency being tested, and the output can change
+/// based on the test. `useMidVersionMin` is required because the codemod
+/// will match the midversion lowest constraint.
+///
+/// `testSuggestor` is the suggestor that all of the tests will be run against.
+///
+/// `dependency` is the name of the dependency being tested.
+///
+/// `startingRange` is the range that exists in the pubspec before the
+/// suggestor is run.
+///
+/// `shouldAddDependencies` means the suggestor will add the dependencu to
+/// the pubspec if it is not already there.
+///
+/// `shouldUpdate` will determine if the tests should have any patches at all.
+/// If the starting range is acceptable, the tests should indicate no updates.
+///
+/// `shouldUpdateMidRange` indicates whether or not the suggestor will update
+/// a range if the dependency's constraint is already within the target
+/// constraint's bounds.
+///
+/// `midVersionRange` is a version range between the expected range max and
+/// min. Used in conjunction with `shouldUpdateMidRange`.
 void sharedPubspecTest({
   @required Function({bool useMidVersionMin}) getExpectedOutput,
   @required SuggestorTester testSuggestor,
