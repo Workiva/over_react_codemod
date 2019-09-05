@@ -278,19 +278,6 @@ final _usesOverReactRegex = RegExp(
 /// constraint unintentionally.
 VersionRange generateNewVersionRange(
     VersionRange currentRange, VersionRange targetRange) {
-  String versionRange;
-
-//  if (currentRange.min > targetRange.min) {
-//    versionRange = '>=${currentRange.min.toString()}';
-//  } else {
-//    versionRange = '>=${targetRange.min.toString()}';
-//  }
-//
-//  if (targetRange.max != null) {
-//    versionRange += ' <${targetRange.max.toString()}';
-//  }
-//
-//  return VersionConstraint.parse(versionRange);
   return VersionRange(
     min:
         currentRange.min > targetRange.min ? currentRange.min : targetRange.min,
