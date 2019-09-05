@@ -19,7 +19,10 @@ import 'package:yaml/yaml.dart';
 
 import 'util.dart';
 
-/// Throws if [yaml] is invalid.
+/// Throws if [yaml] is an invalid pubspec, either due to:
+///
+/// - being unparseable 
+/// - having incorrect structure (this check is not comprehensive)
 void validatePubspecYaml(String yaml) {
   final yamlDoc = loadYamlDocument(yaml);
 
@@ -36,7 +39,8 @@ void validatePubspecYaml(String yaml) {
     'dependency_overrides',
   });
   expect(extraTopLevelKeys, isEmpty,
-      reason: 'unexpected top-level keys in pubspec.yaml');
+      reason: 'unexpected top-level keys in pubspec.yaml;'
+          ' could the dependencies be missing indentation?');
 }
 
 void sharedPubspecTest({

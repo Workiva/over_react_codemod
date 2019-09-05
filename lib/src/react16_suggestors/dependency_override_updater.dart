@@ -56,11 +56,11 @@ class DependencyOverrideUpdater implements Suggestor {
 
     try {
       parsedYamlMap = loadYaml(contents);
-    } catch (e, _) {
+    } catch (e, stackTrace) {
       if (e is YamlException) {
-        throw Exception('Could not parse pubspec.yaml.');
+        throw Exception('Could not parse pubspec.yaml.$e\n$stackTrace');
       } else {
-        throw Exception('Unexpected error loading pubspec.yaml.');
+        throw Exception('Unexpected error loading pubspec.yaml.$e\n$stackTrace');
       }
     }
 
