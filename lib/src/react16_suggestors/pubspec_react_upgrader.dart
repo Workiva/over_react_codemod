@@ -45,7 +45,6 @@ class PubspecReactUpdater implements Suggestor {
       // react is already in pubspec.yaml
       final constraintValue = reactMatch.group(2);
       final constraint = VersionConstraint.parse(constraintValue);
-      final line = reactMatch.group(0);
 
       if (shouldUpdateVersionRange(
           constraint: constraint, targetConstraint: targetConstraint)) {

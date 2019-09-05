@@ -72,7 +72,6 @@ class PubspecOverReactUpgrader implements Suggestor {
       // over_react is already in pubspec.yaml
       final constraintValue = overReactMatch.group(2);
       final constraint = VersionConstraint.parse(constraintValue);
-      final line = overReactMatch.group(0);
 
       if (shouldUpdateVersionRange(
           targetConstraint: targetConstraint,
