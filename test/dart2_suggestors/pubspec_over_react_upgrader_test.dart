@@ -47,7 +47,6 @@ main() {
         startingRange: startingTestRange,
         dependency: dependency,
         midVersionRange: midRangeMark,
-        shouldUpdateMidRange: false,
       );
 
       sharedPubspecTest(
@@ -57,7 +56,6 @@ main() {
         dependency: dependency,
         midVersionRange: midRangeMark,
         shouldAddDependencies: false,
-        shouldUpdateMidRange: false,
       );
 
       test('does not lower the lower bound', () {
@@ -94,7 +92,6 @@ main() {
         startingRange: startingTestRange,
         dependency: dependency,
         midVersionRange: midRangeMark,
-        shouldUpdateMidRange: true,
       );
     });
   });

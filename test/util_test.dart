@@ -13,6 +13,7 @@
 // limitations under the License.
 
 @TestOn('vm')
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -413,10 +414,10 @@ class Foo extends _\$Foo
 }
 
 void sharedGenerateNewVersionRangeTests(
-    {VersionRange currentRange,
-    VersionRange currentRangeWithHigherMinBound,
-    VersionRange targetRange,
-    VersionRange expectedMixedRange}) {
+    {@required VersionRange currentRange,
+    @required VersionRange currentRangeWithHigherMinBound,
+    @required VersionRange targetRange,
+    @required VersionRange expectedMixedRange}) {
   group('', () {
     test('', () {
       expect(generateNewVersionRange(currentRange, targetRange), targetRange);

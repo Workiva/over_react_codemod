@@ -33,7 +33,7 @@ import 'util.dart';
 /// `startingRange` is the range that exists in the pubspec before the
 /// suggestor is run.
 ///
-/// `shouldAddDependencies` means the suggestor will add the dependencu to
+/// `shouldAddDependencies` means the suggestor will add the dependency to
 /// the pubspec if it is not already there.
 ///
 /// `shouldUpdate` will determine if the tests should have any patches at all.
@@ -52,7 +52,7 @@ void sharedPubspecTest({
   @required VersionRange startingRange,
   bool shouldAddDependencies = true,
   bool shouldUpdate = true,
-  bool shouldUpdateMidRange = false,
+  bool shouldUpdateMidRange = true,
   String midVersionRange,
 }) {
   final patchCount = shouldUpdate ? 1 : 0;

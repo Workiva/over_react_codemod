@@ -46,7 +46,6 @@ main() {
           getExpectedOutput: getExpectedOutput,
           startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
           dependency: 'react',
-          shouldUpdateMidRange: true,
           midVersionRange: '^$midVersionMin');
     });
 
@@ -56,7 +55,6 @@ main() {
           getExpectedOutput: getExpectedOutput,
           startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
           dependency: 'react',
-          shouldUpdateMidRange: true,
           midVersionRange: '^$midVersionMin',
           shouldAddDependencies: false);
     });
