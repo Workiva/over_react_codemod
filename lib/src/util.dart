@@ -281,10 +281,8 @@ VersionRange generateNewVersionRange(
     String versionRange;
 
     if (currentRange.min > targetRange.min) {
-      print(' I should be here');
       versionRange = '>=${currentRange.min.toString()}';
     } else {
-      print(' I should not be here');
       versionRange = '>=${targetRange.min.toString()}';
     }
 

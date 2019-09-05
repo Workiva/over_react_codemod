@@ -51,8 +51,6 @@ class PubspecReactUpdater implements Suggestor {
         // Wrap the new constraint in quotes if required.
         var newValue =
             generateNewVersionRange(constraint, targetConstraint).toString();
-        print(newValue);
-        print(constraint.toString());
 
         if (mightNeedYamlEscaping(newValue)) {
           newValue = '"$newValue"';
