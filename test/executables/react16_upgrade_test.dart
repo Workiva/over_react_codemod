@@ -61,7 +61,8 @@ ProcessResult runUpgrade({String onDirectory}) {
     'dart',
     [
       '--enable-asserts',
-      p.join(Directory.current.path, 'bin/react16_upgrade.dart')
+      p.join(Directory.current.path, 'bin/react16_upgrade.dart'),
+      '--yes-to-all'
     ],
     workingDirectory: onDirectory,
   );

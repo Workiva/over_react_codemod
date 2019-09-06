@@ -13,7 +13,9 @@
 // limitations under the License.
 
 @TestOn('vm')
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import 'package:over_react_codemod/src/constants.dart';
@@ -124,6 +126,59 @@ void overReactExample() {}''';
       });
     });
 
+    group('generateNewVersionRange()', () {
+      group('updates correctly with a basic range', () {
+        sharedGenerateNewVersionRangeTests(
+          currentRange: VersionConstraint.parse('>=0.5.0 <3.0.0'),
+          currentRangeWithHigherMinBound:
+              VersionConstraint.parse('>=1.5.0 <3.0.0'),
+          targetRange: VersionConstraint.parse('>=1.0.0 <4.0.0'),
+          expectedMixedRange: VersionConstraint.parse('>=1.5.0 <4.0.0'),
+        );
+      });
+
+      group('updates correctly with an open ended target range', () {
+        sharedGenerateNewVersionRangeTests(
+          currentRange: VersionConstraint.parse('>=1.0.0 <2.0.0'),
+          currentRangeWithHigherMinBound:
+              VersionConstraint.parse('>=1.2.0 <2.0.0'),
+          targetRange: VersionConstraint.parse('>=1.0.0'),
+          expectedMixedRange: VersionConstraint.parse('>=1.2.0'),
+        );
+      });
+
+      group('updates correctly with an open ended current range', () {
+        sharedGenerateNewVersionRangeTests(
+          currentRange: VersionConstraint.parse('>=1.0.0'),
+          currentRangeWithHigherMinBound: VersionConstraint.parse('>=1.2.0'),
+          targetRange: VersionConstraint.parse('>=1.0.0 <2.0.0'),
+          expectedMixedRange: VersionConstraint.parse('>=1.2.0 <2.0.0'),
+        );
+      });
+    });
+
+    group('mightNeedYamlEscaping()', () {
+      group('returns true if the value', () {
+        test('starts with ">"', () {
+          expect(mightNeedYamlEscaping(">=4.0.0"), isTrue);
+        });
+      });
+
+      group('returns false if the value', () {
+        test('does not start with a >', () {
+          expect(mightNeedYamlEscaping("^4.0.0"), isFalse);
+        });
+
+        test('starts with "<"', () {
+          expect(mightNeedYamlEscaping("<4.0.0"), isFalse);
+        });
+
+        test('is an explicit value', () {
+          expect(mightNeedYamlEscaping("4.0.0"), isFalse);
+        });
+      });
+    });
+
     group('renamePropsOrStateClass()', () {
       test('public', () {
         expect(renamePropsOrStateClass('Foo'), r'_$Foo');
@@ -139,6 +194,98 @@ void overReactExample() {}''';
 
       test('private already renamed', () {
         expect(renamePropsOrStateClass(r'_$_Foo'), r'_$_Foo');
+      });
+    });
+
+    group('shouldUpdateVersionRange() updates correctly', () {
+      group('when the current dependency uses the caret syntax ', () {
+        test('and the target uses caret syntax', () {
+          expect(
+              shouldUpdateVersionRange(
+                  constraint: VersionConstraint.parse('^4.0.0'),
+                  targetConstraint: VersionConstraint.parse('^5.0.0')),
+              isTrue);
+        });
+
+        test('and the target uses a range', () {
+          expect(
+              shouldUpdateVersionRange(
+                  constraint: VersionConstraint.parse('^4.0.0'),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+              isTrue);
+        });
+      });
+
+      group('when the current dependency uses a range ', () {
+        test('and the range has no specified max', () {
+          expect(
+              shouldUpdateVersionRange(
+                  constraint: VersionConstraint.parse('>=4.0.0'),
+                  targetConstraint: VersionConstraint.parse('^5.0.0')),
+              isTrue);
+        });
+
+        test('and the target uses caret syntax', () {
+          expect(
+              shouldUpdateVersionRange(
+                  constraint: VersionConstraint.parse('>=4.0.0 <5.0.0'),
+                  targetConstraint: VersionConstraint.parse('^5.0.0')),
+              isTrue);
+        });
+
+        test('and the target uses a range', () {
+          expect(
+              shouldUpdateVersionRange(
+                  constraint: VersionConstraint.parse('>=4.0.0 <5.0.0'),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+              isTrue);
+        });
+      });
+
+      group('when shouldIgnoreMin is true ', () {
+        test('and the current min is higher than the target min', () {
+          expect(
+              shouldUpdateVersionRange(
+                  constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0'),
+                  shouldIgnoreMin: true),
+              isTrue);
+        });
+
+        test('and the target max is higher than the current max', () {
+          expect(
+              shouldUpdateVersionRange(
+                  constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <7.0.0'),
+                  shouldIgnoreMin: true),
+              isTrue);
+        });
+      });
+
+      group('when shouldIgnoreMin is false ', () {
+        test('and the current min is higher than the target min', () {
+          expect(
+              shouldUpdateVersionRange(
+                  constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+              isFalse);
+        });
+
+        test('and the target max is higher than the current max', () {
+          expect(
+              shouldUpdateVersionRange(
+                  constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <7.0.0')),
+              isTrue);
+        });
+      });
+
+      test('and the current max is higher than the target max', () {
+        expect(
+            shouldUpdateVersionRange(
+                constraint: VersionConstraint.parse('>=5.0.0 <7.0.0'),
+                targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+            isFalse);
       });
     });
 
@@ -263,5 +410,25 @@ class Foo extends _\$Foo
   static const $metaType meta = _\$metaForFoo;
 }
 ''');
+  });
+}
+
+void sharedGenerateNewVersionRangeTests(
+    {@required VersionRange currentRange,
+    @required VersionRange currentRangeWithHigherMinBound,
+    @required VersionRange targetRange,
+    @required VersionRange expectedMixedRange}) {
+  group('', () {
+    test('', () {
+      expect(generateNewVersionRange(currentRange, targetRange), targetRange);
+    });
+
+    test(
+        'when the current range lower bound is higher than the target '
+        'range lower bound', () {
+      expect(
+          generateNewVersionRange(currentRangeWithHigherMinBound, targetRange),
+          expectedMixedRange);
+    });
   });
 }

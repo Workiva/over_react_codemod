@@ -31,7 +31,6 @@ import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_mixin_me
 import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_mixin_meta_remover.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_mixin_usage_consolidator.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_mixin_usage_doubler.dart';
-import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/ui_factory_ignore_comment_remover.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/ui_factory_initializer.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
@@ -91,9 +90,6 @@ void main() {
       ),
       'PropsAndStateMixinUsageDoubler': Ignoreable(
         PropsAndStateMixinUsageDoubler(),
-      ),
-      'PubspecOverReactUpgrader': PubspecOverReactUpgrader(
-        PubspecOverReactUpgrader.dart2Constraint,
       ),
       'UiFactoryIgnoreCommentRemover': Ignoreable(
         UiFactoryIgnoreCommentRemover(),
