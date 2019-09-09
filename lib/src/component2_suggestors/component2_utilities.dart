@@ -132,9 +132,10 @@ bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
 /// * Generic parameters on component class
 /// * `@AbstractProps` in the same file
 bool canBeExtendedFrom(ClassDeclaration classNode) {
-  if (classNode.abstractKeyword != null ||
-      classNode?.extendsClause?.superclass?.typeArguments != null ||
-      classNode.root.toSource().contains('@AbstractProps')) {
+  if (classNode != null &&
+      (classNode.abstractKeyword != null ||
+          classNode.extendsClause?.superclass?.typeArguments != null ||
+          classNode.root.toSource().contains('@AbstractProps'))) {
     return true;
   }
   return false;
