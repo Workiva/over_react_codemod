@@ -86,7 +86,7 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 2,
         input: '''
           @Component()
-          class FooComponent extends UiComponent<FooProps> {
+          class FooComponent extends UiComponent {
             eventHandler() {}
             
             @override
@@ -101,7 +101,7 @@ void classNameAndAnnotationTests({
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
+          class FooComponent extends UiComponent2 {
             eventHandler() {}
             
             @override
@@ -122,11 +122,11 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 2,
         input: '''
           @Component()
-          class FooComponent extends UiComponent<FooProps> {}
+          class FooComponent extends UiComponent {}
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2<FooProps> {}
+          class FooComponent extends UiComponent2 {}
         ''',
       );
     });
@@ -136,11 +136,11 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 2,
         input: '''
           @Component()
-          class FooComponent extends FluxUiComponent<FooProps> {}
+          class FooComponent extends FluxUiComponent {}
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends FluxUiComponent2<FooProps> {}
+          class FooComponent extends FluxUiComponent2 {}
         ''',
       );
     });
@@ -150,11 +150,11 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 2,
         input: '''
           @Component()
-          class FooComponent extends FluxUiStatefulComponent<FooProps> {}
+          class FooComponent extends FluxUiStatefulComponent {}
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends FluxUiStatefulComponent2<FooProps> {}
+          class FooComponent extends FluxUiStatefulComponent2 {}
         ''',
       );
     });
@@ -166,7 +166,7 @@ void classNameAndAnnotationTests({
         expectedPatchCount: allowPartialUpgrades ? 2 : 0,
         input: '''
           @Component()
-          class FooComponent extends UiComponent<FooProps> {
+          class FooComponent extends UiComponent {
             eventHandler() {}
 
             @override
@@ -184,7 +184,7 @@ void classNameAndAnnotationTests({
         ''',
         expectedOutput: '''
           @Component${allowPartialUpgrades ? '2' : ''}()
-          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''}<FooProps> {
+          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''} {
             eventHandler() {}
   
             @override
@@ -210,14 +210,14 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 1,
         input: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+          class FooComponent extends UiStatefulComponent {
             @override
             void render() {}
           }
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          class FooComponent extends UiStatefulComponent2 {
             @override
             void render() {}
           }
@@ -232,7 +232,7 @@ void classNameAndAnnotationTests({
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+          class FooComponent extends UiStatefulComponent {
             @override
             shouldComponentUpdate() {}
             
@@ -242,7 +242,7 @@ void classNameAndAnnotationTests({
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent${allowPartialUpgrades ? '2' : ''}<FooProps, FooState> {
+          class FooComponent extends UiStatefulComponent${allowPartialUpgrades ? '2' : ''} {
             @override
             shouldComponentUpdate() {}
             
@@ -260,7 +260,7 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 2,
         input: '''
           @Component(isWrapper: true)
-          class FooComponent extends UiComponent<FooProps> {
+          class FooComponent extends UiComponent {
             eventHandler() {}
 
             @override
@@ -269,7 +269,7 @@ void classNameAndAnnotationTests({
         ''',
         expectedOutput: '''
           @Component2(isWrapper: true)
-          class FooComponent extends UiComponent2<FooProps> {
+          class FooComponent extends UiComponent2 {
             eventHandler() {}
 
             @override
@@ -286,7 +286,7 @@ void classNameAndAnnotationTests({
         expectedPatchCount: allowPartialUpgrades ? 2 : 0,
         input: '''
           @Component(isWrapper: true)
-          class FooComponent extends UiComponent<FooProps> {
+          class FooComponent extends UiComponent {
             @override
             componentWillMount() {}
             
@@ -296,7 +296,7 @@ void classNameAndAnnotationTests({
         ''',
         expectedOutput: '''
           @Component${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
-          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''}<FooProps> {
+          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''} {
             @override
             componentWillMount() {}
             
@@ -308,20 +308,20 @@ void classNameAndAnnotationTests({
     });
 
     test(
-        'is non-Component ${allowPartialUpgrades ? 'updates' : 'does not update'}',
-        () {
+        'is non-Component '
+        '${allowPartialUpgrades ? 'updates' : 'does not update'}', () {
       testSuggestor(
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component(isWrapper: true)
-          class FooComponent extends SomeOtherClass<FooProps> {
+          class FooComponent extends SomeOtherClass {
             @override
             render() {}
           }
         ''',
         expectedOutput: '''
           @Component${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
-          class FooComponent extends SomeOtherClass<FooProps> {
+          class FooComponent extends SomeOtherClass {
             @override
             render() {}
           }
@@ -330,73 +330,233 @@ void classNameAndAnnotationTests({
     });
   });
 
-  group('AbstractComponent annotation and extending stateful class', () {
-    test(
-        '${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} when all lifecycle methods have codemods',
-        () {
-      testSuggestor(
-        expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
-        input: '''
-          @AbstractComponent(isWrapper: true)
-          abstract class FooComponent extends UiStatefulComponent<FooProps, FooState> {
-            @override
-            componentWillMount() {}
-          }
-        ''',
-        expectedOutput: '''
-          @AbstractComponent${shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
-          abstract class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''}<FooProps, FooState> {
-            @override
-            componentWillMount() {}
-          }
-        ''',
-      );
+  group('Abstract class', () {
+    group('with @AbstractComponent() annotation and abstract keyword', () {
+      test(
+          '${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} '
+          'when all lifecycle methods have codemods', () {
+        testSuggestor(
+          expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
+          input: '''
+            @AbstractComponent(isWrapper: true)
+            abstract class FooComponent extends UiStatefulComponent {
+              @override
+              componentWillMount() {}
+            }
+          ''',
+          expectedOutput: '''
+            @AbstractComponent${shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
+            abstract class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''} {
+              @override
+              componentWillMount() {}
+            }
+          ''',
+        );
+      });
+
+      test(
+          '${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} when one or '
+          'more lifecycle method has no codemod', () {
+        testSuggestor(
+          expectedPatchCount:
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+          input: '''
+            @AbstractComponent(isWrapper: true)
+            abstract class FooComponent extends FluxUiStatefulComponent {
+              @override
+              componentWillMount() {}
+  
+              @override
+              shouldComponentUpdate() {}
+            }
+          ''',
+          expectedOutput: '''
+            @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
+            abstract class FooComponent extends FluxUiStatefulComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''} {
+              @override
+              componentWillMount() {}
+  
+              @override
+              shouldComponentUpdate() {}
+            }
+          ''',
+        );
+      });
+
+      test(
+          'is non-Component ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
+          () {
+        testSuggestor(
+          expectedPatchCount:
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+          input: '''
+            @AbstractComponent(isWrapper: true)
+            abstract class FooComponent extends SomeOtherClass {}
+          ''',
+          expectedOutput: '''
+            @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
+            abstract class FooComponent extends SomeOtherClass {}
+          ''',
+        );
+      });
     });
 
-    test(
-        '${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} when one or '
-        'more lifecycle method has no codemod', () {
-      testSuggestor(
-        expectedPatchCount:
-            allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
-        input: '''
-          @AbstractComponent(isWrapper: true)
-          abstract class FooComponent extends FluxUiStatefulComponent<FooProps, FooState> {
-            @override
-            componentWillMount() {}
+    group('with generic parameters', () {
+      test(
+          '${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} '
+          'when all lifecycle methods have codemods', () {
+        testSuggestor(
+          expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
+          input: '''
+            @Component
+            class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+              @override
+              componentWillMount() {}
+            }
+          ''',
+          expectedOutput: '''
+            @Component${shouldUpgradeAbstractComponents ? '2' : ''}
+            class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''}<FooProps, FooState> {
+              @override
+              componentWillMount() {}
+            }
+          ''',
+        );
+      });
 
-            @override
-            shouldComponentUpdate() {}
-          }
-        ''',
-        expectedOutput: '''
-          @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
-          abstract class FooComponent extends FluxUiStatefulComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}<FooProps, FooState> {
-            @override
-            componentWillMount() {}
+      test(
+          '${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}'
+          ' when one or more lifecycle method has no codemod', () {
+        testSuggestor(
+          expectedPatchCount:
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+          input: '''
+            @Component
+            class FooComponent extends FluxUiComponent<FooProps> {
+              @override
+              componentWillMount() {}
+  
+              @override
+              shouldComponentUpdate() {}
+            }
+          ''',
+          expectedOutput: '''
+            @Component${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}
+            class FooComponent extends FluxUiComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}<FooProps> {
+              @override
+              componentWillMount() {}
+  
+              @override
+              shouldComponentUpdate() {}
+            }
+          ''',
+        );
+      });
 
-            @override
-            shouldComponentUpdate() {}
-          }
-        ''',
-      );
+      test(
+          'is non-Component ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
+          () {
+        testSuggestor(
+          expectedPatchCount:
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+          input: '''
+            @Component
+            class FooComponent extends SomeOtherClass<FooProps, FooState> {}
+          ''',
+          expectedOutput: '''
+            @Component${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}
+            class FooComponent extends SomeOtherClass<FooProps, FooState> {}
+          ''',
+        );
+      });
     });
 
-    test(
-        'is non-Component ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
-        () {
-      testSuggestor(
-        expectedPatchCount:
-            allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
-        input: '''
-          @AbstractComponent(isWrapper: true)
-          abstract class FooComponent extends SomeOtherClass<FooProps, FooState> {}
-        ''',
-        expectedOutput: '''
-          @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
-          abstract class FooComponent extends SomeOtherClass<FooProps, FooState> {}
-        ''',
-      );
+    group('with @AbstractProps in the same file', () {
+      test(
+          '${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} '
+          'when all lifecycle methods have codemods', () {
+        testSuggestor(
+          expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
+          input: '''
+            @AbstractProps()
+            class _\$AbstractFooProps extends UiProps {}
+            
+            @AbstractComponent()
+            class FooComponent extends UiStatefulComponent {
+              @override
+              componentWillMount() {}
+            }
+          ''',
+          expectedOutput: '''
+            @AbstractProps()
+            class _\$AbstractFooProps extends UiProps {}
+            
+            @AbstractComponent${shouldUpgradeAbstractComponents ? '2' : ''}()
+            class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''} {
+              @override
+              componentWillMount() {}
+            }
+          ''',
+        );
+      });
+
+      test(
+          '${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} when one or '
+          'more lifecycle method has no codemod', () {
+        testSuggestor(
+          expectedPatchCount:
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+          input: '''
+            @AbstractProps()
+            class _\$AbstractFooProps extends UiProps {}
+            
+            @AbstractComponent()
+            class FooComponent extends FluxUiStatefulComponent {
+              @override
+              componentWillMount() {}
+  
+              @override
+              shouldComponentUpdate() {}
+            }
+          ''',
+          expectedOutput: '''
+            @AbstractProps()
+            class _\$AbstractFooProps extends UiProps {}
+            
+            @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}()
+            class FooComponent extends FluxUiStatefulComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''} {
+              @override
+              componentWillMount() {}
+  
+              @override
+              shouldComponentUpdate() {}
+            }
+          ''',
+        );
+      });
+
+      test(
+          'is non-Component ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
+          () {
+        testSuggestor(
+          expectedPatchCount:
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+          input: '''
+            @AbstractProps()
+            class _\$AbstractFooProps extends UiProps {}
+            
+            @AbstractComponent()
+            class FooComponent extends SomeOtherClass {}
+          ''',
+          expectedOutput: '''
+            @AbstractProps()
+            class _\$AbstractFooProps extends UiProps {}
+            
+            @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}()
+            class FooComponent extends SomeOtherClass {}
+          ''',
+        );
+      });
     });
   });
 
