@@ -16,6 +16,9 @@ import 'package:codemod/codemod.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 
+import '../constants.dart';
+import '../util.dart';
+
 /// Suggestor that attempts to update `pubspec.yaml` files to ensure a safe
 /// minimum bound on the `over_react` dependency.
 ///
@@ -34,58 +37,68 @@ class PubspecOverReactUpgrader implements Suggestor {
   static final VersionRange dart2Constraint =
       VersionConstraint.parse('>=1.30.2 <3.0.0');
 
-  /// Regex that matches the dependency constraint declaration for over_react.
-  static final RegExp overReactDep = RegExp(
-    r'''^\s*over_react:\s*["']?([\d\s<>=^.]+)["']?\s*$''',
-    multiLine: true,
-  );
-
-  /// Regex that matches the `dependencies:` key in a pubspec.yaml.
-  static final RegExp dependenciesKey = RegExp(
-    r'^dependencies:$',
-    multiLine: true,
-  );
-
+  /// Constraint to update over_react to.
   final VersionRange targetConstraint;
 
-  PubspecOverReactUpgrader(this.targetConstraint);
+  /// Whether or not the codemod should ignore the constraint minimum when
+  /// considering whether to write a patch.
+  final bool shouldIgnoreMin;
+
+  /// Whether or not the codemod should add `over_react` if it is not already
+  /// found.
+  final bool shouldAddDependencies;
+
+  PubspecOverReactUpgrader(this.targetConstraint,
+      {this.shouldAddDependencies = true})
+      : shouldIgnoreMin = false;
+
+  /// Constructor used to ignore checks and ensure that the codemod always
+  /// tries to update the constraint.
+  ///
+  /// This is useful because the codemod may want to enforce a specific
+  /// range, rather than a target upper or lower bound. The only time this
+  /// will not update the pubspec is if the target version range is equal to
+  /// the version that is already there (avoiding an empty patch error).
+  PubspecOverReactUpgrader.alwaysUpdate(this.targetConstraint,
+      {this.shouldAddDependencies = true})
+      : shouldIgnoreMin = true;
 
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
     final contents = sourceFile.getText(0);
-    final overReactMatch = overReactDep.firstMatch(contents);
+    final overReactMatch = overReactDependencyRegExp.firstMatch(contents);
+
     if (overReactMatch != null) {
       // over_react is already in pubspec.yaml
-      final line = overReactMatch.group(0);
-      final constraintValue = overReactMatch.group(1);
+      final constraintValue = overReactMatch.group(2);
       final constraint = VersionConstraint.parse(constraintValue);
-      if (constraint is VersionRange && constraint.min < targetConstraint.min) {
+
+      if (shouldUpdateVersionRange(
+          targetConstraint: targetConstraint,
+          constraint: constraint,
+          shouldIgnoreMin: shouldIgnoreMin)) {
         // Wrap the new constraint in quotes if required.
-        var newValue = targetConstraint.toString();
-        if (newValue.contains(' ') &&
-            !line.contains("'") &&
-            !line.contains('"')) {
-          newValue = "'$newValue'";
+        var newValue =
+            generateNewVersionRange(constraint, targetConstraint).toString();
+
+        if (mightNeedYamlEscaping(newValue)) {
+          newValue = '"$newValue"';
         }
 
         // Update the version constraint to ensure a safe minimum bound.
         yield Patch(
-          sourceFile,
-          sourceFile.span(overReactMatch.start, overReactMatch.end),
-          line.replaceFirst(
-            constraintValue,
-            newValue,
-          ),
-        );
+            sourceFile,
+            sourceFile.span(overReactMatch.start, overReactMatch.end),
+            '  over_react: $newValue');
       }
-    } else {
+    } else if (shouldAddDependencies) {
       // over_react is missing in pubspec.yaml, so add it.
-      final dependeniesKeyMatch = dependenciesKey.firstMatch(contents);
+      final dependeniesKeyMatch = dependencyRegExp.firstMatch(contents);
       if (dependeniesKeyMatch != null) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
         if (newValue.contains(' ')) {
-          newValue = "'$newValue'";
+          newValue = '"$newValue"';
         }
 
         yield Patch(
