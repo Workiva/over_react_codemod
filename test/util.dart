@@ -20,6 +20,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 final _patchesPattern = RegExp(r'\(patches (\d+)\)');
 final _pathPattern = RegExp(r'\(path ([\w./]+)\)');
@@ -149,20 +150,24 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
   });
 }
 
-/// Returns a version of [testSuggestor] with [suggestor] curried.
-void Function({
+typedef SuggestorTester = void Function({
   @required String input,
   String expectedOutput,
   int expectedPatchCount,
   bool shouldDartfmtOutput,
   bool testIdempotency,
-}) getSuggestorTester(Suggestor suggestor) {
+  void Function(String contents) validateContents,
+});
+
+/// Returns a version of [testSuggestor] with [suggestor] curried.
+SuggestorTester getSuggestorTester(Suggestor suggestor) {
   return ({
     @required String input,
     String expectedOutput,
     int expectedPatchCount,
     bool shouldDartfmtOutput = true,
     bool testIdempotency = true,
+    void Function(String contents) validateContents,
   }) =>
       testSuggestor(
         suggestor: suggestor,
@@ -171,6 +176,7 @@ void Function({
         expectedPatchCount: expectedPatchCount,
         shouldDartfmtOutput: shouldDartfmtOutput,
         testIdempotency: testIdempotency,
+        validateContents: validateContents,
       );
 }
 
@@ -181,10 +187,16 @@ void testSuggestor({
   int expectedPatchCount,
   bool shouldDartfmtOutput = true,
   bool testIdempotency = true,
+  void Function(String contents) validateContents,
   String inputUrl = 'input',
 }) {
   if (expectedOutput == null) {
     expectedOutput = input;
+  }
+
+  if (validateContents != null) {
+    expect(() => validateContents(input), returnsNormally,
+        reason: 'input is invalid');
   }
 
   if (shouldDartfmtOutput) {
@@ -205,6 +217,10 @@ void testSuggestor({
           'Patches:\n$patches');
     }
     modifiedInput = applyPatches(sourceFile, patches).trimRight() + '\n';
+    if (validateContents != null) {
+      expect(() => validateContents(modifiedInput), returnsNormally,
+          reason: 'output is invalid');
+    }
     if (shouldDartfmtOutput) {
       modifiedInput = formatter.format(modifiedInput, uri: 'modifiedInput');
     }
@@ -226,4 +242,28 @@ void testSuggestor({
         reason: 'Should be idempotent, but changed in the second run.\n\n'
             'Original input:\n---------------\n$input');
   }
+}
+
+/// Throws if [yaml] is an invalid pubspec, either due to:
+///
+/// - being unparseable
+/// - having incorrect structure (this check is not comprehensive)
+void validatePubspecYaml(String yaml) {
+  final yamlDoc = loadYamlDocument(yaml);
+
+  expect(yamlDoc.contents, isA<YamlMap>());
+  final extraTopLevelKeys =
+      (yamlDoc.contents as YamlMap).keys.toSet().difference(const {
+    'name',
+    'version',
+    'author',
+    'executables',
+    'description',
+    'dependencies',
+    'dev_dependencies',
+    'dependency_overrides',
+  });
+  expect(extraTopLevelKeys, isEmpty,
+      reason: 'unexpected top-level keys in pubspec.yaml;'
+          ' could the dependencies be missing indentation?');
 }

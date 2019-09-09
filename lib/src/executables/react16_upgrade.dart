@@ -19,16 +19,49 @@ import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react_dom_render_migrator.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react_style_maps_updater.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
+import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
+import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
+
+import '../react16_suggestors/constants.dart';
 
 const _changesRequiredOutput = """
-  To update your code, change your `react` dependency version in `pubspec.yaml` to `^5.0.0` and run the following commands:
-  pub get
+  To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
   pub global run over_react_codemod:react16_upgrade
+  pub run dart_dev format (If you format this repository).
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
+  // Update Pubspec
+  final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
+  final overReactVersionConstraint =
+      VersionConstraint.parse(overReactVersionRange);
+
+  final pubspecYamlQuery = FileQuery.dir(
+    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
+    recursive: true,
+  );
+
+  exitCode = runInteractiveCodemod(
+    pubspecYamlQuery,
+    AggregateSuggestor([
+      PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
+      PubspecOverReactUpgrader(overReactVersionConstraint,
+          shouldAddDependencies: false)
+    ]),
+    args: args,
+    defaultYes: true,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
+
+  if (exitCode != 0) {
+    return;
+  }
+
+  // Update Componentry
   final query = FileQuery.dir(
     pathFilter: isDartFile,
     recursive: true,
