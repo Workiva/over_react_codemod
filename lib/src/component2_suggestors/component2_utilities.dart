@@ -133,9 +133,9 @@ bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
 /// * `@AbstractProps` in the same file
 bool canBeExtendedFrom(ClassDeclaration classNode) {
   if (classNode.abstractKeyword != null ||
+      classNode?.extendsClause?.superclass?.typeArguments != null ||
       classNode.root.toSource().contains('@AbstractProps')) {
     return true;
   }
-  // todo: check for generic parameters
   return false;
 }
