@@ -18,7 +18,9 @@ library over_react_codemod.src.util;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/args.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 
 import 'constants.dart';
 
@@ -270,6 +272,28 @@ final _usesOverReactRegex = RegExp(
   multiLine: true,
 );
 
+/// Method that creates a new dependency range by targeting a higher range.
+///
+/// This can be used to update dependency ranges without lowering a current
+/// constraint unintentionally.
+VersionRange generateNewVersionRange(
+    VersionRange currentRange, VersionRange targetRange) {
+  return VersionRange(
+    min:
+        currentRange.min > targetRange.min ? currentRange.min : targetRange.min,
+    includeMin: true,
+    max: targetRange.max,
+  );
+}
+
+/// Return whether or not a particular pubspec.yaml dependency value string
+/// should be wrapped in quotations.
+bool mightNeedYamlEscaping(String scalarValue) =>
+    // Values starting with `>` need escaping.
+    // Whitelist a non-exhaustive list of allowable characters,
+    // flagging that the value should be escaped when we're not sure.
+    !RegExp(r'^[^>][-+.<>=^ \w]*$').hasMatch(scalarValue);
+
 /// Parses a `--comment-prefix=<value>` command-line option from [args] if
 /// present, returning `<value>` (or null if the option is omitted) **and
 /// removes the relevant items from the [args] list.**
@@ -317,6 +341,47 @@ String parseAndRemoveCommentPrefixArg(List<String> args) {
 ///     // '_$_FooProps'
 String renamePropsOrStateClass(String className) {
   return '$privateGeneratedPrefix${stripPrivateGeneratedPrefix(className)}';
+}
+
+/// Returns whether or not a pubspec.yaml version should be updated.
+///
+/// This is useful when a certain min or max needs to be enforced but the
+/// current dependency can take many different forms.
+bool shouldUpdateVersionRange({
+  @required VersionConstraint constraint,
+  @required VersionRange targetConstraint,
+  bool shouldIgnoreMin = false,
+}) {
+  if (constraint is VersionRange) {
+    // Short circuit if the constraints are the same.
+    if (targetConstraint == constraint) return false;
+
+    // If this is null, the dependency is set to >= with no upper limit.
+    if (constraint.max == null) {
+      // In that case, we need the min to be at least as high as our
+      // target. If it is, do not update.
+      if (constraint.min >= targetConstraint.min) {
+        return false;
+      }
+
+      return true;
+    } else {
+      // If there is a maximum, and it is higher than target max (but the
+      // lower bound is still greater or equal to the target) do not
+      // update.
+      if (constraint.max >= targetConstraint.max) {
+        // If the codemod is asserting a specific minimum, the
+        // constraint min does not matter.
+        if (constraint.min >= targetConstraint.min && !shouldIgnoreMin) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /// Returns [value] without the leading private generated prefix (`_$`) if it is
