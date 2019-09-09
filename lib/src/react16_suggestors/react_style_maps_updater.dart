@@ -281,7 +281,7 @@ bool isANumber(String node) => num.tryParse(node) != null;
 
 /// A non-exhaustive set of CSS property names whose values can be numbers
 /// without units.
-const _unitlessNumberProperties = const {
+const _unitlessNumberProperties = {
   'animationIterationCount',
   'borderImageOutset',
   'borderImageSlice',
@@ -329,7 +329,7 @@ const _unitlessNumberProperties = const {
 
 /// A non-exhaustive set of CSS property names whose values never represent
 /// CSS lengths (absolute lengths like px/pt, relative lengths like %/rem).
-const _nonLengthValueProperties = const {
+const _nonLengthValueProperties = {
   'backgroundAttachment',
   'backgroundColor',
   'backgroundImage',
