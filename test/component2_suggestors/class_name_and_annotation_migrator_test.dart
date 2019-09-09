@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:over_react_codemod/src/component2_suggestors/class_name_and_annotation_migrator.dart';
+import 'package:over_react_codemod/src/component2_suggestors/component2_constants.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
@@ -336,7 +337,7 @@ void classNameAndAnnotationTests({
           '${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} '
           'when all lifecycle methods have codemods', () {
         testSuggestor(
-          expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
+          expectedPatchCount: shouldUpgradeAbstractComponents ? 3 : 0,
           input: '''
             @AbstractComponent(isWrapper: true)
             abstract class FooComponent extends UiStatefulComponent {
@@ -345,6 +346,7 @@ void classNameAndAnnotationTests({
             }
           ''',
           expectedOutput: '''
+            ${shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
             @AbstractComponent${shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
             abstract class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''} {
               @override
@@ -359,7 +361,7 @@ void classNameAndAnnotationTests({
           'more lifecycle method has no codemod', () {
         testSuggestor(
           expectedPatchCount:
-              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 3 : 0,
           input: '''
             @AbstractComponent(isWrapper: true)
             abstract class FooComponent extends FluxUiStatefulComponent {
@@ -371,6 +373,7 @@ void classNameAndAnnotationTests({
             }
           ''',
           expectedOutput: '''
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
             @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
             abstract class FooComponent extends FluxUiStatefulComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''} {
               @override
@@ -388,12 +391,13 @@ void classNameAndAnnotationTests({
           () {
         testSuggestor(
           expectedPatchCount:
-              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
           input: '''
             @AbstractComponent(isWrapper: true)
             abstract class FooComponent extends SomeOtherClass {}
           ''',
           expectedOutput: '''
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
             @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
             abstract class FooComponent extends SomeOtherClass {}
           ''',
@@ -406,7 +410,7 @@ void classNameAndAnnotationTests({
           '${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} '
           'when all lifecycle methods have codemods', () {
         testSuggestor(
-          expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
+          expectedPatchCount: shouldUpgradeAbstractComponents ? 3 : 0,
           input: '''
             @Component
             class FooComponent extends UiStatefulComponent<FooProps, FooState> {
@@ -415,6 +419,7 @@ void classNameAndAnnotationTests({
             }
           ''',
           expectedOutput: '''
+            ${shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
             @Component${shouldUpgradeAbstractComponents ? '2' : ''}
             class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''}<FooProps, FooState> {
               @override
@@ -429,7 +434,7 @@ void classNameAndAnnotationTests({
           ' when one or more lifecycle method has no codemod', () {
         testSuggestor(
           expectedPatchCount:
-              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 3 : 0,
           input: '''
             @Component
             class FooComponent extends FluxUiComponent<FooProps> {
@@ -441,6 +446,7 @@ void classNameAndAnnotationTests({
             }
           ''',
           expectedOutput: '''
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
             @Component${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}
             class FooComponent extends FluxUiComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}<FooProps> {
               @override
@@ -458,12 +464,13 @@ void classNameAndAnnotationTests({
           () {
         testSuggestor(
           expectedPatchCount:
-              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
           input: '''
             @Component
             class FooComponent extends SomeOtherClass<FooProps, FooState> {}
           ''',
           expectedOutput: '''
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
             @Component${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}
             class FooComponent extends SomeOtherClass<FooProps, FooState> {}
           ''',
@@ -476,7 +483,7 @@ void classNameAndAnnotationTests({
           '${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} '
           'when all lifecycle methods have codemods', () {
         testSuggestor(
-          expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
+          expectedPatchCount: shouldUpgradeAbstractComponents ? 3 : 0,
           input: '''
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
@@ -491,6 +498,7 @@ void classNameAndAnnotationTests({
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
             
+            ${shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
             @AbstractComponent${shouldUpgradeAbstractComponents ? '2' : ''}()
             class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''} {
               @override
@@ -505,7 +513,7 @@ void classNameAndAnnotationTests({
           'more lifecycle method has no codemod', () {
         testSuggestor(
           expectedPatchCount:
-              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 3 : 0,
           input: '''
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
@@ -523,6 +531,7 @@ void classNameAndAnnotationTests({
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
             
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
             @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}()
             class FooComponent extends FluxUiStatefulComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''} {
               @override
@@ -540,7 +549,7 @@ void classNameAndAnnotationTests({
           () {
         testSuggestor(
           expectedPatchCount:
-              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
           input: '''
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
@@ -552,11 +561,26 @@ void classNameAndAnnotationTests({
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
             
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
             @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}()
             class FooComponent extends SomeOtherClass {}
           ''',
         );
       });
+    });
+
+    test('already upgraded does not change', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          $abstractClassMessage
+          @AbstractComponent2(isWrapper: true)
+          abstract class FooComponent extends UiStatefulComponent2 {
+            @override
+            componentWillMount() {}
+          }
+        ''',
+      );
     });
   });
 
