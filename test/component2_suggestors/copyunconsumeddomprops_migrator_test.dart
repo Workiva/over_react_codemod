@@ -70,7 +70,7 @@ copyUnconsumedDomPropsTests({
         expectedPatchCount: 2,
         input: '''
           @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
+          class FooComponent extends UiComponent2 {
             @override
             render() {
               return (Dom.span()
@@ -81,7 +81,7 @@ copyUnconsumedDomPropsTests({
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
+          class FooComponent extends UiComponent2 {
             @override
             render() {
               return (Dom.span()
@@ -101,7 +101,7 @@ copyUnconsumedDomPropsTests({
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
             @Component2()
-            class FooComponent extends SomeOtherClass<FooProps> {
+            class FooComponent extends SomeOtherClass {
               @override
               render() {
                 return (Dom.span()
@@ -112,7 +112,7 @@ copyUnconsumedDomPropsTests({
           ''',
           expectedOutput: '''
             @Component2()
-            class FooComponent extends SomeOtherClass<FooProps> {
+            class FooComponent extends SomeOtherClass {
               @override
               render() {
                 return (Dom.span()
@@ -129,7 +129,7 @@ copyUnconsumedDomPropsTests({
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
             @Component2()
-            class FooComponent extends UiComponent2<FooProps> {
+            class FooComponent extends UiComponent2 {
               @override
               render() {
                 return (Dom.span()
@@ -143,7 +143,7 @@ copyUnconsumedDomPropsTests({
           ''',
           expectedOutput: '''
             @Component2()
-            class FooComponent extends UiComponent2<FooProps> {
+            class FooComponent extends UiComponent2 {
               @override
               render() {
                 return (Dom.span()
@@ -166,8 +166,8 @@ copyUnconsumedDomPropsTests({
         testSuggestor(
           expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
           input: '''
-            @AbstractComponent2()
-            abstract class FooComponent extends UiComponent2<FooProps> {
+            @Component2
+            class FooComponent extends UiComponent2<FooProps> {
               @override
               render() {
                 return (Dom.span()
@@ -177,8 +177,8 @@ copyUnconsumedDomPropsTests({
             }
           ''',
           expectedOutput: '''
-            @AbstractComponent2()
-            abstract class FooComponent extends UiComponent2<FooProps> {
+            @Component2
+            class FooComponent extends UiComponent2<FooProps> {
               @override
               render() {
                 return (Dom.span()
@@ -199,7 +199,7 @@ copyUnconsumedDomPropsTests({
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
             input: '''
               @AbstractComponent2()
-              abstract class FooComponent extends SomeOtherClass<FooProps> {
+              abstract class FooComponent extends SomeOtherClass {
                 @override
                 render() {
                   return (Dom.span()
@@ -210,7 +210,7 @@ copyUnconsumedDomPropsTests({
             ''',
             expectedOutput: '''
               @AbstractComponent2()
-              abstract class FooComponent extends SomeOtherClass<FooProps> {
+              abstract class FooComponent extends SomeOtherClass {
                 @override
                 render() {
                   return (Dom.span()
@@ -227,8 +227,11 @@ copyUnconsumedDomPropsTests({
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
             input: '''
+              @AbstractProps()
+              class AbstractFooProps extends UiProps {}
+              
               @AbstractComponent2()
-              abstract class FooComponent extends UiComponent2<FooProps> {
+              class FooComponent extends UiComponent2 {
                 @override
                 render() {
                   return (Dom.span()
@@ -241,8 +244,11 @@ copyUnconsumedDomPropsTests({
               }
             ''',
             expectedOutput: '''
+              @AbstractProps()
+              class AbstractFooProps extends UiProps {}
+              
               @AbstractComponent2()
-              abstract class FooComponent extends UiComponent2<FooProps> {
+              class FooComponent extends UiComponent2 {
                 @override
                 render() {
                   return (Dom.span()

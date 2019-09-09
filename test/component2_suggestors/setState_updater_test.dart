@@ -185,8 +185,8 @@ setStateTests({
                       ? 1
                       : 0,
               input: '''
-                @AbstractComponent2()
-                abstract class FooComponent extends SomeOtherClass {
+                @Component2
+                class FooComponent extends SomeOtherClass<FooProps> {
                   someMethod() {
                     setState((prevState, props) {
                       // return ...;
@@ -195,8 +195,8 @@ setStateTests({
                 }
               ''',
               expectedOutput: '''
-                @AbstractComponent2()
-                abstract class FooComponent extends SomeOtherClass {
+                @Component2
+                class FooComponent extends SomeOtherClass<FooProps> {
                   someMethod() {
                     ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'setStateWithUpdater' : 'setState'}((prevState, props) {
                       // return ...;
@@ -214,8 +214,11 @@ setStateTests({
                       ? 1
                       : 0,
               input: '''
+                @AbstractProps()
+                class AbstractFooProps extends UiProps {}
+                
                 @AbstractComponent2()
-                abstract class FooComponent extends UiComponent2 {
+                class FooComponent extends UiComponent2 {
                   @override
                   componentWillReceiveProps(Map newProps) {
                     super.componentWillReceiveProps(newProps);
@@ -227,8 +230,11 @@ setStateTests({
                 }
               ''',
               expectedOutput: '''
+                @AbstractProps()
+                class AbstractFooProps extends UiProps {}
+                
                 @AbstractComponent2()
-                abstract class FooComponent extends UiComponent2 {
+                class FooComponent extends UiComponent2 {
                   @override
                   componentWillReceiveProps(Map newProps) {
                     super.componentWillReceiveProps(newProps);

@@ -147,16 +147,22 @@ componentWillMountTests({
         testSuggestor(
           expectedPatchCount: shouldUpgradeAbstractComponents ? 1 : 0,
           input: '''
+            @AbstractProps()
+            class AbstractFooProps extends UiProps {}
+            
             @AbstractComponent2()
-            abstract class FooComponent extends UiComponent2 {
+            class FooComponent extends UiComponent2 {
               componentWillMount(){
                 // method body
               }
             }
           ''',
           expectedOutput: '''
+            @AbstractProps()
+            class AbstractFooProps extends UiProps {}
+            
             @AbstractComponent2()
-            abstract class FooComponent extends UiComponent2 {
+            class FooComponent extends UiComponent2 {
               ${shouldUpgradeAbstractComponents ? 'init' : 'componentWillMount'}(){
                 // method body
               }
@@ -173,16 +179,16 @@ componentWillMountTests({
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
             input: '''
-              @AbstractComponent2()
-              abstract class FooComponent extends SomeOtherClass {
+              @Component2
+              class FooComponent extends SomeOtherClass<FooProps> {
                 componentWillMount(){
                   // method body
                 }
               }
             ''',
             expectedOutput: '''
-              @AbstractComponent2()
-              abstract class FooComponent extends SomeOtherClass {
+              @Component2
+              class FooComponent extends SomeOtherClass<FooProps> {
                 ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'init' : 'componentWillMount'}(){
                   // method body
                 }

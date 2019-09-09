@@ -173,16 +173,22 @@ void componentDidUpdateTests({
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
             input: '''
+              @AbstractProps()
+              class AbstractFooProps extends UiProps {}
+            
               @AbstractComponent2()
-              abstract class FooComponent extends SomeOtherClass {
+              class FooComponent extends SomeOtherClass {
                 componentDidUpdate(Map prevProps, Map prevState) {
                   // method body
                 }
               }
             ''',
             expectedOutput: '''
+              @AbstractProps()
+              class AbstractFooProps extends UiProps {}
+              
               @AbstractComponent2()
-              abstract class FooComponent extends SomeOtherClass {
+              class FooComponent extends SomeOtherClass {
                 componentDidUpdate(Map prevProps, Map prevState${allowPartialUpgrades && shouldUpgradeAbstractComponents ? ', [snapshot]' : ''}) {
                   // method body
                 }
@@ -196,8 +202,8 @@ void componentDidUpdateTests({
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
             input: '''
-              @AbstractComponent2()
-              abstract class FooComponent extends UiComponent2 {
+              @Component2
+              class FooComponent extends UiComponent2<FooProps> {
                 componentDidUpdate(Map prevProps, Map prevState) {
                   // method body
                 }
@@ -207,8 +213,8 @@ void componentDidUpdateTests({
               }
             ''',
             expectedOutput: '''
-              @AbstractComponent2()
-              abstract class FooComponent extends UiComponent2 {
+              @Component2
+              class FooComponent extends UiComponent2<FooProps> {
                 componentDidUpdate(Map prevProps, Map prevState${allowPartialUpgrades && shouldUpgradeAbstractComponents ? ', [snapshot]' : ''}) {
                   // method body
                 }
