@@ -479,7 +479,7 @@ void classNameAndAnnotationTests({
           expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
           input: '''
             @AbstractProps()
-            class _\$AbstractFooProps extends UiProps {}
+            class AbstractFooProps extends UiProps {}
             
             @AbstractComponent()
             class FooComponent extends UiStatefulComponent {
@@ -489,7 +489,7 @@ void classNameAndAnnotationTests({
           ''',
           expectedOutput: '''
             @AbstractProps()
-            class _\$AbstractFooProps extends UiProps {}
+            class AbstractFooProps extends UiProps {}
             
             @AbstractComponent${shouldUpgradeAbstractComponents ? '2' : ''}()
             class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''} {
@@ -508,7 +508,7 @@ void classNameAndAnnotationTests({
               allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
           input: '''
             @AbstractProps()
-            class _\$AbstractFooProps extends UiProps {}
+            class AbstractFooProps extends UiProps {}
             
             @AbstractComponent()
             class FooComponent extends FluxUiStatefulComponent {
@@ -521,7 +521,7 @@ void classNameAndAnnotationTests({
           ''',
           expectedOutput: '''
             @AbstractProps()
-            class _\$AbstractFooProps extends UiProps {}
+            class AbstractFooProps extends UiProps {}
             
             @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}()
             class FooComponent extends FluxUiStatefulComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''} {
@@ -543,14 +543,14 @@ void classNameAndAnnotationTests({
               allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
           input: '''
             @AbstractProps()
-            class _\$AbstractFooProps extends UiProps {}
+            class AbstractFooProps extends UiProps {}
             
             @AbstractComponent()
             class FooComponent extends SomeOtherClass {}
           ''',
           expectedOutput: '''
             @AbstractProps()
-            class _\$AbstractFooProps extends UiProps {}
+            class AbstractFooProps extends UiProps {}
             
             @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}()
             class FooComponent extends SomeOtherClass {}

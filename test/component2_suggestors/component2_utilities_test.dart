@@ -408,7 +408,7 @@ void main() {
     group('canBeExtendedFrom()', () {
       group('when the class has the `abstract` keyword', () {
         final input = '''
-          @Component()
+          @AbstractComponent()
           abstract class FooComponent extends UiComponent {
             // class body
           }
@@ -424,7 +424,7 @@ void main() {
       group('when `@AbstractProps` is in the file', () {
         final input = '''
           @AbstractProps()
-          abstract class TestAbstractProps extends UiProps {} 
+          abstract class AbstractFooProps extends UiProps {} 
                    
           @Component2()
           class FooComponent extends UiComponent2 {
@@ -440,7 +440,20 @@ void main() {
         );
       });
 
-      // todo: add tests for generic parameters
+      group('when class has generic parameters', () {
+        final input = '''
+          @Component()
+          class FooComponent extends UiComponent<FooProps> {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: true,
+          functionToTest: canBeExtendedFrom,
+        );
+      });
 
       group('when class is not abstract', () {
         final input = '''
