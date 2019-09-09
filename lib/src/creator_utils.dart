@@ -12,7 +12,7 @@ class DartTempProjectCreator {
       this.pubspecCreators,
       this.mainDartContents}) {
     if (pubspecCreator != null && pubspecCreators != null) {
-      throw new ArgumentError(
+      throw ArgumentError(
           'Cannot specify both pubspecCreator and pubspecCreators');
     }
 
@@ -160,10 +160,10 @@ class DartProjectCreatorTestConfig {
     _testName = testName;
 
     if (pubspecCreators != null && dependencies != null) {
-      throw new ArgumentError(
+      throw ArgumentError(
           'Cannot specify both pubspecCreators and dependencies');
     }
-    pubspecCreators ??= [new PubspecCreator(dependencies: dependencies ?? [])];
+    pubspecCreators ??= [PubspecCreator(dependencies: dependencies ?? [])];
 
     this.expectedExitCode = expectedExitCode ?? (shouldRunCodemod ? 1 : 0);
   }
