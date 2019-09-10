@@ -13,12 +13,16 @@
 // limitations under the License.
 
 @TestOn('vm')
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
+import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 
 import 'package:over_react_codemod/src/constants.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/util.dart';
 
 void main() {
@@ -300,6 +304,74 @@ void overReactExample() {}''';
 
       test('with prefix not at beginning', () {
         expect(stripPrivateGeneratedPrefix(r'Foo_$Bar'), r'Foo_$Bar');
+      });
+    });
+
+    group('hasComment()', () {
+      final content = '''
+          main() { // Comment0
+            // Comment1
+            // Comment2
+            var one;
+            var two;
+            
+            // Comment3
+          }
+        ''';
+
+      final sourceFile = SourceFile.fromString(content);
+      final astNode = parseString(content: content).unit;
+
+      test('correctly finds a comment', () {
+        expect(hasComment(astNode, sourceFile, 'Comment0'), isTrue);
+      });
+
+      test('breaks after finding first comment', () {
+        expect(hasComment(astNode, sourceFile, 'Comment1'), isFalse);
+      });
+
+      test('only finds a comment within one line of the provided node', () {
+        expect(hasComment(astNode, sourceFile, 'Comment2'), isFalse);
+      });
+    });
+
+    group('allComments()', () {
+      final content = '''
+          main() {  
+            // Comment1
+            // Comment2
+            var one;
+            var two;
+            
+            // Comment3
+          }
+        ''';
+
+      final astNode = parseString(content: content).unit;
+      int commentCount;
+
+      setUp(() {
+        commentCount = 0;
+      });
+
+      test('correctly iterates over all comments', () {
+        commentCount = allComments(astNode.beginToken).length;
+
+        expect(commentCount, 3);
+      });
+
+      test('only finds comments after the provided starting node', () {
+        Token begin = astNode.beginToken;
+        Token firstVar = begin;
+
+        // Traverse the tokens until we get to var one.
+        while (firstVar.value() != 'one' && !firstVar.isEof) {
+          firstVar = firstVar.next;
+        }
+
+        commentCount = allComments(firstVar).length;
+
+        expect(commentCount, 1);
       });
     });
   });
