@@ -15,6 +15,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 
 import 'component2_constants.dart';
 import 'component2_utilities.dart';
@@ -64,6 +65,32 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
           );
         }
 
+        // Copy any annotations not already present to `componentDidMount`.
+        String annotationsToAdd = '';
+        node.metadata.forEach((annotation) {
+          if (!componentDidMountMethodDecl.metadata
+              .toString()
+              .contains(annotation.toSource())) {
+            annotationsToAdd += annotation.toSource() + '\n';
+          }
+        });
+
+        if (annotationsToAdd.isNotEmpty) {
+          if (componentDidMountMethodDecl.metadata.isEmpty) {
+            yieldPatch(
+              componentDidMountMethodDecl.offset,
+              componentDidMountMethodDecl.offset,
+              annotationsToAdd,
+            );
+          } else {
+            yieldPatch(
+              componentDidMountMethodDecl.metadata.endToken.end,
+              componentDidMountMethodDecl.metadata.endToken.end,
+              annotationsToAdd,
+            );
+          }
+        }
+
         // Remove `componentWillMount` method.
         yieldPatch(
           node.offset,
@@ -73,11 +100,13 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
       } else {
         // Rename `componentWillMount` to `componentDidMount` and add comment
         // to check super calls.
-        yieldPatch(
-          node.offset,
-          node.offset,
-          '$componentWillMountMessage\n',
-        );
+        if (!hasComment(node, sourceFile, componentWillMountMessage)) {
+          yieldPatch(
+            node.offset,
+            node.offset,
+            '$componentWillMountMessage\n',
+          );
+        }
         yieldPatch(
           node.name.offset,
           node.name.end,
