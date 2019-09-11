@@ -2,8 +2,8 @@
 
 - Added `react16_upgrade` codemod
 
-  - Fixes compatability issues common in react15 code
-  - Updates your versions upper bound of react and over_react in pubspec.yaml to
+  - Fix compatibility issues common in react15 code
+  - Update version upper bound of react and over_react in pubspec.yaml to
     allow for incoming react16 updates
 
 - Added `component2_upgrade` codemod
