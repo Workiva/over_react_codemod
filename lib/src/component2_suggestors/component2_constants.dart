@@ -35,3 +35,6 @@ String getDeperecationMessage(String methodName) {
   ///
   $revertInstructions''';
 }
+
+String componentWillMountMessage = '''
+  /// FIXME: Method has been renamed from `componentWillMount` to `componentDidMount`. Please check if super call should be added or updated.''';

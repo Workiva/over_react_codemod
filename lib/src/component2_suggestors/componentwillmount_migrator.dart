@@ -16,10 +16,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 
+import 'component2_constants.dart';
 import 'component2_utilities.dart';
 
-/// Suggestor that renames `componentWillUnmount` to `init` and removes
-/// super calls to be compatible with UiComponent2.
+/// Suggestor that transitions `componentWillMount` to `componentDidMount` to
+/// be compatible with UiComponent2.
 class ComponentWillMountMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
@@ -29,40 +30,72 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
 
     ClassDeclaration containingClass = node.parent;
 
-    if (extendsComponent2(containingClass)) {
-      // Update method name.
-      if (node.name.name == 'componentWillMount') {
+    MethodDeclaration componentDidMountMethodDecl =
+        containingClass.members.firstWhere(
+      (member) =>
+          member is MethodDeclaration &&
+          member.name.name == 'componentDidMount',
+      orElse: () => null,
+    );
+
+    if (extendsComponent2(containingClass) &&
+        node.name.name == 'componentWillMount') {
+      if (componentDidMountMethodDecl != null) {
+        if (node.body is BlockFunctionBody) {
+          bool hasSuperCall = componentDidMountMethodDecl.body
+              .toSource()
+              .contains('super.componentDidMount();');
+          String methodBody =
+              (node.body as BlockFunctionBody).block.statements.join('\n');
+
+          // Update or remove super call.
+          if (methodBody.contains('super.componentWillMount();')) {
+            methodBody = methodBody.replaceAll(
+              'super.componentWillMount();\n',
+              hasSuperCall ? '' : 'super.componentDidMount();\n',
+            );
+          }
+
+          // Move body of `componentWillMount` to end of `componentDidMount`.
+          yieldPatch(
+            componentDidMountMethodDecl.body.endToken.offset,
+            componentDidMountMethodDecl.body.endToken.offset,
+            methodBody,
+          );
+        }
+
+        // Remove `componentWillMount` method.
+        yieldPatch(
+          node.offset,
+          node.end,
+          '',
+        );
+      } else {
+        // Rename `componentWillMount` to `componentDidMount` and add comment
+        // to check super calls.
+        yieldPatch(
+          node.offset,
+          node.offset,
+          '$componentWillMountMessage\n',
+        );
         yieldPatch(
           node.name.offset,
           node.name.end,
-          'init',
+          'componentDidMount',
         );
 
-        // Remove super call if containing class extends from base classes.
-        String extendsName = containingClass.extendsClause.superclass.name.name;
-        String reactImportName =
-            getImportNamespace(containingClass, 'package:react/react.dart');
-        var componentClassNames = [
-          'UiComponent2',
-          'UiStatefulComponent2',
-          'FluxUiComponent2',
-          'FluxUiStatefulComponent2',
-        ];
-        if (reactImportName != null) {
-          componentClassNames.add('$reactImportName.Component2');
-        }
-
-        if (componentClassNames.contains(extendsName) &&
-            node.body is BlockFunctionBody) {
+        if (node.body is BlockFunctionBody) {
           NodeList statementList =
               (node.body as BlockFunctionBody).block.statements;
 
           statementList.forEach((statement) {
-            if (statement.toSource().startsWith('super.componentWillMount()')) {
+            if (statement
+                .toSource()
+                .startsWith('super.componentWillMount();')) {
               yieldPatch(
                 statement.offset,
                 statement.end,
-                '',
+                'super.componentDidMount();',
               );
             }
           });
