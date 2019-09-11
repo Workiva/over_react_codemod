@@ -72,7 +72,7 @@ main() {
             @Component2()
             class FooComponent extends react.Component2 {
               void componentWillMount(){
-                  // method body
+                // method body
               }
             }
           ''',
@@ -83,7 +83,7 @@ main() {
             class FooComponent extends react.Component2 {
               $componentWillMountMessage
               void componentDidMount(){
-                  // method body
+                // method body
               }
             }
           ''',
@@ -173,13 +173,11 @@ main() {
             
             @Component2()
             class FooComponent extends react.Component2 {
-              @override
               void componentWillMount() {
                 var a = 1;
                 var b = 2;
               }
               
-              @override
               void componentDidMount() {
                 var c = 3;
                 var d = 4;
@@ -191,7 +189,6 @@ main() {
             
             @Component2()
             class FooComponent extends react.Component2 {
-              @override
               void componentDidMount() {
                 var c = 3;
                 var d = 4;
@@ -247,6 +244,7 @@ main() {
             @Component2()
             class FooComponent extends FluxUiComponent2 {
               @override
+              @mustCallSuper
               componentDidMount() {
                 super.componentDidMount();
                 var c = 3;
@@ -265,6 +263,7 @@ main() {
             @Component2()
             class FooComponent extends FluxUiComponent2 {
               @override
+              @mustCallSuper
               componentDidMount() {
                 super.componentDidMount();
                 var c = 3;
@@ -277,16 +276,89 @@ main() {
         );
       });
 
+      test('copy any annotations not already present to componentDidMount', () {
+        testSuggestor(
+          expectedPatchCount: 3,
+          input: '''
+            @Component2()
+            class FooComponent extends FluxUiComponent2 {
+              @override
+              componentDidMount() {
+                var c = 3;
+              }
+              
+              @override
+              @mustCallSuper
+              componentWillMount() {
+                var a = 1;
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends FluxUiComponent2 {
+              @override
+              @mustCallSuper
+              componentDidMount() {
+                var c = 3;
+                var a = 1;
+              }
+            }
+          ''',
+        );
+      });
+
+      test('copy any annotations to annotationless componentDidMount', () {
+        testSuggestor(
+          expectedPatchCount: 3,
+          input: '''
+            @Component2()
+            class FooComponent extends FluxUiComponent2 {
+              componentDidMount() {
+                var c = 3;
+              }
+              
+              @override
+              @mustCallSuper
+              componentWillMount() {
+                var a = 1;
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends FluxUiComponent2 {
+              @override
+              @mustCallSuper
+              componentDidMount() {
+                var c = 3;
+                var a = 1;
+              }
+            }
+          ''',
+        );
+      });
+
       test('does not change componentWillMount for non-component2 classes', () {
         testSuggestor(
           expectedPatchCount: 0,
           input: '''
           @Component()
-          class FooComponent extends UiComponent {
-              void componentWillMount(){
-                  // method body
+            class FooComponent extends FluxUiComponent {
+              @override
+              componentDidMount() {
+                super.componentDidMount();
+                var c = 3;
+                var d = 4;
               }
-          }
+              
+              @override
+              componentWillMount() {
+                super.componentWillMount();
+                var a = 1;
+                var b = 2;
+              }
+            }
         ''',
         );
       });
