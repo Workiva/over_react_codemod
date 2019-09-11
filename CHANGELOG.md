@@ -1,3 +1,25 @@
+## [1.2.0](https://github.com/Workiva/over_react_codemod/compare/1.1.0...1.2.0)
+
+- Added `react16_upgrade` codemod
+
+  - Fixes compatability issues common in react15 code
+  - Updates your versions upper bound of react and over_react in pubspec.yaml to
+    allow for incoming react16 updates
+
+- Added `component2_upgrade` codemod
+
+  - Migrates components to `UiComponent2` (coming in OverReact 3.1.0)
+
+- Added `react16_dependency_override_update` codemod
+
+  - Adds dependency overrides to pubspec.yaml for testing wip branches of react16
+
+- Added `react16_ci_precheck` codemod
+
+  - Checks the version ranges of over_react and react and if they are in
+    transition will run the codemod and fail if there are unaddressed issues.
+
+
 ## [1.1.0](https://github.com/Workiva/over_react_codemod/compare/1.0.2...1.1.0)
 
 - Two additional changes are now made by the `dart2_upgrade` codemod when
