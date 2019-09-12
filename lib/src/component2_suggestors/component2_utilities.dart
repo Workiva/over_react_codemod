@@ -49,3 +49,77 @@ bool extendsComponent2(ClassDeclaration classNode) {
     return false;
   }
 }
+
+/// Returns whether or not [classNode] can be fully upgraded to Component2.
+///
+/// In order for a component to be fully upgradable, the component must:
+///
+/// * extend directly from `UiComponent`, `UiStatefulComponent`,
+/// `FluxUiComponent`, `FluxUiStatefulComponent`, or `react.Component`
+/// * contain only the lifecycle methods that the codemod updates:
+///   * `componentWillMount` (updated to `init`)
+///   * `render`
+///   * `componentDidUpdate`
+bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
+  var extendsName = classNode?.extendsClause?.superclass?.name;
+  if (extendsName == null) {
+    return false;
+  }
+
+  // Check that class extends directly from Component classes.
+  String reactImportName =
+      getImportNamespace(classNode, 'package:react/react.dart');
+
+  var componentClassNames = [
+    'UiComponent',
+    'UiComponent2',
+    'UiStatefulComponent',
+    'UiStatefulComponent2',
+    'FluxUiComponent',
+    'FluxUiComponent2',
+    'FluxUiStatefulComponent',
+    'FluxUiStatefulComponent2',
+  ];
+
+  if (reactImportName != null) {
+    componentClassNames.add('$reactImportName.Component');
+    componentClassNames.add('$reactImportName.Component2');
+  }
+
+  if (!componentClassNames.contains(extendsName.name)) {
+    return false;
+  }
+
+  // Check that all lifecycle methods contained in the class will be
+  // updated by a codemod.
+  final lifecycleMethods = [
+    'componentWillMount',
+    'componentWillReceiveProps',
+    'componentWillUpdate',
+    'getDerivedStateFromError',
+    'getDerivedStateFromProps',
+    'getSnapshotBeforeUpdate',
+    'shouldComponentUpdate',
+    'render',
+    'componentDidMount',
+    'componentDidUpdate',
+    'componentWillUnmount',
+    'componentDidCatch',
+  ];
+
+  var lifecycleMethodsWithCodemods = [
+    'componentWillMount',
+    'render',
+    'componentDidUpdate',
+  ];
+
+  for (var member in classNode.members) {
+    if (member is MethodDeclaration &&
+        lifecycleMethods.contains(member.name.name) &&
+        !lifecycleMethodsWithCodemods.contains(member.name.name)) {
+      return false;
+    }
+  }
+
+  return true;
+}

@@ -30,6 +30,10 @@ import 'component2_utilities.dart';
 class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  final bool allowPartialUpgrades;
+
+  ClassNameAndAnnotationMigrator({this.allowPartialUpgrades = true});
+
   Iterable<String> get migrateAnnotations =>
       overReact16ComponentAnnotationNamesToMigrate;
 
@@ -42,12 +46,28 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
       return;
     }
 
+    CompilationUnit unit = node.thisOrAncestorMatching((ancestor) {
+      return ancestor is CompilationUnit;
+    });
+
+    // Check if the import needs to show Component2.
+    bool shouldUpdateImport = true;
+    if (!allowPartialUpgrades) {
+      shouldUpdateImport = false;
+      unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+        if (fullyUpgradableToComponent2(classNode)) {
+          shouldUpdateImport = true;
+        }
+      });
+    }
+
     // Add Component2 to import show list.
     var showNamesList = (node.combinators.firstWhere(
             (combinator) => combinator is ShowCombinator,
             orElse: () => null) as ShowCombinator)
         ?.shownNames;
-    if (showNamesList != null &&
+    if (shouldUpdateImport &&
+        showNamesList != null &&
         !showNamesList.any((name) => name.toSource() == 'Component2')) {
       yieldPatch(
         showNamesList.last.end,
@@ -60,6 +80,10 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
+
+    if (!allowPartialUpgrades && !fullyUpgradableToComponent2(node)) {
+      return;
+    }
 
     var extendsName = node.extendsClause?.superclass?.name;
     if (extendsName == null) {
