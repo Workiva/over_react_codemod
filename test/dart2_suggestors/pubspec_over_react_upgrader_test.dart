@@ -79,6 +79,43 @@ main() {
               '',
         );
       });
+
+      group('does not attempt to update dependency_overrides', () {
+        test('git', () {
+          defaultTestSuggestor(
+              expectedPatchCount: 0,
+              shouldDartfmtOutput: false,
+              validateContents: validatePubspecYaml,
+              input: ''
+                  'dependency_overrides:\n'
+                  '  over_react:\n'
+                  '    git:\n'
+                  '      url: git@github.com:cleandart/react-dart.git\n'
+                  '      ref: 5.0.0-wip\n',
+              expectedOutput: ''
+                  'dependency_overrides:\n'
+                  '  over_react:\n'
+                  '    git:\n'
+                  '      url: git@github.com:cleandart/react-dart.git\n'
+                  '      ref: 5.0.0-wip\n');
+        });
+
+        test('path', () {
+          defaultTestSuggestor(
+            expectedPatchCount: 0,
+            shouldDartfmtOutput: false,
+            validateContents: validatePubspecYaml,
+            input: ''
+                'dependency_overrides:\n'
+                '  over_react:\n'
+                '    path: ../\n',
+            expectedOutput: ''
+                'dependency_overrides:\n'
+                '  over_react:\n'
+                '    path: ../\n',
+          );
+        });
+      });
     });
 
     group('with shouldAlwaysUpdate true', () {
@@ -93,6 +130,43 @@ main() {
         dependency: dependency,
         midVersionRange: midRangeMark,
       );
+
+      group('does not attempt to update dependency_overrides', () {
+        test('git', () {
+          defaultTestSuggestor(
+              expectedPatchCount: 0,
+              shouldDartfmtOutput: false,
+              validateContents: validatePubspecYaml,
+              input: ''
+                  'dependency_overrides:\n'
+                  '  over_react:\n'
+                  '    git:\n'
+                  '      url: git@github.com:cleandart/react-dart.git\n'
+                  '      ref: 5.0.0-wip\n',
+              expectedOutput: ''
+                  'dependency_overrides:\n'
+                  '  over_react:\n'
+                  '    git:\n'
+                  '      url: git@github.com:cleandart/react-dart.git\n'
+                  '      ref: 5.0.0-wip\n');
+        });
+
+        test('path', () {
+          defaultTestSuggestor(
+            expectedPatchCount: 0,
+            shouldDartfmtOutput: false,
+            validateContents: validatePubspecYaml,
+            input: ''
+                'dependency_overrides:\n'
+                '  over_react:\n'
+                '    path: ../\n',
+            expectedOutput: ''
+                'dependency_overrides:\n'
+                '  over_react:\n'
+                '    path: ../\n',
+          );
+        });
+      });
     });
   });
 }

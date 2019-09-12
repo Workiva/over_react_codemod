@@ -71,25 +71,32 @@ class PubspecOverReactUpgrader implements Suggestor {
     if (overReactMatch != null) {
       // over_react is already in pubspec.yaml
       final constraintValue = overReactMatch.group(2);
-      final constraint = VersionConstraint.parse(constraintValue);
+      try {
+        final constraint = VersionConstraint.parse(constraintValue);
 
-      if (shouldUpdateVersionRange(
-          targetConstraint: targetConstraint,
-          constraint: constraint,
-          shouldIgnoreMin: shouldIgnoreMin)) {
-        // Wrap the new constraint in quotes if required.
-        var newValue =
-            generateNewVersionRange(constraint, targetConstraint).toString();
+        if (shouldUpdateVersionRange(
+            targetConstraint: targetConstraint,
+            constraint: constraint,
+            shouldIgnoreMin: shouldIgnoreMin)) {
+          // Wrap the new constraint in quotes if required.
+          var newValue =
+              generateNewVersionRange(constraint, targetConstraint).toString();
 
-        if (mightNeedYamlEscaping(newValue)) {
-          newValue = '"$newValue"';
+          if (mightNeedYamlEscaping(newValue)) {
+            newValue = '"$newValue"';
+          }
+
+          // Update the version constraint to ensure a safe minimum bound.
+          yield Patch(
+              sourceFile,
+              sourceFile.span(overReactMatch.start, overReactMatch.end),
+              '  over_react: $newValue');
         }
-
-        // Update the version constraint to ensure a safe minimum bound.
-        yield Patch(
-            sourceFile,
-            sourceFile.span(overReactMatch.start, overReactMatch.end),
-            '  over_react: $newValue');
+      } catch (e) {
+        // We can skip these they are versions we dont want to mess with in this codemod
+        if (e.toString().contains('git:') || e.toString().contains('path:'))
+          return;
+        rethrow;
       }
     } else if (shouldAddDependencies) {
       // over_react is missing in pubspec.yaml, so add it.
