@@ -1,9 +1,10 @@
 ## [1.3.0](https://github.com/Workiva/over_react_codemod/compare/1.2.0...1.3.0)
 
-- Add a flag --no-partial-upgrades to Component2 codemod executable that will
+- Add a flag `--no-partial-upgrades` to `component2_upgrade` codemod that will
   prevent partial component upgrades from occurring.
 
-- Fix a bug that could occur when parsing a pubsec version in `dependency_overrides` section.
+- Fix a bug that could occur when parsing a pubsec version in
+  `dependency_overrides` section.
 
 
 ## [1.2.0](https://github.com/Workiva/over_react_codemod/compare/1.1.0...1.2.0)
