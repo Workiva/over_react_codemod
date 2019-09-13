@@ -93,7 +93,7 @@ class PubspecOverReactUpgrader implements Suggestor {
               '  over_react: $newValue');
         }
       } catch (e) {
-        // We can skip these they are versions we dont want to mess with in this codemod
+        // We can skip these. They are versions we don't want to mess with in this codemod.
         if (e.toString().contains('git:') || e.toString().contains('path:'))
           return;
         rethrow;
