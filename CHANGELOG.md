@@ -17,11 +17,11 @@
 
 - Add `component2_upgrade` codemod
 
-  - Migrates components to `UiComponent2` (coming in OverReact 3.1.0)
+  - Migrates components to `UiComponent2` (coming in over_react 3.1.0)
 
 - Add `react16_dependency_override_update` codemod
 
-  - Adds dependency overrides to pubspec.yaml for testing wip branches of react16
+  - Adds dependency overrides to pubspec.yaml for testing wip branches of React 16
 
 - Add `react16_ci_precheck` codemod
 
