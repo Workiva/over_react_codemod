@@ -97,15 +97,15 @@ main() {
     group('does not attempt to update dependency_overrides', () {
       test('git', () {
         testSuggestor(
-            expectedPatchCount: 0,
-            shouldDartfmtOutput: false,
-            validateContents: validatePubspecYaml,
-            input: ''
-                'dependency_overrides:\n'
-                '  react:\n'
-                '    git:\n'
-                '      url: git@github.com:cleandart/react-dart.git\n'
-                '      ref: 5.0.0-wip\n',
+          expectedPatchCount: 0,
+          shouldDartfmtOutput: false,
+          validateContents: validatePubspecYaml,
+          input: ''
+              'dependency_overrides:\n'
+              '  react:\n'
+              '    git:\n'
+              '      url: git@github.com:cleandart/react-dart.git\n'
+              '      ref: 5.0.0-wip\n',
         );
       });
 
