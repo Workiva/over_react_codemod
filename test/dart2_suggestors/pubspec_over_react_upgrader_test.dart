@@ -92,12 +92,7 @@ main() {
                   '    git:\n'
                   '      url: git@github.com:cleandart/react-dart.git\n'
                   '      ref: 5.0.0-wip\n',
-              expectedOutput: ''
-                  'dependency_overrides:\n'
-                  '  over_react:\n'
-                  '    git:\n'
-                  '      url: git@github.com:cleandart/react-dart.git\n'
-                  '      ref: 5.0.0-wip\n');
+          );
         });
 
         test('path', () {
@@ -106,10 +101,6 @@ main() {
             shouldDartfmtOutput: false,
             validateContents: validatePubspecYaml,
             input: ''
-                'dependency_overrides:\n'
-                '  over_react:\n'
-                '    path: ../\n',
-            expectedOutput: ''
                 'dependency_overrides:\n'
                 '  over_react:\n'
                 '    path: ../\n',
