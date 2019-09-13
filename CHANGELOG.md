@@ -1,6 +1,7 @@
 ## [1.3.0](https://github.com/Workiva/over_react_codemod/compare/1.2.0...1.3.0)
 
-- Add a flag --no-partial-upgrades to Component2 codemod executable that will prevent partial component upgrades from occurring
+- Add a flag --no-partial-upgrades to Component2 codemod executable that will
+  prevent partial component upgrades from occurring.
 
 - Fix a bug that could occur when parsing a pubsec version in `dependency_overrides` section.
 
@@ -9,9 +10,9 @@
 
 - Add `react16_upgrade` codemod
 
-  - Fix compatibility issues common in react15 code
+  - Fix compatibility issues common in react15 code.
   - Update version upper bound of react and over_react in pubspec.yaml to
-    allow for incoming react16 updates
+    allow for incoming react16 updates.
 
 - Add `component2_upgrade` codemod
 
