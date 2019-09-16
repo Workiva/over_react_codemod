@@ -87,7 +87,7 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 2,
         input: '''
           @Component()
-          class FooComponent extends UiComponent {
+          class FooComponent extends UiComponent<FooProps> {
             eventHandler() {}
             
             @override
@@ -102,7 +102,7 @@ void classNameAndAnnotationTests({
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends UiComponent2<FooProps> {
             eventHandler() {}
             
             @override
@@ -123,11 +123,11 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 2,
         input: '''
           @Component()
-          class FooComponent extends UiComponent {}
+          class FooComponent extends UiComponent<FooProps> {}
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2 {}
+          class FooComponent extends UiComponent2<FooProps> {}
         ''',
       );
     });
@@ -137,11 +137,11 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 2,
         input: '''
           @Component()
-          class FooComponent extends FluxUiComponent {}
+          class FooComponent extends FluxUiComponent<FooProps> {}
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends FluxUiComponent2 {}
+          class FooComponent extends FluxUiComponent2<FooProps> {}
         ''',
       );
     });
@@ -151,11 +151,11 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 2,
         input: '''
           @Component()
-          class FooComponent extends FluxUiStatefulComponent {}
+          class FooComponent extends FluxUiStatefulComponent<FooProps> {}
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends FluxUiStatefulComponent2 {}
+          class FooComponent extends FluxUiStatefulComponent2<FooProps> {}
         ''',
       );
     });
@@ -167,7 +167,7 @@ void classNameAndAnnotationTests({
         expectedPatchCount: allowPartialUpgrades ? 2 : 0,
         input: '''
           @Component()
-          class FooComponent extends UiComponent {
+          class FooComponent extends UiComponent<FooProps> {
             eventHandler() {}
 
             @override
@@ -185,7 +185,7 @@ void classNameAndAnnotationTests({
         ''',
         expectedOutput: '''
           @Component${allowPartialUpgrades ? '2' : ''}()
-          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''} {
+          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''}<FooProps> {
             eventHandler() {}
   
             @override
@@ -211,14 +211,14 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 1,
         input: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent {
+          class FooComponent extends UiStatefulComponent<FooProps, FooState> {
             @override
             void render() {}
           }
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent2 {
+          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
             void render() {}
           }
@@ -233,7 +233,7 @@ void classNameAndAnnotationTests({
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent {
+          class FooComponent extends UiStatefulComponent<FooProps, FooState> {
             @override
             shouldComponentUpdate() {}
             
@@ -243,7 +243,7 @@ void classNameAndAnnotationTests({
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiStatefulComponent${allowPartialUpgrades ? '2' : ''} {
+          class FooComponent extends UiStatefulComponent${allowPartialUpgrades ? '2' : ''}<FooProps, FooState> {
             @override
             shouldComponentUpdate() {}
             
@@ -261,7 +261,7 @@ void classNameAndAnnotationTests({
         expectedPatchCount: 2,
         input: '''
           @Component(isWrapper: true)
-          class FooComponent extends UiComponent {
+          class FooComponent extends UiComponent<FooProps> {
             eventHandler() {}
 
             @override
@@ -270,7 +270,7 @@ void classNameAndAnnotationTests({
         ''',
         expectedOutput: '''
           @Component2(isWrapper: true)
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends UiComponent2<FooProps> {
             eventHandler() {}
 
             @override
@@ -287,7 +287,7 @@ void classNameAndAnnotationTests({
         expectedPatchCount: allowPartialUpgrades ? 2 : 0,
         input: '''
           @Component(isWrapper: true)
-          class FooComponent extends UiComponent {
+          class FooComponent extends UiComponent<FooProps> {
             @override
             componentWillMount() {}
             
@@ -297,7 +297,7 @@ void classNameAndAnnotationTests({
         ''',
         expectedOutput: '''
           @Component${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
-          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''} {
+          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''}<FooProps> {
             @override
             componentWillMount() {}
             
@@ -315,14 +315,14 @@ void classNameAndAnnotationTests({
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component(isWrapper: true)
-          class FooComponent extends SomeOtherClass {
+          class FooComponent extends SomeOtherClass<FooProps> {
             @override
             render() {}
           }
         ''',
         expectedOutput: '''
           @Component${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
-          class FooComponent extends SomeOtherClass {
+          class FooComponent extends SomeOtherClass<FooProps> {
             @override
             render() {}
           }
@@ -413,7 +413,7 @@ void classNameAndAnnotationTests({
           expectedPatchCount: shouldUpgradeAbstractComponents ? 3 : 0,
           input: '''
             @Component
-            class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+            class FooComponent<FooProps, FooState> extends UiStatefulComponent<FooProps, FooState> {
               @override
               componentWillMount() {}
             }
@@ -421,7 +421,7 @@ void classNameAndAnnotationTests({
           expectedOutput: '''
             ${shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
             @Component${shouldUpgradeAbstractComponents ? '2' : ''}
-            class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''}<FooProps, FooState> {
+            class FooComponent<FooProps, FooState> extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''}<FooProps, FooState> {
               @override
               componentWillMount() {}
             }

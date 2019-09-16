@@ -70,7 +70,7 @@ copyUnconsumedDomPropsTests({
         expectedPatchCount: 2,
         input: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends UiComponent2<FooProps> {
             @override
             render() {
               return (Dom.span()
@@ -81,7 +81,7 @@ copyUnconsumedDomPropsTests({
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends UiComponent2<FooProps> {
             @override
             render() {
               return (Dom.span()
@@ -101,7 +101,7 @@ copyUnconsumedDomPropsTests({
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
             @Component2()
-            class FooComponent extends SomeOtherClass {
+            class FooComponent extends SomeOtherClass<FooProps> {
               @override
               render() {
                 return (Dom.span()
@@ -112,7 +112,7 @@ copyUnconsumedDomPropsTests({
           ''',
           expectedOutput: '''
             @Component2()
-            class FooComponent extends SomeOtherClass {
+            class FooComponent extends SomeOtherClass<FooProps> {
               @override
               render() {
                 return (Dom.span()
@@ -129,7 +129,7 @@ copyUnconsumedDomPropsTests({
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
             @Component2()
-            class FooComponent extends UiComponent2 {
+            class FooComponent extends UiComponent2<FooProps> {
               @override
               render() {
                 return (Dom.span()
@@ -143,7 +143,7 @@ copyUnconsumedDomPropsTests({
           ''',
           expectedOutput: '''
             @Component2()
-            class FooComponent extends UiComponent2 {
+            class FooComponent extends UiComponent2<FooProps> {
               @override
               render() {
                 return (Dom.span()

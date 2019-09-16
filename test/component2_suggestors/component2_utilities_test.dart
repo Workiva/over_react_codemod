@@ -443,7 +443,7 @@ void main() {
       group('when class has generic parameters', () {
         final input = '''
           @Component()
-          class FooComponent extends UiComponent<FooProps> {
+          class FooComponent<BarProps> extends UiComponent<FooProps> {
             // class body
           }
         ''';
@@ -457,8 +457,8 @@ void main() {
 
       group('when class is not abstract', () {
         final input = '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
+          @Component()
+          class FooComponent extends UiComponent<FooProps> {
             // class body
           }
         ''';
