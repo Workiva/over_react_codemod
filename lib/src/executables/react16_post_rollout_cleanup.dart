@@ -17,8 +17,6 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react_dom_render_migrator.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react_style_maps_updater.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 import 'package:path/path.dart' as p;
@@ -29,16 +27,18 @@ import '../react16_suggestors/constants.dart';
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
-  pub global run over_react_codemod:react16_upgrade
+  pub global run over_react_codemod:react16_post_rollout_cleanup
   pub run dart_dev format (if you format this repository).
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
+  const commentStringToRemove = willBeRemovedCommentSuffix;
+
   // Update Pubspec
-  final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
+  final reactVersionConstraint = VersionConstraint.parse('^5.1.0');
   final overReactVersionConstraint =
-      VersionConstraint.parse(overReactVersionRange);
+  VersionConstraint.parse('^3.1.0');
 
   final pubspecYamlQuery = FileQuery.dir(
     pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
@@ -69,8 +69,7 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     [
-      ReactDomRenderMigrator(),
-      ReactStyleMapsUpdater(),
+      CommentRemovalSuggestor(commentStringToRemove)
     ],
     args: args,
     defaultYes: true,
