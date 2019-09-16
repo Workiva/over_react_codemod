@@ -203,6 +203,106 @@ void classNameAndAnnotationTests({
         ''',
       );
     });
+
+    if (!allowPartialUpgrades) {
+      test('does not update when one or more mixins are present', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            /// This is my current documentation comment.
+            ///
+            /// As you can see it has more than one line, which is pretty great!
+            @Component()
+            class FooComponent extends UiComponent<FooProps> with FooMixin {
+              @override
+              render() {}
+            }
+          ''',
+          expectedOutput: '''
+            /// This is my current documentation comment.
+            ///
+            /// As you can see it has more than one line, which is pretty great!
+            @Component()
+            class FooComponent extends UiComponent<FooProps> with FooMixin {
+              @override
+              render() {}
+            }
+          ''',
+        );
+      });
+    } else {
+      group('adds a FIXME comment when one or more mixins are present', () {
+        test('and a documentation comment is already present', () {
+          testSuggestor(
+            expectedPatchCount: 3,
+            input: '''
+              /// This is my current documentation comment.
+              ///
+              /// As you can see it has more than one line, which is pretty great!
+              @Component()
+              class FooComponent extends UiComponent<FooProps> with FooMixin {
+                @override
+                render() {}
+              }
+            ''',
+            expectedOutput: '''
+              /// This is my current documentation comment.
+              ///
+              /// As you can see it has more than one line, which is pretty great!
+              ///
+              /// FIXME: Before upgrading this component to `UiComponent2`, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in `UiComponent2`.
+              @Component2()
+              class FooComponent extends UiComponent2<FooProps> with FooMixin {
+                @override
+                render() {}
+              }
+            ''',
+          );
+        });
+
+        test('and no documentation comment is present', () {
+          testSuggestor(
+            expectedPatchCount: 3,
+            input: '''
+              @Component()
+              class FooComponent extends UiComponent<FooProps> with FooMixin {
+                @override
+                render() {}
+              }
+            ''',
+            expectedOutput: '''
+              /// FIXME: Before upgrading this component to `UiComponent2`, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in `UiComponent2`.
+              @Component2()
+              class FooComponent extends UiComponent2<FooProps> with FooMixin {
+                @override
+                render() {}
+              }
+            ''',
+          );
+        });
+
+        test('and the component extends UiStatefulComponent', () {
+          testSuggestor(
+            expectedPatchCount: 3,
+            input: '''
+              @Component()
+              class FooComponent extends UiStatefulComponent<FooProps, FooState> with FooMixin, BarMixin {
+                @override
+                render() {}
+              }
+            ''',
+            expectedOutput: '''
+              /// FIXME: Before upgrading this component to `UiStatefulComponent2`, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in `UiStatefulComponent2`.
+              @Component2()
+              class FooComponent extends UiStatefulComponent2<FooProps, FooState> with FooMixin, BarMixin {
+                @override
+                render() {}
+              }
+            ''',
+          );
+        });
+      });
+    }
   });
 
   group('extending class only needs updating', () {

@@ -50,10 +50,15 @@ bool extendsComponent2(ClassDeclaration classNode) {
   }
 }
 
+/// Returns whether or not [classNode] has one or more mixins.
+bool hasOneOrMoreMixins(ClassDeclaration classNode) =>
+    classNode?.withClause != null;
+
 /// Returns whether or not [classNode] can be fully upgraded to Component2.
 ///
 /// In order for a component to be fully upgradable, the component must:
 ///
+/// * not have a `with` clause
 /// * extend directly from `UiComponent`, `UiStatefulComponent`,
 /// `FluxUiComponent`, `FluxUiStatefulComponent`, or `react.Component`
 /// * contain only the lifecycle methods that the codemod updates:
@@ -63,6 +68,10 @@ bool extendsComponent2(ClassDeclaration classNode) {
 bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
   var extendsName = classNode?.extendsClause?.superclass?.name;
   if (extendsName == null) {
+    return false;
+  }
+
+  if (hasOneOrMoreMixins(classNode)) {
     return false;
   }
 

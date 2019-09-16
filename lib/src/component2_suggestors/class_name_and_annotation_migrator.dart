@@ -87,14 +87,37 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if ((!allowPartialUpgrades && !fullyUpgradableToComponent2(node)) ||
-        (!shouldUpgradeAbstractComponents && canBeExtendedFrom(node))) {
+    if (!shouldUpgradeAbstractComponents && canBeExtendedFrom(node)) {
       return;
     }
 
     var extendsName = node.extendsClause?.superclass?.name;
     if (extendsName == null) {
       return;
+    }
+
+    if (!fullyUpgradableToComponent2(node)) {
+      if (!allowPartialUpgrades) return;
+
+      if (hasOneOrMoreMixins(node)) {
+        // Ensure that this comment patch is idempotent.
+        final classHasAlreadyBeenVisited = extendsName.toString().endsWith('2');
+        if (classHasAlreadyBeenVisited) return;
+
+        final indentationLevel = node.beginToken.charOffset;
+        final commentLineBeginning =
+            indentationLevel == 0 ? '///' : (' ' * indentationLevel) + '///';
+
+        if (node.documentationComment != null) {
+          yieldPatch(
+              node.documentationComment.end,
+              node.documentationComment.end,
+              '\n$commentLineBeginning\n$commentLineBeginning FIXME: Before upgrading this component to `${extendsName}2`, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in `${extendsName}2`.');
+        } else {
+          yieldPatch(node.beginToken.offset, node.beginToken.offset,
+              '$commentLineBeginning FIXME: Before upgrading this component to `${extendsName}2`, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in `${extendsName}2`.\n');
+        }
+      }
     }
 
     String reactImportName =
