@@ -180,7 +180,7 @@ componentWillMountTests({
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
             input: '''
               @Component2
-              class FooComponent extends SomeOtherClass<FooProps> {
+              class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
                 componentWillMount(){
                   // method body
                 }
@@ -188,7 +188,7 @@ componentWillMountTests({
             ''',
             expectedOutput: '''
               @Component2
-              class FooComponent extends SomeOtherClass<FooProps> {
+              class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
                 ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'init' : 'componentWillMount'}(){
                   // method body
                 }

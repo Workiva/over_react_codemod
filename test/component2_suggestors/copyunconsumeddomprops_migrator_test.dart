@@ -167,7 +167,7 @@ copyUnconsumedDomPropsTests({
           expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
           input: '''
             @Component2
-            class FooComponent extends UiComponent2<FooProps> {
+            class FooComponent<BarProps> extends UiComponent2<FooProps> {
               @override
               render() {
                 return (Dom.span()
@@ -178,7 +178,7 @@ copyUnconsumedDomPropsTests({
           ''',
           expectedOutput: '''
             @Component2
-            class FooComponent extends UiComponent2<FooProps> {
+            class FooComponent<BarProps> extends UiComponent2<FooProps> {
               @override
               render() {
                 return (Dom.span()

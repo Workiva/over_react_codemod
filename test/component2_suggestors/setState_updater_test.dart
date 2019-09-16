@@ -186,7 +186,7 @@ setStateTests({
                       : 0,
               input: '''
                 @Component2
-                class FooComponent extends SomeOtherClass<FooProps> {
+                class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
                   someMethod() {
                     setState((prevState, props) {
                       // return ...;
@@ -196,7 +196,7 @@ setStateTests({
               ''',
               expectedOutput: '''
                 @Component2
-                class FooComponent extends SomeOtherClass<FooProps> {
+                class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
                   someMethod() {
                     ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'setStateWithUpdater' : 'setState'}((prevState, props) {
                       // return ...;

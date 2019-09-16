@@ -203,7 +203,7 @@ void componentDidUpdateTests({
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
             input: '''
               @Component2
-              class FooComponent extends UiComponent2<FooProps> {
+              class FooComponent<BarProps> extends UiComponent2<FooProps> {
                 componentDidUpdate(Map prevProps, Map prevState) {
                   // method body
                 }
@@ -214,7 +214,7 @@ void componentDidUpdateTests({
             ''',
             expectedOutput: '''
               @Component2
-              class FooComponent extends UiComponent2<FooProps> {
+              class FooComponent<BarProps> extends UiComponent2<FooProps> {
                 componentDidUpdate(Map prevProps, Map prevState${allowPartialUpgrades && shouldUpgradeAbstractComponents ? ', [snapshot]' : ''}) {
                   // method body
                 }

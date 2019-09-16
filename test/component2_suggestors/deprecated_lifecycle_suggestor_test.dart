@@ -112,14 +112,14 @@ deprecatedLifecycleTests({
             allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
         input: '''
           @Component2
-          class FooComponent extends FluxUiComponent2<FooProps> {
+          class FooComponent<BarProps> extends FluxUiComponent2<FooProps> {
             @override
             componentWillUpdate(){}
           }
         ''',
         expectedOutput: '''
           @Component2
-          class FooComponent extends FluxUiComponent2<FooProps> {
+          class FooComponent<BarProps> extends FluxUiComponent2<FooProps> {
             ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? getDeperecationMessage('componentWillUpdate') : ''}
             @override
             componentWillUpdate(){}
