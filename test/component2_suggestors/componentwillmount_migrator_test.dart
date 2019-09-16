@@ -238,6 +238,35 @@ componentWillMountTests({bool allowPartialUpgrades}) {
                 }
               }
             ''',
+            expectedOutput: allowPartialUpgrades
+                ? '''
+              @Component2()
+              class FooComponent extends SomeOtherClass {
+                @override
+                componentDidMount() {
+                  var c = 3;
+                  var d = 4;
+                  var a = 1;
+                  var b = 2;
+                }
+              }
+            '''
+                : '''
+              @Component2()
+              class FooComponent extends SomeOtherClass {
+                @override
+                componentWillMount() {
+                  var a = 1;
+                  var b = 2;
+                }
+                
+                @override
+                componentDidMount() {
+                  var c = 3;
+                  var d = 4;
+                }
+              }
+            ''',
           );
         });
 
@@ -247,6 +276,41 @@ componentWillMountTests({bool allowPartialUpgrades}) {
             input: '''
               @Component2()
               class FooComponent extends UiComponent2 {
+                @override
+                componentWillMount() {
+                  var a = 1;
+                  var b = 2;
+                }
+                
+                @override
+                componentDidMount() {
+                  var c = 3;
+                  var d = 4;
+                }
+                
+                @override
+                componentWillUnmount() {}
+              }
+            ''',
+            expectedOutput: allowPartialUpgrades
+                ? '''
+              @Component2()
+              class FooComponent extends UiComponent2 {
+                @override
+                componentDidMount() {
+                  var c = 3;
+                  var d = 4;
+                  var a = 1;
+                  var b = 2;
+                }
+                
+                @override
+                componentWillUnmount() {}
+              }
+            '''
+                : '''
+              @Component2()
+              class FooComponent extends SomeOtherClass {
                 @override
                 componentWillMount() {
                   var a = 1;
