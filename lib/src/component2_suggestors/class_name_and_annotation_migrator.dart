@@ -15,8 +15,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 
 import '../constants.dart';
+import 'component2_constants.dart';
 import 'component2_utilities.dart';
 
 /// Suggestor that replaces `UiComponent` with `UiComponent2` in extends clauses
@@ -31,8 +33,12 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final bool allowPartialUpgrades;
+  final bool shouldUpgradeAbstractComponents;
 
-  ClassNameAndAnnotationMigrator({this.allowPartialUpgrades = true});
+  ClassNameAndAnnotationMigrator({
+    this.allowPartialUpgrades = true,
+    this.shouldUpgradeAbstractComponents = false,
+  });
 
   Iterable<String> get migrateAnnotations =>
       overReact16ComponentAnnotationNamesToMigrate;
@@ -81,7 +87,8 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (!allowPartialUpgrades && !fullyUpgradableToComponent2(node)) {
+    if ((!allowPartialUpgrades && !fullyUpgradableToComponent2(node)) ||
+        (!shouldUpgradeAbstractComponents && canBeExtendedFrom(node))) {
       return;
     }
 
@@ -92,6 +99,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
 
     String reactImportName =
         getImportNamespace(node, 'package:react/react.dart');
+    bool wasUpdated = false;
 
     if (reactImportName != null &&
         extendsName.name == '$reactImportName.Component') {
@@ -101,6 +109,8 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
         extendsName.end,
         '2',
       );
+
+      wasUpdated = true;
     } else {
       if (!node.metadata.any((m) =>
           migrateAnnotations.contains(m.name.name) ||
@@ -125,6 +135,8 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
           annotationRef.name.end,
           '2',
         );
+
+        wasUpdated = true;
       });
 
       if (extendsName.name == 'UiComponent' ||
@@ -137,7 +149,20 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
           extendsName.end,
           '2',
         );
+
+        wasUpdated = true;
       }
+    }
+
+    // Add comment for abstract components that are updated
+    if (wasUpdated &&
+        canBeExtendedFrom(node) &&
+        !hasComment(node, sourceFile, abstractClassMessage)) {
+      yieldPatch(
+        node.offset,
+        node.offset,
+        '$abstractClassMessage\n',
+      );
     }
   }
 }

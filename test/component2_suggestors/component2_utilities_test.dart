@@ -404,6 +404,72 @@ void main() {
         });
       });
     });
+
+    group('canBeExtendedFrom()', () {
+      group('when the class has the `abstract` keyword', () {
+        final input = '''
+          @AbstractComponent()
+          abstract class FooComponent extends UiComponent {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: true,
+          functionToTest: canBeExtendedFrom,
+        );
+      });
+
+      group('when `@AbstractProps` is in the file', () {
+        final input = '''
+          @AbstractProps()
+          abstract class AbstractFooProps extends UiProps {} 
+                   
+          @Component2()
+          class FooComponent extends UiComponent2 {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: true,
+          functionToTest: canBeExtendedFrom,
+          numberOfClasses: 2,
+        );
+      });
+
+      group('when class has generic parameters', () {
+        final input = '''
+          @Component()
+          class FooComponent<BarProps> extends UiComponent<FooProps> {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: true,
+          functionToTest: canBeExtendedFrom,
+        );
+      });
+
+      group('when class is not abstract', () {
+        final input = '''
+          @Component()
+          class FooComponent extends UiComponent<FooProps> {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: false,
+          functionToTest: canBeExtendedFrom,
+        );
+      });
+    });
   });
 }
 
@@ -411,10 +477,12 @@ void testUtilityFunction({
   String input,
   bool expectedValue,
   bool Function(ClassDeclaration) functionToTest,
+  int numberOfClasses = 1,
 }) {
   test('returns $expectedValue', () {
     CompilationUnit unit = parseString(content: input).unit;
-    expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
+    expect(unit.declarations.whereType<ClassDeclaration>().length,
+        numberOfClasses);
 
     unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
       if (expectedValue) {
