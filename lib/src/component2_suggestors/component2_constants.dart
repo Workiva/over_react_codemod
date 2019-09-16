@@ -35,6 +35,3 @@ String getDeperecationMessage(String methodName) {
   ///
   $revertInstructions''';
 }
-
-const abstractClassMessage =
-    '/// FIXME: Abstract class has been updated to Component2. This is a breaking change if this class is exported.';

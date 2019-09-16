@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'package:over_react_codemod/src/component2_suggestors/class_name_and_annotation_migrator.dart';
-import 'package:over_react_codemod/src/component2_suggestors/component2_constants.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
@@ -232,53 +231,113 @@ void classNameAndAnnotationTests({
       });
     } else {
       group('adds a FIXME comment when one or more mixins are present', () {
-        test('and a documentation comment is already present', () {
-          testSuggestor(
-            expectedPatchCount: 3,
-            input: '''
-              /// This is my current documentation comment.
-              ///
-              /// As you can see it has more than one line, which is pretty great!
-              @Component()
-              class FooComponent extends UiComponent<FooProps> with FooMixin {
-                @override
-                render() {}
-              }
-            ''',
-            expectedOutput: '''
-              /// This is my current documentation comment.
-              ///
-              /// As you can see it has more than one line, which is pretty great!
-              ///
-              /// FIXME: Before upgrading this component to `UiComponent2`, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in `UiComponent2`.
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps> with FooMixin {
-                @override
-                render() {}
-              }
-            ''',
-          );
+        group('and a documentation comment is already present', () {
+          test('', () {
+            testSuggestor(
+              expectedPatchCount: 3,
+              input: '''
+                /// This is my current documentation comment.
+                ///
+                /// As you can see it has more than one line, which is pretty great!
+                @Component()
+                class FooComponent extends UiComponent<FooProps> with FooMixin {
+                  @override
+                  render() {}
+                }
+              ''',
+              expectedOutput: '''
+                /// This is my current documentation comment.
+                ///
+                /// As you can see it has more than one line, which is pretty great!
+                ///
+                /// FIXME: Before upgrading this component to `UiComponent2`, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in `UiComponent2`.
+                @Component2()
+                class FooComponent extends UiComponent2<FooProps> with FooMixin {
+                  @override
+                  render() {}
+                }
+              ''',
+            );
+          });
+
+          if (shouldUpgradeAbstractComponents) {
+            test('on an abstract component', () {
+              testSuggestor(
+                expectedPatchCount: 4,
+                input: '''
+                  /// This is my current documentation comment.
+                  ///
+                  /// As you can see it has more than one line, which is pretty great!
+                  @AbstractComponent()
+                  abstract class FooComponent<FooProps> extends UiComponent<FooProps> with FooMixin<FooProps> {
+                    @override
+                    render() {}
+                  }
+                ''',
+                expectedOutput: '''
+                  /// This is my current documentation comment.
+                  ///
+                  /// As you can see it has more than one line, which is pretty great!
+                  ///
+                  /// FIXME: Before upgrading this component to `UiComponent2`, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in `UiComponent2`.
+                  ///
+                  /// FIXME: Abstract class has been updated to `UiComponent2`. This is a breaking change if this class is exported.
+                  @AbstractComponent2()
+                  abstract class FooComponent<FooProps> extends UiComponent2<FooProps> with FooMixin<FooProps> {
+                    @override
+                    render() {}
+                  }
+                ''',
+              );
+            });
+          }
         });
 
-        test('and no documentation comment is present', () {
-          testSuggestor(
-            expectedPatchCount: 3,
-            input: '''
-              @Component()
-              class FooComponent extends UiComponent<FooProps> with FooMixin {
-                @override
-                render() {}
-              }
-            ''',
-            expectedOutput: '''
-              /// FIXME: Before upgrading this component to `UiComponent2`, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in `UiComponent2`.
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps> with FooMixin {
-                @override
-                render() {}
-              }
-            ''',
-          );
+        group('and no documentation comment is present', () {
+          test('', () {
+            testSuggestor(
+              expectedPatchCount: 3,
+              input: '''
+                @Component()
+                class FooComponent extends UiComponent<FooProps> with FooMixin {
+                  @override
+                  render() {}
+                }
+              ''',
+              expectedOutput: '''
+                /// FIXME: Before upgrading this component to `UiComponent2`, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in `UiComponent2`.
+                @Component2()
+                class FooComponent extends UiComponent2<FooProps> with FooMixin {
+                  @override
+                  render() {}
+                }
+              ''',
+            );
+          });
+
+          if (shouldUpgradeAbstractComponents) {
+            test('on an abstract component', () {
+              testSuggestor(
+                expectedPatchCount: 4,
+                input: '''
+                  @AbstractComponent()
+                  abstract class FooComponent<FooProps> extends UiComponent<FooProps> with FooMixin<FooProps> {
+                    @override
+                    render() {}
+                  }
+                ''',
+                expectedOutput: '''
+                  /// FIXME: Before upgrading this component to `UiComponent2`, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in `UiComponent2`.
+                  /// FIXME: Abstract class has been updated to `UiComponent2`. This is a breaking change if this class is exported.
+                  @AbstractComponent2()
+                  abstract class FooComponent<FooProps> extends UiComponent2<FooProps> with FooMixin<FooProps> {
+                    @override
+                    render() {}
+                  }
+                ''',
+              );
+            });
+          }
         });
 
         test('and the component extends UiStatefulComponent', () {
@@ -446,7 +505,7 @@ void classNameAndAnnotationTests({
             }
           ''',
           expectedOutput: '''
-            ${shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
+            ${shouldUpgradeAbstractComponents ? '/// FIXME: Abstract class has been updated to `UiStatefulComponent2`. This is a breaking change if this class is exported.' : ''}
             @AbstractComponent${shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
             abstract class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''} {
               @override
@@ -473,7 +532,7 @@ void classNameAndAnnotationTests({
             }
           ''',
           expectedOutput: '''
-            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '/// FIXME: Abstract class has been updated to `FluxUiStatefulComponent2`. This is a breaking change if this class is exported.' : ''}
             @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
             abstract class FooComponent extends FluxUiStatefulComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''} {
               @override
@@ -497,7 +556,7 @@ void classNameAndAnnotationTests({
             abstract class FooComponent extends SomeOtherClass {}
           ''',
           expectedOutput: '''
-            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '/// FIXME: Abstract class has been updated to a class that now extends from `UiComponent2`. This is a breaking change if this class is exported.' : ''}
             @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}(isWrapper: true)
             abstract class FooComponent extends SomeOtherClass {}
           ''',
@@ -519,7 +578,7 @@ void classNameAndAnnotationTests({
             }
           ''',
           expectedOutput: '''
-            ${shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
+            ${shouldUpgradeAbstractComponents ? '/// FIXME: Abstract class has been updated to `UiStatefulComponent2`. This is a breaking change if this class is exported.' : ''}
             @Component${shouldUpgradeAbstractComponents ? '2' : ''}
             class FooComponent<BarProps, BarState> extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''}<FooProps, FooState> {
               @override
@@ -546,7 +605,7 @@ void classNameAndAnnotationTests({
             }
           ''',
           expectedOutput: '''
-            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '/// FIXME: Abstract class has been updated to `FluxUiComponent2`. This is a breaking change if this class is exported.' : ''}
             @Component${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}
             class FooComponent<BarProps, BarState> extends FluxUiComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}<FooProps> {
               @override
@@ -570,7 +629,7 @@ void classNameAndAnnotationTests({
             class FooComponent<BarProps, BarState> extends SomeOtherClass<FooProps, FooState> {}
           ''',
           expectedOutput: '''
-            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '/// FIXME: Abstract class has been updated to a class that now extends from `UiComponent2`. This is a breaking change if this class is exported.' : ''}
             @Component${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}
             class FooComponent<BarProps, BarState> extends SomeOtherClass<FooProps, FooState> {}
           ''',
@@ -598,7 +657,7 @@ void classNameAndAnnotationTests({
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
             
-            ${shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
+            ${shouldUpgradeAbstractComponents ? '/// FIXME: Abstract class has been updated to `UiStatefulComponent2`. This is a breaking change if this class is exported.' : ''}
             @AbstractComponent${shouldUpgradeAbstractComponents ? '2' : ''}()
             class FooComponent extends UiStatefulComponent${shouldUpgradeAbstractComponents ? '2' : ''} {
               @override
@@ -631,7 +690,7 @@ void classNameAndAnnotationTests({
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
             
-            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '/// FIXME: Abstract class has been updated to `FluxUiStatefulComponent2`. This is a breaking change if this class is exported.' : ''}
             @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}()
             class FooComponent extends FluxUiStatefulComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''} {
               @override
@@ -661,7 +720,7 @@ void classNameAndAnnotationTests({
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
             
-            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? abstractClassMessage : ''}
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '/// FIXME: Abstract class has been updated to a class that now extends from `UiComponent2`. This is a breaking change if this class is exported.' : ''}
             @AbstractComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}()
             class FooComponent extends SomeOtherClass {}
           ''',
@@ -673,7 +732,7 @@ void classNameAndAnnotationTests({
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
-          $abstractClassMessage
+          /// FIXME: Abstract class has been updated to a class that now extends from `UiStatefulComponent2`. This is a breaking change if this class is exported.
           @AbstractComponent2(isWrapper: true)
           abstract class FooComponent extends UiStatefulComponent2 {
             @override
