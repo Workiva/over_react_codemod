@@ -361,9 +361,7 @@ bool shouldUpdateVersionRange({
     // Short circuit if the constraints are the same.
     if (targetConstraint == constraint) return false;
     // If this is null, the dependency is set to >= with no upper limit.
-    if (constraintsHaveMax &&
-        constraint.max == null &&
-        constraint.min != null) {
+    if (constraint.max == null && constraint.min != null) {
       // In that case, we need the min to be at least as high as our
       // target. If it is, do not update.
       if (constraint.min >= targetConstraint.min) {
