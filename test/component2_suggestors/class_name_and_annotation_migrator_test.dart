@@ -187,16 +187,16 @@ void classNameAndAnnotationTests({
           @Component${allowPartialUpgrades ? '2' : ''}()
           class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''}<FooProps> {
             eventHandler() {}
-
+  
             @override
             componentWillMount() {}
-
+            
             @override
             render() {}
-
+            
             @override
             componentDidUpdate(Map prevProps, Map prevState) {}
-
+            
             @override
             componentWillUnmount() {}
           }
@@ -236,7 +236,7 @@ void classNameAndAnnotationTests({
           class FooComponent extends UiStatefulComponent<FooProps, FooState> {
             @override
             shouldComponentUpdate() {}
-
+            
             @override
             void render() {}
           }
@@ -246,7 +246,7 @@ void classNameAndAnnotationTests({
           class FooComponent extends UiStatefulComponent${allowPartialUpgrades ? '2' : ''}<FooProps, FooState> {
             @override
             shouldComponentUpdate() {}
-
+            
             @override
             void render() {}
           }
@@ -290,7 +290,7 @@ void classNameAndAnnotationTests({
           class FooComponent extends UiComponent<FooProps> {
             @override
             componentWillMount() {}
-
+            
             @override
             componentDidMount() {}
           }
@@ -300,7 +300,7 @@ void classNameAndAnnotationTests({
           class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''}<FooProps> {
             @override
             componentWillMount() {}
-
+            
             @override
             componentDidMount() {}
           }
