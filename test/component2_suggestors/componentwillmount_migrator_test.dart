@@ -154,7 +154,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
       );
     });
 
-    test('update super calls from componentDidMount to componentDidMount', () {
+    test('update super calls', () {
       testSuggestor(
         expectedPatchCount: 3,
         input: '''
