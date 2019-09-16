@@ -50,38 +50,38 @@ void classNameAndAnnotationTests({
     shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
   ));
 
-//  test('empty file', () {
-//    testSuggestor(expectedPatchCount: 0, input: '');
-//  });
-//
-//  test('no matches', () {
-//    testSuggestor(
-//      expectedPatchCount: 0,
-//      input: '''
-//        library foo;
-//        var a = 'b';
-//        class Foo {}
-//      ''',
-//    );
-//  });
-//
-//  test(
-//      'annotation with non-based extending class '
-//      '${allowPartialUpgrades ? 'updates' : 'does not update'}', () {
-//    testSuggestor(
-//      expectedPatchCount: allowPartialUpgrades ? 1 : 0,
-//      input: '''
-//        @Component()
-//        class FooComponent extends SomeOtherClass {}
-//      ''',
-//      expectedOutput: '''
-//        @Component${allowPartialUpgrades ? '2' : ''}()
-//        class FooComponent extends SomeOtherClass {}
-//      ''',
-//    );
-//  });
+  test('empty file', () {
+    testSuggestor(expectedPatchCount: 0, input: '');
+  });
 
-//  group('annotation and extending class', () {
+  test('no matches', () {
+    testSuggestor(
+      expectedPatchCount: 0,
+      input: '''
+        library foo;
+        var a = 'b';
+        class Foo {}
+      ''',
+    );
+  });
+
+  test(
+      'annotation with non-based extending class '
+      '${allowPartialUpgrades ? 'updates' : 'does not update'}', () {
+    testSuggestor(
+      expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+      input: '''
+        @Component()
+        class FooComponent extends SomeOtherClass {}
+      ''',
+      expectedOutput: '''
+        @Component${allowPartialUpgrades ? '2' : ''}()
+        class FooComponent extends SomeOtherClass {}
+      ''',
+    );
+  });
+
+  group('annotation and extending class', () {
     test('updates when all lifecycle methods have codemods', () {
       testSuggestor(
         expectedPatchCount: 2,
@@ -118,218 +118,218 @@ void classNameAndAnnotationTests({
       );
     });
 
-//    test('updates with no lifecycle methods', () {
-//      testSuggestor(
-//        expectedPatchCount: 2,
-//        input: '''
-//          @Component()
-//          class FooComponent extends UiComponent<FooProps> {}
-//        ''',
-//        expectedOutput: '''
-//          @Component2()
-//          class FooComponent extends UiComponent2<FooProps> {}
-//        ''',
-//      );
-//    });
-//
-//    test('annotation and extending FluxUiComponent class updates', () {
-//      testSuggestor(
-//        expectedPatchCount: 2,
-//        input: '''
-//          @Component()
-//          class FooComponent extends FluxUiComponent<FooProps> {}
-//        ''',
-//        expectedOutput: '''
-//          @Component2()
-//          class FooComponent extends FluxUiComponent2<FooProps> {}
-//        ''',
-//      );
-//    });
-//
-//    test('annotation and extending FluxUiStatefulComponent class updates', () {
-//      testSuggestor(
-//        expectedPatchCount: 2,
-//        input: '''
-//          @Component()
-//          class FooComponent extends FluxUiStatefulComponent<FooProps> {}
-//        ''',
-//        expectedOutput: '''
-//          @Component2()
-//          class FooComponent extends FluxUiStatefulComponent2<FooProps> {}
-//        ''',
-//      );
-//    });
-//
-//    test(
-//        '${allowPartialUpgrades ? 'updates' : 'does not update'} when one or '
-//        'more lifecycle method has no codemod', () {
-//      testSuggestor(
-//        expectedPatchCount: allowPartialUpgrades ? 2 : 0,
-//        input: '''
-//          @Component()
-//          class FooComponent extends UiComponent<FooProps> {
-//            eventHandler() {}
-//
-//            @override
-//            componentWillMount() {}
-//
-//            @override
-//            render() {}
-//
-//            @override
-//            componentDidUpdate(Map prevProps, Map prevState) {}
-//
-//            @override
-//            componentWillUnmount() {}
-//          }
-//        ''',
-//        expectedOutput: '''
-//          @Component${allowPartialUpgrades ? '2' : ''}()
-//          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''}<FooProps> {
-//            eventHandler() {}
-//
-//            @override
-//            componentWillMount() {}
-//
-//            @override
-//            render() {}
-//
-//            @override
-//            componentDidUpdate(Map prevProps, Map prevState) {}
-//
-//            @override
-//            componentWillUnmount() {}
-//          }
-//        ''',
-//      );
-//    });
-//  });
-//
-//  group('extending class only needs updating', () {
-//    test('updates when all lifecycle methods have codemods', () {
-//      testSuggestor(
-//        expectedPatchCount: 1,
-//        input: '''
-//          @Component2()
-//          class FooComponent extends UiStatefulComponent<FooProps, FooState> {
-//            @override
-//            void render() {}
-//          }
-//        ''',
-//        expectedOutput: '''
-//          @Component2()
-//          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-//            @override
-//            void render() {}
-//          }
-//        ''',
-//      );
-//    });
-//
-//    test(
-//        '${allowPartialUpgrades ? 'updates' : 'does not update'} when one or '
-//        'more lifecycle method has no codemod', () {
-//      testSuggestor(
-//        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
-//        input: '''
-//          @Component2()
-//          class FooComponent extends UiStatefulComponent<FooProps, FooState> {
-//            @override
-//            shouldComponentUpdate() {}
-//
-//            @override
-//            void render() {}
-//          }
-//        ''',
-//        expectedOutput: '''
-//          @Component2()
-//          class FooComponent extends UiStatefulComponent${allowPartialUpgrades ? '2' : ''}<FooProps, FooState> {
-//            @override
-//            shouldComponentUpdate() {}
-//
-//            @override
-//            void render() {}
-//          }
-//        ''',
-//      );
-//    });
-//  });
-//
-//  group('annotation with args and extending class', () {
-//    test('updates when all lifecycle methods have codemods', () {
-//      testSuggestor(
-//        expectedPatchCount: 2,
-//        input: '''
-//          @Component(isWrapper: true)
-//          class FooComponent extends UiComponent<FooProps> {
-//            eventHandler() {}
-//
-//            @override
-//            render() {}
-//          }
-//        ''',
-//        expectedOutput: '''
-//          @Component2(isWrapper: true)
-//          class FooComponent extends UiComponent2<FooProps> {
-//            eventHandler() {}
-//
-//            @override
-//            render() {}
-//          }
-//        ''',
-//      );
-//    });
-//
-//    test(
-//        '${allowPartialUpgrades ? 'updates' : 'does not update'} when one or '
-//        'more lifecycle method has no codemod', () {
-//      testSuggestor(
-//        expectedPatchCount: allowPartialUpgrades ? 2 : 0,
-//        input: '''
-//          @Component(isWrapper: true)
-//          class FooComponent extends UiComponent<FooProps> {
-//            @override
-//            componentWillMount() {}
-//
-//            @override
-//            componentDidMount() {}
-//          }
-//        ''',
-//        expectedOutput: '''
-//          @Component${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
-//          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''}<FooProps> {
-//            @override
-//            componentWillMount() {}
-//
-//            @override
-//            componentDidMount() {}
-//          }
-//        ''',
-//      );
-//    });
-//
-//    test(
-//        'is non-Component '
-//        '${allowPartialUpgrades ? 'updates' : 'does not update'}', () {
-//      testSuggestor(
-//        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
-//        input: '''
-//          @Component(isWrapper: true)
-//          class FooComponent extends SomeOtherClass<FooProps> {
-//            @override
-//            render() {}
-//          }
-//        ''',
-//        expectedOutput: '''
-//          @Component${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
-//          class FooComponent extends SomeOtherClass<FooProps> {
-//            @override
-//            render() {}
-//          }
-//        ''',
-//      );
-//    });
-//  });
+    test('updates with no lifecycle methods', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          @Component()
+          class FooComponent extends UiComponent<FooProps> {}
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends UiComponent2<FooProps> {}
+        ''',
+      );
+    });
+
+    test('annotation and extending FluxUiComponent class updates', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          @Component()
+          class FooComponent extends FluxUiComponent<FooProps> {}
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends FluxUiComponent2<FooProps> {}
+        ''',
+      );
+    });
+
+    test('annotation and extending FluxUiStatefulComponent class updates', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          @Component()
+          class FooComponent extends FluxUiStatefulComponent<FooProps> {}
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends FluxUiStatefulComponent2<FooProps> {}
+        ''',
+      );
+    });
+
+    test(
+        '${allowPartialUpgrades ? 'updates' : 'does not update'} when one or '
+        'more lifecycle method has no codemod', () {
+      testSuggestor(
+        expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+        input: '''
+          @Component()
+          class FooComponent extends UiComponent<FooProps> {
+            eventHandler() {}
+
+            @override
+            componentWillMount() {}
+
+            @override
+            render() {}
+
+            @override
+            componentDidUpdate(Map prevProps, Map prevState) {}
+
+            @override
+            componentWillUnmount() {}
+          }
+        ''',
+        expectedOutput: '''
+          @Component${allowPartialUpgrades ? '2' : ''}()
+          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''}<FooProps> {
+            eventHandler() {}
+
+            @override
+            componentWillMount() {}
+
+            @override
+            render() {}
+
+            @override
+            componentDidUpdate(Map prevProps, Map prevState) {}
+
+            @override
+            componentWillUnmount() {}
+          }
+        ''',
+      );
+    });
+  });
+
+  group('extending class only needs updating', () {
+    test('updates when all lifecycle methods have codemods', () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+          @Component2()
+          class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+            @override
+            void render() {}
+          }
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+            @override
+            void render() {}
+          }
+        ''',
+      );
+    });
+
+    test(
+        '${allowPartialUpgrades ? 'updates' : 'does not update'} when one or '
+        'more lifecycle method has no codemod', () {
+      testSuggestor(
+        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+        input: '''
+          @Component2()
+          class FooComponent extends UiStatefulComponent<FooProps, FooState> {
+            @override
+            shouldComponentUpdate() {}
+
+            @override
+            void render() {}
+          }
+        ''',
+        expectedOutput: '''
+          @Component2()
+          class FooComponent extends UiStatefulComponent${allowPartialUpgrades ? '2' : ''}<FooProps, FooState> {
+            @override
+            shouldComponentUpdate() {}
+
+            @override
+            void render() {}
+          }
+        ''',
+      );
+    });
+  });
+
+  group('annotation with args and extending class', () {
+    test('updates when all lifecycle methods have codemods', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          @Component(isWrapper: true)
+          class FooComponent extends UiComponent<FooProps> {
+            eventHandler() {}
+
+            @override
+            render() {}
+          }
+        ''',
+        expectedOutput: '''
+          @Component2(isWrapper: true)
+          class FooComponent extends UiComponent2<FooProps> {
+            eventHandler() {}
+
+            @override
+            render() {}
+          }
+        ''',
+      );
+    });
+
+    test(
+        '${allowPartialUpgrades ? 'updates' : 'does not update'} when one or '
+        'more lifecycle method has no codemod', () {
+      testSuggestor(
+        expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+        input: '''
+          @Component(isWrapper: true)
+          class FooComponent extends UiComponent<FooProps> {
+            @override
+            componentWillMount() {}
+
+            @override
+            componentDidMount() {}
+          }
+        ''',
+        expectedOutput: '''
+          @Component${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
+          class FooComponent extends UiComponent${allowPartialUpgrades ? '2' : ''}<FooProps> {
+            @override
+            componentWillMount() {}
+
+            @override
+            componentDidMount() {}
+          }
+        ''',
+      );
+    });
+
+    test(
+        'is non-Component '
+        '${allowPartialUpgrades ? 'updates' : 'does not update'}', () {
+      testSuggestor(
+        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+        input: '''
+          @Component(isWrapper: true)
+          class FooComponent extends SomeOtherClass<FooProps> {
+            @override
+            render() {}
+          }
+        ''',
+        expectedOutput: '''
+          @Component${allowPartialUpgrades ? '2' : ''}(isWrapper: true)
+          class FooComponent extends SomeOtherClass<FooProps> {
+            @override
+            render() {}
+          }
+        ''',
+      );
+    });
+  });
 
   group('Abstract class', () {
     group('with @AbstractComponent() annotation and abstract keyword', () {
