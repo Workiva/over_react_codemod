@@ -428,8 +428,8 @@ componentWillMountTests({bool allowPartialUpgrades}) {
           expectedOutput: '''
             @Component2()
             class FooComponent extends FluxUiComponent2 {
-              @override
               @mustCallSuper
+              @override
               componentDidMount() {
                 var c = 3;
                 var a = 1;

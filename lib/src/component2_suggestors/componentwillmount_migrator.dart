@@ -85,19 +85,11 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
         });
 
         if (annotationsToAdd.isNotEmpty) {
-          if (componentDidMountMethodDecl.metadata.isEmpty) {
-            yieldPatch(
-              componentDidMountMethodDecl.offset,
-              componentDidMountMethodDecl.offset,
-              annotationsToAdd,
-            );
-          } else {
-            yieldPatch(
-              componentDidMountMethodDecl.metadata.endToken.end,
-              componentDidMountMethodDecl.metadata.endToken.end,
-              annotationsToAdd,
-            );
-          }
+          yieldPatch(
+            componentDidMountMethodDecl.offset,
+            componentDidMountMethodDecl.offset,
+            annotationsToAdd,
+          );
         }
 
         // Remove `componentWillMount` method.
