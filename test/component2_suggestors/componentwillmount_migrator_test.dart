@@ -97,7 +97,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
           );
         });
 
-        test('-- has lifecycle methods without codemods', () {
+        test('-- has deprecated lifecycle methods without codemods', () {
           testSuggestor(
             expectedPatchCount: allowPartialUpgrades ? 2 : 0,
             input: '''
@@ -108,7 +108,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentWillReceiveProps() {}
               }
             ''',
             expectedOutput: '''
@@ -119,7 +119,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentWillReceiveProps() {}
               }
             ''',
           );
@@ -270,7 +270,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
           );
         });
 
-        test('-- has lifecycle methods without codemods', () {
+        test('-- has deprecated lifecycle methods without codemods', () {
           testSuggestor(
             expectedPatchCount: allowPartialUpgrades ? 2 : 0,
             input: '''
@@ -289,7 +289,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentWillUpdate() {}
               }
             ''',
             expectedOutput: allowPartialUpgrades
@@ -305,12 +305,12 @@ componentWillMountTests({bool allowPartialUpgrades}) {
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentWillUpdate() {}
               }
             '''
                 : '''
               @Component2()
-              class FooComponent extends SomeOtherClass {
+              class FooComponent extends UiComponent2 {
                 @override
                 componentWillMount() {
                   var a = 1;
@@ -324,7 +324,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentWillUpdate() {}
               }
             ''',
           );

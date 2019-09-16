@@ -101,7 +101,7 @@ setStateTests({bool allowPartialUpgrades}) {
           );
         });
 
-        test('-- has lifecycle methods without codemods', () {
+        test('-- has deprecated lifecycle methods without codemods', () {
           testSuggestor(
             expectedPatchCount: allowPartialUpgrades ? 1 : 0,
             input: '''
@@ -180,7 +180,7 @@ setStateTests({bool allowPartialUpgrades}) {
             );
           });
 
-          test('-- has lifecycle methods without codemods', () {
+          test('-- has deprecated lifecycle methods without codemods', () {
             testSuggestor(
               expectedPatchCount: allowPartialUpgrades ? 1 : 0,
               input: '''

@@ -106,7 +106,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
         );
       });
 
-      test('-- has lifecycle methods without codemods', () {
+      test('-- has deprecated lifecycle methods without codemods', () {
         testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
@@ -120,7 +120,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
               }
               
               @override
-              componentWillUnmount() {}
+              componentWillUpdate() {}
             }
           ''',
           expectedOutput: '''
@@ -134,7 +134,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
               }
               
               @override
-              componentWillUnmount() {}
+              componentWillUpdate() {}
             }
           ''',
         );
@@ -204,7 +204,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
         );
       });
 
-      test('-- has lifecycle methods without codemods', () {
+      test('-- has deprecated lifecycle methods without codemods', () {
         testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
@@ -220,7 +220,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
               }
               
               @override
-              componentWillUnmount() {}
+              componentWillReceiveProps() {}
             }
           ''',
           expectedOutput: '''
@@ -236,7 +236,7 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
               }
               
               @override
-              componentWillUnmount() {}
+              componentWillReceiveProps() {}
             }
           ''',
         );

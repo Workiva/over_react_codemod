@@ -38,3 +38,26 @@ String getDeperecationMessage(String methodName) {
 
 String componentWillMountMessage = '''
   /// FIXME: Method has been renamed from `componentWillMount` to `componentDidMount`. Please check if super call should be added or updated.''';
+
+final deprecatedLifecycleMethods = [
+  'componentWillMount',
+  'componentDidUpdate',
+  'componentWillReceiveProps',
+  'componentWillUpdate',
+];
+
+var lifecycleMethodsWithCodemods = [
+  'componentWillMount',
+  'componentDidUpdate',
+];
+
+var componentClassNames = [
+  'UiComponent',
+  'UiComponent2',
+  'UiStatefulComponent',
+  'UiStatefulComponent2',
+  'FluxUiComponent',
+  'FluxUiComponent2',
+  'FluxUiStatefulComponent',
+  'FluxUiStatefulComponent2',
+];
