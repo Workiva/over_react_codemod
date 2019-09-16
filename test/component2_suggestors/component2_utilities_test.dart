@@ -91,7 +91,10 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: true);
+          testUtilityFunction(
+              input: input,
+              expectedValue: true,
+              functionToTest: extendsComponent2);
         });
 
         group('extends UiStatefulComponent2,', () {
@@ -102,7 +105,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: true);
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends react.Component2,', () {
@@ -114,7 +121,10 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: true);
+          testUtilityFunction(
+              input: input,
+              expectedValue: true,
+              functionToTest: extendsComponent2);
         });
 
         group('has the @Component2 annotation,', () {
@@ -125,7 +135,10 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: true);
+          testUtilityFunction(
+              input: input,
+              expectedValue: true,
+              functionToTest: extendsComponent2);
         });
 
         group('has the @AbstractComponent2 annotation,', () {
@@ -136,7 +149,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: true);
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: extendsComponent2,
+          );
         });
       });
 
@@ -149,7 +166,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends UiStatefulComponent,', () {
@@ -160,7 +181,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends FluxUiComponent,', () {
@@ -171,7 +196,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends FluxUiStatefulComponent,', () {
@@ -182,7 +211,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends react.Component,', () {
@@ -194,7 +227,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('has the @Component annotation,', () {
@@ -205,7 +242,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('has the @AbstractComponent annotation,', () {
@@ -216,7 +257,11 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
         });
 
         group('extends nothing', () {
@@ -226,23 +271,156 @@ void main() {
             }
           ''';
 
-          testExtendsComponent2(input: input, expectedValue: false);
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: extendsComponent2,
+          );
+        });
+      });
+    });
+
+    group('canBeFullyUpgradedToComponent2()', () {
+      group('(fully upgradable) when a class', () {
+        group('extends a base class and has no lifecycle methods', () {
+          final input = '''
+            @Component
+            class FooComponent extends UiComponent {
+              // class body
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: fullyUpgradableToComponent2,
+          );
+        });
+
+        group(
+            'extends a base class and contains lifecycle methods that are all updated by codemods',
+            () {
+          final input = '''
+            @Component
+            class FooComponent extends UiStatefulComponent {
+              @override
+              componentWillMount() {}
+              
+              @override
+              render() {}
+              
+              @override
+              componentDidUpdate(Map prevProps, Map prevState) {}
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: fullyUpgradableToComponent2,
+          );
+        });
+
+        group('extends a base class and contains non-lifecycle methods', () {
+          final input = '''
+            @Component
+            class FooComponent extends FluxUiComponent {
+              eventHander() {}
+              
+              @override
+              render() {}
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: fullyUpgradableToComponent2,
+          );
+        });
+
+        group('is already upgraded to Component2', () {
+          final input = '''
+            @Component2
+            class FooComponent extends UiComponent2 {
+              @override
+              init() {}
+              
+              @override
+              render() {}
+              
+              @override
+              componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {}
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: true,
+            functionToTest: fullyUpgradableToComponent2,
+          );
+        });
+      });
+
+      group('(not fully upgradable) when a class', () {
+        group('extends non-base classes', () {
+          final input = '''
+            @Component
+            class FooComponent extends SomeOtherClass {
+              // class body
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: fullyUpgradableToComponent2,
+          );
+        });
+
+        group('contains a lifecycle method not updated by a codemod', () {
+          final input = '''
+            @Component
+            class FooComponent extends UiComponent {
+              @override
+              componentWillMount() {}
+              
+              @override
+              render() {}
+              
+              @override
+              componentDidUpdate(Map prevProps, Map prevState) {}
+              
+              @override
+              componentWillUnmount() {}
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: fullyUpgradableToComponent2,
+          );
         });
       });
     });
   });
 }
 
-void testExtendsComponent2({String input, bool expectedValue}) {
+void testUtilityFunction({
+  String input,
+  bool expectedValue,
+  bool Function(ClassDeclaration) functionToTest,
+}) {
   test('returns $expectedValue', () {
     CompilationUnit unit = parseString(content: input).unit;
     expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
     unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
       if (expectedValue) {
-        expect(extendsComponent2(classNode), isTrue);
+        expect(functionToTest(classNode), isTrue);
       } else {
-        expect(extendsComponent2(classNode), isFalse);
+        expect(functionToTest(classNode), isFalse);
       }
     });
   });

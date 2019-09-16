@@ -25,11 +25,20 @@ import 'component2_utilities.dart';
 class ComponentWillMountMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  final bool allowPartialUpgrades;
+
+  ComponentWillMountMigrator({this.allowPartialUpgrades = true});
+
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
 
     ClassDeclaration containingClass = node.parent;
+
+    if (!allowPartialUpgrades &&
+        !fullyUpgradableToComponent2(containingClass)) {
+      return;
+    }
 
     MethodDeclaration componentDidMountMethodDecl =
         containingClass.members.firstWhere(

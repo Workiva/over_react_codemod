@@ -19,72 +19,137 @@ import '../util.dart';
 
 main() {
   group('ComponentDidUpdateMigrator', () {
-    final testSuggestor = getSuggestorTester(ComponentDidUpdateMigrator());
+    componentDidUpdateTests(allowPartialUpgrades: true);
+  });
 
-    test('empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
-    });
+  group('ComponentDidUpdateMigrator with --no-partial-upgrades flag', () {
+    componentDidUpdateTests(allowPartialUpgrades: false);
+  });
+}
 
-    test('no matches', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          library foo;
-          var a = 'b';
-          class Foo {}
-        ''',
-      );
-    });
+void componentDidUpdateTests({bool allowPartialUpgrades}) {
+  final testSuggestor = getSuggestorTester(
+      ComponentDidUpdateMigrator(allowPartialUpgrades: allowPartialUpgrades));
 
-    test('componentDidUpdate method updates', () {
+  test('empty file', () {
+    testSuggestor(expectedPatchCount: 0, input: '');
+  });
+
+  test('no matches', () {
+    testSuggestor(
+      expectedPatchCount: 0,
+      input: '''
+        library foo;
+        var a = 'b';
+        class Foo {}
+      ''',
+    );
+  });
+
+  group('componentDidUpdate method', () {
+    test('updates if containing class is fully upgradable', () {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              componentDidUpdate(Map prevProps, Map prevState) {
-                  // method body
-              }
+            componentDidUpdate(Map prevProps, Map prevState) {
+              // method body
+            }
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
-              componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {
-                // method body
-              }
-          }
-        ''',
-      );
-    });
-
-    test('componentDidUpdate does not update if optional third argument exists',
-        () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
-              componentDidUpdate(Map prevProps, Map prevState, [_]) {
-                  // method body
-              }
-          }
-        ''',
-      );
-    });
-
-    test('does not change componentDidUpdate for non-component2 classes', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          @Component()
-          class FooComponent extends UiComponent {
-            componentDidUpdate(Map prevProps, Map prevState) {
-                  // method body
+            componentDidUpdate(Map prevProps, Map prevState, [snapshot]) {
+              // method body
             }
           }
         ''',
       );
     });
+
+    group(
+        '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
+        'containing class is not fully upgradable', () {
+      test('-- extends from non-Component class', () {
+        testSuggestor(
+          expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+          input: '''
+            @Component2()
+            class FooComponent extends SomeOtherClass {
+              componentDidUpdate(Map prevProps, Map prevState) {
+                // method body
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends SomeOtherClass {
+              componentDidUpdate(Map prevProps, Map prevState${allowPartialUpgrades ? ', [snapshot]' : ''}) {
+                // method body
+              }
+            }
+          ''',
+        );
+      });
+
+      test('-- has lifecycle methods without codemods', () {
+        testSuggestor(
+          expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
+              componentDidUpdate(Map prevProps, Map prevState) {
+                // method body
+              }
+              
+              @override
+              componentWillUnmount() {}
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
+              componentDidUpdate(Map prevProps, Map prevState${allowPartialUpgrades ? ', [snapshot]' : ''}) {
+                // method body
+              }
+              
+              @override
+              componentWillUnmount() {}
+            }
+          ''',
+        );
+      });
+    });
+  });
+
+  test('componentDidUpdate does not update if optional third argument exists',
+      () {
+    testSuggestor(
+      expectedPatchCount: 0,
+      input: '''
+        @Component2()
+        class FooComponent extends UiComponent2 {
+          componentDidUpdate(Map prevProps, Map prevState, [_]) {
+            // method body
+          }
+        }
+      ''',
+    );
+  });
+
+  test('does not change componentDidUpdate for non-component2 classes', () {
+    testSuggestor(
+      expectedPatchCount: 0,
+      input: '''
+        @Component()
+        class FooComponent extends UiComponent {
+          componentDidUpdate(Map prevProps, Map prevState) {
+            // method body
+          }
+        }
+      ''',
+    );
   });
 }
