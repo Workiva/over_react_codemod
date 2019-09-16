@@ -91,6 +91,26 @@ void sharedPubspecTest({
     );
   });
 
+  test('does nothing if the dependency is set to `any`', () {
+    testSuggestor(
+      expectedPatchCount: 0,
+      shouldDartfmtOutput: false,
+      validateContents: validatePubspecYaml,
+      input: ''
+          'name: nothing\n'
+          'version: 0.0.0\n'
+          'dependencies:\n'
+          '  $dependency: any\n'
+          '',
+      expectedOutput: ''
+          'name: nothing\n'
+          'version: 0.0.0\n'
+          'dependencies:\n'
+          '  $dependency: any\n'
+          '',
+    );
+  });
+
   test(
       '${shouldAddDependencies ? 'adds the' : 'does not add the'} dependency '
       'if missing', () {

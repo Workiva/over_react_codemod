@@ -202,6 +202,16 @@ void overReactExample() {}''';
     });
 
     group('shouldUpdateVersionRange() updates correctly', () {
+      test('when the current dependency uses "any" as the version', () {
+        expect(
+          shouldUpdateVersionRange(
+            constraint: VersionConstraint.parse('any'),
+            targetConstraint: VersionConstraint.parse('^5.0.0'),
+          ),
+          isFalse,
+        );
+      });
+
       group('when the current dependency uses the caret syntax ', () {
         test('and the target uses caret syntax', () {
           expect(
@@ -314,7 +324,7 @@ void overReactExample() {}''';
             // Comment2
             var one;
             var two;
-            
+
             // Comment3
           }
         ''';
@@ -337,12 +347,12 @@ void overReactExample() {}''';
 
     group('allComments()', () {
       final content = '''
-          main() {  
+          main() {
             // Comment1
             // Comment2
             var one;
             var two;
-            
+
             // Comment3
           }
         ''';

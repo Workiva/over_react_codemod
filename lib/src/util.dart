@@ -352,12 +352,16 @@ bool shouldUpdateVersionRange({
   @required VersionRange targetConstraint,
   bool shouldIgnoreMin = false,
 }) {
+  if (constraint.isAny) return false;
   if (constraint is VersionRange) {
+    var constraintsHaveMax =
+        (targetConstraint.max != null && constraint.max != null);
+    var constraintsHaveMin =
+        (targetConstraint.min != null && constraint.min != null);
     // Short circuit if the constraints are the same.
     if (targetConstraint == constraint) return false;
-
     // If this is null, the dependency is set to >= with no upper limit.
-    if (constraint.max == null) {
+    if (constraint.max == null && constraint.min != null) {
       // In that case, we need the min to be at least as high as our
       // target. If it is, do not update.
       if (constraint.min >= targetConstraint.min) {
@@ -369,10 +373,12 @@ bool shouldUpdateVersionRange({
       // If there is a maximum, and it is higher than target max (but the
       // lower bound is still greater or equal to the target) do not
       // update.
-      if (constraint.max >= targetConstraint.max) {
+      if (constraintsHaveMax && constraint.max >= targetConstraint.max) {
         // If the codemod is asserting a specific minimum, the
         // constraint min does not matter.
-        if (constraint.min >= targetConstraint.min && !shouldIgnoreMin) {
+        if (constraintsHaveMin &&
+            constraint.min >= targetConstraint.min &&
+            !shouldIgnoreMin) {
           return false;
         }
       }

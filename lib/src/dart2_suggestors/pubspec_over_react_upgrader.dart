@@ -94,8 +94,10 @@ class PubspecOverReactUpgrader implements Suggestor {
         }
       } catch (e) {
         // We can skip these. They are versions we don't want to mess with in this codemod.
-        if (e.toString().contains('git:') || e.toString().contains('path:'))
+        if (e.toString().contains('git:') || e.toString().contains('path:')) {
           return;
+        }
+
         rethrow;
       }
     } else if (shouldAddDependencies) {
