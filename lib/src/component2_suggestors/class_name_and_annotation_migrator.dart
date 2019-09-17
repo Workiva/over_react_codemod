@@ -18,7 +18,6 @@ import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 
 import '../constants.dart';
-import 'component2_constants.dart';
 import 'component2_utilities.dart';
 
 /// Suggestor that replaces `UiComponent` with `UiComponent2` in extends clauses
@@ -139,10 +138,7 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
         wasUpdated = true;
       });
 
-      if (extendsName.name == 'UiComponent' ||
-          extendsName.name == 'UiStatefulComponent' ||
-          extendsName.name == 'FluxUiComponent' ||
-          extendsName.name == 'FluxUiStatefulComponent') {
+      if (upgradableV1ComponentClassNames.contains(extendsName.name)) {
         // Update `UiComponent` or `UiStatefulComponent` extends clause.
         yieldPatch(
           extendsName.end,
@@ -154,15 +150,55 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
       }
     }
 
-    // Add comment for abstract components that are updated
-    if (wasUpdated &&
-        canBeExtendedFrom(node) &&
-        !hasComment(node, sourceFile, abstractClassMessage)) {
-      yieldPatch(
-        node.offset,
-        node.offset,
-        '$abstractClassMessage\n',
-      );
+    if (wasUpdated) {
+      _addFixMeCommentPatches(node, extendsName);
     }
   }
+
+  void _addFixMeCommentPatches(ClassDeclaration node, Identifier extendsName) {
+    final extendsNameStr = extendsName.toString().replaceAll('2', '');
+    final classToUpgradeTo =
+        upgradableV1ComponentClassNames.contains(extendsNameStr)
+            ? '`${extendsNameStr}2`'
+            : 'a class that now extends from `UiComponent2`';
+
+    [
+      _FixMeCommentPatch(hasOneOrMoreMixins, () => node,
+          'FIXME: Before upgrading this component to $classToUpgradeTo, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in $classToUpgradeTo.'),
+      _FixMeCommentPatch(
+          (node) => shouldUpgradeAbstractComponents && canBeExtendedFrom(node),
+          () => node,
+          'FIXME: Abstract class has been updated to $classToUpgradeTo. This is a breaking change if this class is exported.'),
+    ].forEach((patch) {
+      if (!patch.shouldYieldPatch(node) ||
+          hasMultilineDocComment(node, sourceFile, patch.commentSrc)) {
+        return;
+      }
+
+      final patchOffset = node.metadata?.beginToken?.offset ??
+          node.firstTokenAfterCommentAndMetadata.offset;
+      yieldPatch(patchOffset, patchOffset, patch.commentSrc);
+    });
+  }
+}
+
+class _FixMeCommentPatch {
+  final bool Function(ClassDeclaration node) shouldYieldPatch;
+  final ClassDeclaration Function() getNode;
+
+  _FixMeCommentPatch(this.shouldYieldPatch, this.getNode, String commentSrc) {
+    final node = getNode();
+    final indentationLevel = node.beginToken.charOffset;
+    final fixmeCommentLineStart =
+        indentationLevel == 0 ? '///' : (' ' * indentationLevel) + '///';
+    final fixmeCommentStart = node.documentationComment != null
+        ? '$fixmeCommentLineStart\n$fixmeCommentLineStart'
+        : fixmeCommentLineStart;
+    final fixmeCommentEnd = '\n';
+
+    _commentSrc = '$fixmeCommentStart $commentSrc$fixmeCommentEnd';
+  }
+
+  String _commentSrc;
+  String get commentSrc => _commentSrc;
 }

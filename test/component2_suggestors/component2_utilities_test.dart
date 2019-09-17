@@ -280,6 +280,50 @@ void main() {
       });
     });
 
+    group('hasOneOrMoreMixins()', () {
+      group('returns true when a class has one mixin', () {
+        final input = '''
+          class FooComponent extends UiComponent with FooMixin {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: true,
+          functionToTest: hasOneOrMoreMixins,
+        );
+      });
+
+      group('returns true when a class has more than one mixin', () {
+        final input = '''
+          class FooComponent extends UiComponent with FooMixin, BarMixin {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: true,
+          functionToTest: hasOneOrMoreMixins,
+        );
+      });
+
+      group('returns false when a class has no mixins', () {
+        final input = '''
+          class FooComponent extends UiComponent {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: false,
+          functionToTest: hasOneOrMoreMixins,
+        );
+      });
+    });
+
     group('canBeFullyUpgradedToComponent2()', () {
       group('(fully upgradable) when a class', () {
         group('extends a base class and has no lifecycle methods', () {
@@ -363,6 +407,21 @@ void main() {
       });
 
       group('(not fully upgradable) when a class', () {
+        group('has one or more mixins', () {
+          final input = '''
+            @Component
+            class FooComponent extends UiComponent with FooMixin {
+              // class body
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: fullyUpgradableToComponent2,
+          );
+        });
+
         group('extends non-base classes', () {
           final input = '''
             @Component
