@@ -22,8 +22,12 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final bool allowPartialUpgrades;
+  final bool shouldUpgradeAbstractComponents;
 
-  GetDefaultPropsMigrator({this.allowPartialUpgrades = true});
+  GetDefaultPropsMigrator({
+    this.allowPartialUpgrades = true,
+    this.shouldUpgradeAbstractComponents = false,
+  });
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
@@ -31,8 +35,10 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
 
     ClassDeclaration containingClass = node.parent;
 
-    if (!allowPartialUpgrades &&
-        !fullyUpgradableToComponent2(containingClass)) {
+    if ((!allowPartialUpgrades &&
+            !fullyUpgradableToComponent2(containingClass)) ||
+        (!shouldUpgradeAbstractComponents &&
+            canBeExtendedFrom(containingClass))) {
       return;
     }
 
@@ -53,7 +59,10 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
 //        }
 
         var methodBody = node.body.toSource();
-        methodBody = methodBody.replaceAll('super.getDefaultProps()', 'super.defaultProps',);
+        methodBody = methodBody.replaceAll(
+          'super.getDefaultProps()',
+          'super.defaultProps',
+        );
         yieldPatch(node.body.offset, node.body.end, methodBody);
 
         // Replace with getter.

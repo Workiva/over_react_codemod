@@ -150,7 +150,8 @@ void componentDidUpdateTests({bool allowPartialUpgrades}) {
     );
   });
 
-  test('getDefaultProps method with just return statement method body updates', () {
+  test('getDefaultProps method with just return statement method body updates',
+      () {
     testSuggestor(
       expectedPatchCount: 2,
       input: '''
