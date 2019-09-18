@@ -222,7 +222,7 @@ copyUnconsumedDomPropsTests({
           );
         });
 
-        test('-- has lifecycle methods without codemods', () {
+        test('-- has deprecated lifecycle methods without codemods', () {
           testSuggestor(
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
@@ -240,7 +240,7 @@ copyUnconsumedDomPropsTests({
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentWillUpdate() {}
               }
             ''',
             expectedOutput: '''
@@ -257,7 +257,7 @@ copyUnconsumedDomPropsTests({
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentWillUpdate() {}
               }
             ''',
           );

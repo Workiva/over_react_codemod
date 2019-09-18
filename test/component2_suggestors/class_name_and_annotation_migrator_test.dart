@@ -518,7 +518,7 @@ void classNameAndAnnotationTests({
     group('with @AbstractComponent() annotation and abstract keyword', () {
       test(
           '${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} '
-          'when all lifecycle methods have codemods', () {
+          'when all deprecated lifecycle methods have codemods', () {
         testSuggestor(
           expectedPatchCount: shouldUpgradeAbstractComponents ? 3 : 0,
           input: '''
@@ -541,7 +541,7 @@ void classNameAndAnnotationTests({
 
       test(
           '${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} when one or '
-          'more lifecycle method has no codemod', () {
+          'more deprecated lifecycle method has no codemod', () {
         testSuggestor(
           expectedPatchCount:
               allowPartialUpgrades && shouldUpgradeAbstractComponents ? 3 : 0,
@@ -552,7 +552,7 @@ void classNameAndAnnotationTests({
               componentWillMount() {}
   
               @override
-              shouldComponentUpdate() {}
+              componentWillReceiveProps() {}
             }
           ''',
           expectedOutput: '''
@@ -563,7 +563,7 @@ void classNameAndAnnotationTests({
               componentWillMount() {}
   
               @override
-              shouldComponentUpdate() {}
+              componentWillReceiveProps() {}
             }
           ''',
         );
@@ -591,7 +591,7 @@ void classNameAndAnnotationTests({
     group('with generic parameters', () {
       test(
           '${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} '
-          'when all lifecycle methods have codemods', () {
+          'when all deprecated lifecycle methods have codemods', () {
         testSuggestor(
           expectedPatchCount: shouldUpgradeAbstractComponents ? 3 : 0,
           input: '''
@@ -614,7 +614,7 @@ void classNameAndAnnotationTests({
 
       test(
           '${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}'
-          ' when one or more lifecycle method has no codemod', () {
+          ' when one or more deprecated lifecycle method has no codemod', () {
         testSuggestor(
           expectedPatchCount:
               allowPartialUpgrades && shouldUpgradeAbstractComponents ? 3 : 0,
@@ -622,7 +622,7 @@ void classNameAndAnnotationTests({
             @Component
             class FooComponent<BarProps, BarState> extends FluxUiComponent<FooProps> {
               @override
-              componentWillMount() {}
+              componentWillReceiveProps() {}
   
               @override
               shouldComponentUpdate() {}
@@ -633,7 +633,7 @@ void classNameAndAnnotationTests({
             @Component${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}
             class FooComponent<BarProps, BarState> extends FluxUiComponent${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '2' : ''}<FooProps> {
               @override
-              componentWillMount() {}
+              componentWillReceiveProps() {}
   
               @override
               shouldComponentUpdate() {}
@@ -664,7 +664,7 @@ void classNameAndAnnotationTests({
     group('with @AbstractProps in the same file', () {
       test(
           '${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} '
-          'when all lifecycle methods have codemods', () {
+          'when all deprecated lifecycle methods have codemods', () {
         testSuggestor(
           expectedPatchCount: shouldUpgradeAbstractComponents ? 3 : 0,
           input: '''
@@ -693,7 +693,7 @@ void classNameAndAnnotationTests({
 
       test(
           '${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'} when one or '
-          'more lifecycle method has no codemod', () {
+          'more deprecated lifecycle method has no codemod', () {
         testSuggestor(
           expectedPatchCount:
               allowPartialUpgrades && shouldUpgradeAbstractComponents ? 3 : 0,
@@ -707,7 +707,7 @@ void classNameAndAnnotationTests({
               componentWillMount() {}
   
               @override
-              shouldComponentUpdate() {}
+              componentWillUpdate() {}
             }
           ''',
           expectedOutput: '''
@@ -721,7 +721,7 @@ void classNameAndAnnotationTests({
               componentWillMount() {}
   
               @override
-              shouldComponentUpdate() {}
+              componentWillUpdate() {}
             }
           ''',
         );

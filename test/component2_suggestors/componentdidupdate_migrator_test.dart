@@ -197,7 +197,7 @@ void componentDidUpdateTests({
           );
         });
 
-        test('-- has lifecycle methods without codemods', () {
+        test('-- has deprecated lifecycle methods without codemods', () {
           testSuggestor(
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
@@ -209,7 +209,7 @@ void componentDidUpdateTests({
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentWillUpdate() {}
               }
             ''',
             expectedOutput: '''
@@ -220,7 +220,7 @@ void componentDidUpdateTests({
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentWillUpdate() {}
               }
             ''',
           );

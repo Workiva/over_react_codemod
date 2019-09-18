@@ -207,7 +207,7 @@ setStateTests({
             );
           });
 
-          test('-- has lifecycle methods without codemods', () {
+          test('-- has deprecated lifecycle methods without codemods', () {
             testSuggestor(
               expectedPatchCount:
                   allowPartialUpgrades && shouldUpgradeAbstractComponents
