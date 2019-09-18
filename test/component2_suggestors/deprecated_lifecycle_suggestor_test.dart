@@ -20,17 +20,34 @@ import '../util.dart';
 
 main() {
   group('DeprecatedLifecycleSuggestor', () {
-    deprecatedLifecycleTests(allowPartialUpgrades: true);
+    deprecatedLifecycleTests();
   });
 
   group('DeprecatedLifecycleSuggestor with --no-partial-upgrades flag', () {
     deprecatedLifecycleTests(allowPartialUpgrades: false);
   });
+
+  group('DeprecatedLifecycleSuggestor with --upgrade-abstract-components flag',
+      () {
+    deprecatedLifecycleTests(shouldUpgradeAbstractComponents: true);
+  });
+
+  group(
+      'DeprecatedLifecycleSuggestor with --no-partial-upgrades and --upgrade-abstract-components flag',
+      () {
+    deprecatedLifecycleTests(
+        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
+  });
 }
 
-deprecatedLifecycleTests({bool allowPartialUpgrades}) {
-  final testSuggestor = getSuggestorTester(
-      DeprecatedLifecycleSuggestor(allowPartialUpgrades: allowPartialUpgrades));
+deprecatedLifecycleTests({
+  bool allowPartialUpgrades = true,
+  bool shouldUpgradeAbstractComponents = false,
+}) {
+  final testSuggestor = getSuggestorTester(DeprecatedLifecycleSuggestor(
+    allowPartialUpgrades: allowPartialUpgrades,
+    shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+  ));
 
   test('empty file', () {
     testSuggestor(expectedPatchCount: 0, input: '');
@@ -89,6 +106,28 @@ deprecatedLifecycleTests({bool allowPartialUpgrades}) {
       );
     });
 
+    test('componentWillUpdate in an abstract class', () {
+      testSuggestor(
+        expectedPatchCount:
+            allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+        input: '''
+          @Component2
+          class FooComponent<BarProps> extends FluxUiComponent2<FooProps> {
+            @override
+            componentWillUpdate(){}
+          }
+        ''',
+        expectedOutput: '''
+          @Component2
+          class FooComponent<BarProps> extends FluxUiComponent2<FooProps> {
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? getDeperecationMessage('componentWillUpdate') : ''}
+            @override
+            componentWillUpdate(){}
+          }
+        ''',
+      );
+    });
+
     test('componentWillReceiveProps with override', () {
       testSuggestor(
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
@@ -123,6 +162,28 @@ deprecatedLifecycleTests({bool allowPartialUpgrades}) {
           @Component2()
           class FooComponent extends FluxUiStatefulComponent2 {
             ${allowPartialUpgrades ? getDeperecationMessage('componentWillReceiveProps') : ''}
+            componentWillReceiveProps(){}
+          }
+        ''',
+      );
+    });
+
+    test('componentWillReceiveProps in an abstract class', () {
+      testSuggestor(
+        expectedPatchCount:
+            allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+        input: '''
+          @AbstractComponent2()
+          abstract class FooComponent extends FluxUiStatefulComponent2 {
+            @override
+            componentWillReceiveProps(){}
+          }
+        ''',
+        expectedOutput: '''
+          @AbstractComponent2()
+          abstract class FooComponent extends FluxUiStatefulComponent2 {
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? getDeperecationMessage('componentWillReceiveProps') : ''}
+            @override
             componentWillReceiveProps(){}
           }
         ''',

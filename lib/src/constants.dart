@@ -72,6 +72,14 @@ const List<String> overReactMixinAnnotationNames = [
   'StateMixin',
 ];
 
+/// A list of the names of the core component classes that can be upgraded to a "v2" version.
+const List<String> upgradableV1ComponentClassNames = [
+  'UiComponent',
+  'UiStatefulComponent',
+  'FluxUiComponent',
+  'FluxUiStatefulComponent',
+];
+
 /// Dart type for the static meta field on props classes.
 const String propsMetaType = 'PropsMeta';
 

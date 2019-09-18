@@ -24,6 +24,7 @@ import 'package:over_react_codemod/src/component2_suggestors/setstate_updater.da
 import 'package:over_react_codemod/src/component2_suggestors/copyunconsumeddomprops_migrator.dart';
 
 const _noPartialUpgradesFlag = '--no-partial-upgrades';
+const _upgradeAbstractComponentsFlag = '--upgrade-abstract-components';
 const _changesRequiredOutput = """
 To update your code, switch to Dart 2.1.0 and run the following commands:
   pub global activate over_react_codemod ^1.1.0
@@ -35,6 +36,10 @@ void main(List<String> args) {
   final allowPartialUpgrades = !args.contains(_noPartialUpgradesFlag);
   args.removeWhere((arg) => arg == _noPartialUpgradesFlag);
 
+  final shouldUpgradeAbstractComponents =
+      args.contains(_upgradeAbstractComponentsFlag);
+  args.removeWhere((arg) => arg == _upgradeAbstractComponentsFlag);
+
   final query = FileQuery.dir(
     pathFilter: isDartFile,
     recursive: true,
@@ -45,14 +50,33 @@ void main(List<String> args) {
       // This suggestor needs to be run first in order for subsequent suggestors
       // to run when converting Component to Component2 for the first time.
       ClassNameAndAnnotationMigrator(
-          allowPartialUpgrades: allowPartialUpgrades),
-      ComponentWillMountMigrator(allowPartialUpgrades: allowPartialUpgrades),
-      DeprecatedLifecycleSuggestor(allowPartialUpgrades: allowPartialUpgrades),
-      SetStateUpdater(allowPartialUpgrades: allowPartialUpgrades),
-      ComponentDidUpdateMigrator(allowPartialUpgrades: allowPartialUpgrades),
+        allowPartialUpgrades: allowPartialUpgrades,
+        shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+      ),
+      ComponentWillMountMigrator(
+        allowPartialUpgrades: allowPartialUpgrades,
+        shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+      ),
+      DeprecatedLifecycleSuggestor(
+        allowPartialUpgrades: allowPartialUpgrades,
+        shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+      ),
+      SetStateUpdater(
+        allowPartialUpgrades: allowPartialUpgrades,
+        shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+      ),
+      ComponentDidUpdateMigrator(
+        allowPartialUpgrades: allowPartialUpgrades,
+        shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+      ),
       CopyUnconsumedDomPropsMigrator(
-          allowPartialUpgrades: allowPartialUpgrades),
-      GetDefaultPropsMigrator(allowPartialUpgrades: allowPartialUpgrades),
+        allowPartialUpgrades: allowPartialUpgrades,
+        shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+      ),
+      GetDefaultPropsMigrator(
+        allowPartialUpgrades: allowPartialUpgrades,
+        shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+      ),
     ],
     args: args,
     defaultYes: true,
