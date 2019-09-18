@@ -19,17 +19,33 @@ import '../util.dart';
 
 main() {
   group('GetDefaultPropsMigrator', () {
-    componentDidUpdateTests(allowPartialUpgrades: true);
+    componentDidUpdateTests();
   });
 
   group('GetDefaultPropsMigrator with --no-partial-upgrades flag', () {
     componentDidUpdateTests(allowPartialUpgrades: false);
   });
+
+  group('GetDefaultPropsMigrator with --upgrade-abstract-components flag', () {
+    componentDidUpdateTests(shouldUpgradeAbstractComponents: true);
+  });
+
+  group(
+      'GetDefaultPropsMigrator with --no-partial-upgrades and --upgrade-abstract-components flag',
+      () {
+    componentDidUpdateTests(
+        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
+  });
 }
 
-void componentDidUpdateTests({bool allowPartialUpgrades}) {
-  final testSuggestor = getSuggestorTester(
-      GetDefaultPropsMigrator(allowPartialUpgrades: allowPartialUpgrades));
+void componentDidUpdateTests({
+  bool allowPartialUpgrades = true,
+  bool shouldUpgradeAbstractComponents = false,
+}) {
+  final testSuggestor = getSuggestorTester(GetDefaultPropsMigrator(
+    allowPartialUpgrades: allowPartialUpgrades,
+    shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+  ));
 
   test('empty file', () {
     testSuggestor(expectedPatchCount: 0, input: '');
@@ -46,7 +62,7 @@ void componentDidUpdateTests({bool allowPartialUpgrades}) {
     );
   });
 
-  test('getDefaultProps method updates', () {
+  test('getDefaultProps method', () {
     testSuggestor(
       expectedPatchCount: 2,
       input: '''
@@ -66,7 +82,7 @@ void componentDidUpdateTests({bool allowPartialUpgrades}) {
     );
   });
 
-  test('getDefaultProps method without return type updates', () {
+  test('getDefaultProps method without return type', () {
     testSuggestor(
       expectedPatchCount: 1,
       input: '''
@@ -86,7 +102,7 @@ void componentDidUpdateTests({bool allowPartialUpgrades}) {
     );
   });
 
-  test('getDefaultProps method with super call within `addAll` updates', () {
+  test('getDefaultProps method with super call within `addAll`', () {
     testSuggestor(
       expectedPatchCount: 3,
       input: '''
@@ -106,7 +122,7 @@ void componentDidUpdateTests({bool allowPartialUpgrades}) {
     );
   });
 
-  test('getDefaultProps method with super call within `addProps` updates', () {
+  test('getDefaultProps method with super call within `addProps`', () {
     testSuggestor(
       expectedPatchCount: 3,
       input: '''
@@ -126,48 +142,60 @@ void componentDidUpdateTests({bool allowPartialUpgrades}) {
     );
   });
 
-  test('getDefaultProps method with method body updates', () {
+  test('getDefaultProps method with block body', () {
     testSuggestor(
       expectedPatchCount: 2,
       input: '''
-        @override
-        Map getDefaultProps() {
-          var a = 1;
-          return newProps()
-            ..superProp = '<the super prop value>'
-            ..subProp = '<the sub prop value>';
+        @Component2()
+        class FooComponent extends UiComponent2 {
+          @override
+          Map getDefaultProps() {
+            var a = 1;
+            return newProps()
+              ..superProp = '<the super prop value>'
+              ..subProp = '<the sub prop value>';
+          }
         }
       ''',
       expectedOutput: '''
-        @override
-        get defaultProps {
-          var a = 1;
-          return newProps()
-            ..superProp = '<the super prop value>'
-            ..subProp = '<the sub prop value>';
+        @Component2()
+        class FooComponent extends UiComponent2 {
+          @override
+          get defaultProps {
+            var a = 1;
+            return newProps()
+              ..superProp = '<the super prop value>'
+              ..subProp = '<the sub prop value>';
+          }
         }
       ''',
     );
   });
 
-  test('getDefaultProps method with just return statement method body updates',
+  test('getDefaultProps method with just return statement method body',
       () {
     testSuggestor(
       expectedPatchCount: 2,
       input: '''
-        @override
-        Map getDefaultProps() {
-          return newProps()
-            ..superProp = '<the super prop value>'
-            ..subProp = '<the sub prop value>';
+        @Component2()
+        class FooComponent extends UiComponent2 {
+          @override
+          Map getDefaultProps() {
+            return newProps()
+              ..superProp = '<the super prop value>'
+              ..subProp = '<the sub prop value>';
+          }
         }
       ''',
       expectedOutput: '''
-        @override
-        Map get defaultProps => (newProps()
-          ..superProp = '<the super prop value>'
-          ..subProp = '<the sub prop value>'
-        );
+        @Component2()
+        class FooComponent extends UiComponent2 {
+          @override
+          Map get defaultProps => (newProps()
+            ..superProp = '<the super prop value>'
+            ..subProp = '<the sub prop value>'
+          );
+        }
       ''',
     );
   });
@@ -176,17 +204,23 @@ void componentDidUpdateTests({bool allowPartialUpgrades}) {
     testSuggestor(
       expectedPatchCount: 2,
       input: '''
-        @override
-        Map get defaultProps => newProps()
+        @Component2()
+        class FooComponent extends SomeOtherClass {
+          @override
+          Map get defaultProps => newProps()
             ..superProp = '<the super prop value>'
             ..subProp = '<the sub prop value>';
+        }
       ''',
       expectedOutput: '''
-        @override
-        Map get defaultProps => (newProps()
-          ..superProp = '<the super prop value>'
-          ..subProp = '<the sub prop value>'
-        );
+        @Component2()
+        class FooComponent extends SomeOtherClass {
+          @override
+          Map get defaultProps => (newProps()
+            ..superProp = '<the super prop value>'
+            ..subProp = '<the sub prop value>'
+          );
+        }
       ''',
     );
   });

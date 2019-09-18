@@ -58,12 +58,14 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
 //          a = (node.body as ExpressionFunctionBody).expression.childEntities;
 //        }
 
-        var methodBody = node.body.toSource();
-        methodBody = methodBody.replaceAll(
-          'super.getDefaultProps()',
-          'super.defaultProps',
-        );
-        yieldPatch(node.body.offset, node.body.end, methodBody);
+        var methodBody = sourceFile.getText(node.body.offset, node.body.end);
+        if(methodBody.contains('super.getDefaultProps()')) {
+          methodBody = methodBody.replaceAll(
+            'super.getDefaultProps()',
+            'super.defaultProps',
+          );
+          yieldPatch(node.body.offset, node.body.end, methodBody);
+        }
 
         // Replace with getter.
         yieldPatch(
