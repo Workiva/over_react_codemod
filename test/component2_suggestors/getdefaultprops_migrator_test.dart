@@ -174,8 +174,7 @@ void componentDidUpdateTests({
     );
   });
 
-  test('getDefaultProps method with just return statement method body',
-      () {
+  test('getDefaultProps method with just return statement method body', () {
     testSuggestor(
       expectedPatchCount: 5,
       input: '''
@@ -209,7 +208,7 @@ void componentDidUpdateTests({
         @Component2()
         class FooComponent extends SomeOtherClass {
           @override
-          Map getDefaultProps => newProps()
+          Map getDefaultProps() => newProps()
             ..superProp = '<the super prop value>'
             ..subProp = '<the sub prop value>';
         }
@@ -218,7 +217,7 @@ void componentDidUpdateTests({
         @Component2()
         class FooComponent extends SomeOtherClass {
           @override
-          Map get defaultProps => (newProps()
+          get defaultProps => (newProps()
             ..superProp = '<the super prop value>'
             ..subProp = '<the sub prop value>'
           );
@@ -228,7 +227,7 @@ void componentDidUpdateTests({
   });
 
   group(
-      '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
+      'getDefaultProps method ${allowPartialUpgrades ? 'updates' : 'does not update'} if '
       'containing class is not fully upgradable', () {
     test('-- extends from non-Component class', () {
       testSuggestor(
@@ -277,6 +276,98 @@ void componentDidUpdateTests({
     });
   });
 
+  group('getDefaultProps method in an abstract class', () {
+    test('that is fully upgradable', () {
+      testSuggestor(
+        expectedPatchCount: shouldUpgradeAbstractComponents ? 4 : 0,
+        input: '''
+          @AbstractComponent2()
+          abstract class FooComponent extends UiComponent2 {
+            @override
+            Map getDefaultProps() => newProps()..prop1 = true;
+          }
+        ''',
+        expectedOutput: '''
+          @AbstractComponent2()
+          abstract class FooComponent extends UiComponent2 {
+            @override
+            ${shouldUpgradeAbstractComponents && allowPartialUpgrades ? 'get defaultProps' : 'Map getdefaultProps()'} => newProps()..prop1 = true;
+          }
+        ''',
+      );
+    });
+
+    group('that is not fully upgradable', () {
+      test('--extends from a non-Component class', () {
+        testSuggestor(
+          expectedPatchCount:
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 5 : 0,
+          input: '''
+            @Component2
+            class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
+              @override
+              Map getDefaultProps() {
+                return newProps()
+                  ..superProp = '<the super prop value>'
+                  ..subProp = '<the sub prop value>';
+              }
+            }
+          ''',
+          expectedOutput:
+              allowPartialUpgrades && shouldUpgradeAbstractComponents
+                  ? '''
+            @Component2
+            class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
+              @override
+              get defaultProps => (newProps()
+                ..superProp = '<the super prop value>'
+                ..subProp = '<the sub prop value>'
+              );
+            }
+          '''
+                  : '''
+            @Component2
+            class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
+              @override
+              Map getDefaultProps() {
+                return newProps()
+                  ..superProp = '<the super prop value>'
+                  ..subProp = '<the sub prop value>';
+              }
+            }
+          ''',
+        );
+      });
+
+      test('-- has lifecycle methods without codemods', () {
+        testSuggestor(
+          expectedPatchCount:
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+          input: '''
+            @AbstractProps()
+            class AbstractFooProps extends UiProps {}
+            
+            @AbstractComponent2()
+            class FooComponent extends UiComponent2 {
+              @override
+              Map getDefaultProps() => newProps()..prop1 = true;
+            }
+          ''',
+          expectedOutput: '''
+            @AbstractProps()
+            class AbstractFooProps extends UiProps {}
+            
+            @AbstractComponent2()
+            class FooComponent extends UiComponent2 {
+              @override
+              ${shouldUpgradeAbstractComponents && allowPartialUpgrades ? 'get defaultProps' : 'Map getdefaultProps()'} => newProps()..prop1 = true;
+            }
+          ''',
+        );
+      });
+    });
+  });
+
   test('getDefaultProps method does not change if already updated', () {
     testSuggestor(
       expectedPatchCount: 0,
@@ -303,6 +394,5 @@ void componentDidUpdateTests({
     );
   });
 }
-
 
 // TODO: is there a case when getDefaultProps would not use newProps()?

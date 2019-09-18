@@ -54,8 +54,9 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
         }
 
         // Update super calls.
-        var methodBodyString = sourceFile.getText(node.body.offset, node.body.end);
-        if(methodBodyString.contains('super.getDefaultProps()')) {
+        var methodBodyString =
+            sourceFile.getText(node.body.offset, node.body.end);
+        if (methodBodyString.contains('super.getDefaultProps()')) {
           methodBodyString = methodBodyString.replaceAll(
             'super.getDefaultProps()',
             'super.defaultProps',
@@ -70,21 +71,43 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
           'get defaultProps',
         );
 
-        if(node.body is BlockFunctionBody) {
+        if (node.body is BlockFunctionBody) {
           var methodBody = (node.body as BlockFunctionBody).block;
 
           // Convert to arrow function if method body is a single return.
-          if(methodBody.statements.length == 1 && methodBody.statements.single is ReturnStatement) {
-            var returnStatement = (methodBody.statements.single as ReturnStatement);
-            yieldPatch(methodBody.leftBracket.offset, returnStatement.returnKeyword.end, '=> (',);
-            yieldPatch(returnStatement.semicolon.offset, returnStatement.semicolon.offset, '\n)',);
-            yieldPatch(methodBody.rightBracket.offset, methodBody.rightBracket.end, '',);
+          if (methodBody.statements.length == 1 &&
+              methodBody.statements.single is ReturnStatement) {
+            var returnStatement =
+                (methodBody.statements.single as ReturnStatement);
+            yieldPatch(
+              methodBody.leftBracket.offset,
+              returnStatement.returnKeyword.end,
+              '=> (',
+            );
+            yieldPatch(
+              returnStatement.semicolon.offset,
+              returnStatement.semicolon.offset,
+              '\n)',
+            );
+            yieldPatch(
+              methodBody.rightBracket.offset,
+              methodBody.rightBracket.end,
+              '',
+            );
           }
-        } else if(node.body is ExpressionFunctionBody) {
+        } else if (node.body is ExpressionFunctionBody) {
           var expression = (node.body as ExpressionFunctionBody).expression;
-          if(expression.beginToken.toString() != '(') {
-            yieldPatch(expression.offset, expression.offset, '(',);
-            yieldPatch(expression.end, expression.end, '\n)',);
+          if (expression.beginToken.toString() != '(') {
+            yieldPatch(
+              expression.offset,
+              expression.offset,
+              '(',
+            );
+            yieldPatch(
+              expression.end,
+              expression.end,
+              '\n)',
+            );
           }
         }
       }
