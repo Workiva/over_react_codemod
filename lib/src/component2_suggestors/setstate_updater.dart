@@ -24,8 +24,12 @@ class SetStateUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final bool allowPartialUpgrades;
+  final bool shouldUpgradeAbstractComponents;
 
-  SetStateUpdater({this.allowPartialUpgrades = true});
+  SetStateUpdater({
+    this.allowPartialUpgrades = true,
+    this.shouldUpgradeAbstractComponents = false,
+  });
 
   @override
   visitMethodInvocation(MethodInvocation node) {
@@ -35,8 +39,10 @@ class SetStateUpdater extends GeneralizingAstVisitor
       return ancestor is ClassDeclaration;
     });
 
-    if (!allowPartialUpgrades &&
-        !fullyUpgradableToComponent2(containingClass)) {
+    if ((!allowPartialUpgrades &&
+            !fullyUpgradableToComponent2(containingClass)) ||
+        (!shouldUpgradeAbstractComponents &&
+            canBeExtendedFrom(containingClass))) {
       return;
     }
 

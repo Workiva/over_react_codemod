@@ -51,10 +51,15 @@ bool extendsComponent2(ClassDeclaration classNode) {
   }
 }
 
+/// Returns whether or not [classNode] has one or more mixins.
+bool hasOneOrMoreMixins(ClassDeclaration classNode) =>
+    classNode?.withClause != null;
+
 /// Returns whether or not [classNode] can be fully upgraded to Component2.
 ///
 /// In order for a component to be fully upgradable, the component must:
 ///
+/// * not have a `with` clause
 /// * extend directly from `UiComponent`, `UiStatefulComponent`,
 /// `FluxUiComponent`, `FluxUiStatefulComponent`, or `react.Component`
 /// * contain only the lifecycle methods that the codemod updates:
@@ -64,6 +69,10 @@ bool extendsComponent2(ClassDeclaration classNode) {
 bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
   var extendsName = classNode?.extendsClause?.superclass?.name;
   if (extendsName == null) {
+    return false;
+  }
+
+  if (hasOneOrMoreMixins(classNode)) {
     return false;
   }
 
@@ -91,4 +100,22 @@ bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
   }
 
   return true;
+}
+
+/// Returns whether or not [classNode] can be extended from.
+///
+/// A component class can be extended from if one of the following is true:
+///
+/// * `abstract` keyword on component class
+/// * Generic parameters on component class
+/// * `@AbstractProps` in the same file
+bool canBeExtendedFrom(ClassDeclaration classNode) {
+  var a = classNode.typeParameters;
+  if (classNode != null &&
+      (classNode.abstractKeyword != null ||
+          classNode.typeParameters != null ||
+          classNode.root.toSource().contains('@AbstractProps'))) {
+    return true;
+  }
+  return false;
 }

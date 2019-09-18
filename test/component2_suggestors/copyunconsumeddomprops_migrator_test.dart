@@ -19,17 +19,35 @@ import '../util.dart';
 
 main() {
   group('CopyUnconsumedDomPropsMigrator', () {
-    copyUnconsumedDomPropsTests(allowPartialUpgrades: true);
+    copyUnconsumedDomPropsTests();
   });
 
   group('CopyUnconsumedDomPropsMigrator with --no-partial-upgrades flag', () {
     copyUnconsumedDomPropsTests(allowPartialUpgrades: false);
   });
+
+  group(
+      'CopyUnconsumedDomPropsMigrator with --upgrade-abstract-components flag',
+      () {
+    copyUnconsumedDomPropsTests(shouldUpgradeAbstractComponents: true);
+  });
+
+  group(
+      'CopyUnconsumedDomPropsMigrator with --no-partial-upgrades and --upgrade-abstract-components flag',
+      () {
+    copyUnconsumedDomPropsTests(
+        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
+  });
 }
 
-copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
+copyUnconsumedDomPropsTests({
+  bool allowPartialUpgrades = true,
+  bool shouldUpgradeAbstractComponents = false,
+}) {
   final testSuggestor = getSuggestorTester(CopyUnconsumedDomPropsMigrator(
-      allowPartialUpgrades: allowPartialUpgrades));
+    allowPartialUpgrades: allowPartialUpgrades,
+    shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+  ));
 
   test('empty file', () {
     testSuggestor(expectedPatchCount: 0, input: '');
@@ -138,6 +156,112 @@ copyUnconsumedDomPropsTests({bool allowPartialUpgrades}) {
             }
           ''',
         );
+      });
+    });
+
+    group('in an abstract class', () {
+      test(
+          'that is fully upgradable ${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
+          () {
+        testSuggestor(
+          expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
+          input: '''
+            @Component2
+            class FooComponent<BarProps> extends UiComponent2<FooProps> {
+              @override
+              render() {
+                return (Dom.span()
+                  ..addProps(copyUnconsumedDomProps())
+                )(props.children);
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @Component2
+            class FooComponent<BarProps> extends UiComponent2<FooProps> {
+              @override
+              render() {
+                return (Dom.span()
+                  ..${shouldUpgradeAbstractComponents ? 'modifyProps(addUnconsumedDomProps)' : 'addProps(copyUnconsumedDomProps())'}
+                )(props.children);
+              }
+            }
+          ''',
+        );
+      });
+
+      group(
+          'that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
+          () {
+        test('-- extends from non-Component class', () {
+          testSuggestor(
+            expectedPatchCount:
+                allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+            input: '''
+              @AbstractComponent2()
+              abstract class FooComponent extends SomeOtherClass {
+                @override
+                render() {
+                  return (Dom.span()
+                    ..addProps(copyUnconsumedDomProps())
+                  )(props.children);
+                }
+              }
+            ''',
+            expectedOutput: '''
+              @AbstractComponent2()
+              abstract class FooComponent extends SomeOtherClass {
+                @override
+                render() {
+                  return (Dom.span()
+                    ..${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'modifyProps(addUnconsumedDomProps)' : 'addProps(copyUnconsumedDomProps())'}
+                  )(props.children);
+                }
+              }
+            ''',
+          );
+        });
+
+        test('-- has lifecycle methods without codemods', () {
+          testSuggestor(
+            expectedPatchCount:
+                allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+            input: '''
+              @AbstractProps()
+              class AbstractFooProps extends UiProps {}
+              
+              @AbstractComponent2()
+              class FooComponent extends UiComponent2 {
+                @override
+                render() {
+                  return (Dom.span()
+                    ..addProps(copyUnconsumedDomProps())
+                  )(props.children);
+                }
+                
+                @override
+                componentWillUnmount() {}
+              }
+            ''',
+            expectedOutput: '''
+              @AbstractProps()
+              class AbstractFooProps extends UiProps {}
+              
+              @AbstractComponent2()
+              class FooComponent extends UiComponent2 {
+                @override
+                render() {
+                  return (Dom.span()
+                    ..${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'modifyProps(addUnconsumedDomProps)' : 'addProps(copyUnconsumedDomProps())'}
+                  )(props.children);
+                }
+                
+                @override
+                componentWillUnmount() {}
+              }
+            ''',
+          );
+        });
       });
     });
   });
