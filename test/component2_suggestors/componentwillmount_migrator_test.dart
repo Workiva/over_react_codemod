@@ -127,7 +127,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
       });
     });
 
-    test('componentWillMount method with return type updates', () {
+    test('componentWillMount method with return type', () {
       testSuggestor(
         expectedPatchCount: 2,
         input: '''
@@ -208,6 +208,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
               componentDidMount() {
                 var c = 3;
                 var d = 4;
+                
                 var a = 1;
                 var b = 2;
               }
@@ -246,6 +247,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
                 componentDidMount() {
                   var c = 3;
                   var d = 4;
+                  
                   var a = 1;
                   var b = 2;
                 }
@@ -300,6 +302,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
                 componentDidMount() {
                   var c = 3;
                   var d = 4;
+                  
                   var a = 1;
                   var b = 2;
                 }
@@ -334,7 +337,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
       test('update super call to componentWillMount if not already existing',
           () {
         testSuggestor(
-          expectedPatchCount: 2,
+          expectedPatchCount: 3,
           input: '''
             @Component2()
             class FooComponent extends FluxUiComponent2 {
@@ -355,10 +358,12 @@ componentWillMountTests({bool allowPartialUpgrades}) {
           expectedOutput: '''
             @Component2()
             class FooComponent extends FluxUiComponent2 {
+              $componentWillMountMessage
               @override
               void componentDidMount() {
                 var c = 3;
                 var d = 4;
+                
                 super.componentDidMount();
                 var a = 1;
                 var b = 2;
@@ -399,6 +404,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
                 super.componentDidMount();
                 var c = 3;
                 var d = 4;
+                
                 var a = 1;
                 var b = 2;
               }
@@ -415,13 +421,13 @@ componentWillMountTests({bool allowPartialUpgrades}) {
             class FooComponent extends FluxUiComponent2 {
               @override
               componentDidMount() {
-                var c = 3;
+                // `componentDidMount` method body
               }
               
               @override
               @mustCallSuper
               componentWillMount() {
-                var a = 1;
+                // `componentWillMount` method body
               }
             }
           ''',
@@ -431,8 +437,9 @@ componentWillMountTests({bool allowPartialUpgrades}) {
               @mustCallSuper
               @override
               componentDidMount() {
-                var c = 3;
-                var a = 1;
+                // `componentDidMount` method body
+                
+                // `componentWillMount` method body
               }
             }
           ''',
@@ -463,6 +470,7 @@ componentWillMountTests({bool allowPartialUpgrades}) {
               @mustCallSuper
               componentDidMount() {
                 var c = 3;
+                
                 var a = 1;
               }
             }

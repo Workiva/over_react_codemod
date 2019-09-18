@@ -40,49 +40,59 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
       return;
     }
 
-    MethodDeclaration componentDidMountMethodDecl =
-        containingClass.members.firstWhere(
-      (member) =>
-          member is MethodDeclaration &&
-          member.name.name == 'componentDidMount',
-      orElse: () => null,
-    );
+    var componentDidMountMethodDecl = containingClass.members
+        .whereType<MethodDeclaration>()
+        .firstWhere((member) => member.name.name == 'componentDidMount',
+            orElse: () => null);
 
     if (extendsComponent2(containingClass) &&
         node.name.name == 'componentWillMount') {
       if (componentDidMountMethodDecl != null) {
         if (node.body is BlockFunctionBody) {
-          bool hasSuperCall = componentDidMountMethodDecl.body
+          var hasSuperCall = componentDidMountMethodDecl.body
               .toSource()
               .contains('super.componentDidMount();');
-          String methodBody =
-              (node.body as BlockFunctionBody).block.statements.join('\n');
+          final block = (node.body as BlockFunctionBody).block;
+          var methodBody = sourceFile.getText(
+              block.leftBracket.end, block.rightBracket.offset);
 
-          // Update or remove super call.
-          if (methodBody.contains('super.componentWillMount();')) {
-            methodBody = methodBody.replaceAll(
-              'super.componentWillMount();\n',
-              hasSuperCall ? '' : 'super.componentDidMount();\n',
+          // Add comment to check super calls if new super call will be added
+          // to `componentDidMount` method.
+          if (methodBody.contains('super.componentWillMount();\n') &&
+              !hasSuperCall &&
+              !hasComment(node, sourceFile, componentWillMountMessage)) {
+            yieldPatch(
+              componentDidMountMethodDecl.offset,
+              componentDidMountMethodDecl.offset,
+              '$componentWillMountMessage\n',
             );
           }
 
+          // Update or remove super call.
+          methodBody = methodBody.replaceAll(
+            RegExp(r'super\.componentWillMount\(\);\n?'),
+            hasSuperCall ? '' : 'super.componentDidMount();\n',
+          );
+
           // Move body of `componentWillMount` to end of `componentDidMount`.
+          final componentDidMountBody =
+              (componentDidMountMethodDecl.body as BlockFunctionBody).block;
           yieldPatch(
-            componentDidMountMethodDecl.body.endToken.offset,
-            componentDidMountMethodDecl.body.endToken.offset,
+            componentDidMountBody.rightBracket.offset,
+            componentDidMountBody.rightBracket.offset,
             methodBody,
           );
         }
 
         // Copy any annotations not already present to `componentDidMount`.
-        String annotationsToAdd = '';
-        node.metadata.forEach((annotation) {
+        var annotationsToAdd = '';
+        for (var annotation in node.metadata) {
           if (!componentDidMountMethodDecl.metadata
               .toString()
               .contains(annotation.toSource())) {
             annotationsToAdd += annotation.toSource() + '\n';
           }
-        });
+        }
 
         if (annotationsToAdd.isNotEmpty) {
           yieldPatch(
@@ -115,10 +125,9 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
         );
 
         if (node.body is BlockFunctionBody) {
-          NodeList statementList =
-              (node.body as BlockFunctionBody).block.statements;
+          var statementList = (node.body as BlockFunctionBody).block.statements;
 
-          statementList.forEach((statement) {
+          for (var statement in statementList) {
             if (statement
                 .toSource()
                 .startsWith('super.componentWillMount();')) {
@@ -128,7 +137,7 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
                 'super.componentDidMount();',
               );
             }
-          });
+          }
         }
       }
     }
