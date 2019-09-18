@@ -62,9 +62,11 @@ void componentDidUpdateTests({
     );
   });
 
+  // TODO: should all arrow functions have added parenthesis or just when they have multi-line expressions?
+
   test('getDefaultProps method', () {
     testSuggestor(
-      expectedPatchCount: 2,
+      expectedPatchCount: 4,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
@@ -175,7 +177,7 @@ void componentDidUpdateTests({
   test('getDefaultProps method with just return statement method body',
       () {
     testSuggestor(
-      expectedPatchCount: 2,
+      expectedPatchCount: 5,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
@@ -191,7 +193,7 @@ void componentDidUpdateTests({
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          Map get defaultProps => (newProps()
+          get defaultProps => (newProps()
             ..superProp = '<the super prop value>'
             ..subProp = '<the sub prop value>'
           );
@@ -207,7 +209,7 @@ void componentDidUpdateTests({
         @Component2()
         class FooComponent extends SomeOtherClass {
           @override
-          Map get defaultProps => newProps()
+          Map getDefaultProps => newProps()
             ..superProp = '<the super prop value>'
             ..subProp = '<the sub prop value>';
         }
@@ -301,3 +303,6 @@ void componentDidUpdateTests({
     );
   });
 }
+
+
+// TODO: is there a case when getDefaultProps would not use newProps()?

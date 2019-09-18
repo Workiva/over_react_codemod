@@ -53,18 +53,14 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
           );
         }
 
-//        var a;
-//        if(node.body is ExpressionFunctionBody) {
-//          a = (node.body as ExpressionFunctionBody).expression.childEntities;
-//        }
-
-        var methodBody = sourceFile.getText(node.body.offset, node.body.end);
-        if(methodBody.contains('super.getDefaultProps()')) {
-          methodBody = methodBody.replaceAll(
+        // Update super calls.
+        var methodBodyString = sourceFile.getText(node.body.offset, node.body.end);
+        if(methodBodyString.contains('super.getDefaultProps()')) {
+          methodBodyString = methodBodyString.replaceAll(
             'super.getDefaultProps()',
             'super.defaultProps',
           );
-          yieldPatch(node.body.offset, node.body.end, methodBody);
+          yieldPatch(node.body.offset, node.body.end, methodBodyString);
         }
 
         // Replace with getter.
@@ -73,6 +69,24 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
           node.parameters.end,
           'get defaultProps',
         );
+
+        if(node.body is BlockFunctionBody) {
+          var methodBody = (node.body as BlockFunctionBody).block;
+
+          // Convert to arrow function if method body is a single return.
+          if(methodBody.statements.length == 1 && methodBody.statements.single is ReturnStatement) {
+            var returnStatement = (methodBody.statements.single as ReturnStatement);
+            yieldPatch(methodBody.leftBracket.offset, returnStatement.returnKeyword.end, '=> (',);
+            yieldPatch(returnStatement.semicolon.offset, returnStatement.semicolon.offset, '\n)',);
+            yieldPatch(methodBody.rightBracket.offset, methodBody.rightBracket.end, '',);
+          }
+        } else if(node.body is ExpressionFunctionBody) {
+          var expression = (node.body as ExpressionFunctionBody).expression;
+          if(expression.beginToken.toString() != '(') {
+            yieldPatch(expression.offset, expression.offset, '(',);
+            yieldPatch(expression.end, expression.end, '\n)',);
+          }
+        }
       }
     }
   }
