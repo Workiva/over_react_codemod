@@ -186,14 +186,14 @@ void componentDidUpdateTests({
       expectedPatchCount: 3,
       input: '''
         @Component2()
-        class FooComponent extends UiFluxComponent2 {
+        class FooComponent extends FluxUiComponent2 {
           @override
           Map getDefaultProps() => (newProps()..addAll(super.getDefaultProps()));
         }
       ''',
       expectedOutput: '''
         @Component2()
-        class FooComponent extends UiFluxComponent2 {
+        class FooComponent extends FluxUiComponent2 {
           @override
           get defaultProps => (newProps()..addAll(super.defaultProps));
         }
@@ -258,7 +258,7 @@ void componentDidUpdateTests({
   group('getDefaultProps method in an abstract class', () {
     test('that is fully upgradable', () {
       testSuggestor(
-        expectedPatchCount: shouldUpgradeAbstractComponents ? 4 : 0,
+        expectedPatchCount: shouldUpgradeAbstractComponents && allowPartialUpgrades ? 4 : 0,
         input: '''
           @AbstractComponent2()
           abstract class FooComponent extends UiComponent2 {
@@ -270,7 +270,9 @@ void componentDidUpdateTests({
           @AbstractComponent2()
           abstract class FooComponent extends UiComponent2 {
             @override
-            ${shouldUpgradeAbstractComponents && allowPartialUpgrades ? 'get defaultProps' : 'Map getdefaultProps()'} => newProps()..prop1 = true;
+            ${shouldUpgradeAbstractComponents && allowPartialUpgrades ?
+              'get defaultProps => (newProps()..prop1 = true);' :
+              'Map getDefaultProps() => newProps()..prop1 = true;'} 
           }
         ''',
       );
@@ -303,8 +305,7 @@ void componentDidUpdateTests({
                 ..subProp = '<the sub prop value>'
               );
             }
-          '''
-                  : '''
+          ''' : '''
             @Component2
             class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
               @override
@@ -321,7 +322,7 @@ void componentDidUpdateTests({
       test('-- has lifecycle methods without codemods', () {
         testSuggestor(
           expectedPatchCount:
-              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 4 : 0,
           input: '''
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
@@ -330,6 +331,9 @@ void componentDidUpdateTests({
             class FooComponent extends UiComponent2 {
               @override
               Map getDefaultProps() => newProps()..prop1 = true;
+              
+              @override
+              componentWillUpdate() {}
             }
           ''',
           expectedOutput: '''
@@ -339,7 +343,12 @@ void componentDidUpdateTests({
             @AbstractComponent2()
             class FooComponent extends UiComponent2 {
               @override
-              ${shouldUpgradeAbstractComponents && allowPartialUpgrades ? 'get defaultProps' : 'Map getdefaultProps()'} => newProps()..prop1 = true;
+              ${shouldUpgradeAbstractComponents && allowPartialUpgrades ?
+                'get defaultProps => (newProps()..prop1 = true);' :
+                'Map getDefaultProps() => newProps()..prop1 = true;'} 
+                
+              @override
+              componentWillUpdate() {}
             }
           ''',
         );
