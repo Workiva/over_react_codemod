@@ -76,6 +76,12 @@ void main(List<String> args) {
       DefaultPropsInitialStateMigrator(
         allowPartialUpgrades: allowPartialUpgrades,
         shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+        methodToMigrate: 'getDefaultProps',
+      ),
+      DefaultPropsInitialStateMigrator(
+        allowPartialUpgrades: allowPartialUpgrades,
+        shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+        methodToMigrate: 'getInitialState',
       ),
     ],
     args: args,
