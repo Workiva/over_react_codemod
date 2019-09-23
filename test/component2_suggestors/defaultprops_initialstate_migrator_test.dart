@@ -18,72 +18,37 @@ import 'package:test/test.dart';
 import '../util.dart';
 
 main() {
-  group('DefaultPropsInitialStateMigrator', () {
-    group('migrate `getDefaultProps`', () {
-      componentDidUpdateTests(
-        methodToMigrate: 'getDefaultProps',
-      );
-    });
+  migratorTests(migratorName: 'GetDefaultPropsMigrator', methodToMigrate: 'getDefaultProps');
+  migratorTests(migratorName: 'GetInitialStateMigrator', methodToMigrate: 'getInitialState');
+}
 
-    group('migrate `getInitialState`', () {
-      componentDidUpdateTests(
-        methodToMigrate: 'getInitialState',
-      );
-    });
+void migratorTests({String migratorName, String methodToMigrate}) {
+  group('$migratorName', () {
+    componentDidUpdateTests(
+      methodToMigrate: methodToMigrate,
+    );
   });
 
-  group('DefaultPropsInitialStateMigrator with --no-partial-upgrades flag', () {
-    group('migrate `getDefaultProps`', () {
-      componentDidUpdateTests(
-        allowPartialUpgrades: false,
-        methodToMigrate: 'getDefaultProps',
-      );
-    });
-
-    group('migrate `getInitialState`', () {
-      componentDidUpdateTests(
-        allowPartialUpgrades: false,
-        methodToMigrate: 'getInitialState',
-      );
-    });
+  group('$migratorName with --no-partial-upgrades flag', () {
+    componentDidUpdateTests(
+      methodToMigrate: methodToMigrate,
+      allowPartialUpgrades: false,
+    );
   });
 
-  group(
-      'DefaultPropsInitialStateMigrator with --upgrade-abstract-components flag',
-      () {
-    group('migrate `getDefaultProps`', () {
-      componentDidUpdateTests(
-        shouldUpgradeAbstractComponents: true,
-        methodToMigrate: 'getDefaultProps',
-      );
-    });
-
-    group('migrate `getInitialState`', () {
-      componentDidUpdateTests(
-        shouldUpgradeAbstractComponents: true,
-        methodToMigrate: 'getInitialState',
-      );
-    });
+  group('$migratorName with --upgrade-abstract-components flag', () {
+    componentDidUpdateTests(
+      methodToMigrate: methodToMigrate,
+      shouldUpgradeAbstractComponents: true,
+    );
   });
 
-  group(
-      'DefaultPropsInitialStateMigrator with --no-partial-upgrades and --upgrade-abstract-components flag',
-      () {
-    group('migrate `getDefaultProps`', () {
-      componentDidUpdateTests(
-        allowPartialUpgrades: false,
-        shouldUpgradeAbstractComponents: true,
-        methodToMigrate: 'getDefaultProps',
-      );
-    });
-
-    group('migrate `getInitialState`', () {
-      componentDidUpdateTests(
-        allowPartialUpgrades: false,
-        shouldUpgradeAbstractComponents: true,
-        methodToMigrate: 'getInitialState',
-      );
-    });
+  group('$migratorName with --no-partial-upgrades and --upgrade-abstract-components flag', () {
+    componentDidUpdateTests(
+      methodToMigrate: methodToMigrate,
+      allowPartialUpgrades: false,
+      shouldUpgradeAbstractComponents: true,
+    );
   });
 }
 
@@ -94,12 +59,12 @@ void componentDidUpdateTests({
 }) {
   SuggestorTester testSuggestor;
   if (methodToMigrate == 'getDefaultProps') {
-    testSuggestor = getSuggestorTester(DefaultPropsMigrator(
+    testSuggestor = getSuggestorTester(GetDefaultPropsMigrator(
       allowPartialUpgrades: allowPartialUpgrades,
       shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
     ));
   } else {
-    testSuggestor = getSuggestorTester(InitialStateMigrator(
+    testSuggestor = getSuggestorTester(GetInitialStateMigrator(
       allowPartialUpgrades: allowPartialUpgrades,
       shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
     ));

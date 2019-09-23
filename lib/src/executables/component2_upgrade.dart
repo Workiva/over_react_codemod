@@ -73,11 +73,11 @@ void main(List<String> args) {
         allowPartialUpgrades: allowPartialUpgrades,
         shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
       ),
-      DefaultPropsMigrator(
+      GetDefaultPropsMigrator(
         allowPartialUpgrades: allowPartialUpgrades,
         shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
       ),
-      InitialStateMigrator(
+      GetInitialStateMigrator(
         allowPartialUpgrades: allowPartialUpgrades,
         shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
       ),

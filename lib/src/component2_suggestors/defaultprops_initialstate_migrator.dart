@@ -20,7 +20,7 @@ import 'package:over_react_codemod/src/component2_suggestors/component2_utilitie
 /// Abstract suggestor with visitor that can migrate `getDefaultProps`
 /// or `getInitialState`.
 ///
-/// Use [DefaultPropsMigrator] or [InitialStateMigrator].
+/// Use [GetDefaultPropsMigrator] or [GetInitialStateMigrator].
 abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
@@ -140,9 +140,9 @@ abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
 }
 
 /// Suggestor that replaces `getDefaultProps` method with getter `defaultProps`.
-class DefaultPropsMigrator extends DefaultPropsInitialStateMigrator
+class GetDefaultPropsMigrator extends DefaultPropsInitialStateMigrator
     implements Suggestor {
-  DefaultPropsMigrator({
+  GetDefaultPropsMigrator({
     allowPartialUpgrades = true,
     shouldUpgradeAbstractComponents = false,
   }) {
@@ -154,9 +154,9 @@ class DefaultPropsMigrator extends DefaultPropsInitialStateMigrator
 }
 
 /// Suggestor that replaces `getInitialState` method with getter `initialState`.
-class InitialStateMigrator extends DefaultPropsInitialStateMigrator
+class GetInitialStateMigrator extends DefaultPropsInitialStateMigrator
     implements Suggestor {
-  InitialStateMigrator({
+  GetInitialStateMigrator({
     allowPartialUpgrades = true,
     shouldUpgradeAbstractComponents = false,
   }) {
