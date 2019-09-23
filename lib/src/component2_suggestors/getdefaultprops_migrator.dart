@@ -44,8 +44,7 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
     }
 
     if (extendsComponent2(containingClass)) {
-      if (node.name.name == 'getDefaultProps' ||
-          node.name.name == 'getInitialState') {
+      if (node.name.name == 'getDefaultProps') {
         // Remove return type.
         if (node.returnType != null) {
           yieldPatch(
@@ -68,9 +67,10 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
           if (methodBody.statements.length == 1 &&
               methodBody.statements.single is ReturnStatement) {
             var returnStatement =
-            (methodBody.statements.single as ReturnStatement);
+                (methodBody.statements.single as ReturnStatement);
 
-            updateSuperCalls(returnStatement.returnKeyword.end, returnStatement.semicolon.offset);
+            updateSuperCalls(returnStatement.returnKeyword.end,
+                returnStatement.semicolon.offset);
 
             // Convert to arrow function if method body is a single return.
             yieldPatch(
@@ -89,7 +89,8 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
               '',
             );
           } else {
-            updateSuperCalls(methodBody.leftBracket.end, methodBody.rightBracket.offset);
+            updateSuperCalls(
+                methodBody.leftBracket.end, methodBody.rightBracket.offset);
           }
         } else if (node.body is ExpressionFunctionBody) {
           var expression = (node.body as ExpressionFunctionBody).expression;

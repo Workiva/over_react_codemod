@@ -218,9 +218,7 @@ void componentDidUpdateTests({
           @Component2()
           class FooComponent extends SomeOtherClass {
             @override
-            ${allowPartialUpgrades ?
-              'get defaultProps => (newProps()..prop1 = true);' :
-              'Map getDefaultProps() => newProps()..prop1 = true;'}
+            ${allowPartialUpgrades ? 'get defaultProps => (newProps()..prop1 = true);' : 'Map getDefaultProps() => newProps()..prop1 = true;'}
           }
         ''',
       );
@@ -243,9 +241,7 @@ void componentDidUpdateTests({
           @Component2()
           class FooComponent extends UiComponent2 {
             @override
-            ${allowPartialUpgrades ?
-              'get defaultProps => (newProps()..addProps(super.defaultProps));' :
-              'Map getDefaultProps() => newProps()..addProps(super.getDefaultProps());'}
+            ${allowPartialUpgrades ? 'get defaultProps => (newProps()..addProps(super.defaultProps));' : 'Map getDefaultProps() => newProps()..addProps(super.getDefaultProps());'}
             
             @override
             componentWillUpdate() {}
@@ -270,9 +266,7 @@ void componentDidUpdateTests({
           @AbstractComponent2()
           abstract class FooComponent extends UiComponent2 {
             @override
-            ${shouldUpgradeAbstractComponents ?
-              'get defaultProps => (newProps()..prop1 = true);' :
-              'Map getDefaultProps() => newProps()..prop1 = true;'} 
+            ${shouldUpgradeAbstractComponents ? 'get defaultProps => (newProps()..prop1 = true);' : 'Map getDefaultProps() => newProps()..prop1 = true;'} 
           }
         ''',
       );
@@ -305,7 +299,8 @@ void componentDidUpdateTests({
                 ..subProp = '<the sub prop value>'
               );
             }
-          ''' : '''
+          '''
+                  : '''
             @Component2
             class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
               @override
@@ -343,9 +338,7 @@ void componentDidUpdateTests({
             @AbstractComponent2()
             class FooComponent extends UiComponent2 {
               @override
-              ${shouldUpgradeAbstractComponents && allowPartialUpgrades ?
-                'get defaultProps => (newProps()..prop1 = true);' :
-                'Map getDefaultProps() => newProps()..prop1 = true;'} 
+              ${shouldUpgradeAbstractComponents && allowPartialUpgrades ? 'get defaultProps => (newProps()..prop1 = true);' : 'Map getDefaultProps() => newProps()..prop1 = true;'} 
                 
               @override
               componentWillUpdate() {}
