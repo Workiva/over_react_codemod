@@ -12,40 +12,101 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/component2_suggestors/getdefaultprops_migrator.dart';
+import 'package:over_react_codemod/src/component2_suggestors/defaultprops_initialstate_migrator.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
 
 main() {
-  group('GetDefaultPropsMigrator', () {
-    componentDidUpdateTests();
+  group('DefaultPropsInitialStateMigrator', () {
+    group('migrate `getDefaultProps`', () {
+      componentDidUpdateTests(
+        methodToMigrate: 'getDefaultProps',
+      );
+    });
+
+    group('migrate `getInitialState`', () {
+      componentDidUpdateTests(
+        methodToMigrate: 'getInitialState',
+      );
+    });
   });
 
-  group('GetDefaultPropsMigrator with --no-partial-upgrades flag', () {
-    componentDidUpdateTests(allowPartialUpgrades: false);
-  });
+  group('DefaultPropsInitialStateMigrator with --no-partial-upgrades flag', () {
+    group('migrate `getDefaultProps`', () {
+      componentDidUpdateTests(
+        allowPartialUpgrades: false,
+        methodToMigrate: 'getDefaultProps',
+      );
+    });
 
-  group('GetDefaultPropsMigrator with --upgrade-abstract-components flag', () {
-    componentDidUpdateTests(shouldUpgradeAbstractComponents: true);
+    group('migrate `getInitialState`', () {
+      componentDidUpdateTests(
+        allowPartialUpgrades: false,
+        methodToMigrate: 'getInitialState',
+      );
+    });
   });
 
   group(
-      'GetDefaultPropsMigrator with --no-partial-upgrades and --upgrade-abstract-components flag',
+      'DefaultPropsInitialStateMigrator with --upgrade-abstract-components flag',
       () {
-    componentDidUpdateTests(
-        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
+    group('migrate `getDefaultProps`', () {
+      componentDidUpdateTests(
+        shouldUpgradeAbstractComponents: true,
+        methodToMigrate: 'getDefaultProps',
+      );
+    });
+
+    group('migrate `getInitialState`', () {
+      componentDidUpdateTests(
+        shouldUpgradeAbstractComponents: true,
+        methodToMigrate: 'getInitialState',
+      );
+    });
+  });
+
+  group(
+      'DefaultPropsInitialStateMigrator with --no-partial-upgrades and --upgrade-abstract-components flag',
+      () {
+    group('migrate `getDefaultProps`', () {
+      componentDidUpdateTests(
+        allowPartialUpgrades: false,
+        shouldUpgradeAbstractComponents: true,
+        methodToMigrate: 'getDefaultProps',
+      );
+    });
+
+    group('migrate `getInitialState`', () {
+      componentDidUpdateTests(
+        allowPartialUpgrades: false,
+        shouldUpgradeAbstractComponents: true,
+        methodToMigrate: 'getInitialState',
+      );
+    });
   });
 }
 
 void componentDidUpdateTests({
   bool allowPartialUpgrades = true,
   bool shouldUpgradeAbstractComponents = false,
+  methodToMigrate,
 }) {
-  final testSuggestor = getSuggestorTester(GetDefaultPropsMigrator(
+  final testSuggestor = getSuggestorTester(DefaultPropsInitialStateMigrator(
     allowPartialUpgrades: allowPartialUpgrades,
     shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+    methodToMigrate: methodToMigrate,
   ));
+
+  String migrateTo;
+  String subMethod;
+  if (methodToMigrate == 'getDefaultProps') {
+    migrateTo = 'defaultProps';
+    subMethod = 'newProps';
+  } else {
+    migrateTo = 'initialState';
+    subMethod = 'newState';
+  }
 
   test('empty file', () {
     testSuggestor(expectedPatchCount: 0, input: '');
@@ -62,78 +123,78 @@ void componentDidUpdateTests({
     );
   });
 
-  test('getDefaultProps method', () {
+  test('$methodToMigrate method', () {
     testSuggestor(
       expectedPatchCount: 4,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          Map getDefaultProps() => newProps()..prop1 = true;
+          Map $methodToMigrate() => $subMethod()..value = true;
         }
       ''',
       expectedOutput: '''
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          get defaultProps => (newProps()..prop1 = true);
+          get $migrateTo => ($subMethod()..value = true);
         }
       ''',
     );
   });
 
-  test('getDefaultProps method without return type', () {
+  test('$methodToMigrate method without return type', () {
     testSuggestor(
       expectedPatchCount: 3,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          getDefaultProps() => newProps()..prop1 = true;
+          $methodToMigrate() => $subMethod()..value = true;
         }
       ''',
       expectedOutput: '''
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          get defaultProps => (newProps()..prop1 = true);
+          get $migrateTo => ($subMethod()..value = true);
         }
       ''',
     );
   });
 
-  test('getDefaultProps method with super call', () {
+  test('$methodToMigrate method with super call', () {
     testSuggestor(
       expectedPatchCount: 5,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          Map getDefaultProps() => newProps()..addProps(super.getDefaultProps());
+          Map $methodToMigrate() => $subMethod()..addAll(super.$methodToMigrate());
         }
       ''',
       expectedOutput: '''
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          get defaultProps => (newProps()..addProps(super.defaultProps));
+          get $migrateTo => ($subMethod()..addAll(super.$migrateTo));
         }
       ''',
     );
   });
 
-  test('getDefaultProps method with block body', () {
+  test('$methodToMigrate method with block body', () {
     testSuggestor(
       expectedPatchCount: 2,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          Map getDefaultProps() {
+          Map $methodToMigrate() {
             var a = 1;
-            return newProps()
-              ..superProp = '<the super prop value>'
-              ..subProp = '<the sub prop value>';
+            return $subMethod()
+              ..sub1 = '<value>'
+              ..sub2 = '<value>';
           }
         }
       ''',
@@ -141,29 +202,29 @@ void componentDidUpdateTests({
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          get defaultProps {
+          get $migrateTo {
             var a = 1;
-            return newProps()
-              ..superProp = '<the super prop value>'
-              ..subProp = '<the sub prop value>';
+            return $subMethod()
+              ..sub1 = '<value>'
+              ..sub2 = '<value>';
           }
         }
       ''',
     );
   });
 
-  test('getDefaultProps method with just return statement method body', () {
+  test('$methodToMigrate method with just return statement method body', () {
     testSuggestor(
       expectedPatchCount: 6,
       input: '''
         @Component2()
         class FooComponent extends UiStatefulComponent2 {
           @override
-          Map getDefaultProps() {
-            return newProps()
-              ..addProps(super.getDefaultProps())
-              ..superProp = '<the super prop value>'
-              ..subProp = '<the sub prop value>';
+          Map $methodToMigrate() {
+            return $subMethod()
+              ..addAll(super.$methodToMigrate())
+              ..sub1 = '<value>'
+              ..sub2 = '<value>';
           }
         }
       ''',
@@ -171,38 +232,38 @@ void componentDidUpdateTests({
         @Component2()
         class FooComponent extends UiStatefulComponent2 {
           @override
-          get defaultProps => (newProps()
-            ..addProps(super.defaultProps)
-            ..superProp = '<the super prop value>'
-            ..subProp = '<the sub prop value>'
+          get $migrateTo => ($subMethod()
+            ..addAll(super.$migrateTo)
+            ..sub1 = '<value>'
+            ..sub2 = '<value>'
           );
         }
       ''',
     );
   });
 
-  test('getDefaultProps with existing parenthesis', () {
+  test('$methodToMigrate with existing parenthesis', () {
     testSuggestor(
       expectedPatchCount: 3,
       input: '''
         @Component2()
         class FooComponent extends FluxUiComponent2 {
           @override
-          Map getDefaultProps() => (newProps()..addAll(super.getDefaultProps()));
+          Map $methodToMigrate() => ($subMethod()..addAll(super.$methodToMigrate()));
         }
       ''',
       expectedOutput: '''
         @Component2()
         class FooComponent extends FluxUiComponent2 {
           @override
-          get defaultProps => (newProps()..addAll(super.defaultProps));
+          get $migrateTo => ($subMethod()..addAll(super.$migrateTo));
         }
       ''',
     );
   });
 
   group(
-      'getDefaultProps method ${allowPartialUpgrades ? 'updates' : 'does not update'} if '
+      '$methodToMigrate method ${allowPartialUpgrades ? 'updates' : 'does not update'} if '
       'containing class is not fully upgradable', () {
     test('-- extends from non-Component class', () {
       testSuggestor(
@@ -211,14 +272,14 @@ void componentDidUpdateTests({
           @Component2()
           class FooComponent extends SomeOtherClass {
             @override
-            Map getDefaultProps() => newProps()..prop1 = true;
+            Map $methodToMigrate() => $subMethod()..value = true;
           }
         ''',
         expectedOutput: '''
           @Component2()
           class FooComponent extends SomeOtherClass {
             @override
-            ${allowPartialUpgrades ? 'get defaultProps => (newProps()..prop1 = true);' : 'Map getDefaultProps() => newProps()..prop1 = true;'}
+            ${allowPartialUpgrades ? 'get $migrateTo => ($subMethod()..value = true);' : 'Map $methodToMigrate() => $subMethod()..value = true;'}
           }
         ''',
       );
@@ -231,7 +292,7 @@ void componentDidUpdateTests({
           @Component2()
           class FooComponent extends UiComponent2 {
             @override
-            Map getDefaultProps() => newProps()..addProps(super.getDefaultProps());
+            Map $methodToMigrate() => $subMethod()..addProps(super.$methodToMigrate());
             
             @override
             componentWillUpdate() {}
@@ -241,7 +302,7 @@ void componentDidUpdateTests({
           @Component2()
           class FooComponent extends UiComponent2 {
             @override
-            ${allowPartialUpgrades ? 'get defaultProps => (newProps()..addProps(super.defaultProps));' : 'Map getDefaultProps() => newProps()..addProps(super.getDefaultProps());'}
+            ${allowPartialUpgrades ? 'get $migrateTo => ($subMethod()..addProps(super.$migrateTo));' : 'Map $methodToMigrate() => $subMethod()..addProps(super.$methodToMigrate());'}
             
             @override
             componentWillUpdate() {}
@@ -251,7 +312,7 @@ void componentDidUpdateTests({
     });
   });
 
-  group('getDefaultProps method in an abstract class', () {
+  group('$methodToMigrate method in an abstract class', () {
     test('that is fully upgradable', () {
       testSuggestor(
         expectedPatchCount: shouldUpgradeAbstractComponents ? 4 : 0,
@@ -259,14 +320,14 @@ void componentDidUpdateTests({
           @AbstractComponent2()
           abstract class FooComponent extends UiComponent2 {
             @override
-            Map getDefaultProps() => newProps()..prop1 = true;
+            Map $methodToMigrate() => $subMethod()..value = true;
           }
         ''',
         expectedOutput: '''
           @AbstractComponent2()
           abstract class FooComponent extends UiComponent2 {
             @override
-            ${shouldUpgradeAbstractComponents ? 'get defaultProps => (newProps()..prop1 = true);' : 'Map getDefaultProps() => newProps()..prop1 = true;'} 
+            ${shouldUpgradeAbstractComponents ? 'get $migrateTo => ($subMethod()..value = true);' : 'Map $methodToMigrate() => $subMethod()..value = true;'} 
           }
         ''',
       );
@@ -281,10 +342,10 @@ void componentDidUpdateTests({
             @Component2
             class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
               @override
-              Map getDefaultProps() {
-                return newProps()
-                  ..superProp = '<the super prop value>'
-                  ..subProp = '<the sub prop value>';
+              Map $methodToMigrate() {
+                return $subMethod()
+                  ..sub1 = '<value>'
+                  ..sub2 = '<value>';
               }
             }
           ''',
@@ -294,9 +355,9 @@ void componentDidUpdateTests({
             @Component2
             class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
               @override
-              get defaultProps => (newProps()
-                ..superProp = '<the super prop value>'
-                ..subProp = '<the sub prop value>'
+              get $migrateTo => ($subMethod()
+                ..sub1 = '<value>'
+                ..sub2 = '<value>'
               );
             }
           '''
@@ -304,10 +365,10 @@ void componentDidUpdateTests({
             @Component2
             class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
               @override
-              Map getDefaultProps() {
-                return newProps()
-                  ..superProp = '<the super prop value>'
-                  ..subProp = '<the sub prop value>';
+              Map $methodToMigrate() {
+                return $subMethod()
+                  ..sub1 = '<value>'
+                  ..sub2 = '<value>';
               }
             }
           ''',
@@ -325,7 +386,7 @@ void componentDidUpdateTests({
             @AbstractComponent2()
             class FooComponent extends UiComponent2 {
               @override
-              Map getDefaultProps() => newProps()..prop1 = true;
+              Map $methodToMigrate() => $subMethod()..value = true;
               
               @override
               componentWillUpdate() {}
@@ -338,7 +399,7 @@ void componentDidUpdateTests({
             @AbstractComponent2()
             class FooComponent extends UiComponent2 {
               @override
-              ${shouldUpgradeAbstractComponents && allowPartialUpgrades ? 'get defaultProps => (newProps()..prop1 = true);' : 'Map getDefaultProps() => newProps()..prop1 = true;'} 
+              ${shouldUpgradeAbstractComponents && allowPartialUpgrades ? 'get $migrateTo => ($subMethod()..value = true);' : 'Map $methodToMigrate() => $subMethod()..value = true;'} 
                 
               @override
               componentWillUpdate() {}
@@ -349,47 +410,48 @@ void componentDidUpdateTests({
     });
   });
 
-  test('getDefaultProps method that does not use newProps', () {
+  test('$methodToMigrate method that does not use $subMethod', () {
     testSuggestor(
       expectedPatchCount: 2,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          Map getDefaultProps() => {};
+          Map $methodToMigrate() => {};
         }
       ''',
       expectedOutput: '''
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          get defaultProps => {};
+          get $migrateTo => {};
         }
       ''',
     );
   });
 
-  test('getDefaultProps method does not change if already updated', () {
+  test('$migrateTo method does not change if already updated', () {
     testSuggestor(
       expectedPatchCount: 0,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          get defaultProps => newProps()..prop1 = true;
+          get $migrateTo => $subMethod()..value = true;
         }
       ''',
     );
   });
 
-  test('does not change getDefaultProps method for non-component2 classes', () {
+  test('does not change $methodToMigrate method for non-component2 classes',
+      () {
     testSuggestor(
       expectedPatchCount: 0,
       input: '''
         @Component()
         class FooComponent extends UiComponent {
           @override
-          Map getDefaultProps() => newProps()..prop1 = true;
+          Map $methodToMigrate() => $subMethod()..value = true;
         }
       ''',
     );
