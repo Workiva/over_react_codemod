@@ -17,6 +17,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/component2_suggestors/component2_utilities.dart';
 
+//TODO copy this for initialState (maybe just add to this suggestor?)
 /// Suggestor that replaces `getDefaultProps` with the getter `defaultProps`.
 class GetDefaultPropsMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
@@ -43,7 +44,8 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
     }
 
     if (extendsComponent2(containingClass)) {
-      if (node.name.name == 'getDefaultProps') {
+      if (node.name.name == 'getDefaultProps' ||
+          node.name.name == 'getInitialState') {
         // Remove return type.
         if (node.returnType != null) {
           yieldPatch(
@@ -97,7 +99,11 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
           }
         } else if (node.body is ExpressionFunctionBody) {
           var expression = (node.body as ExpressionFunctionBody).expression;
-          if (expression.beginToken.toString() != '(') {
+          if (expression is! ParenthesizedExpression &&
+              expression is CascadeExpression &&
+              expression.target is MethodInvocation &&
+              (expression.target as MethodInvocation).methodName.name ==
+                  'newProps') {
             yieldPatch(
               expression.offset,
               expression.offset,

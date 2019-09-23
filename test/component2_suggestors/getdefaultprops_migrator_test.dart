@@ -62,8 +62,6 @@ void componentDidUpdateTests({
     );
   });
 
-  // TODO: should all arrow functions have added parenthesis or just when they have multi-line expressions?
-
   test('getDefaultProps method', () {
     testSuggestor(
       expectedPatchCount: 4,
@@ -78,7 +76,7 @@ void componentDidUpdateTests({
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          get defaultProps => newProps()..prop1 = true;
+          get defaultProps => (newProps()..prop1 = true);
         }
       ''',
     );
@@ -86,7 +84,7 @@ void componentDidUpdateTests({
 
   test('getDefaultProps method without return type', () {
     testSuggestor(
-      expectedPatchCount: 1,
+      expectedPatchCount: 3,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
@@ -98,7 +96,7 @@ void componentDidUpdateTests({
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          get defaultProps => newProps()..prop1 = true;
+          get defaultProps => (newProps()..prop1 = true);
         }
       ''',
     );
@@ -106,7 +104,7 @@ void componentDidUpdateTests({
 
   test('getDefaultProps method with super call within `addAll`', () {
     testSuggestor(
-      expectedPatchCount: 3,
+      expectedPatchCount: 5,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
@@ -118,7 +116,7 @@ void componentDidUpdateTests({
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          get defaultProps => newProps()..addAll(super.defaultProps);
+          get defaultProps => (newProps()..addAll(super.defaultProps));
         }
       ''',
     );
@@ -126,7 +124,7 @@ void componentDidUpdateTests({
 
   test('getDefaultProps method with super call within `addProps`', () {
     testSuggestor(
-      expectedPatchCount: 3,
+      expectedPatchCount: 5,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
@@ -138,7 +136,7 @@ void componentDidUpdateTests({
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
-          get defaultProps => newProps()..addProps(super.defaultProps);
+          get defaultProps => (newProps()..addProps(super.defaultProps));
         }
       ''',
     );
@@ -201,16 +199,17 @@ void componentDidUpdateTests({
     );
   });
 
-  test('getDefaultProps using newProps is wrapped in parenthesis', () {
+  test('getDefaultProps with existing parenthesis', () {
     testSuggestor(
       expectedPatchCount: 2,
       input: '''
         @Component2()
         class FooComponent extends SomeOtherClass {
           @override
-          Map getDefaultProps() => newProps()
+          Map getDefaultProps() => (newProps()
             ..superProp = '<the super prop value>'
-            ..subProp = '<the sub prop value>';
+            ..subProp = '<the sub prop value>'
+          );
         }
       ''',
       expectedOutput: '''
@@ -368,6 +367,26 @@ void componentDidUpdateTests({
     });
   });
 
+  test('getDefaultProps method that does not use newProps', () {
+    testSuggestor(
+      expectedPatchCount: 2,
+      input: '''
+        @Component2()
+        class FooComponent extends UiComponent2 {
+          @override
+          Map getDefaultProps() => {};
+        }
+      ''',
+      expectedOutput: '''
+        @Component2()
+        class FooComponent extends UiComponent2 {
+          @override
+          get defaultProps => {};
+        }
+      ''',
+    );
+  });
+
   test('getDefaultProps method does not change if already updated', () {
     testSuggestor(
       expectedPatchCount: 0,
@@ -394,5 +413,3 @@ void componentDidUpdateTests({
     );
   });
 }
-
-// TODO: is there a case when getDefaultProps would not use newProps()?
