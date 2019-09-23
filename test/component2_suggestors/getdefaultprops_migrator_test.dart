@@ -102,27 +102,7 @@ void componentDidUpdateTests({
     );
   });
 
-  test('getDefaultProps method with super call within `addAll`', () {
-    testSuggestor(
-      expectedPatchCount: 5,
-      input: '''
-        @Component2()
-        class FooComponent extends UiComponent2 {
-          @override
-          Map getDefaultProps() => newProps()..addAll(super.getDefaultProps());
-        }
-      ''',
-      expectedOutput: '''
-        @Component2()
-        class FooComponent extends UiComponent2 {
-          @override
-          get defaultProps => (newProps()..addAll(super.defaultProps));
-        }
-      ''',
-    );
-  });
-
-  test('getDefaultProps method with super call within `addProps`', () {
+  test('getDefaultProps method with super call', () {
     testSuggestor(
       expectedPatchCount: 5,
       input: '''
@@ -174,13 +154,14 @@ void componentDidUpdateTests({
 
   test('getDefaultProps method with just return statement method body', () {
     testSuggestor(
-      expectedPatchCount: 5,
+      expectedPatchCount: 6,
       input: '''
         @Component2()
         class FooComponent extends UiComponent2 {
           @override
           Map getDefaultProps() {
             return newProps()
+              ..addProps(super.getDefaultProps())
               ..superProp = '<the super prop value>'
               ..subProp = '<the sub prop value>';
           }
@@ -191,6 +172,7 @@ void componentDidUpdateTests({
         class FooComponent extends UiComponent2 {
           @override
           get defaultProps => (newProps()
+            ..addProps(super.defaultProps)
             ..superProp = '<the super prop value>'
             ..subProp = '<the sub prop value>'
           );
@@ -201,25 +183,19 @@ void componentDidUpdateTests({
 
   test('getDefaultProps with existing parenthesis', () {
     testSuggestor(
-      expectedPatchCount: 2,
+      expectedPatchCount: 3,
       input: '''
         @Component2()
         class FooComponent extends SomeOtherClass {
           @override
-          Map getDefaultProps() => (newProps()
-            ..superProp = '<the super prop value>'
-            ..subProp = '<the sub prop value>'
-          );
+          Map getDefaultProps() => (newProps()..addAll(super.getDefaultProps()));
         }
       ''',
       expectedOutput: '''
         @Component2()
         class FooComponent extends SomeOtherClass {
           @override
-          get defaultProps => (newProps()
-            ..superProp = '<the super prop value>'
-            ..subProp = '<the sub prop value>'
-          );
+          get defaultProps => (newProps()..addAll(super.defaultProps));
         }
       ''',
     );

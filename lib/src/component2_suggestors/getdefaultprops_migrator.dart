@@ -16,6 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/component2_suggestors/component2_utilities.dart';
+import 'package:source_span/source_span.dart';
 
 //TODO copy this for initialState (maybe just add to this suggestor?)
 /// Suggestor that replaces `getDefaultProps` with the getter `defaultProps`.
@@ -37,7 +38,7 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
     ClassDeclaration containingClass = node.parent;
 
     if ((!allowPartialUpgrades &&
-            !fullyUpgradableToComponent2(containingClass)) ||
+        !fullyUpgradableToComponent2(containingClass)) ||
         (!shouldUpgradeAbstractComponents &&
             canBeExtendedFrom(containingClass))) {
       return;
@@ -55,17 +56,6 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
           );
         }
 
-        // Update super calls.
-        var methodBodyString =
-            sourceFile.getText(node.body.offset, node.body.end);
-        if (methodBodyString.contains('super.getDefaultProps()')) {
-          methodBodyString = methodBodyString.replaceAll(
-            'super.getDefaultProps()',
-            'super.defaultProps',
-          );
-          yieldPatch(node.body.offset, node.body.end, methodBodyString);
-        }
-
         // Replace with getter.
         yieldPatch(
           node.name.offset,
@@ -76,11 +66,14 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
         if (node.body is BlockFunctionBody) {
           var methodBody = (node.body as BlockFunctionBody).block;
 
-          // Convert to arrow function if method body is a single return.
           if (methodBody.statements.length == 1 &&
               methodBody.statements.single is ReturnStatement) {
             var returnStatement =
-                (methodBody.statements.single as ReturnStatement);
+            (methodBody.statements.single as ReturnStatement);
+
+            updateSuperCalls(returnStatement.returnKeyword.end, returnStatement.semicolon.offset);
+
+            // Convert to arrow function if method body is a single return.
             yieldPatch(
               methodBody.leftBracket.offset,
               returnStatement.returnKeyword.end,
@@ -96,9 +89,15 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
               methodBody.rightBracket.end,
               '',
             );
+          } else {
+            updateSuperCalls(methodBody.leftBracket.end, methodBody.rightBracket.offset);
           }
         } else if (node.body is ExpressionFunctionBody) {
           var expression = (node.body as ExpressionFunctionBody).expression;
+
+          updateSuperCalls(expression.offset, expression.end);
+
+          // Add parenthesis if needed.
           if (expression is! ParenthesizedExpression &&
               expression is CascadeExpression &&
               expression.target is MethodInvocation &&
@@ -117,6 +116,17 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
           }
         }
       }
+    }
+  }
+
+  void updateSuperCalls(int offset, int end) {
+    var methodBodyString = sourceFile.getText(offset, end);
+    if (methodBodyString.contains('super.getDefaultProps()')) {
+      methodBodyString = methodBodyString.replaceAll(
+        'super.getDefaultProps()',
+        'super.defaultProps',
+      );
+      yieldPatch(offset, end, methodBodyString);
     }
   }
 }
