@@ -258,7 +258,7 @@ void componentDidUpdateTests({
   group('getDefaultProps method in an abstract class', () {
     test('that is fully upgradable', () {
       testSuggestor(
-        expectedPatchCount: shouldUpgradeAbstractComponents && allowPartialUpgrades ? 4 : 0,
+        expectedPatchCount: shouldUpgradeAbstractComponents ? 4 : 0,
         input: '''
           @AbstractComponent2()
           abstract class FooComponent extends UiComponent2 {
@@ -270,7 +270,7 @@ void componentDidUpdateTests({
           @AbstractComponent2()
           abstract class FooComponent extends UiComponent2 {
             @override
-            ${shouldUpgradeAbstractComponents && allowPartialUpgrades ?
+            ${shouldUpgradeAbstractComponents ?
               'get defaultProps => (newProps()..prop1 = true);' :
               'Map getDefaultProps() => newProps()..prop1 = true;'} 
           }

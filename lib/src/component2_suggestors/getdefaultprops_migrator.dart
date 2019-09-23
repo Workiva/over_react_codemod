@@ -16,7 +16,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/component2_suggestors/component2_utilities.dart';
-import 'package:source_span/source_span.dart';
 
 //TODO copy this for initialState (maybe just add to this suggestor?)
 /// Suggestor that replaces `getDefaultProps` with the getter `defaultProps`.
@@ -38,7 +37,7 @@ class GetDefaultPropsMigrator extends GeneralizingAstVisitor
     ClassDeclaration containingClass = node.parent;
 
     if ((!allowPartialUpgrades &&
-        !fullyUpgradableToComponent2(containingClass)) ||
+            !fullyUpgradableToComponent2(containingClass)) ||
         (!shouldUpgradeAbstractComponents &&
             canBeExtendedFrom(containingClass))) {
       return;
