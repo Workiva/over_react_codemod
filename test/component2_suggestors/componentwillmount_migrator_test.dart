@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/component2_suggestors/component2_constants.dart';
 import 'package:over_react_codemod/src/component2_suggestors/componentwillmount_migrator.dart';
 import 'package:test/test.dart';
 
@@ -63,38 +64,14 @@ componentWillMountTests({
     );
   });
 
-  group('componentWillMount method', () {
-    test('updates if containing class is fully upgradable', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
-            componentWillMount(){
-              // method body
-            }
-          }
-        ''',
-        expectedOutput: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
-            init(){
-              // method body
-            }
-          }
-        ''',
-      );
-    });
-
-    group(
-        '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
-        'containing class is not fully upgradable', () {
-      test('-- extends from non-Component class', () {
+  group('when componentDidMount does not exist in containing class', () {
+    group('componentWillMount method', () {
+      test('updates if containing class is fully upgradable', () {
         testSuggestor(
-          expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+          expectedPatchCount: 2,
           input: '''
             @Component2()
-            class FooComponent extends SomeOtherClass {
+            class FooComponent extends UiComponent2 {
               componentWillMount(){
                 // method body
               }
@@ -102,68 +79,9 @@ componentWillMountTests({
           ''',
           expectedOutput: '''
             @Component2()
-            class FooComponent extends SomeOtherClass {
-              ${allowPartialUpgrades ? 'init' : 'componentWillMount'}(){
-                // method body
-              }
-            }
-          ''',
-        );
-      });
-
-      test('-- has lifecycle methods without codemods', () {
-        testSuggestor(
-          expectedPatchCount: allowPartialUpgrades ? 1 : 0,
-          input: '''
-            @Component2()
             class FooComponent extends UiComponent2 {
-              componentWillMount(){
-                // method body
-              }
-              
-              @override
-              componentWillUnmount() {}
-            }
-          ''',
-          expectedOutput: '''
-            @Component2()
-            class FooComponent extends UiComponent2 {
-              ${allowPartialUpgrades ? 'init' : 'componentWillMount'}(){
-                // method body
-              }
-              
-              @override
-              componentWillUnmount() {}
-            }
-          ''',
-        );
-      });
-    });
-
-    group('in an abstract class', () {
-      test(
-          'that is fully upgradable ${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
-          () {
-        testSuggestor(
-          expectedPatchCount: shouldUpgradeAbstractComponents ? 1 : 0,
-          input: '''
-            @AbstractProps()
-            class AbstractFooProps extends UiProps {}
-            
-            @AbstractComponent2()
-            class FooComponent extends UiComponent2 {
-              componentWillMount(){
-                // method body
-              }
-            }
-          ''',
-          expectedOutput: '''
-            @AbstractProps()
-            class AbstractFooProps extends UiProps {}
-            
-            @AbstractComponent2()
-            class FooComponent extends UiComponent2 {
-              ${shouldUpgradeAbstractComponents ? 'init' : 'componentWillMount'}(){
+              $componentWillMountMessage
+              componentDidMount(){
                 // method body
               }
             }
@@ -172,24 +90,23 @@ componentWillMountTests({
       });
 
       group(
-          'that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
-          () {
+          '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
+          'containing class is not fully upgradable', () {
         test('-- extends from non-Component class', () {
           testSuggestor(
-            expectedPatchCount:
-                allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+            expectedPatchCount: allowPartialUpgrades ? 2 : 0,
             input: '''
-              @Component2
-              class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
+              @Component2()
+              class FooComponent extends SomeOtherClass {
                 componentWillMount(){
                   // method body
                 }
               }
             ''',
             expectedOutput: '''
-              @Component2
-              class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
-                ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'init' : 'componentWillMount'}(){
+              @Component2()
+              class FooComponent extends SomeOtherClass {
+                ${allowPartialUpgrades ? '$componentWillMountMessage\ncomponentDidMount' : 'componentWillMount'}(){
                   // method body
                 }
               }
@@ -197,196 +114,499 @@ componentWillMountTests({
           );
         });
 
-        test('-- has lifecycle methods without codemods', () {
+        test('-- has deprecated lifecycle methods without codemods', () {
           testSuggestor(
-            expectedPatchCount:
-                allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
+            expectedPatchCount: allowPartialUpgrades ? 2 : 0,
             input: '''
-              @AbstractComponent2()
-              abstract class FooComponent extends UiComponent2 {
-                componentWillMount(){
-                  // method body
+            @Component2()
+            class FooComponent extends UiComponent2 {
+              componentWillMount(){
+                // method body
+              }
+              
+              @override
+              componentWillReceiveProps() {}
+            }
+          ''',
+            expectedOutput: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
+              ${allowPartialUpgrades ? '$componentWillMountMessage\ncomponentDidMount' : 'componentWillMount'}(){
+                // method body
+              }
+              
+              @override
+              componentWillReceiveProps() {}
+            }
+          ''',
+          );
+        });
+      });
+
+      test('componentWillMount method with return type', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+          import 'package:react/react.dart' as react;
+  
+          @Component2()
+          class FooComponent extends react.Component2 {
+            void componentWillMount(){
+              // method body
+            }
+          }
+        ''',
+          expectedOutput: '''
+          import 'package:react/react.dart' as react;
+  
+          @Component2()
+          class FooComponent extends react.Component2 {
+            $componentWillMountMessage
+            void componentDidMount(){
+              // method body
+            }
+          }
+        ''',
+        );
+      });
+
+      test('update super calls', () {
+        testSuggestor(
+          expectedPatchCount: 3,
+          input: '''
+          @Component2()
+          class FooComponent extends FluxUiComponent2 {
+            void componentWillMount(){
+              super.componentWillMount();
+              // method body
+            }
+          }
+        ''',
+          expectedOutput: '''
+          @Component2()
+          class FooComponent extends FluxUiComponent2 {
+            $componentWillMountMessage
+            void componentDidMount(){
+              super.componentDidMount();
+              // method body
+            }
+          }
+        ''',
+        );
+      });
+    });
+  });
+
+  group('when componentDidMount exists in containing class', () {
+    group('componentWillMount method', () {
+      test('updates if containing class is fully upgradable', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
+              @override
+              componentWillMount() {
+                var a = 1;
+                var b = 2;
+              }
+              
+              @override
+              componentDidMount() {
+                var c = 3;
+                var d = 4;
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends UiComponent2 {
+              @override
+              componentDidMount() {
+                var c = 3;
+                var d = 4;
+                
+                var a = 1;
+                var b = 2;
+              }
+            }
+          ''',
+        );
+      });
+
+      group(
+          '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
+          'containing class is not fully upgradable', () {
+        test('-- extends from non-Component class', () {
+          testSuggestor(
+            expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+            input: '''
+              @Component2()
+              class FooComponent extends SomeOtherClass {
+                @override
+                componentWillMount() {
+                  var a = 1;
+                  var b = 2;
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentDidMount() {
+                  var c = 3;
+                  var d = 4;
+                }
               }
             ''',
-            expectedOutput: '''
-              @AbstractComponent2()
-              abstract class FooComponent extends UiComponent2 {
-                ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'init' : 'componentWillMount'}(){
-                  // method body
+            expectedOutput: allowPartialUpgrades
+                ? '''
+              @Component2()
+              class FooComponent extends SomeOtherClass {
+                @override
+                componentDidMount() {
+                  var c = 3;
+                  var d = 4;
+                  
+                  var a = 1;
+                  var b = 2;
+                }
+              }
+            '''
+                : '''
+              @Component2()
+              class FooComponent extends SomeOtherClass {
+                @override
+                componentWillMount() {
+                  var a = 1;
+                  var b = 2;
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentDidMount() {
+                  var c = 3;
+                  var d = 4;
+                }
+              }
+            ''',
+          );
+        });
+
+        test('-- has deprecated lifecycle methods without codemods', () {
+          testSuggestor(
+            expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+            input: '''
+              @Component2()
+              class FooComponent extends UiComponent2 {
+                @override
+                componentWillMount() {
+                  var a = 1;
+                  var b = 2;
+                }
+                
+                @override
+                componentDidMount() {
+                  var c = 3;
+                  var d = 4;
+                }
+                
+                @override
+                componentWillUpdate() {}
+              }
+            ''',
+            expectedOutput: allowPartialUpgrades
+                ? '''
+              @Component2()
+              class FooComponent extends UiComponent2 {
+                @override
+                componentDidMount() {
+                  var c = 3;
+                  var d = 4;
+                  
+                  var a = 1;
+                  var b = 2;
+                }
+                
+                @override
+                componentWillUpdate() {}
+              }
+            '''
+                : '''
+              @Component2()
+              class FooComponent extends UiComponent2 {
+                @override
+                componentWillMount() {
+                  var a = 1;
+                  var b = 2;
+                }
+                
+                @override
+                componentDidMount() {
+                  var c = 3;
+                  var d = 4;
+                }
+                
+                @override
+                componentWillUpdate() {}
               }
             ''',
           );
         });
       });
-    });
-  });
 
-  test('componentWillMount method with return type updates', () {
-    testSuggestor(
-      expectedPatchCount: 1,
-      input: '''
-        import 'package:react/react.dart' as react;
-
-        @Component2()
-        class FooComponent extends react.Component2 {
-          void componentWillMount(){
-            // method body
-          }
-        }
-      ''',
-      expectedOutput: '''
-        import 'package:react/react.dart' as react;
-
-        @Component2()
-        class FooComponent extends react.Component2 {
-          void init(){
-            // method body
-          }
-        }
-      ''',
-    );
-  });
-
-  group('super calls to componentWillMount', () {
-    group('are removed if containing class is fully upgradable', () {
-      test('and extends UiComponent2', () {
+      test('update super call to componentWillMount if not already existing',
+          () {
         testSuggestor(
-          expectedPatchCount: 2,
+          expectedPatchCount: 3,
           input: '''
             @Component2()
             class FooComponent extends FluxUiComponent2 {
-              void componentWillMount(){
+              @override
+              void componentDidMount() {
+                var c = 3;
+                var d = 4;
+              }
+              
+              @override
+              void componentWillMount() {
                 super.componentWillMount();
-                // method body
+                var a = 1;
+                var b = 2;
               }
             }
           ''',
           expectedOutput: '''
             @Component2()
             class FooComponent extends FluxUiComponent2 {
-              void init(){
-                // method body
+              $componentWillMountMessage
+              @override
+              void componentDidMount() {
+                var c = 3;
+                var d = 4;
+                
+                super.componentDidMount();
+                var a = 1;
+                var b = 2;
               }
             }
           ''',
         );
       });
 
-      test('and extends UiStatefulComponent2', () {
+      test('remove super call if it already exists in componentDidMount', () {
         testSuggestor(
           expectedPatchCount: 2,
           input: '''
             @Component2()
-            class FooComponent extends UiStatefulComponent2 {
-              void componentWillMount(){
+            class FooComponent extends FluxUiComponent2 {
+              @override
+              @mustCallSuper
+              componentDidMount() {
+                super.componentDidMount();
+                var c = 3;
+                var d = 4;
+              }
+              
+              @override
+              componentWillMount() {
                 super.componentWillMount();
-                // method body
+                var a = 1;
+                var b = 2;
               }
             }
           ''',
           expectedOutput: '''
             @Component2()
-            class FooComponent extends UiStatefulComponent2 {
-              void init(){
-                // method body
+            class FooComponent extends FluxUiComponent2 {
+              @override
+              @mustCallSuper
+              componentDidMount() {
+                super.componentDidMount();
+                var c = 3;
+                var d = 4;
+                
+                var a = 1;
+                var b = 2;
               }
             }
           ''',
         );
       });
 
-      test('and extends react.Component2', () {
+      test('copy any annotations not already present to componentDidMount', () {
         testSuggestor(
-          expectedPatchCount: 2,
+          expectedPatchCount: 3,
           input: '''
-            import 'package:react/react.dart' as react;
-            
             @Component2()
-            class FooComponent extends react.Component2 {
-              void componentWillMount(){
-                super.componentWillMount();
-                // method body
+            class FooComponent extends FluxUiComponent2 {
+              @override
+              componentDidMount() {
+                // `componentDidMount` method body
+              }
+              
+              @override
+              @mustCallSuper
+              componentWillMount() {
+                // `componentWillMount` method body
               }
             }
           ''',
           expectedOutput: '''
-            import 'package:react/react.dart' as react;
-            
             @Component2()
-            class FooComponent extends react.Component2 {
-              void init(){
-                // method body
+            class FooComponent extends FluxUiComponent2 {
+              @mustCallSuper
+              @override
+              componentDidMount() {
+                // `componentDidMount` method body
+                
+                // `componentWillMount` method body
+              }
+            }
+          ''',
+        );
+      });
+
+      test('copy any annotations to annotationless componentDidMount', () {
+        testSuggestor(
+          expectedPatchCount: 3,
+          input: '''
+            @Component2()
+            class FooComponent extends FluxUiComponent2 {
+              componentDidMount() {
+                var c = 3;
+              }
+              
+              @override
+              @mustCallSuper
+              componentWillMount() {
+                var a = 1;
+              }
+            }
+          ''',
+          expectedOutput: '''
+            @Component2()
+            class FooComponent extends FluxUiComponent2 {
+              @override
+              @mustCallSuper
+              componentDidMount() {
+                var c = 3;
+                
+                var a = 1;
               }
             }
           ''',
         );
       });
     });
+  });
 
+  group('componentWillMount method in an abstract class', () {
     test(
-        'does not remove super calls to componentWillMount for non-base extending classes',
+        'that is fully upgradable ${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
         () {
       testSuggestor(
-        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+        expectedPatchCount:
+            allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
         input: '''
-          @Component2()
-          class FooComponent extends SomeOtherClass {
-            void componentWillMount(){
-              super.componentWillMount();
-              // method body
+          @AbstractComponent2()
+          abstract class FooComponent extends SomeOtherClass {
+            @override
+            componentWillMount() {
+              var a = 1;
+              var b = 2;
+            }
+            
+            @override
+            componentDidMount() {
+              var c = 3;
+              var d = 4;
             }
           }
         ''',
-        expectedOutput: '''
-          @Component2()
-          class FooComponent extends SomeOtherClass {
-            void ${allowPartialUpgrades ? 'init' : 'componentWillMount'}(){
-              super.componentWillMount();
-              // method body
+        expectedOutput: allowPartialUpgrades && shouldUpgradeAbstractComponents
+            ? '''
+          @AbstractComponent2()
+          abstract class FooComponent extends SomeOtherClass {
+            @override
+            componentDidMount() {
+              var c = 3;
+              var d = 4;
+              
+              var a = 1;
+              var b = 2;
+            }
+          }
+        '''
+            : '''
+          @AbstractComponent2()
+          abstract class FooComponent extends SomeOtherClass {
+            @override
+            componentWillMount() {
+              var a = 1;
+              var b = 2;
+            }
+            
+            @override
+            componentDidMount() {
+              var c = 3;
+              var d = 4;
             }
           }
         ''',
       );
     });
 
-    test(
-        'are ${allowPartialUpgrades ? '' : 'not '}removed if containing class'
-        ' has lifecycle methods without codemods', () {
-      testSuggestor(
-        expectedPatchCount: allowPartialUpgrades ? 2 : 0,
-        input: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
-            void componentWillMount(){
-              super.componentWillMount();
+    group(
+        'that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
+        () {
+      test('-- extends from non-Component class', () {
+        testSuggestor(
+          expectedPatchCount:
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+          input: '''
+          @Component2
+          class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
+            componentWillMount(){
               // method body
             }
-            
-            @override
-            componentWillUnmount() {}
           }
         ''',
-        expectedOutput: '''
-          @Component2()
-          class FooComponent extends UiComponent2 {
-            void ${allowPartialUpgrades ? 'init' : 'componentWillMount'}(){
-              ${allowPartialUpgrades ? '' : 'super.componentWillMount();'}
+          expectedOutput: '''
+          @Component2
+          class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
+            ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '$componentWillMountMessage\ncomponentDidMount' : 'componentWillMount'}(){
               // method body
             }
-            
-            @override
-            componentWillUnmount() {}
           }
         ''',
-      );
+        );
+      });
+
+      test('-- has lifecycle methods without codemods', () {
+        testSuggestor(
+          expectedPatchCount:
+              allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
+          input: '''
+            @AbstractComponent2()
+            abstract class FooComponent extends UiComponent2 {
+              componentWillMount(){
+                // method body
+              }
+              
+              @override
+              componentWillReceiveProps() {}
+            }
+          ''',
+          expectedOutput: '''
+            @AbstractComponent2()
+            abstract class FooComponent extends UiComponent2 {
+              ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '$componentWillMountMessage\ncomponentDidMount' : 'componentWillMount'}(){
+                // method body
+              }
+              
+              @override
+              componentWillReceiveProps() {}
+            }
+          ''',
+        );
+      });
     });
   });
 
@@ -395,11 +615,21 @@ componentWillMountTests({
       expectedPatchCount: 0,
       input: '''
         @Component()
-        class FooComponent extends UiComponent {
-          void componentWillMount(){
-            // method body
+          class FooComponent extends FluxUiComponent {
+            @override
+            componentDidMount() {
+              super.componentDidMount();
+              var c = 3;
+              var d = 4;
+            }
+            
+            @override
+            componentWillMount() {
+              super.componentWillMount();
+              var a = 1;
+              var b = 2;
+            }
           }
-        }
       ''',
     );
   });
