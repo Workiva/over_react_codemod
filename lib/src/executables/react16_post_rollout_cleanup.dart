@@ -18,6 +18,7 @@ import 'package:logging/logging.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
+import 'package:over_react_codemod/src/react16_suggestors/comment_remover.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
@@ -69,7 +70,7 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     [
-      CommentRemovalSuggestor(commentStringToRemove)
+      CommentRemover(commentStringToRemove)
     ],
     args: args,
     defaultYes: true,

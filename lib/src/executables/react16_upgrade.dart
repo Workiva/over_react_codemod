@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react_dom_render_migrator.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react_style_maps_updater.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';

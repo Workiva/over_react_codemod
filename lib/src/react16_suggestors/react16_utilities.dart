@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:io';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:codemod/codemod.dart';
+import 'package:logging/logging.dart';
 import 'package:source_span/source_span.dart';
 
 import 'constants.dart';
@@ -67,4 +71,24 @@ Iterable allComments(Token beginToken) sync* {
     }
     currentToken = currentToken.next;
   }
+}
+
+bool hasUnaddressedReact16Comment(FileQuery query,
+    {bool shouldLogFile, Logger logger}) {
+  bool hasUnaddressedComment = false;
+
+  if (shouldLogFile && logger == null) {
+    throw ArgumentError('A logger is required to log the file path.');
+  }
+
+  for (var dartFile in query.generateFilePaths()) {
+    final dartSource = File(dartFile).readAsStringSync();
+    if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
+      logger.severe(
+          'over_react_codemod validation comments are unaddressed in $dartFile');
+      hasUnaddressedComment = true;
+    }
+  }
+
+  return hasUnaddressedComment;
 }
