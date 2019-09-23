@@ -126,14 +126,15 @@ abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
     }
   }
 
-  void updateSuperCalls(int offset, int end) {
-    var methodBodyString = sourceFile.getText(offset, end);
+  /// Updates all super calls to [methodToMigrate] from [start] to [end].
+  void updateSuperCalls(int start, int end) {
+    var methodBodyString = sourceFile.getText(start, end);
     if (methodBodyString.contains('super.$methodToMigrate()')) {
       methodBodyString = methodBodyString.replaceAll(
         'super.$methodToMigrate()',
         'super.$migrateTo',
       );
-      yieldPatch(offset, end, methodBodyString);
+      yieldPatch(start, end, methodBodyString);
     }
   }
 }
