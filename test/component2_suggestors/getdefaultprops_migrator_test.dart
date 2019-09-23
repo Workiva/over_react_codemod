@@ -157,7 +157,7 @@ void componentDidUpdateTests({
       expectedPatchCount: 6,
       input: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           Map getDefaultProps() {
             return newProps()
@@ -169,7 +169,7 @@ void componentDidUpdateTests({
       ''',
       expectedOutput: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           get defaultProps => (newProps()
             ..addProps(super.defaultProps)
@@ -186,14 +186,14 @@ void componentDidUpdateTests({
       expectedPatchCount: 3,
       input: '''
         @Component2()
-        class FooComponent extends SomeOtherClass {
+        class FooComponent extends UiFluxComponent2 {
           @override
           Map getDefaultProps() => (newProps()..addAll(super.getDefaultProps()));
         }
       ''',
       expectedOutput: '''
         @Component2()
-        class FooComponent extends SomeOtherClass {
+        class FooComponent extends UiFluxComponent2 {
           @override
           get defaultProps => (newProps()..addAll(super.defaultProps));
         }
@@ -206,7 +206,7 @@ void componentDidUpdateTests({
       'containing class is not fully upgradable', () {
     test('-- extends from non-Component class', () {
       testSuggestor(
-        expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+        expectedPatchCount: allowPartialUpgrades ? 4 : 0,
         input: '''
           @Component2()
           class FooComponent extends SomeOtherClass {
@@ -218,7 +218,9 @@ void componentDidUpdateTests({
           @Component2()
           class FooComponent extends SomeOtherClass {
             @override
-            ${allowPartialUpgrades ? 'get defaultProps' : 'Map getDefaultProps()'} => newProps()..prop1 = true;
+            ${allowPartialUpgrades ?
+              'get defaultProps => (newProps()..prop1 = true);' :
+              'Map getDefaultProps() => newProps()..prop1 = true;'}
           }
         ''',
       );
@@ -226,12 +228,12 @@ void componentDidUpdateTests({
 
     test('-- has lifecycle methods without codemods', () {
       testSuggestor(
-        expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+        expectedPatchCount: allowPartialUpgrades ? 5 : 0,
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
             @override
-            Map getDefaultProps() => newProps()..prop1 = true;
+            Map getDefaultProps() => newProps()..addProps(super.getDefaultProps());
             
             @override
             componentWillUpdate() {}
@@ -241,7 +243,9 @@ void componentDidUpdateTests({
           @Component2()
           class FooComponent extends UiComponent2 {
             @override
-            ${allowPartialUpgrades ? 'get defaultProps' : 'Map getDefaultProps()'} => newProps()..prop1 = true;
+            ${allowPartialUpgrades ?
+              'get defaultProps => (newProps()..addProps(super.defaultProps));' :
+              'Map getDefaultProps() => newProps()..addProps(super.getDefaultProps());'}
             
             @override
             componentWillUpdate() {}
