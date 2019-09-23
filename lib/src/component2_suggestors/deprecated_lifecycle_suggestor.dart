@@ -27,8 +27,12 @@ class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final bool allowPartialUpgrades;
+  final bool shouldUpgradeAbstractComponents;
 
-  DeprecatedLifecycleSuggestor({this.allowPartialUpgrades = true});
+  DeprecatedLifecycleSuggestor({
+    this.allowPartialUpgrades = true,
+    this.shouldUpgradeAbstractComponents = false,
+  });
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
@@ -36,8 +40,10 @@ class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
 
     ClassDeclaration containingClass = node.parent;
 
-    if (!allowPartialUpgrades &&
-        !fullyUpgradableToComponent2(containingClass)) {
+    if ((!allowPartialUpgrades &&
+            !fullyUpgradableToComponent2(containingClass)) ||
+        (!shouldUpgradeAbstractComponents &&
+            canBeExtendedFrom(containingClass))) {
       return;
     }
 

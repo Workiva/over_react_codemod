@@ -55,13 +55,53 @@ bool hasComment(AstNode node, SourceFile sourceFile, String comment) {
   return commentText?.contains(comment) ?? false;
 }
 
+/// Whether the [node] has a documentation comment that has
+/// any lines that match lines found within the provided [comment].
+bool hasMultilineDocComment(
+    AnnotatedNode node, SourceFile sourceFile, String comment) {
+  final nodeComments = nodeCommentSpan(node, sourceFile)
+      .text
+      .replaceAll('///', '')
+      .split('\n')
+      .map((line) => line.replaceAll('\n', '').trim())
+      .toList()
+        ..removeWhere((line) => line.isEmpty);
+  final commentLines = comment
+      .replaceAll('///', '')
+      .trimLeft()
+      .split('\n')
+      .map((line) => line.replaceAll('\n', '').trim())
+      .toList()
+        ..removeWhere((line) => line.isEmpty);
+
+  bool match = false;
+
+  for (var i = 0; i < commentLines.length; i++) {
+    final potentialMatch = commentLines[i];
+    if (nodeComments.any((line) => line == potentialMatch)) {
+      match = true;
+      break;
+    }
+  }
+
+  return match;
+}
+
+/// Returns the `SourceSpan` value of any comments on the provided [node] within the [sourceFile].
+SourceSpan nodeCommentSpan(AnnotatedNode node, SourceFile sourceFile) {
+  return sourceFile.span(
+      node.beginToken.offset,
+      node.metadata?.beginToken?.offset ??
+          node.firstTokenAfterCommentAndMetadata.offset);
+}
+
 /// Returns an iterable of all the comments from [beginToken] to the end of the
 /// file.
 ///
 /// Comments are part of the normal stream, and need to be accessed via
 /// [Token.precedingComments], so it's difficult to iterate over them without
 /// this method.
-Iterable allComments(Token beginToken) sync* {
+Iterable<Token> allComments(Token beginToken) sync* {
   var currentToken = beginToken;
   while (!currentToken.isEof) {
     var currentComment = currentToken.precedingComments;

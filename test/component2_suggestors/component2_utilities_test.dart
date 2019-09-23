@@ -280,6 +280,50 @@ void main() {
       });
     });
 
+    group('hasOneOrMoreMixins()', () {
+      group('returns true when a class has one mixin', () {
+        final input = '''
+          class FooComponent extends UiComponent with FooMixin {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: true,
+          functionToTest: hasOneOrMoreMixins,
+        );
+      });
+
+      group('returns true when a class has more than one mixin', () {
+        final input = '''
+          class FooComponent extends UiComponent with FooMixin, BarMixin {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: true,
+          functionToTest: hasOneOrMoreMixins,
+        );
+      });
+
+      group('returns false when a class has no mixins', () {
+        final input = '''
+          class FooComponent extends UiComponent {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: false,
+          functionToTest: hasOneOrMoreMixins,
+        );
+      });
+    });
+
     group('canBeFullyUpgradedToComponent2()', () {
       group('(fully upgradable) when a class', () {
         group('extends a base class and has no lifecycle methods', () {
@@ -363,6 +407,21 @@ void main() {
       });
 
       group('(not fully upgradable) when a class', () {
+        group('has one or more mixins', () {
+          final input = '''
+            @Component
+            class FooComponent extends UiComponent with FooMixin {
+              // class body
+            }
+          ''';
+
+          testUtilityFunction(
+            input: input,
+            expectedValue: false,
+            functionToTest: fullyUpgradableToComponent2,
+          );
+        });
+
         group('extends non-base classes', () {
           final input = '''
             @Component
@@ -404,6 +463,72 @@ void main() {
         });
       });
     });
+
+    group('canBeExtendedFrom()', () {
+      group('when the class has the `abstract` keyword', () {
+        final input = '''
+          @AbstractComponent()
+          abstract class FooComponent extends UiComponent {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: true,
+          functionToTest: canBeExtendedFrom,
+        );
+      });
+
+      group('when `@AbstractProps` is in the file', () {
+        final input = '''
+          @AbstractProps()
+          abstract class AbstractFooProps extends UiProps {} 
+                   
+          @Component2()
+          class FooComponent extends UiComponent2 {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: true,
+          functionToTest: canBeExtendedFrom,
+          numberOfClasses: 2,
+        );
+      });
+
+      group('when class has generic parameters', () {
+        final input = '''
+          @Component()
+          class FooComponent<BarProps> extends UiComponent<FooProps> {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: true,
+          functionToTest: canBeExtendedFrom,
+        );
+      });
+
+      group('when class is not abstract', () {
+        final input = '''
+          @Component()
+          class FooComponent extends UiComponent<FooProps> {
+            // class body
+          }
+        ''';
+
+        testUtilityFunction(
+          input: input,
+          expectedValue: false,
+          functionToTest: canBeExtendedFrom,
+        );
+      });
+    });
   });
 }
 
@@ -411,10 +536,12 @@ void testUtilityFunction({
   String input,
   bool expectedValue,
   bool Function(ClassDeclaration) functionToTest,
+  int numberOfClasses = 1,
 }) {
   test('returns $expectedValue', () {
     CompilationUnit unit = parseString(content: input).unit;
-    expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
+    expect(unit.declarations.whereType<ClassDeclaration>().length,
+        numberOfClasses);
 
     unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
       if (expectedValue) {
