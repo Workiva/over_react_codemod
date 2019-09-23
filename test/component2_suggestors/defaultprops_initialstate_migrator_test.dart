@@ -18,8 +18,12 @@ import 'package:test/test.dart';
 import '../util.dart';
 
 main() {
-  migratorTests(migratorName: 'GetDefaultPropsMigrator', methodToMigrate: 'getDefaultProps');
-  migratorTests(migratorName: 'GetInitialStateMigrator', methodToMigrate: 'getInitialState');
+  migratorTests(
+      migratorName: 'GetDefaultPropsMigrator',
+      methodToMigrate: 'getDefaultProps');
+  migratorTests(
+      migratorName: 'GetInitialStateMigrator',
+      methodToMigrate: 'getInitialState');
 }
 
 void migratorTests({String migratorName, String methodToMigrate}) {
@@ -43,7 +47,9 @@ void migratorTests({String migratorName, String methodToMigrate}) {
     );
   });
 
-  group('$migratorName with --no-partial-upgrades and --upgrade-abstract-components flag', () {
+  group(
+      '$migratorName with --no-partial-upgrades and --upgrade-abstract-components flag',
+      () {
     componentDidUpdateTests(
       methodToMigrate: methodToMigrate,
       allowPartialUpgrades: false,
@@ -100,14 +106,14 @@ void componentDidUpdateTests({
       expectedPatchCount: 4,
       input: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           Map $methodToMigrate() => $subMethod()..value = true;
         }
       ''',
       expectedOutput: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           get $migrateTo => ($subMethod()..value = true);
         }
@@ -120,14 +126,14 @@ void componentDidUpdateTests({
       expectedPatchCount: 3,
       input: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           $methodToMigrate() => $subMethod()..value = true;
         }
       ''',
       expectedOutput: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           get $migrateTo => ($subMethod()..value = true);
         }
@@ -140,14 +146,14 @@ void componentDidUpdateTests({
       expectedPatchCount: 5,
       input: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           Map $methodToMigrate() => $subMethod()..addAll(super.$methodToMigrate());
         }
       ''',
       expectedOutput: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           get $migrateTo => ($subMethod()..addAll(super.$migrateTo));
         }
@@ -160,7 +166,7 @@ void componentDidUpdateTests({
       expectedPatchCount: 2,
       input: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           Map $methodToMigrate() {
             var a = 1;
@@ -172,7 +178,7 @@ void componentDidUpdateTests({
       ''',
       expectedOutput: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           get $migrateTo {
             var a = 1;
@@ -219,14 +225,14 @@ void componentDidUpdateTests({
       expectedPatchCount: 3,
       input: '''
         @Component2()
-        class FooComponent extends FluxUiComponent2 {
+        class FooComponent extends FluxUiStatefulComponent2 {
           @override
           Map $methodToMigrate() => ($subMethod()..addAll(super.$methodToMigrate()));
         }
       ''',
       expectedOutput: '''
         @Component2()
-        class FooComponent extends FluxUiComponent2 {
+        class FooComponent extends FluxUiStatefulComponent2 {
           @override
           get $migrateTo => ($subMethod()..addAll(super.$migrateTo));
         }
@@ -262,7 +268,7 @@ void componentDidUpdateTests({
         expectedPatchCount: allowPartialUpgrades ? 5 : 0,
         input: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends UiStatefulComponent2 {
             @override
             Map $methodToMigrate() => $subMethod()..addProps(super.$methodToMigrate());
             
@@ -272,7 +278,7 @@ void componentDidUpdateTests({
         ''',
         expectedOutput: '''
           @Component2()
-          class FooComponent extends UiComponent2 {
+          class FooComponent extends UiStatefulComponent2 {
             @override
             ${allowPartialUpgrades ? 'get $migrateTo => ($subMethod()..addProps(super.$migrateTo));' : 'Map $methodToMigrate() => $subMethod()..addProps(super.$methodToMigrate());'}
             
@@ -290,14 +296,14 @@ void componentDidUpdateTests({
         expectedPatchCount: shouldUpgradeAbstractComponents ? 4 : 0,
         input: '''
           @AbstractComponent2()
-          abstract class FooComponent extends UiComponent2 {
+          abstract class FooComponent extends UiStatefulComponent2 {
             @override
             Map $methodToMigrate() => $subMethod()..value = true;
           }
         ''',
         expectedOutput: '''
           @AbstractComponent2()
-          abstract class FooComponent extends UiComponent2 {
+          abstract class FooComponent extends UiStatefulComponent2 {
             @override
             ${shouldUpgradeAbstractComponents ? 'get $migrateTo => ($subMethod()..value = true);' : 'Map $methodToMigrate() => $subMethod()..value = true;'} 
           }
@@ -356,7 +362,7 @@ void componentDidUpdateTests({
             class AbstractFooProps extends UiProps {}
             
             @AbstractComponent2()
-            class FooComponent extends UiComponent2 {
+            class FooComponent extends UiStatefulComponent2 {
               @override
               Map $methodToMigrate() => $subMethod()..value = true;
               
@@ -369,7 +375,7 @@ void componentDidUpdateTests({
             class AbstractFooProps extends UiProps {}
             
             @AbstractComponent2()
-            class FooComponent extends UiComponent2 {
+            class FooComponent extends UiStatefulComponent2 {
               @override
               ${shouldUpgradeAbstractComponents && allowPartialUpgrades ? 'get $migrateTo => ($subMethod()..value = true);' : 'Map $methodToMigrate() => $subMethod()..value = true;'} 
                 
@@ -387,14 +393,14 @@ void componentDidUpdateTests({
       expectedPatchCount: 2,
       input: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           Map $methodToMigrate() => {};
         }
       ''',
       expectedOutput: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           get $migrateTo => {};
         }
@@ -407,7 +413,7 @@ void componentDidUpdateTests({
       expectedPatchCount: 0,
       input: '''
         @Component2()
-        class FooComponent extends UiComponent2 {
+        class FooComponent extends UiStatefulComponent2 {
           @override
           get $migrateTo => $subMethod()..value = true;
         }
@@ -421,7 +427,7 @@ void componentDidUpdateTests({
       expectedPatchCount: 0,
       input: '''
         @Component()
-        class FooComponent extends UiComponent {
+        class FooComponent extends UiStatefulComponent {
           @override
           Map $methodToMigrate() => $subMethod()..value = true;
         }
