@@ -17,9 +17,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/component2_suggestors/component2_utilities.dart';
 
-/// Abstract suggestor that with visitor that can migrate `getDefaultProps` to
-/// the getter `defaultProps` or migrate `getInitialState` to the getter
-/// `initialState`.
+/// Abstract suggestor with visitor that can migrate `getDefaultProps`
+/// or `getInitialState`.
 ///
 /// Use [DefaultPropsMigrator] or [InitialStateMigrator].
 abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
@@ -139,7 +138,7 @@ abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
   }
 }
 
-/// Suggestor that migrates `getDefaultProps` to the getter `defaultProps`.
+/// Suggestor that replaces `getDefaultProps` method with getter `defaultProps`.
 class DefaultPropsMigrator extends DefaultPropsInitialStateMigrator
     implements Suggestor {
   DefaultPropsMigrator({
@@ -153,7 +152,7 @@ class DefaultPropsMigrator extends DefaultPropsInitialStateMigrator
   }
 }
 
-/// Suggestor that migrates `getInitialState` to the getter `initialState`.
+/// Suggestor that replaces `getInitialState` method with getter `initialState`.
 class InitialStateMigrator extends DefaultPropsInitialStateMigrator
     implements Suggestor {
   InitialStateMigrator({
