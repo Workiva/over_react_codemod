@@ -17,31 +17,20 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/component2_suggestors/component2_utilities.dart';
 
-/// Suggestor that migrates `getDefaultProps` to the getter `defaultProps` or
-/// migrates `getInitialState` to the getter `initialState`.
-class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
+/// Abstract suggestor that with visitor that can migrate `getDefaultProps` to
+/// the getter `defaultProps` or migrate `getInitialState` to the getter
+/// `initialState`.
+///
+/// Use [DefaultPropsMigrator] or [InitialStateMigrator].
+abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final bool allowPartialUpgrades;
-  final bool shouldUpgradeAbstractComponents;
+  bool allowPartialUpgrades = true;
+  bool shouldUpgradeAbstractComponents = false;
 
-  /// Can be either `getDefaultProps` or `getInitialState`.
-  final String methodToMigrate;
-  String migrateTo;
-
-  DefaultPropsInitialStateMigrator({
-    this.allowPartialUpgrades = true,
-    this.shouldUpgradeAbstractComponents = false,
-    this.methodToMigrate = 'getDefaultProps',
-  }) {
-    if (methodToMigrate == 'getDefaultProps') {
-      this.migrateTo = 'defaultProps';
-    } else if (methodToMigrate == 'getInitialState') {
-      this.migrateTo = 'initialState';
-    } else {
-      this.migrateTo = '';
-    }
-  }
+  // Can be either `getDefaultProps` or `getInitialState`.
+  String methodToMigrate = 'getDefaultProps';
+  String migrateTo = 'defaultProps';
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
@@ -49,8 +38,7 @@ class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
 
     var containingClass = node.parent;
 
-    if (migrateTo.isEmpty ||
-        (!allowPartialUpgrades &&
+    if ((!allowPartialUpgrades &&
             !fullyUpgradableToComponent2(containingClass)) ||
         (!shouldUpgradeAbstractComponents &&
             canBeExtendedFrom(containingClass))) {
@@ -148,5 +136,33 @@ class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
       );
       yieldPatch(offset, end, methodBodyString);
     }
+  }
+}
+
+/// Suggestor that migrates `getDefaultProps` to the getter `defaultProps`.
+class DefaultPropsMigrator extends DefaultPropsInitialStateMigrator
+    implements Suggestor {
+  DefaultPropsMigrator({
+    allowPartialUpgrades = true,
+    shouldUpgradeAbstractComponents = false,
+  }) {
+    this.allowPartialUpgrades = allowPartialUpgrades;
+    this.shouldUpgradeAbstractComponents = shouldUpgradeAbstractComponents;
+    this.methodToMigrate = 'getDefaultProps';
+    this.migrateTo = 'defaultProps';
+  }
+}
+
+/// Suggestor that migrates `getInitialState` to the getter `initialState`.
+class InitialStateMigrator extends DefaultPropsInitialStateMigrator
+    implements Suggestor {
+  InitialStateMigrator({
+    allowPartialUpgrades = true,
+    shouldUpgradeAbstractComponents = false,
+  }) {
+    this.allowPartialUpgrades = allowPartialUpgrades;
+    this.shouldUpgradeAbstractComponents = shouldUpgradeAbstractComponents;
+    this.methodToMigrate = 'getInitialState';
+    this.migrateTo = 'initialState';
   }
 }

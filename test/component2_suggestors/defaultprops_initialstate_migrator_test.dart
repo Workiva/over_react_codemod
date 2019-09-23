@@ -92,11 +92,18 @@ void componentDidUpdateTests({
   bool shouldUpgradeAbstractComponents = false,
   methodToMigrate,
 }) {
-  final testSuggestor = getSuggestorTester(DefaultPropsInitialStateMigrator(
-    allowPartialUpgrades: allowPartialUpgrades,
-    shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
-    methodToMigrate: methodToMigrate,
-  ));
+  SuggestorTester testSuggestor;
+  if (methodToMigrate == 'getDefaultProps') {
+    testSuggestor = getSuggestorTester(DefaultPropsMigrator(
+      allowPartialUpgrades: allowPartialUpgrades,
+      shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+    ));
+  } else {
+    testSuggestor = getSuggestorTester(InitialStateMigrator(
+      allowPartialUpgrades: allowPartialUpgrades,
+      shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+    ));
+  }
 
   String migrateTo;
   String subMethod;
