@@ -79,12 +79,9 @@ void main(List<String> args) {
   );
 
   final logger = Logger('over_react_codemod.fixmes');
-  for (var dartFile in query.generateFilePaths()) {
-    final dartSource = File(dartFile).readAsStringSync();
-    if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
-      logger.severe(
-          'over_react_codemod validation comments are unaddressed in $dartFile');
-      exitCode = 1;
-    }
+
+  if (hasUnaddressedReact16Comment(query,
+      shouldLogFile: true, logger: logger)) {
+    exitCode = 1;
   }
 }

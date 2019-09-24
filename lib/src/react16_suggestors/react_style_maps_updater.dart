@@ -237,20 +237,20 @@ String getString({
     if (affectedValues.isNotEmpty) {
       return '''
       $variableCheckboxWithAffectedValues
-      $styleMapExample
+      $styleMapComment
       $willBeRemovedSuffix
       ''';
     } else {
       return '''
       $variableCheckbox
-      $styleMapExample
+      $styleMapComment
       $willBeRemovedSuffix
       ''';
     }
   } else if (isAFunction) {
     return '''
        $functionCheckbox
-       $styleMapExample
+       $styleMapComment
        $willBeRemovedSuffix
        ''';
   } else {
@@ -258,13 +258,13 @@ String getString({
       return '''
     
       $checkboxWithAffectedValues
-      $styleMapExample
+      $styleMapComment
       $willBeRemovedSuffix
       ''';
     } else {
       return '''
       $checkboxWithAffectedValues
-      $styleMapExample
+      $styleMapComment
       $willBeRemovedSuffix
       ''';
     }

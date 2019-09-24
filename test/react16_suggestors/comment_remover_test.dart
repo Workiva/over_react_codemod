@@ -18,85 +18,61 @@ import 'package:test/test.dart';
 
 import '../util.dart';
 
+const manualCheckedStyleMapString = '// [x] Check this box upon manual '
+    'validation that this style map uses a valid value for the keys that are '
+    'numbers.';
+
+const manualCheckedRefString = '// [x] Check this box upon manual validation of'
+    ' this ref and its typing. $willBeRemovedCommentSuffix';
+
 main() {
   group('DependencyOverrideUpdater', () {
-    final testSuggestor = getSuggestorTester(
-        CommentRemover([manualValidationCommentSubstring,
-          styleMapExample,
-          'Incorrect value for',
-          'CSS number strings are no longer auto-converted to px',
-          willBeRemovedCommentSuffix,
-        ]));
+    final testSuggestor =
+        getSuggestorTester(CommentRemover(react16CommentsToRemove));
 
-    test('does not update an empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
-    });
+    group('when removing style map comments', () {
+      test('does not update an empty file', () {
+        testSuggestor(expectedPatchCount: 0, input: '');
+      });
 
-    test('does not update when there are no matches', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
+      test('does not update when there are no matches', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
           class test extends UiComponent {
             // Hello!
           }
         ''',
-      );
-    });
-
-    test('updates when there is a basic comment', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
-          class test extends UiComponent {
-            // [] ${manualValidationCommentSubstring}
-          }
-        ''',
-        expectedOutput: '''
-          class test extends UiComponent {
-          }
-        ''',
-      );
-    });
-
-    test('when there are two comments in the same file', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
-          class test extends UiComponent {
-            // [] ${manualValidationCommentSubstring}
-          }
-        ''',
-        expectedOutput: '''
-          class test extends UiComponent {
-          }
-        ''',
-      );
-    });
-
-    group('a multiline comment', () {
-      test('with an unchecked box', () {
-        testSuggestor(
-          expectedPatchCount: 4,
-          input: '''
-          class test extends UiComponent {
-            var test = Foo()
-             // [ ] Check this box upon manual validation that this style map uses a valid value for the keys that are numbers.
-             $styleMapExample
-             //$willBeRemovedCommentSuffix
-             ..style = {};
-            }
-          ''',
         );
       });
 
-      test('with a checked box', () {
+      test('updates when there is a basic comment', () {
         testSuggestor(
-          expectedPatchCount: 4,
+          expectedPatchCount: 1,
           input: '''
           class test extends UiComponent {
             var test = Foo()
-             // [x] Check this box upon manual validation that this style map uses a valid value for the keys that are numbers.
-             $styleMapExample
+            // [x] ${manualValidationCommentSubstring}
+            ..style = {};
+          }
+        ''',
+          expectedOutput: '''
+          class test extends UiComponent {
+            var test = Foo()
+            ..style = {};
+          }
+        ''',
+        );
+      });
+
+      test('updates when there is a multiline comment', () {
+        testSuggestor(
+          expectedPatchCount: 3,
+          input: '''
+          class test extends UiComponent {
+            var test = Foo()
+             $manualCheckedStyleMapString
+             $styleMapExplanation
              //$willBeRemovedCommentSuffix
              ..style = {};
             }
@@ -105,6 +81,47 @@ main() {
             class test extends UiComponent {
               var test = Foo()
               ..style = {};
+            }
+          ''',
+        );
+      });
+    });
+
+    group('when removing react_dom.render comments', () {
+      test('does not update an empty file', () {
+        testSuggestor(expectedPatchCount: 0, input: '');
+      });
+
+      test('does not update when there are no matches', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+          void main() {
+            // Hello!
+          }
+        ''',
+        );
+      });
+
+      test('updates when there is a basic comment', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            main() {
+              var instance;
+              $manualCheckedRefString
+              react_dom.render(ErrorBoundary()((Foo()
+                ..ref = (ref) { instance = ref; }
+              )()), mountNode);
+            }
+          ''',
+          expectedOutput: '''
+            main() {
+              var instance;
+              
+              react_dom.render(ErrorBoundary()((Foo()
+                ..ref = (ref) { instance = ref; }
+              )()), mountNode);
             }
           ''',
         );

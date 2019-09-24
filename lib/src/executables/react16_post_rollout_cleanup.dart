@@ -14,12 +14,12 @@
 
 import 'dart:io';
 
-import 'package:logging/logging.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/react16_suggestors/comment_remover.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -34,12 +34,19 @@ Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
-  const commentStringToRemove = willBeRemovedCommentSuffix;
-
-  // Update Pubspec
   final reactVersionConstraint = VersionConstraint.parse('^5.1.0');
-  final overReactVersionConstraint =
-  VersionConstraint.parse('^3.1.0');
+  final overReactVersionConstraint = VersionConstraint.parse('^3.1.0');
+
+  final query = FileQuery.dir(
+    pathFilter: isDartFile,
+    recursive: true,
+  );
+
+  if (hasUnaddressedReact16Comment(query)) {
+    throw Exception('There are still unaddressed comments from the '
+        'React 16 upgrade codemod. These should be addressed before cleaup is'
+        ' attempted.');
+  }
 
   final pubspecYamlQuery = FileQuery.dir(
     pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
@@ -58,32 +65,15 @@ void main(List<String> args) {
     changesRequiredOutput: _changesRequiredOutput,
   );
 
-  if (exitCode != 0) {
-    return;
-  }
+  if (exitCode != 0) return;
 
-  // Update Componentry
-  final query = FileQuery.dir(
-    pathFilter: isDartFile,
-    recursive: true,
-  );
   exitCode = runInteractiveCodemodSequence(
     query,
     [
-      CommentRemover(commentStringToRemove)
+      CommentRemover(react16CommentsToRemove),
     ],
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
-
-  final logger = Logger('over_react_codemod.fixmes');
-  for (var dartFile in query.generateFilePaths()) {
-    final dartSource = File(dartFile).readAsStringSync();
-    if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
-      logger.severe(
-          'over_react_codemod validation comments are unaddressed in $dartFile');
-      exitCode = 1;
-    }
-  }
 }

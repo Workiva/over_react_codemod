@@ -22,28 +22,22 @@ import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart
 class CommentRemover extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-
   /// The list of comments to be removed if found.
-  final List<String> commentsToRemove;
+  final List<RegExp> commentsToRemove;
 
-  /// The list of comments that should cause the codemod to not yield patches
-  /// in this file.
-  final List<String> shortCircuitComments;
-
-  CommentRemover(this.commentsToRemove, [this.shortCircuitComments = const []]);
+  CommentRemover(this.commentsToRemove);
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
-    super.visitClassDeclaration(node);
+  visitCompilationUnit(CompilationUnit node) {
+    super.visitCompilationUnit(node);
     for (Token comment in allComments(node.root.beginToken)) {
       if (comment != null) {
-        final commentValue = comment.toString().toLowerCase();
+        final commentValue = comment.toString();
 
-        if (shortCircuitComments.contains(commentValue)) return;
-
-        for (String commentToRemove in commentsToRemove) {
-          if (commentValue.contains(RegExp(commentToRemove.toLowerCase()))) {
+        for (RegExp commentToRemove in commentsToRemove) {
+          if (commentValue.contains(commentToRemove)) {
             yieldPatch(comment.offset, comment.end, '');
+            break;
           }
         }
       }
