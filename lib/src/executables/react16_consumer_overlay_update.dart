@@ -30,6 +30,7 @@ void main(List<String> args) {
     pathFilter: isDartFile,
     recursive: true,
   );
+
   exitCode = runInteractiveCodemodSequence(
     query,
     [
