@@ -15,6 +15,7 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/react16_suggestors/comment_remover.dart';
@@ -30,19 +31,20 @@ const _changesRequiredOutput = """
   pub global activate over_react_codemod
   pub global run over_react_codemod:react16_post_rollout_cleanup
   pub run dart_dev format (if you format this repository).
-Then, review the the changes, address any FIXMEs, and commit.
+  Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
   final reactVersionConstraint = VersionConstraint.parse('^5.1.0');
   final overReactVersionConstraint = VersionConstraint.parse('^3.1.0');
+  final logger = Logger('over_react_codemod.fixmes');
 
   final query = FileQuery.dir(
     pathFilter: isDartFile,
     recursive: true,
   );
 
-  if (hasUnaddressedReact16Comment(query)) {
+  if (hasUnaddressedReact16Comment(query, logger: logger)) {
     throw Exception('There are still unaddressed comments from the '
         'React 16 upgrade codemod. These should be addressed before cleaup is'
         ' attempted.');

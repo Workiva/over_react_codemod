@@ -52,7 +52,7 @@ main() {
           input: '''
           class test extends UiComponent {
             var test = Foo()
-            // [x] ${manualValidationCommentSubstring}
+            $manualCheckedStyleMapString
             ..style = {};
           }
         ''',

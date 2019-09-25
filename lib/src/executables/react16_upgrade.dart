@@ -32,7 +32,7 @@ const _changesRequiredOutput = """
   pub global activate over_react_codemod
   pub global run over_react_codemod:react16_upgrade
   pub run dart_dev format (if you format this repository).
-Then, review the the changes, address any FIXMEs, and commit.
+  Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
@@ -80,8 +80,7 @@ void main(List<String> args) {
 
   final logger = Logger('over_react_codemod.fixmes');
 
-  if (hasUnaddressedReact16Comment(query,
-      shouldLogFile: true, logger: logger)) {
+  if (hasUnaddressedReact16Comment(query, logger: logger)) {
     exitCode = 1;
   }
 }

@@ -113,23 +113,21 @@ Iterable<Token> allComments(Token beginToken) sync* {
   }
 }
 
-bool hasUnaddressedReact16Comment(FileQuery query,
-    {bool shouldLogFile = false, Logger logger}) {
+/// Returns whether or not there is a React 16 upgrade comment within a
+/// project that is unaddressed.
+bool hasUnaddressedReact16Comment(FileQuery query, {Logger logger}) {
   bool hasUnaddressedComment = false;
-
-  if (shouldLogFile && logger == null) {
-    throw ArgumentError('A logger is required to log the file path.');
-  }
 
   for (var dartFile in query.generateFilePaths()) {
     final dartSource = File(dartFile).readAsStringSync();
     if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
-      if (shouldLogFile) {
+      if (logger != null) {
         logger.severe(
             'over_react_codemod validation comments are unaddressed in $dartFile');
       }
 
       hasUnaddressedComment = true;
+      break;
     }
   }
 
