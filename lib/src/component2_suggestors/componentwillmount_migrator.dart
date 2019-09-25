@@ -71,8 +71,9 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
             node.body is BlockFunctionBody) {
           NodeList statementList =
               (node.body as BlockFunctionBody).block.statements;
+
           statementList.forEach((statement) {
-            if (statement.toString().startsWith('super.componentWillMount()')) {
+            if (statement.toSource().startsWith('super.componentWillMount()')) {
               yieldPatch(
                 statement.offset,
                 statement.end,

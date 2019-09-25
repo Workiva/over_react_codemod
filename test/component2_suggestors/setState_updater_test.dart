@@ -126,6 +126,7 @@ setStateTests({
                 @override
                 componentWillReceiveProps(Map newProps) {
                   super.componentWillReceiveProps(newProps);
+                  
                   setState((prevState, props) {
                     // return ...;
                   });
@@ -138,6 +139,7 @@ setStateTests({
                 @override
                 componentWillReceiveProps(Map newProps) {
                   super.componentWillReceiveProps(newProps);
+                  
                   ${allowPartialUpgrades ? 'setStateWithUpdater' : 'setState'}((prevState, props) {
                     // return ...;
                   });
@@ -336,6 +338,7 @@ setStateTests({
             @override
             componentWillReceiveProps(Map newProps) {
               super.componentWillReceiveProps(newProps);
+              
               setState((prevState, props) {
                 // return ...;
               });
