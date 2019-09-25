@@ -16,14 +16,34 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 
+import '../constants.dart';
+
 /// Suggestor that migrates consumer overlay prop names in component usages.
 class ConsumerOverlayMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
+  visitCascadeExpression(CascadeExpression node) {
+    super.visitCascadeExpression(node);
 
+    // Check if usage is in a component class.
+    final containingClass = node.thisOrAncestorOfType<ClassDeclaration>();
+    if (!containingClass.metadata.any((m) =>
+        overReact16ComponentAnnotationNamesToMigrate.contains(m.name.name))) {
+      return;
+    }
 
+    // Update consumer overlay props.
+    for (AssignmentExpression expression
+        in node.cascadeSections.whereType<AssignmentExpression>()) {
+      final leftHandSide = expression.leftHandSide;
+
+      if (leftHandSide.toSource() == '..overlay' ||
+          leftHandSide.toSource() == '..isOverlay') {
+        yieldPatch(leftHandSide.end, leftHandSide.end, '2');
+      } else if (leftHandSide.toSource() == '..useLegacyPositioning') {
+        yieldPatch(expression.offset, expression.end, '');
+      }
+    }
   }
 }
