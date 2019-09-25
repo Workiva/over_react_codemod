@@ -20,7 +20,7 @@ import 'package:over_react_codemod/src/react16_suggestors/consumer_overlay_migra
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
-  pub global run over_react_codemod:react16_consumer_overlays_update
+  pub global run over_react_codemod:react16_consumer_overlay_update
   pub run dart_dev format (If you format this repository).
 Then, review the the changes, address any FIXMEs, and commit.
 """;

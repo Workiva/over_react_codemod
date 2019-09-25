@@ -28,8 +28,10 @@ class ConsumerOverlayMigrator extends GeneralizingAstVisitor
 
     // Check if usage is in a component class.
     final containingClass = node.thisOrAncestorOfType<ClassDeclaration>();
-    if (!containingClass.metadata.any((m) =>
-        overReact16ComponentAnnotationNamesToMigrate.contains(m.name.name))) {
+    if (containingClass?.metadata != null &&
+        !containingClass.metadata.any((m) =>
+            overReact16ComponentAnnotationNamesToMigrate
+                .contains(m.name.name))) {
       return;
     }
 
