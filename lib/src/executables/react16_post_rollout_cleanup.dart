@@ -60,7 +60,7 @@ void main(List<String> args) {
     AggregateSuggestor([
       PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
       PubspecOverReactUpgrader(overReactVersionConstraint,
-          shouldAddDependencies: false)
+          shouldAddDependencies: false),
     ]),
     args: args,
     defaultYes: true,
@@ -71,9 +71,7 @@ void main(List<String> args) {
 
   exitCode = runInteractiveCodemodSequence(
     query,
-    [
-      CommentRemover(react16CommentsToRemove),
-    ],
+    [CommentRemover(react16CommentsToRemove)],
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
