@@ -35,28 +35,3 @@ String getDeperecationMessage(String methodName) {
   ///
   $revertInstructions''';
 }
-
-final componentWillMountMessage = '''
-  /// FIXME: Method has been updated from `componentWillMount` to `componentDidMount`. Please check if super call should be added, updated, or removed.''';
-
-final deprecatedLifecycleMethods = [
-  'componentWillMount',
-  'componentWillReceiveProps',
-  'componentWillUpdate',
-];
-
-final lifecycleMethodsWithCodemods = [
-  'componentWillMount',
-  'componentDidUpdate',
-];
-
-final componentClassNames = [
-  'UiComponent',
-  'UiComponent2',
-  'UiStatefulComponent',
-  'UiStatefulComponent2',
-  'FluxUiComponent',
-  'FluxUiComponent2',
-  'FluxUiStatefulComponent',
-  'FluxUiStatefulComponent2',
-];

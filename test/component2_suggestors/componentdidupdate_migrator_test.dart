@@ -111,7 +111,7 @@ void componentDidUpdateTests({
         );
       });
 
-      test('-- has deprecated lifecycle methods without codemods', () {
+      test('-- has lifecycle methods without codemods', () {
         testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 1 : 0,
           input: '''
@@ -122,7 +122,7 @@ void componentDidUpdateTests({
               }
               
               @override
-              componentWillReceiveProps() {}
+              componentWillUnmount() {}
             }
           ''',
           expectedOutput: '''
@@ -133,7 +133,7 @@ void componentDidUpdateTests({
               }
               
               @override
-              componentWillReceiveProps() {}
+              componentWillUnmount() {}
             }
           ''',
         );
@@ -197,7 +197,7 @@ void componentDidUpdateTests({
           );
         });
 
-        test('-- has deprecated lifecycle methods without codemods', () {
+        test('-- has lifecycle methods without codemods', () {
           testSuggestor(
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
@@ -209,7 +209,7 @@ void componentDidUpdateTests({
                 }
                 
                 @override
-                componentWillUpdate() {}
+                componentWillUnmount() {}
               }
             ''',
             expectedOutput: '''
@@ -220,7 +220,7 @@ void componentDidUpdateTests({
                 }
                 
                 @override
-                componentWillUpdate() {}
+                componentWillUnmount() {}
               }
             ''',
           );

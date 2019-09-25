@@ -28,16 +28,16 @@ main() {
   });
 
   group('DeprecatedLifecycleSuggestor with --upgrade-abstract-components flag',
-      () {
-    deprecatedLifecycleTests(shouldUpgradeAbstractComponents: true);
-  });
+          () {
+        deprecatedLifecycleTests(shouldUpgradeAbstractComponents: true);
+      });
 
   group(
       'DeprecatedLifecycleSuggestor with --no-partial-upgrades and --upgrade-abstract-components flag',
-      () {
-    deprecatedLifecycleTests(
-        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
-  });
+          () {
+        deprecatedLifecycleTests(
+            allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
+      });
 }
 
 deprecatedLifecycleTests({
@@ -65,18 +65,18 @@ deprecatedLifecycleTests({
   });
 
   group('${allowPartialUpgrades ? 'adds' : 'does not add'} a FIXME comment',
-      () {
-    test('for componentWillUpdate with override', () {
-      testSuggestor(
-        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
-        input: '''
+          () {
+        test('for componentWillUpdate with override', () {
+          testSuggestor(
+            expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+            input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
             @override
             componentWillUpdate(){}
           }
         ''',
-        expectedOutput: '''
+            expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
             ${allowPartialUpgrades ? getDeperecationMessage('componentWillUpdate') : ''}
@@ -84,40 +84,40 @@ deprecatedLifecycleTests({
             componentWillUpdate(){}
           }
         ''',
-      );
-    });
+          );
+        });
 
-    test('componentWillUpdate without override', () {
-      testSuggestor(
-        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
-        input: '''
+        test('componentWillUpdate without override', () {
+          testSuggestor(
+            expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+            input: '''
           @Component2()
           class FooComponent extends FluxUiComponent2 {
             componentWillUpdate(){}
           }
         ''',
-        expectedOutput: '''
+            expectedOutput: '''
           @Component2()
           class FooComponent extends FluxUiComponent2 {
             ${allowPartialUpgrades ? getDeperecationMessage('componentWillUpdate') : ''}
             componentWillUpdate(){}
           }
         ''',
-      );
-    });
+          );
+        });
 
-    test('componentWillUpdate in an abstract class', () {
-      testSuggestor(
-        expectedPatchCount:
+        test('componentWillUpdate in an abstract class', () {
+          testSuggestor(
+            expectedPatchCount:
             allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
-        input: '''
+            input: '''
           @Component2
           class FooComponent<BarProps> extends FluxUiComponent2<FooProps> {
             @override
             componentWillUpdate(){}
           }
         ''',
-        expectedOutput: '''
+            expectedOutput: '''
           @Component2
           class FooComponent<BarProps> extends FluxUiComponent2<FooProps> {
             ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? getDeperecationMessage('componentWillUpdate') : ''}
@@ -125,20 +125,20 @@ deprecatedLifecycleTests({
             componentWillUpdate(){}
           }
         ''',
-      );
-    });
+          );
+        });
 
-    test('componentWillReceiveProps with override', () {
-      testSuggestor(
-        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
-        input: '''
+        test('componentWillReceiveProps with override', () {
+          testSuggestor(
+            expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+            input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
             @override
             componentWillReceiveProps(){}
           }
         ''',
-        expectedOutput: '''
+            expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
             ${allowPartialUpgrades ? getDeperecationMessage('componentWillReceiveProps') : ''}
@@ -146,40 +146,40 @@ deprecatedLifecycleTests({
             componentWillReceiveProps(){}
           }
         ''',
-      );
-    });
+          );
+        });
 
-    test('componentWillReceiveProps without override', () {
-      testSuggestor(
-        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
-        input: '''
+        test('componentWillReceiveProps without override', () {
+          testSuggestor(
+            expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+            input: '''
           @Component2()
           class FooComponent extends FluxUiStatefulComponent2 {
             componentWillReceiveProps(){}
           }
         ''',
-        expectedOutput: '''
+            expectedOutput: '''
           @Component2()
           class FooComponent extends FluxUiStatefulComponent2 {
             ${allowPartialUpgrades ? getDeperecationMessage('componentWillReceiveProps') : ''}
             componentWillReceiveProps(){}
           }
         ''',
-      );
-    });
+          );
+        });
 
-    test('componentWillReceiveProps in an abstract class', () {
-      testSuggestor(
-        expectedPatchCount:
+        test('componentWillReceiveProps in an abstract class', () {
+          testSuggestor(
+            expectedPatchCount:
             allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
-        input: '''
+            input: '''
           @AbstractComponent2()
           abstract class FooComponent extends FluxUiStatefulComponent2 {
             @override
             componentWillReceiveProps(){}
           }
         ''',
-        expectedOutput: '''
+            expectedOutput: '''
           @AbstractComponent2()
           abstract class FooComponent extends FluxUiStatefulComponent2 {
             ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? getDeperecationMessage('componentWillReceiveProps') : ''}
@@ -187,15 +187,15 @@ deprecatedLifecycleTests({
             componentWillReceiveProps(){}
           }
         ''',
-      );
-    });
+          );
+        });
 
-    test(
-        'when both componentWillUpdate and componentWillReceiveProps is present',
-        () {
-      testSuggestor(
-        expectedPatchCount: allowPartialUpgrades ? 2 : 0,
-        input: '''
+        test(
+            'when both componentWillUpdate and componentWillReceiveProps is present',
+                () {
+              testSuggestor(
+                expectedPatchCount: allowPartialUpgrades ? 2 : 0,
+                input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
             @override
@@ -205,7 +205,7 @@ deprecatedLifecycleTests({
             componentWillReceiveProps(){}
           }
         ''',
-        expectedOutput: '''
+                expectedOutput: '''
           @Component2()
           class FooComponent extends UiComponent2 {
             ${allowPartialUpgrades ? getDeperecationMessage('componentWillUpdate') : ''}
@@ -217,7 +217,7 @@ deprecatedLifecycleTests({
             componentWillReceiveProps(){}
           }
         ''',
-      );
-    });
-  });
+              );
+            });
+      });
 }

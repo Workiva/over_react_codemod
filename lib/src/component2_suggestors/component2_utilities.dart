@@ -15,7 +15,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 
 import '../constants.dart';
-import 'component2_constants.dart';
 
 /// Returns the import namespace of the import referencing [uri].
 String getImportNamespace(AstNode node, String uri) {
@@ -80,6 +79,17 @@ bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
   String reactImportName =
       getImportNamespace(classNode, 'package:react/react.dart');
 
+  var componentClassNames = [
+    'UiComponent',
+    'UiComponent2',
+    'UiStatefulComponent',
+    'UiStatefulComponent2',
+    'FluxUiComponent',
+    'FluxUiComponent2',
+    'FluxUiStatefulComponent',
+    'FluxUiStatefulComponent2',
+  ];
+
   if (reactImportName != null) {
     componentClassNames.add('$reactImportName.Component');
     componentClassNames.add('$reactImportName.Component2');
@@ -89,11 +99,32 @@ bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
     return false;
   }
 
-  // Check that all deprecated lifecycle methods contained in the class will be
+  // Check that all lifecycle methods contained in the class will be
   // updated by a codemod.
+  final lifecycleMethods = [
+    'componentWillMount',
+    'componentWillReceiveProps',
+    'componentWillUpdate',
+    'getDerivedStateFromError',
+    'getDerivedStateFromProps',
+    'getSnapshotBeforeUpdate',
+    'shouldComponentUpdate',
+    'render',
+    'componentDidMount',
+    'componentDidUpdate',
+    'componentWillUnmount',
+    'componentDidCatch',
+  ];
+
+  var lifecycleMethodsWithCodemods = [
+    'componentWillMount',
+    'render',
+    'componentDidUpdate',
+  ];
+
   for (var member in classNode.members) {
     if (member is MethodDeclaration &&
-        deprecatedLifecycleMethods.contains(member.name.name) &&
+        lifecycleMethods.contains(member.name.name) &&
         !lifecycleMethodsWithCodemods.contains(member.name.name)) {
       return false;
     }
