@@ -28,16 +28,16 @@ main() {
 
   group(
       'CopyUnconsumedDomPropsMigrator with --upgrade-abstract-components flag',
-          () {
-        copyUnconsumedDomPropsTests(shouldUpgradeAbstractComponents: true);
-      });
+      () {
+    copyUnconsumedDomPropsTests(shouldUpgradeAbstractComponents: true);
+  });
 
   group(
       'CopyUnconsumedDomPropsMigrator with --no-partial-upgrades and --upgrade-abstract-components flag',
-          () {
-        copyUnconsumedDomPropsTests(
-            allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
-      });
+      () {
+    copyUnconsumedDomPropsTests(
+        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
+  });
 }
 
 copyUnconsumedDomPropsTests({
@@ -95,7 +95,7 @@ copyUnconsumedDomPropsTests({
 
     group(
         '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
-            'containing class is not fully upgradable', () {
+        'containing class is not fully upgradable', () {
       test('-- extends from non-Component class', () {
         testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
@@ -162,10 +162,10 @@ copyUnconsumedDomPropsTests({
     group('in an abstract class', () {
       test(
           'that is fully upgradable ${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
-              () {
-            testSuggestor(
-              expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
-              input: '''
+          () {
+        testSuggestor(
+          expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
+          input: '''
             @Component2
             class FooComponent<BarProps> extends UiComponent2<FooProps> {
               @override
@@ -176,7 +176,7 @@ copyUnconsumedDomPropsTests({
               }
             }
           ''',
-              expectedOutput: '''
+          expectedOutput: '''
             @Component2
             class FooComponent<BarProps> extends UiComponent2<FooProps> {
               @override
@@ -187,17 +187,17 @@ copyUnconsumedDomPropsTests({
               }
             }
           ''',
-            );
-          });
+        );
+      });
 
       group(
           'that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
-              () {
-            test('-- extends from non-Component class', () {
-              testSuggestor(
-                expectedPatchCount:
+          () {
+        test('-- extends from non-Component class', () {
+          testSuggestor(
+            expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
-                input: '''
+            input: '''
               @AbstractComponent2()
               abstract class FooComponent extends SomeOtherClass {
                 @override
@@ -208,7 +208,7 @@ copyUnconsumedDomPropsTests({
                 }
               }
             ''',
-                expectedOutput: '''
+            expectedOutput: '''
               @AbstractComponent2()
               abstract class FooComponent extends SomeOtherClass {
                 @override
@@ -219,14 +219,14 @@ copyUnconsumedDomPropsTests({
                 }
               }
             ''',
-              );
-            });
+          );
+        });
 
-            test('-- has lifecycle methods without codemods', () {
-              testSuggestor(
-                expectedPatchCount:
+        test('-- has lifecycle methods without codemods', () {
+          testSuggestor(
+            expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
-                input: '''
+            input: '''
               @AbstractProps()
               class AbstractFooProps extends UiProps {}
               
@@ -243,7 +243,7 @@ copyUnconsumedDomPropsTests({
                 componentWillUnmount() {}
               }
             ''',
-                expectedOutput: '''
+            expectedOutput: '''
               @AbstractProps()
               class AbstractFooProps extends UiProps {}
               
@@ -260,9 +260,9 @@ copyUnconsumedDomPropsTests({
                 componentWillUnmount() {}
               }
             ''',
-              );
-            });
-          });
+          );
+        });
+      });
     });
   });
 
@@ -299,7 +299,7 @@ copyUnconsumedDomPropsTests({
 
     group(
         '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
-            'containing class is not fully upgradable', () {
+        'containing class is not fully upgradable', () {
       test('-- extends from non-Component class', () {
         testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,

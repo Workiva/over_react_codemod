@@ -27,16 +27,16 @@ main() {
   });
 
   group('ComponentWillMountMigrator with --upgrade-abstract-components flag',
-          () {
-        componentWillMountTests(shouldUpgradeAbstractComponents: true);
-      });
+      () {
+    componentWillMountTests(shouldUpgradeAbstractComponents: true);
+  });
 
   group(
       'ComponentWillMountMigrator with --no-partial-upgrades and --upgrade-abstract-components flag',
-          () {
-        componentWillMountTests(
-            allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
-      });
+      () {
+    componentWillMountTests(
+        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
+  });
 }
 
 componentWillMountTests({
@@ -88,7 +88,7 @@ componentWillMountTests({
 
     group(
         '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
-            'containing class is not fully upgradable', () {
+        'containing class is not fully upgradable', () {
       test('-- extends from non-Component class', () {
         testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 1 : 0,
@@ -143,10 +143,10 @@ componentWillMountTests({
     group('in an abstract class', () {
       test(
           'that is fully upgradable ${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
-              () {
-            testSuggestor(
-              expectedPatchCount: shouldUpgradeAbstractComponents ? 1 : 0,
-              input: '''
+          () {
+        testSuggestor(
+          expectedPatchCount: shouldUpgradeAbstractComponents ? 1 : 0,
+          input: '''
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
             
@@ -157,7 +157,7 @@ componentWillMountTests({
               }
             }
           ''',
-              expectedOutput: '''
+          expectedOutput: '''
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
             
@@ -168,17 +168,17 @@ componentWillMountTests({
               }
             }
           ''',
-            );
-          });
+        );
+      });
 
       group(
           'that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
-              () {
-            test('-- extends from non-Component class', () {
-              testSuggestor(
-                expectedPatchCount:
+          () {
+        test('-- extends from non-Component class', () {
+          testSuggestor(
+            expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
-                input: '''
+            input: '''
               @Component2
               class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
                 componentWillMount(){
@@ -186,7 +186,7 @@ componentWillMountTests({
                 }
               }
             ''',
-                expectedOutput: '''
+            expectedOutput: '''
               @Component2
               class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
                 ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'init' : 'componentWillMount'}(){
@@ -194,14 +194,14 @@ componentWillMountTests({
                 }
               }
             ''',
-              );
-            });
+          );
+        });
 
-            test('-- has lifecycle methods without codemods', () {
-              testSuggestor(
-                expectedPatchCount:
+        test('-- has lifecycle methods without codemods', () {
+          testSuggestor(
+            expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
-                input: '''
+            input: '''
               @AbstractComponent2()
               abstract class FooComponent extends UiComponent2 {
                 componentWillMount(){
@@ -212,7 +212,7 @@ componentWillMountTests({
                 componentWillUnmount() {}
               }
             ''',
-                expectedOutput: '''
+            expectedOutput: '''
               @AbstractComponent2()
               abstract class FooComponent extends UiComponent2 {
                 ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'init' : 'componentWillMount'}(){
@@ -223,9 +223,9 @@ componentWillMountTests({
                 componentWillUnmount() {}
               }
             ''',
-              );
-            });
-          });
+          );
+        });
+      });
     });
   });
 
@@ -331,10 +331,10 @@ componentWillMountTests({
 
     test(
         'does not remove super calls to componentWillMount for non-base extending classes',
-            () {
-          testSuggestor(
-            expectedPatchCount: allowPartialUpgrades ? 1 : 0,
-            input: '''
+        () {
+      testSuggestor(
+        expectedPatchCount: allowPartialUpgrades ? 1 : 0,
+        input: '''
           @Component2()
           class FooComponent extends SomeOtherClass {
             void componentWillMount(){
@@ -343,7 +343,7 @@ componentWillMountTests({
             }
           }
         ''',
-            expectedOutput: '''
+        expectedOutput: '''
           @Component2()
           class FooComponent extends SomeOtherClass {
             void ${allowPartialUpgrades ? 'init' : 'componentWillMount'}(){
@@ -352,12 +352,12 @@ componentWillMountTests({
             }
           }
         ''',
-          );
-        });
+      );
+    });
 
     test(
         'are ${allowPartialUpgrades ? '' : 'not '}removed if containing class'
-            ' has lifecycle methods without codemods', () {
+        ' has lifecycle methods without codemods', () {
       testSuggestor(
         expectedPatchCount: allowPartialUpgrades ? 2 : 0,
         input: '''

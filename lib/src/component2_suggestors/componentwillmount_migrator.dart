@@ -44,7 +44,7 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
       return;
     }
 
-    if(extendsComponent2(containingClass)) {
+    if (extendsComponent2(containingClass)) {
       // Update method name.
       if (node.name.name == 'componentWillMount') {
         yieldPatch(
@@ -56,7 +56,7 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
         // Remove super call if containing class extends from base classes.
         String extendsName = containingClass.extendsClause.superclass.name.name;
         String reactImportName =
-        getImportNamespace(containingClass, 'package:react/react.dart');
+            getImportNamespace(containingClass, 'package:react/react.dart');
         var componentClassNames = [
           'UiComponent2',
           'UiStatefulComponent2',
@@ -72,7 +72,7 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
           NodeList statementList =
               (node.body as BlockFunctionBody).block.statements;
           statementList.forEach((statement) {
-            if(statement.toString().startsWith('super.componentWillMount()')) {
+            if (statement.toString().startsWith('super.componentWillMount()')) {
               yieldPatch(
                 statement.offset,
                 statement.end,

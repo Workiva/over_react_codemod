@@ -32,10 +32,10 @@ main() {
 
   group(
       'SetStateUpdater with --no-partial-upgrades and --upgrade-abstract-components flag',
-          () {
-        setStateTests(
-            allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
-      });
+      () {
+    setStateTests(
+        allowPartialUpgrades: false, shouldUpgradeAbstractComponents: true);
+  });
 }
 
 setStateTests({
@@ -179,9 +179,9 @@ setStateTests({
           test('--extends from a non-Component class', () {
             testSuggestor(
               expectedPatchCount:
-              allowPartialUpgrades && shouldUpgradeAbstractComponents
-                  ? 1
-                  : 0,
+                  allowPartialUpgrades && shouldUpgradeAbstractComponents
+                      ? 1
+                      : 0,
               input: '''
                 @Component2
                 class FooComponent<BarProps> extends SomeOtherClass<FooProps> {
@@ -208,9 +208,9 @@ setStateTests({
           test('-- has lifecycle methods without codemods', () {
             testSuggestor(
               expectedPatchCount:
-              allowPartialUpgrades && shouldUpgradeAbstractComponents
-                  ? 1
-                  : 0,
+                  allowPartialUpgrades && shouldUpgradeAbstractComponents
+                      ? 1
+                      : 0,
               input: '''
                 @AbstractProps()
                 class AbstractFooProps extends UiProps {}
