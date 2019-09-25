@@ -110,6 +110,7 @@ bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
 /// * Generic parameters on component class
 /// * `@AbstractProps` in the same file
 bool canBeExtendedFrom(ClassDeclaration classNode) {
+  var a = classNode.typeParameters;
   if (classNode != null &&
       (classNode.abstractKeyword != null ||
           classNode.typeParameters != null ||
