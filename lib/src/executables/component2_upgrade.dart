@@ -29,6 +29,7 @@ const _changesRequiredOutput = """
 To update your code, switch to Dart 2.1.0 and run the following commands:
   pub global activate over_react_codemod ^1.1.0
   pub global run over_react_codemod:component2_upgrade
+  pub run dart_dev format (If you format this repository).
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
