@@ -73,8 +73,7 @@ abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
 
         if (methodBody.statements.length == 1 &&
             methodBody.statements.single is ReturnStatement) {
-          var returnStatement =
-              (methodBody.statements.single as ReturnStatement);
+          var returnStatement = methodBody.statements.single as ReturnStatement;
 
           updateSuperCalls(returnStatement.returnKeyword.end,
               returnStatement.semicolon.offset);
