@@ -45,5 +45,5 @@ executables:
   react16_upgrade:
   react16_dependency_override_update:
   react16_ci_precheck:
-  component2_upgrade:
   react16_consumer_overlay_update:
+  component2_upgrade:
