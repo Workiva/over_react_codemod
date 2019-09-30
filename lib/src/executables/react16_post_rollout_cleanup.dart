@@ -39,6 +39,12 @@ void main(List<String> args) {
   final overReactVersionConstraint = VersionConstraint.parse('^3.1.0');
   final logger = Logger('over_react_codemod.fixmes');
 
+  // Strings that correlate to the React 16 comments beginning and end. Based
+  // on the pattern used for the React 16 update, the comments should always
+  // have these strings.
+  const startingString = 'Check this box';
+  const endingString = 'complete';
+
   final query = FileQuery.dir(
     pathFilter: isDartFile,
     recursive: true,
@@ -71,7 +77,7 @@ void main(List<String> args) {
 
   exitCode = runInteractiveCodemodSequence(
     query,
-    [CommentRemover(react16CommentsToRemove)],
+    [CommentRemover(startingString, endingString)],
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,

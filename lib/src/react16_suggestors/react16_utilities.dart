@@ -127,7 +127,6 @@ bool hasUnaddressedReact16Comment(FileQuery query, {Logger logger}) {
       }
 
       hasUnaddressedComment = true;
-      break;
     }
   }
 

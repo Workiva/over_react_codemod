@@ -36,6 +36,12 @@ const overReactVersionRange = '>=2.4.0 <4.0.0';
 
 final react16CommentsToRemove = [
   RegExp(manualValidationCommentSubstring),
+  RegExp('Check this box upon manual validation that this style map is '
+      'receiving a value that is valid for the following keys: .+'),
+  RegExp('Check this box upon manual validation that this style map is '
+      'receiving a value that is valid for the keys that are simple string variables.'),
+  RegExp('Check this box upon manual validation that this style map uses a '
+      'valid value for the keys that are numbers.'),
   RegExp(styleMapExplanation),
   RegExp(styleMapExample),
   RegExp(willBeRemovedCommentSuffix),

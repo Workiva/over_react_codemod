@@ -23,23 +23,43 @@ import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart
 class CommentRemover extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  /// The list of comments to be removed if found.
-  final List<RegExp> commentsToRemove;
+  final String startString;
+  final String endString;
 
-  CommentRemover(this.commentsToRemove);
+  CommentRemover(this.startString, this.endString);
 
   @override
   visitCompilationUnit(CompilationUnit node) {
     super.visitCompilationUnit(node);
-    for (Token comment in allComments(node.root.beginToken)) {
-      if (comment != null) {
-        final commentText = sourceFile.getText(comment.offset, comment.end);
 
-        for (RegExp commentToRemove in commentsToRemove) {
-          if (commentText.contains(commentToRemove)) {
-            yieldPatch(comment.offset, comment.end, '');
-            break;
-          }
+    int startingOffset;
+    int endOfEndString;
+
+    for (var comment in allComments(node.root.beginToken)) {
+      var commentText;
+
+      if (comment != null) {
+        commentText = sourceFile.getText(comment.offset, comment.end);
+
+        if (commentText.contains(RegExp(startString)) &&
+            startingOffset == null) {
+          startingOffset = comment.offset;
+        }
+
+        if (commentText.contains(RegExp(endString)) &&
+            startingOffset != null &&
+            endOfEndString == null) {
+          endOfEndString = comment.end;
+        }
+      }
+
+      if (startingOffset != null && endOfEndString != null) {
+        try {
+          yieldPatch(startingOffset, endOfEndString, '');
+          startingOffset = null;
+          endOfEndString = null;
+        } catch (e, st) {
+          throw StateError('$e\n$st');
         }
       }
     }
