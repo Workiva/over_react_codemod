@@ -35,10 +35,8 @@ class CommentRemover extends GeneralizingAstVisitor
     int endingOffset;
 
     for (var comment in allComments(node.root.beginToken)) {
-      var commentText;
-
       if (comment != null) {
-        commentText = sourceFile.getText(comment.offset, comment.end);
+        final commentText = sourceFile.getText(comment.offset, comment.end);
 
         if (commentText.contains(RegExp(startString)) &&
             startingOffset == null) {
