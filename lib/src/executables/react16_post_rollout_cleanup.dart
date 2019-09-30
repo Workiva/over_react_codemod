@@ -16,15 +16,12 @@ import 'dart:io';
 
 import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/react16_suggestors/comment_remover.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
-
-import '../react16_suggestors/constants.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
