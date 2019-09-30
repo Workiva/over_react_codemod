@@ -15,6 +15,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/component2_suggestors/component2_utilities.dart';
 
 import '../constants.dart';
 
@@ -26,12 +27,23 @@ class ConsumerOverlayMigrator extends GeneralizingAstVisitor
   visitCascadeExpression(CascadeExpression node) {
     super.visitCascadeExpression(node);
 
-    // Check if usage is in a component class.
     final containingClass = node.thisOrAncestorOfType<ClassDeclaration>();
-    if (containingClass?.metadata != null &&
+
+    var extendsName = containingClass?.extendsClause?.superclass?.name;
+    if (extendsName == null) {
+      return;
+    }
+
+    String reactImportName =
+        getImportNamespace(containingClass, 'package:react/react.dart');
+
+    // Check if usage is in a component class.
+    if (extendsName.name != '$reactImportName.Component' &&
+        extendsName.name != '$reactImportName.Component2' &&
         !containingClass.metadata.any((m) =>
             overReact16ComponentAnnotationNamesToMigrate
-                .contains(m.name.name))) {
+                .contains(m.name.name) ||
+            overReact16Component2AnnotationNames.contains(m.name.name))) {
       return;
     }
 

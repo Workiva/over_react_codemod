@@ -68,8 +68,9 @@ main() {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
-          @Component()
-          class FooComponent extends UiComponent<FooProps> {
+          import 'package:react/react.dart' as react;
+          
+          class FooComponent extends react.Component<FooProps> {
             @override
             Map getDefaultProps() => (newProps()
               ..isFontSizeControl = false
@@ -79,8 +80,9 @@ main() {
           }
         ''',
         expectedOutput: '''
-          @Component()
-          class FooComponent extends UiComponent<FooProps> {
+          import 'package:react/react.dart' as react;
+          
+          class FooComponent extends react.Component<FooProps> {
             @override
             Map getDefaultProps() => (newProps()
               ..isFontSizeControl = false
@@ -96,8 +98,9 @@ main() {
       testSuggestor(
         expectedPatchCount: 1,
         input: '''
-          @Component()
-          class FooComponent extends UiComponent<FooProps> {
+          import 'package:react/react.dart' as react;
+          
+          class FooComponent extends react.Component2<FooProps> {
             @override
             render() {
               return (OverlayTrigger()
@@ -109,8 +112,9 @@ main() {
           }
         ''',
         expectedOutput: '''
-          @Component()
-          class FooComponent extends UiComponent<FooProps> {
+          import 'package:react/react.dart' as react;
+          
+          class FooComponent extends react.Component2<FooProps> {
             @override
             render() {
               return (OverlayTrigger()
@@ -127,7 +131,7 @@ main() {
       testSuggestor(
         expectedPatchCount: 3,
         input: '''
-          @Component()
+          @Component2()
           class FooComponent extends SomeOtherClass<FooProps> {
             @override
             Map getDefaultProps() => (newProps()
@@ -150,7 +154,7 @@ main() {
           }
         ''',
         expectedOutput: '''
-          @Component()
+          @Component2()
           class FooComponent extends SomeOtherClass<FooProps> {
             @override
             Map getDefaultProps() => (newProps()
@@ -178,8 +182,8 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
-          @Component()
-          class FooComponent extends SomeOtherClass<FooProps> {
+          @Component2()
+          class FooComponent extends UiComponent2<FooProps> {
             @override
             Map getDefaultProps() => (newProps()
               ..isFontSizeControl = false
@@ -202,7 +206,7 @@ main() {
       );
     });
 
-    test('props outside of component class', () {
+    test('not in component class', () {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
