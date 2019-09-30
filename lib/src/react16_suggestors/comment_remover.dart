@@ -32,7 +32,7 @@ class CommentRemover extends GeneralizingAstVisitor
     super.visitCompilationUnit(node);
 
     int startingOffset;
-    int endOfEndString;
+    int endingOffset;
 
     for (var comment in allComments(node.root.beginToken)) {
       var commentText;
@@ -47,16 +47,16 @@ class CommentRemover extends GeneralizingAstVisitor
 
         if (commentText.contains(RegExp(endString)) &&
             startingOffset != null &&
-            endOfEndString == null) {
-          endOfEndString = comment.end;
+            endingOffset == null) {
+          endingOffset = comment.end;
         }
       }
 
-      if (startingOffset != null && endOfEndString != null) {
+      if (startingOffset != null && endingOffset != null) {
         try {
-          yieldPatch(startingOffset, endOfEndString, '');
+          yieldPatch(startingOffset, endingOffset, '');
           startingOffset = null;
-          endOfEndString = null;
+          endingOffset = null;
         } catch (e, st) {
           throw StateError('$e\n$st');
         }
