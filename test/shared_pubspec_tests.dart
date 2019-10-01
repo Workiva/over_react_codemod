@@ -130,6 +130,22 @@ void sharedPubspecTest({
     );
   });
 
+  test('does nothing if there is no `dependencies` key', () {
+    testSuggestor(
+      expectedPatchCount: 0,
+      shouldDartfmtOutput: false,
+      validateContents: validatePubspecYaml,
+      input: ''
+          'name: nothing\n'
+          'version: 0.0.0\n'
+          '',
+      expectedOutput: ''
+          'name: nothing\n'
+          'version: 0.0.0\n'
+          '',
+    );
+  });
+
   group('updates the caret syntax', () {
     test('', () {
       testSuggestor(

@@ -63,13 +63,10 @@ class PubspecReactUpdater implements Suggestor {
               sourceFile.span(reactMatch.start, reactMatch.end),
               '  react: $newValue');
         }
-      } catch (e) {
-        // We can skip these. They are versions we don't want to mess with in this codemod.
-        if (e.toString().contains('git:') || e.toString().contains('path:')) {
-          return;
-        }
-
-        rethrow;
+      } catch(e, st){
+        if (e.toString().contains('git:')) return;
+        print(e);
+        print(st);
       }
     } else if (shouldAddDependencies) {
       // react is missing in pubspec.yaml, so add it.

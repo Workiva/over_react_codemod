@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/creator_utils.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
+import 'package:over_react_codemod/src/react16_suggestors/pubspec_updater.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -32,13 +35,29 @@ main() {
   group('PubspecReactUpdater', () {
     /// Suggestor used to test the default configurations.
     final testSuggestor = getSuggestorTester(
-        PubspecReactUpdater(VersionConstraint.parse(reactVersionRange)));
+        PubspecUpdater([DependencyCreator('react', version: reactVersionRange)],
+          shouldUpdate: (existingDep, target, sectionsFound) {
+            if (existingDep.isOverride) return false;
+            if (existingDep.version == target.version) return false;
+            return shouldUpdateVersionRange(constraint: VersionConstraint.parse(existingDep.version), targetConstraint: VersionConstraint.parse(target.version));
+          },
+          shouldAdd: (existingDeps, target, sectionsFound) {
+            var dependenciesSectionIsNotFound = !(sectionsFound?.contains('dependencies') ?? false);
+            if (dependenciesSectionIsNotFound) return false;
+            if (existingDeps.where((dep){ return dep.section == target.section; }).isNotEmpty) return false;
+            return true;
+          },
+        ));
 
-    /// Suggestor to test when the codemod should not add the dependency if
-    /// it does not encounter it.
-    final doNotAddDependencies = getSuggestorTester(PubspecReactUpdater(
-        VersionConstraint.parse(reactVersionRange),
-        shouldAddDependencies: false));
+    final doNotAddDependencies = getSuggestorTester(
+        PubspecUpdater([DependencyCreator('react', version: reactVersionRange)],
+          shouldUpdate: (existingDep, target, sectionsFound) {
+            if (existingDep.isOverride) return false;
+            if (existingDep.version == target.version) return false;
+            return shouldUpdateVersionRange(constraint: VersionConstraint.parse(existingDep.version), targetConstraint: VersionConstraint.parse(target.version));
+          },
+          shouldAdd: (existingDeps, target, sectionsFound) => false
+        ));
 
     group('when there are no special cases', () {
       sharedPubspecTest(

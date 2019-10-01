@@ -12,20 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/creator_utils.dart';
 import 'package:over_react_codemod/src/react16_suggestors/dependency_override_updater.dart';
+import 'package:over_react_codemod/src/react16_suggestors/pubspec_updater.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
 
 main() {
   group('DependencyOverrideUpdater', () {
-    final testSuggestor = getSuggestorTester(DependencyOverrideUpdater());
+    final testSuggestor = getSuggestorTester(
+        PubspecUpdater([
+          DependencyCreator('react', gitOverride: 'https://github.com/cleandart/react-dart.git', ref: '5.0.0-wip'),
+          DependencyCreator('over_react', gitOverride: 'https://github.com/Workiva/over_react.git', ref: '3.0.0-wip')
+          ],
+          shouldUpdate: (existingDep, target, sectionsFound) {
+            print(existingDep);
+            if (existingDep.isOverride) {
+              if (existingDep.gitOverride == target.gitOverride) return false;
+              return true;
+            }
+            return false;
+          },
+          shouldAdd: (existingDeps, target, sectionsFound) {
+            if (existingDeps.isEmpty) {
+              return true;
+            }
+            return false;
+          },
+        )
+    );
 
     group('adds the dependencies if', () {
       test('the pubspec is empty', () {
         // The output has a new line because the testSuggester appends one.
         testSuggestor(
-          expectedPatchCount: 2,
+          expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: '',
           expectedOutput: '\n'
@@ -44,7 +67,7 @@ main() {
 
       test('react and over_react are not dependencies', () {
         testSuggestor(
-          expectedPatchCount: 2,
+          expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           input: ''
               'dependencies:\n'
@@ -121,7 +144,7 @@ main() {
 
         test('git (HTTPS)', () {
           testSuggestor(
-            expectedPatchCount: 2,
+            expectedPatchCount: 0,
             shouldDartfmtOutput: false,
             input: ''
                 'dependencies:\n'
@@ -209,7 +232,7 @@ main() {
 
     test('adds dependency if missing', () {
       testSuggestor(
-        expectedPatchCount: 2,
+        expectedPatchCount: 1,
         shouldDartfmtOutput: false,
         input: ''
             'dependencies:\n'
@@ -244,7 +267,7 @@ main() {
 
     test('preserves existing, unrelated dependency overrides', () {
       testSuggestor(
-        expectedPatchCount: 2,
+        expectedPatchCount: 1,
         shouldDartfmtOutput: false,
         // On this test, and the following tests, idemopotency is disabled
         // because of the codemod's tendency to add a line between already the
@@ -295,7 +318,7 @@ main() {
 
     test('does not override sections after dependency_overrides', () {
       testSuggestor(
-        expectedPatchCount: 2,
+        expectedPatchCount: 1,
         shouldDartfmtOutput: false,
         testIdempotency: false,
         input: ''
@@ -349,7 +372,7 @@ main() {
 
     test('does not fail if there is no trailing new line.', () {
       testSuggestor(
-        expectedPatchCount: 2,
+        expectedPatchCount: 1,
         shouldDartfmtOutput: false,
         testIdempotency: false,
         input: ''

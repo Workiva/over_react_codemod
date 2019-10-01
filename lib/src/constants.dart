@@ -108,6 +108,12 @@ final RegExp dependencyRegExp = RegExp(
   multiLine: true,
 );
 
+/// Regex to find the dependency pubspec.yaml key.
+final RegExp devDependencyRegExp = RegExp(
+  r'^dev_dependencies:$',
+  multiLine: true,
+);
+
 /// Regex to find the dependency_overrides pubspec.yaml key.
 final RegExp dependencyOverrideRegExp = RegExp(
   r'^dependency_overrides:\s*$',

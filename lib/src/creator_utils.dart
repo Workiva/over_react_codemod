@@ -59,7 +59,7 @@ class PubspecCreator {
   void addDependency(String name,
       {String version = 'any', bool asDev = false, bool Function() shouldAdd}) {
     if (shouldAdd?.call() ?? true) {
-      dependencies.add(DependencyCreator(name, version: version, asDev: asDev));
+      dependencies.add(DependencyCreator(name, version: version, isDev: asDev));
     }
   }
 
@@ -77,16 +77,16 @@ class PubspecCreator {
         (dependencies.isNotEmpty
             ? '\ndependencies: \n' +
                 dependencies
-                    .where((dep) => !(dep.asDev || dep.asOverride))
+                    .where((dep) => !(dep.isDev || dep.isOverride))
                     .join('\n')
             : '') +
-        (dependencies.any((dep) => dep.asDev)
+        (dependencies.any((dep) => dep.isDev)
             ? '\ndev_dependencies: \n' +
-                dependencies.where((dep) => dep.asDev).join('\n')
+                dependencies.where((dep) => dep.isDev).join('\n')
             : '') +
-        (dependencies.any((dep) => dep.asOverride)
+        (dependencies.any((dep) => dep.isOverride)
             ? '\ndependency_overrides: \n' +
-                dependencies.where((dep) => dep.asOverride).join('\n')
+                dependencies.where((dep) => dep.isOverride).join('\n')
             : '') +
         '\n';
   }
@@ -98,39 +98,53 @@ class DependencyCreator {
   String ref;
   String gitOverride;
   String pathOverride;
-  bool asDev;
+  bool isDev;
+  int indentAmount;
 
   DependencyCreator(
     this.name, {
     this.version = 'any',
-    this.asDev = false,
+    this.isDev = false,
     this.gitOverride = '',
     this.pathOverride = '',
     this.ref,
+    this.indentAmount = 2,
   }) {
     if (pathOverride.isNotEmpty && gitOverride.isNotEmpty) {
       throw ArgumentError(
           'Cannot provide both git and path overrides on single dep.');
     }
-    // Check if the version string is wrapped with quotes or not and if not add them.
-    if (version.contains(RegExp('[\>\<\=\ ]')) &&
-        !version.startsWith(RegExp('[\'\"]'))) {
-      this.version = '"' + version + '"';
-    }
   }
 
-  bool get asOverride => (gitOverride.isNotEmpty || pathOverride.isNotEmpty);
+  String indentByLevel([level = 1]) {
+    return (' ' * (indentAmount*level));
+  }
+
+  String versionForOutput({String versionPrefix = " ", String overridePrefix = '\n', bool includeInitalIndent = true}){
+    if (version.contains(RegExp('[\>\<\=\ ]')) &&
+        !version.startsWith(RegExp('[\'\"]'))) {
+      return '$versionPrefix"' + version + '"';
+    } else if (isOverride) {
+      var temp = '$overridePrefix';
+      if (gitOverride.isNotEmpty) temp += '''${includeInitalIndent ? indentByLevel(2) : ''}git:\n${indentByLevel(3)}url: $gitOverride\n''';
+      if (pathOverride.isNotEmpty) temp += '''${includeInitalIndent ? indentByLevel(2) : ''}path: $pathOverride\n''';
+      if (ref != null) temp += '''${indentByLevel(3)}ref: $ref\n''';
+      return temp;
+    }
+    return version;
+  }
+
+  String get section {
+    if (isDev) return 'dev_dependencies';
+    if (isOverride) return 'dependency_overrides';
+    return 'dependencies';
+  }
+
+  bool get isOverride => (gitOverride.isNotEmpty || pathOverride.isNotEmpty);
 
   @override
   String toString() {
-    if (asOverride) {
-      var temp = '  $name:\n';
-      if (gitOverride.isNotEmpty) temp += '    git:\n      url: $gitOverride\n';
-      if (pathOverride.isNotEmpty) temp += '    path: $pathOverride\n';
-      if (ref != null) temp += '      ref: $ref\n';
-      return temp;
-    }
-    return '  $name: $version';
+    return '${indentByLevel(1)}$name:${versionForOutput()}';
   }
 }
 
