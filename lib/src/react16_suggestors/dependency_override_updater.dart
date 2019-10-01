@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
+
 import 'package:codemod/codemod.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
@@ -22,14 +24,57 @@ import '../creator_utils.dart';
 
 /// Suggestor that adds overrides for over_react and react in the pubspec.
 class DependencyOverrideUpdater implements Suggestor {
-  /// Regex that matches the `dependency_overrides:` key in a pubspec.yaml.
-  static final RegExp dependencyOverrideKey = dependencyOverrideRegExp;
+  final String reactOverrideVersion;
+  final String overReactOverrideVersion;
+
+  DependencyOverrideUpdater({
+    this.reactOverrideVersion = '^5.0.0-alpha',
+    this.overReactOverrideVersion = '^3.0.0-alpha',
+  });
 
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
     final contents = sourceFile.getText(0);
     final dependencyOverrideSectionKey =
-        dependencyOverrideKey.firstMatch(contents);
+        dependencyOverrideRegExp.firstMatch(contents);
+    final dependencyOverrideSectionStart =
+        dependencyOverrideSectionKey?.start ?? -1;
+    final dependenciesSectionStart =
+        dependencyRegExp.firstMatch(contents)?.start ?? -1;
+    final devDependenciesSectionStart =
+        devDependencyRegExp.firstMatch(contents)?.start ?? -1;
+
+    bool _isDependencyMatchWithinDependencyOverridesSection(
+        RegExpMatch dependencyMatch) {
+      if (dependencyOverrideSectionStart == -1) return false;
+      if (dependencyMatch.start < dependencyOverrideSectionStart) return false;
+      if (dependencyMatch.start > dependencyOverrideSectionStart) {
+        if (dependencyOverrideSectionStart <
+            min(dependenciesSectionStart, devDependenciesSectionStart)) {
+          // dependency_overrides is the first section
+          return dependencyMatch.start <
+              min(dependenciesSectionStart, devDependenciesSectionStart);
+        } else if (dependencyOverrideSectionStart >
+            max(dependenciesSectionStart, devDependenciesSectionStart)) {
+          // dependency_overrides is the last section
+          return dependencyMatch.start > dependencyOverrideSectionStart;
+        } else {
+          // dependency_overrides section is in the middle
+          if (dependencyOverrideSectionStart < dependenciesSectionStart) {
+            // dependency_overrides section is after dev_dependencies, but before dependencies
+            return dependencyMatch.start < dependenciesSectionStart;
+          } else if (dependencyOverrideSectionStart <
+              dependenciesSectionStart) {
+            // dependency_overrides section is after dependencies, but before dev_dependencies
+            return dependencyMatch.start < devDependenciesSectionStart;
+          }
+        }
+
+        return true;
+      }
+
+      return false;
+    }
 
     // This needs to be kept track of because the patches are applied all at
     // once, so even though we will add the dependency_override key the file
@@ -38,18 +83,15 @@ class DependencyOverrideUpdater implements Suggestor {
 
     // Each override has its own object to keep track of what the dependency
     // override is and what it needs to be overridden with.
-    // TODO update these versions to the dev branch after major release.
-    final reactDependencyOverride = DependencyCreator('react',
-        gitOverride: 'https://github.com/cleandart/react-dart.git',
-        ref: '5.0.0-wip');
+    var reactDependencyOverride = DependencyCreator('react',
+        version: reactOverrideVersion, asNonGitOrPathOverride: true);
 
-    final overReactDependencyOverride = DependencyCreator('over_react',
-        gitOverride: 'https://github.com/Workiva/over_react.git',
-        ref: '3.0.0-wip');
+    var overReactDependencyOverride = DependencyCreator('over_react',
+        version: overReactOverrideVersion, asNonGitOrPathOverride: true);
 
     final dependenciesToUpdate = [
       reactDependencyOverride,
-      overReactDependencyOverride
+      overReactDependencyOverride,
     ];
 
     YamlMap parsedYamlMap;
@@ -66,15 +108,24 @@ class DependencyOverrideUpdater implements Suggestor {
     }
 
     for (var dependencyOverride in dependenciesToUpdate) {
-      final dependency = dependencyOverride.name;
+      final dependencyName = dependencyOverride.name;
       final overrideString = dependencyOverride.toString();
 
-      if (fileContainsDependencyOverride(
-          dependency: dependency, yamlContent: parsedYamlMap)) {
+      // This dependency override already exists with the exact version... get outta here.
+      if (fileAlreadyContainsMatchingOverrideForDependency(
+          dependency: dependencyOverride, yamlContent: parsedYamlMap)) continue;
+
+      if (fileAlreadyContainsOverrideForDependency(
+          dependency: dependencyOverride, yamlContent: parsedYamlMap)) {
         // The regex that can be used to find the location of the override.
         final dependencyRegex = getDependencyRegEx(
-            dependency: dependency, yamlContent: parsedYamlMap);
-        final dependencyMatch = dependencyRegex.firstMatch(contents);
+            dependency: dependencyName, yamlContent: parsedYamlMap);
+        final dependencyMatch = dependencyRegex
+            .allMatches(contents)
+            .singleWhere(
+                (match) =>
+                    _isDependencyMatchWithinDependencyOverridesSection(match),
+                orElse: () => null);
 
         if (dependencyMatch != null) {
           // startPoint is needed because a new line would be added to the
@@ -128,17 +179,25 @@ class DependencyOverrideUpdater implements Suggestor {
   bool shouldSkip(_) => false;
 }
 
-bool fileContainsDependencyOverride(
-    {@required String dependency, @required YamlMap yamlContent}) {
+bool fileAlreadyContainsOverrideForDependency(
+    {@required DependencyCreator dependency, @required YamlMap yamlContent}) {
   if (yamlContent == null) return false;
 
   if (yamlContent['dependency_overrides'] != null) {
-    if (yamlContent['dependency_overrides'][dependency] != null) {
+    if (yamlContent['dependency_overrides'][dependency.name] != null) {
       return true;
     }
   }
 
   return false;
+}
+
+bool fileAlreadyContainsMatchingOverrideForDependency(
+    {@required DependencyCreator dependency, @required YamlMap yamlContent}) {
+  if (!fileAlreadyContainsOverrideForDependency(
+      dependency: dependency, yamlContent: yamlContent)) return false;
+  return yamlContent['dependency_overrides'][dependency.name] ==
+      dependency.version;
 }
 
 // Method that builds the RegEx that will match the dependency in the pubspec.
@@ -148,8 +207,15 @@ RegExp getDependencyRegEx(
 
   if (yamlContent['dependency_overrides'] != null) {
     if (yamlContent['dependency_overrides'][dependency] != null) {
-      // If the override uses git
-      if (yamlContent['dependency_overrides'][dependency]['git'] != null) {
+      dynamic dependencyValue = yamlContent['dependency_overrides'][dependency];
+
+      if (dependencyValue is String) {
+        // The override is simply specifying a new version.
+        return RegExp(r'''^\s*''' + dependency + r''':\s*(["']?)(.+)\1\s*$''',
+            multiLine: true);
+        // If the override uses git
+      } else if (yamlContent['dependency_overrides'][dependency]['git'] !=
+          null) {
         // A git override can either use a ref to refer to a specific branch,
         // or default to master by not specifying a particular ref.
         if (yamlContent['dependency_overrides'][dependency]['git']['ref'] !=
@@ -169,12 +235,6 @@ RegExp getDependencyRegEx(
       } else if (yamlContent['dependency_overrides'][dependency]['path'] !=
           null) {
         return RegExp(r'''^\s*(''' + dependency + r'''):\s+path:\s+(.+)$''',
-            multiLine: true);
-
-        // If this is the case then the override is simply specifying a new
-        // version.
-      } else {
-        return RegExp(r'''^\s*''' + dependency + r''':\s*(["']?)(.+)\1\s*$''',
             multiLine: true);
       }
     }
