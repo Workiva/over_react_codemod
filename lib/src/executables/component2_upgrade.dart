@@ -21,6 +21,7 @@ import 'package:over_react_codemod/src/component2_suggestors/componentwillmount_
 import 'package:over_react_codemod/src/component2_suggestors/deprecated_lifecycle_suggestor.dart';
 import 'package:over_react_codemod/src/component2_suggestors/setstate_updater.dart';
 import 'package:over_react_codemod/src/component2_suggestors/copyunconsumeddomprops_migrator.dart';
+import 'package:over_react_codemod/src/ignoreable.dart';
 
 const _noPartialUpgradesFlag = '--no-partial-upgrades';
 const _upgradeAbstractComponentsFlag = '--upgrade-abstract-components';
@@ -45,7 +46,7 @@ void main(List<String> args) {
   );
   exitCode = runInteractiveCodemodSequence(
     query,
-    [
+    <Suggestor>[
       // This suggestor needs to be run first in order for subsequent suggestors
       // to run when converting Component to Component2 for the first time.
       ClassNameAndAnnotationMigrator(
@@ -72,7 +73,7 @@ void main(List<String> args) {
         allowPartialUpgrades: allowPartialUpgrades,
         shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
       ),
-    ],
+    ].map((s) => Ignoreable(s)),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
