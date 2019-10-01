@@ -99,11 +99,13 @@ class DependencyCreator {
   String gitOverride;
   String pathOverride;
   bool asDev;
+  bool asNonGitOrPathOverride;
 
   DependencyCreator(
     this.name, {
     this.version = 'any',
     this.asDev = false,
+    this.asNonGitOrPathOverride = false,
     this.gitOverride = '',
     this.pathOverride = '',
     this.ref,
@@ -119,18 +121,21 @@ class DependencyCreator {
     }
   }
 
-  bool get asOverride => (gitOverride.isNotEmpty || pathOverride.isNotEmpty);
+  bool get asOverride =>
+      asNonGitOrPathOverride ||
+      gitOverride.isNotEmpty ||
+      pathOverride.isNotEmpty;
 
   @override
   String toString() {
-    if (asOverride) {
+    if (asOverride && !asNonGitOrPathOverride) {
       var temp = '  $name:\n';
       if (gitOverride.isNotEmpty) temp += '    git:\n      url: $gitOverride\n';
       if (pathOverride.isNotEmpty) temp += '    path: $pathOverride\n';
       if (ref != null) temp += '      ref: $ref\n';
       return temp;
     }
-    return '  $name: $version';
+    return '  $name: $version\n';
   }
 }
 

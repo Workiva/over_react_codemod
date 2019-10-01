@@ -15,6 +15,7 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/react16_suggestors/dependency_override_updater.dart';
 import 'package:path/path.dart' as p;
 
@@ -33,7 +34,7 @@ void main(List<String> args) {
 
   exitCode = runInteractiveCodemod(
     pubspecYamlQuery,
-    DependencyOverrideUpdater(),
+    Ignoreable(DependencyOverrideUpdater()),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
