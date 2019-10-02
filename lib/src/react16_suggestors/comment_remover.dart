@@ -17,8 +17,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 
-/// Suggestor that removes specific comments from files by using a `List` of
-/// `RegExp`'s to identify comments that should be removed.
+/// Suggestor that removes a block of comments based on the beginning and end
+/// of the comments.
 class CommentRemover extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
