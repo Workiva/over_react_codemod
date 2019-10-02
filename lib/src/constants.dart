@@ -104,7 +104,13 @@ final RegExp overReactDependencyRegExp = RegExp(
 
 /// Regex to find the dependency pubspec.yaml key.
 final RegExp dependencyRegExp = RegExp(
-  r'^dependencies:$',
+  r'^dependencies:\s*$',
+  multiLine: true,
+);
+
+/// Regex to find the dependency pubspec.yaml key.
+final RegExp devDependencyRegExp = RegExp(
+  r'^dev_dependencies:\s*$',
   multiLine: true,
 );
 

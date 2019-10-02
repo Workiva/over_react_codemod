@@ -15,26 +15,27 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/ignoreable.dart';
-import 'package:over_react_codemod/src/react16_suggestors/dependency_override_updater.dart';
-import 'package:path/path.dart' as p;
+import 'package:over_react_codemod/src/react16_suggestors/consumer_overlay_migrator.dart';
 
 const _changesRequiredOutput = """
-  To update your pubspec, run the following commands:
+  To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
-  pub global run over_react_codemod:react16_dependency_override_update
-Then, review the the changes and commit.
+  pub global run over_react_codemod:react16_consumer_overlay_update
+  pub run dart_dev format (If you format this repository).
+Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
-  final pubspecYamlQuery = FileQuery.dir(
-    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
+  final query = FileQuery.dir(
+    pathFilter: isDartFile,
     recursive: true,
   );
 
-  exitCode = runInteractiveCodemod(
-    pubspecYamlQuery,
-    Ignoreable(DependencyOverrideUpdater()),
+  exitCode = runInteractiveCodemodSequence(
+    query,
+    [
+      ConsumerOverlayMigrator(),
+    ],
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
