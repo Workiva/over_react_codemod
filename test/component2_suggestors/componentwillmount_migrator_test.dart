@@ -223,11 +223,11 @@ componentWillMountTests({
             class FooComponent extends UiComponent2 {
               @override
               componentDidMount() {
-                var c = 3;
-                var d = 4;
-                
                 var a = 1;
                 var b = 2;
+                
+                var c = 3;
+                var d = 4;
               }
             }
           ''',
@@ -262,11 +262,11 @@ componentWillMountTests({
               class FooComponent extends SomeOtherClass {
                 @override
                 componentDidMount() {
-                  var c = 3;
-                  var d = 4;
-                  
                   var a = 1;
                   var b = 2;
+                  
+                  var c = 3;
+                  var d = 4;
                 }
               }
             '''
@@ -317,11 +317,11 @@ componentWillMountTests({
               class FooComponent extends UiComponent2 {
                 @override
                 componentDidMount() {
-                  var c = 3;
-                  var d = 4;
-                  
                   var a = 1;
                   var b = 2;
+                  
+                  var c = 3;
+                  var d = 4;
                 }
                 
                 @override
@@ -378,12 +378,12 @@ componentWillMountTests({
               $componentWillMountMessage
               @override
               void componentDidMount() {
-                var c = 3;
-                var d = 4;
-                
                 super.componentDidMount();
                 var a = 1;
                 var b = 2;
+                
+                var c = 3;
+                var d = 4;
               }
             }
           ''',
@@ -418,12 +418,12 @@ componentWillMountTests({
               @override
               @mustCallSuper
               componentDidMount() {
+                var a = 1;
+                var b = 2;
+                
                 super.componentDidMount();
                 var c = 3;
                 var d = 4;
-                
-                var a = 1;
-                var b = 2;
               }
             }
           ''',
@@ -454,9 +454,9 @@ componentWillMountTests({
               @mustCallSuper
               @override
               componentDidMount() {
-                // `componentDidMount` method body
-                
                 // `componentWillMount` method body
+                
+                // `componentDidMount` method body
               }
             }
           ''',
@@ -486,9 +486,9 @@ componentWillMountTests({
               @override
               @mustCallSuper
               componentDidMount() {
-                var c = 3;
-                
                 var a = 1;
+                
+                var c = 3;
               }
             }
           ''',
@@ -526,11 +526,11 @@ componentWillMountTests({
           abstract class FooComponent extends SomeOtherClass {
             @override
             componentDidMount() {
-              var c = 3;
-              var d = 4;
-              
               var a = 1;
               var b = 2;
+              
+              var c = 3;
+              var d = 4;
             }
           }
         '''

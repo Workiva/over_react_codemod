@@ -80,12 +80,12 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
             hasSuperCall ? '' : 'super.componentDidMount();\n',
           );
 
-          // Move body of `componentWillMount` to end of `componentDidMount`.
+          // Move `componentWillMount` body to beginning of `componentDidMount`.
           final componentDidMountBody =
               (componentDidMountMethodDecl.body as BlockFunctionBody).block;
           yieldPatch(
-            componentDidMountBody.rightBracket.offset,
-            componentDidMountBody.rightBracket.offset,
+            componentDidMountBody.leftBracket.end,
+            componentDidMountBody.leftBracket.end,
             methodBody,
           );
         }

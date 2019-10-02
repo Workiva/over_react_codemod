@@ -80,6 +80,17 @@ bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
   String reactImportName =
       getImportNamespace(classNode, 'package:react/react.dart');
 
+  var componentClassNames = [
+    'UiComponent',
+    'UiComponent2',
+    'UiStatefulComponent',
+    'UiStatefulComponent2',
+    'FluxUiComponent',
+    'FluxUiComponent2',
+    'FluxUiStatefulComponent',
+    'FluxUiStatefulComponent2',
+  ];
+
   if (reactImportName != null) {
     componentClassNames.add('$reactImportName.Component');
     componentClassNames.add('$reactImportName.Component2');
