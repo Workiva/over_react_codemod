@@ -22,8 +22,8 @@ const willBeRemovedCommentSuffix =
 const styleMapExplanation = '// CSS number strings are no longer '
     'auto-converted to px. Ensure values are of type `num`, or have units.';
 
-const styleMapExample = '// Incorrect value for \'width\': \'40\'. Correct'
-    'values: 40, \'40px\', \'4em\'.';
+const styleMapExample =
+    "// Incorrect value for 'width': '40'. Correct values: 40, '40px', '4em'.";
 
 const styleMapComment = '''
       $styleMapExplanation

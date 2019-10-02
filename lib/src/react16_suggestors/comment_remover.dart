@@ -22,8 +22,8 @@ import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart
 class CommentRemover extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final String startString;
-  final String endString;
+  final Pattern startString;
+  final Pattern endString;
 
   CommentRemover(this.startString, this.endString);
 
@@ -35,19 +35,16 @@ class CommentRemover extends GeneralizingAstVisitor
     int endingOffset;
 
     for (var comment in allComments(node.root.beginToken)) {
-      if (comment != null) {
-        final commentText = sourceFile.getText(comment.offset, comment.end);
+      final commentText = sourceFile.getText(comment.offset, comment.end);
 
-        if (commentText.contains(RegExp(startString)) &&
-            startingOffset == null) {
-          startingOffset = comment.offset;
-        }
+      if (commentText.contains(startString) && startingOffset == null) {
+        startingOffset = comment.offset;
+      }
 
-        if (commentText.contains(RegExp(endString)) &&
-            startingOffset != null &&
-            endingOffset == null) {
-          endingOffset = comment.end;
-        }
+      if (commentText.contains(endString) &&
+          startingOffset != null &&
+          endingOffset == null) {
+        endingOffset = comment.end;
       }
 
       if (startingOffset != null && endingOffset != null) {

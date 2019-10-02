@@ -121,10 +121,8 @@ bool hasUnaddressedReact16Comment(FileQuery query, {Logger logger}) {
   for (var dartFile in query.generateFilePaths()) {
     final dartSource = File(dartFile).readAsStringSync();
     if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
-      if (logger != null) {
-        logger.severe(
-            'over_react_codemod validation comments are unaddressed in $dartFile');
-      }
+      logger?.severe(
+          'over_react_codemod validation comments are unaddressed in $dartFile');
 
       hasUnaddressedComment = true;
     }

@@ -48,9 +48,11 @@ void main(List<String> args) {
   );
 
   if (hasUnaddressedReact16Comment(query, logger: logger)) {
-    throw Exception('There are still unaddressed comments from the '
-        'React 16 upgrade codemod. These should be addressed before cleaup is'
-        ' attempted.');
+    logger.severe(
+        'There are still unaddressed comments from the React 16 upgrade codemod. '
+        'These should be addressed before cleanup is attempted.');
+    exitCode = 64;
+    return;
   }
 
   final pubspecYamlQuery = FileQuery.dir(
