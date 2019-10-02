@@ -28,20 +28,20 @@ main() {
 
 void migratorTests({String migratorName, String methodToMigrate}) {
   group('$migratorName', () {
-    componentDidUpdateTests(
+    defaultPropsInitialStateTests(
       methodToMigrate: methodToMigrate,
     );
   });
 
   group('$migratorName with --no-partial-upgrades flag', () {
-    componentDidUpdateTests(
+    defaultPropsInitialStateTests(
       methodToMigrate: methodToMigrate,
       allowPartialUpgrades: false,
     );
   });
 
   group('$migratorName with --upgrade-abstract-components flag', () {
-    componentDidUpdateTests(
+    defaultPropsInitialStateTests(
       methodToMigrate: methodToMigrate,
       shouldUpgradeAbstractComponents: true,
     );
@@ -50,7 +50,7 @@ void migratorTests({String migratorName, String methodToMigrate}) {
   group(
       '$migratorName with --no-partial-upgrades and --upgrade-abstract-components flag',
       () {
-    componentDidUpdateTests(
+    defaultPropsInitialStateTests(
       methodToMigrate: methodToMigrate,
       allowPartialUpgrades: false,
       shouldUpgradeAbstractComponents: true,
@@ -58,10 +58,10 @@ void migratorTests({String migratorName, String methodToMigrate}) {
   });
 }
 
-void componentDidUpdateTests({
+void defaultPropsInitialStateTests({
   bool allowPartialUpgrades = true,
   bool shouldUpgradeAbstractComponents = false,
-  methodToMigrate,
+  String methodToMigrate,
 }) {
   SuggestorTester testSuggestor;
   if (methodToMigrate == 'getDefaultProps') {
@@ -403,19 +403,6 @@ void componentDidUpdateTests({
         class FooComponent extends UiStatefulComponent2 {
           @override
           get $migrateTo => {};
-        }
-      ''',
-    );
-  });
-
-  test('$migrateTo method does not change if already updated', () {
-    testSuggestor(
-      expectedPatchCount: 0,
-      input: '''
-        @Component2()
-        class FooComponent extends UiStatefulComponent2 {
-          @override
-          get $migrateTo => $subMethod()..value = true;
         }
       ''',
     );
