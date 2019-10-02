@@ -48,13 +48,9 @@ class CommentRemover extends GeneralizingAstVisitor
       }
 
       if (startingOffset != null && endingOffset != null) {
-        try {
-          yieldPatch(startingOffset, endingOffset, '');
-          startingOffset = null;
-          endingOffset = null;
-        } catch (e, st) {
-          throw StateError('$e\n$st');
-        }
+        yieldPatch(startingOffset, endingOffset, '');
+        startingOffset = null;
+        endingOffset = null;
       }
     }
   }
