@@ -18,6 +18,7 @@ import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/component2_suggestors/class_name_and_annotation_migrator.dart';
 import 'package:over_react_codemod/src/component2_suggestors/componentdidupdate_migrator.dart';
 import 'package:over_react_codemod/src/component2_suggestors/componentwillmount_migrator.dart';
+import 'package:over_react_codemod/src/component2_suggestors/defaultprops_initialstate_migrator.dart';
 import 'package:over_react_codemod/src/component2_suggestors/deprecated_lifecycle_suggestor.dart';
 import 'package:over_react_codemod/src/component2_suggestors/setstate_updater.dart';
 import 'package:over_react_codemod/src/component2_suggestors/copyunconsumeddomprops_migrator.dart';
@@ -29,6 +30,7 @@ const _changesRequiredOutput = """
 To update your code, switch to Dart 2.1.0 and run the following commands:
   pub global activate over_react_codemod ^1.1.0
   pub global run over_react_codemod:component2_upgrade
+  pub run dart_dev format (If you format this repository).
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
@@ -70,6 +72,14 @@ void main(List<String> args) {
         shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
       ),
       CopyUnconsumedDomPropsMigrator(
+        allowPartialUpgrades: allowPartialUpgrades,
+        shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+      ),
+      GetDefaultPropsMigrator(
+        allowPartialUpgrades: allowPartialUpgrades,
+        shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
+      ),
+      GetInitialStateMigrator(
         allowPartialUpgrades: allowPartialUpgrades,
         shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
       ),
