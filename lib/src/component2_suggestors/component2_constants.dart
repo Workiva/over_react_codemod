@@ -35,3 +35,17 @@ String getDeperecationMessage(String methodName) {
   ///
   $revertInstructions''';
 }
+
+const componentWillMountMessage = '''
+  /// FIXME: Method has been updated from `componentWillMount` to `componentDidMount`. Please check if super call should be added, updated, or removed.''';
+
+const deprecatedLifecycleMethods = [
+  'componentWillMount',
+  'componentWillReceiveProps',
+  'componentWillUpdate',
+];
+
+const lifecycleMethodsWithCodemods = [
+  'componentWillMount',
+  'componentDidUpdate',
+];

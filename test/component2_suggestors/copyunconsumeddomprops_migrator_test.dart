@@ -124,7 +124,7 @@ copyUnconsumedDomPropsTests({
         );
       });
 
-      test('-- has lifecycle methods without codemods', () {
+      test('-- has deprecated lifecycle methods without codemods', () {
         testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
@@ -138,7 +138,7 @@ copyUnconsumedDomPropsTests({
               }
               
               @override
-              componentWillUnmount() {}
+              componentWillUpdate() {}
             }
           ''',
           expectedOutput: '''
@@ -152,7 +152,7 @@ copyUnconsumedDomPropsTests({
               }
               
               @override
-              componentWillUnmount() {}
+              componentWillUpdate() {}
             }
           ''',
         );
@@ -222,7 +222,7 @@ copyUnconsumedDomPropsTests({
           );
         });
 
-        test('-- has lifecycle methods without codemods', () {
+        test('-- has deprecated lifecycle methods without codemods', () {
           testSuggestor(
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
@@ -240,7 +240,7 @@ copyUnconsumedDomPropsTests({
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentWillUpdate() {}
               }
             ''',
             expectedOutput: '''
@@ -257,7 +257,7 @@ copyUnconsumedDomPropsTests({
                 }
                 
                 @override
-                componentWillUnmount() {}
+                componentWillUpdate() {}
               }
             ''',
           );
@@ -328,7 +328,7 @@ copyUnconsumedDomPropsTests({
         );
       });
 
-      test('-- has lifecycle methods without codemods', () {
+      test('-- has deprecated lifecycle methods without codemods', () {
         testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
@@ -344,7 +344,7 @@ copyUnconsumedDomPropsTests({
               }
               
               @override
-              componentWillUnmount() {}
+              componentWillReceiveProps() {}
             }
           ''',
           expectedOutput: '''
@@ -360,7 +360,7 @@ copyUnconsumedDomPropsTests({
               }
               
               @override
-              componentWillUnmount() {}
+              componentWillReceiveProps() {}
             }
           ''',
         );
