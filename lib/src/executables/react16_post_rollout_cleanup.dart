@@ -51,7 +51,7 @@ void main(List<String> args) {
     logger.severe(
         'There are still unaddressed comments from the React 16 upgrade codemod. '
         'These should be addressed before cleanup is attempted.');
-    exitCode = 64;
+    exitCode = 1;
     return;
   }
 
