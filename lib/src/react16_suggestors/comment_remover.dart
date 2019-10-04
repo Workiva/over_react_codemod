@@ -38,9 +38,6 @@ class CommentRemover extends GeneralizingAstVisitor
 
     for (var comment in allComments(node.root.beginToken)) {
       final commentText = sourceFile.getText(comment.offset, comment.end);
-//      final indentationLevel = comment.beginToken.charOffset;
-      Token test;
-      SourceFile test2;
 
       if (commentText.contains(startString) && startingOffset == null) {
         // Make the starting offset the end of the previous line.
