@@ -342,7 +342,7 @@ void main() {
         });
 
         group(
-            'extends a base class and contains lifecycle methods that are all updated by codemods',
+            'extends a base class and contains deprecated lifecycle methods that are all updated by codemods',
             () {
           final input = '''
             @Component
@@ -355,6 +355,9 @@ void main() {
               
               @override
               componentDidUpdate(Map prevProps, Map prevState) {}
+              
+              @override
+              shouldComponentUpdate() {}
             }
           ''';
 
@@ -451,7 +454,7 @@ void main() {
               componentDidUpdate(Map prevProps, Map prevState) {}
               
               @override
-              componentWillUnmount() {}
+              componentWillUpdate() {}
             }
           ''';
 
