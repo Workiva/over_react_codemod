@@ -41,8 +41,9 @@ dev_dependencies:
   test: ^1.5.1
 
 executables:
-  dart2_upgrade:
-  react16_upgrade:
-  react16_dependency_override_update:
-  react16_ci_precheck:
   component2_upgrade:
+  dart2_upgrade:
+  react16_ci_precheck:
+  react16_dependency_override_update:
+  react16_post_rollout_cleanup:
+  react16_upgrade:

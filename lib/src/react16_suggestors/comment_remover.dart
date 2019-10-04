@@ -13,9 +13,11 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
+import 'package:source_span/source_span.dart';
 
 /// Suggestor that removes a block of comments based on the beginning and end
 /// of the comments.
@@ -36,9 +38,14 @@ class CommentRemover extends GeneralizingAstVisitor
 
     for (var comment in allComments(node.root.beginToken)) {
       final commentText = sourceFile.getText(comment.offset, comment.end);
+//      final indentationLevel = comment.beginToken.charOffset;
+      Token test;
+      SourceFile test2;
 
       if (commentText.contains(startString) && startingOffset == null) {
-        startingOffset = comment.offset;
+        // Make the starting offset the end of the previous line.
+        startingOffset =
+            sourceFile.getOffset(sourceFile.getLine(comment.offset)) - 1;
       }
 
       if (commentText.contains(endString) &&

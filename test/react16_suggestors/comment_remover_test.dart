@@ -26,7 +26,7 @@ const manualCheckedRefString = '// [x] Check this box upon manual validation of'
     ' this ref and its typing. $willBeRemovedCommentSuffix';
 
 main() {
-  group('DependencyOverrideUpdater', () {
+  group('CommentRemover', () {
     final testSuggestor =
         getSuggestorTester(CommentRemover('Check this box', 'complete'));
 
@@ -175,6 +175,52 @@ main() {
           ''',
         );
       });
+
+      test('does not remove comments above', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+          class test extends UiComponent {
+            var test = Foo()
+             // A random comment that should not be removed.
+             $manualCheckedStyleMapString
+             $styleMapExplanation
+             //$willBeRemovedCommentSuffix
+             ..style = {};
+            }
+          ''',
+          expectedOutput: '''
+            class test extends UiComponent {
+              var test = Foo()
+              // A random comment that should not be removed.
+              ..style = {};
+            }
+          ''',
+        );
+      });
+
+      test('does not remove comments below', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+          class test extends UiComponent {
+            var test = Foo()
+             $manualCheckedStyleMapString
+             $styleMapExplanation
+             //$willBeRemovedCommentSuffix
+             // A random comment that should not be removed.
+             ..style = {};
+            }
+          ''',
+          expectedOutput: '''
+            class test extends UiComponent {
+              var test = Foo()
+              // A random comment that should not be removed.
+              ..style = {};
+            }
+          ''',
+        );
+      });
     });
 
     group('when removing react_dom.render comments', () {
@@ -193,7 +239,6 @@ main() {
           expectedOutput: '''
             main() {
               var instance;
-              
               react_dom.render(ErrorBoundary()((Foo()
                 ..ref = (ref) { instance = ref; }
               )()), mountNode);
@@ -219,7 +264,6 @@ main() {
           expectedOutput: '''
             main() {
               var instance;
-              
               react_dom.render(ErrorBoundary()((Foo()
                 ..ref = (ref) { instance = ref; }
               )()), mountNode);
