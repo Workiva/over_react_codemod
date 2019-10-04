@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:io';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:codemod/codemod.dart';
+import 'package:logging/logging.dart';
 import 'package:source_span/source_span.dart';
 
 import 'constants.dart';
@@ -107,4 +111,22 @@ Iterable<Token> allComments(Token beginToken) sync* {
     }
     currentToken = currentToken.next;
   }
+}
+
+/// Returns whether or not there is a React 16 upgrade comment within a
+/// project that is unaddressed.
+bool hasUnaddressedReact16Comment(FileQuery query, {Logger logger}) {
+  bool hasUnaddressedComment = false;
+
+  for (var dartFile in query.generateFilePaths()) {
+    final dartSource = File(dartFile).readAsStringSync();
+    if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
+      logger?.severe(
+          'over_react_codemod validation comments are unaddressed in $dartFile');
+
+      hasUnaddressedComment = true;
+    }
+  }
+
+  return hasUnaddressedComment;
 }

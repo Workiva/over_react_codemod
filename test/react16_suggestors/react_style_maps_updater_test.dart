@@ -748,16 +748,16 @@ String getCheckboxComment({
   List<String> keysOfModdedValues = const [],
 }) =>
     '''// ${checked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map uses a valid value ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are numbers.'}
-    $styleMapExample   
+    $styleMapComment   
     //$willBeRemovedCommentSuffix''';
 
 String manualVariableCheckComment(
         {List<String> keysOfModdedValues = const [], isChecked = false}) =>
     '''// ${isChecked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are simple string variables.'} 
-    $styleMapExample
+    $styleMapComment
     //$willBeRemovedCommentSuffix''';
 
 String getFunctionComment() =>
     '''// [ ] Check this box upon manual validation that the method called to set the style prop does not return any simple, unitless strings instead of nums.
-  $styleMapExample
+  $styleMapComment
   //$willBeRemovedCommentSuffix''';

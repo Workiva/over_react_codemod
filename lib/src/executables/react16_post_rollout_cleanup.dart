@@ -14,33 +14,46 @@
 
 import 'dart:io';
 
-import 'package:logging/logging.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/ignoreable.dart';
-import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react_dom_render_migrator.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react_style_maps_updater.dart';
+import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
+import 'package:over_react_codemod/src/react16_suggestors/comment_remover.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
-
-import '../react16_suggestors/constants.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
-  pub global run over_react_codemod:react16_upgrade
+  pub global run over_react_codemod:react16_post_rollout_cleanup
   pub run dart_dev format (if you format this repository).
   Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
-  // Update Pubspec
-  final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
-  final overReactVersionConstraint =
-      VersionConstraint.parse(overReactVersionRange);
+  final reactVersionConstraint = VersionConstraint.parse('^5.1.0');
+  final overReactVersionConstraint = VersionConstraint.parse('^3.1.0');
+  final logger = Logger('over_react_codemod.fixmes');
+
+  // Strings that correlate to the React 16 comments' beginning and end. Based
+  // on the pattern used for the React 16 update, the comments should always
+  // have these strings.
+  const startingString = 'Check this box';
+  const endingString = 'complete';
+
+  final query = FileQuery.dir(
+    pathFilter: isDartFile,
+    recursive: true,
+  );
+
+  if (hasUnaddressedReact16Comment(query, logger: logger)) {
+    logger.severe(
+        'There are still unaddressed comments from the React 16 upgrade codemod. '
+        'These should be addressed before cleanup is attempted.');
+    exitCode = 1;
+    return;
+  }
 
   final pubspecYamlQuery = FileQuery.dir(
     pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
@@ -52,36 +65,20 @@ void main(List<String> args) {
     AggregateSuggestor([
       PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
       PubspecOverReactUpgrader(overReactVersionConstraint,
-          shouldAddDependencies: false)
-    ].map((s) => Ignoreable(s))),
+          shouldAddDependencies: false),
+    ]),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
 
-  if (exitCode != 0) {
-    return;
-  }
+  if (exitCode != 0) return;
 
-  // Update Componentry
-  final query = FileQuery.dir(
-    pathFilter: isDartFile,
-    recursive: true,
-  );
   exitCode = runInteractiveCodemodSequence(
     query,
-    <Suggestor>[
-      ReactDomRenderMigrator(),
-      ReactStyleMapsUpdater(),
-    ].map((s) => Ignoreable(s)),
+    [CommentRemover(startingString, endingString)],
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
-
-  final logger = Logger('over_react_codemod.fixmes');
-
-  if (hasUnaddressedReact16Comment(query, logger: logger)) {
-    exitCode = 1;
-  }
 }
