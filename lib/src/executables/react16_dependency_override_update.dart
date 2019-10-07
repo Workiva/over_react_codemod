@@ -15,9 +15,14 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
-import 'package:over_react_codemod/src/react16_suggestors/dependency_override_updater.dart';
+import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
+import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
+
+import '../react16_suggestors/constants.dart';
 
 const _changesRequiredOutput = """
   To update your pubspec, run the following commands:
@@ -27,6 +32,11 @@ Then, review the the changes and commit.
 """;
 
 void main(List<String> args) {
+  final reactVersionConstraint =
+      VersionConstraint.parse(reactVersionRangeForTesting);
+  final overReactVersionConstraint =
+      VersionConstraint.parse(overReactVersionRangeForTesting);
+
   final pubspecYamlQuery = FileQuery.dir(
     pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
     recursive: true,
@@ -34,7 +44,11 @@ void main(List<String> args) {
 
   exitCode = runInteractiveCodemod(
     pubspecYamlQuery,
-    Ignoreable(DependencyOverrideUpdater()),
+    AggregateSuggestor([
+      PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
+      PubspecOverReactUpgrader(overReactVersionConstraint,
+          shouldAddDependencies: true)
+    ].map((s) => Ignoreable(s))),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,

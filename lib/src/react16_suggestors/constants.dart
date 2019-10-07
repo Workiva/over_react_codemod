@@ -24,5 +24,7 @@ const styleMapExample = '''
     // Incorrect value for 'width': '40'. Correct values: 40, '40px', '4em'.''';
 
 const reactVersionRange = '>=4.7.0 <6.0.0';
+const reactVersionRangeForTesting = '^5.0.0-alpha';
 
 const overReactVersionRange = '>=2.4.0 <4.0.0';
+const overReactVersionRangeForTesting = '^3.0.0-alpha';
