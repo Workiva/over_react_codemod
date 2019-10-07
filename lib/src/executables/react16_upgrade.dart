@@ -51,7 +51,7 @@ void main(List<String> args) {
     AggregateSuggestor([
       PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
       PubspecOverReactUpgrader(overReactVersionConstraint,
-          shouldAddDependencies: false)
+          shouldAddDependencies: true),
     ].map((s) => Ignoreable(s))),
     args: args,
     defaultYes: true,
