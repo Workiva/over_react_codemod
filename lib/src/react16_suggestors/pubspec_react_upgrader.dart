@@ -50,8 +50,11 @@ class PubspecReactUpdater implements Suggestor {
         if (shouldUpdateVersionRange(
             constraint: constraint, targetConstraint: targetConstraint)) {
           // Wrap the new constraint in quotes if required.
-          var newValue =
-              generateNewVersionRange(constraint, targetConstraint).toString();
+          var newValue = targetConstraint.toString().contains('-alpha') ||
+                  targetConstraint.toString().contains('-dev')
+              ? targetConstraint.toString()
+              : generateNewVersionRange(constraint, targetConstraint)
+                  .toString();
 
           if (mightNeedYamlEscaping(newValue)) {
             newValue = '"$newValue"';

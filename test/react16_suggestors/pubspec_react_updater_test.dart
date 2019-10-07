@@ -47,6 +47,17 @@ main() {
           startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
           dependency: 'react',
           midVersionRange: '^$midVersionMin');
+
+      group('and the new version is a pre-release version', () {
+        sharedPubspecTest(
+            testSuggestor: getSuggestorTester(PubspecReactUpdater(
+                VersionConstraint.parse(reactVersionRangeForTesting))),
+            getExpectedOutput: getExpectedPreReleaseOutput,
+            startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
+            midVersionRange: '^5.5.3',
+            shouldUpdateMidRange: false,
+            dependency: 'react');
+      });
     });
 
     group('when the codemod should not add dependencies', () {
@@ -136,6 +147,14 @@ String getExpectedOutput({bool useMidVersionMin = false}) {
   return ''
       'dependencies:\n'
       '  react: ">=4.7.0 <6.0.0"\n'
+      '  test: 1.5.1\n'
+      '';
+}
+
+String getExpectedPreReleaseOutput({bool useMidVersionMin = false}) {
+  return ''
+      'dependencies:\n'
+      '  react: ^5.0.0-alpha\n'
       '  test: 1.5.1\n'
       '';
 }
