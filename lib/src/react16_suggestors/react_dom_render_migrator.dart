@@ -42,14 +42,16 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         orElse: () => null);
 
     final reactDomImport = imports.lastWhere(
-        (dir) => dir.uri?.stringValue == 'package:react/react_dom.dart',
+        (dir) => (dir.uri?.stringValue == 'package:react/react_dom.dart' || dir.uri?.stringValue == 'package:over_react/react_dom.dart'),
         orElse: () => null);
 
-    if (reactDomImport == null) {
-      return;
-    }
+    String reactDomImportNamespace;
 
-    String reactDomImportNamespace = reactDomImport.prefix?.name;
+    if (reactDomImport == null) {
+      reactDomImportNamespace = 'react_dom';
+    } else {
+      reactDomImportNamespace = reactDomImport.prefix?.name;
+    }
 
     final testAncestor = node.thisOrAncestorMatching((ancestor) =>
         ancestor is MethodInvocation &&
@@ -70,15 +72,20 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       return ancestor is FunctionDeclaration;
     });
 
-    void addOverReactPatch(int offset) {
-      yieldPatch(
+    void addOverReactPatch([int offset]) {
+      if (offset == null && imports.isNotEmpty) {
+        offset = imports.last.offset;
+      }
+      if (offset != null) {
+        yieldPatch(
           offset, offset, 'import \'package:over_react/over_react.dart\';\n');
+      }
     }
 
     // Wrap render in ErrorBoundary.
     if (!renderFirstArg.toSource().startsWith('ErrorBoundary')) {
       if (overReactImport == null) {
-        addOverReactPatch(reactDomImport.offset);
+        addOverReactPatch(reactDomImport?.offset);
       }
       yieldPatch(
         renderFirstArg.offset,
@@ -91,8 +98,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         ')',
       );
     } else if (renderFirstArg.toSource().startsWith('ErrorBoundary') &&
-        overReactImport == null) {
-      addOverReactPatch(reactDomImport.offset);
+        (overReactImport == null)) {
+      addOverReactPatch(reactDomImport?.offset);
     }
 
     if (renderFirstArg is InvocationExpression) {
