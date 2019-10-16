@@ -42,7 +42,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         orElse: () => null);
 
     final reactDomImport = imports.lastWhere(
-        (dir) => (dir.uri?.stringValue == 'package:react/react_dom.dart' || dir.uri?.stringValue == 'package:over_react/react_dom.dart'),
+        (dir) => (dir.uri?.stringValue == 'package:react/react_dom.dart' ||
+            dir.uri?.stringValue == 'package:over_react/react_dom.dart'),
         orElse: () => null);
 
     String reactDomImportNamespace;
@@ -78,7 +79,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       }
       if (offset != null) {
         yieldPatch(
-          offset, offset, 'import \'package:over_react/over_react.dart\';\n');
+            offset, offset, 'import \'package:over_react/over_react.dart\';\n');
       }
     }
 

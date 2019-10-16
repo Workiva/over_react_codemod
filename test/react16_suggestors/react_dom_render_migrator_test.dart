@@ -503,39 +503,31 @@ main() {
     });
 
     test('no react_dom.dart import but usage has namespace', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
+      testSuggestor(expectedPatchCount: 2, input: '''
           part of 'a_file.dart';
 
           main() {
             react_dom.render(Foo()(), mountNode);
           }
-        ''',
-        expectedOutput: '''
+        ''', expectedOutput: '''
           part of 'a_file.dart';
 
           main() {
             react_dom.render(ErrorBoundary()(Foo()()), mountNode);
           }
-        '''
-      );
+        ''');
     });
 
     test('no react_dom.dart import but usage has namespace', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: '''
+      testSuggestor(expectedPatchCount: 2, input: '''
           main() {
             react_dom.render(Foo()(), mountNode);
           }
-        ''',
-        expectedOutput: '''
+        ''', expectedOutput: '''
           main() {
             react_dom.render(ErrorBoundary()(Foo()()), mountNode);
           }
-        '''
-      );
+        ''');
     });
 
     test('no import of over_react but is wrapped with ErrorBoundary', () {
