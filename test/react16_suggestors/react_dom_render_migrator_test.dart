@@ -502,7 +502,8 @@ main() {
       );
     });
 
-    test('no react_dom.dart import but usage has namespace', () {
+    test('no react_dom.dart import but usage has namespace in a `part of` file',
+        () {
       testSuggestor(expectedPatchCount: 2, input: '''
           part of 'a_file.dart';
 
@@ -519,11 +520,13 @@ main() {
     });
 
     test('no react_dom.dart import but usage has namespace', () {
-      testSuggestor(expectedPatchCount: 2, input: '''
+      testSuggestor(expectedPatchCount: 3, input: '''
           main() {
             react_dom.render(Foo()(), mountNode);
           }
         ''', expectedOutput: '''
+          import 'package:over_react/over_react.dart';
+
           main() {
             react_dom.render(ErrorBoundary()(Foo()()), mountNode);
           }

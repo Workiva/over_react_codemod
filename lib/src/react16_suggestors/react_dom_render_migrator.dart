@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:developer';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
@@ -32,6 +34,19 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         .thisOrAncestorOfType<CompilationUnit>()
         .directives
         .whereType<ImportDirective>()
+        .toList();
+
+    final isPartOf = node
+        .thisOrAncestorOfType<CompilationUnit>()
+        .directives
+        .whereType<PartOfDirective>()
+        .toList()
+        .isNotEmpty;
+
+    final libraryDirective = node
+        .thisOrAncestorOfType<CompilationUnit>()
+        .directives
+        .whereType<LibraryDirective>()
         .toList();
 
     final overReactImport = imports.lastWhere(
@@ -76,8 +91,12 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     void addOverReactPatch([int offset]) {
       if (offset == null && imports.isNotEmpty) {
         offset = imports.last.offset;
+      } else if (libraryDirective.isNotEmpty) {
+        offset = libraryDirective.first.end;
+      } else {
+        offset = 0;
       }
-      if (offset != null) {
+      if (offset != null && !isPartOf) {
         yieldPatch(
             offset, offset, 'import \'package:over_react/over_react.dart\';\n');
       }
@@ -99,7 +118,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         ')',
       );
     } else if (renderFirstArg.toSource().startsWith('ErrorBoundary') &&
-        (overReactImport == null)) {
+        overReactImport == null) {
       addOverReactPatch(reactDomImport?.offset);
     }
 
