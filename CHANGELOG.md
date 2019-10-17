@@ -6,8 +6,8 @@
 
 ## [1.4.0](https://github.com/Workiva/over_react_codemod/compare/1.3.2...1.4.0)
 
-- Update React 16 componentWillMount Migrator to migrate to componentDidMount
-- Add React 16 getDefaultProps getInitialState Migrator
+- Update Component2 ComponentWillMountMigrator to migrate the componentWillMount lifecycle code to componentDidMount
+- Add React 16 getDefaultProps & getInitialState Migrator
 - Add React 16 Post Rollout Codemod
 - Update React 16 pubspec updater to include over_react
 
