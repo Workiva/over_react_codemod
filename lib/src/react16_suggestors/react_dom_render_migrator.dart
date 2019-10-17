@@ -107,7 +107,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     if (renderFirstArg is InvocationExpression) {
       usage = getComponentUsage(renderFirstArg);
       if (usage != null && usage.componentName == 'ErrorBoundary' ||
-        renderFirstArg.toSource().startsWith('ErrorBoundary')) {
+          renderFirstArg.toSource().startsWith('ErrorBoundary')) {
         isWrappedWithErrorBoundary = true;
       }
     }
