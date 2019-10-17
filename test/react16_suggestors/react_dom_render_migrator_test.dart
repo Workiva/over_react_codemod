@@ -84,6 +84,21 @@ main() {
       );
     });
 
+    test('simple usage already wrapped with ErrorBoundary that has props', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:react/react_dom.dart' as react_dom;
+
+          main() {
+            react_dom.render((ErrorBoundary()..prop = true)(Foo()()), mountNode);
+            react_dom.render((ErrorBoundary()..prop = true)(foo), mountNode);
+          }
+        ''',
+      );
+    });
+
     test('simple usage assignment to existing variable', () {
       testSuggestor(
         expectedPatchCount: 7,
@@ -403,6 +418,50 @@ main() {
       );
     });
 
+    test('imported from `over_react` with namespace', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:over_react/react_dom.dart' as different_namespace;
+
+          main() {
+            different_namespace.render(Foo()(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:over_react/react_dom.dart' as different_namespace;
+
+          main() {
+            different_namespace.render(ErrorBoundary()(Foo()()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('imported from `over_react` without namespace', () {
+      testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:over_react/react_dom.dart';
+
+          main() {
+            render(Foo()(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:over_react/react_dom.dart';
+
+          main() {
+            render(ErrorBoundary()(Foo()()), mountNode);
+          }
+        ''',
+      );
+    });
+
     test('different import namespace', () {
       testSuggestor(
         expectedPatchCount: 2,
@@ -456,6 +515,37 @@ main() {
           }
         ''',
       );
+    });
+
+    test('no react_dom.dart import but usage has namespace in a `part of` file',
+        () {
+      testSuggestor(expectedPatchCount: 2, input: '''
+          part of 'a_file.dart';
+
+          main() {
+            react_dom.render(Foo()(), mountNode);
+          }
+        ''', expectedOutput: '''
+          part of 'a_file.dart';
+
+          main() {
+            react_dom.render(ErrorBoundary()(Foo()()), mountNode);
+          }
+        ''');
+    });
+
+    test('no react_dom.dart import but usage has namespace', () {
+      testSuggestor(expectedPatchCount: 3, input: '''
+          main() {
+            react_dom.render(Foo()(), mountNode);
+          }
+        ''', expectedOutput: '''
+          import 'package:over_react/over_react.dart';
+
+          main() {
+            react_dom.render(ErrorBoundary()(Foo()()), mountNode);
+          }
+        ''');
     });
 
     test('no import of over_react but is wrapped with ErrorBoundary', () {
