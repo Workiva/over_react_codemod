@@ -63,15 +63,6 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
 
     String reactDomImportNamespace;
     bool isWrappedWithErrorBoundary = false;
-    String comment;
-
-    FluentComponentUsage usage;
-    final renderFirstArg = node.argumentList.arguments.first;
-
-    // Get function declaration to determine return value type.
-    FunctionDeclaration functionDecl = node.thisOrAncestorMatching((ancestor) {
-      return ancestor is FunctionDeclaration;
-    });
 
     if (reactDomImport == null) {
       reactDomImportNamespace = 'react_dom';
@@ -90,6 +81,14 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       return;
     }
 
+    FluentComponentUsage usage;
+    final renderFirstArg = node.argumentList.arguments.first;
+
+    // Get function declaration to determine return value type.
+    FunctionDeclaration functionDecl = node.thisOrAncestorMatching((ancestor) {
+      return ancestor is FunctionDeclaration;
+    });
+
     void addOverReactPatch([int offset]) {
       if (offset == null && imports.isNotEmpty) {
         offset = imports.last.offset;
@@ -107,7 +106,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     if (renderFirstArg is InvocationExpression) {
       usage = getComponentUsage(renderFirstArg);
       if (usage != null && usage.componentName == 'ErrorBoundary' ||
-          renderFirstArg.toSource().startsWith('ErrorBoundary')) {
+        renderFirstArg.toSource().startsWith('ErrorBoundary')) {
         isWrappedWithErrorBoundary = true;
       }
     }
@@ -131,6 +130,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       addOverReactPatch(reactDomImport?.offset);
     }
 
+    String comment;
     if (usage == null) {
       comment =
           '\n // [ ] Check this box upon manual validation that the component '
