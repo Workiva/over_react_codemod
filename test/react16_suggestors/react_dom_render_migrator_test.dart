@@ -84,6 +84,21 @@ main() {
       );
     });
 
+    test('simple usage already wrapped with ErrorBoundary that has props', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:react/react_dom.dart' as react_dom;
+
+          main() {
+            react_dom.render((ErrorBoundary()..prop = true)(Foo()()), mountNode);
+            react_dom.render((ErrorBoundary()..prop = true)(foo), mountNode);
+          }
+        ''',
+      );
+    });
+
     test('simple usage assignment to existing variable', () {
       testSuggestor(
         expectedPatchCount: 7,

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:developer';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
@@ -100,8 +102,19 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       }
     }
 
+    bool isWrappedWithErrorBoundary = false;
+
+    if (renderFirstArg is InvocationExpression) {
+      usage = getComponentUsage(renderFirstArg);
+      if (usage != null && usage.componentName == 'ErrorBoundary') {
+        isWrappedWithErrorBoundary = true;
+      } else if (renderFirstArg.toSource().startsWith('ErrorBoundary')) {
+        isWrappedWithErrorBoundary = true;
+      }
+    }
+
     // Wrap render in ErrorBoundary.
-    if (!renderFirstArg.toSource().startsWith('ErrorBoundary')) {
+    if (!isWrappedWithErrorBoundary) {
       if (overReactImport == null) {
         addOverReactPatch(reactDomImport?.offset);
       }
@@ -115,13 +128,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         renderFirstArg.end,
         ')',
       );
-    } else if (renderFirstArg.toSource().startsWith('ErrorBoundary') &&
-        overReactImport == null) {
+    } else if (isWrappedWithErrorBoundary && overReactImport == null) {
       addOverReactPatch(reactDomImport?.offset);
-    }
-
-    if (renderFirstArg is InvocationExpression) {
-      usage = getComponentUsage(renderFirstArg);
     }
 
     String comment;

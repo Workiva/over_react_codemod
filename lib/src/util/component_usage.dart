@@ -22,23 +22,7 @@ class FluentComponentUsage {
   /// Usually a [MethodInvocation] or [Identifier].
   final Expression builder;
 
-  String get componentName {
-    final typeName = builder.staticType?.name;
-    if (typeName == null) return null;
-    if (const ['dynamic', 'UiProps'].contains(typeName)) return null;
-    if (isDom) {
-      if (builder is MethodInvocation) {
-        return (builder as MethodInvocation).methodName.name;
-      }
-      // unknown, not a direct method invocation on `Dom`
-      return null;
-    }
-    if (typeName.endsWith('Props')) {
-      return typeName.substring(0, typeName.length - 'Props'.length);
-    }
-
-    return null;
-  }
+  String get componentName => getComponentName(builder);
 
   bool get isDom =>
       const ['DomProps', 'SvgProps'].contains(builder.staticType?.name);
@@ -95,12 +79,7 @@ FluentComponentUsage getComponentUsage(InvocationExpression node) {
     isComponent = false;
 
     if (builder is MethodInvocation) {
-      String builderName;
-      if (builder.target != null) {
-        builderName = builder.target.toSource() + '.' + builder.methodName.name;
-      } else {
-        builderName = builder.methodName.name;
-      }
+      String builderName = getComponentName(builder);
 
       if (builderName != null) {
         isComponent =
@@ -118,6 +97,32 @@ FluentComponentUsage getComponentUsage(InvocationExpression node) {
   if (!isComponent) return null;
 
   return FluentComponentUsage._(node, cascadeExpression, builder);
+}
+
+String getComponentName(Expression builder) {
+  if (builder.staticType != null) {
+    // Resolved AST
+    final typeName = builder.staticType?.name;
+    if (typeName == null) return null;
+    if (const ['dynamic', 'UiProps'].contains(typeName)) return null;
+    if (builder is MethodInvocation) {
+      return builder.methodName.name;
+    }
+    if (typeName.endsWith('Props')) {
+      return typeName.substring(0, typeName.length - 'Props'.length);
+    }
+    return null;
+  } else if (builder is MethodInvocation) {
+    // Unresolved
+    String builderName;
+    if (builder.target != null) {
+      builderName = builder.target.toSource() + '.' + builder.methodName.name;
+    } else {
+      builderName = builder.methodName.name;
+    }
+    return builderName;
+  }
+  return null;
 }
 
 /// A visitor that detects whether a given node is a [FluentComponentUsage].
