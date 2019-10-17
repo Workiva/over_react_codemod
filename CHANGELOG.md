@@ -3,6 +3,7 @@
 - Fix a bug that would cause ErrorBoundary components with props to be wraped in
   another ErrorBoundary.
 
+
 ## [1.4.0](https://github.com/Workiva/over_react_codemod/compare/1.3.2...1.4.0)
 
 - Update React 16 componentWillMount Migrator to migrate to componentDidMount
