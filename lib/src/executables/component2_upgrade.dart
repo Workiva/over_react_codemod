@@ -43,7 +43,9 @@ void main(List<String> args) {
   args.removeWhere((arg) => arg == _upgradeAbstractComponentsFlag);
 
   final query = FileQuery.dir(
-    pathFilter: isDartFile,
+    pathFilter: (path) {
+      return isDartFile(path) && !isGeneratedDartFile(path);
+    },
     recursive: true,
   );
   exitCode = runInteractiveCodemodSequence(

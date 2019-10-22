@@ -65,7 +65,9 @@ void main(List<String> args) {
 
   // Update Componentry
   final query = FileQuery.dir(
-    pathFilter: isDartFile,
+    pathFilter: (path) {
+      return isDartFile(path) && !isGeneratedDartFile(path);
+    },
     recursive: true,
   );
   exitCode = runInteractiveCodemodSequence(
