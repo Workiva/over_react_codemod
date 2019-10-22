@@ -1,3 +1,7 @@
+## [1.4.2](https://github.com/Workiva/over_react_codemod/compare/1.4.1...1.4.2)
+
+- Ignore `.g.dart` files in React 16 codemods.
+
 ## [1.4.1](https://github.com/Workiva/over_react_codemod/compare/1.4.0...1.4.1)
 
 - Fix a bug that would cause ErrorBoundary components with props to be wraped in
