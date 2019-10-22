@@ -52,7 +52,11 @@ void main(List<String> args) {
     AggregateSuggestor([
       PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
       PubspecOverReactUpgrader(overReactVersionConstraint,
-          shouldAddDependencies: true),
+          // Don't always add this dependency.
+          // We often need it for ErrorBoundary, but not in all packages, and
+          // we don't want to force over_react to be added regardless.
+          // We can just add in the dependency when the codemod imports over_react.
+          shouldAddDependencies: false),
     ].map((s) => Ignoreable(s))),
     args: args,
     defaultYes: true,
