@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
+import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/react16_suggestors/comment_remover.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
@@ -43,7 +44,9 @@ void main(List<String> args) {
   const endingString = 'complete';
 
   final query = FileQuery.dir(
-    pathFilter: isDartFile,
+    pathFilter: (path) {
+      return isDartFile(path) && !isGeneratedDartFile(path);
+    },
     recursive: true,
   );
 
