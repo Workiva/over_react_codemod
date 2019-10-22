@@ -1,3 +1,8 @@
+## [1.4.3](https://github.com/Workiva/over_react_codemod/compare/1.4.3...1.4.2)
+
+- Revert react16_upgrade change in 1.4.0 that forced over_react to be added whenever just react was listed as a dependency
+
+
 ## [1.4.2](https://github.com/Workiva/over_react_codemod/compare/1.4.1...1.4.2)
 
 - Ignore `.g.dart` files in React 16 codemods.
