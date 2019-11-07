@@ -164,9 +164,14 @@ main() {
 
 String getExpectedOutput({bool useMidVersionMin = false}) {
   if (useMidVersionMin) {
+    final expected =
+        VersionConstraint.parse('^2.0.0').allows(Version.parse(midRangeMark))
+            ? '^$midRangeMark'
+            : '">=$midRangeMark <3.0.0"';
+
     return ''
         'dependencies:\n'
-        '  over_react: ">=$midRangeMark <3.0.0"\n'
+        '  over_react: $expected\n'
         '  test: 1.5.1\n'
         '';
   }

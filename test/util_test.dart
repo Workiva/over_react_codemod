@@ -161,6 +161,30 @@ void overReactExample() {}''';
       });
     });
 
+    group('friendlyVersionConstraint()', () {
+      String friendlyFromString(String constraintSource) =>
+          friendlyVersionConstraint(VersionConstraint.parse(constraintSource));
+
+      test('returns a caret representation of a range if possible', () {
+        expect(friendlyFromString('^1.0.0'), '^1.0.0');
+        expect(friendlyFromString('>=1.0.0 <2.0.0'), '^1.0.0');
+        expect(friendlyFromString('>=1.1.0 <2.0.0'), '^1.1.0');
+        expect(friendlyFromString('>=1.1.0-alpha <2.0.0'), '^1.1.0-alpha');
+      });
+
+      test(
+          'returns the version constraint\'s toString if caret syntax cannot be used',
+          () {
+        expect(friendlyFromString('>1.0.0 <2.0.0'), '>1.0.0 <2.0.0');
+        expect(friendlyFromString('>=1.0.0 <3.0.0'), '>=1.0.0 <3.0.0');
+        expect(friendlyFromString('>=1.0.0 <1.5.0'), '>=1.0.0 <1.5.0');
+        // Edge cases
+        expect(friendlyFromString('any'), 'any');
+        expect(friendlyVersionConstraint(VersionConstraint.empty),
+            VersionConstraint.empty.toString());
+      });
+    });
+
     group('mightNeedYamlEscaping()', () {
       group('returns true if the value', () {
         test('starts with ">"', () {
