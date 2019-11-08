@@ -286,6 +286,28 @@ VersionRange generateNewVersionRange(
   );
 }
 
+/// Returns a string representation of [constraint], converting it to caret
+/// notation when possible.
+///
+/// Example:
+/// ```dart
+/// // ^1.2.3
+/// print(friendlyVersionConstraint(VersionConstraint.parse('>=1.2.3 <2.0.0')));
+///
+/// // >1.2.3 <3.0.0
+/// print(friendlyVersionConstraint(VersionConstraint.parse('>1.2.3 <3.0.0')));
+/// ```
+String friendlyVersionConstraint(VersionConstraint constraint) {
+  if (constraint is VersionRange && constraint.min != null) {
+    final caretConstraint = VersionConstraint.compatibleWith(constraint.min);
+    if (caretConstraint == constraint) {
+      return caretConstraint.toString();
+    }
+  }
+
+  return constraint.toString();
+}
+
 /// Return whether or not a particular pubspec.yaml dependency value string
 /// should be wrapped in quotations.
 bool mightNeedYamlEscaping(String scalarValue) =>

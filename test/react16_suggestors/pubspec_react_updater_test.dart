@@ -137,9 +137,14 @@ main() {
 
 String getExpectedOutput({bool useMidVersionMin = false}) {
   if (useMidVersionMin) {
+    final expected =
+        VersionConstraint.parse('^5.0.0').allows(Version.parse(midVersionMin))
+            ? '^$midVersionMin'
+            : '">=$midVersionMin <6.0.0"';
+
     return ''
         'dependencies:\n'
-        '  react: ">=$midVersionMin <6.0.0"\n'
+        '  react: $expected\n'
         '  test: 1.5.1\n'
         '';
   }

@@ -181,11 +181,19 @@ class DartProjectCreatorTestConfig {
     if (pubspecCreators.isEmpty) {
       name += 'no pubspecs';
     } else {
-      name += pubspecCreators
-          .map((creator) => 'pubspec'
-              ' at ${creator.path.isEmpty ? 'root' : 'path ${creator.path}/pubspec.yaml'}'
-              ' with dependencies: ${creator.dependencies}')
-          .join(', ');
+      name += pubspecCreators.map((creator) {
+        // Make it so that test names aren't multiline, trim/consolidate whitespace.
+        final humanReadableDependencies = creator.dependencies
+            .map((dep) => dep
+                .toString()
+                .trim()
+                .replaceAll('\n', '\\n')
+                .replaceAll(RegExp(r' +'), ' '))
+            .toList();
+        return 'pubspec'
+            ' at ${creator.path.isEmpty ? 'root' : 'path ${creator.path}/pubspec.yaml'}'
+            ' with dependencies: ${humanReadableDependencies}';
+      }).join(', ');
     }
     return name;
   }

@@ -78,13 +78,14 @@ class PubspecOverReactUpgrader implements Suggestor {
             targetConstraint: targetConstraint,
             constraint: constraint,
             shouldIgnoreMin: shouldIgnoreMin)) {
-          // Wrap the new constraint in quotes if required.
-          var newValue = targetConstraint.toString().contains('-alpha') ||
-                  targetConstraint.toString().contains('-dev')
-              ? targetConstraint.toString()
-              : generateNewVersionRange(constraint, targetConstraint)
-                  .toString();
+          final newConstraint =
+              targetConstraint.toString().contains('-alpha') ||
+                      targetConstraint.toString().contains('-dev')
+                  ? targetConstraint
+                  : generateNewVersionRange(constraint, targetConstraint);
 
+          var newValue = friendlyVersionConstraint(newConstraint);
+          // Wrap the new constraint in quotes if required.
           if (mightNeedYamlEscaping(newValue)) {
             newValue = '"$newValue"';
           }
