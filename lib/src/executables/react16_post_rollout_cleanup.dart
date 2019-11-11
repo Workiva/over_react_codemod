@@ -34,7 +34,7 @@ const _changesRequiredOutput = """
 
 void main(List<String> args) {
   final reactVersionConstraint = VersionConstraint.parse('^5.1.0');
-  final overReactVersionConstraint = VersionConstraint.parse('^3.1.0');
+  final overReactVersionConstraint = VersionConstraint.parse('^3.1.3');
   final logger = Logger('over_react_codemod.fixmes');
 
   // Strings that correlate to the React 16 comments' beginning and end. Based
