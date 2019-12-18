@@ -46,3 +46,4 @@ executables:
   react16_dependency_override_update:
   react16_ci_precheck:
   component2_upgrade:
+  pubspec_update:
