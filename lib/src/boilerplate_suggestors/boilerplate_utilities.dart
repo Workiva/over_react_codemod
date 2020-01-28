@@ -21,7 +21,7 @@ bool isAssociatedWithComponent2(ClassDeclaration node) {
   CompilationUnit unit = node.root;
 
   unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-    if(extendsComponent2(classNode)) {
+    if (extendsComponent2(classNode)) {
       containsComponent2 = true;
     }
   });

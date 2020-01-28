@@ -54,7 +54,8 @@ void main() {
           });
         });
 
-        test('if Component2 extending a non-base class is in the same file', () {
+        test('if Component2 extending a non-base class is in the same file',
+            () {
           final input = '''
             @Factory()
             UiFactory<FooProps> Foo =
