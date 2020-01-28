@@ -13,3 +13,18 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:over_react_codemod/src/component2_suggestors/component2_utilities.dart';
+
+/// Returns whether or not [node] is declared in the same file as a Component2 component.
+bool isAssociatedWithComponent2(ClassDeclaration node) {
+  bool containsComponent2 = false;
+  CompilationUnit unit = node.root;
+
+  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+    if(extendsComponent2(classNode)) {
+      containsComponent2 = true;
+    }
+  });
+
+  return containsComponent2;
+}
