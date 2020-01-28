@@ -41,6 +41,7 @@ dev_dependencies:
   test: ^1.5.1
 
 executables:
+  boilerplate_upgrade:
   component2_upgrade:
   dart2_upgrade:
   react16_ci_precheck:
