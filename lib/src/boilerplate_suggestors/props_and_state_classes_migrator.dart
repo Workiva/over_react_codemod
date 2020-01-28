@@ -23,6 +23,5 @@ class PropsAndStateClassesMigrator extends GeneralizingAstVisitor
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
-
   }
 }
