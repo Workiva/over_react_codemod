@@ -15,8 +15,10 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_advanced_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_simple_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 
@@ -53,6 +55,7 @@ void main(List<String> args) {
   //    2. Handle advanced cases
   //    3. Remove stubbed meta class
   //    4. Remove annotations
+  //    5. Transition `PropsMixins`
   //
   //  - Common Utilities
   //    - Detect Component2 (for short circuit condition 1)
@@ -72,6 +75,8 @@ void main(List<String> args) {
       PropsAndStateClassesSimpleMigrator(),
       PropsAndStateClassesAdvancedMigrator(),
       StubbedPropsAndStateClassRemover(),
+      PropsMixinMigrator(),
+      AnnotationsRemover(),
     ].map((s) => Ignoreable(s)),
     args: args,
     defaultYes: true,
