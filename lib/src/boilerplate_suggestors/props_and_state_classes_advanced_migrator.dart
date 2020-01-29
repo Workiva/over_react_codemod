@@ -17,7 +17,13 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 
 /// Suggestor that updates props and state classes to new boilerplate.
-class PropsAndStateClassesMigrator extends GeneralizingAstVisitor
+///
+/// This should only be done on cases where the props and state classes are not
+/// simple use cases. E.g. when a prop class uses mixins or anytime it doesn't extend
+/// UiProps / UiState.
+///
+/// Note: This should not operate on a class that does fit the criteria for _simple_.
+class PropsAndStateClassesAdvancedMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   @override

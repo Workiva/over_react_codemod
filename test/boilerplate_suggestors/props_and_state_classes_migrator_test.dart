@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_simple_migrator.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
 
 main() {
-  group('PropsAndStateClassesMigrator', () {
-    final testSuggestor = getSuggestorTester(PropsAndStateClassesMigrator());
+  group('PropsAndStateClassesSimpleMigrator', () {
+    final testSuggestor = getSuggestorTester(PropsAndStateClassesSimpleMigrator());
 
     test('empty file', () {
       testSuggestor(expectedPatchCount: 0, input: '');
