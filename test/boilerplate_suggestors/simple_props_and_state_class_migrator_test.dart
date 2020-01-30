@@ -136,10 +136,75 @@ main() {
 
     group('when the classes are simple', () {
       group('and the cases are simple', () {
-        test('and there are both a props and a state class', () {
-          testSuggestor(
-            expectedPatchCount: 4,
-            input: '''
+        group('and there are both a props and a state class', () {
+          test('with classes prefaced with \$', () {
+            testSuggestor(
+                expectedPatchCount: 6,
+                input: '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        class \$FooProps extends UiProps {
+          String foo;
+          int bar;
+        }
+
+        @State()
+        class \$FooState extends UiState {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+                expectedOutput: '''
+       @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        mixin FooProps on UiProps {
+          String foo;
+          int bar;
+        }
+
+        @State()
+        mixin FooState on UiState {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      '''
+            );
+          });
+
+          test('with classes prefaced with _\$', () {
+            testSuggestor(
+                expectedPatchCount: 6,
+                input: '''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -168,20 +233,20 @@ main() {
           }
         }
       ''',
-          expectedOutput: '''
+                expectedOutput: '''
        @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             \$Foo;
 
         @Props()
-        mixin _\$FooProps on UiProps {
+        mixin FooProps on UiProps {
           String foo;
           int bar;
         }
 
         @State()
-        mixin _\$FooState on UiState {
+        mixin FooState on UiState {
           String foo;
           int bar;
         }
@@ -197,7 +262,8 @@ main() {
           }
         }
       '''
-          );
+            );
+          });
         });
       });
     });
