@@ -40,16 +40,9 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
         _isPublic(node)) return;
 
 
-    _switchFromClassToMixin(node, yieldPatch);
+    migrateClassToMixin(node, yieldPatch);
   }
 }
 
 // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
 bool _isPublic(ClassDeclaration node) => false;
-
-
-void _switchFromClassToMixin(ClassDeclaration node, Function yieldPatch) {
-  yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
-  yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
-  yieldPatch(node.extendsClause.offset, node.extendsClause.extendsKeyword.charEnd, 'on');
-}
