@@ -36,7 +36,8 @@ Future<void> main(List<String> args) async {
   );
 
   SemverHelper helper = SemverHelper();
-  await helper.fromReport('/Users/sydneyjodon/Documents/GitHub/over_react_codemod/lib/src/boilerplate_suggestors/test.json');
+  await helper.fromReport(
+      '/Users/sydneyjodon/Documents/GitHub/over_react_codemod/lib/src/boilerplate_suggestors/test.json');
 
   exitCode = runInteractiveCodemodSequence(
     query,
