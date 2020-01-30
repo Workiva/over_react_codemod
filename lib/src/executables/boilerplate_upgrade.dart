@@ -59,9 +59,11 @@ void main(List<String> args) {
   //
   //  - Common Utilities
   //    - Detect Component2 (for short circuit condition 1)
+  //      - use `isAssociatedWithComponent2`
   //    - Detect if the class is "simple".
   //      - If false, short circuit suggestor 1
   //      - If true, short circuit suggestor 2
+  //      - use `isSimplePropsOrStateClass`
   //    -? Detect if the file _will_ be updated
   //      - Can we rely on timing of suggestors? As in, if a suggestor runs after a different one, will its changes be in place?
   //          - IIRC, no?

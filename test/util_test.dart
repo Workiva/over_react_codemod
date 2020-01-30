@@ -13,7 +13,6 @@
 // limitations under the License.
 
 @TestOn('vm')
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -200,7 +199,7 @@ void overReactExample() {}''';
                 \$Foo;
             
             @Props()
-            class _\$FooProps extends UiProps{
+            class _\$FooProps extends UiProps {
               String foo;
               int bar;
             }
@@ -234,7 +233,7 @@ void overReactExample() {}''';
                 \$Foo;
             
             @Props()
-            class _\$FooProps extends UiProps{
+            class _\$FooProps extends UiProps {
               String foo;
               int bar;
             }
@@ -269,7 +268,7 @@ void overReactExample() {}''';
                 \$Foo;
             
             @Props()
-            class _\$FooProps extends UiProps{
+            class _\$FooProps extends UiProps {
               String foo;
               int bar;
             }
@@ -302,7 +301,7 @@ void overReactExample() {}''';
                 \$Foo;
             
             @Props()
-            class _\$FooProps extends UiProps{
+            class _\$FooProps extends UiProps {
               String foo;
               int bar;
             }
@@ -335,7 +334,7 @@ void overReactExample() {}''';
                 \$Foo;
             
             @Props()
-            class _\$FooProps extends UiProps{
+            class _\$FooProps extends UiProps {
               String foo;
               int bar;
             }

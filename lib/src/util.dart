@@ -310,7 +310,7 @@ String friendlyVersionConstraint(VersionConstraint constraint) {
 }
 
 /// Returns whether or not [node] is declared in the same file as a Component2 component.
-bool isAssociatedWithComponent2(ClassDeclaration node) {
+bool isAssociatedWithComponent2(AstNode node) {
   bool containsComponent2 = false;
   CompilationUnit unit = node.root;
 
