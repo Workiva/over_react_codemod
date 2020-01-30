@@ -67,9 +67,11 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
     {bool shouldAddMixinToName = false}) {
   yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
 
-  final charsToRemoveFromClassName = node.name.toSource().substring(0, 1).split('').first == '\$' ? 1 : 2;
+  final charsToRemoveFromClassName =
+      node.name.toSource().substring(0, 1).split('').first == '\$' ? 1 : 2;
 
-  yieldPatch(node.name.token.offset, node.name.token.offset + charsToRemoveFromClassName, '');
+  yieldPatch(node.name.token.offset,
+      node.name.token.offset + charsToRemoveFromClassName, '');
 
   yieldPatch(node.extendsClause.offset,
       node.extendsClause.extendsKeyword.charEnd, 'on');
