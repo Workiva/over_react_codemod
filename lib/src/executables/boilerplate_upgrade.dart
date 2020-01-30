@@ -63,6 +63,10 @@ void main(List<String> args) {
   //      - If false, short circuit suggestor 1
   //      - If true, short circuit suggestor 2
   //      - use `isSimplePropsOrStateClass`
+  //    - Switch a props / state class to a `mixin`
+  //      - Both the simple and advanced migrators likely need to switch a class
+  //        to a mixin (the advanced case can then just add a new line)
+  //      - use `migrateClassToMixin`
   //    -? Detect if the file _will_ be updated
   //      - Can we rely on timing of suggestors? As in, if a suggestor runs after a different one, will its changes be in place?
   //          - IIRC, no?
