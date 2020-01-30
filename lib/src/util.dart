@@ -22,6 +22,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 
+import 'component2_suggestors/component2_utilities.dart';
 import 'constants.dart';
 
 typedef String CompanionBuilder(String className,
@@ -271,6 +272,20 @@ final _usesOverReactRegex = RegExp(
   caseSensitive: true,
   multiLine: true,
 );
+
+/// Returns whether or not [node] is declared in the same file as a Component2 component.
+bool isAssociatedWithComponent2(ClassDeclaration node) {
+  bool containsComponent2 = false;
+  CompilationUnit unit = node.root;
+
+  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+    if (extendsComponent2(classNode)) {
+      containsComponent2 = true;
+    }
+  });
+
+  return containsComponent2;
+}
 
 /// Method that creates a new dependency range by targeting a higher range.
 ///
