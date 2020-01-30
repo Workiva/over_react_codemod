@@ -15,6 +15,7 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_migrator.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 
@@ -26,7 +27,7 @@ const _changesRequiredOutput = """
   Then, review the the changes, address any FIXMEs, and commit.
 """;
 
-void main(List<String> args) {
+Future<void> main(List<String> args) async {
   final query = FileQuery.dir(
     pathFilter: (path) {
       return isDartFile(path) && !isGeneratedDartFile(path);
@@ -34,10 +35,13 @@ void main(List<String> args) {
     recursive: true,
   );
 
+  SemverHelper helper = SemverHelper();
+  await helper.fromReport('/Users/sydneyjodon/Documents/GitHub/over_react_codemod/lib/src/boilerplate_suggestors/test.json');
+
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[
-      PropsAndStateClassesMigrator(),
+      PropsAndStateClassesMigrator(helper),
     ].map((s) => Ignoreable(s)),
     args: args,
     defaultYes: true,

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_migrator.dart';
 import 'package:test/test.dart';
 
@@ -19,7 +20,13 @@ import '../util.dart';
 
 main() {
   group('PropsAndStateClassesMigrator', () {
-    final testSuggestor = getSuggestorTester(PropsAndStateClassesMigrator());
+    SuggestorTester testSuggestor;
+
+    setUpAll(() async {
+      final helper = SemverHelper();
+      await helper.fromReport('/Users/sydneyjodon/Documents/GitHub/over_react_codemod/lib/src/boilerplate_suggestors/test.json');
+      testSuggestor = getSuggestorTester(PropsAndStateClassesMigrator(helper));
+    });
 
     test('empty file', () {
       testSuggestor(expectedPatchCount: 0, input: '');

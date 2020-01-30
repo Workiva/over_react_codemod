@@ -30,10 +30,16 @@ class SemverHelper {
     _exportList = decoded['exports'];
   }
 
-  //Future<List<String>> getPublicExportLocations(ClassDeclaration node) async {
-  Map getPublicExportLocations(ClassDeclaration node) {
-      final className = node.name.name;
+  List<dynamic> getPublicExportLocations(ClassDeclaration node) {
+    final className = node.name.name;
+    String classKey;
 
-    return _exportList;
+    _exportList.forEach((key, value) {
+      if (value['type'] == 'class' && value['grammar']['name'] == className) {
+        classKey = key;
+      }
+    });
+
+    return [classKey, _exportList[classKey]];
   }
 }
