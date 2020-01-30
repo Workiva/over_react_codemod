@@ -273,20 +273,6 @@ final _usesOverReactRegex = RegExp(
   multiLine: true,
 );
 
-/// Returns whether or not [node] is declared in the same file as a Component2 component.
-bool isAssociatedWithComponent2(ClassDeclaration node) {
-  bool containsComponent2 = false;
-  CompilationUnit unit = node.root;
-
-  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-    if (extendsComponent2(classNode)) {
-      containsComponent2 = true;
-    }
-  });
-
-  return containsComponent2;
-}
-
 /// Method that creates a new dependency range by targeting a higher range.
 ///
 /// This can be used to update dependency ranges without lowering a current
@@ -321,6 +307,20 @@ String friendlyVersionConstraint(VersionConstraint constraint) {
   }
 
   return constraint.toString();
+}
+
+/// Returns whether or not [node] is declared in the same file as a Component2 component.
+bool isAssociatedWithComponent2(ClassDeclaration node) {
+  bool containsComponent2 = false;
+  CompilationUnit unit = node.root;
+
+  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+    if (extendsComponent2(classNode)) {
+      containsComponent2 = true;
+    }
+  });
+
+  return containsComponent2;
 }
 
 /// Return whether or not a particular pubspec.yaml dependency value string
