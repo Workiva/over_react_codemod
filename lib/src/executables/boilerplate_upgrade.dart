@@ -17,7 +17,7 @@ import 'dart:io';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_advanced_migrator.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_simple_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
@@ -73,7 +73,7 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[
-      PropsAndStateClassesSimpleMigrator(),
+      SimplePropsAndStateClassMigrator(),
       PropsAndStateClassesAdvancedMigrator(),
       StubbedPropsAndStateClassRemover(),
       PropsMixinMigrator(),
