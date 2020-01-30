@@ -12,4 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:analyzer/dart/ast/ast.dart';
+
+class SemverHelper {
+  static Map _exportList;
+
+  void fromReport(String path) async {
+    var fileContents;
+    await File(path).readAsString().then((String contents) {
+      fileContents = contents;
+    });
+
+    Map decoded = jsonDecode(fileContents);
+    _exportList = decoded['exports'];
+  }
+
+  //Future<List<String>> getPublicExportLocations(ClassDeclaration node) async {
+  Map getPublicExportLocations(ClassDeclaration node) {
+      final className = node.name.name;
+
+    return _exportList;
+  }
+}
