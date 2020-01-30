@@ -16,8 +16,8 @@ import 'dart:io';
 
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_advanced_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
@@ -63,6 +63,10 @@ void main(List<String> args) {
   //      - If false, short circuit suggestor 1
   //      - If true, short circuit suggestor 2
   //      - use `isSimplePropsOrStateClass`
+  //    - Switch a props / state class to a `mixin`
+  //      - Both the simple and advanced migrators likely need to switch a class
+  //        to a mixin (the advanced case can then just add a new line)
+  //      - use `migrateClassToMixin`
   //    -? Detect if the file _will_ be updated
   //      - Can we rely on timing of suggestors? As in, if a suggestor runs after a different one, will its changes be in place?
   //          - IIRC, no?
@@ -74,7 +78,7 @@ void main(List<String> args) {
     query,
     <Suggestor>[
       SimplePropsAndStateClassMigrator(),
-      PropsAndStateClassesAdvancedMigrator(),
+      AdvancedPropsAndStateClassMigrator(),
       StubbedPropsAndStateClassRemover(),
       PropsMixinMigrator(),
       AnnotationsRemover(),

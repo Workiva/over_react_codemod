@@ -14,6 +14,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 
+typedef void YieldPatch(
+    int startingOffset, int endingOffset, String replacement);
+
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
 /// or `UiState`.
 bool extendsFromUiPropsOrUiState(ClassDeclaration classNode) =>
@@ -42,4 +45,31 @@ bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
   if (classNode.withClause != null) return false;
 
   return true;
+}
+
+/// Used to switch a props or state class to a mixin.
+///
+/// __EXAMPLE:__
+/// ```dart
+/// // Before
+/// class TestProps extends UiProps {
+///   String var1;
+///   int var2;
+/// }
+///
+/// // After
+/// mixin TestPropsMixin on UiProps {
+///   String var1;
+///   int var2;
+/// }
+/// ```
+void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
+    {bool shouldAddMixinToName = false}) {
+  yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
+  yieldPatch(node.extendsClause.offset,
+      node.extendsClause.extendsKeyword.charEnd, 'on');
+
+  if (shouldAddMixinToName) {
+    yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
+  }
 }

@@ -23,7 +23,7 @@ import 'package:codemod/codemod.dart';
 /// UiProps / UiState.
 ///
 /// Note: This should not operate on a class that does fit the criteria for _simple_.
-class PropsAndStateClassesAdvancedMigrator extends GeneralizingAstVisitor
+class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   @override
