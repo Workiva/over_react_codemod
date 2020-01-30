@@ -58,15 +58,7 @@ main() {
         expect(classDeclarations.length, 2);
 
         classDeclarations.forEach((classNode) {
-          final extendsFromPropsOrState = classNode
-                  .extendsClause.superclass.name
-                  .toSource()
-                  .contains('Props') ||
-              classNode.extendsClause.superclass.name
-                  .toSource()
-                  .contains('State');
-
-          if (!extendsFromPropsOrState) {
+          if (!extendsFromUiPropsOrUiState(classNode)) {
             assertionCount++;
             expect(() => isSimplePropsOrStateClass(classNode),
                 throwsA(TypeMatcher<AssertionError>()));
@@ -117,15 +109,7 @@ main() {
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            final extendsFromPropsOrState = classNode
-                    .extendsClause.superclass.name
-                    .toSource()
-                    .contains('Props') ||
-                classNode.extendsClause.superclass.name
-                    .toSource()
-                    .contains('State');
-
-            if (extendsFromPropsOrState) {
+            if (extendsFromUiPropsOrUiState(classNode)) {
               assertionCount++;
               expect(isSimplePropsOrStateClass(classNode), isTrue);
             }
@@ -176,15 +160,7 @@ main() {
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            final extendsFromPropsOrState = classNode
-                    .extendsClause.superclass.name
-                    .toSource()
-                    .contains('Props') ||
-                classNode.extendsClause.superclass.name
-                    .toSource()
-                    .contains('State');
-
-            if (extendsFromPropsOrState) {
+            if (extendsFromUiPropsOrUiState(classNode)) {
               assertionCount++;
               expect(isSimplePropsOrStateClass(classNode), isFalse);
             }
@@ -232,15 +208,7 @@ main() {
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            final extendsFromPropsOrState = classNode
-                    .extendsClause.superclass.name
-                    .toSource()
-                    .contains('Props') ||
-                classNode.extendsClause.superclass.name
-                    .toSource()
-                    .contains('State');
-
-            if (extendsFromPropsOrState) {
+            if (extendsFromUiPropsOrUiState(classNode)) {
               assertionCount++;
               expect(isSimplePropsOrStateClass(classNode), isFalse);
             }
@@ -289,15 +257,7 @@ main() {
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            final extendsFromPropsOrState = classNode
-                    .extendsClause.superclass.name
-                    .toSource()
-                    .contains('Props') ||
-                classNode.extendsClause.superclass.name
-                    .toSource()
-                    .contains('State');
-
-            if (extendsFromPropsOrState) {
+            if (extendsFromUiPropsOrUiState(classNode)) {
               assertionCount++;
               expect(isSimplePropsOrStateClass(classNode), isFalse);
             }
