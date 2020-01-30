@@ -138,7 +138,7 @@ main() {
       group('and the cases are simple', () {
         test('and there are both a props and a state class', () {
           testSuggestor(
-            expectedPatchCount: 6,
+            expectedPatchCount: 4,
             input: '''
         @Factory()
         UiFactory<FooProps> Foo =
@@ -175,13 +175,13 @@ main() {
             \$Foo;
 
         @Props()
-        mixin _\$FooPropsMixin on UiProps {
+        mixin _\$FooProps on UiProps {
           String foo;
           int bar;
         }
 
         @State()
-        mixin _\$FooStateMixin on UiState {
+        mixin _\$FooState on UiState {
           String foo;
           int bar;
         }
