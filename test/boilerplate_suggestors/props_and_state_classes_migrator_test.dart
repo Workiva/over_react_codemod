@@ -19,7 +19,8 @@ import '../util.dart';
 
 main() {
   group('PropsAndStateClassesSimpleMigrator', () {
-    final testSuggestor = getSuggestorTester(PropsAndStateClassesSimpleMigrator());
+    final testSuggestor =
+        getSuggestorTester(PropsAndStateClassesSimpleMigrator());
 
     test('empty file', () {
       testSuggestor(expectedPatchCount: 0, input: '');

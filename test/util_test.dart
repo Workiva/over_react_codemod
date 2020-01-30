@@ -187,8 +187,6 @@ void overReactExample() {}''';
       });
     });
 
-
-
     group('isAssociatedWithComponent2()', () {
       group('returns true', () {
         test('if component extending UiComponent2 is in the same file', () {
@@ -225,8 +223,8 @@ void overReactExample() {}''';
         });
 
         test('if Component2 extending a non-base class is in the same file',
-                () {
-              final input = '''
+            () {
+          final input = '''
             @Factory()
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier

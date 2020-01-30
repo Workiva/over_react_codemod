@@ -52,17 +52,24 @@ main() {
           ''';
 
         final unit = parseString(content: input).unit;
-        final classDeclarations = unit.declarations.whereType<ClassDeclaration>();
+        final classDeclarations =
+            unit.declarations.whereType<ClassDeclaration>();
 
         expect(classDeclarations.length, 2);
 
         classDeclarations.forEach((classNode) {
-          final extendsFromPropsOrState = classNode.extendsClause.superclass.name.toSource().contains('Props') ||
-              classNode.extendsClause.superclass.name.toSource().contains('State');
+          final extendsFromPropsOrState = classNode
+                  .extendsClause.superclass.name
+                  .toSource()
+                  .contains('Props') ||
+              classNode.extendsClause.superclass.name
+                  .toSource()
+                  .contains('State');
 
           if (!extendsFromPropsOrState) {
             assertionCount++;
-            expect(() => isSimplePropsOrStateClass(classNode), throwsA(TypeMatcher<AssertionError>()));
+            expect(() => isSimplePropsOrStateClass(classNode),
+                throwsA(TypeMatcher<AssertionError>()));
           }
         });
 
@@ -70,7 +77,9 @@ main() {
       });
 
       group('returns true if', () {
-        test('there are no mixins and the class extends from UiProps or UiState', () {
+        test(
+            'there are no mixins and the class extends from UiProps or UiState',
+            () {
           final input = '''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -102,13 +111,19 @@ main() {
           ''';
 
           final unit = parseString(content: input).unit;
-          final classDeclarations = unit.declarations.whereType<ClassDeclaration>();
+          final classDeclarations =
+              unit.declarations.whereType<ClassDeclaration>();
 
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            final extendsFromPropsOrState = classNode.extendsClause.superclass.name.toSource().contains('Props') ||
-                classNode.extendsClause.superclass.name.toSource().contains('State');
+            final extendsFromPropsOrState = classNode
+                    .extendsClause.superclass.name
+                    .toSource()
+                    .contains('Props') ||
+                classNode.extendsClause.superclass.name
+                    .toSource()
+                    .contains('State');
 
             if (extendsFromPropsOrState) {
               assertionCount++;
@@ -121,7 +136,9 @@ main() {
       });
 
       group('returns false if', () {
-        test('there are mixins and the class doesn\'t extend from UiProps or UiState', () {
+        test(
+            'there are mixins and the class doesn\'t extend from UiProps or UiState',
+            () {
           final input = '''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -153,13 +170,19 @@ main() {
           ''';
 
           final unit = parseString(content: input).unit;
-          final classDeclarations = unit.declarations.whereType<ClassDeclaration>();
+          final classDeclarations =
+              unit.declarations.whereType<ClassDeclaration>();
 
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            final extendsFromPropsOrState = classNode.extendsClause.superclass.name.toSource().contains('Props') ||
-                classNode.extendsClause.superclass.name.toSource().contains('State');
+            final extendsFromPropsOrState = classNode
+                    .extendsClause.superclass.name
+                    .toSource()
+                    .contains('Props') ||
+                classNode.extendsClause.superclass.name
+                    .toSource()
+                    .contains('State');
 
             if (extendsFromPropsOrState) {
               assertionCount++;
@@ -170,7 +193,8 @@ main() {
           expect(assertionCount, 2);
         });
 
-        test('there are mixins but the class extends from UiProps or UiState', () {
+        test('there are mixins but the class extends from UiProps or UiState',
+            () {
           final input = '''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -202,13 +226,19 @@ main() {
           ''';
 
           final unit = parseString(content: input).unit;
-          final classDeclarations = unit.declarations.whereType<ClassDeclaration>();
+          final classDeclarations =
+              unit.declarations.whereType<ClassDeclaration>();
 
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            final extendsFromPropsOrState = classNode.extendsClause.superclass.name.toSource().contains('Props') ||
-                classNode.extendsClause.superclass.name.toSource().contains('State');
+            final extendsFromPropsOrState = classNode
+                    .extendsClause.superclass.name
+                    .toSource()
+                    .contains('Props') ||
+                classNode.extendsClause.superclass.name
+                    .toSource()
+                    .contains('State');
 
             if (extendsFromPropsOrState) {
               assertionCount++;
@@ -219,7 +249,9 @@ main() {
           expect(assertionCount, 2);
         });
 
-        test('there are not mixins but the class doesn\'t extend from UiProps or UiState', () {
+        test(
+            'there are not mixins but the class doesn\'t extend from UiProps or UiState',
+            () {
           final input = '''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -251,13 +283,19 @@ main() {
           ''';
 
           final unit = parseString(content: input).unit;
-          final classDeclarations = unit.declarations.whereType<ClassDeclaration>();
+          final classDeclarations =
+              unit.declarations.whereType<ClassDeclaration>();
 
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            final extendsFromPropsOrState = classNode.extendsClause.superclass.name.toSource().contains('Props') ||
-                classNode.extendsClause.superclass.name.toSource().contains('State');
+            final extendsFromPropsOrState = classNode
+                    .extendsClause.superclass.name
+                    .toSource()
+                    .contains('Props') ||
+                classNode.extendsClause.superclass.name
+                    .toSource()
+                    .contains('State');
 
             if (extendsFromPropsOrState) {
               assertionCount++;

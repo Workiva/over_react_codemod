@@ -21,7 +21,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 /// - Extends from UiProps
 bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
   // Only validate props or state classes
-  assert(classNode.name.toSource().contains(RegExp('([A-Za-z]+Props)|([A-Za-z]+State)')));
+  assert(classNode.name
+      .toSource()
+      .contains(RegExp('([A-Za-z]+Props)|([A-Za-z]+State)')));
 
   final superClass = classNode.extendsClause.superclass.name.toSource();
 

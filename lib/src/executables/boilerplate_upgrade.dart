@@ -38,7 +38,6 @@ void main(List<String> args) {
     recursive: true,
   );
 
-
   // General plan:
   //  - Things that need to be accomplished (very simplified)
   //    1. Make props / state class a mixin
