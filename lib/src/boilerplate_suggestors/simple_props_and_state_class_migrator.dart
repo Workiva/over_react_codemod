@@ -39,7 +39,6 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
         // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
         _isPublic(node)) return;
 
-
     migrateClassToMixin(node, yieldPatch);
   }
 }

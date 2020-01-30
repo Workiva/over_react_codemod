@@ -135,12 +135,9 @@ main() {
     });
 
     group('when the classes are simple', () {
-      group('and the cases are simple', () {
-        group('and there are both a props and a state class', () {
-          test('with classes prefaced with \$', () {
-            testSuggestor(
-                expectedPatchCount: 6,
-                input: '''
+      group('and there are both a props and a state class', () {
+        test('with classes prefaced with \$', () {
+          testSuggestor(expectedPatchCount: 6, input: '''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -168,8 +165,7 @@ main() {
             );
           }
         }
-      ''',
-                expectedOutput: '''
+      ''', expectedOutput: '''
        @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -197,14 +193,11 @@ main() {
             );
           }
         }
-      '''
-            );
-          });
+      ''');
+        });
 
-          test('with classes prefaced with _\$', () {
-            testSuggestor(
-                expectedPatchCount: 6,
-                input: '''
+        test('with classes prefaced with _\$', () {
+          testSuggestor(expectedPatchCount: 6, input: '''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -232,8 +225,7 @@ main() {
             );
           }
         }
-      ''',
-                expectedOutput: '''
+      ''', expectedOutput: '''
        @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -261,9 +253,105 @@ main() {
             );
           }
         }
-      '''
+      ''');
+        });
+      });
+
+      group('and there is only a props class', () {
+        test('with classes prefaced with \$', () {
+          testSuggestor(expectedPatchCount: 3, input: '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        class \$FooProps extends UiProps {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
             );
-          });
+          }
+        }
+      ''', expectedOutput: '''
+       @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        mixin FooProps on UiProps {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''');
+        });
+
+        test('with classes prefaced with _\$', () {
+          testSuggestor(expectedPatchCount: 3, input: '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        class _\$FooProps extends UiProps {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''', expectedOutput: '''
+       @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        mixin FooProps on UiProps {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''');
         });
       });
     });
