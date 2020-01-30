@@ -14,18 +14,18 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 
+/// A simple RegExp against the parent of the class to verify it is `UiProps`
+/// or `UiState`.
+bool extendsFromUiPropsOrUiState(ClassDeclaration classNode) =>
+    classNode.extendsClause.superclass.name
+        .toSource()
+        .contains(RegExp('(UiProps)|(UiState)'));
+
 /// A simple RegExp against the name of the class to verify it contains `props`
 /// or `state`.
 bool isAPropsOrStateClass(ClassDeclaration classNode) => classNode.name
     .toSource()
     .contains(RegExp('([A-Za-z]+Props)|([A-Za-z]+State)'));
-
-/// A simple RegExp against the parent of the class to verify it is `UiProps`
-/// or `UiState`.
-bool extendsFromUiPropsOrUiState(ClassDeclaration classNode) => classNode
-    .extendsClause.superclass.name
-    .toSource()
-    .contains('(UiProps)|(UiState)');
 
 /// Detects if the Props or State class is considered simple.
 ///
