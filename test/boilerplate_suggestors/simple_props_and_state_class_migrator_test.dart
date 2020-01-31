@@ -380,20 +380,20 @@ main() {
           // ignore: undefined_identifier
           \$Foo;
 
-      @Props()
+      @AbstractProps()
       abstract class _\$FooProps extends UiProps {
         String foo;
         int bar;
       }
 
-      @State()
+      @AbstractState()
       abstract class _\$FooState extends UiState {
         String foo;
         int bar;
       }
 
-      @Component2()
-      class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+      @AbstractComponent2()
+      abstract class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
         @override
         render() {
           return Dom.ul()(
@@ -409,20 +409,20 @@ main() {
           // ignore: undefined_identifier
           \$Foo;
 
-      @Props()
+      @AbstractProps()
       mixin FooProps on UiProps {
         String foo;
         int bar;
       }
 
-      @State()
+      @AbstractState()
       mixin FooState on UiState {
         String foo;
         int bar;
       }
 
-      @Component2()
-      class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+      @AbstractComponent2()
+      abstract class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
         @override
         render() {
           return Dom.ul()(
