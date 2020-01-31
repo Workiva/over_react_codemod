@@ -16,6 +16,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 
+import '../util.dart';
+import 'boilerplate_utilities.dart';
+
 /// Suggestor that updates props and state classes to new boilerplate.
 ///
 /// This should only be done on cases where the props and state classes are not
@@ -29,5 +32,25 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
+
+    if (!isAssociatedWithComponent2(node) ||
+        !isAPropsOrStateClass(node) ||
+        isSimplePropsOrStateClass(node) ||
+        // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
+        _isPublic(node)) return;
+
+    final className = node.name.toSource().substring(2);
+
+
+    final startingString = extendsFromUiPropsOrUiState(node) ? 'with' : 'with ${node.extendsClause.superclass.toSource()}Mixin';
+    final withClause = node.withClause?.childEntities?.whereType<TypeName>()?.joinWithToSource(startingString: startingString == 'width' ? startingString : '$startingString, ');
+
+    final newClassDeclarationString = '\n\nclass $className = Ui${className.contains('Props') ? 'Props' : 'State'} ${withClause ?? startingString};';
+
+    migrateClassToMixin(node, yieldPatch, shouldAddMixinToName: true, shouldSwapParentClass: true);
+    yieldPatch(node.end, node.end, newClassDeclarationString);
   }
 }
+
+// Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
+bool _isPublic(ClassDeclaration node) => false;

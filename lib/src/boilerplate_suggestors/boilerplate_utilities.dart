@@ -64,7 +64,7 @@ bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
 /// }
 /// ```
 void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
-    {bool shouldAddMixinToName = false}) {
+    {bool shouldAddMixinToName = false, bool shouldSwapParentClass = false}) {
   if (node.abstractKeyword != null) {
     yieldPatch(node.abstractKeyword.offset, node.abstractKeyword.charEnd, '');
   }
@@ -82,5 +82,33 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 
   if (shouldAddMixinToName) {
     yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
+  }
+
+  if (shouldSwapParentClass) {
+    final isAPropsClass = node.name.toSource().contains('Props');
+    yieldPatch(node.extendsClause.superclass.name.offset, node.extendsClause.superclass.name.end, isAPropsClass ? 'UiProps' : 'UiState');
+  }
+
+  if (node.withClause != null) {
+    yieldPatch(node.withClause.offset, node.withClause.end, '');
+  }
+}
+
+extension CancatUtils on Iterable<NamedType> {
+
+  /// Utility to join an `Iterable` based on the `toSource()` of the `name` field
+  /// rather than the `toString()` of the object.
+  String joinWithToSource({String startingString, String endingString}) {
+    var string = '${startingString.trim()} ' ?? '';
+
+    this.forEach((e) {
+      final isLast = this.last.name.toSource() == e.name.toSource();
+
+      string += '${e.name.toSource()}${isLast ? '' : ', '}';
+    });
+
+    string += endingString ?? '';
+
+    return string;
   }
 }
