@@ -68,6 +68,7 @@ void main(List<String> args) {
   //        to a mixin (the advanced case can then just add a new line)
   //      - use `migrateClassToMixin`
   //    -? Detect if the file _will_ be updated
+  //      - NOTE: not created yet
   //      - Can we rely on timing of suggestors? As in, if a suggestor runs after a different one, will its changes be in place?
   //          - IIRC, no?
   //      - If this is needed, it can be used for suggestors 3 and 4
