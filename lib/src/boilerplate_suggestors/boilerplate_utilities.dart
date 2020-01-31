@@ -65,10 +65,14 @@ bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
 /// ```
 void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
     {bool shouldAddMixinToName = false}) {
+  if (node.abstractKeyword != null) {
+    yieldPatch(node.abstractKeyword.offset, node.abstractKeyword.charEnd, '');
+  }
+
   yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
 
   final charsToRemoveFromClassName =
-      node.name.toSource().substring(0, 1).split('').first == '\$' ? 1 : 2;
+  node.name.toSource().substring(0, 1).split('').first == '\$' ? 1 : 2;
 
   yieldPatch(node.name.token.offset,
       node.name.token.offset + charsToRemoveFromClassName, '');
