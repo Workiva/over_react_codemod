@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:test/test.dart';
 
@@ -22,8 +23,14 @@ main() {
     final testSuggestor =
         getSuggestorTester(SimplePropsAndStateClassMigrator());
 
+    tearDown(() {
+      propsAndStateClassNamesConvertedToNewBoilerplate = {};
+    });
+
     test('empty file', () {
       testSuggestor(expectedPatchCount: 0, input: '');
+
+      expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
     });
 
     test('no matches', () {
@@ -35,6 +42,8 @@ main() {
         class Foo {}
       ''',
       );
+
+      expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
     });
 
     test('and the component is not Component2', () {
@@ -64,6 +73,8 @@ main() {
         }
       ''',
       );
+
+      expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
     });
 
     // TODO add a test for when the class is publicly exported
@@ -102,6 +113,8 @@ main() {
         }
       ''',
         );
+
+        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
       });
 
       test('and there is just a props class', () {
@@ -131,6 +144,8 @@ main() {
         }
       ''',
         );
+
+        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
       });
     });
 
@@ -197,6 +212,11 @@ main() {
           }
         ''',
         );
+
+        expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+          'FooProps': 'FooProps',
+          'FooState': 'FooState',
+        });
       });
 
       test('and there is only a props class', () {
@@ -249,6 +269,10 @@ main() {
           }
         ''',
         );
+
+        expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+          'FooProps': 'FooProps',
+        });
       });
 
       test('and are abstract', () {
@@ -313,6 +337,11 @@ main() {
           }
           ''',
         );
+
+        expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+          'FooProps': 'FooProps',
+          'FooState': 'FooState',
+        });
       });
     });
   });

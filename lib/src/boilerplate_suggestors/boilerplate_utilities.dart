@@ -14,6 +14,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/constants.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 typedef void YieldPatch(
     int startingOffset, int endingOffset, String replacement);
@@ -48,6 +49,11 @@ bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
   return true;
 }
 
+/// A map of props / state classes that have been migrated to the new boilerplate
+/// via [migrateClassToMixin].
+var propsAndStateClassNamesConvertedToNewBoilerplate =
+    < /*old class name*/ String, /*new mixin name*/ String>{};
+
 /// Used to switch a props or state class to a mixin.
 ///
 /// __EXAMPLE:__
@@ -64,6 +70,10 @@ bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
 ///   int var2;
 /// }
 /// ```
+///
+/// When a class is migrated, it gets added to [propsAndStateClassNamesConvertedToNewBoilerplate]
+/// so that suggestors that come after the suggestor that called this function - can know
+/// whether to yield a patch based on that information.
 void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
     {bool shouldAddMixinToName = false}) {
   if (node.abstractKeyword != null) {
@@ -72,6 +82,9 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 
   yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
 
+  final originalPublicClassName =
+      stripPrivateGeneratedPrefix(node.name.toSource());
+  String newMixinName = originalPublicClassName;
 
   yieldPatch(node.name.token.offset,
       node.name.token.offset + privateGeneratedPrefix.length, '');
@@ -81,5 +94,9 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 
   if (shouldAddMixinToName) {
     yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
+    newMixinName = '${newMixinName}Mixin';
   }
+
+  propsAndStateClassNamesConvertedToNewBoilerplate[originalPublicClassName] =
+      newMixinName;
 }

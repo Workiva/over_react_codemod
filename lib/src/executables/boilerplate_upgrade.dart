@@ -16,6 +16,7 @@ import 'dart:io';
 
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/props_meta_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
@@ -81,6 +82,7 @@ void main(List<String> args) {
       AdvancedPropsAndStateClassMigrator(),
       StubbedPropsAndStateClassRemover(),
       PropsMixinMigrator(),
+      PropsMetaMigrator(),
       AnnotationsRemover(),
     ].map((s) => Ignoreable(s)),
     args: args,
