@@ -19,6 +19,17 @@ import 'package:over_react_codemod/src/util.dart';
 typedef void YieldPatch(
     int startingOffset, int endingOffset, String replacement);
 
+// Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
+bool _isPublic(ClassDeclaration node) => false;
+
+/// Whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
+bool shouldMigratePropsAndStateClass(ClassDeclaration node) {
+  return isAssociatedWithComponent2(node) &&
+      isAPropsOrStateClass(node) &&
+      // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
+      !_isPublic(node);
+}
+
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
 /// or `UiState`.
 bool extendsFromUiPropsOrUiState(ClassDeclaration classNode) =>
@@ -47,6 +58,14 @@ bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
   if (classNode.withClause != null) return false;
 
   return true;
+}
+
+// Stub while <https://jira.atl.workiva.net/browse/CPLAT-9407> is in progress
+bool isAdvancedPropsOrStateClass(ClassDeclaration classNode) {
+  // Only validate props or state classes
+  assert(isAPropsOrStateClass(classNode));
+
+  return false;
 }
 
 /// A map of props / state classes that have been migrated to the new boilerplate

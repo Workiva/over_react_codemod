@@ -74,13 +74,12 @@ void main(List<String> args) {
   //      - If this is needed, it can be used for suggestors 3 and 4
   //
   //
-
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[
+      StubbedPropsAndStateClassRemover(),
       SimplePropsAndStateClassMigrator(),
       AdvancedPropsAndStateClassMigrator(),
-      StubbedPropsAndStateClassRemover(),
       PropsMixinMigrator(),
       PropsMetaMigrator(),
       AnnotationsRemover(),

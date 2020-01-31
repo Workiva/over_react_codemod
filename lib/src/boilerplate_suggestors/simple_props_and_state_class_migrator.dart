@@ -33,15 +33,11 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (!isAssociatedWithComponent2(node) ||
-        !isAPropsOrStateClass(node) ||
-        !isSimplePropsOrStateClass(node) ||
-        // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
-        _isPublic(node)) return;
+    if (!shouldMigrateSimplePropsAndStateClass(node)) return;
 
     migrateClassToMixin(node, yieldPatch);
   }
 }
 
-// Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
-bool _isPublic(ClassDeclaration node) => false;
+bool shouldMigrateSimplePropsAndStateClass(ClassDeclaration node) =>
+    shouldMigratePropsAndStateClass(node) && isSimplePropsOrStateClass(node);
