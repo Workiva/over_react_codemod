@@ -109,7 +109,7 @@ main() {
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            if (extendsFromUiPropsOrUiState(classNode)) {
+            if (isAPropsOrStateClass(classNode)) {
               assertionCount++;
               expect(isSimplePropsOrStateClass(classNode), isTrue);
             }
@@ -160,7 +160,7 @@ main() {
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            if (extendsFromUiPropsOrUiState(classNode)) {
+            if (isAPropsOrStateClass(classNode)) {
               assertionCount++;
               expect(isSimplePropsOrStateClass(classNode), isFalse);
             }
@@ -208,7 +208,7 @@ main() {
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            if (extendsFromUiPropsOrUiState(classNode)) {
+            if (isAPropsOrStateClass(classNode)) {
               assertionCount++;
               expect(isSimplePropsOrStateClass(classNode), isFalse);
             }
@@ -218,7 +218,7 @@ main() {
         });
 
         test(
-            'there are not mixins but the class doesn\'t extend from UiProps or UiState',
+            'there are no mixins but the class doesn\'t extend from UiProps or UiState',
             () {
           final input = '''
             @Factory()
@@ -257,7 +257,7 @@ main() {
           expect(classDeclarations.length, 3);
 
           classDeclarations.forEach((classNode) {
-            if (extendsFromUiPropsOrUiState(classNode)) {
+            if (isAPropsOrStateClass(classNode)) {
               assertionCount++;
               expect(isSimplePropsOrStateClass(classNode), isFalse);
             }
