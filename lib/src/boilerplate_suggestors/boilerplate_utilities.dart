@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:over_react_codemod/src/constants.dart';
 
 typedef void YieldPatch(
     int startingOffset, int endingOffset, String replacement);
@@ -71,11 +72,9 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 
   yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
 
-  final charsToRemoveFromClassName =
-      node.name.toSource().substring(0, 1).split('').first == '\$' ? 1 : 2;
 
   yieldPatch(node.name.token.offset,
-      node.name.token.offset + charsToRemoveFromClassName, '');
+      node.name.token.offset + privateGeneratedPrefix.length, '');
 
   yieldPatch(node.extendsClause.offset,
       node.extendsClause.extendsKeyword.charEnd, 'on');
