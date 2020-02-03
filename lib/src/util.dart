@@ -446,3 +446,14 @@ String stripPrivateGeneratedPrefix(String value) {
       ? value.substring(privateGeneratedPrefix.length)
       : value;
 }
+
+/// Takes an iterable of AstNodes and returns their name in a comma separated string.
+///
+/// Optionally, you can pass a function to [getName] if you want something other
+/// than [AstNode.toSource] to be used to generate the name for the list.
+String commaSeparatedAstNodeNames<T extends AstNode>(Iterable<T> nodeList,
+    {String Function(T node) getName}) {
+  getName ??= (node) => node.toSource();
+
+  return nodeList.map(getName).toString().replaceAll(RegExp(r'[\(\)]'), '');
+}

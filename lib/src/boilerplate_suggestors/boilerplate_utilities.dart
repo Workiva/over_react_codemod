@@ -13,21 +13,56 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
 
 typedef void YieldPatch(
     int startingOffset, int endingOffset, String replacement);
 
+@visibleForTesting
+bool isPublicForTest = false;
+
 // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
-bool _isPublic(ClassDeclaration node) => false;
+bool isPublic(ClassDeclaration node) => isPublicForTest;
+
+/// A simple evaluation of the annotation(s) of the [classNode]
+/// to verify it is either a `@PropsMixin()` or `@StateMixin`.
+bool isAPropsOrStateMixin(ClassDeclaration classNode) =>
+    isAPropsMixin(classNode) || isAStateMixin(classNode);
+
+/// Returns the node of a `@PropsMixin()` annotation for the provided [classNode], if one exists.
+AstNode getPropsMixinAnnotationNode(ClassDeclaration classNode) =>
+    classNode.sortedCommentAndAnnotations.singleWhere(
+        (node) => node?.toSource()?.startsWith('@PropsMixin') == true,
+        orElse: () => null);
+
+/// A simple evaluation of the annotation(s) of the [classNode]
+/// to verify it is a `@PropsMixin()`.
+bool isAPropsMixin(ClassDeclaration classNode) =>
+    getPropsMixinAnnotationNode(classNode) != null;
+
+/// Returns the node of a `@PropsMixin()` annotation for the provided [classNode], if one exists.
+AstNode getStateMixinAnnotationNode(ClassDeclaration classNode) =>
+    classNode.sortedCommentAndAnnotations.singleWhere(
+        (node) => node?.toSource()?.startsWith('@StateMixin') == true,
+        orElse: () => null);
+
+/// A simple evaluation of the annotation(s) of the [classNode]
+/// to verify it is a `@StateMixin()`.
+bool isAStateMixin(ClassDeclaration classNode) =>
+    getStateMixinAnnotationNode(classNode) != null;
+
+/// Whether a props or state mixin class [classNode] should be migrated as part of the boilerplate codemod.
+bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
+    isAPropsOrStateMixin(classNode);
 
 /// Whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
 bool shouldMigratePropsAndStateClass(ClassDeclaration node) {
   return isAssociatedWithComponent2(node) &&
       isAPropsOrStateClass(node) &&
       // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
-      !_isPublic(node);
+      !isPublic(node);
 }
 
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
@@ -36,6 +71,14 @@ bool extendsFromUiPropsOrUiState(ClassDeclaration classNode) =>
     classNode.extendsClause.superclass.name
         .toSource()
         .contains(RegExp('(UiProps)|(UiState)'));
+
+/// A simple RegExp against the parent of the class to verify it is `UiProps`
+/// or `UiState`.
+bool implementsUiPropsOrUiState(ClassDeclaration classNode) {
+  return classNode.implementsClause.interfaces
+      .map((typeName) => typeName.toSource())
+      .any((typeStr) => typeStr.contains(RegExp('(UiProps)|(UiState)')));
+}
 
 /// A simple RegExp against the name of the class to verify it contains `props`
 /// or `state`.
@@ -73,9 +116,9 @@ bool isAdvancedPropsOrStateClass(ClassDeclaration classNode) {
 var propsAndStateClassNamesConvertedToNewBoilerplate =
     < /*old class name*/ String, /*new mixin name*/ String>{};
 
-/// Used to switch a props or state class to a mixin.
+/// Used to switch a props/state class, or a `@PropsMixin()`/`@StateMixin()` class to a mixin.
 ///
-/// __EXAMPLE:__
+/// __EXAMPLE (Concrete Class):__
 /// ```dart
 /// // Before
 /// class _$TestProps extends UiProps {
@@ -87,6 +130,30 @@ var propsAndStateClassNamesConvertedToNewBoilerplate =
 /// mixin TestPropsMixin on UiProps {
 ///   String var1;
 ///   int var2;
+/// }
+/// ```
+///
+/// __EXAMPLE (`@PropsMixin`):__
+/// ```dart
+/// // Before
+/// @PropsMixin()
+/// abstract class TestPropsMixin implements UiProps, BarPropsMixin {
+///   // To ensure the codemod regression checking works properly, please keep this
+///   // field at the top of the class!
+///   // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+///   static const PropsMeta meta = _$metaForTestPropsMixin;
+///
+///   @override
+///   Map get props;
+///
+///   String var1;
+///   String var2;
+/// }
+///
+/// // After
+/// mixin TestPropsMixin on UiProps implements BarPropsMixin {
+///   String var1;
+///   String var2;
 /// }
 /// ```
 ///
@@ -105,15 +172,65 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
       stripPrivateGeneratedPrefix(node.name.toSource());
   String newMixinName = originalPublicClassName;
 
-  yieldPatch(node.name.token.offset,
-      node.name.token.offset + privateGeneratedPrefix.length, '');
+  if (node.extendsClause?.extendsKeyword != null) {
+    // --- Convert concrete props/state class to a mixin --- //
 
-  yieldPatch(node.extendsClause.offset,
-      node.extendsClause.extendsKeyword.charEnd, 'on');
+    yieldPatch(node.name.token.offset,
+        node.name.token.offset + privateGeneratedPrefix.length, '');
 
-  if (shouldAddMixinToName) {
-    yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
-    newMixinName = '${newMixinName}Mixin';
+    yieldPatch(node.extendsClause.offset,
+        node.extendsClause.extendsKeyword.charEnd, 'on');
+
+    if (shouldAddMixinToName) {
+      yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
+      newMixinName = '${newMixinName}Mixin';
+    }
+  } else {
+    // --- Convert props/state mixin to an actual mixin --- //
+
+    if (node.implementsClause?.implementsKeyword != null) {
+      final nodeInterfaces = node.implementsClause.interfaces;
+      // Implements an interface, and does not extend from another class
+      if (implementsUiPropsOrUiState(node)) {
+        if (nodeInterfaces.length == 1) {
+          // Only implements UiProps / UiState
+          yieldPatch(node.implementsClause.offset,
+              node.implementsClause.implementsKeyword.charEnd, 'on');
+        } else {
+          // Implements UiProps / UiState along with other interfaces
+          final uiInterface = nodeInterfaces.singleWhere((interface) =>
+              interface.toSource() == 'UiProps' ||
+              interface.toSource() == 'UiState');
+          final otherInterfaces = List.of(nodeInterfaces)..remove(uiInterface);
+          final otherInterfacesStr =
+              commaSeparatedAstNodeNames(otherInterfaces);
+
+          yieldPatch(node.implementsClause.offset, node.implementsClause.end,
+              'on ${uiInterface.toSource()} implements $otherInterfacesStr');
+        }
+      } else {
+        // Does not implement UiProps / UiState
+        final uiInterfaceStr = isAPropsMixin(node) ? 'UiProps' : 'UiState';
+
+        if (nodeInterfaces.isNotEmpty) {
+          // But does implement other stuff
+          final otherInterfacesStr = commaSeparatedAstNodeNames(nodeInterfaces);
+
+          yieldPatch(node.implementsClause.offset, node.implementsClause.end,
+              'on $uiInterfaceStr implements $otherInterfacesStr');
+        } else {
+          // Does not implement anything
+          yieldPatch(node.leftBracket.offset - 1, node.leftBracket.offset - 1,
+              'on $uiInterfaceStr');
+        }
+      }
+    } else {
+      // Does not implement anything
+      final uiInterfaceStr = isAPropsMixin(node) ? 'UiProps' : 'UiState';
+
+      yieldPatch(
+          node.name.token.end, node.name.token.end, ' on $uiInterfaceStr');
+    }
   }
 
   propsAndStateClassNamesConvertedToNewBoilerplate[originalPublicClassName] =

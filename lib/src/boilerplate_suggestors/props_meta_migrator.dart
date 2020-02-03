@@ -29,6 +29,8 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilit
 /// // After
 /// propsMeta.forMixin(FooProps)
 /// ```
+///
+/// > Related: [PropsMixinMigrator]
 class PropsMetaMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
