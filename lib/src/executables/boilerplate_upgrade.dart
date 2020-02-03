@@ -22,13 +22,13 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migra
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 
-const _changesRequiredOutput = """
+const _changesRequiredOutput = '''
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
   pub global run over_react_codemod:boilerplate_upgrade
   pub run dart_dev format (if you format this repository).
   Then, review the the changes, address any FIXMEs, and commit.
-""";
+''';
 
 void main(List<String> args) {
   final query = FileQuery.dir(

@@ -30,7 +30,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
     if (!shouldMigrateAdvancedPropsAndStateClass(node)) return;

@@ -16,7 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 
 import '../util.dart';
 
-typedef void YieldPatch(
+typedef YieldPatch = void Function(
     int startingOffset, int endingOffset, String replacement);
 
 // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
@@ -126,8 +126,8 @@ extension CancatUtils on Iterable<NamedType> {
   String joinWithToSource({String startingString, String endingString}) {
     var string = '${startingString.trimRight()} ' ?? '';
 
-    this.forEach((e) {
-      final isLast = this.last.name.toSource() == e.name.toSource();
+    forEach((e) {
+      final isLast = last.name.toSource() == e.name.toSource();
 
       string += '${e.name.toSource()}${isLast ? '' : ', '}';
     });

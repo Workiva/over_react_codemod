@@ -17,7 +17,7 @@ import 'package:test/test.dart';
 
 import '../util.dart';
 
-main() {
+void main() {
   group('SimplePropsAndStateClassMigrator', () {
     final testSuggestor =
         getSuggestorTester(AdvancedPropsAndStateClassMigrator());
