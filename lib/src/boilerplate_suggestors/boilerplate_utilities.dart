@@ -127,9 +127,9 @@ extension CancatUtils on Iterable<NamedType> {
     var string = '${startingString.trimRight()} ' ?? '';
 
     forEach((e) {
-      final isLast = last.name.toSource() == e.name.toSource();
+      final isTheLastItem = last.name.toSource() == e.name.toSource();
 
-      string += '${e.name.toSource()}${isLast ? '' : ', '}';
+      string += '${e.name.toSource()}${isTheLastItem ? '' : ', '}';
     });
 
     string += endingString ?? '';
