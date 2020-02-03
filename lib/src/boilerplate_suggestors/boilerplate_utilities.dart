@@ -109,7 +109,10 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 
   if (shouldSwapParentClass) {
     final isAPropsClass = node.name.toSource().contains('Props');
-    yieldPatch(node.extendsClause.superclass.name.offset, node.extendsClause.superclass.name.end, isAPropsClass ? 'UiProps' : 'UiState');
+    yieldPatch(
+        node.extendsClause.superclass.name.offset,
+        node.extendsClause.superclass.name.end,
+        isAPropsClass ? 'UiProps' : 'UiState');
   }
 
   if (node.withClause != null) {
@@ -118,7 +121,6 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 }
 
 extension CancatUtils on Iterable<NamedType> {
-
   /// Utility to join an `Iterable` based on the `toSource()` of the `name` field
   /// rather than the `toString()` of the object.
   String joinWithToSource({String startingString, String endingString}) {
