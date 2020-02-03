@@ -14,8 +14,21 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 
+import '../util.dart';
+
 typedef void YieldPatch(
     int startingOffset, int endingOffset, String replacement);
+
+// Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
+bool _isPublic(ClassDeclaration node) => false;
+
+/// Whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
+bool shouldMigratePropsAndStateClass(ClassDeclaration node) {
+  return isAssociatedWithComponent2(node) &&
+      isAPropsOrStateClass(node) &&
+      // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
+      !_isPublic(node);
+}
 
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
 /// or `UiState`.
@@ -45,6 +58,16 @@ bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
   if (classNode.withClause != null) return false;
 
   return true;
+}
+
+/// Detects if the Props or State class is considered advanced.
+///
+/// Related: [isSimplePropsOrStateClass]
+bool isAdvancedPropsOrStateClass(ClassDeclaration classNode) {
+  // Only validate props or state classes
+  assert(isAPropsOrStateClass(classNode));
+
+  return !isSimplePropsOrStateClass(classNode);
 }
 
 /// Used to switch a props or state class to a mixin.
@@ -99,7 +122,7 @@ extension CancatUtils on Iterable<NamedType> {
   /// Utility to join an `Iterable` based on the `toSource()` of the `name` field
   /// rather than the `toString()` of the object.
   String joinWithToSource({String startingString, String endingString}) {
-    var string = '${startingString.trim()} ' ?? '';
+    var string = '${startingString.trimRight()} ' ?? '';
 
     this.forEach((e) {
       final isLast = this.last.name.toSource() == e.name.toSource();

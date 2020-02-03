@@ -33,24 +33,34 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (!isAssociatedWithComponent2(node) ||
-        !isAPropsOrStateClass(node) ||
-        isSimplePropsOrStateClass(node) ||
-        // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
-        _isPublic(node)) return;
+    if (!shouldMigrateAdvancedPropsAndStateClass(node)) return;
 
-    final className = node.name.toSource().substring(2);
+    final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
 
+    // Don't operate if the props class uses mixins and extends a custom class
+    if (node.withClause != null && extendsFromCustomClass) return;
 
-    final startingString = extendsFromUiPropsOrUiState(node) ? 'with' : 'with ${node.extendsClause.superclass.toSource()}Mixin';
-    final withClause = node.withClause?.childEntities?.whereType<TypeName>()?.joinWithToSource(startingString: startingString == 'width' ? startingString : '$startingString, ');
+    final className = stripPrivateGeneratedPrefix(node.name.toSource());
+    var newClassDeclarationString =
+        '\n\nclass $className = Ui${className.contains('Props') ? 'Props' : 'State'} with ';
 
-    final newClassDeclarationString = '\n\nclass $className = Ui${className.contains('Props') ? 'Props' : 'State'} ${withClause ?? startingString};';
+    if (extendsFromCustomClass) {
+      final parentClass = node.extendsClause.superclass.toSource() + 'Mixin';
+      newClassDeclarationString += '$parentClass, ${className}Mixin;';
+    } else {
+      newClassDeclarationString += '${className}Mixin,';
+      newClassDeclarationString = node.withClause?.childEntities
+          ?.whereType<TypeName>()
+          ?.joinWithToSource(
+              startingString: newClassDeclarationString, endingString: ';');
+    }
 
-    migrateClassToMixin(node, yieldPatch, shouldAddMixinToName: true, shouldSwapParentClass: true);
+    migrateClassToMixin(node, yieldPatch,
+        shouldAddMixinToName: true,
+        shouldSwapParentClass: extendsFromCustomClass);
     yieldPatch(node.end, node.end, newClassDeclarationString);
   }
 }
 
-// Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
-bool _isPublic(ClassDeclaration node) => false;
+bool shouldMigrateAdvancedPropsAndStateClass(ClassDeclaration node) =>
+    shouldMigratePropsAndStateClass(node) && isAdvancedPropsOrStateClass(node);

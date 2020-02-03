@@ -22,11 +22,81 @@ main() {
     final testSuggestor =
         getSuggestorTester(AdvancedPropsAndStateClassMigrator());
 
-    test('empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
+    group('does not operate when', () {
+      test('it\'s an empty file', () {
+        testSuggestor(expectedPatchCount: 0, input: '');
+      });
+
+      test('the class is simple', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        class _\$FooProps extends UiProps {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+        );
+      });
+
+      group('the class is advanced', () {
+        test(
+            'and the classes extend from a custom class in addition to having mixins',
+            () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        class _\$FooProps extends ADifferentPropsClass with AMixin, AnotherMixin {
+          String foo;
+          int bar;
+        }
+
+        @State()
+        class _\$FooState extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+          );
+        });
+      });
     });
 
-    group('when the classes are not simple', () {
+    group('operates when the classes are advanced', () {
       group('and there are both a props and a state class', () {
         test('and the classes extend from a custom class', () {
           testSuggestor(
@@ -59,7 +129,8 @@ main() {
             );
           }
         }
-      ''', expectedOutput: '''
+      ''',
+            expectedOutput: '''
       @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -71,7 +142,7 @@ main() {
           int bar;
         }
 
-        class FooProps = UiProps with ADifferentPropsClassMixin;
+        class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
 
         @State()
         mixin FooStateMixin on UiState {
@@ -79,7 +150,7 @@ main() {
           int bar;
         }
 
-        class FooState = UiState with ADifferentStateClassMixin;
+        class FooState = UiState with ADifferentStateClassMixin, FooStateMixin;
 
         @Component2()
         class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
@@ -95,137 +166,181 @@ main() {
           );
         });
 
-        test('and the classes have mixins', () {
+        test('and the class uses mixins', () {
           testSuggestor(
-            expectedPatchCount: 13,
+            expectedPatchCount: 12,
             input: '''
-        @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            \$Foo;
-
-        @Props()
-        class _\$FooProps extends UiProps with AMixin, AnotherMixin {
-          String foo;
-          int bar;
-        }
-
-        @State()
-        class _\$FooState extends UiState with AStateMixin, AnotherStateMixin {
-          String foo;
-          int bar;
-        }
-
-        @Component2()
-        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
-        }
-      ''', expectedOutput: '''
       @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            \$Foo;
+      UiFactory<FooProps> Foo =
+          // ignore: undefined_identifier
+          \$Foo;
 
-        @Props()
-        mixin FooPropsMixin on UiProps {
-          String foo;
-          int bar;
+      @Props()
+      class _\$FooProps extends UiProps with AMixin, AnotherMixin {
+        String foo;
+        int bar;
+      }
+
+      @State()
+      class _\$FooState extends UiState with AStateMixin, AnotherStateMixin {
+        String foo;
+        int bar;
+      }
+
+      @Component2()
+      class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+        @override
+        render() {
+          return Dom.ul()(
+            Dom.li()('Foo: ', props.foo),
+            Dom.li()('Bar: ', props.bar),
+          );
         }
+      }
+    ''',
+            expectedOutput: '''
+      @Factory()
+      UiFactory<FooProps> Foo =
+          // ignore: undefined_identifier
+          \$Foo;
 
-        class FooProps = UiProps with AMixin, AnotherMixin;
+      @Props()
+      mixin FooPropsMixin on UiProps {
+        String foo;
+        int bar;
+      }
+      
+      class FooProps = UiProps with FooPropsMixin, AMixin, AnotherMixin;
 
-        @State()
-        mixin FooStateMixin on UiState {
-          String foo;
-          int bar;
+      @State()
+      mixin FooStateMixin on UiState {
+        String foo;
+        int bar;
+      }
+      
+      class FooState = UiState with FooStateMixin, AStateMixin, AnotherStateMixin;
+
+      @Component2()
+      class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+        @override
+        render() {
+          return Dom.ul()(
+            Dom.li()('Foo: ', props.foo),
+            Dom.li()('Bar: ', props.bar),
+          );
         }
+      }
+    ''',
+          );
+        });
+      });
 
-        class FooState = UiState with AStateMixin, AnotherStateMixin;
+      group('and there is just a props class', () {
+        test('and the class does not extend from UiProps', () {
+          testSuggestor(
+            expectedPatchCount: 6,
+            input: '''
+      @Factory()
+      UiFactory<FooProps> Foo =
+          // ignore: undefined_identifier
+          \$Foo;
 
-        @Component2()
-        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
+      @Props()
+      class _\$FooProps extends ADifferentPropsClass {
+        String foo;
+        int bar;
+      }
+
+      @Component2()
+      class FooComponent extends UiComponent2<FooProps> {
+        @override
+        render() {
+          return Dom.ul()(
+            Dom.li()('Foo: ', props.foo),
+            Dom.li()('Bar: ', props.bar),
+          );
         }
-      ''',
+      }
+    ''',
+            expectedOutput: '''
+      @Factory()
+      UiFactory<FooProps> Foo =
+          // ignore: undefined_identifier
+          \$Foo;
+
+      @Props()
+      mixin FooPropsMixin on UiProps {
+        String foo;
+        int bar;
+      }
+      
+      class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
+
+      @Component2()
+      class FooComponent extends UiComponent2<FooProps> {
+        @override
+        render() {
+          return Dom.ul()(
+            Dom.li()('Foo: ', props.foo),
+            Dom.li()('Bar: ', props.bar),
+          );
+        }
+      }
+    ''',
           );
         });
 
-        test('and the classes extend from a custom class in addition to having mixins', () {
+        test('and the class uses mixins', () {
           testSuggestor(
-            expectedPatchCount: 14,
+            expectedPatchCount: 6,
             input: '''
-        @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            \$Foo;
-
-        @Props()
-        class _\$FooProps extends ADifferentPropsClass with AMixin, AnotherMixin {
-          String foo;
-          int bar;
-        }
-
-        @State()
-        class _\$FooState extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
-          String foo;
-          int bar;
-        }
-
-        @Component2()
-        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
-        }
-      ''', expectedOutput: '''
       @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            \$Foo;
+      UiFactory<FooProps> Foo =
+          // ignore: undefined_identifier
+          \$Foo;
 
-        @Props()
-        mixin FooPropsMixin on UiProps {
-          String foo;
-          int bar;
+      @Props()
+      class _\$FooProps extends UiProps with AMixin, AnotherMixin {
+        String foo;
+        int bar;
+      }
+
+      @Component2()
+      class FooComponent extends UiComponent2<FooProps> {
+        @override
+        render() {
+          return Dom.ul()(
+            Dom.li()('Foo: ', props.foo),
+            Dom.li()('Bar: ', props.bar),
+          );
         }
+      }
+    ''',
+            expectedOutput: '''
+      @Factory()
+      UiFactory<FooProps> Foo =
+          // ignore: undefined_identifier
+          \$Foo;
 
-        class FooProps = UiProps with ADifferentPropsClassMixin, AMixin, AnotherMixin;
+      @Props()
+      mixin FooPropsMixin on UiProps {
+        String foo;
+        int bar;
+      }
+      
+      class FooProps = UiProps with FooPropsMixin, AMixin, AnotherMixin;
 
-        @State()
-        mixin FooStateMixin on UiState {
-          String foo;
-          int bar;
+      @Component2()
+      class FooComponent extends UiComponent2<FooProps> {
+        @override
+        render() {
+          return Dom.ul()(
+            Dom.li()('Foo: ', props.foo),
+            Dom.li()('Bar: ', props.bar),
+          );
         }
-
-        class FooState = UiState with ADifferentStateClassMixin, AStateMixin, AnotherStateMixin;
-
-        @Component2()
-        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
-        }
-      ''',
+      }
+    ''',
           );
         });
       });
