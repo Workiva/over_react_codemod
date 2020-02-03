@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
@@ -22,9 +23,15 @@ void main() {
     final testSuggestor =
         getSuggestorTester(AdvancedPropsAndStateClassMigrator());
 
+    tearDown(() {
+      propsAndStateClassNamesConvertedToNewBoilerplate = {};
+    });
+
     group('does not operate when', () {
       test('it\'s an empty file', () {
         testSuggestor(expectedPatchCount: 0, input: '');
+
+        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
       });
 
       test('the class is simple', () {
@@ -54,6 +61,8 @@ void main() {
         }
       ''',
         );
+
+        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
       });
 
       test(
@@ -91,6 +100,8 @@ void main() {
       }
     ''',
         );
+
+        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
       });
     });
 
@@ -162,6 +173,11 @@ void main() {
         }
       ''',
           );
+
+          expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+            'FooProps': 'FooPropsMixin',
+            'FooState': 'FooStateMixin',
+          });
         });
 
         test('and the class uses mixins', () {
@@ -230,6 +246,11 @@ void main() {
       }
     ''',
           );
+
+          expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+            'FooProps': 'FooPropsMixin',
+            'FooState': 'FooStateMixin',
+          });
         });
       });
 
@@ -286,6 +307,10 @@ void main() {
       }
     ''',
           );
+
+          expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+            'FooProps': 'FooPropsMixin',
+          });
         });
 
         test('and the class uses mixins', () {
@@ -340,6 +365,10 @@ void main() {
       }
     ''',
           );
+
+          expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+            'FooProps': 'FooPropsMixin',
+          });
         });
       });
 
@@ -415,6 +444,11 @@ void main() {
         }
       ''',
         );
+
+        expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+          'FooProps': 'FooPropsMixin',
+          'FooState': 'FooStateMixin',
+        });
       });
     });
   });
