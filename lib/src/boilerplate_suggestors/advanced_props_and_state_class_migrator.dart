@@ -16,6 +16,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 
+import 'boilerplate_utilities.dart';
+
 /// Suggestor that updates props and state classes to new boilerplate.
 ///
 /// This should only be done on cases where the props and state classes are not
@@ -29,5 +31,10 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
+
+    if (!shouldMigrateAdvancedPropsAndStateClass(node)) return;
   }
 }
+
+bool shouldMigrateAdvancedPropsAndStateClass(ClassDeclaration node) =>
+    shouldMigratePropsAndStateClass(node) && isAdvancedPropsOrStateClass(node);

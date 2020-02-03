@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'package:codemod/codemod.dart';
-import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 
 /// Suggestor that wraps an existing suggestor and hides patches that are

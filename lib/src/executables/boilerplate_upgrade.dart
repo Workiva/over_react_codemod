@@ -16,8 +16,9 @@ import 'dart:io';
 
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/props_meta_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_simple_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
@@ -74,14 +75,14 @@ void main(List<String> args) {
   //      - If this is needed, it can be used for suggestors 3 and 4
   //
   //
-
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[
-      PropsAndStateClassesSimpleMigrator(),
-      AdvancedPropsAndStateClassMigrator(),
       StubbedPropsAndStateClassRemover(),
+      SimplePropsAndStateClassMigrator(),
+      AdvancedPropsAndStateClassMigrator(),
       PropsMixinMigrator(),
+      PropsMetaMigrator(),
       AnnotationsRemover(),
     ].map((s) => Ignoreable(s)),
     args: args,
