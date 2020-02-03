@@ -29,6 +29,11 @@ import 'boilerplate_utilities.dart';
 class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  final bool shouldMigrateCustomClassAndMixins;
+
+  AdvancedPropsAndStateClassMigrator(
+      {this.shouldMigrateCustomClassAndMixins = false});
+
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
@@ -36,9 +41,12 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     if (!shouldMigrateAdvancedPropsAndStateClass(node)) return;
 
     final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
+    final hasMixins = node.withClause != null;
 
     // Don't operate if the props class uses mixins and extends a custom class
-    if (node.withClause != null && extendsFromCustomClass) return;
+    if (hasMixins &&
+        extendsFromCustomClass &&
+        !shouldMigrateCustomClassAndMixins) return;
 
     final className = stripPrivateGeneratedPrefix(node.name.toSource());
     var newClassDeclarationString =
@@ -46,9 +54,13 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     if (extendsFromCustomClass) {
       final parentClass = node.extendsClause.superclass.toSource() + 'Mixin';
-      newClassDeclarationString += '$parentClass, ${className}Mixin;';
-    } else {
-      newClassDeclarationString += '${className}Mixin,';
+      newClassDeclarationString +=
+          '$parentClass, ${className}Mixin${hasMixins ? ',' : ';'}';
+    }
+
+    if (hasMixins) {
+      if (hasMixins && !extendsFromCustomClass)
+        newClassDeclarationString += '${className}Mixin,';
       newClassDeclarationString = node.withClause?.childEntities
           ?.whereType<TypeName>()
           ?.joinWithToSource(

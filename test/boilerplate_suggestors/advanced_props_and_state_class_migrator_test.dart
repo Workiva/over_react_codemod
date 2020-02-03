@@ -344,6 +344,80 @@ void main() {
           );
         });
       });
+
+      test(
+          'and have a custom class with mixins when `shouldMigrateCustomClassAndMixins` is true',
+          () {
+        final testSuggestorWithFlag = getSuggestorTester(
+            AdvancedPropsAndStateClassMigrator(
+                shouldMigrateCustomClassAndMixins: true));
+
+        testSuggestorWithFlag(
+          expectedPatchCount: 14,
+          input: '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        class _\$FooProps extends ADifferentPropsClass with AMixin, AnotherMixin {
+          String foo;
+          int bar;
+        }
+
+        @State()
+        class _\$FooState extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+          expectedOutput: '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        mixin FooPropsMixin on UiProps {
+          String foo;
+          int bar;
+        }
+        
+        class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin, AMixin, AnotherMixin;
+
+        @State()
+        mixin FooStateMixin on UiState {
+          String foo;
+          int bar;
+        }
+        
+        class FooState = UiState with ADifferentStateClassMixin, FooStateMixin, AStateMixin, AnotherStateMixin;
+
+        @Component2()
+        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+        );
+      });
     });
   });
 }
