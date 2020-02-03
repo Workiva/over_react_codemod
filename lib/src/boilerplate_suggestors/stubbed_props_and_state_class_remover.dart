@@ -13,15 +13,20 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_companion_class_remover.dart';
 
-/// Suggestor that removes the stubbed public facing props and state class.
-class StubbedPropsAndStateClassRemover extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+/// Suggestor that removes every companion class for props and state classes, as
+/// they were only temporarily required for backwards-compatibility with Dart 1.
+class StubbedPropsAndStateClassRemover
+    extends PropsAndStateCompanionClassRemover implements Suggestor {
   @override
-  visitClassDeclaration(ClassDeclaration node) {
-    super.visitClassDeclaration(node);
+  bool shouldRemoveCompanionClassFor(
+      ClassDeclaration candidate, CompilationUnit node) {
+    return super.shouldRemoveCompanionClassFor(candidate, node) &&
+        (shouldMigrateSimplePropsAndStateClass(candidate) ||
+            shouldMigrateAdvancedPropsAndStateClass(candidate));
   }
 }

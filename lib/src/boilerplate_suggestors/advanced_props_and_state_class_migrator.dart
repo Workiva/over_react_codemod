@@ -60,8 +60,9 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     }
 
     if (hasMixins) {
-      if (!extendsFromCustomClass)
+      if (!extendsFromCustomClass) {
         newClassDeclarationString += '${className}Mixin,';
+      }
 
       newClassDeclarationString = node.withClause?.childEntities
           ?.whereType<TypeName>()
