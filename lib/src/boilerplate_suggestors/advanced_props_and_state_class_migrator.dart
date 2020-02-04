@@ -49,31 +49,35 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         extendsFromCustomClass &&
         !shouldMigrateCustomClassAndMixins) return;
 
-    final className = stripPrivateGeneratedPrefix(node.name.toSource());
-    var newClassDeclarationString =
-        '\n\nclass $className = Ui${className.contains('Props') ? 'Props' : 'State'} with ';
+    final className = stripPrivateGeneratedPrefix(node.name.name);
+    final newDeclarationBuffer = StringBuffer()
+      // Create the class name
+      ..write('\n\nclass $className = ')
+      // Decide if the class is a Props or a State class
+      ..write('Ui${className.contains('Props') ? 'Props' : 'State'} ')
+      // Add the width clause
+      ..write('with ');
 
     if (extendsFromCustomClass) {
-      final parentClass = node.extendsClause.superclass.toSource() + 'Mixin';
-      newClassDeclarationString +=
-          '$parentClass, ${className}Mixin${hasMixins ? ',' : ';'}';
+      final parentClass = node.extendsClause.superclass.name.name + 'Mixin';
+      newDeclarationBuffer
+          .write('$parentClass, ${className}Mixin${hasMixins ? ',' : ''}');
     }
 
     if (hasMixins) {
       if (!extendsFromCustomClass) {
-        newClassDeclarationString += '${className}Mixin,';
+        newDeclarationBuffer.write('${className}Mixin,');
       }
 
-      newClassDeclarationString = node.withClause?.childEntities
-          ?.whereType<TypeName>()
-          ?.joinWithToSource(
-              startingString: newClassDeclarationString, endingString: ';');
+      newDeclarationBuffer.write(node.withClause.mixinTypes.joinByName());
     }
+
+    newDeclarationBuffer.write(';');
 
     migrateClassToMixin(node, yieldPatch,
         shouldAddMixinToName: true,
         shouldSwapParentClass: extendsFromCustomClass);
-    yieldPatch(node.end, node.end, newClassDeclarationString);
+    yieldPatch(node.end, node.end, newDeclarationBuffer.toString());
   }
 }
 

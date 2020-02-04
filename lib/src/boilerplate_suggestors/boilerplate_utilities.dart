@@ -105,8 +105,7 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 
   yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
 
-  final originalPublicClassName =
-      stripPrivateGeneratedPrefix(node.name.toSource());
+  final originalPublicClassName = stripPrivateGeneratedPrefix(node.name.name);
   String newMixinName = originalPublicClassName;
 
   yieldPatch(node.name.token.offset,
@@ -121,7 +120,7 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
   }
 
   if (shouldSwapParentClass) {
-    final isAPropsClass = node.name.toSource().contains('Props');
+    final isAPropsClass = node.name.name.contains('Props');
     yieldPatch(
         node.extendsClause.superclass.name.offset,
         node.extendsClause.superclass.name.end,
@@ -137,19 +136,15 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 }
 
 extension IterableAstUtils on Iterable<NamedType> {
-  /// Utility to join an `Iterable` based on the `toSource()` of the `name` field
+  /// Utility to join an `Iterable` based on the `name` of the `name` field
   /// rather than the `toString()` of the object.
-  String joinWithToSource({String startingString, String endingString}) {
-    var string = '${startingString.trimRight()} ' ?? '';
+  String joinByName({String startingString, String endingString}) {
+    final itemString = map((t) => t.name.name).join(', ');
+    final returnString = StringBuffer()
+      ..write(startingString != null ? '${startingString.trimRight()} ' : '')
+      ..write(itemString)
+      ..write(endingString != null ? '${endingString.trimLeft()}' : '');
 
-    forEach((e) {
-      final isTheLastItem = last.name.toSource() == e.name.toSource();
-
-      string += '${e.name.toSource()}${isTheLastItem ? '' : ', '}';
-    });
-
-    string += endingString ?? '';
-
-    return string;
+    return returnString.toString();
   }
 }

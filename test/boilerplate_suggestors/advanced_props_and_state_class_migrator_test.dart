@@ -37,14 +37,14 @@ void main() {
       test('the class is simple', () {
         testSuggestor(
           expectedPatchCount: 0,
-          input: '''
+          input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
-            \$Foo;
+            $Foo;
 
         @Props()
-        class _\$FooProps extends UiProps {
+        class _$FooProps extends UiProps {
           String foo;
           int bar;
         }
@@ -70,20 +70,20 @@ void main() {
           () {
         testSuggestor(
           expectedPatchCount: 0,
-          input: '''
+          input: r'''
       @Factory()
       UiFactory<FooProps> Foo =
           // ignore: undefined_identifier
-          \$Foo;
+          $Foo;
 
       @Props()
-      class _\$FooProps extends ADifferentPropsClass with AMixin, AnotherMixin {
+      class _$FooProps extends ADifferentPropsClass with AMixin, AnotherMixin {
         String foo;
         int bar;
       }
 
       @State()
-      class _\$FooState extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
+      class _$FooState extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
         String foo;
         int bar;
       }
@@ -110,20 +110,20 @@ void main() {
         test('and the classes extend from a custom class', () {
           testSuggestor(
             expectedPatchCount: 12,
-            input: '''
+            input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
-            \$Foo;
+            $Foo;
 
         @Props()
-        class _\$FooProps extends ADifferentPropsClass {
+        class _$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
 
         @State()
-        class _\$FooState extends ADifferentStateClass {
+        class _$FooState extends ADifferentStateClass {
           String foo;
           int bar;
         }
@@ -139,11 +139,11 @@ void main() {
           }
         }
       ''',
-            expectedOutput: '''
+            expectedOutput: r'''
       @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
-            \$Foo;
+            $Foo;
 
         @Props()
         mixin FooPropsMixin on UiProps {
@@ -183,20 +183,20 @@ void main() {
         test('and the class uses mixins', () {
           testSuggestor(
             expectedPatchCount: 12,
-            input: '''
+            input: r'''
       @Factory()
       UiFactory<FooProps> Foo =
           // ignore: undefined_identifier
-          \$Foo;
+          $Foo;
 
       @Props()
-      class _\$FooProps extends UiProps with AMixin, AnotherMixin {
+      class _$FooProps extends UiProps with AMixin, AnotherMixin {
         String foo;
         int bar;
       }
 
       @State()
-      class _\$FooState extends UiState with AStateMixin, AnotherStateMixin {
+      class _$FooState extends UiState with AStateMixin, AnotherStateMixin {
         String foo;
         int bar;
       }
@@ -212,11 +212,11 @@ void main() {
         }
       }
     ''',
-            expectedOutput: '''
+            expectedOutput: r'''
       @Factory()
       UiFactory<FooProps> Foo =
           // ignore: undefined_identifier
-          \$Foo;
+          $Foo;
 
       @Props()
       mixin FooPropsMixin on UiProps {
@@ -258,14 +258,14 @@ void main() {
         test('and the class does not extend from UiProps', () {
           testSuggestor(
             expectedPatchCount: 6,
-            input: '''
+            input: r'''
       @Factory()
       UiFactory<FooProps> Foo =
           // ignore: undefined_identifier
-          \$Foo;
+          $Foo;
 
       @Props()
-      class _\$FooProps extends ADifferentPropsClass {
+      class _$FooProps extends ADifferentPropsClass {
         String foo;
         int bar;
       }
@@ -281,11 +281,11 @@ void main() {
         }
       }
     ''',
-            expectedOutput: '''
+            expectedOutput: r'''
       @Factory()
       UiFactory<FooProps> Foo =
           // ignore: undefined_identifier
-          \$Foo;
+          $Foo;
 
       @Props()
       mixin FooPropsMixin on UiProps {
@@ -316,14 +316,14 @@ void main() {
         test('and the class uses mixins', () {
           testSuggestor(
             expectedPatchCount: 6,
-            input: '''
+            input: r'''
       @Factory()
       UiFactory<FooProps> Foo =
           // ignore: undefined_identifier
-          \$Foo;
+          $Foo;
 
       @Props()
-      class _\$FooProps extends UiProps with AMixin, AnotherMixin {
+      class _$FooProps extends UiProps with AMixin, AnotherMixin {
         String foo;
         int bar;
       }
@@ -339,11 +339,11 @@ void main() {
         }
       }
     ''',
-            expectedOutput: '''
+            expectedOutput: r'''
       @Factory()
       UiFactory<FooProps> Foo =
           // ignore: undefined_identifier
-          \$Foo;
+          $Foo;
 
       @Props()
       mixin FooPropsMixin on UiProps {
@@ -381,20 +381,20 @@ void main() {
 
         testSuggestorWithFlag(
           expectedPatchCount: 14,
-          input: '''
+          input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
-            \$Foo;
+            $Foo;
 
         @Props()
-        class _\$FooProps extends ADifferentPropsClass with AMixin, AnotherMixin {
+        class _$FooProps extends ADifferentPropsClass with AMixin, AnotherMixin {
           String foo;
           int bar;
         }
 
         @State()
-        class _\$FooState extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
+        class _$FooState extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
           String foo;
           int bar;
         }
@@ -410,11 +410,11 @@ void main() {
           }
         }
       ''',
-          expectedOutput: '''
+          expectedOutput: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
-            \$Foo;
+            $Foo;
 
         @Props()
         mixin FooPropsMixin on UiProps {
