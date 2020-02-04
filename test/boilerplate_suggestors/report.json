@@ -1,0 +1,18 @@
+{
+  "exports": {
+    "lib/web_skin_dart.dart/ButtonProps": {
+      "type": "class",
+      "grammar": {
+        "name": "ButtonProps",
+        "meta": ["@Props()"]
+      }
+    },
+    "lib/web_skin_dart.dart/FooProps": {
+      "type": "class",
+      "grammar": {
+        "name": "_$FooProps",
+        "meta": ["@Props()"]
+      }
+    }
+  }
+}

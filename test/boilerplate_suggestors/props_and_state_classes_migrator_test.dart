@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_migrator.dart';
 import 'package:test/test.dart';
@@ -23,9 +26,9 @@ main() {
     SuggestorTester testSuggestor;
 
     setUpAll(() async {
-      final helper = SemverHelper();
-      await helper.fromReport(
-          '/Users/sydneyjodon/Documents/GitHub/over_react_codemod/lib/src/boilerplate_suggestors/test.json');
+      final helper = SemverHelper(jsonDecode(
+          await File('test/boilerplate_suggestors/report.json')
+              .readAsString()));
       testSuggestor = getSuggestorTester(PropsAndStateClassesMigrator(helper));
     });
 

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
@@ -35,9 +36,8 @@ Future<void> main(List<String> args) async {
     recursive: true,
   );
 
-  SemverHelper helper = SemverHelper();
-  await helper.fromReport(
-      '/Users/sydneyjodon/Documents/GitHub/over_react_codemod/lib/src/boilerplate_suggestors/test.json');
+  SemverHelper helper = SemverHelper(jsonDecode(
+      await File('test/boilerplate_suggestors/report.json').readAsString()));
 
   exitCode = runInteractiveCodemodSequence(
     query,
