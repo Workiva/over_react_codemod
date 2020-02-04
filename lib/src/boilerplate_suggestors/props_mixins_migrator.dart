@@ -23,7 +23,7 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
     implements Suggestor {
   final SemverHelper helper;
 
-  PropsAndStateClassesMigrator(this.helper);
+  PropsMixinMigrator(this.helper);
 
   @override
   visitClassDeclaration(ClassDeclaration node) {

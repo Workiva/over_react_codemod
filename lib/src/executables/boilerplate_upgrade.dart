@@ -23,7 +23,6 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_migrator.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 
 const _changesRequiredOutput = """
@@ -41,6 +40,9 @@ Future<void> main(List<String> args) async {
     },
     recursive: true,
   );
+
+  SemverHelper helper = SemverHelper(jsonDecode(
+      await File('lib/src/boilerplate_suggestors/report.json').readAsString()));
 
   // General plan:
   //  - Things that need to be accomplished (very simplified)
@@ -78,19 +80,16 @@ Future<void> main(List<String> args) async {
   //      - If this is needed, it can be used for suggestors 3 and 4
   //
   //
-  SemverHelper helper = SemverHelper(jsonDecode(
-      await File('test/boilerplate_suggestors/report.json').readAsString()));
 
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[
-      PropsAndStateClassesMigrator(helper),
-      StubbedPropsAndStateClassRemover(),
-      SimplePropsAndStateClassMigrator(),
-      AdvancedPropsAndStateClassMigrator(),
-      PropsMixinMigrator(),
-      PropsMetaMigrator(),
-      AnnotationsRemover(),
+      StubbedPropsAndStateClassRemover(helper),
+      SimplePropsAndStateClassMigrator(helper),
+      AdvancedPropsAndStateClassMigrator(helper),
+      PropsMixinMigrator(helper),
+      PropsMetaMigrator(helper),
+      AnnotationsRemover(helper),
     ].map((s) => Ignoreable(s)),
     args: args,
     defaultYes: true,

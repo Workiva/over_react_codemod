@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:test/test.dart';
@@ -20,8 +23,16 @@ import '../util.dart';
 
 main() {
   group('SimplePropsAndStateClassMigrator', () {
-    final testSuggestor =
-        getSuggestorTester(SimplePropsAndStateClassMigrator());
+    SuggestorTester testSuggestor;
+
+    setUpAll(() async {
+      final helper = SemverHelper(jsonDecode(
+          await File('test/boilerplate_suggestors/report.json')
+              .readAsString()));
+
+      testSuggestor =
+          getSuggestorTester(SimplePropsAndStateClassMigrator(helper));
+    });
 
     tearDown(() {
       propsAndStateClassNamesConvertedToNewBoilerplate = {};

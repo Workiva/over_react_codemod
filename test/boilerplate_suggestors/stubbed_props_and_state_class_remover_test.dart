@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:test/test.dart';
 
@@ -19,9 +23,16 @@ import '../util.dart';
 
 main() {
   group('StubbedPropsAndStateClassRemover', () {
-    final testSuggestor = getSuggestorTester(
-      StubbedPropsAndStateClassRemover(),
-    );
+    SuggestorTester testSuggestor;
+
+    setUpAll(() async {
+      final helper = SemverHelper(jsonDecode(
+          await File('test/boilerplate_suggestors/report.json')
+              .readAsString()));
+
+      testSuggestor =
+          getSuggestorTester(StubbedPropsAndStateClassRemover(helper));
+    });
 
     group('does not perform a migration', () {
       test('when it encounters an empty file', () {
