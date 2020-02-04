@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_meta_migrator.dart';
 import 'package:test/test.dart';
@@ -23,7 +20,7 @@ import '../util.dart';
 
 main() {
   group('PropsMetaMigrator', () {
-    SuggestorTester testSuggestor = getSuggestorTester(PropsMetaMigrator());
+    final testSuggestor = getSuggestorTester(PropsMetaMigrator());
 
     tearDown(() {
       propsAndStateClassNamesConvertedToNewBoilerplate = {};
