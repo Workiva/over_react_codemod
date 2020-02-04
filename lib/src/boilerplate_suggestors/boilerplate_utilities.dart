@@ -21,18 +21,21 @@ class SemverHelper {
     _exportList = jsonReport['exports'];
   }
 
-  Map<String, String> getPublicExportLocations(ClassDeclaration node) {
-    final className = node.name.name;
-    String parentKey;
+  /// Returns semver report information for [node] if it is publicly exported.
+  ///
+  /// If [node] is not publicly exported, returns `null`.
+  Map<String, dynamic> getPublicExportLocations(ClassDeclaration node) {
+    final className = node?.name?.name;
+    String classKey;
 
-    if (_exportList == null) return null;
+    if (className == null || _exportList == null) return null;
 
     _exportList.forEach((key, value) {
       if (value['type'] == 'class' && value['grammar']['name'] == className) {
-        parentKey = key;
+        classKey = key;
       }
     });
 
-    return parentKey != null ? {'class': className, 'lib': parentKey} : null;
+    return _exportList[classKey];
   }
 }
