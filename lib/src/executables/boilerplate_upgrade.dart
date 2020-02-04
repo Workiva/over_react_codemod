@@ -16,6 +16,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/props_meta_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_and_state_classes_migrator.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
@@ -36,6 +42,42 @@ Future<void> main(List<String> args) async {
     recursive: true,
   );
 
+  // General plan:
+  //  - Things that need to be accomplished (very simplified)
+  //    1. Make props / state class a mixin
+  //    2. Remove stub props / state classes
+  //    3. Remove annotations
+  //
+  //  - Before any changes occur (short circuit conditions):
+  //    1. Check that the component is `component2`
+  //    2. Check whether the props class is a public API
+  //      i. If this is unavailable, check the flag
+  //
+  //  - Suggestors:
+  //    1. Handle basic use cases
+  //    2. Handle advanced cases
+  //    3. Remove stubbed meta class
+  //    4. Remove annotations
+  //    5. Transition `PropsMixins`
+  //
+  //  - Common Utilities
+  //    - Detect Component2 (for short circuit condition 1)
+  //      - use `isAssociatedWithComponent2`
+  //    - Detect if the class is "simple".
+  //      - If false, short circuit suggestor 1
+  //      - If true, short circuit suggestor 2
+  //      - use `isSimplePropsOrStateClass`
+  //    - Switch a props / state class to a `mixin`
+  //      - Both the simple and advanced migrators likely need to switch a class
+  //        to a mixin (the advanced case can then just add a new line)
+  //      - use `migrateClassToMixin`
+  //    -? Detect if the file _will_ be updated
+  //      - NOTE: not created yet
+  //      - Can we rely on timing of suggestors? As in, if a suggestor runs after a different one, will its changes be in place?
+  //          - IIRC, no?
+  //      - If this is needed, it can be used for suggestors 3 and 4
+  //
+  //
   SemverHelper helper = SemverHelper(jsonDecode(
       await File('test/boilerplate_suggestors/report.json').readAsString()));
 
@@ -43,6 +85,12 @@ Future<void> main(List<String> args) async {
     query,
     <Suggestor>[
       PropsAndStateClassesMigrator(helper),
+      StubbedPropsAndStateClassRemover(),
+      SimplePropsAndStateClassMigrator(),
+      AdvancedPropsAndStateClassMigrator(),
+      PropsMixinMigrator(),
+      PropsMetaMigrator(),
+      AnnotationsRemover(),
     ].map((s) => Ignoreable(s)),
     args: args,
     defaultYes: true,

@@ -22,6 +22,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 
+import 'component2_suggestors/component2_utilities.dart';
 import 'constants.dart';
 
 typedef String CompanionBuilder(String className,
@@ -306,6 +307,20 @@ String friendlyVersionConstraint(VersionConstraint constraint) {
   }
 
   return constraint.toString();
+}
+
+/// Returns whether or not [node] is declared in the same file as a Component2 component.
+bool isAssociatedWithComponent2(AstNode node) {
+  bool containsComponent2 = false;
+  CompilationUnit unit = node.root;
+
+  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+    if (extendsComponent2(classNode)) {
+      containsComponent2 = true;
+    }
+  });
+
+  return containsComponent2;
 }
 
 /// Return whether or not a particular pubspec.yaml dependency value string
