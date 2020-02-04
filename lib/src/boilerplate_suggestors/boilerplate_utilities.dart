@@ -136,7 +136,7 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
       newMixinName;
 }
 
-extension CancatUtils on Iterable<NamedType> {
+extension IterableAstUtils on Iterable<NamedType> {
   /// Utility to join an `Iterable` based on the `toSource()` of the `name` field
   /// rather than the `toString()` of the object.
   String joinWithToSource({String startingString, String endingString}) {
