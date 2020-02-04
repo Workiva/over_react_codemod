@@ -16,12 +16,78 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 
-/// Suggestor that looks for @Props, @State, and @Component2 and removes them.
+import 'boilerplate_utilities.dart';
+
+/// Suggestor that looks for `@Props()`, `@State()`, `@Component2()` and `@Factory()` annotations, and removes them
+/// as long as they do not contain any arguments.
+///
+/// > NOTE: `@PropsMixin()` and `@StateMixin()` annotations are removed via [PropsMixinMigrator].
 class AnnotationsRemover extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   @override
   visitAnnotatedNode(AnnotatedNode node) {
     super.visitAnnotatedNode(node);
+    if (node.metadata.isEmpty) return;
+
+    final annotationToRemove =
+        node.metadata.singleWhere(_annotationIsRelevant, orElse: () => null);
+
+    // --- Short Circuit Conditions --- //
+    if (annotationToRemove == null) return;
+    if (annotationToRemove.arguments.arguments.isNotEmpty) return;
+    if (!_propsClassWasConvertedToNewBoilerplate(node)) return;
+
+    // --- Migrate --- //
+    yieldPatch(annotationToRemove.offset,
+        node.firstTokenAfterCommentAndMetadata.offset, '');
+  }
+
+  static const _relevantAnnotationNames = [
+    'Factory',
+    'Props',
+    'State',
+    'Component2',
+  ];
+
+  bool _annotationIsRelevant(Annotation annotation) =>
+      _relevantAnnotationNames.contains(annotation.name.name);
+
+  bool _nodeHasRelevantAnnotation(AnnotatedNode node) =>
+      node.metadata.any(_annotationIsRelevant);
+
+  bool _nodeHasAnnotationWithName(AnnotatedNode node, String annotationName) =>
+      node.metadata.any((annotation) => annotation.name.name == annotationName);
+
+  String _getNameOfPropsClassThatMayHaveBeenConverted(AnnotatedNode node) {
+    if (_nodeHasAnnotationWithName(node, 'Factory')) {
+      TopLevelVariableDeclaration factoryNode = node;
+      return getPropsClassNameFromFactoryDeclaration(factoryNode);
+    } else if (_nodeHasAnnotationWithName(node, 'State')) {
+      ClassOrMixinDeclaration stateNode = node;
+      return stateNode.name.name.replaceFirst('State', 'Props');
+    } else if (_nodeHasAnnotationWithName(node, 'Component2')) {
+      ClassDeclaration componentNode = node;
+      return componentNode.name.name.replaceFirst('Component', 'Props');
+    }
+
+    return null;
+  }
+
+  bool _propsClassWasConvertedToNewBoilerplate(AnnotatedNode node) {
+    if (_nodeHasAnnotationWithName(node, 'Props')) {
+      // Its the props class
+      return node is MixinDeclaration &&
+          propsAndStateClassNamesConvertedToNewBoilerplate
+              .containsKey(node.name.name);
+    } else if (_nodeHasRelevantAnnotation(node)) {
+      // Not a props class, but is a UiComponent-related class with an annotation.
+      final analogousPropsMixinOrClassName =
+          _getNameOfPropsClassThatMayHaveBeenConverted(node);
+      return propsAndStateClassNamesConvertedToNewBoilerplate
+          .containsKey(analogousPropsMixinOrClassName);
+    }
+
+    return false;
   }
 }

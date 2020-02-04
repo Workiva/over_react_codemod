@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
 
@@ -118,4 +119,15 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 
   propsAndStateClassNamesConvertedToNewBoilerplate[originalPublicClassName] =
       newMixinName;
+}
+
+/// Returns the name of the props class for a given [factoryDeclaration].
+String getPropsClassNameFromFactoryDeclaration(
+    TopLevelVariableDeclaration factoryDeclaration) {
+  return factoryDeclaration.variables.type.childEntities
+      .whereType<TypeArgumentList>()
+      .single
+      .arguments
+      .single
+      .toString();
 }
