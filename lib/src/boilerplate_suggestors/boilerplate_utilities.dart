@@ -138,7 +138,8 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 extension IterableAstUtils on Iterable<NamedType> {
   /// Utility to join an `Iterable` based on the `name` of the `name` field
   /// rather than the `toString()` of the object.
-  String joinByName({String startingString, String endingString, String seperator}) {
+  String joinByName(
+      {String startingString, String endingString, String seperator}) {
     final itemString = map((t) => t.name.name).join('${seperator ?? ','} ');
     final returnString = StringBuffer()
       ..write(startingString != null ? '${startingString.trimRight()} ' : '')
