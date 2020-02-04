@@ -95,7 +95,39 @@ main() {
       });
 
       test('when the stubbed "companion" class(es) are publicly exported', () {
-        // TODO add a test for when the class is publicly exported
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+          @Factory()
+          UiFactory<FooProps> Foo =
+              // ignore: undefined_identifier
+              \$Foo;
+      
+          @Props()
+          class _\$_FooProps extends UiProps {
+            String foo;
+            int bar;
+          }
+      
+          @Component2()
+          class FooComponent extends UiComponent2<BarProps> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+          
+          // AF-3369 This will be removed once the transition to Dart 2 is complete.
+          // ignore: mixin_of_non_class, undefined_class
+          class BarProps extends _\$_FooProps with _\$_FooPropsAccessorsMixin {
+            // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+            static const PropsMeta meta = _\$metaFor_FooProps;
+          }
+        ''',
+        );
       });
     });
 

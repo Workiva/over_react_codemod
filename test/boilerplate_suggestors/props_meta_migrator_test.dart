@@ -23,15 +23,7 @@ import '../util.dart';
 
 main() {
   group('PropsMetaMigrator', () {
-    SuggestorTester testSuggestor;
-
-    setUpAll(() async {
-      final helper = SemverHelper(jsonDecode(
-          await File('test/boilerplate_suggestors/report.json')
-              .readAsString()));
-
-      testSuggestor = getSuggestorTester(PropsMetaMigrator(helper));
-    });
+    SuggestorTester testSuggestor = getSuggestorTester(PropsMetaMigrator());
 
     tearDown(() {
       propsAndStateClassNamesConvertedToNewBoilerplate = {};

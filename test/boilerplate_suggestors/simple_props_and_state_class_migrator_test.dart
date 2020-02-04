@@ -57,7 +57,7 @@ main() {
       expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
     });
 
-    test('and the component is not Component2', () {
+    test('the component is not Component2', () {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
@@ -88,7 +88,36 @@ main() {
       expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
     });
 
-    // TODO add a test for when the class is publicly exported
+    test('when the props class is publicly exported', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+          @Factory()
+          UiFactory<FooProps> Foo =
+              // ignore: undefined_identifier
+              \$Foo;
+    
+          @Props()
+          class BarProps extends UiProps {
+            String foo;
+            int bar;
+          }
+    
+          @Component2()
+          class FooComponent extends UiComponent2<BarProps> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+        ''',
+      );
+
+      expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+    });
 
     group('when the classes are not simple', () {
       test('and there are both a props and a state class', () {

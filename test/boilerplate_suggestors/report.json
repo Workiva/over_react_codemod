@@ -6,6 +6,13 @@
         "name": "ButtonProps",
         "meta": ["@Props()"]
       }
+    },
+    "lib/web_skin_dart.dart/BarProps": {
+      "type": "class",
+      "grammar": {
+        "name": "BarProps",
+        "meta": ["@Props()"]
+      }
     }
   }
 }

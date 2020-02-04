@@ -32,10 +32,6 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilit
 class PropsMetaMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final SemverHelper helper;
-
-  PropsMetaMigrator(this.helper);
-
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     super.visitPrefixedIdentifier(node);
