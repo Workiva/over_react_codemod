@@ -78,11 +78,20 @@ bool implementsUiPropsOrUiState(ClassDeclaration classNode) {
       .any((typeStr) => typeStr.contains(RegExp('(UiProps)|(UiState)')));
 }
 
-/// A simple RegExp against the name of the class to verify it contains `props`
-/// or `state`.
-bool isAPropsOrStateClass(ClassDeclaration classNode) => classNode.name
-    .toSource()
-    .contains(RegExp('([A-Za-z]+Props)|([A-Za-z]+State)'));
+/// A simple evaluation of the annotation(s) of the [classNode]
+/// to verify it is either `@Props()` or `@State()` annotated class.
+bool isAPropsOrStateClass(ClassDeclaration classNode) =>
+    isAPropsClass(classNode) || isAStateClass(classNode);
+
+/// A simple evaluation of the annotation(s) of the [classNode]
+/// to verify it is a `@Props()` annotated class.
+bool isAPropsClass(ClassDeclaration classNode) =>
+    getAnnotationNode(classNode, 'Props') != null;
+
+/// A simple evaluation of the annotation(s) of the [classNode]
+/// to verify it is a `@State()` annotated class.
+bool isAStateClass(ClassDeclaration classNode) =>
+    getAnnotationNode(classNode, 'State') != null;
 
 /// Detects if the Props or State class is considered simple.
 ///
