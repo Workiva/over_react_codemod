@@ -202,11 +202,9 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
               interface.toSource() == 'UiProps' ||
               interface.toSource() == 'UiState');
           final otherInterfaces = List.of(nodeInterfaces)..remove(uiInterface);
-          final otherInterfacesStr =
-              commaSeparatedAstNodeNames(otherInterfaces);
 
           yieldPatch(node.implementsClause.offset, node.implementsClause.end,
-              'on ${uiInterface.toSource()} implements $otherInterfacesStr');
+              'on ${uiInterface.toSource()} implements ${otherInterfaces.joinByName()}');
         }
       } else {
         // Does not implement UiProps / UiState
@@ -214,10 +212,8 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 
         if (nodeInterfaces.isNotEmpty) {
           // But does implement other stuff
-          final otherInterfacesStr = commaSeparatedAstNodeNames(nodeInterfaces);
-
           yieldPatch(node.implementsClause.offset, node.implementsClause.end,
-              'on $uiInterfaceStr implements $otherInterfacesStr');
+              'on $uiInterfaceStr implements ${nodeInterfaces.joinByName()}');
         } else {
           // Does not implement anything
           yieldPatch(node.leftBracket.offset - 1, node.leftBracket.offset - 1,
@@ -235,4 +231,19 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 
   propsAndStateClassNamesConvertedToNewBoilerplate[originalPublicClassName] =
       newMixinName;
+}
+
+extension IterableAstUtils on Iterable<NamedType> {
+  /// Utility to join an `Iterable` based on the `name` of the `name` field
+  /// rather than the `toString()` of the object.
+  String joinByName(
+      {String startingString, String endingString, String seperator}) {
+    final itemString = map((t) => t.name.name).join('${seperator ?? ','} ');
+    final returnString = StringBuffer()
+      ..write(startingString != null ? '${startingString.trimRight()} ' : '')
+      ..write(itemString)
+      ..write(endingString != null ? '${endingString.trimLeft()}' : '');
+
+    return returnString.toString();
+  }
 }
