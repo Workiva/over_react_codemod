@@ -60,15 +60,12 @@ class AnnotationsRemover extends GeneralizingAstVisitor
       node.metadata.any((annotation) => annotation.name.name == annotationName);
 
   String _getNameOfPropsClassThatMayHaveBeenConverted(AnnotatedNode node) {
-    if (_nodeHasAnnotationWithName(node, 'Factory')) {
-      TopLevelVariableDeclaration factoryNode = node;
-      return getPropsClassNameFromFactoryDeclaration(factoryNode);
-    } else if (_nodeHasAnnotationWithName(node, 'State')) {
-      ClassOrMixinDeclaration stateNode = node;
-      return stateNode.name.name.replaceFirst('State', 'Props');
-    } else if (_nodeHasAnnotationWithName(node, 'Component2')) {
-      ClassDeclaration componentNode = node;
-      return componentNode.name.name.replaceFirst('Component', 'Props');
+    if (node is TopLevelVariableDeclaration) {
+      return getPropsClassNameFromFactoryDeclaration(node);
+    } else if (node is ClassDeclaration) {
+      return node.name.name.replaceFirst('Component', 'Props');
+    } else if (node is ClassOrMixinDeclaration) {
+      return node.name.name.replaceFirst('State', 'Props');
     }
 
     return null;
