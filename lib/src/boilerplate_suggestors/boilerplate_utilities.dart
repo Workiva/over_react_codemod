@@ -52,9 +52,12 @@ bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
   // Only validate props or state classes
   assert(isAPropsOrStateClass(classNode));
 
-  final superClass = classNode.extendsClause.superclass.name.toSource();
+  final superClass = classNode.extendsClause?.superclass?.name?.name;
 
-  if (superClass != 'UiProps' && superClass != 'UiState') return false;
+  if (superClass == null ||
+      superClass != 'UiProps' && superClass != 'UiState') {
+    return false;
+  }
   if (classNode.withClause != null) return false;
 
   return true;
