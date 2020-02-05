@@ -85,12 +85,14 @@ bool isAPropsOrStateClass(ClassDeclaration classNode) =>
 /// A simple evaluation of the annotation(s) of the [classNode]
 /// to verify it is a `@Props()` annotated class.
 bool isAPropsClass(ClassDeclaration classNode) =>
-    getAnnotationNode(classNode, 'Props') != null;
+    getAnnotationNode(classNode, 'Props') != null ||
+    getAnnotationNode(classNode, 'AbstractProps') != null;
 
 /// A simple evaluation of the annotation(s) of the [classNode]
 /// to verify it is a `@State()` annotated class.
 bool isAStateClass(ClassDeclaration classNode) =>
-    getAnnotationNode(classNode, 'State') != null;
+    getAnnotationNode(classNode, 'State') != null ||
+    getAnnotationNode(classNode, 'AbstractState') != null;
 
 /// Detects if the Props or State class is considered simple.
 ///
