@@ -44,21 +44,31 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
         (getter) => getter.name.name == 'props' || getter.name.name == 'state',
         orElse: () => null);
     if (propsOrStateGetter != null) {
-      yieldPatch(propsOrStateGetter.offset, propsOrStateGetter.end + 1, '');
+      yieldPatch(propsOrStateGetter.offset, propsOrStateGetter.end, '');
     }
   }
 
   void _removePropsOrStateMixinAnnotation(ClassDeclaration node) {
     final propsMixinAnnotationNode = getAnnotationNode(node, 'PropsMixin');
     if (propsMixinAnnotationNode != null) {
-      yieldPatch(propsMixinAnnotationNode.offset,
-          propsMixinAnnotationNode.end + 1, '');
+      yieldPatch(
+          propsMixinAnnotationNode.offset,
+          // +1 to ensure that any comments that were on the line immediately before the annotation
+          // we are removing - end up on the line immediately before the mixin declaration instead
+          // of having a newline separating them.
+          propsMixinAnnotationNode.end + 1,
+          '');
     }
 
     final stateMixinAnnotationNode = getAnnotationNode(node, 'StateMixin');
     if (stateMixinAnnotationNode != null) {
-      yieldPatch(stateMixinAnnotationNode.offset,
-          stateMixinAnnotationNode.end + 1, '');
+      yieldPatch(
+          stateMixinAnnotationNode.offset,
+          // +1 to ensure that any comments that were on the line immediately before the annotation
+          // we are removing - end up on the line immediately before the mixin declaration instead
+          // of having a newline separating them.
+          stateMixinAnnotationNode.end + 1,
+          '');
     }
   }
 
@@ -87,7 +97,7 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
           ? previousMember.end + 1
           : node.leftBracket.offset + 1;
 
-      yieldPatch(begin, metaField.end + 1, '');
+      yieldPatch(begin, metaFieldDecl.end, '');
     }
   }
 }
