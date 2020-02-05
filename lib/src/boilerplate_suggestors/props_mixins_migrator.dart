@@ -49,13 +49,13 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
   }
 
   void _removePropsOrStateMixinAnnotation(ClassDeclaration node) {
-    final propsMixinAnnotationNode = getPropsMixinAnnotationNode(node);
+    final propsMixinAnnotationNode = getAnnotationNode(node, 'PropsMixin');
     if (propsMixinAnnotationNode != null) {
       yieldPatch(propsMixinAnnotationNode.offset,
           propsMixinAnnotationNode.end + 1, '');
     }
 
-    final stateMixinAnnotationNode = getStateMixinAnnotationNode(node);
+    final stateMixinAnnotationNode = getAnnotationNode(node, 'StateMixin');
     if (stateMixinAnnotationNode != null) {
       yieldPatch(stateMixinAnnotationNode.offset,
           stateMixinAnnotationNode.end + 1, '');

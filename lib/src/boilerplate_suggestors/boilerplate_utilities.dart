@@ -26,32 +26,30 @@ bool isPublicForTest = false;
 // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
 bool isPublic(ClassDeclaration node) => isPublicForTest;
 
+/// Returns the annotation node associated with the provided [classNode]
+/// that matches the provided [annotationName], if one exists.
+AstNode getAnnotationNode(ClassDeclaration classNode, String annotationName) {
+  if (classNode.metadata.isEmpty) return null;
+
+  return classNode.metadata.singleWhere(
+      (node) => node.name.name == annotationName,
+      orElse: () => null);
+}
+
 /// A simple evaluation of the annotation(s) of the [classNode]
 /// to verify it is either a `@PropsMixin()` or `@StateMixin`.
 bool isAPropsOrStateMixin(ClassDeclaration classNode) =>
     isAPropsMixin(classNode) || isAStateMixin(classNode);
 
-/// Returns the node of a `@PropsMixin()` annotation for the provided [classNode], if one exists.
-AstNode getPropsMixinAnnotationNode(ClassDeclaration classNode) =>
-    classNode.sortedCommentAndAnnotations.singleWhere(
-        (node) => node?.toSource()?.startsWith('@PropsMixin') == true,
-        orElse: () => null);
-
 /// A simple evaluation of the annotation(s) of the [classNode]
 /// to verify it is a `@PropsMixin()`.
 bool isAPropsMixin(ClassDeclaration classNode) =>
-    getPropsMixinAnnotationNode(classNode) != null;
-
-/// Returns the node of a `@PropsMixin()` annotation for the provided [classNode], if one exists.
-AstNode getStateMixinAnnotationNode(ClassDeclaration classNode) =>
-    classNode.sortedCommentAndAnnotations.singleWhere(
-        (node) => node?.toSource()?.startsWith('@StateMixin') == true,
-        orElse: () => null);
+    getAnnotationNode(classNode, 'PropsMixin') != null;
 
 /// A simple evaluation of the annotation(s) of the [classNode]
 /// to verify it is a `@StateMixin()`.
 bool isAStateMixin(ClassDeclaration classNode) =>
-    getStateMixinAnnotationNode(classNode) != null;
+    getAnnotationNode(classNode, 'StateMixin') != null;
 
 /// Whether a props or state mixin class [classNode] should be migrated as part of the boilerplate codemod.
 bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
