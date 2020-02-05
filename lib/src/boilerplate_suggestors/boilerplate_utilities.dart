@@ -33,28 +33,15 @@ bool shouldMigratePropsAndStateClass(ClassDeclaration node) {
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
 /// or `UiState`.
 bool extendsFromUiPropsOrUiState(ClassDeclaration classNode) =>
-    classNode.extendsClause.superclass.name.name
+    classNode.extendsClause.superclass.name
+        .toSource()
         .contains(RegExp('(UiProps)|(UiState)'));
 
 /// A simple RegExp against the name of the class to verify it contains `props`
 /// or `state`.
-bool isAPropsOrStateClass(ClassDeclaration classNode) {
-  final followsNamingConvention =
-      classNode.name.name.contains(RegExp('([A-Za-z]+Props)|([A-Za-z]+State)'));
-
-  const approvedAnnotations = [
-    '@Props()',
-    '@State()',
-    '@AbstractProps()',
-    '@AbstractState()'
-  ];
-
-  final hasAnnotation = classNode.metadata
-      .where((n) => approvedAnnotations.contains(n.toSource()))
-      .isNotEmpty;
-
-  return hasAnnotation && followsNamingConvention;
-}
+bool isAPropsOrStateClass(ClassDeclaration classNode) => classNode.name
+    .toSource()
+    .contains(RegExp('([A-Za-z]+Props)|([A-Za-z]+State)'));
 
 /// Detects if the Props or State class is considered simple.
 ///
