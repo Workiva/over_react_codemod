@@ -74,7 +74,7 @@ bool extendsFromUiPropsOrUiState(ClassDeclaration classNode) =>
 bool implementsUiPropsOrUiState(ClassDeclaration classNode) {
   return classNode.implementsClause.interfaces
       .map((typeName) => typeName.name.name)
-      .any((typeStr) => typeStr.contains(RegExp('(UiProps)|(UiState)')));
+      .any({'UiProps', 'UiState'}.contains);
 }
 
 /// A simple evaluation of the annotation(s) of the [classNode]
