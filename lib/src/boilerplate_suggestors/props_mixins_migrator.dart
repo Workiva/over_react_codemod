@@ -90,12 +90,8 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
     } else {
       // Remove the meta field, along with any comment lines that preceded it.
       final metaFieldDecl = metaField.parent;
-      final previousMember = metaFieldDecl == classMembers.first
-          ? null
-          : classMembers[classMembers.indexOf(metaFieldDecl) - 1];
-      final begin = previousMember != null
-          ? previousMember.end + 1
-          : node.leftBracket.offset + 1;
+      final begin = metaFieldDecl.beginToken.precedingComments?.offset ??
+          metaField.offset;
 
       yieldPatch(begin, metaFieldDecl.end, '');
     }
