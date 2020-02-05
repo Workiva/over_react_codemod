@@ -27,36 +27,37 @@ main() {
       propsAndStateClassNamesConvertedToNewBoilerplate = {};
     });
 
-    test('empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
+    group('does not run when', () {
+      test('its an empty file', () {
+        testSuggestor(expectedPatchCount: 0, input: '');
 
-      expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
-    });
+        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+      });
 
-    test('no matches', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
+      test('there are no matches', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
         library foo;
         var a = 'b';
         class Foo {}
       ''',
-      );
+        );
 
-      expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
-    });
+        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+      });
 
-    test('and the component is not Component2', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
+      test('the component is not Component2', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
-            \$Foo;
+            $Foo;
 
         @Props()
-        class _\$FooProps extends UiProps {
+        class _$FooProps extends UiProps {
           String foo;
           int bar;
         }
@@ -72,62 +73,28 @@ main() {
           }
         }
       ''',
-      );
-
-      expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
-    });
-
-    // TODO add a test for when the class is publicly exported
-
-    group('when the classes are not simple', () {
-      test('and there are both a props and a state class', () {
-        testSuggestor(
-          expectedPatchCount: 0,
-          input: '''
-        @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            \$Foo;
-
-        @Props()
-        class _\$FooProps extends ADifferentPropsClass {
-          String foo;
-          int bar;
-        }
-
-        @State()
-        class _\$FooState extends ADifferentStateClass {
-          String foo;
-          int bar;
-        }
-
-        @Component2()
-        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
-        }
-      ''',
         );
 
         expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
       });
 
-      test('and there is just a props class', () {
+      test('the class is a PropsMixin', () {
         testSuggestor(
           expectedPatchCount: 0,
-          input: '''
+          input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
-            \$Foo;
+            $Foo;
+        
+        @PropsMixin()
+        class FooPropsMixin {
+          String foo;
+          int bar;
+        }
 
         @Props()
-        class _\$FooProps extends ADifferentPropsClass {
+        class _$FooProps extends UiProps with FooPropsMixin {
           String foo;
           int bar;
         }
@@ -147,26 +114,98 @@ main() {
 
         expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
       });
+
+      // TODO add a test for when the class is publicly exported
+
+      group('the classes are not simple', () {
+        test('and there are both a props and a state class', () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: r'''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+
+        @Props()
+        class _$FooProps extends ADifferentPropsClass {
+          String foo;
+          int bar;
+        }
+
+        @State()
+        class _$FooState extends ADifferentStateClass {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+          );
+
+          expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+        });
+
+        test('and there is just a props class', () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: r'''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+
+        @Props()
+        class _$FooProps extends ADifferentPropsClass {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+          );
+
+          expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+        });
+      });
     });
 
-    group('when the classes are simple', () {
+    group('runs when the classes are simple', () {
       test('and there are both a props and a state class', () {
         testSuggestor(
           expectedPatchCount: 6,
-          input: '''
+          input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
-              \$Foo;
+              $Foo;
     
           @Props()
-          class _\$FooProps extends UiProps {
+          class _$FooProps extends UiProps {
             String foo;
             int bar;
           }
     
           @State()
-          class _\$FooState extends UiState {
+          class _$FooState extends UiState {
             String foo;
             int bar;
           }
@@ -182,11 +221,11 @@ main() {
             }
           }
         ''',
-          expectedOutput: '''
+          expectedOutput: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
-              \$Foo;
+              $Foo;
     
           @Props()
           mixin FooProps on UiProps {
@@ -222,14 +261,14 @@ main() {
       test('and there is only a props class', () {
         testSuggestor(
           expectedPatchCount: 3,
-          input: '''
+          input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
-              \$Foo;
+              $Foo;
     
           @Props()
-          class _\$FooProps extends UiProps {
+          class _$FooProps extends UiProps {
             String foo;
             int bar;
           }
@@ -245,11 +284,11 @@ main() {
             }
           }
         ''',
-          expectedOutput: '''
+          expectedOutput: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
-              \$Foo;
+              $Foo;
     
           @Props()
           mixin FooProps on UiProps {
@@ -278,20 +317,20 @@ main() {
       test('and are abstract', () {
         testSuggestor(
           expectedPatchCount: 8,
-          input: '''
+          input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
-              \$Foo;
+              $Foo;
     
           @AbstractProps()
-          abstract class _\$FooProps extends UiProps {
+          abstract class _$FooProps extends UiProps {
             String foo;
             int bar;
           }
     
           @AbstractState()
-          abstract class _\$FooState extends UiState {
+          abstract class _$FooState extends UiState {
             String foo;
             int bar;
           }
@@ -307,11 +346,11 @@ main() {
             }
           }
         ''',
-          expectedOutput: '''
+          expectedOutput: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
-              \$Foo;
+              $Foo;
     
           @AbstractProps()
           mixin FooProps on UiProps {
