@@ -129,5 +129,5 @@ String getPropsClassNameFromFactoryDeclaration(
       .single
       .arguments
       .single
-      .toString();
+      .toSource();
 }
