@@ -66,15 +66,14 @@ bool shouldMigratePropsAndStateClass(ClassDeclaration node) {
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
 /// or `UiState`.
 bool extendsFromUiPropsOrUiState(ClassDeclaration classNode) =>
-    classNode.extendsClause.superclass.name
-        .toSource()
+    classNode.extendsClause.superclass.name.name
         .contains(RegExp('(UiProps)|(UiState)'));
 
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
 /// or `UiState`.
 bool implementsUiPropsOrUiState(ClassDeclaration classNode) {
   return classNode.implementsClause.interfaces
-      .map((typeName) => typeName.toSource())
+      .map((typeName) => typeName.name.name)
       .any((typeStr) => typeStr.contains(RegExp('(UiProps)|(UiState)')));
 }
 
@@ -102,7 +101,7 @@ bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
   // Only validate props or state classes
   assert(isAPropsOrStateClass(classNode));
 
-  final superClass = classNode.extendsClause.superclass.name.toSource();
+  final superClass = classNode.extendsClause.superclass.name.name;
 
   if (superClass != 'UiProps' && superClass != 'UiState') return false;
   if (classNode.withClause != null) return false;
@@ -175,8 +174,7 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
 
   yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
 
-  final originalPublicClassName =
-      stripPrivateGeneratedPrefix(node.name.toSource());
+  final originalPublicClassName = stripPrivateGeneratedPrefix(node.name.name);
   String newMixinName = originalPublicClassName;
 
   if (node.extendsClause?.extendsKeyword != null) {
@@ -206,12 +204,12 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
         } else {
           // Implements UiProps / UiState along with other interfaces
           final uiInterface = nodeInterfaces.singleWhere((interface) =>
-              interface.toSource() == 'UiProps' ||
-              interface.toSource() == 'UiState');
+              interface.name.name == 'UiProps' ||
+              interface.name.name == 'UiState');
           final otherInterfaces = List.of(nodeInterfaces)..remove(uiInterface);
 
           yieldPatch(node.implementsClause.offset, node.implementsClause.end,
-              'on ${uiInterface.toSource()} implements ${otherInterfaces.joinByName()}');
+              'on ${uiInterface.name.name} implements ${otherInterfaces.joinByName()}');
         }
       } else {
         // Does not implement UiProps / UiState
