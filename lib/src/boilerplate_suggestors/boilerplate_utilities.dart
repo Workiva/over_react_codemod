@@ -200,6 +200,17 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
       yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
       newMixinName = '${newMixinName}Mixin';
     }
+
+    if (shouldSwapParentClass) {
+      yieldPatch(
+          node.extendsClause.superclass.name.offset,
+          node.extendsClause.superclass.name.end,
+          isAPropsClass(node) ? 'UiProps' : 'UiState');
+    }
+
+    if (node.withClause != null) {
+      yieldPatch(node.withClause.offset, node.withClause.end, '');
+    }
   } else {
     // --- Convert props/state mixin to an actual mixin --- //
 
@@ -238,18 +249,6 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
       yieldPatch(
           node.name.token.end, node.name.token.end, ' on $uiInterfaceStr');
     }
-  }
-
-  if (shouldSwapParentClass) {
-    final isAPropsClass = node.name.name.contains('Props');
-    yieldPatch(
-        node.extendsClause.superclass.name.offset,
-        node.extendsClause.superclass.name.end,
-        isAPropsClass ? 'UiProps' : 'UiState');
-  }
-
-  if (node.withClause != null) {
-    yieldPatch(node.withClause.offset, node.withClause.end, '');
   }
 
   propsAndStateClassNamesConvertedToNewBoilerplate[originalPublicClassName] =
