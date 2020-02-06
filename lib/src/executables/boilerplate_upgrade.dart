@@ -81,7 +81,6 @@ Future<void> main(List<String> args) async {
   //      - If this is needed, it can be used for suggestors 3 and 4
   //
   //
-
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[

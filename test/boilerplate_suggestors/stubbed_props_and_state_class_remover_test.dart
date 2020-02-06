@@ -23,8 +23,9 @@ import '../util.dart';
 
 main() {
   group('StubbedPropsAndStateClassRemover', () {
-    final testSuggestor =
-        getSuggestorTester(StubbedPropsAndStateClassRemover());
+    final testSuggestor = getSuggestorTester(
+      StubbedPropsAndStateClassRemover(),
+    );
 
     setUpAll(() async {
       semverHelper = SemverHelper(jsonDecode(

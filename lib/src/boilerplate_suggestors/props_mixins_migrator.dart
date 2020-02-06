@@ -15,7 +15,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 
 import 'boilerplate_utilities.dart';
 
