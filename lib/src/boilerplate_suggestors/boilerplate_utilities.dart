@@ -21,6 +21,7 @@ typedef void YieldPatch(
 
 SemverHelper semverHelper;
 
+/// Returns whether or not [node] is publicly exported.
 bool isPublic(ClassDeclaration node) {
   assert(semverHelper != null);
   return semverHelper.getPublicExportLocations(node) != null;
