@@ -20,18 +20,19 @@ import '../util.dart';
 
 void main() {
   group('AdvancedPropsAndStateClassMigrator', () {
+    final converter = ClassToMixinConverter();
     final testSuggestor =
-        getSuggestorTester(AdvancedPropsAndStateClassMigrator());
+        getSuggestorTester(AdvancedPropsAndStateClassMigrator(converter));
 
     tearDown(() {
-      propsAndStateClassNamesConvertedToNewBoilerplate = {};
+      converter.setConvertedClassNames({});
     });
 
     group('does not operate when', () {
       test('it\'s an empty file', () {
         testSuggestor(expectedPatchCount: 0, input: '');
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+        expect(converter.convertedClassNames, isEmpty);
       });
 
       test('the class is simple', () {
@@ -62,7 +63,7 @@ void main() {
         ''',
         );
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+        expect(converter.convertedClassNames, isEmpty);
       });
 
       test(
@@ -101,7 +102,7 @@ void main() {
         ''',
         );
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+        expect(converter.convertedClassNames, isEmpty);
       });
     });
 
@@ -180,7 +181,7 @@ void main() {
           ''',
           );
 
-          expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+          expect(converter.convertedClassNames, {
             'FooProps': 'FooPropsMixin',
             'FooState': 'FooStateMixin',
           });
@@ -253,7 +254,7 @@ void main() {
           ''',
           );
 
-          expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+          expect(converter.convertedClassNames, {
             'FooProps': 'FooPropsMixin',
             'FooState': 'FooStateMixin',
           });
@@ -317,7 +318,7 @@ void main() {
           ''',
           );
 
-          expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+          expect(converter.convertedClassNames, {
             'FooProps': 'FooPropsMixin',
           });
         });
@@ -375,7 +376,7 @@ void main() {
           ''',
           );
 
-          expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+          expect(converter.convertedClassNames, {
             'FooProps': 'FooPropsMixin',
           });
         });
@@ -385,7 +386,7 @@ void main() {
           'and have a custom class with mixins when `shouldMigrateCustomClassAndMixins` is true',
           () {
         final testSuggestorWithFlag = getSuggestorTester(
-            AdvancedPropsAndStateClassMigrator(
+            AdvancedPropsAndStateClassMigrator(converter,
                 shouldMigrateCustomClassAndMixins: true));
 
         testSuggestorWithFlag(
@@ -460,7 +461,7 @@ void main() {
         ''',
         );
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+        expect(converter.convertedClassNames, {
           'FooProps': 'FooPropsMixin',
           'FooState': 'FooStateMixin',
         });

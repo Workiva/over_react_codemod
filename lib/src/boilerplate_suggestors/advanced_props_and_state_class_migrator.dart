@@ -30,8 +30,9 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final bool shouldMigrateCustomClassAndMixins;
+  final ClassToMixinConverter converter;
 
-  AdvancedPropsAndStateClassMigrator(
+  AdvancedPropsAndStateClassMigrator(this.converter,
       {this.shouldMigrateCustomClassAndMixins = false});
 
   @override
@@ -42,7 +43,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
     final hasMixins = node.withClause != null;
-    final convertedParentClass = node.extendsClause.superclass.name.name + 'Mixin';
+    final convertedParentClass =
+        node.extendsClause.superclass.name.name + 'Mixin';
 
     // Don't operate if the props class uses mixins and extends a custom class,
     // unless the flag has been set.
@@ -83,7 +85,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     newDeclarationBuffer.write(';');
 
-    migrateClassToMixin(node, yieldPatch,
+    converter.migrate(node, yieldPatch,
         shouldAddMixinToName: true,
         shouldSwapParentClass: extendsFromCustomClass);
     yieldPatch(node.end, node.end, newDeclarationBuffer.toString());
