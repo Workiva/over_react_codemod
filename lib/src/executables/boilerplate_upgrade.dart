@@ -16,6 +16,7 @@ import 'dart:io';
 
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_meta_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
@@ -38,6 +39,8 @@ void main(List<String> args) {
     },
     recursive: true,
   );
+
+  final classToMixinConverter = ClassToMixinConverter();
 
   // General plan:
   //  - Things that need to be accomplished (very simplified)
@@ -79,11 +82,11 @@ void main(List<String> args) {
     query,
     <Suggestor>[
       StubbedPropsAndStateClassRemover(),
-      SimplePropsAndStateClassMigrator(),
-      AdvancedPropsAndStateClassMigrator(),
-      PropsMixinMigrator(),
-      PropsMetaMigrator(),
-      AnnotationsRemover(),
+      SimplePropsAndStateClassMigrator(classToMixinConverter),
+      AdvancedPropsAndStateClassMigrator(classToMixinConverter),
+      PropsMixinMigrator(classToMixinConverter),
+      PropsMetaMigrator(classToMixinConverter),
+      AnnotationsRemover(classToMixinConverter),
     ].map((s) => Ignoreable(s)),
     args: args,
     defaultYes: true,
