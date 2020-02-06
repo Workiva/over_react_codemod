@@ -26,7 +26,7 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   @override
-  visitAnnotatedNode(AnnotatedNode node) {
+  visitCompilationUnitMember(CompilationUnitMember node) {
     super.visitAnnotatedNode(node);
     if (node.metadata.isEmpty) return;
 
@@ -53,13 +53,15 @@ class AnnotationsRemover extends GeneralizingAstVisitor
   bool _annotationIsRelevant(Annotation annotation) =>
       _relevantAnnotationNames.contains(annotation.name.name);
 
-  bool _nodeHasRelevantAnnotation(AnnotatedNode node) =>
+  bool _nodeHasRelevantAnnotation(CompilationUnitMember node) =>
       node.metadata.any(_annotationIsRelevant);
 
-  bool _nodeHasAnnotationWithName(AnnotatedNode node, String annotationName) =>
+  bool _nodeHasAnnotationWithName(
+          CompilationUnitMember node, String annotationName) =>
       node.metadata.any((annotation) => annotation.name.name == annotationName);
 
-  String _getNameOfPropsClassThatMayHaveBeenConverted(AnnotatedNode node) {
+  String _getNameOfPropsClassThatMayHaveBeenConverted(
+      CompilationUnitMember node) {
     if (node is TopLevelVariableDeclaration) {
       return getPropsClassNameFromFactoryDeclaration(node);
     } else if (node is ClassDeclaration) {
@@ -71,7 +73,7 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     return null;
   }
 
-  bool _propsClassWasConvertedToNewBoilerplate(AnnotatedNode node) {
+  bool _propsClassWasConvertedToNewBoilerplate(CompilationUnitMember node) {
     if (_nodeHasAnnotationWithName(node, 'Props')) {
       // Its the props class
       return node is MixinDeclaration &&
