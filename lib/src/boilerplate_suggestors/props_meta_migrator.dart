@@ -18,7 +18,7 @@ import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 
 /// Suggestor that looks for `meta` getter access on props classes found within
-/// [propsAndStateClassNamesConvertedToNewBoilerplate] as a result of being converted to the new
+/// [convertedClassNames] as a result of being converted to the new
 /// boilerplate via `SimplePropsAndStateClassMigrator` or `AdvancedPropsAndStateClassMigrator`, and converts
 /// them to the way meta is accessed using the new boilerplate.
 ///
@@ -34,17 +34,20 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilit
 class PropsMetaMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  final ClassToMixinConverter converter;
+
+  PropsMetaMigrator(this.converter);
+
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     super.visitPrefixedIdentifier(node);
 
     if (node.identifier.name == 'meta') {
-      if (propsAndStateClassNamesConvertedToNewBoilerplate
-          .containsKey(node.prefix.name)) {
+      if (converter.convertedClassNames.containsKey(node.prefix.name)) {
         yieldPatch(
           node.prefix.offset,
           node.identifier.end,
-          'propsMeta.forMixin(${propsAndStateClassNamesConvertedToNewBoilerplate[node.prefix.name]})',
+          'propsMeta.forMixin(${converter.convertedClassNames[node.prefix.name]})',
         );
       }
     }

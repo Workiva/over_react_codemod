@@ -20,25 +20,26 @@ import '../util.dart';
 
 main() {
   group('PropsMetaMigrator', () {
-    final testSuggestor = getSuggestorTester(PropsMetaMigrator());
+    final converter = ClassToMixinConverter();
+    final testSuggestor = getSuggestorTester(PropsMetaMigrator(converter));
 
     tearDown(() {
-      propsAndStateClassNamesConvertedToNewBoilerplate = {};
+      converter.setConvertedClassNames({});
     });
 
     group('does not perform a migration', () {
       test('when it encounters an empty file', () {
-        propsAndStateClassNamesConvertedToNewBoilerplate = {
+        converter.setConvertedClassNames({
           'FooProps': 'FooProps',
-        };
+        });
 
         testSuggestor(expectedPatchCount: 0, input: '');
       });
 
       test('when there are no `PropsClass.meta` identifiers', () {
-        propsAndStateClassNamesConvertedToNewBoilerplate = {
+        converter.setConvertedClassNames({
           'FooProps': 'FooProps',
-        };
+        });
 
         testSuggestor(
           expectedPatchCount: 0,
@@ -55,9 +56,9 @@ main() {
         'performs a migration when there are one or more `PropsClass.meta` identifiers',
         () {
       test('', () {
-        propsAndStateClassNamesConvertedToNewBoilerplate = {
+        converter.setConvertedClassNames({
           'FooProps': 'FooProps',
-        };
+        });
 
         testSuggestor(
           expectedPatchCount: 1,
@@ -101,9 +102,9 @@ main() {
       test(
           'unless the props class is not found within `propsAndStateClassNamesConvertedToNewBoilerplate`',
           () {
-        propsAndStateClassNamesConvertedToNewBoilerplate = {
+        converter.setConvertedClassNames({
           'BarProps': 'BarProps',
-        };
+        });
 
         testSuggestor(
           expectedPatchCount: 0,
