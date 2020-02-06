@@ -16,7 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
 
-typedef void YieldPatch(
+typedef YieldPatch = void Function(
     int startingOffset, int endingOffset, String replacement);
 
 SemverHelper semverHelper;
@@ -150,121 +150,135 @@ bool isAdvancedPropsOrStateClass(ClassDeclaration classNode) {
   return false;
 }
 
-/// A map of props / state classes that have been migrated to the new boilerplate
-/// via [migrateClassToMixin].
-var propsAndStateClassNamesConvertedToNewBoilerplate =
-    < /*old class name*/ String, /*new mixin name*/ String>{};
-
-/// Used to switch a props/state class, or a `@PropsMixin()`/`@StateMixin()` class to a mixin.
+/// A class used to handle the conversion of props / state classes to mixins.
 ///
-/// __EXAMPLE (Concrete Class):__
-/// ```dart
-/// // Before
-/// class _$TestProps extends UiProps {
-///   String var1;
-///   int var2;
-/// }
+/// Should only be constructed once to initialize the value of [convertedClassNames].
 ///
-/// // After
-/// mixin TestPropsMixin on UiProps {
-///   String var1;
-///   int var2;
-/// }
-/// ```
-///
-/// __EXAMPLE (`@PropsMixin`):__
-/// ```dart
-/// // Before
-/// @PropsMixin()
-/// abstract class TestPropsMixin implements UiProps, BarPropsMixin {
-///   // To ensure the codemod regression checking works properly, please keep this
-///   // field at the top of the class!
-///   // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-///   static const PropsMeta meta = _$metaForTestPropsMixin;
-///
-///   @override
-///   Map get props;
-///
-///   String var1;
-///   String var2;
-/// }
-///
-/// // After
-/// mixin TestPropsMixin on UiProps implements BarPropsMixin {
-///   String var1;
-///   String var2;
-/// }
-/// ```
-///
-/// When a class is migrated, it gets added to [propsAndStateClassNamesConvertedToNewBoilerplate]
-/// so that suggestors that come after the suggestor that called this function - can know
-/// whether to yield a patch based on that information.
-void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
-    {bool shouldAddMixinToName = false}) {
-  if (node.abstractKeyword != null) {
-    yieldPatch(node.abstractKeyword.offset, node.abstractKeyword.charEnd, '');
-  }
+/// Then [migrate] should be called on that instance each time a class is visited and needs to be converted to a mixin.
+class ClassToMixinConverter {
+  ClassToMixinConverter() : _convertedClassNames = <String, String>{};
 
-  yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
+  /// A map of props / state classes that have been migrated to the new boilerplate via [migrate].
+  ///
+  /// The keys of the map are the original class names, with the values representing the new mixin names.
+  Map<String, String> get convertedClassNames => _convertedClassNames;
+  Map<String, String> _convertedClassNames;
 
-  final originalPublicClassName = stripPrivateGeneratedPrefix(node.name.name);
-  String newMixinName = originalPublicClassName;
-
-  if (node.extendsClause?.extendsKeyword != null) {
-    // --- Convert concrete props/state class to a mixin --- //
-
-    yieldPatch(node.name.token.offset,
-        node.name.token.offset + privateGeneratedPrefix.length, '');
-
-    yieldPatch(node.extendsClause.offset,
-        node.extendsClause.extendsKeyword.charEnd, 'on');
-
-    if (shouldAddMixinToName) {
-      yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
-      newMixinName = '${newMixinName}Mixin';
+  /// Used to switch a props/state class, or a `@PropsMixin()`/`@StateMixin()` class to a mixin.
+  ///
+  /// __EXAMPLE (Concrete Class):__
+  /// ```dart
+  /// // Before
+  /// class _$TestProps extends UiProps {
+  ///   String var1;
+  ///   int var2;
+  /// }
+  ///
+  /// // After
+  /// mixin TestPropsMixin on UiProps {
+  ///   String var1;
+  ///   int var2;
+  /// }
+  /// ```
+  ///
+  /// __EXAMPLE (`@PropsMixin`):__
+  /// ```dart
+  /// // Before
+  /// @PropsMixin()
+  /// abstract class TestPropsMixin implements UiProps, BarPropsMixin {
+  ///   // To ensure the codemod regression checking works properly, please keep this
+  ///   // field at the top of the class!
+  ///   // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+  ///   static const PropsMeta meta = _$metaForTestPropsMixin;
+  ///
+  ///   @override
+  ///   Map get props;
+  ///
+  ///   String var1;
+  ///   String var2;
+  /// }
+  ///
+  /// // After
+  /// mixin TestPropsMixin on UiProps implements BarPropsMixin {
+  ///   String var1;
+  ///   String var2;
+  /// }
+  /// ```
+  ///
+  /// When a class is migrated, it gets added to [convertedClassNames]
+  /// so that suggestors that come after the suggestor that called this function - can know
+  /// whether to yield a patch based on that information.
+  void migrate(ClassDeclaration node, YieldPatch yieldPatch,
+      {bool shouldAddMixinToName = false}) {
+    if (node.abstractKeyword != null) {
+      yieldPatch(node.abstractKeyword.offset, node.abstractKeyword.charEnd, '');
     }
-  } else {
-    // --- Convert props/state mixin to an actual mixin --- //
 
-    if (node.implementsClause?.implementsKeyword != null) {
-      final nodeInterfaces = node.implementsClause.interfaces;
-      // Implements an interface, and does not extend from another class
-      if (implementsUiPropsOrUiState(node)) {
-        if (nodeInterfaces.length == 1) {
-          // Only implements UiProps / UiState
-          yieldPatch(node.implementsClause.offset,
-              node.implementsClause.implementsKeyword.charEnd, 'on');
-        } else {
-          // Implements UiProps / UiState along with other interfaces
-          final uiInterface = nodeInterfaces.firstWhere((interface) =>
-              interface.name.name == 'UiProps' ||
-              interface.name.name == 'UiState');
-          final otherInterfaces = List.of(nodeInterfaces)..remove(uiInterface);
+    yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
 
-          yieldPatch(node.implementsClause.offset, node.implementsClause.end,
-              'on ${uiInterface.name.name} implements ${otherInterfaces.joinByName()}');
-        }
-      } else {
-        // Does not implement UiProps / UiState
-        final uiInterfaceStr = isAPropsMixin(node) ? 'UiProps' : 'UiState';
+    final originalPublicClassName = stripPrivateGeneratedPrefix(node.name.name);
+    String newMixinName = originalPublicClassName;
 
-        if (nodeInterfaces.isNotEmpty) {
-          // But does implement other stuff
-          yieldPatch(node.implementsClause.offset, node.implementsClause.end,
-              'on $uiInterfaceStr implements ${nodeInterfaces.joinByName()}');
-        }
+    if (node.extendsClause?.extendsKeyword != null) {
+      // --- Convert concrete props/state class to a mixin --- //
+
+      yieldPatch(node.name.token.offset,
+          node.name.token.offset + privateGeneratedPrefix.length, '');
+
+      yieldPatch(node.extendsClause.offset,
+          node.extendsClause.extendsKeyword.charEnd, 'on');
+
+      if (shouldAddMixinToName) {
+        yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
+        newMixinName = '${newMixinName}Mixin';
       }
     } else {
-      // Does not implement anything
-      final uiInterfaceStr = isAPropsMixin(node) ? 'UiProps' : 'UiState';
+      // --- Convert props/state mixin to an actual mixin --- //
 
-      yieldPatch(
-          node.name.token.end, node.name.token.end, ' on $uiInterfaceStr');
+      if (node.implementsClause?.implementsKeyword != null) {
+        final nodeInterfaces = node.implementsClause.interfaces;
+        // Implements an interface, and does not extend from another class
+        if (implementsUiPropsOrUiState(node)) {
+          if (nodeInterfaces.length == 1) {
+            // Only implements UiProps / UiState
+            yieldPatch(node.implementsClause.offset,
+                node.implementsClause.implementsKeyword.charEnd, 'on');
+          } else {
+            // Implements UiProps / UiState along with other interfaces
+            final uiInterface = nodeInterfaces.firstWhere((interface) =>
+                interface.name.name == 'UiProps' ||
+                interface.name.name == 'UiState');
+            final otherInterfaces = List.of(nodeInterfaces)
+              ..remove(uiInterface);
+
+            yieldPatch(node.implementsClause.offset, node.implementsClause.end,
+                'on ${uiInterface.name.name} implements ${otherInterfaces.joinByName()}');
+          }
+        } else {
+          // Does not implement UiProps / UiState
+          final uiInterfaceStr = isAPropsMixin(node) ? 'UiProps' : 'UiState';
+
+          if (nodeInterfaces.isNotEmpty) {
+            // But does implement other stuff
+            yieldPatch(node.implementsClause.offset, node.implementsClause.end,
+                'on $uiInterfaceStr implements ${nodeInterfaces.joinByName()}');
+          }
+        }
+      } else {
+        // Does not implement anything
+        final uiInterfaceStr = isAPropsMixin(node) ? 'UiProps' : 'UiState';
+
+        yieldPatch(
+            node.name.token.end, node.name.token.end, ' on $uiInterfaceStr');
+      }
     }
+
+    convertedClassNames[originalPublicClassName] = newMixinName;
   }
 
-  propsAndStateClassNamesConvertedToNewBoilerplate[originalPublicClassName] =
-      newMixinName;
+  @visibleForTesting
+  void setConvertedClassNames(Map<String, String> mapOfConvertedClassNames) =>
+      _convertedClassNames = mapOfConvertedClassNames;
 }
 
 extension IterableAstUtils on Iterable<NamedType> {

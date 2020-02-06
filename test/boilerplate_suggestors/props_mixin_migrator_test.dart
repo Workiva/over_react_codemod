@@ -23,7 +23,8 @@ import '../util.dart';
 
 main() {
   group('PropsMixinMigrator', () {
-    final testSuggestor = getSuggestorTester(PropsMixinMigrator());
+    final converter = ClassToMixinConverter();
+    final testSuggestor = getSuggestorTester(PropsMixinMigrator(converter));
 
     setUpAll(() async {
       semverHelper = SemverHelper(jsonDecode(
@@ -32,7 +33,7 @@ main() {
     });
 
     tearDown(() {
-      propsAndStateClassNamesConvertedToNewBoilerplate = {};
+      converter.setConvertedClassNames({});
     });
 
     group('does not perform a migration', () {
@@ -83,7 +84,7 @@ main() {
             ''',
             );
 
-            expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+            expect(converter.convertedClassNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -114,7 +115,7 @@ main() {
             ''',
             );
 
-            expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+            expect(converter.convertedClassNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -145,7 +146,7 @@ main() {
             ''',
             );
 
-            expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+            expect(converter.convertedClassNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -178,7 +179,7 @@ main() {
             ''',
             );
 
-            expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+            expect(converter.convertedClassNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -208,7 +209,7 @@ main() {
             ''',
             );
 
-            expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+            expect(converter.convertedClassNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });

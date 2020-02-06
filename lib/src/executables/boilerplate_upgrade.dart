@@ -17,6 +17,7 @@ import 'dart:io';
 
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_meta_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
@@ -40,6 +41,8 @@ Future<void> main(List<String> args) async {
     },
     recursive: true,
   );
+
+  final classToMixinConverter = ClassToMixinConverter();
 
   // TODO: determine file path of semver report
   semverHelper = SemverHelper(jsonDecode(
@@ -85,11 +88,11 @@ Future<void> main(List<String> args) async {
     query,
     <Suggestor>[
       StubbedPropsAndStateClassRemover(),
-      SimplePropsAndStateClassMigrator(),
-      AdvancedPropsAndStateClassMigrator(),
-      PropsMixinMigrator(),
-      PropsMetaMigrator(),
-      AnnotationsRemover(),
+      SimplePropsAndStateClassMigrator(classToMixinConverter),
+      AdvancedPropsAndStateClassMigrator(classToMixinConverter),
+      PropsMixinMigrator(classToMixinConverter),
+      PropsMetaMigrator(classToMixinConverter),
+      AnnotationsRemover(classToMixinConverter),
     ].map((s) => Ignoreable(s)),
     args: args,
     defaultYes: true,

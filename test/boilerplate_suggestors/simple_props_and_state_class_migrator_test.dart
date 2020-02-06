@@ -23,8 +23,9 @@ import '../util.dart';
 
 main() {
   group('SimplePropsAndStateClassMigrator', () {
+    final converter = ClassToMixinConverter();
     final testSuggestor =
-        getSuggestorTester(SimplePropsAndStateClassMigrator());
+        getSuggestorTester(SimplePropsAndStateClassMigrator(converter));
 
     setUpAll(() async {
       semverHelper = SemverHelper(jsonDecode(
@@ -33,14 +34,14 @@ main() {
     });
 
     tearDown(() {
-      propsAndStateClassNamesConvertedToNewBoilerplate = {};
+      converter.setConvertedClassNames({});
     });
 
     group('does not run when', () {
       test('its an empty file', () {
         testSuggestor(expectedPatchCount: 0, input: '');
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+        expect(converter.convertedClassNames, isEmpty);
       });
 
       test('there are no matches', () {
@@ -53,7 +54,7 @@ main() {
       ''',
         );
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+        expect(converter.convertedClassNames, isEmpty);
       });
 
       test('the component is not Component2', () {
@@ -84,7 +85,7 @@ main() {
       ''',
         );
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+        expect(converter.convertedClassNames, isEmpty);
       });
 
       test('the class is a PropsMixin', () {
@@ -121,7 +122,7 @@ main() {
       ''',
         );
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+        expect(converter.convertedClassNames, isEmpty);
       });
 
       test('when the props class is publicly exported', () {
@@ -190,7 +191,7 @@ main() {
       ''',
           );
 
-          expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+          expect(converter.convertedClassNames, isEmpty);
         });
 
         test('and there is just a props class', () {
@@ -221,7 +222,7 @@ main() {
       ''',
           );
 
-          expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+          expect(converter.convertedClassNames, isEmpty);
         });
       });
     });
@@ -290,7 +291,7 @@ main() {
         ''',
         );
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+        expect(converter.convertedClassNames, {
           'FooProps': 'FooProps',
           'FooState': 'FooState',
         });
@@ -347,7 +348,7 @@ main() {
         ''',
         );
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+        expect(converter.convertedClassNames, {
           'FooProps': 'FooProps',
         });
       });
@@ -415,7 +416,7 @@ main() {
           ''',
         );
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, {
+        expect(converter.convertedClassNames, {
           'FooProps': 'FooProps',
           'FooState': 'FooState',
         });

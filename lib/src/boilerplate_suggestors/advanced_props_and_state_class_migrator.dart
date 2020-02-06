@@ -28,6 +28,10 @@ import 'boilerplate_utilities.dart';
 class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  final ClassToMixinConverter converter;
+
+  AdvancedPropsAndStateClassMigrator(this.converter);
+
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
