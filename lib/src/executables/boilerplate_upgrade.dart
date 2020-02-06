@@ -23,7 +23,6 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_s
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 
 const _changesRequiredOutput = """

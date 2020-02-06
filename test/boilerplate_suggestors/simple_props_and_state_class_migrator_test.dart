@@ -153,7 +153,7 @@ main() {
           ''',
         );
 
-        expect(propsAndStateClassNamesConvertedToNewBoilerplate, isEmpty);
+        expect(converter.convertedClassNames, isEmpty);
       });
 
       group('the classes are not simple', () {
