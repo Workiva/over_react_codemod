@@ -224,10 +224,6 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
           // But does implement other stuff
           yieldPatch(node.implementsClause.offset, node.implementsClause.end,
               'on $uiInterfaceStr implements ${nodeInterfaces.joinByName()}');
-        } else {
-          // Does not implement anything
-          yieldPatch(node.leftBracket.offset - 1, node.leftBracket.offset - 1,
-              'on $uiInterfaceStr');
         }
       }
     } else {
