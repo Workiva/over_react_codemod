@@ -55,21 +55,34 @@ main() {
         () {
       test('', () {
         propsAndStateClassNamesConvertedToNewBoilerplate = {
+          'AbstractFooProps': 'AbstractFooProps',
           'FooProps': 'FooProps',
+          'AbstractFooState': 'AbstractFooState',
+          'FooState': 'FooState',
         };
 
         testSuggestor(
-          expectedPatchCount: 4,
+          expectedPatchCount: 6,
           input: '''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               \$Foo;
     
+          @AbstractProps()
+          mixin AbstractFooProps on UiProps {
+            bool baz;
+          }
+          
           @Props()
           mixin FooProps on UiProps {
             String foo;
             int bar;
+          }
+          
+          @AbstractState()
+          mixin AbstractFooState on UiState {
+            bool baz;
           }
     
           @State()
@@ -94,9 +107,17 @@ main() {
               // ignore: undefined_identifier
               \$Foo;
     
+          mixin AbstractFooProps on UiProps {
+            bool baz;
+          }
+          
           mixin FooProps on UiProps {
             String foo;
             int bar;
+          }
+          
+          mixin AbstractFooState on UiState {
+            bool baz;
           }
     
           mixin FooState on UiState {
@@ -117,9 +138,77 @@ main() {
         );
       });
 
+      test('handling class name edge cases', () {
+        propsAndStateClassNamesConvertedToNewBoilerplate = {
+          'GraphFormStateWrapperProps': 'GraphFormStateWrapperProps',
+          'GraphFormStateWrapperState': 'GraphFormStateWrapperState',
+        };
+
+        testSuggestor(
+          expectedPatchCount: 4,
+          input: '''
+          @Factory()
+          UiFactory<GraphFormStateWrapperProps> GraphFormStateWrapper =
+              // ignore: undefined_identifier
+              \$GraphFormStateWrapper;
+
+          @Props()
+          mixin GraphFormStateWrapperProps on UiProps {
+            String foo;
+            int bar;
+          }
+    
+          @State()
+          mixin GraphFormStateWrapperState on UiState {
+            String foo;
+            int bar;
+          }
+    
+          @Component2()
+          class GraphFormStateWrapperComponent extends UiStatefulComponent2<GraphFormStateWrapperProps, GraphFormStateWrapperState> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+        ''',
+          expectedOutput: '''
+          UiFactory<GraphFormStateWrapperProps> GraphFormStateWrapper =
+              // ignore: undefined_identifier
+              \$GraphFormStateWrapper;
+
+          mixin GraphFormStateWrapperProps on UiProps {
+            String foo;
+            int bar;
+          }
+    
+          mixin GraphFormStateWrapperState on UiState {
+            String foo;
+            int bar;
+          }
+    
+          class GraphFormStateWrapperComponent extends UiStatefulComponent2<GraphFormStateWrapperProps, GraphFormStateWrapperState> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+      ''',
+        );
+      });
+
       test('leaving annotations with arguments in place', () {
         propsAndStateClassNamesConvertedToNewBoilerplate = {
+          'AbstractFooProps': 'AbstractFooProps',
           'FooProps': 'FooProps',
+          'AbstractFooState': 'AbstractFooState',
+          'FooState': 'FooState',
         };
 
         testSuggestor(
@@ -130,10 +219,20 @@ main() {
               // ignore: undefined_identifier
               \$Foo;
     
+          @AbstractProps(keyNamespace: '')
+          mixin AbstractFooProps on UiProps {
+            bool baz;
+          }
+    
           @Props(keyNamespace: '')
           mixin FooProps on UiProps {
             String foo;
             int bar;
+          }
+          
+          @AbstractState(keyNamespace: '')
+          mixin AbstractFooState on UiState {
+            bool baz;
           }
     
           @State(keyNamespace: '')
@@ -158,10 +257,20 @@ main() {
               // ignore: undefined_identifier
               \$Foo;
     
+          @AbstractProps(keyNamespace: '')
+          mixin AbstractFooProps on UiProps {
+            bool baz;
+          }
+    
           @Props(keyNamespace: '')
           mixin FooProps on UiProps {
             String foo;
             int bar;
+          }
+          
+          @AbstractState(keyNamespace: '')
+          mixin AbstractFooState on UiState {
+            bool baz;
           }
     
           @State(keyNamespace: '')
@@ -185,12 +294,8 @@ main() {
       });
 
       test(
-          'unless the props class is not found within `propsAndStateClassNamesConvertedToNewBoilerplate`',
+          'unless the class has not already been converted to the new boilerplate',
           () {
-        propsAndStateClassNamesConvertedToNewBoilerplate = {
-          'BarProps': 'BarProps',
-        };
-
         testSuggestor(
           expectedPatchCount: 0,
           input: '''
@@ -199,14 +304,24 @@ main() {
               // ignore: undefined_identifier
               \$Foo;
     
+          @AbstractProps()
+          abstract class AbstractFooProps extends UiProps {
+            bool baz;
+          }
+          
           @Props()
-          mixin FooProps on UiProps {
+          class FooProps extends AbstractFooProps {
             String foo;
             int bar;
           }
+          
+          @AbstractState()
+          abstract class AbstractFooState extends UiState {
+            bool baz;
+          }
     
           @State()
-          mixin FooState on UiState {
+          class FooState extends AbstractFooState {
             String foo;
             int bar;
           }

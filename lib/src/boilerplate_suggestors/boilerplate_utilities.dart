@@ -125,8 +125,8 @@ String getPropsClassNameFromFactoryDeclaration(
     TopLevelVariableDeclaration factoryDeclaration) {
   return factoryDeclaration.variables.type.childEntities
       .whereType<TypeArgumentList>()
-      .single
-      .arguments
-      .single
-      .toSource();
+      .firstOrNull
+      ?.arguments
+      ?.first
+      ?.toSource();
 }

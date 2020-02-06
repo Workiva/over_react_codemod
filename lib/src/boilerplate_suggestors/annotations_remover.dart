@@ -28,24 +28,24 @@ class AnnotationsRemover extends GeneralizingAstVisitor
   @override
   visitCompilationUnitMember(CompilationUnitMember node) {
     super.visitAnnotatedNode(node);
-    if (node.metadata.isEmpty) return;
 
     final annotationToRemove =
-        node.metadata.singleWhere(_annotationIsRelevant, orElse: () => null);
+        node.metadata.firstWhere(_annotationIsRelevant, orElse: () => null);
 
     // --- Short Circuit Conditions --- //
     if (annotationToRemove == null) return;
     if (annotationToRemove.arguments.arguments.isNotEmpty) return;
-    if (!_propsClassWasConvertedToNewBoilerplate(node)) return;
+    if (!_propsOrStateClassWasConvertedToNewBoilerplate(node)) return;
 
     // --- Migrate --- //
-    yieldPatch(annotationToRemove.offset,
-        node.firstTokenAfterCommentAndMetadata.offset, '');
+    yieldPatch(annotationToRemove.offset, annotationToRemove.end, '');
   }
 
   static const _relevantAnnotationNames = [
     'Factory',
+    'AbstractProps',
     'Props',
+    'AbstractState',
     'State',
     'Component2',
   ];
@@ -65,26 +65,27 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     if (node is TopLevelVariableDeclaration) {
       return getPropsClassNameFromFactoryDeclaration(node);
     } else if (node is ClassDeclaration) {
-      return node.name.name.replaceFirst('Component', 'Props');
-    } else if (node is ClassOrMixinDeclaration) {
-      return node.name.name.replaceFirst('State', 'Props');
+      return node.name.name.replaceFirst(RegExp(r'Component$'), 'Props');
     }
 
     return null;
   }
 
-  bool _propsClassWasConvertedToNewBoilerplate(CompilationUnitMember node) {
-    if (_nodeHasAnnotationWithName(node, 'Props')) {
-      // Its the props class
-      return node is MixinDeclaration &&
-          propsAndStateClassNamesConvertedToNewBoilerplate
-              .containsKey(node.name.name);
-    } else if (_nodeHasRelevantAnnotation(node)) {
-      // Not a props class, but is a UiComponent-related class with an annotation.
+  bool _propsOrStateClassWasConvertedToNewBoilerplate(
+      CompilationUnitMember node) {
+    if (_nodeHasAnnotationWithName(node, 'Factory') ||
+        _nodeHasAnnotationWithName(node, 'Component2')) {
+      // Its not a props or state class that would have been converted to the new boilerplate by a previous migrator.
+      // but it is a UiComponent-related class with an annotation.
       final analogousPropsMixinOrClassName =
           _getNameOfPropsClassThatMayHaveBeenConverted(node);
       return propsAndStateClassNamesConvertedToNewBoilerplate
           .containsKey(analogousPropsMixinOrClassName);
+    } else if (_nodeHasRelevantAnnotation(node)) {
+      // Its a props, abstract props, state or abstract state annotated mixin
+      // If it has the annotation, and it is a `MixinDeclaration`,
+      // we can be confident that it has been converted to the new boilerplate.
+      return node is MixinDeclaration;
     }
 
     return false;
