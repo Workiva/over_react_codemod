@@ -24,8 +24,6 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migra
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 
-const _allowMixinsWithCustomClasses = '--allow-mixins-with-custom-classes';
-
 const _changesRequiredOutput = '''
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
@@ -35,10 +33,6 @@ const _changesRequiredOutput = '''
 ''';
 
 void main(List<String> args) {
-  final allowMixinsWithCustomClasses =
-      args.contains(_allowMixinsWithCustomClasses);
-  args.removeWhere((arg) => arg == _allowMixinsWithCustomClasses);
-
   final query = FileQuery.dir(
     pathFilter: (path) {
       return isDartFile(path) && !isGeneratedDartFile(path);
@@ -89,8 +83,7 @@ void main(List<String> args) {
     <Suggestor>[
       StubbedPropsAndStateClassRemover(),
       SimplePropsAndStateClassMigrator(classToMixinConverter),
-      AdvancedPropsAndStateClassMigrator(classToMixinConverter,
-          shouldMigrateCustomClassAndMixins: allowMixinsWithCustomClasses),
+      AdvancedPropsAndStateClassMigrator(classToMixinConverter),
       PropsMixinMigrator(classToMixinConverter),
       PropsMetaMigrator(classToMixinConverter),
       AnnotationsRemover(classToMixinConverter),

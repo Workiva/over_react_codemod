@@ -29,11 +29,9 @@ import 'boilerplate_utilities.dart';
 class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final bool shouldMigrateCustomClassAndMixins;
   final ClassToMixinConverter converter;
 
-  AdvancedPropsAndStateClassMigrator(this.converter,
-      {this.shouldMigrateCustomClassAndMixins = false});
+  AdvancedPropsAndStateClassMigrator(this.converter);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -48,9 +46,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     // Don't operate if the props class uses mixins and extends a custom class,
     // unless the flag has been set.
-    if (hasMixins &&
-        extendsFromCustomClass &&
-        !shouldMigrateCustomClassAndMixins) return;
+    if (hasMixins && extendsFromCustomClass) return;
 
     final className = stripPrivateGeneratedPrefix(node.name.name);
     final newDeclarationBuffer = StringBuffer()
