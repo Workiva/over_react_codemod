@@ -44,10 +44,6 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     final convertedParentClass =
         node.extendsClause.superclass.name.name + 'Mixin';
 
-    // Don't operate if the props class uses mixins and extends a custom class,
-    // unless the flag has been set.
-    if (hasMixins && extendsFromCustomClass) return;
-
     final className = stripPrivateGeneratedPrefix(node.name.name);
     final newDeclarationBuffer = StringBuffer()
       ..write('\n\n')
