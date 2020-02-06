@@ -42,7 +42,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
     final hasMixins = node.withClause != null;
-    final parentClass = node.extendsClause.superclass.name.name;
+    final convertedParentClass = node.extendsClause.superclass.name.name + 'Mixin';
 
     // Don't operate if the props class uses mixins and extends a custom class,
     // unless the flag has been set.
@@ -58,7 +58,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
           ? ''
           : '''
           // FIXME: Verify that:
-          //   1. $parentClass does not implement additional mixins.
+          //   1. $convertedParentClass does not implement additional mixins.
           //   2. any other mixins found here do not implement additional mixins.
            ''')
       // Create the class name
@@ -70,7 +70,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     if (extendsFromCustomClass) {
       newDeclarationBuffer.write(
-          '${parentClass}Mixin, ${className}Mixin${hasMixins ? ',' : ''}');
+          '$convertedParentClass, ${className}Mixin${hasMixins ? ',' : ''}');
     }
 
     if (hasMixins) {

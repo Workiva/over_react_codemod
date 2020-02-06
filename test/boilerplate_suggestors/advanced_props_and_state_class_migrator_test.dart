@@ -152,7 +152,7 @@ void main() {
               }
       
               // FIXME: Verify that:
-              //   1. ADifferentPropsClass does not implement additional mixins.
+              //   1. ADifferentPropsClassMixin does not implement additional mixins.
               //   2. any other mixins found here do not implement additional mixins.
               class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
       
@@ -163,7 +163,7 @@ void main() {
               }
               
               // FIXME: Verify that:
-              //   1. ADifferentStateClass does not implement additional mixins.
+              //   1. ADifferentStateClassMixin does not implement additional mixins.
               //   2. any other mixins found here do not implement additional mixins.
               class FooState = UiState with ADifferentStateClassMixin, FooStateMixin;
       
@@ -300,7 +300,7 @@ void main() {
             }
             
             // FIXME: Verify that:
-            //   1. ADifferentPropsClass does not implement additional mixins.
+            //   1. ADifferentPropsClassMixin does not implement additional mixins.
             //   2. any other mixins found here do not implement additional mixins.
             class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
       
@@ -432,7 +432,7 @@ void main() {
           }
           
           // FIXME: Verify that:
-          //   1. ADifferentPropsClass does not implement additional mixins.
+          //   1. ADifferentPropsClassMixin does not implement additional mixins.
           //   2. any other mixins found here do not implement additional mixins.          
           class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin, AMixin, AnotherMixin;
   
@@ -443,7 +443,7 @@ void main() {
           }
           
           // FIXME: Verify that:
-          //   1. ADifferentStateClass does not implement additional mixins.
+          //   1. ADifferentStateClassMixin does not implement additional mixins.
           //   2. any other mixins found here do not implement additional mixins.
           class FooState = UiState with ADifferentStateClassMixin, FooStateMixin, AStateMixin, AnotherStateMixin;
   
