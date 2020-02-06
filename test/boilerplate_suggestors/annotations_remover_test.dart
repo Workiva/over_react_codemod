@@ -20,25 +20,26 @@ import '../util.dart';
 
 main() {
   group('AnnotationsRemover', () {
-    final testSuggestor = getSuggestorTester(AnnotationsRemover());
+    final converter = ClassToMixinConverter();
+    final testSuggestor = getSuggestorTester(AnnotationsRemover(converter));
 
     tearDown(() {
-      propsAndStateClassNamesConvertedToNewBoilerplate = {};
+      converter.setConvertedClassNames({});
     });
 
     group('does not perform a migration', () {
       test('when it encounters an empty file', () {
-        propsAndStateClassNamesConvertedToNewBoilerplate = {
+        converter.setConvertedClassNames({
           'FooProps': 'FooProps',
-        };
+        });
 
         testSuggestor(expectedPatchCount: 0, input: '');
       });
 
       test('when there are no relevant annotations present', () {
-        propsAndStateClassNamesConvertedToNewBoilerplate = {
+        converter.setConvertedClassNames({
           'FooProps': 'FooProps',
-        };
+        });
 
         testSuggestor(
           expectedPatchCount: 0,
@@ -54,12 +55,12 @@ main() {
     group('performs a migration when there are relevant annotations present',
         () {
       test('', () {
-        propsAndStateClassNamesConvertedToNewBoilerplate = {
+        converter.setConvertedClassNames({
           'AbstractFooProps': 'AbstractFooProps',
           'FooProps': 'FooProps',
           'AbstractFooState': 'AbstractFooState',
           'FooState': 'FooState',
-        };
+        });
 
         testSuggestor(
           expectedPatchCount: 6,
@@ -139,10 +140,10 @@ main() {
       });
 
       test('handling class name edge cases', () {
-        propsAndStateClassNamesConvertedToNewBoilerplate = {
+        converter.setConvertedClassNames({
           'GraphFormStateWrapperProps': 'GraphFormStateWrapperProps',
           'GraphFormStateWrapperState': 'GraphFormStateWrapperState',
-        };
+        });
 
         testSuggestor(
           expectedPatchCount: 4,
@@ -204,12 +205,12 @@ main() {
       });
 
       test('leaving annotations with arguments in place', () {
-        propsAndStateClassNamesConvertedToNewBoilerplate = {
+        converter.setConvertedClassNames({
           'AbstractFooProps': 'AbstractFooProps',
           'FooProps': 'FooProps',
           'AbstractFooState': 'AbstractFooState',
           'FooState': 'FooState',
-        };
+        });
 
         testSuggestor(
           expectedPatchCount: 1,
