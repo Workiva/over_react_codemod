@@ -24,13 +24,17 @@ import 'boilerplate_utilities.dart';
 class PropsMixinMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  final ClassToMixinConverter converter;
+
+  PropsMixinMigrator(this.converter);
+
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
     if (!shouldMigratePropsAndStateMixin(node)) return;
 
-    migrateClassToMixin(node, yieldPatch);
+    converter.migrate(node, yieldPatch);
     _removePropsOrStateGetter(node);
     _removePropsOrStateMixinAnnotation(node);
     _migrateMixinMetaField(node);
