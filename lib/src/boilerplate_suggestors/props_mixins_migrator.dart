@@ -40,7 +40,7 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
     final classGetters = node.members
         .whereType<MethodDeclaration>()
         .where((method) => method.isGetter);
-    final propsOrStateGetter = classGetters.singleWhere(
+    final propsOrStateGetter = classGetters.firstWhere(
         (getter) => getter.name.name == 'props' || getter.name.name == 'state',
         orElse: () => null);
     if (propsOrStateGetter != null) {
@@ -53,10 +53,10 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
     if (propsMixinAnnotationNode != null) {
       yieldPatch(
           propsMixinAnnotationNode.offset,
-          // +1 to ensure that any comments that were on the line immediately before the annotation
-          // we are removing - end up on the line immediately before the mixin declaration instead
-          // of having a newline separating them.
-          propsMixinAnnotationNode.end + 1,
+          // Use the offset of the next token to ensure that any comments that were on the line
+          // immediately before the annotation we are removing - end up on the line immediately
+          // before the mixin declaration instead of having a newline separating them.
+          propsMixinAnnotationNode.endToken.next.offset,
           '');
     }
 
@@ -64,10 +64,10 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
     if (stateMixinAnnotationNode != null) {
       yieldPatch(
           stateMixinAnnotationNode.offset,
-          // +1 to ensure that any comments that were on the line immediately before the annotation
-          // we are removing - end up on the line immediately before the mixin declaration instead
-          // of having a newline separating them.
-          stateMixinAnnotationNode.end + 1,
+          // Use the offset of the next token to ensure that any comments that were on the line
+          // immediately before the annotation we are removing - end up on the line immediately
+          // before the mixin declaration instead of having a newline separating them.
+          stateMixinAnnotationNode.endToken.next.offset,
           '');
     }
   }
@@ -79,8 +79,8 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
         .whereType<FieldDeclaration>()
         .map((decl) => decl.fields)
         .toList();
-    final metaField = classFields.singleWhere(
-        (field) => field.variables.single.name.name == 'meta',
+    final metaField = classFields.firstWhere(
+        (field) => field.variables.first.name.name == 'meta',
         orElse: () => null);
     if (metaField == null) return;
 

@@ -29,9 +29,7 @@ bool isPublic(ClassDeclaration node) => isPublicForTest;
 /// Returns the annotation node associated with the provided [classNode]
 /// that matches the provided [annotationName], if one exists.
 AstNode getAnnotationNode(ClassDeclaration classNode, String annotationName) {
-  if (classNode.metadata.isEmpty) return null;
-
-  return classNode.metadata.singleWhere(
+  return classNode.metadata.firstWhere(
       (node) => node.name.name == annotationName,
       orElse: () => null);
 }
@@ -65,9 +63,12 @@ bool shouldMigratePropsAndStateClass(ClassDeclaration node) {
 
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
 /// or `UiState`.
-bool extendsFromUiPropsOrUiState(ClassDeclaration classNode) =>
-    classNode.extendsClause.superclass.name.name
-        .contains(RegExp('(UiProps)|(UiState)'));
+bool extendsFromUiPropsOrUiState(ClassDeclaration classNode) {
+  return {
+    'UiProps',
+    'UiState',
+  }.contains(classNode.extendsClause.superclass.name.name);
+}
 
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
 /// or `UiState`.
@@ -208,7 +209,7 @@ void migrateClassToMixin(ClassDeclaration node, YieldPatch yieldPatch,
               node.implementsClause.implementsKeyword.charEnd, 'on');
         } else {
           // Implements UiProps / UiState along with other interfaces
-          final uiInterface = nodeInterfaces.singleWhere((interface) =>
+          final uiInterface = nodeInterfaces.firstWhere((interface) =>
               interface.name.name == 'UiProps' ||
               interface.name.name == 'UiState');
           final otherInterfaces = List.of(nodeInterfaces)..remove(uiInterface);
