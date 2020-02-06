@@ -28,21 +28,15 @@ import 'boilerplate_utilities.dart';
 class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final SemverHelper helper;
-
-  SimplePropsAndStateClassMigrator(this.helper);
-
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (!shouldMigrateSimplePropsAndStateClass(node, helper)) return;
+    if (!shouldMigrateSimplePropsAndStateClass(node)) return;
 
     migrateClassToMixin(node, yieldPatch);
   }
 }
 
-bool shouldMigrateSimplePropsAndStateClass(
-        ClassDeclaration node, SemverHelper helper) =>
-    shouldMigratePropsAndStateClass(node, helper) &&
-    isSimplePropsOrStateClass(node);
+bool shouldMigrateSimplePropsAndStateClass(ClassDeclaration node) =>
+    shouldMigratePropsAndStateClass(node) && isSimplePropsOrStateClass(node);

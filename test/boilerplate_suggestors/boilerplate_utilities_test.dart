@@ -268,115 +268,95 @@ main() {
       });
     });
 
-    group('getPublicExportLocations()', () {
-      SemverHelper helper;
-
-      group('returns null', () {
-        test('if there is no exports list', () {
-          helper = SemverHelper({'someOtherInfo': 'abc'});
-
-          getPublicExportLocationsTestHelper(
-            helper,
-            input: '''
-              @Props()
-              class _\$FooProps extends UiProps{
-                String foo;
-                int bar;
-              }
-            ''',
-            expectedResult: null,
-          );
-        });
-
-        test('if props class is not in export list', () {
-          helper = SemverHelper({
-            'exports': {
-              'lib/web_skin_dart.dart/ButtonProps': {
-                'type': 'class',
-                'grammar': {
-                  'name': 'ButtonProps',
-                  'meta': ['@Props()']
-                }
-              }
-            }
-          });
-
-          getPublicExportLocationsTestHelper(
-            helper,
-            input: '''
-              @Props()
-              class _\$FooProps extends UiProps{
-                String foo;
-                int bar;
-              }
-            ''',
-            expectedResult: null,
-          );
-        });
-      });
-
-      test('returns correct information if props class is in export list', () {
-        helper = SemverHelper({
-          "exports": {
-            "lib/web_skin_dart.dart/ButtonProps": {
-              "type": "class",
-              "grammar": {
-                "name": "ButtonProps",
-                "meta": ["@Props()"]
-              }
-            },
-            "lib/web_skin_dart.dart/FooProps": {
-              "type": "class",
-              "grammar": {
-                "name": "FooProps",
-                "meta": ["@Props()"]
-              }
-            },
-            "lib/web_skin_dart.dart/BarProps": {
-              "type": "class",
-              "grammar": {
-                "name": "BarProps",
-                "meta": ["@Props()"]
-              }
-            },
-            "lib/web_skin_dart.dart/DropdownSelectProps": {
-              "type": "class",
-              "grammar": {
-                "name": "DropdownSelectProps",
-                "meta": ["@Props()"]
+    group('isPublic() and getPublicExportLocations()', () {
+      test('if props class is not in export list', () {
+        semverHelper = SemverHelper({
+          'exports': {
+            'lib/web_skin_dart.dart/ButtonProps': {
+              'type': 'class',
+              'grammar': {
+                'name': 'ButtonProps',
+                'meta': ['@Props()']
               }
             }
           }
         });
 
-        getPublicExportLocationsTestHelper(
-          helper,
-          input: '''
-            @Props()
-            class DropdownSelectProps extends UiProps{
-              String foo;
-              int bar;
+        final input = '''
+          @Props()
+          class _\$FooProps extends UiProps{
+            String foo;
+            int bar;
+          }
+        ''';
+
+        CompilationUnit unit = parseString(content: input).unit;
+        expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
+
+        unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+          expect(semverHelper.getPublicExportLocations(classNode), null);
+          expect(isPublic(classNode), false);
+        });
+      });
+    });
+
+    test('if props class is in export list', () {
+      semverHelper = SemverHelper({
+        "exports": {
+          "lib/web_skin_dart.dart/ButtonProps": {
+            "type": "class",
+            "grammar": {
+              "name": "ButtonProps",
+              "meta": ["@Props()"]
             }
-          ''',
-          expectedResult: {
+          },
+          "lib/web_skin_dart.dart/FooProps": {
+            "type": "class",
+            "grammar": {
+              "name": "FooProps",
+              "meta": ["@Props()"]
+            }
+          },
+          "lib/web_skin_dart.dart/BarProps": {
+            "type": "class",
+            "grammar": {
+              "name": "BarProps",
+              "meta": ["@Props()"]
+            }
+          },
+          "lib/web_skin_dart.dart/DropdownSelectProps": {
             "type": "class",
             "grammar": {
               "name": "DropdownSelectProps",
               "meta": ["@Props()"]
             }
-          },
-        );
+          }
+        }
+      });
+
+      final input = '''
+        @Props()
+        class DropdownSelectProps extends UiProps{
+          String foo;
+          int bar;
+        }
+      ''';
+      final expectedResult = {
+        "type": "class",
+        "grammar": {
+          "name": "DropdownSelectProps",
+          "meta": ["@Props()"]
+        }
+      };
+
+      CompilationUnit unit = parseString(content: input).unit;
+      expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
+
+      unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+        expect(
+            semverHelper.getPublicExportLocations(classNode), expectedResult);
+        expect(isPublic(classNode), true);
       });
     });
-  });
-}
-
-void getPublicExportLocationsTestHelper(SemverHelper helper,
-    {String input, Map expectedResult}) {
-  CompilationUnit unit = parseString(content: input).unit;
-  expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
-
-  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-    expect(helper.getPublicExportLocations(classNode), expectedResult);
   });
 }

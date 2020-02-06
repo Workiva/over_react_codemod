@@ -23,15 +23,13 @@ import '../util.dart';
 
 main() {
   group('StubbedPropsAndStateClassRemover', () {
-    SuggestorTester testSuggestor;
+    final testSuggestor =
+        getSuggestorTester(StubbedPropsAndStateClassRemover());
 
     setUpAll(() async {
-      final helper = SemverHelper(jsonDecode(
+      semverHelper = SemverHelper(jsonDecode(
           await File('test/boilerplate_suggestors/report.json')
               .readAsString()));
-
-      testSuggestor =
-          getSuggestorTester(StubbedPropsAndStateClassRemover(helper));
     });
 
     group('does not perform a migration', () {
@@ -99,18 +97,18 @@ main() {
           expectedPatchCount: 0,
           input: '''
           @Factory()
-          UiFactory<FooProps> Foo =
+          UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
-              \$Foo;
+              \$Bar;
       
           @Props()
-          class _\$_FooProps extends UiProps {
+          class _\$_BarProps extends UiProps {
             String foo;
             int bar;
           }
       
           @Component2()
-          class FooComponent extends UiComponent2<BarProps> {
+          class BarComponent extends UiComponent2<BarProps> {
             @override
             render() {
               return Dom.ul()(
@@ -122,9 +120,9 @@ main() {
           
           // AF-3369 This will be removed once the transition to Dart 2 is complete.
           // ignore: mixin_of_non_class, undefined_class
-          class BarProps extends _\$_FooProps with _\$_FooPropsAccessorsMixin {
+          class BarProps extends _\$_BarProps with _\$_BarPropsAccessorsMixin {
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-            static const PropsMeta meta = _\$metaFor_FooProps;
+            static const PropsMeta meta = _\$metaFor_BarProps;
           }
         ''',
         );

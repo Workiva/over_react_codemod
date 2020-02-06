@@ -42,7 +42,7 @@ Future<void> main(List<String> args) async {
   );
 
   // TODO: determine file path of semver report
-  SemverHelper helper = SemverHelper(jsonDecode(
+  semverHelper = SemverHelper(jsonDecode(
       await File('lib/src/boilerplate_suggestors/report.json').readAsString()));
 
   // General plan:
@@ -85,12 +85,12 @@ Future<void> main(List<String> args) async {
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[
-      StubbedPropsAndStateClassRemover(helper),
-      SimplePropsAndStateClassMigrator(helper),
-      AdvancedPropsAndStateClassMigrator(helper),
-      PropsMixinMigrator(helper),
+      StubbedPropsAndStateClassRemover(),
+      SimplePropsAndStateClassMigrator(),
+      AdvancedPropsAndStateClassMigrator(),
+      PropsMixinMigrator(),
       PropsMetaMigrator(),
-      AnnotationsRemover(helper),
+      AnnotationsRemover(),
     ].map((s) => Ignoreable(s)),
     args: args,
     defaultYes: true,

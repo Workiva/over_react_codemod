@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:test/test.dart';
@@ -21,6 +24,12 @@ import '../util.dart';
 main() {
   group('PropsMixinMigrator', () {
     final testSuggestor = getSuggestorTester(PropsMixinMigrator());
+
+    setUpAll(() async {
+      semverHelper = SemverHelper(jsonDecode(
+          await File('test/boilerplate_suggestors/report.json')
+              .readAsString()));
+    });
 
     tearDown(() {
       propsAndStateClassNamesConvertedToNewBoilerplate = {};
@@ -296,33 +305,28 @@ main() {
         });
 
         test('is deprecated if the class is part of the public API', () {
-          addTearDown(() {
-            isPublicForTest = false;
-          });
-          isPublicForTest = true;
-
           testSuggestor(
             expectedPatchCount: 5,
             input: '''
             /// Some doc comment
             @${typeStr}Mixin()
-            abstract class Foo${typeStr}Mixin implements Ui${typeStr} {
+            abstract class Bar${typeStr}Mixin implements Ui${typeStr} {
               // To ensure the codemod regression checking works properly, please keep this
               // field at the top of the class!
               // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-              static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
+              static const ${typeStr}Meta meta = _\$metaForBar${typeStr}Mixin;
               
               String foo;
             }
           ''',
             expectedOutput: '''
             /// Some doc comment
-            mixin Foo${typeStr}Mixin on Ui${typeStr} {
+            mixin Bar${typeStr}Mixin on Ui${typeStr} {
               // To ensure the codemod regression checking works properly, please keep this
               // field at the top of the class!
               // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-              @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
-              static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
+              @Deprecated('Use `propsMeta.forMixin(Bar${typeStr}Mixin)` instead.')
+              static const ${typeStr}Meta meta = _\$metaForBar${typeStr}Mixin;
               
               String foo;
             }

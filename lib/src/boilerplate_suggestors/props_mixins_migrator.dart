@@ -25,10 +25,6 @@ import 'boilerplate_utilities.dart';
 class PropsMixinMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final SemverHelper helper;
-
-  PropsMixinMigrator(this.helper);
-
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);

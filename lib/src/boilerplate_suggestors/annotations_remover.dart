@@ -16,16 +16,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 
-import 'boilerplate_utilities.dart';
-
 /// Suggestor that looks for @Props, @State, and @Component2 and removes them.
 class AnnotationsRemover extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final SemverHelper helper;
-
-  AnnotationsRemover(this.helper);
-
   @override
   visitAnnotatedNode(AnnotatedNode node) {
     super.visitAnnotatedNode(node);

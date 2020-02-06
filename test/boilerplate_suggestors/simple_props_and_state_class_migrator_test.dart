@@ -23,15 +23,13 @@ import '../util.dart';
 
 main() {
   group('SimplePropsAndStateClassMigrator', () {
-    SuggestorTester testSuggestor;
+    final testSuggestor =
+        getSuggestorTester(SimplePropsAndStateClassMigrator());
 
     setUpAll(() async {
-      final helper = SemverHelper(jsonDecode(
+      semverHelper = SemverHelper(jsonDecode(
           await File('test/boilerplate_suggestors/report.json')
               .readAsString()));
-
-      testSuggestor =
-          getSuggestorTester(SimplePropsAndStateClassMigrator(helper));
     });
 
     tearDown(() {
@@ -131,9 +129,9 @@ main() {
           expectedPatchCount: 0,
           input: '''
             @Factory()
-            UiFactory<FooProps> Foo =
+            UiFactory<BarProps> Bar =
                 // ignore: undefined_identifier
-                \$Foo;
+                \$Bar;
       
             @Props()
             class BarProps extends UiProps {
@@ -142,7 +140,7 @@ main() {
             }
       
             @Component2()
-            class FooComponent extends UiComponent2<BarProps> {
+            class BarComponent extends UiComponent2<BarProps> {
               @override
               render() {
                 return Dom.ul()(

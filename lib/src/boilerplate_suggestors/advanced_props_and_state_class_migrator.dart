@@ -28,19 +28,13 @@ import 'boilerplate_utilities.dart';
 class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  final SemverHelper helper;
-
-  AdvancedPropsAndStateClassMigrator(this.helper);
-
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (!shouldMigrateAdvancedPropsAndStateClass(node, helper)) return;
+    if (!shouldMigrateAdvancedPropsAndStateClass(node)) return;
   }
 }
 
-bool shouldMigrateAdvancedPropsAndStateClass(
-        ClassDeclaration node, SemverHelper helper) =>
-    shouldMigratePropsAndStateClass(node, helper) &&
-    isAdvancedPropsOrStateClass(node);
+bool shouldMigrateAdvancedPropsAndStateClass(ClassDeclaration node) =>
+    shouldMigratePropsAndStateClass(node) && isAdvancedPropsOrStateClass(node);

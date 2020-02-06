@@ -13,18 +13,45 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
 
 typedef void YieldPatch(
     int startingOffset, int endingOffset, String replacement);
 
-@visibleForTesting
-bool isPublicForTest = false;
+SemverHelper semverHelper;
 
-// Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
-bool isPublic(ClassDeclaration node) => isPublicForTest;
+bool isPublic(ClassDeclaration node) {
+  assert(semverHelper != null);
+  return semverHelper.getPublicExportLocations(node) != null;
+}
+
+class SemverHelper {
+  Map _exportList;
+
+  SemverHelper(Map jsonReport) {
+    _exportList = jsonReport['exports'];
+  }
+
+  /// Returns semver report information for [node] if it is publicly exported.
+  ///
+  /// If [node] is not publicly exported, returns `null`.
+  Map<String, dynamic> getPublicExportLocations(ClassDeclaration node) {
+    assert(_exportList != null);
+
+    final className = node.name.name;
+
+    for (final key in _exportList.keys) {
+      final value = _exportList[key];
+
+      if (value['type'] == 'class' && value['grammar']['name'] == className) {
+        return value;
+      }
+    }
+
+    return null;
+  }
+}
 
 /// Returns the annotation node associated with the provided [classNode]
 /// that matches the provided [annotationName], if one exists.
@@ -54,11 +81,10 @@ bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
     isAPropsOrStateMixin(classNode);
 
 /// Whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
-bool shouldMigratePropsAndStateClass(
-    ClassDeclaration node, SemverHelper helper) {
+bool shouldMigratePropsAndStateClass(ClassDeclaration node) {
   return isAssociatedWithComponent2(node) &&
       isAPropsOrStateClass(node) &&
-      helper.getPublicExportLocations(node) == null;
+      !isPublic(node);
 }
 
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
@@ -252,31 +278,5 @@ extension IterableAstUtils on Iterable<NamedType> {
       ..write(endingString != null ? '${endingString.trimLeft()}' : '');
 
     return returnString.toString();
-  }
-}
-
-class SemverHelper {
-  Map _exportList;
-
-  SemverHelper(Map jsonReport) {
-    _exportList = jsonReport['exports'];
-  }
-
-  /// Returns semver report information for [node] if it is publicly exported.
-  ///
-  /// If [node] is not publicly exported, returns `null`.
-  Map<String, dynamic> getPublicExportLocations(ClassDeclaration node) {
-    final className = node?.name?.name;
-    String classKey;
-
-    if (className == null || _exportList == null) return null;
-
-    _exportList.forEach((key, value) {
-      if (value['type'] == 'class' && value['grammar']['name'] == className) {
-        classKey = key;
-      }
-    });
-
-    return _exportList[classKey];
   }
 }
