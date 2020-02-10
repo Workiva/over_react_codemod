@@ -41,8 +41,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
     final hasMixins = node.withClause != null;
-    final convertedParentClass =
-        node.extendsClause.superclass.name.name + 'Mixin';
+    final parentClassName = node.extendsClause.superclass.name.name;
 
     final className = stripPrivateGeneratedPrefix(node.name.name);
     final newDeclarationBuffer = StringBuffer()
@@ -51,9 +50,9 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       ..write(!extendsFromCustomClass
           ? ''
           : '''
-          // FIXME: Verify that:
-          //   1. $convertedParentClass does not implement additional mixins.
-          //   2. any other mixins found here do not implement additional mixins.
+          // FIXME:
+          //   1. Ensure that all mixins used by $parentClassName are also mixed into this class.
+          //   2. Fix any analyzer warnings on this class about missing mixins
            ''')
       // Create the class name
       ..write('class $className = ')
@@ -64,7 +63,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     if (extendsFromCustomClass) {
       newDeclarationBuffer.write(
-          '$convertedParentClass, ${className}Mixin${hasMixins ? ',' : ''}');
+          '${parentClassName}Mixin, ${className}Mixin${hasMixins ? ',' : ''}');
     }
 
     if (hasMixins) {

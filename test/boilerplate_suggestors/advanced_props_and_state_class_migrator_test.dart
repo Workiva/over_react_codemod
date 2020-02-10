@@ -113,9 +113,9 @@ void main() {
                 int bar;
               }
       
-              // FIXME: Verify that:
-              //   1. ADifferentPropsClassMixin does not implement additional mixins.
-              //   2. any other mixins found here do not implement additional mixins.
+              // FIXME:
+              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
+              //   2. Fix any analyzer warnings on this class about missing mixins
               class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
       
               @State()
@@ -124,9 +124,9 @@ void main() {
                 int bar;
               }
               
-              // FIXME: Verify that:
-              //   1. ADifferentStateClassMixin does not implement additional mixins.
-              //   2. any other mixins found here do not implement additional mixins.
+              // FIXME:
+              //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
+              //   2. Fix any analyzer warnings on this class about missing mixins
               class FooState = UiState with ADifferentStateClassMixin, FooStateMixin;
       
               @Component2()
@@ -261,9 +261,9 @@ void main() {
               int bar;
             }
             
-            // FIXME: Verify that:
-            //   1. ADifferentPropsClassMixin does not implement additional mixins.
-            //   2. any other mixins found here do not implement additional mixins.
+            // FIXME:
+            //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
+            //   2. Fix any analyzer warnings on this class about missing mixins
             class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
       
             @Component2()
@@ -387,9 +387,9 @@ void main() {
             int bar;
           }
           
-          // FIXME: Verify that:
-          //   1. ADifferentPropsClassMixin does not implement additional mixins.
-          //   2. any other mixins found here do not implement additional mixins.          
+          // FIXME:
+          //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
+          //   2. Fix any analyzer warnings on this class about missing mixins        
           class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin, AMixin, AnotherMixin;
   
           @State()
@@ -398,9 +398,9 @@ void main() {
             int bar;
           }
           
-          // FIXME: Verify that:
-          //   1. ADifferentStateClassMixin does not implement additional mixins.
-          //   2. any other mixins found here do not implement additional mixins.
+          // FIXME:
+          //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
+          //   2. Fix any analyzer warnings on this class about missing mixins
           class FooState = UiState with ADifferentStateClassMixin, FooStateMixin, AStateMixin, AnotherStateMixin;
   
           @Component2()
