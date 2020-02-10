@@ -254,6 +254,17 @@ class ClassToMixinConverter {
       _convertedClassNames = mapOfConvertedClassNames;
 }
 
+/// Returns the name of the props class for a given [factoryDeclaration].
+String getPropsClassNameFromFactoryDeclaration(
+    TopLevelVariableDeclaration factoryDeclaration) {
+  return factoryDeclaration.variables.type.childEntities
+      .whereType<TypeArgumentList>()
+      .firstOrNull
+      ?.arguments
+      ?.first
+      ?.toSource();
+}
+
 extension IterableAstUtils on Iterable<NamedType> {
   /// Utility to join an `Iterable` based on the `name` of the `name` field
   /// rather than the `toString()` of the object.

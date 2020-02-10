@@ -446,3 +446,7 @@ String stripPrivateGeneratedPrefix(String value) {
       ? value.substring(privateGeneratedPrefix.length)
       : value;
 }
+
+extension IterableNullHelpers<E> on Iterable<E> {
+  E get firstOrNull => isEmpty ? null : first;
+}
