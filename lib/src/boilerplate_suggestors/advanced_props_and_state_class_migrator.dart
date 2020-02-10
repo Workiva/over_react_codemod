@@ -16,6 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 
+import '../util.dart';
 import 'boilerplate_utilities.dart';
 
 /// Suggestor that updates props and state classes to new boilerplate.
@@ -33,10 +34,52 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
   AdvancedPropsAndStateClassMigrator(this.converter);
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
     if (!shouldMigrateAdvancedPropsAndStateClass(node)) return;
+
+    final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
+    final hasMixins = node.withClause != null;
+    final parentClassName = node.extendsClause.superclass.name.name;
+
+    final className = stripPrivateGeneratedPrefix(node.name.name);
+    final newDeclarationBuffer = StringBuffer()
+      ..write('\n\n')
+      // Write a fix me comment if this class extends a custom class
+      ..write(!extendsFromCustomClass
+          ? ''
+          : '''
+          // FIXME:
+          //   1. Ensure that all mixins used by $parentClassName are also mixed into this class.
+          //   2. Fix any analyzer warnings on this class about missing mixins
+           ''')
+      // Create the class name
+      ..write('class $className = ')
+      // Decide if the class is a Props or a State class
+      ..write('Ui${isAPropsClass(node) ? 'Props' : 'State'} ')
+      // Add the width clause
+      ..write('with ');
+
+    if (extendsFromCustomClass) {
+      newDeclarationBuffer.write(
+          '${parentClassName}Mixin, ${className}Mixin${hasMixins ? ',' : ''}');
+    }
+
+    if (hasMixins) {
+      if (!extendsFromCustomClass) {
+        newDeclarationBuffer.write('${className}Mixin,');
+      }
+
+      newDeclarationBuffer.write(node.withClause.mixinTypes.joinByName());
+    }
+
+    newDeclarationBuffer.write(';');
+
+    converter.migrate(node, yieldPatch,
+        shouldAddMixinToName: true,
+        shouldSwapParentClass: extendsFromCustomClass);
+    yieldPatch(node.end, node.end, newDeclarationBuffer.toString());
   }
 }
 

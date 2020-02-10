@@ -17,7 +17,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('Boilerplate Utilities', () {
     group('isPropsUsageSimple', () {
       int assertionCount;

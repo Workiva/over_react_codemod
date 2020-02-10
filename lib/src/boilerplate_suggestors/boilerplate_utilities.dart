@@ -115,12 +115,14 @@ bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
   return true;
 }
 
-// Stub while <https://jira.atl.workiva.net/browse/CPLAT-9407> is in progress
+/// Detects if the Props or State class is considered advanced.
+///
+/// Related: [isSimplePropsOrStateClass]
 bool isAdvancedPropsOrStateClass(ClassDeclaration classNode) {
   // Only validate props or state classes
   assert(isAPropsOrStateClass(classNode));
 
-  return false;
+  return !isSimplePropsOrStateClass(classNode);
 }
 
 /// A class used to handle the conversion of props / state classes to mixins.
@@ -182,7 +184,7 @@ class ClassToMixinConverter {
   /// so that suggestors that come after the suggestor that called this function - can know
   /// whether to yield a patch based on that information.
   void migrate(ClassDeclaration node, YieldPatch yieldPatch,
-      {bool shouldAddMixinToName = false}) {
+      {bool shouldAddMixinToName = false, bool shouldSwapParentClass = false}) {
     if (node.abstractKeyword != null) {
       yieldPatch(node.abstractKeyword.offset, node.abstractKeyword.charEnd, '');
     }
@@ -204,6 +206,17 @@ class ClassToMixinConverter {
       if (shouldAddMixinToName) {
         yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
         newMixinName = '${newMixinName}Mixin';
+      }
+
+      if (shouldSwapParentClass) {
+        yieldPatch(
+            node.extendsClause.superclass.name.offset,
+            node.extendsClause.superclass.name.end,
+            isAPropsClass(node) ? 'UiProps' : 'UiState');
+      }
+
+      if (node.withClause != null) {
+        yieldPatch(node.withClause.offset, node.withClause.end, '');
       }
     } else {
       // --- Convert props/state mixin to an actual mixin --- //
@@ -268,14 +281,7 @@ String getPropsClassNameFromFactoryDeclaration(
 extension IterableAstUtils on Iterable<NamedType> {
   /// Utility to join an `Iterable` based on the `name` of the `name` field
   /// rather than the `toString()` of the object.
-  String joinByName(
-      {String startingString, String endingString, String seperator}) {
-    final itemString = map((t) => t.name.name).join('${seperator ?? ','} ');
-    final returnString = StringBuffer()
-      ..write(startingString != null ? '${startingString.trimRight()} ' : '')
-      ..write(itemString)
-      ..write(endingString != null ? '${endingString.trimLeft()}' : '');
-
-    return returnString.toString();
+  String joinByName({String separator}) {
+    return map((t) => t.name.name).join('${separator ?? ','} ');
   }
 }
