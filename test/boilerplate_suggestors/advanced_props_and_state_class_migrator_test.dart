@@ -351,6 +351,146 @@ void main() {
             'FooProps': 'FooPropsMixin',
           });
         });
+
+        group(
+            'and there is already a mixin that matches the name of the class appended with "Mixin"',
+            () {
+          test('and the class has no members of its own', () {
+            converter.setConvertedClassNames({
+              'FooPropsMixin': 'FooPropsMixin',
+            });
+
+            testSuggestor(
+              expectedPatchCount: 2,
+              input: r'''
+              @Factory()
+              UiFactory<FooProps> Foo =
+                  // ignore: undefined_identifier
+                  $Foo;
+                
+              @PropsMixin()
+              mixin FooPropsMixin on UiProps {
+                String foo;
+                int bar;
+              }
+      
+              @Props()
+              class _$FooProps extends UiProps with FooPropsMixin {}
+      
+              @Component2()
+              class FooComponent extends UiComponent2<FooProps, FooState> {
+                @override
+                render() {
+                  return Dom.ul()(
+                    Dom.li()('Foo: ', props.foo),
+                    Dom.li()('Bar: ', props.bar),
+                  );
+                }
+              }
+            ''',
+              expectedOutput: r'''
+              @Factory()
+              UiFactory<FooProps> Foo =
+                  // ignore: undefined_identifier
+                  $Foo;
+      
+              @PropsMixin()
+              mixin FooPropsMixin on UiProps {
+                String foo;
+                int bar;
+              }
+              
+              class FooProps = UiProps with FooPropsMixin;
+      
+              @Component2()
+              class FooComponent extends UiComponent2<FooProps, FooState> {
+                @override
+                render() {
+                  return Dom.ul()(
+                    Dom.li()('Foo: ', props.foo),
+                    Dom.li()('Bar: ', props.bar),
+                  );
+                }
+              }
+            ''',
+            );
+
+            expect(converter.convertedClassNames, {
+              'FooPropsMixin': 'FooPropsMixin',
+              'FooProps': 'FooProps',
+            });
+          });
+
+          test('and the class has members', () {
+            converter.setConvertedClassNames({
+              'FooPropsMixin': 'FooPropsMixin',
+            });
+
+            testSuggestor(
+              expectedPatchCount: 2,
+              input: r'''
+              @Factory()
+              UiFactory<FooProps> Foo =
+                  // ignore: undefined_identifier
+                  $Foo;
+                
+              @PropsMixin()
+              mixin FooPropsMixin on UiProps {
+                String foo;
+                int bar;
+              }
+      
+              @Props()
+              class _$FooProps extends UiProps with FooPropsMixin {
+                String baz;
+              }
+      
+              @Component2()
+              class FooComponent extends UiComponent2<FooProps, FooState> {
+                @override
+                render() {
+                  return Dom.ul()(
+                    Dom.li()('Foo: ', props.foo),
+                    Dom.li()('Bar: ', props.bar),
+                  );
+                }
+              }
+            ''',
+              expectedOutput: r'''
+              @Factory()
+              UiFactory<FooProps> Foo =
+                  // ignore: undefined_identifier
+                  $Foo;
+      
+              @PropsMixin()
+              mixin FooPropsMixin on UiProps {
+                String foo;
+                int bar;
+              }
+              
+              class FooProps extends UiProps with FooPropsMixin {
+                String baz;
+              }
+      
+              @Component2()
+              class FooComponent extends UiComponent2<FooProps, FooState> {
+                @override
+                render() {
+                  return Dom.ul()(
+                    Dom.li()('Foo: ', props.foo),
+                    Dom.li()('Bar: ', props.bar),
+                  );
+                }
+              }
+            ''',
+            );
+
+            expect(converter.convertedClassNames, {
+              'FooPropsMixin': 'FooPropsMixin',
+              'FooProps': 'FooProps',
+            });
+          });
+        });
       });
 
       test('and there is a custom class with mixins', () {
