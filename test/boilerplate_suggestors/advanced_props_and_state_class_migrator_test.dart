@@ -79,7 +79,7 @@ void main() {
                 $Foo;
     
             @Props()
-            class _$FooProps extends ADifferentPropsClass {
+            class _$FooProps extends FluxUiProps<SomeActions, SomeStore> {
               String foo;
               int bar;
             }
@@ -91,7 +91,7 @@ void main() {
             }
     
             @Component2()
-            class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+            class FooComponent extends FluxUiStatefulComponent2<FooProps, FooState> {
               @override
               render() {
                 return Dom.ul()(
@@ -114,9 +114,9 @@ void main() {
               }
       
               // FIXME:
-              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
+              //   1. Ensure that all mixins used by FluxUiPropsMixin are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins
-              class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
+              class FooProps = UiProps with FluxUiPropsMixin<SomeActions, SomeStore>, FooPropsMixin;
       
               @State()
               mixin FooStateMixin on UiState {
@@ -125,12 +125,12 @@ void main() {
               }
               
               // FIXME:
-              //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
+              //   1. Ensure that all mixins used by ADifferentStateClassMixin are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins
               class FooState = UiState with ADifferentStateClassMixin, FooStateMixin;
       
               @Component2()
-              class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+              class FooComponent extends FluxUiStatefulComponent2<FooProps, FooState> {
                 @override
                 render() {
                   return Dom.ul()(
@@ -262,7 +262,7 @@ void main() {
             }
             
             // FIXME:
-            //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
+            //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins
             class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
       
@@ -388,7 +388,7 @@ void main() {
           }
           
           // FIXME:
-          //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
+          //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins        
           class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin, AMixin, AnotherMixin;
   
@@ -399,7 +399,7 @@ void main() {
           }
           
           // FIXME:
-          //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
+          //   1. Ensure that all mixins used by ADifferentStateClassMixin are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins
           class FooState = UiState with ADifferentStateClassMixin, FooStateMixin, AStateMixin, AnotherStateMixin;
   

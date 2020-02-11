@@ -42,8 +42,11 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
     final hasMixins = node.withClause != null;
     final parentClassName = node.extendsClause.superclass.name.name;
+    final parentClassTypeArgs =
+        node.extendsClause.superclass.typeArguments ?? '';
 
     final className = stripPrivateGeneratedPrefix(node.name.name);
+    final classTypeArgs = node.typeParameters ?? '';
     final newDeclarationBuffer = StringBuffer()
       ..write('\n\n')
       // Write a fix me comment if this class extends a custom class
@@ -51,11 +54,11 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
           ? ''
           : '''
           // FIXME:
-          //   1. Ensure that all mixins used by $parentClassName are also mixed into this class.
+          //   1. Ensure that all mixins used by ${parentClassName}Mixin are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins
            ''')
       // Create the class name
-      ..write('class $className = ')
+      ..write('class $className$classTypeArgs = ')
       // Decide if the class is a Props or a State class
       ..write('Ui${isAPropsClass(node) ? 'Props' : 'State'} ')
       // Add the width clause
@@ -63,12 +66,12 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     if (extendsFromCustomClass) {
       newDeclarationBuffer.write(
-          '${parentClassName}Mixin, ${className}Mixin${hasMixins ? ',' : ''}');
+          '${parentClassName}Mixin$parentClassTypeArgs, ${className}Mixin$classTypeArgs${hasMixins ? ',' : ''}');
     }
 
     if (hasMixins) {
       if (!extendsFromCustomClass) {
-        newDeclarationBuffer.write('${className}Mixin,');
+        newDeclarationBuffer.write('${className}Mixin$classTypeArgs,');
       }
 
       newDeclarationBuffer.write(node.withClause.mixinTypes.joinByName());

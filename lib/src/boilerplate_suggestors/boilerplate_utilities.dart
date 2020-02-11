@@ -192,7 +192,7 @@ class ClassToMixinConverter {
     yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
 
     final originalPublicClassName = stripPrivateGeneratedPrefix(node.name.name);
-    String newMixinName = originalPublicClassName;
+    var newMixinName = originalPublicClassName;
 
     if (node.extendsClause?.extendsKeyword != null) {
       // --- Convert concrete props/state class to a mixin --- //
@@ -211,7 +211,7 @@ class ClassToMixinConverter {
       if (shouldSwapParentClass) {
         yieldPatch(
             node.extendsClause.superclass.name.offset,
-            node.extendsClause.superclass.name.end,
+            node.extendsClause.superclass.end,
             isAPropsClass(node) ? 'UiProps' : 'UiState');
       }
 
