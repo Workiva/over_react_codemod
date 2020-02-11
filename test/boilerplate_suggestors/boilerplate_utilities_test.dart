@@ -317,49 +317,99 @@ void main() {
       });
     });
 
-    group('isPublic() and getPublicExportLocations()', () {
-      setUpAll(() {
-        semverHelper = SemverHelper(jsonDecode(reportJson));
+    group('getSemverHelper() with isPublic() and getPublicExportLocations()',
+        () {
+      group('with --treat-all-components-as-private flag', () {
+        semverTestHelper(
+          path: 'test/boilerplate_suggestors/semver_report.json',
+          shouldTreatAllComponentsAsPrivate: true,
+          isValidFilePath: true,
+        );
       });
 
-      test('if props class is not in export list', () {
-        final input = '''
-          @Props()
-          class _\$FooProps extends UiProps{
-            String foo;
-            int bar;
-          }
-        ''';
+      group('json file does not exist', () {
+        semverTestHelper(
+          path: 'test/boilerplate_suggestors/does_not_exist.json',
+          shouldTreatAllComponentsAsPrivate: false,
+          isValidFilePath: false,
+        );
 
-        CompilationUnit unit = parseString(content: input).unit;
-        expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
-
-        unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-          expect(semverHelper.getPublicExportLocations(classNode), isEmpty);
-          expect(isPublic(classNode), false);
+        group('with --treat-all-components-as-private flag', () {
+          semverTestHelper(
+            path: 'test/boilerplate_suggestors/semver_report.json',
+            shouldTreatAllComponentsAsPrivate: true,
+            isValidFilePath: false,
+          );
         });
       });
 
-      test('if props class is in export list', () {
-        final input = '''
+      group('json file does exist', () {
+        semverTestHelper(
+          path: 'test/boilerplate_suggestors/semver_report.json',
+          shouldTreatAllComponentsAsPrivate: false,
+          isValidFilePath: true,
+        );
+      });
+    });
+  });
+}
+
+void semverTestHelper({
+  String path,
+  bool shouldTreatAllComponentsAsPrivate,
+  bool isValidFilePath,
+}) {
+  setUpAll(() async {
+    semverHelper = await getSemverHelper(path,
+        shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
+  });
+
+  test('if props class is not in export list', () {
+    final input = '''
+      @Props()
+      class _\$FooProps extends UiProps{
+        String foo;
+        int bar;
+      }
+    ''';
+
+    CompilationUnit unit = parseString(content: input).unit;
+    expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
+
+    unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+      expect(
+          semverHelper.getPublicExportLocations(classNode),
+          isValidFilePath || shouldTreatAllComponentsAsPrivate
+              ? isEmpty
+              : ['semver report not available; assuming this to be public']);
+      expect(isPublic(classNode),
+          isValidFilePath || shouldTreatAllComponentsAsPrivate ? false : true);
+    });
+  });
+
+  test('if props class is in export list', () {
+    final input = '''
         @Props()
         class ButtonProps extends UiProps{
           String foo;
           int bar;
         }
       ''';
-
-        CompilationUnit unit = parseString(content: input).unit;
-        expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
-
-        unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-          expect(semverHelper.getPublicExportLocations(classNode), [
+    final expectedOutput = isValidFilePath
+        ? [
             'lib/web_skin_dart.dart/ButtonProps',
-            'lib/another_file.dart/ButtonProps'
-          ]);
-          expect(isPublic(classNode), true);
-        });
-      });
+            'lib/another_file.dart/ButtonProps',
+          ]
+        : ['semver report not available; assuming this to be public'];
+
+    CompilationUnit unit = parseString(content: input).unit;
+    expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
+
+    unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+      expect(semverHelper.getPublicExportLocations(classNode),
+          shouldTreatAllComponentsAsPrivate ? isEmpty : expectedOutput);
+      expect(isPublic(classNode),
+          shouldTreatAllComponentsAsPrivate ? false : true);
     });
   });
 }

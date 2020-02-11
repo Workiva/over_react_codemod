@@ -50,7 +50,7 @@ Future<void> main(List<String> args) async {
 
   semverHelper = await getSemverHelper(
       'lib/src/boilerplate_suggestors/semver_report.json',
-      shouldTreatAllComponentsAsPrivate);
+      shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
 
   // General plan:
   //  - Things that need to be accomplished (very simplified)

@@ -25,8 +25,8 @@ typedef YieldPatch = void Function(
 
 SemverHelper semverHelper;
 
-Future<SemverHelper> getSemverHelper(
-    String path, bool shouldTreatAllComponentsAsPrivate) async {
+Future<SemverHelper> getSemverHelper(String path,
+    {bool shouldTreatAllComponentsAsPrivate = false}) async {
   if (shouldTreatAllComponentsAsPrivate) {
     return SemverHelper.alwaysPrivate();
   } else {

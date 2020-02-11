@@ -1,0 +1,58 @@
+{
+  "exports": {
+    "lib/web_skin_dart.dart/ButtonProps": {
+      "type": "class",
+      "grammar": {
+        "name": "ButtonProps",
+        "meta": [
+          "@Props()"
+        ]
+      }
+    },
+    "lib/web_skin_dart.dart/BarProps": {
+      "type": "class",
+      "grammar": {
+        "name": "BarProps",
+        "meta": [
+          "@Props()"
+        ]
+      }
+    },
+    "lib/web_skin_dart.dart/BarState": {
+      "type": "class",
+      "grammar": {
+        "name": "BarState",
+        "meta": [
+          "@State()"
+        ]
+      }
+    },
+    "lib/web_skin_dart.dart/BarPropsMixin": {
+      "type": "class",
+      "grammar": {
+        "name": "BarPropsMixin",
+        "meta": [
+          "@Props()"
+        ]
+      }
+    },
+    "lib/web_skin_dart.dart/BarStateMixin": {
+      "type": "class",
+      "grammar": {
+        "name": "BarStateMixin",
+        "meta": [
+          "@State()"
+        ]
+      }
+    },
+    "lib/another_file.dart/ButtonProps": {
+      "type": "class",
+      "grammar": {
+        "name": "ButtonProps",
+        "meta": [
+          "@Props()"
+        ]
+      }
+    }
+  }
+}
