@@ -278,6 +278,19 @@ String getPropsClassNameFromFactoryDeclaration(
       ?.toSource();
 }
 
+/// Returns the name of the mixin that the [originalClassName] was converted to, or the [originalClassName]
+/// if no matching key is found within [ClassToMixinConverter.convertedClassNames] on the provided [converter] instance.
+String getConvertedClassMixinName(
+    String originalClassName, ClassToMixinConverter converter) {
+  // If it is a "reserved" base class that the consumer doesn't control / won't be converted as
+  // part of running the codemod in their repo, return the new "known" mixin name.
+  if (originalClassName == 'FluxUiProps') {
+    return 'FluxUiPropsMixin';
+  }
+
+  return converter.convertedClassNames[originalClassName] ?? originalClassName;
+}
+
 extension IterableAstUtils on Iterable<NamedType> {
   /// Utility to join an `Iterable` based on the `name` of the `name` field
   /// rather than the `toString()` of the object.

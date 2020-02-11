@@ -70,6 +70,10 @@ void main() {
     group('operates when the classes are advanced', () {
       group('and there are both a props and a state class', () {
         test('and the classes extend from a custom class', () {
+          converter.setConvertedClassNames({
+            'ADifferentStateClass': 'ADifferentStateClassMixin',
+          });
+
           testSuggestor(
             expectedPatchCount: 12,
             input: r'''
@@ -143,6 +147,7 @@ void main() {
           );
 
           expect(converter.convertedClassNames, {
+            'ADifferentStateClass': 'ADifferentStateClassMixin',
             'FooProps': 'FooPropsMixin',
             'FooState': 'FooStateMixin',
           });
@@ -224,6 +229,10 @@ void main() {
 
       group('and there is just a props class', () {
         test('and the class does not extend from UiProps', () {
+          converter.setConvertedClassNames({
+            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+          });
+
           testSuggestor(
             expectedPatchCount: 6,
             input: r'''
@@ -280,6 +289,7 @@ void main() {
           );
 
           expect(converter.convertedClassNames, {
+            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             'FooProps': 'FooPropsMixin',
           });
         });
@@ -344,6 +354,12 @@ void main() {
       });
 
       test('and there is a custom class with mixins', () {
+        // Omit the state class intentionally to verify that the boilerplate
+        // is not updated to point at a mixin name that is not "known" as a previously converted class.
+        converter.setConvertedClassNames({
+          'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+        });
+
         testSuggestor(
           expectedPatchCount: 14,
           input: r'''
@@ -399,9 +415,9 @@ void main() {
           }
           
           // FIXME:
-          //   1. Ensure that all mixins used by ADifferentStateClassMixin are also mixed into this class.
+          //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins
-          class FooState = UiState with ADifferentStateClassMixin, FooStateMixin, AStateMixin, AnotherStateMixin;
+          class FooState = UiState with ADifferentStateClass, FooStateMixin, AStateMixin, AnotherStateMixin;
   
           @Component2()
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
@@ -417,6 +433,7 @@ void main() {
         );
 
         expect(converter.convertedClassNames, {
+          'ADifferentPropsClass': 'ADifferentPropsClassMixin',
           'FooProps': 'FooPropsMixin',
           'FooState': 'FooStateMixin',
         });
