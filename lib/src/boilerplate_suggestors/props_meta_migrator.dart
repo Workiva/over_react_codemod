@@ -16,6 +16,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
+import 'package:over_react_codemod/src/component2_suggestors/component2_utilities.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 /// Suggestor that looks for `meta` getter access on props classes found within
 /// [convertedClassNames] as a result of being converted to the new
@@ -48,7 +50,13 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
     super.visitPrefixedIdentifier(node);
 
     if (node.identifier.name == 'meta') {
-      if (converter.convertedClassNames.containsKey(node.prefix.name)) {
+      final propsClassWithMetaWasConverted =
+          converter.convertedClassNames.containsKey(node.prefix.name);
+      final componentWithMetaUsageIsComponent2 =
+          extendsComponent2(getContainingClass(node));
+
+      if (propsClassWithMetaWasConverted &&
+          componentWithMetaUsageIsComponent2) {
         yieldPatch(
           node.prefix.offset,
           node.identifier.end,

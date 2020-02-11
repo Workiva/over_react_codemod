@@ -152,6 +152,77 @@ main() {
         ''',
         );
       });
+
+      test(
+          'unless component class containing the meta usage is not @Component2()',
+          () {
+        converter.setConvertedClassNames({
+          'FooProps': 'FooProps',
+          'BarProps': 'BarPropsMixin',
+        });
+
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+          /// Some doc comment
+          @PropsMixin()
+          abstract class FooPropsMixin implements UiProps {
+            // To ensure the codemod regression checking works properly, please keep this
+            // field at the top of the class!
+            // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+            static const PropsMeta meta = _\$metaForFooPropsMixin;
+            
+            String foo;
+          }
+              
+          @Component()
+          class FooComponent extends UiComponent<FooProps> {
+            static const foo = FooProps.meta;
+            static const bar = [FooProps.meta];
+          
+            @override
+            get consumedProps => const [FooProps.meta, BarProps.meta];
+        
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+        ''',
+          expectedOutput: '''
+        /// Some doc comment
+        @PropsMixin()
+        abstract class FooPropsMixin implements UiProps {
+          // To ensure the codemod regression checking works properly, please keep this
+          // field at the top of the class!
+          // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+          static const PropsMeta meta = _\$metaForFooPropsMixin;
+          
+          String foo;
+        }
+            
+        @Component()
+        class FooComponent extends UiComponent<FooProps> {
+          static const foo = FooProps.meta;
+          static const bar = [FooProps.meta];
+        
+          @override
+          get consumedProps => const [FooProps.meta, BarProps.meta];
+      
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+        );
+      });
     });
   });
 }
