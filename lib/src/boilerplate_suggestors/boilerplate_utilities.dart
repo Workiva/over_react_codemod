@@ -125,6 +125,31 @@ bool isAdvancedPropsOrStateClass(ClassDeclaration classNode) {
   return !isSimplePropsOrStateClass(classNode);
 }
 
+/// Returns the name of a mixin that was converted in a previous migration
+/// that has the same name as [className] when appended with "Mixin".
+String getNameOfDupeClass(
+    String className, CompilationUnit root, ClassToMixinConverter converter) {
+  final possibleDupeClasses = converter.convertedClassNames.values;
+  String nameOfDupeClass;
+  for (var className in possibleDupeClasses) {
+    if (className == '${className}Mixin') {
+      nameOfDupeClass = className;
+      break;
+    }
+  }
+
+  final possibleDupeClassesInSameRoot =
+      root.declarations.whereType<ClassOrMixinDeclaration>();
+  for (var decl in possibleDupeClassesInSameRoot) {
+    if (decl.name.name == '${className}Mixin') {
+      nameOfDupeClass = decl.name.name;
+      break;
+    }
+  }
+
+  return nameOfDupeClass;
+}
+
 /// A class used to handle the conversion of props / state classes to mixins.
 ///
 /// Should only be constructed once to initialize the value of [convertedClassNames].
@@ -185,13 +210,26 @@ class ClassToMixinConverter {
   /// whether to yield a patch based on that information.
   void migrate(ClassDeclaration node, YieldPatch yieldPatch,
       {bool shouldAddMixinToName = false, bool shouldSwapParentClass = false}) {
+    final originalPublicClassName = stripPrivateGeneratedPrefix(node.name.name);
+
+    if (shouldAddMixinToName) {
+      // Check to make sure we're not creating a duplicate mixin
+      final dupeClassName =
+          getNameOfDupeClass(originalPublicClassName, node.root, this);
+      if (dupeClassName != null) {
+        // Delete the class since a mixin with the same name already exists
+        yieldPatch(node.offset, node.end, '');
+        convertedClassNames[originalPublicClassName] = originalPublicClassName;
+        return;
+      }
+    }
+
     if (node.abstractKeyword != null) {
       yieldPatch(node.abstractKeyword.offset, node.abstractKeyword.charEnd, '');
     }
 
     yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
 
-    final originalPublicClassName = stripPrivateGeneratedPrefix(node.name.name);
     var newMixinName = originalPublicClassName;
 
     if (node.extendsClause?.extendsKeyword != null) {

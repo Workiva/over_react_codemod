@@ -47,6 +47,13 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     final className = stripPrivateGeneratedPrefix(node.name.name);
     final classTypeArgs = node.typeParameters ?? '';
+    final mixinWillBeCreatedFromClass =
+        getNameOfDupeClass(className, node.root, converter) == null;
+    final classNameMixinForBuffer =
+        mixinWillBeCreatedFromClass ? ', ${className}Mixin$classTypeArgs' : '';
+    final classNeedsBody =
+        !mixinWillBeCreatedFromClass && node.members.isNotEmpty;
+
     final newDeclarationBuffer = StringBuffer()
       ..write('\n\n')
       // Write a fix me comment if this class extends a custom class
@@ -58,7 +65,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
           //   2. Fix any analyzer warnings on this class about missing mixins
            ''')
       // Create the class name
-      ..write('class $className$classTypeArgs = ')
+      ..write('class $className$classTypeArgs')
+      ..write(classNeedsBody ? ' extends ' : ' = ')
       // Decide if the class is a Props or a State class
       ..write('Ui${isAPropsClass(node) ? 'Props' : 'State'} ')
       // Add the width clause
@@ -66,18 +74,27 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     if (extendsFromCustomClass) {
       newDeclarationBuffer.write(
-          '${getConvertedClassMixinName(parentClassName, converter)}$parentClassTypeArgs, ${className}Mixin$classTypeArgs${hasMixins ? ',' : ''}');
+          '${getConvertedClassMixinName(parentClassName, converter)}$parentClassTypeArgs$classNameMixinForBuffer${hasMixins ? ',' : ''}');
     }
 
     if (hasMixins) {
-      if (!extendsFromCustomClass) {
+      if (!extendsFromCustomClass && mixinWillBeCreatedFromClass) {
         newDeclarationBuffer.write('${className}Mixin$classTypeArgs,');
       }
 
       newDeclarationBuffer.write(node.withClause.mixinTypes.joinByName());
     }
 
-    newDeclarationBuffer.write(';');
+    if (classNeedsBody) {
+      // If no mixin will be created from the class in the `converter.migrate` step below,
+      // and it has members of its own, we need to preserve those members (fields) within the concrete class.
+      newDeclarationBuffer
+        ..write('{\n')
+        ..writeAll(node.members.map((member) => member.toSource()))
+        ..write('\n}');
+    } else {
+      newDeclarationBuffer.write(';');
+    }
 
     converter.migrate(node, yieldPatch,
         shouldAddMixinToName: true,
