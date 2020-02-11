@@ -295,6 +295,10 @@ void main() {
         });
 
         test('and the class uses mixins', () {
+          converter.setConvertedClassNames({
+            'ConvertedMixin': 'ConvertedMixin',
+          });
+
           testSuggestor(
             expectedPatchCount: 6,
             input: r'''
@@ -304,7 +308,13 @@ void main() {
                 $Foo;
       
             @Props()
-            class _$FooProps extends UiProps with AMixin, AnotherMixin {
+            class _$FooProps extends UiProps 
+                with ConvertedMixin, 
+                     // ignore: mixin_of_non_class, undefined_class
+                     $ConvertedMixin,
+                     UnconvertedMixin,
+                     // ignore: mixin_of_non_class, undefined_class
+                     $UnconvertedMixin {
               String foo;
               int bar;
             }
@@ -332,7 +342,8 @@ void main() {
               int bar;
             }
             
-            class FooProps = UiProps with FooPropsMixin, AMixin, AnotherMixin;
+            class FooProps = UiProps 
+                with FooPropsMixin, ConvertedMixin, UnconvertedMixin, $UnconvertedMixin;
       
             @Component2()
             class FooComponent extends UiComponent2<FooProps> {
@@ -348,6 +359,7 @@ void main() {
           );
 
           expect(converter.convertedClassNames, {
+            'ConvertedMixin': 'ConvertedMixin',
             'FooProps': 'FooPropsMixin',
           });
         });

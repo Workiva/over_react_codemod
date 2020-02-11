@@ -332,7 +332,13 @@ String getConvertedClassMixinName(
 extension IterableAstUtils on Iterable<NamedType> {
   /// Utility to join an `Iterable` based on the `name` of the `name` field
   /// rather than the `toString()` of the object.
-  String joinByName({String separator}) {
-    return map((t) => t.name.name).join('${separator ?? ','} ');
+  String joinByName({ClassToMixinConverter converter, String separator}) {
+    return where((t) {
+      if (converter == null) return true;
+      final mixinHasBeenConverted = converter.convertedClassNames
+          .containsKey(t.name.name.replaceFirst('\$', ''));
+      final mixinNameIsOldGeneratedBoilerplate = t.name.name.startsWith('\$');
+      return !mixinNameIsOldGeneratedBoilerplate || !mixinHasBeenConverted;
+    }).map((t) => t.name.name).join('${separator ?? ','} ');
   }
 }
