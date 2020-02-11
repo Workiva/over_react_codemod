@@ -26,7 +26,7 @@ main() {
     final converter = ClassToMixinConverter();
     final testSuggestor = getSuggestorTester(PropsMixinMigrator(converter));
 
-    setUpAll(() async {
+    setUpAll(() {
       semverHelper = SemverHelper(jsonDecode(reportJson));
     });
 

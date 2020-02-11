@@ -35,6 +35,13 @@ const reportJson = r'''{
         "meta": ["@Props()"]
       }
     },
+    "lib/web_skin_dart.dart/BarState": {
+      "type": "class",
+      "grammar": {
+        "name": "BarState",
+        "meta": ["@State()"]
+      }
+    },
     "lib/web_skin_dart.dart/BarPropsMixin": {
       "type": "class",
       "grammar": {
@@ -46,7 +53,7 @@ const reportJson = r'''{
       "type": "class",
       "grammar": {
         "name": "BarStateMixin",
-        "meta": ["@Props()"]
+        "meta": ["@State()"]
       }
     },
     "lib/another_file.dart/ButtonProps": {
@@ -311,9 +318,11 @@ void main() {
     });
 
     group('isPublic() and getPublicExportLocations()', () {
-      test('if props class is not in export list', () {
+      setUpAll(() {
         semverHelper = SemverHelper(jsonDecode(reportJson));
+      });
 
+      test('if props class is not in export list', () {
         final input = '''
           @Props()
           class _\$FooProps extends UiProps{
@@ -330,12 +339,9 @@ void main() {
           expect(isPublic(classNode), false);
         });
       });
-    });
 
-    test('if props class is in export list', () {
-      semverHelper = SemverHelper(jsonDecode(reportJson));
-
-      final input = '''
+      test('if props class is in export list', () {
+        final input = '''
         @Props()
         class ButtonProps extends UiProps{
           String foo;
@@ -343,15 +349,16 @@ void main() {
         }
       ''';
 
-      CompilationUnit unit = parseString(content: input).unit;
-      expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
+        CompilationUnit unit = parseString(content: input).unit;
+        expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
-      unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-        expect(semverHelper.getPublicExportLocations(classNode), [
-          'lib/web_skin_dart.dart/ButtonProps',
-          'lib/another_file.dart/ButtonProps'
-        ]);
-        expect(isPublic(classNode), true);
+        unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+          expect(semverHelper.getPublicExportLocations(classNode), [
+            'lib/web_skin_dart.dart/ButtonProps',
+            'lib/another_file.dart/ButtonProps'
+          ]);
+          expect(isPublic(classNode), true);
+        });
       });
     });
   });

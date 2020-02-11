@@ -27,7 +27,7 @@ main() {
       StubbedPropsAndStateClassRemover(),
     );
 
-    setUpAll(() async {
+    setUpAll(() {
       semverHelper = SemverHelper(jsonDecode(reportJson));
     });
 

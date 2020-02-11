@@ -27,7 +27,7 @@ main() {
     final testSuggestor =
         getSuggestorTester(SimplePropsAndStateClassMigrator(converter));
 
-    setUpAll(() async {
+    setUpAll(() {
       semverHelper = SemverHelper(jsonDecode(reportJson));
     });
 
