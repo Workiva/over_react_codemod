@@ -61,7 +61,7 @@ main() {
         });
 
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: 2,
           input: '''
           @Component2()
           class FooComponent extends UiComponent2<FooProps> {
@@ -83,7 +83,7 @@ main() {
         @Component2()
         class FooComponent extends UiComponent2<FooProps> {
           @override
-          get consumedProps => const [
+          get consumedProps => [
             propsMeta.forMixin(FooProps),
           ];
           

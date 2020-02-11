@@ -49,6 +49,14 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
           node.identifier.end,
           'propsMeta.forMixin(${converter.convertedClassNames[node.prefix.name]})',
         );
+
+        if (node.parent is TypedLiteral) {
+          // The meta is being used in a literal
+          TypedLiteral parent = node.parent;
+          if (parent.isConst) {
+            yieldPatch(parent.constKeyword.offset, parent.constKeyword.end, '');
+          }
+        }
       }
     }
   }
