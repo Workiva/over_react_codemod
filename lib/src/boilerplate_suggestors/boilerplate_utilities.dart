@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/constants.dart';
@@ -22,6 +25,21 @@ typedef YieldPatch = void Function(
 
 SemverHelper semverHelper;
 
+Future<SemverHelper> getSemverHelper(
+    String path, bool shouldTreatAllComponentsAsPrivate) async {
+  if (shouldTreatAllComponentsAsPrivate) {
+    return SemverHelper.alwaysPrivate();
+  } else {
+    final file = File(path);
+
+    if (await file.exists()) {
+      return SemverHelper(jsonDecode(await file.readAsString()));
+    } else {
+      return SemverHelper.alwaysPublic();
+    }
+  }
+}
+
 /// Returns whether or not [node] is publicly exported.
 bool isPublic(ClassDeclaration node) {
   assert(semverHelper != null);
@@ -30,10 +48,24 @@ bool isPublic(ClassDeclaration node) {
 
 class SemverHelper {
   final Map _exportList;
+  final bool _isAlwaysPrivate;
 
   SemverHelper(Map jsonReport)
       : _exportList = jsonReport['exports'],
-        assert(jsonReport['exports'] != null);
+        assert(jsonReport['exports'] != null),
+        _isAlwaysPrivate = false;
+
+  /// Used to ensure [getPublicExportLocations] always returns an empty list,
+  /// treating all components as private.
+  SemverHelper.alwaysPrivate()
+      : _exportList = null,
+        _isAlwaysPrivate = true;
+
+  /// Used to ensure [getPublicExportLocations] always returns a non-empty list,
+  /// treating all components as public.
+  SemverHelper.alwaysPublic()
+      : _exportList = null,
+        _isAlwaysPrivate = false;
 
   /// Returns a list of locations where [node] is publicly exported.
   ///
@@ -41,6 +73,11 @@ class SemverHelper {
   List<String> getPublicExportLocations(ClassDeclaration node) {
     final className = node.name.name;
     final List<String> locations = List();
+
+    if (_exportList == null && _isAlwaysPrivate) return locations;
+    if (_exportList == null && !_isAlwaysPrivate) {
+      return ['semver report not available; assuming this to be public'];
+    }
 
     _exportList.forEach((key, value) {
       if (value['type'] == 'class' && value['grammar']['name'] == className) {

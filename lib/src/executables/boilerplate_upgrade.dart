@@ -25,6 +25,7 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migra
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 
+const _treatAllComponentsAsPrivateFlag = '--treat-all-components-as-private';
 const _changesRequiredOutput = '''
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
@@ -34,6 +35,10 @@ const _changesRequiredOutput = '''
 ''';
 
 Future<void> main(List<String> args) async {
+  final shouldTreatAllComponentsAsPrivate =
+      !args.contains(_treatAllComponentsAsPrivateFlag);
+  args.removeWhere((arg) => arg == _treatAllComponentsAsPrivateFlag);
+
   final query = FileQuery.dir(
     pathFilter: (path) {
       return isDartFile(path) && !isGeneratedDartFile(path);
@@ -43,9 +48,9 @@ Future<void> main(List<String> args) async {
 
   final classToMixinConverter = ClassToMixinConverter();
 
-  // TODO: determine file path of semver report
-  semverHelper = SemverHelper(jsonDecode(
-      await File('lib/src/boilerplate_suggestors/report.json').readAsString()));
+  semverHelper = await getSemverHelper(
+      'lib/src/boilerplate_suggestors/semver_report.json',
+      shouldTreatAllComponentsAsPrivate);
 
   // General plan:
   //  - Things that need to be accomplished (very simplified)
