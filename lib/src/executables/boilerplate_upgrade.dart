@@ -81,10 +81,10 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[
+      PropsMixinMigrator(classToMixinConverter),
       StubbedPropsAndStateClassRemover(),
       SimplePropsAndStateClassMigrator(classToMixinConverter),
       AdvancedPropsAndStateClassMigrator(classToMixinConverter),
-      PropsMixinMigrator(classToMixinConverter),
       PropsMetaMigrator(classToMixinConverter),
       AnnotationsRemover(classToMixinConverter),
     ].map((s) => Ignoreable(s)),

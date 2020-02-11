@@ -421,6 +421,156 @@ void main() {
           'FooState': 'FooStateMixin',
         });
       });
+
+      group(
+          'and there is a custom class with a mixin in the same root that matches the name of the class appended with "Mixin"',
+          () {
+        test('and the class has no members of its own', () {
+          converter.setConvertedClassNames({
+            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+            'FooPropsMixin': 'FooPropsMixin',
+          });
+
+          testSuggestor(
+            expectedPatchCount: 2,
+            input: r'''
+            @Factory()
+            UiFactory<FooProps> Foo =
+                // ignore: undefined_identifier
+                $Foo;
+              
+            @PropsMixin()
+            mixin FooPropsMixin on UiProps {
+              String foo;
+              int bar;
+            }
+    
+            @Props()
+            class _$FooProps extends ADifferentPropsClass with FooPropsMixin {}
+    
+            @Component2()
+            class FooComponent extends UiComponent2<FooProps, FooState> {
+              @override
+              render() {
+                return Dom.ul()(
+                  Dom.li()('Foo: ', props.foo),
+                  Dom.li()('Bar: ', props.bar),
+                );
+              }
+            }
+          ''',
+            expectedOutput: r'''
+            @Factory()
+            UiFactory<FooProps> Foo =
+                // ignore: undefined_identifier
+                $Foo;
+    
+            @PropsMixin()
+            mixin FooPropsMixin on UiProps {
+              String foo;
+              int bar;
+            }
+            
+            // FIXME:
+            //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
+            //   2. Fix any analyzer warnings on this class about missing mixins        
+            class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
+    
+            @Component2()
+            class FooComponent extends UiComponent2<FooProps, FooState> {
+              @override
+              render() {
+                return Dom.ul()(
+                  Dom.li()('Foo: ', props.foo),
+                  Dom.li()('Bar: ', props.bar),
+                );
+              }
+            }
+          ''',
+          );
+
+          expect(converter.convertedClassNames, {
+            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+            'FooPropsMixin': 'FooPropsMixin',
+            'FooProps': 'FooProps',
+          });
+        });
+
+        test('and the class has members', () {
+          converter.setConvertedClassNames({
+            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+            'FooPropsMixin': 'FooPropsMixin',
+          });
+
+          testSuggestor(
+            expectedPatchCount: 2,
+            input: r'''
+            @Factory()
+            UiFactory<FooProps> Foo =
+                // ignore: undefined_identifier
+                $Foo;
+              
+            @PropsMixin()
+            mixin FooPropsMixin on UiProps {
+              String foo;
+              int bar;
+            }
+    
+            @Props()
+            class _$FooProps extends ADifferentPropsClass with FooPropsMixin {
+              String baz;
+            }
+    
+            @Component2()
+            class FooComponent extends UiComponent2<FooProps, FooState> {
+              @override
+              render() {
+                return Dom.ul()(
+                  Dom.li()('Foo: ', props.foo),
+                  Dom.li()('Bar: ', props.bar),
+                );
+              }
+            }
+          ''',
+            expectedOutput: r'''
+            @Factory()
+            UiFactory<FooProps> Foo =
+                // ignore: undefined_identifier
+                $Foo;
+    
+            @PropsMixin()
+            mixin FooPropsMixin on UiProps {
+              String foo;
+              int bar;
+            }
+            
+            // FIXME:
+            //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
+            //   2. Fix any analyzer warnings on this class about missing mixins        
+            class FooProps extends UiProps with ADifferentPropsClassMixin, FooPropsMixin {
+              String baz;
+            }
+    
+            @Component2()
+            class FooComponent extends UiComponent2<FooProps, FooState> {
+              @override
+              render() {
+                return Dom.ul()(
+                  Dom.li()('Foo: ', props.foo),
+                  Dom.li()('Bar: ', props.bar),
+                );
+              }
+            }
+          ''',
+          );
+
+          expect(converter.convertedClassNames, {
+            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+            'FooPropsMixin': 'FooPropsMixin',
+            'FooProps': 'FooProps',
+          });
+        });
+      });
     });
   });
 }
