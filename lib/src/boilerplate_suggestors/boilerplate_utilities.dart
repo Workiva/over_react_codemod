@@ -25,33 +25,30 @@ SemverHelper semverHelper;
 /// Returns whether or not [node] is publicly exported.
 bool isPublic(ClassDeclaration node) {
   assert(semverHelper != null);
-  return semverHelper.getPublicExportLocations(node) != null;
+  return semverHelper.getPublicExportLocations(node).isNotEmpty;
 }
 
 class SemverHelper {
-  Map _exportList;
+  final Map _exportList;
 
-  SemverHelper(Map jsonReport) {
-    _exportList = jsonReport['exports'];
-  }
+  SemverHelper(Map jsonReport)
+      : _exportList = jsonReport['exports'],
+        assert(jsonReport['exports'] != null);
 
-  /// Returns semver report information for [node] if it is publicly exported.
+  /// Returns a list of locations where [node] is publicly exported.
   ///
-  /// If [node] is not publicly exported, returns `null`.
-  Map<String, dynamic> getPublicExportLocations(ClassDeclaration node) {
-    assert(_exportList != null);
-
+  /// If [node] is not publicly exported, returns an empty list.
+  List<String> getPublicExportLocations(ClassDeclaration node) {
     final className = node.name.name;
+    final List<String> locations = List();
 
-    for (final key in _exportList.keys) {
-      final value = _exportList[key];
-
+    _exportList.forEach((key, value) {
       if (value['type'] == 'class' && value['grammar']['name'] == className) {
-        return value;
+        locations.add(key);
       }
-    }
+    });
 
-    return null;
+    return locations;
   }
 }
 

@@ -13,13 +13,13 @@
 // limitations under the License.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
+import 'boilerplate_utilities_test.dart';
 
 main() {
   group('SimplePropsAndStateClassMigrator', () {
@@ -28,9 +28,7 @@ main() {
         getSuggestorTester(SimplePropsAndStateClassMigrator(converter));
 
     setUpAll(() async {
-      semverHelper = SemverHelper(jsonDecode(
-          await File('test/boilerplate_suggestors/report.json')
-              .readAsString()));
+      semverHelper = SemverHelper(jsonDecode(reportJson));
     });
 
     tearDown(() {
