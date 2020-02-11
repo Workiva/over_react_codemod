@@ -59,7 +59,7 @@ const reportJson = r'''{
   }
 }''';
 
-main() {
+void main() {
   group('Boilerplate Utilities', () {
     group('isPropsUsageSimple', () {
       int assertionCount;
