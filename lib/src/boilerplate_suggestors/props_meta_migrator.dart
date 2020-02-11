@@ -38,6 +38,11 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
 
   PropsMetaMigrator(this.converter);
 
+  // Utility to keep track of when a `const` keyword is removed from the left side of a `TypedLiteral`
+  // so that we can prevent "overlapping" patches when a literal contains more than one `PrefixedIdentifier`
+  // - which causes the codemod script to crash.
+  static final Map<TypedLiteral, bool> _literalsWithConstRemoved = {};
+
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     super.visitPrefixedIdentifier(node);
@@ -54,10 +59,34 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
           // The meta is being used in a literal
           TypedLiteral parent = node.parent;
           if (parent.isConst) {
-            yieldPatch(parent.constKeyword.offset, parent.constKeyword.end, '');
+            if (_literalsWithConstRemoved[parent] == true) return;
+
+            if (parent.constKeyword != null) {
+              _literalsWithConstRemoved[parent] = true;
+              // The `const` keyword exists as part of the literal expression
+              yieldPatch(
+                  parent.constKeyword.offset, parent.constKeyword.end, '');
+            }
+
+            // Check for the const keyword in the variable declaration as well
+            // since `isConst` can be true as a result of left-side constant context.
+            if (parent.parent is VariableDeclaration) {
+              _removeConstKeywordFromLeftSideOfVariableDeclaration(
+                  parent.parent.parent);
+            }
           }
+        } else if (node.parent is VariableDeclaration) {
+          _removeConstKeywordFromLeftSideOfVariableDeclaration(
+              node.parent.parent);
         }
       }
     }
+  }
+
+  void _removeConstKeywordFromLeftSideOfVariableDeclaration(
+      VariableDeclarationList decl,
+      {String replaceWith = 'final'}) {
+    if (!decl.isConst) return;
+    yieldPatch(decl.keyword.offset, decl.keyword.end, replaceWith);
   }
 }
