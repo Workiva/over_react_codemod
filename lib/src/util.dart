@@ -287,6 +287,17 @@ VersionRange generateNewVersionRange(
   );
 }
 
+/// Recursively traverses the [AstNode.parent] of the provided [node] until it finds
+/// a [ClassOrMixinDeclaration], then returns it.
+///
+/// Returns `null` if the provided [node] is not within a [ClassOrMixinDeclaration].
+ClassOrMixinDeclaration getContainingClass(AstNode node) {
+  if (node.parent == node.root) return null; // Not part of a class
+  if (node.parent is ClassOrMixinDeclaration) return node.parent;
+
+  return getContainingClass(node.parent);
+}
+
 /// Returns a string representation of [constraint], converting it to caret
 /// notation when possible.
 ///
