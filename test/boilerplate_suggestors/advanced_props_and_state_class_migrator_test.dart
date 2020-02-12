@@ -632,6 +632,61 @@ void main() {
               'FooProps': 'FooPropsMixin',
             });
           });
+
+          test('and is abstract', () {
+            converter.setConvertedClassNames({
+              'LayoutPropsMixin': 'LayoutPropsMixin',
+            });
+
+            testSuggestor(
+              expectedPatchCount: 8,
+              input: r'''
+              @AbstractProps()
+              abstract class _$AbstractBlockProps extends UiProps
+                  with
+                      LayoutPropsMixin,
+                      // ignore: mixin_of_non_class, undefined_class
+                      $LayoutPropsMixin,
+                      BlockPropsMixin,
+                      // ignore: mixin_of_non_class, undefined_class
+                      $BlockPropsMixin
+                  implements
+                      BlockClassHelperMapView {
+                String foo;
+                int bar;
+              }
+              
+              @AbstractComponent2()
+              abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
+                  with LayoutMixin<T>, BlockMixin<T> {}
+            ''',
+              expectedOutput: r'''
+              @AbstractProps()
+              mixin AbstractBlockPropsMixin on UiProps implements BlockClassHelperMapView, LayoutPropsMixin, BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
+                      $BlockPropsMixin {
+                String foo;
+                int bar;
+              } 
+              
+              abstract class AbstractBlockProps = UiProps
+                  with AbstractBlockPropsMixin,
+                      LayoutPropsMixin,
+                      BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
+                      $BlockPropsMixin
+                  implements
+                      BlockClassHelperMapView;
+                      
+              @AbstractComponent2()
+              abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
+                  with LayoutMixin<T>, BlockMixin<T> {}
+            ''',
+            );
+
+            expect(converter.convertedClassNames, {
+              'LayoutPropsMixin': 'LayoutPropsMixin',
+              'AbstractBlockProps': 'AbstractBlockPropsMixin',
+            });
+          });
         });
 
         group(

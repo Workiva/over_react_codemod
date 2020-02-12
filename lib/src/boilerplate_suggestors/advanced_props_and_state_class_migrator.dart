@@ -66,7 +66,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
           //   2. Fix any analyzer warnings on this class about missing mixins
            ''')
       // Create the class name
-      ..write('class $className$classTypeArgs')
+      ..write(node.isAbstract ? 'abstract class ' : 'class ')
+      ..write('$className$classTypeArgs')
       ..write(classNeedsBody ? ' extends ' : ' = ')
       // Decide if the class is a Props or a State class
       ..write('Ui${isAPropsClass(node) ? 'Props' : 'State'} ')
