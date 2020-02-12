@@ -550,7 +550,8 @@ void main() {
             }
             
             class FooProps = UiProps 
-                with FooPropsMixin, ConvertedMixin, UnconvertedMixin, $UnconvertedMixin;
+                with FooPropsMixin, ConvertedMixin, UnconvertedMixin, // ignore: mixin_of_non_class, undefined_class 
+                $UnconvertedMixin;
       
             @Component2()
             class FooComponent extends UiComponent2<FooProps> {

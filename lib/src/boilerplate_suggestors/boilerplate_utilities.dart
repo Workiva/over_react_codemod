@@ -15,7 +15,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/constants.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/util.dart';
+import 'package:source_span/source_span.dart';
 
 typedef YieldPatch = void Function(
     int startingOffset, int endingOffset, String replacement);
@@ -337,13 +339,33 @@ String getConvertedClassMixinName(
 extension IterableAstUtils on Iterable<NamedType> {
   /// Utility to join an `Iterable` based on the `name` of the `name` field
   /// rather than the `toString()` of the object.
-  String joinByName({ClassToMixinConverter converter, String separator}) {
+  String joinByName(
+      {ClassToMixinConverter converter,
+      SourceFile sourceFile,
+      String separator}) {
+    bool _mixinHasBeenConverted(NamedType t) => converter.convertedClassNames
+        .containsKey(t.name.name.replaceFirst('\$', ''));
+
+    bool _mixinNameIsOldGeneratedBoilerplate(NamedType t) =>
+        t.name.name.startsWith('\$');
+
     return where((t) {
       if (converter == null) return true;
-      final mixinHasBeenConverted = converter.convertedClassNames
-          .containsKey(t.name.name.replaceFirst('\$', ''));
-      final mixinNameIsOldGeneratedBoilerplate = t.name.name.startsWith('\$');
-      return !mixinNameIsOldGeneratedBoilerplate || !mixinHasBeenConverted;
-    }).map((t) => t.name.name).join('${separator ?? ','} ');
+      return !_mixinNameIsOldGeneratedBoilerplate(t) ||
+          !_mixinHasBeenConverted(t);
+    }).map((t) {
+      if (converter != null &&
+          sourceFile != null &&
+          _mixinNameIsOldGeneratedBoilerplate(t) &&
+          !_mixinHasBeenConverted(t)) {
+        // Preserve ignore comments for generated, unconverted props mixins
+        if (hasComment(
+            t, sourceFile, 'ignore: mixin_of_non_class, undefined_class')) {
+          return '// ignore: mixin_of_non_class, undefined_class\n${t.name.name}';
+        }
+      }
+
+      return t.name.name;
+    }).join('${separator ?? ','} ');
   }
 }

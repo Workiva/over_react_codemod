@@ -82,8 +82,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         newDeclarationBuffer.write('${className}Mixin$classTypeArgs,');
       }
 
-      newDeclarationBuffer
-          .write(node.withClause.mixinTypes.joinByName(converter: converter));
+      newDeclarationBuffer.write(node.withClause.mixinTypes
+          .joinByName(converter: converter, sourceFile: sourceFile));
     }
 
     if (classNeedsBody) {
