@@ -320,10 +320,15 @@ String getPropsClassNameFromFactoryDeclaration(
 /// if no matching key is found within [ClassToMixinConverter.convertedClassNames] on the provided [converter] instance.
 String getConvertedClassMixinName(
     String originalClassName, ClassToMixinConverter converter) {
+  const reservedBaseClassNames = {
+    'FluxUiProps': 'FluxUiPropsMixin',
+    'BuiltReduxUiProps': 'BuiltReduxUiPropsMixin',
+  };
+
   // If it is a "reserved" base class that the consumer doesn't control / won't be converted as
   // part of running the codemod in their repo, return the new "known" mixin name.
-  if (originalClassName == 'FluxUiProps') {
-    return 'FluxUiPropsMixin';
+  if (reservedBaseClassNames.containsKey(originalClassName)) {
+    return reservedBaseClassNames[originalClassName];
   }
 
   return converter.convertedClassNames[originalClassName] ?? originalClassName;
