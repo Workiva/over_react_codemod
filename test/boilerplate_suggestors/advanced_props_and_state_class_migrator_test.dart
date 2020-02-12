@@ -73,7 +73,7 @@ void main() {
             'and the classes extend from custom classes that have not been converted to the new boilerplate yet',
             () {
           testSuggestor(
-            expectedPatchCount: 12,
+            expectedPatchCount: 14,
             input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -110,7 +110,7 @@ void main() {
                   $Foo;
       
               @Props()
-              mixin FooPropsMixin on UiProps {
+              mixin FooPropsMixin on UiProps implements ADifferentPropsClass {
                 String foo;
                 int bar;
               }
@@ -121,7 +121,7 @@ void main() {
               class FooProps = UiProps with ADifferentPropsClass, FooPropsMixin;
       
               @State()
-              mixin FooStateMixin on UiState {
+              mixin FooStateMixin on UiState implements ADifferentStateClass {
                 String foo;
                 int bar;
               }
@@ -159,7 +159,7 @@ void main() {
           });
 
           testSuggestor(
-            expectedPatchCount: 12,
+            expectedPatchCount: 14,
             input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -196,7 +196,7 @@ void main() {
                   $Foo;
       
               @Props()
-              mixin FooPropsMixin on UiProps {
+              mixin FooPropsMixin on UiProps implements ADifferentPropsClassMixin {
                 String foo;
                 int bar;
               }
@@ -207,7 +207,7 @@ void main() {
               class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
       
               @State()
-              mixin FooStateMixin on UiState {
+              mixin FooStateMixin on UiState implements ADifferentStateClassMixin {
                 String foo;
                 int bar;
               }
@@ -315,7 +315,7 @@ void main() {
       group('and there is just a props class', () {
         test('that extends from the reserved FluxUiProps class', () {
           testSuggestor(
-            expectedPatchCount: 6,
+            expectedPatchCount: 7,
             input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -346,7 +346,7 @@ void main() {
                 $Foo;
     
             @Props()
-            mixin FooPropsMixin on UiProps {
+            mixin FooPropsMixin on UiProps implements FluxUiPropsMixin<SomeActions, SomeStore> {
               String foo;
               int bar;
             }
@@ -376,7 +376,7 @@ void main() {
 
         test('that extends from the reserved BuiltReduxUiProps class', () {
           testSuggestor(
-            expectedPatchCount: 6,
+            expectedPatchCount: 7,
             input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -407,7 +407,7 @@ void main() {
                 $Foo;
     
             @Props()
-            mixin FooPropsMixin on UiProps {
+            mixin FooPropsMixin on UiProps implements BuiltReduxUiPropsMixin<_, __, ___> {
               String foo;
               int bar;
             }
@@ -441,7 +441,7 @@ void main() {
           });
 
           testSuggestor(
-            expectedPatchCount: 6,
+            expectedPatchCount: 7,
             input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -472,7 +472,7 @@ void main() {
                 $Foo;
       
             @Props()
-            mixin FooPropsMixin on UiProps {
+            mixin FooPropsMixin on UiProps implements ADifferentPropsClassMixin {
               String foo;
               int bar;
             }

@@ -257,25 +257,38 @@ class ClassToMixinConverter {
             isAPropsClass(node) ? 'UiProps' : 'UiState');
       }
 
-      if (node.withClause != null) {
-        // Convert the with clause to an implements clause since the mixin
-        // is how consumers will "extend" props moving forward. These mixins
-        // are moved to the new concrete class via the `AdvancedPropsAndStateClassMigrator`,
+      final shouldAddImplementsClause =
+          node.withClause != null || shouldSwapParentClass;
+      if (shouldAddImplementsClause) {
+        // Add an implements clause since the mixin is how consumers will "extend" props moving forward.
+        // These mixins are moved to the new concrete class via the `AdvancedPropsAndStateClassMigrator`,
         // but if they are not also implemented here, the new props mixin won't have all
         // the keys that the old class / abstract class had... which will be a breaking
         // change for consumers without a workaround/path forward.
         final mixinTypeNames = shouldSwapParentClass
-            ? [node.extendsClause.superclass, ...node.withClause.mixinTypes]
-            : node.withClause.mixinTypes;
+            ? [node.extendsClause.superclass, ...?node.withClause?.mixinTypes]
+            : node.withClause?.mixinTypes;
         final mixinNames =
             mixinTypeNames.joinByName(converter: this, sourceFile: sourceFile);
 
-        if (node.implementsClause != null) {
-          yieldPatch(node.withClause.offset, node.withClause.end, '');
+        if (node.withClause != null) {
+          if (node.implementsClause != null) {
+            // `with` and `implements` clause exist
+            yieldPatch(node.withClause.offset, node.withClause.end, '');
+            yieldPatch(node.implementsClause.end, node.implementsClause.end,
+                ', $mixinNames');
+          } else {
+            // only `with` clause exists
+            yieldPatch(node.withClause.offset, node.withClause.end,
+                ' implements $mixinNames');
+          }
+        } else if (node.implementsClause != null) {
+          // only `implements` clause exists
           yieldPatch(node.implementsClause.end, node.implementsClause.end,
               ', $mixinNames');
         } else {
-          yieldPatch(node.withClause.offset, node.withClause.end,
+          // no `with` or `implements` clause exist
+          yieldPatch(node.leftBracket.offset - 1, node.leftBracket.offset - 1,
               ' implements $mixinNames');
         }
       }
@@ -370,6 +383,8 @@ extension IterableAstUtils on Iterable<NamedType> {
     bool _mixinNameIsOldGeneratedBoilerplate(NamedType t) =>
         t.name.name.startsWith('\$');
 
+    String _typeArgs(NamedType t) => '${t.typeArguments ?? ''}';
+
     return where((t) {
       if (converter == null) return true;
       return !_mixinNameIsOldGeneratedBoilerplate(t) ||
@@ -382,15 +397,15 @@ extension IterableAstUtils on Iterable<NamedType> {
         // Preserve ignore comments for generated, unconverted props mixins
         if (hasComment(
             t, sourceFile, 'ignore: mixin_of_non_class, undefined_class')) {
-          return '// ignore: mixin_of_non_class, undefined_class\n${getConvertedClassMixinName(t.name.name, converter)}';
+          return '// ignore: mixin_of_non_class, undefined_class\n${getConvertedClassMixinName(t.name.name, converter)}${_typeArgs(t)}';
         }
       }
 
       if (converter != null) {
-        return getConvertedClassMixinName(t.name.name, converter);
+        return '${getConvertedClassMixinName(t.name.name, converter)}${_typeArgs(t)}';
       }
 
-      return t.name.name;
+      return '${t.name.name}${_typeArgs(t)}';
     }).join('${separator ?? ','} ');
   }
 }
