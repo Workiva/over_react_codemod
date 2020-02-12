@@ -131,11 +131,11 @@ bool isAdvancedPropsOrStateClass(ClassDeclaration classNode) {
 /// that has the same name as [className] when appended with "Mixin".
 String getNameOfDupeClass(
     String className, CompilationUnit root, ClassToMixinConverter converter) {
-  final possibleDupeClasses = converter.convertedClassNames.values;
+  final possibleDupeClasses = converter.convertedClassNames.keys;
   String nameOfDupeClass;
-  for (var className in possibleDupeClasses) {
-    if (className == '${className}Mixin') {
-      nameOfDupeClass = className;
+  for (var possibleDupeClassName in possibleDupeClasses) {
+    if (possibleDupeClassName == '${className}Mixin') {
+      nameOfDupeClass = possibleDupeClassName;
       break;
     }
   }
