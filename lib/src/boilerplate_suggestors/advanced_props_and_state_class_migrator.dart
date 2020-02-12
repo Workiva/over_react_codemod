@@ -41,6 +41,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
     final hasMixins = node.withClause != null;
+    final hasInterfaces = node.implementsClause != null;
     final parentClassName = node.extendsClause.superclass.name.name;
     final parentClassTypeArgs =
         node.extendsClause.superclass.typeArguments ?? '';
@@ -86,6 +87,12 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
           .joinByName(converter: converter, sourceFile: sourceFile));
     }
 
+    if (hasInterfaces) {
+      newDeclarationBuffer
+        ..write(' implements ')
+        ..write(node.implementsClause.interfaces.joinByName());
+    }
+
     if (classNeedsBody) {
       // If no mixin will be created from the class in the `converter.migrate` step below,
       // and it has members of its own, we need to preserve those members (fields) within the concrete class.
@@ -99,7 +106,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     converter.migrate(node, yieldPatch,
         shouldAddMixinToName: true,
-        shouldSwapParentClass: extendsFromCustomClass);
+        shouldSwapParentClass: extendsFromCustomClass,
+        sourceFile: sourceFile);
     yieldPatch(node.end, node.end, newDeclarationBuffer.toString());
   }
 }

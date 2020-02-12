@@ -277,7 +277,7 @@ void main() {
                 $Foo;
       
             @Props()
-            mixin FooPropsMixin on UiProps {
+            mixin FooPropsMixin on UiProps implements AMixin, AnotherMixin {
               String foo;
               int bar;
             }
@@ -285,7 +285,7 @@ void main() {
             class FooProps = UiProps with FooPropsMixin, AMixin, AnotherMixin;
       
             @State()
-            mixin FooStateMixin on UiState {
+            mixin FooStateMixin on UiState implements AStateMixin, AnotherStateMixin {
               String foo;
               int bar;
             }
@@ -544,7 +544,8 @@ void main() {
                 $Foo;
       
             @Props()
-            mixin FooPropsMixin on UiProps {
+            mixin FooPropsMixin on UiProps implements ConvertedMixin, UnconvertedMixin, // ignore: mixin_of_non_class, undefined_class 
+                $UnconvertedMixin {
               String foo;
               int bar;
             }
@@ -569,6 +570,67 @@ void main() {
           expect(converter.convertedClassNames, {
             'ConvertedMixin': 'ConvertedMixin',
             'FooProps': 'FooPropsMixin',
+          });
+        });
+
+        group('that extends from UiProps, uses mixins, implements interfaces',
+            () {
+          test('', () {
+            testSuggestor(
+              expectedPatchCount: 7,
+              input: r'''
+              @Factory()
+              UiFactory<FooProps> Foo =
+                  // ignore: undefined_identifier
+                  $Foo;
+                
+              @Props()
+              class _$FooProps extends UiProps with ConvertedMixin implements SomeInterface, SomeOtherInterface {
+                String foo;
+                int bar;
+              }
+              
+              @Component2()
+              class FooComponent extends UiComponent2<FooProps> {
+                @override
+                render() {
+                  return Dom.ul()(
+                    Dom.li()('Foo: ', props.foo),
+                    Dom.li()('Bar: ', props.bar),
+                  );
+                }
+              }
+            ''',
+              expectedOutput: r'''
+              @Factory()
+              UiFactory<FooProps> Foo =
+                  // ignore: undefined_identifier
+                  $Foo;
+
+              @Props()
+              mixin FooPropsMixin on UiProps implements SomeInterface, SomeOtherInterface, ConvertedMixin {
+                String foo;
+                int bar;
+              }
+              
+              class FooProps = UiProps with FooPropsMixin, ConvertedMixin implements SomeInterface, SomeOtherInterface;
+              
+              @Component2()
+              class FooComponent extends UiComponent2<FooProps> {
+                @override
+                render() {
+                  return Dom.ul()(
+                    Dom.li()('Foo: ', props.foo),
+                    Dom.li()('Bar: ', props.bar),
+                  );
+                }
+              }
+            ''',
+            );
+
+            expect(converter.convertedClassNames, {
+              'FooProps': 'FooPropsMixin',
+            });
           });
         });
 
@@ -760,7 +822,7 @@ void main() {
               $Foo;
   
           @Props()
-          mixin FooPropsMixin on UiProps {
+          mixin FooPropsMixin on UiProps implements ADifferentPropsClassMixin, AMixin, AnotherMixin {
             String foo;
             int bar;
           }
@@ -771,7 +833,7 @@ void main() {
           class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin, AMixin, AnotherMixin;
   
           @State()
-          mixin FooStateMixin on UiState {
+          mixin FooStateMixin on UiState implements ADifferentStateClass, AStateMixin, AnotherStateMixin {
             String foo;
             int bar;
           }

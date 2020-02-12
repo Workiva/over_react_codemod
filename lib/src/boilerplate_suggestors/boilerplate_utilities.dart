@@ -211,7 +211,9 @@ class ClassToMixinConverter {
   /// so that suggestors that come after the suggestor that called this function - can know
   /// whether to yield a patch based on that information.
   void migrate(ClassDeclaration node, YieldPatch yieldPatch,
-      {bool shouldAddMixinToName = false, bool shouldSwapParentClass = false}) {
+      {bool shouldAddMixinToName = false,
+      bool shouldSwapParentClass = false,
+      SourceFile sourceFile}) {
     final originalPublicClassName = stripPrivateGeneratedPrefix(node.name.name);
 
     if (shouldAddMixinToName) {
@@ -256,7 +258,26 @@ class ClassToMixinConverter {
       }
 
       if (node.withClause != null) {
-        yieldPatch(node.withClause.offset, node.withClause.end, '');
+        // Convert the with clause to an implements clause since the mixin
+        // is how consumers will "extend" props moving forward. These mixins
+        // are moved to the new concrete class via the `AdvancedPropsAndStateClassMigrator`,
+        // but if they are not also implemented here, the new props mixin won't have all
+        // the keys that the old class / abstract class had... which will be a breaking
+        // change for consumers without a workaround/path forward.
+        final mixinTypeNames = shouldSwapParentClass
+            ? [node.extendsClause.superclass, ...node.withClause.mixinTypes]
+            : node.withClause.mixinTypes;
+        final mixinNames =
+            mixinTypeNames.joinByName(converter: this, sourceFile: sourceFile);
+
+        if (node.implementsClause != null) {
+          yieldPatch(node.withClause.offset, node.withClause.end, '');
+          yieldPatch(node.implementsClause.end, node.implementsClause.end,
+              ', $mixinNames');
+        } else {
+          yieldPatch(node.withClause.offset, node.withClause.end,
+              ' implements $mixinNames');
+        }
       }
     } else {
       // --- Convert props/state mixin to an actual mixin --- //
@@ -361,8 +382,12 @@ extension IterableAstUtils on Iterable<NamedType> {
         // Preserve ignore comments for generated, unconverted props mixins
         if (hasComment(
             t, sourceFile, 'ignore: mixin_of_non_class, undefined_class')) {
-          return '// ignore: mixin_of_non_class, undefined_class\n${t.name.name}';
+          return '// ignore: mixin_of_non_class, undefined_class\n${getConvertedClassMixinName(t.name.name, converter)}';
         }
+      }
+
+      if (converter != null) {
+        return getConvertedClassMixinName(t.name.name, converter);
       }
 
       return t.name.name;
