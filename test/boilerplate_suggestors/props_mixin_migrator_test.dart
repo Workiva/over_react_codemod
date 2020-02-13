@@ -12,21 +12,48 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
-
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
-import 'boilerplate_utilities_test.dart';
 
-main() {
+void main() {
+  group('PropsMixinMigrator', () {
+    group('', () {
+      PropsMixinMigratorTestHelper(
+        path: 'test/boilerplate_suggestors/semver_report.json',
+        shouldTreatAllComponentsAsPrivate: false,
+        isValidFilePath: true,
+      );
+    });
+
+    group('with --treat-all-components-as-private flag', () {
+      PropsMixinMigratorTestHelper(
+        path: 'test/boilerplate_suggestors/semver_report.json',
+        shouldTreatAllComponentsAsPrivate: true,
+        isValidFilePath: true,
+      );
+    });
+
+    group('with invalid file path', () {
+      PropsMixinMigratorTestHelper(
+        path: 'test/boilerplate_suggestors/does_not_exist.json',
+        shouldTreatAllComponentsAsPrivate: false,
+        isValidFilePath: false,
+      );
+    });
+  });
+}
+
+PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivate, bool isValidFilePath,}) {
   group('PropsMixinMigrator', () {
     final converter = ClassToMixinConverter();
-    final semverHelper = SemverHelper(jsonDecode(reportJson));
-    final testSuggestor =
-        getSuggestorTester(PropsMixinMigrator(converter, semverHelper));
+    SuggestorTester testSuggestor;
+
+    setUpAll(() async {
+      testSuggestor = getSuggestorTester(PropsMixinMigrator(converter, await getSemverHelper(path, shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate)));
+    });
 
     tearDown(() {
       converter.setConvertedClassNames({});
@@ -72,9 +99,20 @@ main() {
                 String foo;
               }
             ''',
-              expectedOutput: '''
+              expectedOutput: isValidFilePath ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
+                String foo;
+              }
+            ''' : '''
+              /// Some doc comment
+              mixin Foo${typeStr}Mixin on Ui${typeStr} {
+                // To ensure the codemod regression checking works properly, please keep this
+                // field at the top of the class!
+                // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+                @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
+                static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
+                
                 String foo;
               }
             ''',
@@ -103,9 +141,20 @@ main() {
                 String foo;
               }
             ''',
-              expectedOutput: '''
+              expectedOutput: isValidFilePath ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
+                String foo;
+              }
+            ''' : '''
+              /// Some doc comment
+              mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
+                // To ensure the codemod regression checking works properly, please keep this
+                // field at the top of the class!
+                // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+                @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
+                static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
+                
                 String foo;
               }
             ''',
@@ -134,9 +183,20 @@ main() {
                 String foo;
               }
             ''',
-              expectedOutput: '''
+              expectedOutput: isValidFilePath ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
+                String foo;
+              }
+            ''' : '''
+              /// Some doc comment
+              mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
+                // To ensure the codemod regression checking works properly, please keep this
+                // field at the top of the class!
+                // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+                @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
+                static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
+                
                 String foo;
               }
             ''',
@@ -167,9 +227,20 @@ main() {
                 String foo;
               }
             ''',
-              expectedOutput: '''
+              expectedOutput: isValidFilePath ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
+                String foo;
+              }
+            ''' : '''
+              /// Some doc comment
+              mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
+                // To ensure the codemod regression checking works properly, please keep this
+                // field at the top of the class!
+                // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+                @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
+                static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
+                
                 String foo;
               }
             ''',
@@ -197,9 +268,21 @@ main() {
                 String foo;
               }
             ''',
-              expectedOutput: '''
+              expectedOutput: isValidFilePath ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
+                String foo;
+              }
+            ''' :
+              '''
+              /// Some doc comment
+              mixin Foo${typeStr}Mixin on Ui${typeStr} {
+                // To ensure the codemod regression checking works properly, please keep this
+                // field at the top of the class!
+                // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+                @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
+                static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
+                
                 String foo;
               }
             ''',
@@ -229,9 +312,20 @@ main() {
                 String foo;
               }
             ''',
-              expectedOutput: '''
+              expectedOutput: isValidFilePath ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
+                String foo;
+              }
+            ''' : '''
+              /// Some doc comment
+              mixin Foo${typeStr}Mixin on Ui${typeStr} {
+                // To ensure the codemod regression checking works properly, please keep this
+                // field at the top of the class!
+                // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+                @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
+                static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
+                
                 String foo;
               }
             ''',
@@ -256,11 +350,25 @@ main() {
                 String foo;
               }
             ''',
-              expectedOutput: '''
+              expectedOutput: isValidFilePath ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
                 final baz = 'bar';
+                
+                String foo;
+              }
+            ''' : '''
+              /// Some doc comment
+              mixin Foo${typeStr}Mixin on Ui${typeStr} {
+                // foooooo
+                final baz = 'bar';
+                
+                // To ensure the codemod regression checking works properly, please keep this
+                // field at the top of the class!
+                // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+                @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
+                static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
                 
                 String foo;
               }
@@ -288,11 +396,25 @@ main() {
                 String foo;
               }
             ''',
-              expectedOutput: '''
+              expectedOutput: isValidFilePath ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
                 baz() => 'bar';
+                
+                String foo;
+              }
+            ''' : '''
+              /// Some doc comment
+              mixin Foo${typeStr}Mixin on Ui${typeStr} {
+                // foooooo
+                baz() => 'bar';
+                
+                // To ensure the codemod regression checking works properly, please keep this
+                // field at the top of the class!
+                // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+                @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
+                static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
                 
                 String foo;
               }
@@ -316,7 +438,12 @@ main() {
               String foo;
             }
           ''',
-            expectedOutput: '''
+            expectedOutput: shouldTreatAllComponentsAsPrivate ? '''
+            /// Some doc comment
+            mixin Bar${typeStr}Mixin on Ui${typeStr} {
+              String foo;
+            }
+          ''' : '''
             /// Some doc comment
             mixin Bar${typeStr}Mixin on Ui${typeStr} {
               // To ensure the codemod regression checking works properly, please keep this
