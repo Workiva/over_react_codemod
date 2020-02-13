@@ -73,7 +73,7 @@ void main() {
             'and the classes extend from custom classes that have not been converted to the new boilerplate yet',
             () {
           testSuggestor(
-            expectedPatchCount: 14,
+            expectedPatchCount: 12,
             input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -110,7 +110,7 @@ void main() {
                   $Foo;
       
               @Props()
-              mixin FooPropsMixin on UiProps implements ADifferentPropsClass {
+              mixin FooPropsMixin on UiProps {
                 String foo;
                 int bar;
               }
@@ -121,7 +121,7 @@ void main() {
               class FooProps = UiProps with ADifferentPropsClass, FooPropsMixin;
       
               @State()
-              mixin FooStateMixin on UiState implements ADifferentStateClass {
+              mixin FooStateMixin on UiState {
                 String foo;
                 int bar;
               }
@@ -159,7 +159,7 @@ void main() {
           });
 
           testSuggestor(
-            expectedPatchCount: 14,
+            expectedPatchCount: 12,
             input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -196,7 +196,7 @@ void main() {
                   $Foo;
       
               @Props()
-              mixin FooPropsMixin on UiProps implements ADifferentPropsClassMixin {
+              mixin FooPropsMixin on UiProps {
                 String foo;
                 int bar;
               }
@@ -207,7 +207,7 @@ void main() {
               class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
       
               @State()
-              mixin FooStateMixin on UiState implements ADifferentStateClassMixin {
+              mixin FooStateMixin on UiState {
                 String foo;
                 int bar;
               }
@@ -277,7 +277,7 @@ void main() {
                 $Foo;
       
             @Props()
-            mixin FooPropsMixin on UiProps implements AMixin, AnotherMixin {
+            mixin FooPropsMixin on UiProps {
               String foo;
               int bar;
             }
@@ -285,7 +285,7 @@ void main() {
             class FooProps = UiProps with FooPropsMixin, AMixin, AnotherMixin;
       
             @State()
-            mixin FooStateMixin on UiState implements AStateMixin, AnotherStateMixin {
+            mixin FooStateMixin on UiState {
               String foo;
               int bar;
             }
@@ -315,7 +315,7 @@ void main() {
       group('and there is just a props class', () {
         test('that extends from the reserved FluxUiProps class', () {
           testSuggestor(
-            expectedPatchCount: 7,
+            expectedPatchCount: 6,
             input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -346,7 +346,7 @@ void main() {
                 $Foo;
     
             @Props()
-            mixin FooPropsMixin on UiProps implements FluxUiPropsMixin<SomeActions, SomeStore> {
+            mixin FooPropsMixin on UiProps {
               String foo;
               int bar;
             }
@@ -376,7 +376,7 @@ void main() {
 
         test('that extends from the reserved BuiltReduxUiProps class', () {
           testSuggestor(
-            expectedPatchCount: 7,
+            expectedPatchCount: 6,
             input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
@@ -407,7 +407,7 @@ void main() {
                 $Foo;
     
             @Props()
-            mixin FooPropsMixin on UiProps implements BuiltReduxUiPropsMixin<_, __, ___> {
+            mixin FooPropsMixin on UiProps {
               String foo;
               int bar;
             }
@@ -435,69 +435,138 @@ void main() {
           });
         });
 
-        test('that extends from an arbitrary custom class', () {
-          converter.setConvertedClassNames({
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+        group('that extends from an arbitrary custom class', () {
+          test('', () {
+            converter.setConvertedClassNames({
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+            });
+
+            testSuggestor(
+              expectedPatchCount: 6,
+              input: r'''
+              @Factory()
+              UiFactory<FooProps> Foo =
+                  // ignore: undefined_identifier
+                  $Foo;
+        
+              @Props()
+              class _$FooProps extends ADifferentPropsClass {
+                String foo;
+                int bar;
+              }
+        
+              @Component2()
+              class FooComponent extends UiComponent2<FooProps> {
+                @override
+                render() {
+                  return Dom.ul()(
+                    Dom.li()('Foo: ', props.foo),
+                    Dom.li()('Bar: ', props.bar),
+                  );
+                }
+              }
+            ''',
+              expectedOutput: r'''
+              @Factory()
+              UiFactory<FooProps> Foo =
+                  // ignore: undefined_identifier
+                  $Foo;
+        
+              @Props()
+              mixin FooPropsMixin on UiProps {
+                String foo;
+                int bar;
+              }
+              
+              // FIXME:
+              //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
+              //   2. Fix any analyzer warnings on this class about missing mixins
+              class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
+        
+              @Component2()
+              class FooComponent extends UiComponent2<FooProps> {
+                @override
+                render() {
+                  return Dom.ul()(
+                    Dom.li()('Foo: ', props.foo),
+                    Dom.li()('Bar: ', props.bar),
+                  );
+                }
+              }
+            ''',
+            );
+
+            expect(converter.convertedClassNames, {
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+              'FooProps': 'FooPropsMixin',
+            });
           });
 
-          testSuggestor(
-            expectedPatchCount: 7,
-            input: r'''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                $Foo;
-      
-            @Props()
-            class _$FooProps extends ADifferentPropsClass {
-              String foo;
-              int bar;
-            }
-      
-            @Component2()
-            class FooComponent extends UiComponent2<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-          ''',
-            expectedOutput: r'''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                $Foo;
-      
-            @Props()
-            mixin FooPropsMixin on UiProps implements ADifferentPropsClassMixin {
-              String foo;
-              int bar;
-            }
-            
-            // FIXME:
-            //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
-            //   2. Fix any analyzer warnings on this class about missing mixins
-            class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
-      
-            @Component2()
-            class FooComponent extends UiComponent2<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-          ''',
-          );
+          test('that has an analagous abstract component class', () {
+            converter.setConvertedClassNames({
+              'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
+            });
 
-          expect(converter.convertedClassNames, {
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-            'FooProps': 'FooPropsMixin',
+            testSuggestor(
+              expectedPatchCount: 6,
+              input: r'''
+              @Factory()
+              UiFactory<FooProps> Foo =
+                  // ignore: undefined_identifier
+                  $Foo;
+        
+              @Props()
+              class _$FooProps extends SomeAbstractPropsClass implements SomeInterface {
+                String foo;
+                int bar;
+              }
+        
+              @Component2()
+              class FooComponent extends AbstractComponentClass<FooProps> {
+                @override
+                render() {
+                  return Dom.ul()(
+                    Dom.li()('Foo: ', props.foo),
+                    Dom.li()('Bar: ', props.bar),
+                  );
+                }
+              }
+            ''',
+              expectedOutput: r'''
+              @Factory()
+              UiFactory<FooProps> Foo =
+                  // ignore: undefined_identifier
+                  $Foo;
+        
+              @Props()
+              mixin FooPropsMixin on UiProps implements SomeInterface {
+                String foo;
+                int bar;
+              }
+              
+              // FIXME:
+              //   1. Ensure that all mixins used by SomeAbstractPropsClassMixin are also mixed into this class.
+              //   2. Fix any analyzer warnings on this class about missing mixins
+              class FooProps = UiProps with SomeAbstractPropsClassMixin, FooPropsMixin 
+                  implements SomeAbstractPropsClass, SomeInterface;
+        
+              @Component2()
+              class FooComponent extends AbstractComponentClass<FooProps> {
+                @override
+                render() {
+                  return Dom.ul()(
+                    Dom.li()('Foo: ', props.foo),
+                    Dom.li()('Bar: ', props.bar),
+                  );
+                }
+              }
+            ''',
+            );
+
+            expect(converter.convertedClassNames, {
+              'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
+              'FooProps': 'FooPropsMixin',
+            });
           });
         });
 
@@ -544,8 +613,7 @@ void main() {
                 $Foo;
       
             @Props()
-            mixin FooPropsMixin on UiProps implements ConvertedMixin, UnconvertedMixin, // ignore: mixin_of_non_class, undefined_class 
-                $UnconvertedMixin {
+            mixin FooPropsMixin on UiProps {
               String foo;
               int bar;
             }
@@ -577,7 +645,7 @@ void main() {
             () {
           test('', () {
             testSuggestor(
-              expectedPatchCount: 7,
+              expectedPatchCount: 6,
               input: r'''
               @Factory()
               UiFactory<FooProps> Foo =
@@ -608,7 +676,7 @@ void main() {
                   $Foo;
 
               @Props()
-              mixin FooPropsMixin on UiProps implements SomeInterface, SomeOtherInterface, ConvertedMixin {
+              mixin FooPropsMixin on UiProps implements SomeInterface, SomeOtherInterface {
                 String foo;
                 int bar;
               }
@@ -633,58 +701,101 @@ void main() {
             });
           });
 
-          test('and is abstract', () {
-            converter.setConvertedClassNames({
-              'LayoutPropsMixin': 'LayoutPropsMixin',
+          group('and is abstract', () {
+            test('with members of its own', () {
+              converter.setConvertedClassNames({
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+              });
+
+              testSuggestor(
+                expectedPatchCount: 7,
+                input: r'''
+                @AbstractProps()
+                abstract class _$AbstractBlockProps extends UiProps
+                    with
+                        LayoutPropsMixin,
+                        // ignore: mixin_of_non_class, undefined_class
+                        $LayoutPropsMixin,
+                        BlockPropsMixin,
+                        // ignore: mixin_of_non_class, undefined_class
+                        $BlockPropsMixin
+                    implements
+                        BlockClassHelperMapView {
+                  String foo;
+                  int bar;
+                }
+                
+                @AbstractComponent2()
+                abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
+                    with LayoutMixin<T>, BlockMixin<T> {}
+              ''',
+                expectedOutput: r'''
+                @AbstractProps()
+                mixin AbstractBlockPropsMixin on UiProps implements BlockClassHelperMapView {
+                  String foo;
+                  int bar;
+                } 
+                
+                abstract class AbstractBlockProps implements
+                        AbstractBlockPropsMixin,
+                        LayoutPropsMixin,
+                        BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
+                        $BlockPropsMixin,
+                        BlockClassHelperMapView {}
+                        
+                @AbstractComponent2()
+                abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
+                    with LayoutMixin<T>, BlockMixin<T> {}
+              ''',
+              );
+
+              expect(converter.convertedClassNames, {
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+                'AbstractBlockProps': 'AbstractBlockPropsMixin',
+              });
             });
 
-            testSuggestor(
-              expectedPatchCount: 8,
-              input: r'''
-              @AbstractProps()
-              abstract class _$AbstractBlockProps extends UiProps
-                  with
-                      LayoutPropsMixin,
-                      // ignore: mixin_of_non_class, undefined_class
-                      $LayoutPropsMixin,
-                      BlockPropsMixin,
-                      // ignore: mixin_of_non_class, undefined_class
-                      $BlockPropsMixin
-                  implements
-                      BlockClassHelperMapView {
-                String foo;
-                int bar;
-              }
-              
-              @AbstractComponent2()
-              abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
-                  with LayoutMixin<T>, BlockMixin<T> {}
-            ''',
-              expectedOutput: r'''
-              @AbstractProps()
-              mixin AbstractBlockPropsMixin on UiProps implements BlockClassHelperMapView, LayoutPropsMixin, BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
-                      $BlockPropsMixin {
-                String foo;
-                int bar;
-              } 
-              
-              abstract class AbstractBlockProps = UiProps
-                  with AbstractBlockPropsMixin,
-                      LayoutPropsMixin,
-                      BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
-                      $BlockPropsMixin
-                  implements
-                      BlockClassHelperMapView;
-                      
-              @AbstractComponent2()
-              abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
-                  with LayoutMixin<T>, BlockMixin<T> {}
-            ''',
-            );
+            test('with no members', () {
+              converter.setConvertedClassNames({
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+              });
 
-            expect(converter.convertedClassNames, {
-              'LayoutPropsMixin': 'LayoutPropsMixin',
-              'AbstractBlockProps': 'AbstractBlockPropsMixin',
+              testSuggestor(
+                expectedPatchCount: 2,
+                input: r'''
+                @AbstractProps()
+                abstract class _$AbstractBlockProps extends UiProps
+                    with
+                        LayoutPropsMixin,
+                        // ignore: mixin_of_non_class, undefined_class
+                        $LayoutPropsMixin,
+                        BlockPropsMixin,
+                        // ignore: mixin_of_non_class, undefined_class
+                        $BlockPropsMixin
+                    implements
+                        BlockClassHelperMapView {}
+                
+                @AbstractComponent2()
+                abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
+                    with LayoutMixin<T>, BlockMixin<T> {}
+              ''',
+                expectedOutput: r'''
+                abstract class AbstractBlockProps implements
+                        LayoutPropsMixin,
+                        BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
+                        $BlockPropsMixin,
+                        BlockClassHelperMapView {}
+                        
+                @AbstractComponent2()
+                abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
+                    with LayoutMixin<T>, BlockMixin<T> {}
+              ''',
+              );
+
+              expect(converter.convertedClassNames, {
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+                'AbstractBlockProps': 'AbstractBlockProps',
+              });
             });
           });
         });
@@ -877,7 +988,7 @@ void main() {
               $Foo;
   
           @Props()
-          mixin FooPropsMixin on UiProps implements ADifferentPropsClassMixin, AMixin, AnotherMixin {
+          mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
@@ -888,7 +999,7 @@ void main() {
           class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin, AMixin, AnotherMixin;
   
           @State()
-          mixin FooStateMixin on UiState implements ADifferentStateClass, AStateMixin, AnotherStateMixin {
+          mixin FooStateMixin on UiState {
             String foo;
             int bar;
           }
@@ -1138,7 +1249,7 @@ void main() {
                   $Foo;
       
               @Props()
-              class _$FooProps extends ADifferentPropsClass with FooPropsMixin {
+              class _$FooProps extends ADifferentPropsClass with FooPropsMixin { 
                 String baz;
               }
       

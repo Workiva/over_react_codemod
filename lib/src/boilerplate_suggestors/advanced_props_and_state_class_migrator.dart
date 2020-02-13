@@ -49,7 +49,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     final className = stripPrivateGeneratedPrefix(node.name.name);
     final classTypeArgs = node.typeParameters ?? '';
     final mixinWillBeCreatedFromClass =
-        getNameOfDupeClass(className, node.root, converter) == null;
+        getNameOfDupeClass(className, node.root, converter) == null &&
+            !(node.isAbstract && node.members.isEmpty);
     final classNameMixinForBuffer =
         mixinWillBeCreatedFromClass ? ', ${className}Mixin$classTypeArgs' : '';
     final classNeedsBody =
@@ -67,42 +68,76 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
            ''')
       // Create the class name
       ..write(node.isAbstract ? 'abstract class ' : 'class ')
-      ..write('$className$classTypeArgs')
-      ..write(classNeedsBody ? ' extends ' : ' = ')
-      // Decide if the class is a Props or a State class
-      ..write('Ui${isAPropsClass(node) ? 'Props' : 'State'} ')
-      // Add the width clause
-      ..write('with ');
+      ..write('$className$classTypeArgs');
 
+    final mixins = StringBuffer();
     if (extendsFromCustomClass) {
-      newDeclarationBuffer.write(
+      mixins.write(
           '${getConvertedClassMixinName(parentClassName, converter)}$parentClassTypeArgs$classNameMixinForBuffer${hasMixins ? ',' : ''}');
     }
 
     if (hasMixins) {
       if (!extendsFromCustomClass && mixinWillBeCreatedFromClass) {
-        newDeclarationBuffer.write('${className}Mixin$classTypeArgs,');
+        mixins.write('${className}Mixin$classTypeArgs,');
       }
 
-      newDeclarationBuffer.write(node.withClause.mixinTypes
+      mixins.write(node.withClause.mixinTypes
           .joinByName(converter: converter, sourceFile: sourceFile));
     }
 
-    if (hasInterfaces) {
-      newDeclarationBuffer
-        ..write(' implements ')
-        ..write(node.implementsClause.interfaces.joinByName());
-    }
+    if (node.isAbstract) {
+      // Since its abstract, we'll create an interface-only class which can then be implemented by
+      // concrete subclasses that have component classes that extend from the analogous abstract component class.
+      newDeclarationBuffer.write(' implements $mixins');
 
-    if (classNeedsBody) {
-      // If no mixin will be created from the class in the `converter.migrate` step below,
-      // and it has members of its own, we need to preserve those members (fields) within the concrete class.
-      newDeclarationBuffer
-        ..write('{\n')
-        ..writeAll(node.members.map((member) => member.toSource()))
-        ..write('\n}');
+      if (hasInterfaces) {
+        newDeclarationBuffer
+            .write(', ${node.implementsClause.interfaces.joinByName()}');
+      }
+
+      newDeclarationBuffer.write(' {}');
     } else {
-      newDeclarationBuffer.write(';');
+      // Its a concrete class. Have it extend from UiProps/State with mixins
+      newDeclarationBuffer
+        ..write(classNeedsBody ? ' extends ' : ' = ')
+        // Decide if the class is a Props or a State class
+        ..write('Ui${isAPropsClass(node) ? 'Props' : 'State'} ')
+        // Add the with clause
+        ..write('with $mixins');
+
+      final willNeedToImplementAbstractInterface =
+          isAssociatedWithAbstractComponent2(node) && extendsFromCustomClass;
+
+      if (hasInterfaces || willNeedToImplementAbstractInterface) {
+        newDeclarationBuffer.write(' implements ');
+
+        if (willNeedToImplementAbstractInterface) {
+          // The analogous component instance for this props/state class extends from an abstract component.
+          // This means that in order for the generic params of the component to continue to work, the
+          // concrete props/state class will need to implement the abstract props/state class.
+          newDeclarationBuffer.write('$parentClassName$parentClassTypeArgs');
+
+          if (hasInterfaces) {
+            newDeclarationBuffer.write(', ');
+          }
+        }
+
+        if (hasInterfaces) {
+          newDeclarationBuffer
+              .write(node.implementsClause.interfaces.joinByName());
+        }
+      }
+
+      if (classNeedsBody) {
+        // If no mixin will be created from the class in the `converter.migrate` step below,
+        // and it has members of its own, we need to preserve those members (fields) within the concrete class.
+        newDeclarationBuffer
+          ..write('{\n')
+          ..writeAll(node.members.map((member) => member.toSource()))
+          ..write('\n}');
+      } else {
+        newDeclarationBuffer.write(';');
+      }
     }
 
     converter.migrate(node, yieldPatch,

@@ -220,8 +220,9 @@ class ClassToMixinConverter {
       // Check to make sure we're not creating a duplicate mixin
       final dupeClassName =
           getNameOfDupeClass(originalPublicClassName, node.root, this);
-      if (dupeClassName != null) {
-        // Delete the class since a mixin with the same name already exists
+      if (dupeClassName != null || (node.isAbstract && node.members.isEmpty)) {
+        // Delete the class since a mixin with the same name already exists,
+        // or the class is abstract and has no members of its own.
         yieldPatch(node.offset, node.end, '');
         convertedClassNames[originalPublicClassName] = originalPublicClassName;
         return;
@@ -257,40 +258,8 @@ class ClassToMixinConverter {
             isAPropsClass(node) ? 'UiProps' : 'UiState');
       }
 
-      final shouldAddImplementsClause =
-          node.withClause != null || shouldSwapParentClass;
-      if (shouldAddImplementsClause) {
-        // Add an implements clause since the mixin is how consumers will "extend" props moving forward.
-        // These mixins are moved to the new concrete class via the `AdvancedPropsAndStateClassMigrator`,
-        // but if they are not also implemented here, the new props mixin won't have all
-        // the keys that the old class / abstract class had... which will be a breaking
-        // change for consumers without a workaround/path forward.
-        final mixinTypeNames = shouldSwapParentClass
-            ? [node.extendsClause.superclass, ...?node.withClause?.mixinTypes]
-            : node.withClause?.mixinTypes;
-        final mixinNames =
-            mixinTypeNames.joinByName(converter: this, sourceFile: sourceFile);
-
-        if (node.withClause != null) {
-          if (node.implementsClause != null) {
-            // `with` and `implements` clause exist
-            yieldPatch(node.withClause.offset, node.withClause.end, '');
-            yieldPatch(node.implementsClause.end, node.implementsClause.end,
-                ', $mixinNames');
-          } else {
-            // only `with` clause exists
-            yieldPatch(node.withClause.offset, node.withClause.end,
-                ' implements $mixinNames');
-          }
-        } else if (node.implementsClause != null) {
-          // only `implements` clause exists
-          yieldPatch(node.implementsClause.end, node.implementsClause.end,
-              ', $mixinNames');
-        } else {
-          // no `with` or `implements` clause exist
-          yieldPatch(node.leftBracket.offset - 1, node.leftBracket.offset - 1,
-              ' implements $mixinNames');
-        }
+      if (node.withClause != null) {
+        yieldPatch(node.withClause.offset, node.withClause.end, '');
       }
     } else {
       // --- Convert props/state mixin to an actual mixin --- //

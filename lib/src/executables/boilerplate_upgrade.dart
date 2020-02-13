@@ -15,7 +15,6 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/abstract_component_class_generic_type_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_meta_migrator.dart';
@@ -90,7 +89,6 @@ void main(List<String> args) {
       AdvancedPropsAndStateClassMigrator(classToMixinConverter),
       PropsMetaMigrator(classToMixinConverter),
       AnnotationsRemover(classToMixinConverter),
-      AbstractComponentClassGenericTypeMigrator(classToMixinConverter),
     ].map((s) => Ignoreable(s)),
     args: args,
     defaultYes: true,

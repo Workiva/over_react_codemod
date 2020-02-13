@@ -334,6 +334,24 @@ bool isAssociatedWithComponent2(AstNode node) {
   return containsComponent2;
 }
 
+/// Returns whether or not [node] is declared in the same file as a AbstractComponent2 component.
+bool isAssociatedWithAbstractComponent2(AstNode node) {
+  bool containsAbstractComponent2 = false;
+  CompilationUnit unit = node.root;
+
+  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+    if (!extendsComponent2(classNode)) {
+      containsAbstractComponent2 = false;
+    } else {
+      // TODO: Is there a better way to determine if the superclass is abstract?
+      containsAbstractComponent2 =
+          classNode.extendsClause.superclass.name.name.startsWith('Abstract');
+    }
+  });
+
+  return containsAbstractComponent2;
+}
+
 /// Return whether or not a particular pubspec.yaml dependency value string
 /// should be wrapped in quotations.
 bool mightNeedYamlEscaping(String scalarValue) =>
