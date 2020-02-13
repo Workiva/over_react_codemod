@@ -48,13 +48,49 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     final className = stripPrivateGeneratedPrefix(node.name.name);
     final classTypeArgs = node.typeParameters ?? '';
+    final dupeMixinExists =
+        getNameOfDupeClass(className, node.root, converter) != null;
     final mixinWillBeCreatedFromClass =
-        getNameOfDupeClass(className, node.root, converter) == null &&
-            !(node.isAbstract && node.members.isEmpty);
-    final classNameMixinForBuffer =
-        mixinWillBeCreatedFromClass ? ', ${className}Mixin$classTypeArgs' : '';
-    final classNeedsBody =
-        !mixinWillBeCreatedFromClass && node.members.isNotEmpty;
+        !dupeMixinExists && node.members.isNotEmpty;
+    final dupeClassInSameRoot = getDupeClassInSameRoot(className, node.root);
+    final classNeedsBody = node.members.isNotEmpty &&
+        dupeMixinExists &&
+        dupeClassInSameRoot == null;
+
+    StringBuffer getMixinsForNewDeclaration({bool includeParentClass = true}) {
+      final mixinsForNewDeclaration = StringBuffer();
+      if (extendsFromCustomClass) {
+        final baseAndParentClassMixins = <String>[];
+
+        if (includeParentClass) {
+          baseAndParentClassMixins.add(
+              '${getConvertedClassMixinName(parentClassName, converter)}$parentClassTypeArgs');
+        }
+
+        if (mixinWillBeCreatedFromClass) {
+          baseAndParentClassMixins.add('${className}Mixin$classTypeArgs');
+        }
+
+        if (baseAndParentClassMixins.isNotEmpty) {
+          mixinsForNewDeclaration.write(baseAndParentClassMixins.join(','));
+
+          if (hasMixins) {
+            mixinsForNewDeclaration.write(', ');
+          }
+        }
+      }
+
+      if (hasMixins) {
+        if (!extendsFromCustomClass && mixinWillBeCreatedFromClass) {
+          mixinsForNewDeclaration.write('${className}Mixin$classTypeArgs, ');
+        }
+
+        mixinsForNewDeclaration.write(node.withClause.mixinTypes
+            .joinByName(converter: converter, sourceFile: sourceFile));
+      }
+
+      return mixinsForNewDeclaration;
+    }
 
     final newDeclarationBuffer = StringBuffer()
       ..write('\n\n')
@@ -70,22 +106,10 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       ..write(node.isAbstract ? 'abstract class ' : 'class ')
       ..write('$className$classTypeArgs');
 
-    final mixins = StringBuffer();
-    if (extendsFromCustomClass) {
-      mixins.write(
-          '${getConvertedClassMixinName(parentClassName, converter)}$parentClassTypeArgs$classNameMixinForBuffer${hasMixins ? ',' : ''}');
-    }
-
-    if (hasMixins) {
-      if (!extendsFromCustomClass && mixinWillBeCreatedFromClass) {
-        mixins.write('${className}Mixin$classTypeArgs,');
-      }
-
-      mixins.write(node.withClause.mixinTypes
-          .joinByName(converter: converter, sourceFile: sourceFile));
-    }
+    StringBuffer mixins;
 
     if (node.isAbstract) {
+      mixins = getMixinsForNewDeclaration();
       // Since its abstract, we'll create an interface-only class which can then be implemented by
       // concrete subclasses that have component classes that extend from the analogous abstract component class.
       newDeclarationBuffer.write(' implements $mixins');
@@ -94,19 +118,28 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         newDeclarationBuffer
             .write(', ${node.implementsClause.interfaces.joinByName()}');
       }
-
-      newDeclarationBuffer.write(' {}');
     } else {
       // Its a concrete class. Have it extend from UiProps/State with mixins
-      newDeclarationBuffer
-        ..write(classNeedsBody ? ' extends ' : ' = ')
-        // Decide if the class is a Props or a State class
-        ..write('Ui${isAPropsClass(node) ? 'Props' : 'State'} ')
-        // Add the with clause
-        ..write('with $mixins');
 
       final willNeedToImplementAbstractInterface =
           isAssociatedWithAbstractComponent2(node) && extendsFromCustomClass;
+      final abstractInterfaceHasAnalogousMixin =
+          getConvertedClassMixinName(parentClassName, converter) !=
+              parentClassName;
+
+      mixins = willNeedToImplementAbstractInterface &&
+              !abstractInterfaceHasAnalogousMixin
+          // Since the parentClassName will be what is implemented in that scenario -
+          // we don't want to have that class in both the withClause and the implementsClause.
+          ? getMixinsForNewDeclaration(includeParentClass: false)
+          : getMixinsForNewDeclaration();
+
+      newDeclarationBuffer
+        ..write(classNeedsBody || mixins.isEmpty ? ' extends ' : ' = ')
+        // Decide if the class is a Props or a State class
+        ..write('Ui${isAPropsClass(node) ? 'Props' : 'State'} ')
+        // Add the with clause
+        ..write(mixins.isEmpty ? '' : 'with $mixins');
 
       if (hasInterfaces || willNeedToImplementAbstractInterface) {
         newDeclarationBuffer.write(' implements ');
@@ -127,17 +160,32 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
               .write(node.implementsClause.interfaces.joinByName());
         }
       }
+    }
 
-      if (classNeedsBody) {
-        // If no mixin will be created from the class in the `converter.migrate` step below,
-        // and it has members of its own, we need to preserve those members (fields) within the concrete class.
+    if (dupeMixinExists && node.members.isNotEmpty) {
+      // If no mixin will be created from the class in the `converter.migrate` step below
+      // as a result of a mixin with a name that matches the current node's name appended with "Mixin",
+      // and it has members of its own, we need to preserve those members (fields) by moving them to the
+      // existing mixin (if possible - within the same root), or create a FIX ME comment indicating what
+      // needs to be done.
+      if (dupeClassInSameRoot != null) {
+        yieldPatch(dupeClassInSameRoot.end - 1, dupeClassInSameRoot.end - 1,
+            node.members.map((member) => member.toSource()).join('\n'));
+
+        newDeclarationBuffer.write(node.isAbstract ? '{}' : ';');
+      } else {
         newDeclarationBuffer
           ..write('{\n')
+          ..write('''
+              // FIXME: Everything in this body needs to be moved to the body of ${getNameOfDupeClass(className, node.root, converter)}.
+              // Once that is done, the body can be removed, and `extends` can be replaced with `=`.
+              ''')
           ..writeAll(node.members.map((member) => member.toSource()))
           ..write('\n}');
-      } else {
-        newDeclarationBuffer.write(';');
       }
+    } else {
+      newDeclarationBuffer
+          .write(node.isAbstract || mixins.isEmpty ? '{}' : ';');
     }
 
     converter.migrate(node, yieldPatch,

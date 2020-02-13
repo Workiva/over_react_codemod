@@ -127,6 +127,21 @@ bool isAdvancedPropsOrStateClass(ClassDeclaration classNode) {
   return !isSimplePropsOrStateClass(classNode);
 }
 
+/// Returns the class/mixin that was converted in a previous migration
+/// that has the same name as [className] when appended with "Mixin".
+ClassOrMixinDeclaration getDupeClassInSameRoot(
+    String className, CompilationUnit root) {
+  final possibleDupeClassesInSameRoot =
+      root.declarations.whereType<ClassOrMixinDeclaration>();
+  for (var decl in possibleDupeClassesInSameRoot) {
+    if (decl.name.name == '${className}Mixin') {
+      return decl;
+    }
+  }
+
+  return null;
+}
+
 /// Returns the name of a mixin that was converted in a previous migration
 /// that has the same name as [className] when appended with "Mixin".
 String getNameOfDupeClass(
@@ -140,16 +155,7 @@ String getNameOfDupeClass(
     }
   }
 
-  final possibleDupeClassesInSameRoot =
-      root.declarations.whereType<ClassOrMixinDeclaration>();
-  for (var decl in possibleDupeClassesInSameRoot) {
-    if (decl.name.name == '${className}Mixin') {
-      nameOfDupeClass = decl.name.name;
-      break;
-    }
-  }
-
-  return nameOfDupeClass;
+  return nameOfDupeClass ?? getDupeClassInSameRoot(className, root)?.name?.name;
 }
 
 /// A class used to handle the conversion of props / state classes to mixins.
@@ -220,9 +226,9 @@ class ClassToMixinConverter {
       // Check to make sure we're not creating a duplicate mixin
       final dupeClassName =
           getNameOfDupeClass(originalPublicClassName, node.root, this);
-      if (dupeClassName != null || (node.isAbstract && node.members.isEmpty)) {
+      if (dupeClassName != null || node.members.isEmpty) {
         // Delete the class since a mixin with the same name already exists,
-        // or the class is abstract and has no members of its own.
+        // or the class has no members of its own.
         yieldPatch(node.offset, node.end, '');
         convertedClassNames[originalPublicClassName] = originalPublicClassName;
         return;
