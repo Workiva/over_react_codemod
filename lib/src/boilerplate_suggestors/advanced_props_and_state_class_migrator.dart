@@ -86,7 +86,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         }
 
         mixinsForNewDeclaration.write(node.withClause.mixinTypes
-            .joinByName(converter: converter, sourceFile: sourceFile));
+            .joinConvertedMixinsByName(
+                converter: converter, sourceFile: sourceFile));
       }
 
       return mixinsForNewDeclaration;
@@ -115,8 +116,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       newDeclarationBuffer.write(' implements $mixins');
 
       if (hasInterfaces) {
-        newDeclarationBuffer
-            .write(', ${node.implementsClause.interfaces.joinByName()}');
+        newDeclarationBuffer.write(
+            ', ${node.implementsClause.interfaces.joinConvertedMixinsByName()}');
       }
     } else {
       // Its a concrete class. Have it extend from UiProps/State with mixins
@@ -156,8 +157,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         }
 
         if (hasInterfaces) {
-          newDeclarationBuffer
-              .write(node.implementsClause.interfaces.joinByName());
+          newDeclarationBuffer.write(
+              node.implementsClause.interfaces.joinConvertedMixinsByName());
         }
       }
     }

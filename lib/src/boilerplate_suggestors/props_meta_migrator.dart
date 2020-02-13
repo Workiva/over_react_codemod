@@ -40,10 +40,12 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
 
   PropsMetaMigrator(this.converter);
 
+  final Expando<bool> _constRemovedFlag = Expando();
   // Utility to keep track of when a `const` keyword is removed from the left side of a `TypedLiteral`
   // so that we can prevent "overlapping" patches when a literal contains more than one `PrefixedIdentifier`
   // - which causes the codemod script to crash.
-  static final Map<TypedLiteral, bool> _literalsWithConstRemoved = {};
+  bool _hasLiteralHadConstRemoved(TypedLiteral literal) =>
+      _constRemovedFlag[literal] ?? false;
 
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
@@ -52,6 +54,7 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
     if (node.identifier.name == 'meta') {
       final propsClassWithMetaWasConverted =
           converter.convertedClassNames.containsKey(node.prefix.name);
+      // If the component we're visiting does not extend from `UiComponent2`, then `propsMeta` will not exist.
       final componentWithMetaUsageIsComponent2 =
           extendsComponent2(getContainingClass(node));
 
@@ -67,10 +70,10 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
           // The meta is being used in a literal
           TypedLiteral parent = node.parent;
           if (parent.isConst) {
-            if (_literalsWithConstRemoved[parent] == true) return;
+            if (_hasLiteralHadConstRemoved(parent) == true) return;
 
             if (parent.constKeyword != null) {
-              _literalsWithConstRemoved[parent] = true;
+              _constRemovedFlag[parent] = true;
               // The `const` keyword exists as part of the literal expression
               yieldPatch(
                   parent.constKeyword.offset, parent.constKeyword.end, '');
