@@ -12,37 +12,66 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
-
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
-import 'boilerplate_utilities_test.dart';
 
 void main() {
   group('AdvancedPropsAndStateClassMigrator', () {
-    final converter = ClassToMixinConverter();
-    final semverHelper = SemverHelper(jsonDecode(reportJson));
-    final testSuggestor = getSuggestorTester(
-        AdvancedPropsAndStateClassMigrator(converter, semverHelper));
+    AdvancedPropsAndStateClassMigratorTestHelper(
+      path: 'test/boilerplate_suggestors/semver_report.json',
+      shouldTreatAllComponentsAsPrivate: false,
+    );
+  });
 
-    tearDown(() {
-      converter.setConvertedClassNames({});
+  group(
+      'AdvancedPropsAndStateClassMigrator with --treat-all-components-as-private flag',
+      () {
+    AdvancedPropsAndStateClassMigratorTestHelper(
+      path: 'test/boilerplate_suggestors/semver_report.json',
+      shouldTreatAllComponentsAsPrivate: true,
+    );
+  });
+
+  group('AdvancedPropsAndStateClassMigrator with invalid file path', () {
+    AdvancedPropsAndStateClassMigratorTestHelper(
+      path: 'test/boilerplate_suggestors/does_not_exist.json',
+      shouldTreatAllComponentsAsPrivate: false,
+    );
+  });
+}
+
+Future<void> AdvancedPropsAndStateClassMigratorTestHelper({
+  String path,
+  bool shouldTreatAllComponentsAsPrivate,
+}) {
+  final converter = ClassToMixinConverter();
+  final semverHelper = getSemverHelper(path,
+      shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
+  SuggestorTester testSuggestor;
+
+  setUpAll(() async {
+    testSuggestor = getSuggestorTester(
+        AdvancedPropsAndStateClassMigrator(converter, await semverHelper));
+  });
+
+  tearDown(() {
+    converter.setConvertedClassNames({});
+  });
+
+  group('does not operate when', () {
+    test('it\'s an empty file', () {
+      testSuggestor(expectedPatchCount: 0, input: '');
+
+      expect(converter.convertedClassNames, isEmpty);
     });
 
-    group('does not operate when', () {
-      test('it\'s an empty file', () {
-        testSuggestor(expectedPatchCount: 0, input: '');
-
-        expect(converter.convertedClassNames, isEmpty);
-      });
-
-      test('the class is simple', () {
-        testSuggestor(
-          expectedPatchCount: 0,
-          input: r'''
+    test('the class is simple', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -65,15 +94,15 @@ void main() {
             }
           }
         ''',
-        );
+      );
 
-        expect(converter.convertedClassNames, isEmpty);
-      });
+      expect(converter.convertedClassNames, isEmpty);
+    });
 
-      test('advanced classes are public API', () {
-        testSuggestor(
-          expectedPatchCount: 0,
-          input: r'''
+    test('advanced classes are public API', () {
+      testSuggestor(
+        expectedPatchCount: 0,
+        input: r'''
             @Factory()
             UiFactory<BarProps> Bar =
                 // ignore: undefined_identifier
@@ -102,18 +131,18 @@ void main() {
               }
             }
           ''',
-        );
+      );
 
-        expect(converter.convertedClassNames, isEmpty);
-      });
+      expect(converter.convertedClassNames, isEmpty);
     });
+  });
 
-    group('operates when the classes are advanced', () {
-      group('and there are both a props and a state class', () {
-        test('and the classes extend from a custom class', () {
-          testSuggestor(
-            expectedPatchCount: 12,
-            input: r'''
+  group('operates when the classes are advanced', () {
+    group('and there are both a props and a state class', () {
+      test('and the classes extend from a custom class', () {
+        testSuggestor(
+          expectedPatchCount: 12,
+          input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
@@ -142,7 +171,7 @@ void main() {
               }
             }
           ''',
-            expectedOutput: r'''
+          expectedOutput: r'''
             @Factory()
               UiFactory<FooProps> Foo =
                   // ignore: undefined_identifier
@@ -181,18 +210,18 @@ void main() {
                 }
               }
           ''',
-          );
+        );
 
-          expect(converter.convertedClassNames, {
-            'FooProps': 'FooPropsMixin',
-            'FooState': 'FooStateMixin',
-          });
+        expect(converter.convertedClassNames, {
+          'FooProps': 'FooPropsMixin',
+          'FooState': 'FooStateMixin',
         });
+      });
 
-        test('and the class uses mixins', () {
-          testSuggestor(
-            expectedPatchCount: 12,
-            input: r'''
+      test('and the class uses mixins', () {
+        testSuggestor(
+          expectedPatchCount: 12,
+          input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
@@ -221,7 +250,7 @@ void main() {
               }
             }
           ''',
-            expectedOutput: r'''
+          expectedOutput: r'''
             @Factory()
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
@@ -254,20 +283,20 @@ void main() {
               }
             }
           ''',
-          );
+        );
 
-          expect(converter.convertedClassNames, {
-            'FooProps': 'FooPropsMixin',
-            'FooState': 'FooStateMixin',
-          });
+        expect(converter.convertedClassNames, {
+          'FooProps': 'FooPropsMixin',
+          'FooState': 'FooStateMixin',
         });
       });
+    });
 
-      group('and there is just a props class', () {
-        test('and the class does not extend from UiProps', () {
-          testSuggestor(
-            expectedPatchCount: 6,
-            input: r'''
+    group('and there is just a props class', () {
+      test('and the class does not extend from UiProps', () {
+        testSuggestor(
+          expectedPatchCount: 6,
+          input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
@@ -290,7 +319,7 @@ void main() {
               }
             }
           ''',
-            expectedOutput: r'''
+          expectedOutput: r'''
             @Factory()
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
@@ -318,17 +347,17 @@ void main() {
               }
             }
           ''',
-          );
+        );
 
-          expect(converter.convertedClassNames, {
-            'FooProps': 'FooPropsMixin',
-          });
+        expect(converter.convertedClassNames, {
+          'FooProps': 'FooPropsMixin',
         });
+      });
 
-        test('and the class uses mixins', () {
-          testSuggestor(
-            expectedPatchCount: 6,
-            input: r'''
+      test('and the class uses mixins', () {
+        testSuggestor(
+          expectedPatchCount: 6,
+          input: r'''
             @Factory()
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
@@ -351,7 +380,7 @@ void main() {
               }
             }
           ''',
-            expectedOutput: r'''
+          expectedOutput: r'''
             @Factory()
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
@@ -376,18 +405,18 @@ void main() {
               }
             }
           ''',
-          );
+        );
 
-          expect(converter.convertedClassNames, {
-            'FooProps': 'FooPropsMixin',
-          });
+        expect(converter.convertedClassNames, {
+          'FooProps': 'FooPropsMixin',
         });
       });
+    });
 
-      test('and there is a custom class with mixins', () {
-        testSuggestor(
-          expectedPatchCount: 14,
-          input: r'''
+    test('and there is a custom class with mixins', () {
+      testSuggestor(
+        expectedPatchCount: 14,
+        input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -416,7 +445,7 @@ void main() {
             }
           }
         ''',
-          expectedOutput: r'''
+        expectedOutput: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -455,12 +484,11 @@ void main() {
             }
           }
         ''',
-        );
+      );
 
-        expect(converter.convertedClassNames, {
-          'FooProps': 'FooPropsMixin',
-          'FooState': 'FooStateMixin',
-        });
+      expect(converter.convertedClassNames, {
+        'FooProps': 'FooPropsMixin',
+        'FooState': 'FooStateMixin',
       });
     });
   });
