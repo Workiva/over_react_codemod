@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
@@ -48,7 +47,7 @@ Future<void> main(List<String> args) async {
 
   final classToMixinConverter = ClassToMixinConverter();
 
-  semverHelper = await getSemverHelper(
+  SemverHelper semverHelper = await getSemverHelper(
       'lib/src/boilerplate_suggestors/semver_report.json',
       shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
 
@@ -91,10 +90,10 @@ Future<void> main(List<String> args) async {
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[
-      StubbedPropsAndStateClassRemover(),
-      SimplePropsAndStateClassMigrator(classToMixinConverter),
-      AdvancedPropsAndStateClassMigrator(classToMixinConverter),
-      PropsMixinMigrator(classToMixinConverter),
+      StubbedPropsAndStateClassRemover(semverHelper),
+      SimplePropsAndStateClassMigrator(classToMixinConverter, semverHelper),
+      AdvancedPropsAndStateClassMigrator(classToMixinConverter, semverHelper),
+      PropsMixinMigrator(classToMixinConverter, semverHelper),
       PropsMetaMigrator(classToMixinConverter),
       AnnotationsRemover(classToMixinConverter),
     ].map((s) => Ignoreable(s)),

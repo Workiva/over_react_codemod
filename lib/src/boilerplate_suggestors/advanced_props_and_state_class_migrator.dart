@@ -30,14 +30,15 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final ClassToMixinConverter converter;
+  final SemverHelper semverHelper;
 
-  AdvancedPropsAndStateClassMigrator(this.converter);
+  AdvancedPropsAndStateClassMigrator(this.converter, this.semverHelper);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (!shouldMigrateAdvancedPropsAndStateClass(node)) return;
+    if (!shouldMigrateAdvancedPropsAndStateClass(node, semverHelper)) return;
 
     final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
     final hasMixins = node.withClause != null;
@@ -83,5 +84,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
   }
 }
 
-bool shouldMigrateAdvancedPropsAndStateClass(ClassDeclaration node) =>
-    shouldMigratePropsAndStateClass(node) && isAdvancedPropsOrStateClass(node);
+bool shouldMigrateAdvancedPropsAndStateClass(
+        ClassDeclaration node, SemverHelper semverHelper) =>
+    shouldMigratePropsAndStateClass(node, semverHelper) &&
+    isAdvancedPropsOrStateClass(node);

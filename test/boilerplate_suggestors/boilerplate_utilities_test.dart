@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
-
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
@@ -359,6 +357,8 @@ void semverTestHelper({
   bool shouldTreatAllComponentsAsPrivate,
   bool isValidFilePath,
 }) {
+  SemverHelper semverHelper;
+
   setUpAll(() async {
     semverHelper = await getSemverHelper(path,
         shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
@@ -382,7 +382,7 @@ void semverTestHelper({
           isValidFilePath || shouldTreatAllComponentsAsPrivate
               ? isEmpty
               : ['semver report not available; assuming this to be public']);
-      expect(isPublic(classNode),
+      expect(isPublic(classNode, semverHelper),
           isValidFilePath || shouldTreatAllComponentsAsPrivate ? false : true);
     });
   });
@@ -408,7 +408,7 @@ void semverTestHelper({
     unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
       expect(semverHelper.getPublicExportLocations(classNode),
           shouldTreatAllComponentsAsPrivate ? isEmpty : expectedOutput);
-      expect(isPublic(classNode),
+      expect(isPublic(classNode, semverHelper),
           shouldTreatAllComponentsAsPrivate ? false : true);
     });
   });

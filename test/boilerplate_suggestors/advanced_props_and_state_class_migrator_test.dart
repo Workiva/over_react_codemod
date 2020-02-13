@@ -24,12 +24,9 @@ import 'boilerplate_utilities_test.dart';
 void main() {
   group('AdvancedPropsAndStateClassMigrator', () {
     final converter = ClassToMixinConverter();
-    final testSuggestor =
-        getSuggestorTester(AdvancedPropsAndStateClassMigrator(converter));
-
-    setUpAll(() {
-      semverHelper = SemverHelper(jsonDecode(reportJson));
-    });
+    final semverHelper = SemverHelper(jsonDecode(reportJson));
+    final testSuggestor = getSuggestorTester(
+        AdvancedPropsAndStateClassMigrator(converter, semverHelper));
 
     tearDown(() {
       converter.setConvertedClassNames({});

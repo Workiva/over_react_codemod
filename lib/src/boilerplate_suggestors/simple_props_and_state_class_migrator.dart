@@ -29,18 +29,21 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final ClassToMixinConverter converter;
+  final SemverHelper semverHelper;
 
-  SimplePropsAndStateClassMigrator(this.converter);
+  SimplePropsAndStateClassMigrator(this.converter, this.semverHelper);
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (!shouldMigrateSimplePropsAndStateClass(node)) return;
+    if (!shouldMigrateSimplePropsAndStateClass(node, semverHelper)) return;
 
     converter.migrate(node, yieldPatch);
   }
 }
 
-bool shouldMigrateSimplePropsAndStateClass(ClassDeclaration node) =>
-    shouldMigratePropsAndStateClass(node) && isSimplePropsOrStateClass(node);
+bool shouldMigrateSimplePropsAndStateClass(
+        ClassDeclaration node, SemverHelper semverHelper) =>
+    shouldMigratePropsAndStateClass(node, semverHelper) &&
+    isSimplePropsOrStateClass(node);

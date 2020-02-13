@@ -23,8 +23,6 @@ import 'package:over_react_codemod/src/util.dart';
 typedef YieldPatch = void Function(
     int startingOffset, int endingOffset, String replacement);
 
-SemverHelper semverHelper;
-
 Future<SemverHelper> getSemverHelper(String path,
     {bool shouldTreatAllComponentsAsPrivate = false}) async {
   if (shouldTreatAllComponentsAsPrivate) {
@@ -41,7 +39,7 @@ Future<SemverHelper> getSemverHelper(String path,
 }
 
 /// Returns whether or not [node] is publicly exported.
-bool isPublic(ClassDeclaration node) {
+bool isPublic(ClassDeclaration node, SemverHelper semverHelper) {
   assert(semverHelper != null);
   return semverHelper.getPublicExportLocations(node).isNotEmpty;
 }
@@ -117,10 +115,11 @@ bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
     isAPropsOrStateMixin(classNode);
 
 /// Whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
-bool shouldMigratePropsAndStateClass(ClassDeclaration node) {
+bool shouldMigratePropsAndStateClass(
+    ClassDeclaration node, SemverHelper semverHelper) {
   return isAssociatedWithComponent2(node) &&
       isAPropsOrStateClass(node) &&
-      !isPublic(node);
+      !isPublic(node, semverHelper);
 }
 
 /// A simple RegExp against the parent of the class to verify it is `UiProps`

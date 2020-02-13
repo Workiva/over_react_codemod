@@ -25,8 +25,9 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final ClassToMixinConverter converter;
+  final SemverHelper semverHelper;
 
-  PropsMixinMigrator(this.converter);
+  PropsMixinMigrator(this.converter, this.semverHelper);
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
@@ -88,7 +89,7 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
         orElse: () => null);
     if (metaField == null) return;
 
-    if (isPublic(node)) {
+    if (isPublic(node, semverHelper)) {
       yieldPatch(metaField.parent.offset, metaField.parent.offset,
           '@Deprecated(\'Use `propsMeta.forMixin(${node.name.name})` instead.\')\n');
     } else {

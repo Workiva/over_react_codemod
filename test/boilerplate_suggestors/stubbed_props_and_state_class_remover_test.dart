@@ -23,13 +23,9 @@ import 'boilerplate_utilities_test.dart';
 
 main() {
   group('StubbedPropsAndStateClassRemover', () {
-    final testSuggestor = getSuggestorTester(
-      StubbedPropsAndStateClassRemover(),
-    );
-
-    setUpAll(() {
-      semverHelper = SemverHelper(jsonDecode(reportJson));
-    });
+    final semverHelper = SemverHelper(jsonDecode(reportJson));
+    final testSuggestor =
+        getSuggestorTester(StubbedPropsAndStateClassRemover(semverHelper));
 
     group('does not perform a migration', () {
       test('when it encounters an empty file', () {
