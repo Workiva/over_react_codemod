@@ -82,6 +82,8 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[
+      // We need this to run first so that the AdvancedPropsAndStateClassMigrator
+      // can check for duplicate mixin names before creating one.
       PropsMixinMigrator(classToMixinConverter),
       StubbedPropsAndStateClassRemover(),
       SimplePropsAndStateClassMigrator(classToMixinConverter),
