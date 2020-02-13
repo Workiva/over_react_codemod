@@ -224,7 +224,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   'BarProps': 'BarPropsMixin',
                   'BarState': 'BarStateMixin',
                 }
-              : {});
+              : isEmpty);
     });
   });
 
@@ -342,7 +342,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     'FooProps': 'FooPropsMixin',
                     'FooState': 'FooStateMixin',
                   }
-                : {});
+                : isEmpty);
       });
 
       test('and the class uses mixins', () {
@@ -451,7 +451,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     'FooProps': 'FooPropsMixin',
                     'FooState': 'FooStateMixin',
                   }
-                : {});
+                : isEmpty);
       });
     });
 
@@ -537,13 +537,8 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           ''',
         );
 
-        expect(
-            converter.convertedClassNames,
-            isValidFilePath
-                ? {
-                    'FooProps': 'FooPropsMixin',
-                  }
-                : {});
+        expect(converter.convertedClassNames,
+            isValidFilePath ? {'FooProps': 'FooPropsMixin'} : isEmpty);
       });
 
       test('and the class uses mixins', () {
@@ -624,13 +619,8 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           ''',
         );
 
-        expect(
-            converter.convertedClassNames,
-            isValidFilePath
-                ? {
-                    'FooProps': 'FooPropsMixin',
-                  }
-                : {});
+        expect(converter.convertedClassNames,
+            isValidFilePath ? {'FooProps': 'FooPropsMixin'} : isEmpty);
       });
     });
 
@@ -746,7 +736,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   'FooProps': 'FooPropsMixin',
                   'FooState': 'FooStateMixin',
                 }
-              : {});
+              : isEmpty);
     });
   });
 }
