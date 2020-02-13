@@ -35,7 +35,7 @@ const _changesRequiredOutput = '''
 
 Future<void> main(List<String> args) async {
   final shouldTreatAllComponentsAsPrivate =
-      !args.contains(_treatAllComponentsAsPrivateFlag);
+      args.contains(_treatAllComponentsAsPrivateFlag);
   args.removeWhere((arg) => arg == _treatAllComponentsAsPrivateFlag);
 
   final query = FileQuery.dir(

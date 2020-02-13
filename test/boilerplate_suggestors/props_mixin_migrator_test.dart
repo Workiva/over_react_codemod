@@ -46,13 +46,21 @@ void main() {
   });
 }
 
-PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivate, bool isValidFilePath,}) {
+PropsMixinMigratorTestHelper({
+  String path,
+  bool shouldTreatAllComponentsAsPrivate,
+  bool isValidFilePath,
+}) {
   group('PropsMixinMigrator', () {
     final converter = ClassToMixinConverter();
     SuggestorTester testSuggestor;
 
     setUpAll(() async {
-      testSuggestor = getSuggestorTester(PropsMixinMigrator(converter, await getSemverHelper(path, shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate)));
+      testSuggestor = getSuggestorTester(PropsMixinMigrator(
+          converter,
+          await getSemverHelper(path,
+              shouldTreatAllComponentsAsPrivate:
+                  shouldTreatAllComponentsAsPrivate)));
     });
 
     tearDown(() {
@@ -99,12 +107,14 @@ PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivat
                 String foo;
               }
             ''',
-              expectedOutput: isValidFilePath ? '''
+              expectedOutput: isValidFilePath
+                  ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 String foo;
               }
-            ''' : '''
+            '''
+                  : '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
@@ -141,12 +151,14 @@ PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivat
                 String foo;
               }
             ''',
-              expectedOutput: isValidFilePath ? '''
+              expectedOutput: isValidFilePath
+                  ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 String foo;
               }
-            ''' : '''
+            '''
+                  : '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 // To ensure the codemod regression checking works properly, please keep this
@@ -183,12 +195,14 @@ PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivat
                 String foo;
               }
             ''',
-              expectedOutput: isValidFilePath ? '''
+              expectedOutput: isValidFilePath
+                  ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 String foo;
               }
-            ''' : '''
+            '''
+                  : '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 // To ensure the codemod regression checking works properly, please keep this
@@ -227,12 +241,14 @@ PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivat
                 String foo;
               }
             ''',
-              expectedOutput: isValidFilePath ? '''
+              expectedOutput: isValidFilePath
+                  ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 String foo;
               }
-            ''' : '''
+            '''
+                  : '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 // To ensure the codemod regression checking works properly, please keep this
@@ -268,13 +284,14 @@ PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivat
                 String foo;
               }
             ''',
-              expectedOutput: isValidFilePath ? '''
+              expectedOutput: isValidFilePath
+                  ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 String foo;
               }
-            ''' :
-              '''
+            '''
+                  : '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
@@ -312,12 +329,14 @@ PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivat
                 String foo;
               }
             ''',
-              expectedOutput: isValidFilePath ? '''
+              expectedOutput: isValidFilePath
+                  ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 String foo;
               }
-            ''' : '''
+            '''
+                  : '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
@@ -350,7 +369,8 @@ PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivat
                 String foo;
               }
             ''',
-              expectedOutput: isValidFilePath ? '''
+              expectedOutput: isValidFilePath
+                  ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
@@ -358,7 +378,8 @@ PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivat
                 
                 String foo;
               }
-            ''' : '''
+            '''
+                  : '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
@@ -396,7 +417,8 @@ PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivat
                 String foo;
               }
             ''',
-              expectedOutput: isValidFilePath ? '''
+              expectedOutput: isValidFilePath
+                  ? '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
@@ -404,7 +426,8 @@ PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivat
                 
                 String foo;
               }
-            ''' : '''
+            '''
+                  : '''
               /// Some doc comment
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
@@ -438,12 +461,14 @@ PropsMixinMigratorTestHelper({String path, bool shouldTreatAllComponentsAsPrivat
               String foo;
             }
           ''',
-            expectedOutput: shouldTreatAllComponentsAsPrivate ? '''
+            expectedOutput: shouldTreatAllComponentsAsPrivate
+                ? '''
             /// Some doc comment
             mixin Bar${typeStr}Mixin on Ui${typeStr} {
               String foo;
             }
-          ''' : '''
+          '''
+                : '''
             /// Some doc comment
             mixin Bar${typeStr}Mixin on Ui${typeStr} {
               // To ensure the codemod regression checking works properly, please keep this

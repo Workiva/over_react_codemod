@@ -17,7 +17,6 @@ import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
-import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
 
 import 'boilerplate_constants.dart';
