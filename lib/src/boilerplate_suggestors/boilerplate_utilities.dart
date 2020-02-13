@@ -20,6 +20,8 @@ import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
 
+import 'boilerplate_constants.dart';
+
 typedef YieldPatch = void Function(
     int startingOffset, int endingOffset, String replacement);
 
@@ -74,7 +76,7 @@ class SemverHelper {
 
     if (_exportList == null && _isAlwaysPrivate) return locations;
     if (_exportList == null && !_isAlwaysPrivate) {
-      return ['semver report not available; assuming this to be public'];
+      return [reportNotAvailableComment];
     }
 
     _exportList.forEach((key, value) {
@@ -120,6 +122,13 @@ bool shouldMigratePropsAndStateClass(
   return isAssociatedWithComponent2(node) &&
       isAPropsOrStateClass(node) &&
       !isPublic(node, semverHelper);
+}
+
+bool shouldAddPublicExportLocationsComment(
+    ClassDeclaration node, SemverHelper semverHelper) {
+  return isAssociatedWithComponent2(node) &&
+      isAPropsOrStateClass(node) &&
+      isPublic(node, semverHelper);
 }
 
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
@@ -258,8 +267,9 @@ class ClassToMixinConverter {
     if (node.extendsClause?.extendsKeyword != null) {
       // --- Convert concrete props/state class to a mixin --- //
 
-      yieldPatch(node.name.token.offset,
-          node.name.token.offset + privateGeneratedPrefix.length, '');
+      if (node.name.name != newMixinName) {
+        yieldPatch(node.name.token.offset, node.name.token.end, newMixinName);
+      }
 
       yieldPatch(node.extendsClause.offset,
           node.extendsClause.extendsKeyword.charEnd, 'on');

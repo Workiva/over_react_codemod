@@ -15,7 +15,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
+import 'package:source_span/source_span.dart';
 
+import 'boilerplate_constants.dart';
 import 'boilerplate_utilities.dart';
 
 /// Suggestor that updates props and state classes to new boilerplate.
@@ -37,6 +40,16 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
+    if (!hasComment(node, sourceFile,
+            publicExportLocationsComment(node, semverHelper)) &&
+        shouldAddPublicExportLocationsSimpleClassComment(node, semverHelper)) {
+      yieldPatch(
+        node.metadata.first.offset,
+        node.metadata.first.offset,
+        publicExportLocationsComment(node, semverHelper) + '\n',
+      );
+    }
+
     if (!shouldMigrateSimplePropsAndStateClass(node, semverHelper)) return;
 
     converter.migrate(node, yieldPatch);
@@ -46,4 +59,9 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
 bool shouldMigrateSimplePropsAndStateClass(
         ClassDeclaration node, SemverHelper semverHelper) =>
     shouldMigratePropsAndStateClass(node, semverHelper) &&
+    isSimplePropsOrStateClass(node);
+
+bool shouldAddPublicExportLocationsSimpleClassComment(
+        ClassDeclaration node, SemverHelper semverHelper) =>
+    shouldAddPublicExportLocationsComment(node, semverHelper) &&
     isSimplePropsOrStateClass(node);

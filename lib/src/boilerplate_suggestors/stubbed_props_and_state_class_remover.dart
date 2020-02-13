@@ -18,6 +18,10 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_companion_class_remover.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
+
+import 'boilerplate_constants.dart';
+import 'boilerplate_utilities.dart';
 
 /// Suggestor that removes every companion class for props and state classes, as
 /// they were only temporarily required for backwards-compatibility with Dart 1.
@@ -30,6 +34,19 @@ class StubbedPropsAndStateClassRemover
   @override
   bool shouldRemoveCompanionClassFor(
       ClassDeclaration candidate, CompilationUnit node) {
+    if (!hasComment(candidate, sourceFile,
+            publicExportLocationsComment(candidate, semverHelper)) &&
+        (shouldAddPublicExportLocationsSimpleClassComment(
+                candidate, semverHelper) ||
+            shouldAddPublicExportLocationsAdvancedClassComment(
+                candidate, semverHelper))) {
+      yieldPatch(
+        candidate.metadata.first.offset,
+        candidate.metadata.first.offset,
+        publicExportLocationsComment(candidate, semverHelper) + '\n',
+      );
+    }
+
     return super.shouldRemoveCompanionClassFor(candidate, node) &&
         (shouldMigrateSimplePropsAndStateClass(candidate, semverHelper) ||
             shouldMigrateAdvancedPropsAndStateClass(candidate, semverHelper));

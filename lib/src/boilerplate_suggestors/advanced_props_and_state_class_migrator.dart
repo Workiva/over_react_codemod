@@ -15,8 +15,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 
 import '../util.dart';
+import 'boilerplate_constants.dart';
 import 'boilerplate_utilities.dart';
 
 /// Suggestor that updates props and state classes to new boilerplate.
@@ -37,6 +39,17 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
+
+    if (!hasComment(node, sourceFile,
+            publicExportLocationsComment(node, semverHelper)) &&
+        shouldAddPublicExportLocationsAdvancedClassComment(
+            node, semverHelper)) {
+      yieldPatch(
+        node.metadata.first.offset,
+        node.metadata.first.offset,
+        publicExportLocationsComment(node, semverHelper) + '\n',
+      );
+    }
 
     if (!shouldMigrateAdvancedPropsAndStateClass(node, semverHelper)) return;
 
@@ -87,4 +100,9 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 bool shouldMigrateAdvancedPropsAndStateClass(
         ClassDeclaration node, SemverHelper semverHelper) =>
     shouldMigratePropsAndStateClass(node, semverHelper) &&
+    isAdvancedPropsOrStateClass(node);
+
+bool shouldAddPublicExportLocationsAdvancedClassComment(
+        ClassDeclaration node, SemverHelper semverHelper) =>
+    shouldAddPublicExportLocationsComment(node, semverHelper) &&
     isAdvancedPropsOrStateClass(node);
