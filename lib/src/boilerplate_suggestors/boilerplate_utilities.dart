@@ -287,7 +287,7 @@ class ClassToMixinConverter {
               ..remove(uiInterface);
 
             yieldPatch(node.implementsClause.offset, node.implementsClause.end,
-                'on ${uiInterface.name.name} implements ${otherInterfaces.joinConvertedMixinsByName()}');
+                'on ${uiInterface.name.name} implements ${otherInterfaces.joinConvertedClassesByName()}');
           }
         } else {
           // Does not implement UiProps / UiState
@@ -296,7 +296,7 @@ class ClassToMixinConverter {
           if (nodeInterfaces.isNotEmpty) {
             // But does implement other stuff
             yieldPatch(node.implementsClause.offset, node.implementsClause.end,
-                'on $uiInterfaceStr implements ${nodeInterfaces.joinConvertedMixinsByName()}');
+                'on $uiInterfaceStr implements ${nodeInterfaces.joinConvertedClassesByName()}');
           }
         }
       } else {
@@ -349,10 +349,10 @@ extension IterableAstUtils on Iterable<NamedType> {
   /// Utility to join an `Iterable` based on the `name` of the `name` field
   /// rather than the `toString()` of the object when the named type is:
   ///
-  /// 1. A non-generated _(no `$` prefix)_ mixin
+  /// 1. A non-generated _(no `$` prefix)_ mixin / class
   /// 2. A generated mixin name that has not been converted by a migrator
   ///     * The `// ignore` comments will be preserved in this case
-  String joinConvertedMixinsByName(
+  String joinConvertedClassesByName(
       {ClassToMixinConverter converter,
       SourceFile sourceFile,
       String separator}) {

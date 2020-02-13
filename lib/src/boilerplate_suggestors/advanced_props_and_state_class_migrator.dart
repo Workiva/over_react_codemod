@@ -86,7 +86,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         }
 
         mixinsForNewDeclaration.write(node.withClause.mixinTypes
-            .joinConvertedMixinsByName(
+            .joinConvertedClassesByName(
                 converter: converter, sourceFile: sourceFile));
       }
 
@@ -117,7 +117,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
       if (hasInterfaces) {
         newDeclarationBuffer.write(
-            ', ${node.implementsClause.interfaces.joinConvertedMixinsByName()}');
+            ', ${node.implementsClause.interfaces.joinConvertedClassesByName()}');
       }
     } else {
       // Its a concrete class. Have it extend from UiProps/State with mixins
@@ -158,7 +158,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
         if (hasInterfaces) {
           newDeclarationBuffer.write(
-              node.implementsClause.interfaces.joinConvertedMixinsByName());
+              node.implementsClause.interfaces.joinConvertedClassesByName());
         }
       }
     }
