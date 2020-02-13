@@ -99,7 +99,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
           ? ''
           : '''
           // FIXME:
-          //   1. Ensure that all mixins used by ${getConvertedClassMixinName(parentClassName, converter)} are also mixed into this class.
+          //   1. Ensure that all mixins used by $parentClassName are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins
            ''')
       // Create the class name

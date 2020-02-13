@@ -202,7 +202,7 @@ void main() {
               }
       
               // FIXME:
-              //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
+              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins
               class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
       
@@ -213,7 +213,7 @@ void main() {
               }
               
               // FIXME:
-              //   1. Ensure that all mixins used by ADifferentStateClassMixin are also mixed into this class.
+              //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins
               class FooState = UiState with ADifferentStateClassMixin, FooStateMixin;
       
@@ -352,7 +352,7 @@ void main() {
             }
     
             // FIXME:
-            //   1. Ensure that all mixins used by FluxUiPropsMixin are also mixed into this class.
+            //   1. Ensure that all mixins used by FluxUiProps are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins
             class FooProps = UiProps with FluxUiPropsMixin<SomeActions, SomeStore>, FooPropsMixin;
     
@@ -413,7 +413,7 @@ void main() {
             }
     
             // FIXME:
-            //   1. Ensure that all mixins used by BuiltReduxUiPropsMixin are also mixed into this class.
+            //   1. Ensure that all mixins used by BuiltReduxUiProps are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins
             class FooProps = UiProps with BuiltReduxUiPropsMixin<_, __, ___>, FooPropsMixin;
     
@@ -479,7 +479,7 @@ void main() {
               }
               
               // FIXME:
-              //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
+              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins
               class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
         
@@ -652,7 +652,7 @@ void main() {
                 }
                 
                 // FIXME:
-                //   1. Ensure that all mixins used by SomeAbstractPropsClassMixin are also mixed into this class.
+                //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins
                 class FooProps = UiProps with SomeAbstractPropsClassMixin, FooPropsMixin 
                     implements SomeAbstractPropsClass, SomeInterface;
@@ -1153,7 +1153,7 @@ void main() {
           }
           
           // FIXME:
-          //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
+          //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins        
           class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin, AMixin, AnotherMixin;
   
@@ -1241,7 +1241,7 @@ void main() {
               }
               
               // FIXME:
-              //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
+              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins        
               class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
       
@@ -1309,7 +1309,7 @@ void main() {
               }
               
               // FIXME:
-              //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
+              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins        
               class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
       
@@ -1373,7 +1373,7 @@ void main() {
                   $Foo;
               
               // FIXME:
-              //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
+              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins        
               class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
       
@@ -1429,7 +1429,7 @@ void main() {
                   $Foo;
               
               // FIXME:
-              //   1. Ensure that all mixins used by ADifferentPropsClassMixin are also mixed into this class.
+              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins        
               class FooProps extends UiProps with ADifferentPropsClassMixin, FooPropsMixin {
                 // FIXME: Everything in this body needs to be moved to the body of FooPropsMixin.
