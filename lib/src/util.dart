@@ -287,6 +287,17 @@ VersionRange generateNewVersionRange(
   );
 }
 
+/// Recursively traverses the [AstNode.parent] of the provided [node] until it finds
+/// a [ClassOrMixinDeclaration], then returns it.
+///
+/// Returns `null` if the provided [node] is not within a [ClassOrMixinDeclaration].
+ClassOrMixinDeclaration getContainingClass(AstNode node) {
+  if (node.parent == node.root) return null; // Not part of a class
+  if (node.parent is ClassOrMixinDeclaration) return node.parent;
+
+  return getContainingClass(node.parent);
+}
+
 /// Returns a string representation of [constraint], converting it to caret
 /// notation when possible.
 ///
@@ -321,6 +332,24 @@ bool isAssociatedWithComponent2(AstNode node) {
   });
 
   return containsComponent2;
+}
+
+/// Returns whether or not [node] is declared in the same file as a AbstractComponent2 component.
+bool isAssociatedWithAbstractComponent2(AstNode node) {
+  bool containsAbstractComponent2 = false;
+  CompilationUnit unit = node.root;
+
+  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+    if (!extendsComponent2(classNode)) {
+      containsAbstractComponent2 = false;
+    } else {
+      // TODO: Is there a better way to determine if the superclass is abstract?
+      containsAbstractComponent2 =
+          classNode.extendsClause.superclass.name.name.startsWith('Abstract');
+    }
+  });
+
+  return containsAbstractComponent2;
 }
 
 /// Return whether or not a particular pubspec.yaml dependency value string

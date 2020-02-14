@@ -38,7 +38,7 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     if (!shouldMigrateSimplePropsAndStateClass(node)) return;
 
-    converter.migrate(node, yieldPatch);
+    converter.migrate(node, yieldPatch, sourceFile: sourceFile);
   }
 }
 
