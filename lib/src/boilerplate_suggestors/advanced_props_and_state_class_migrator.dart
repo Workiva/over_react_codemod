@@ -170,7 +170,9 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       // existing mixin (if possible - within the same root), or create a FIX ME comment indicating what
       // needs to be done.
       if (dupeClassInSameRoot != null) {
-        yieldPatch(dupeClassInSameRoot.end - 1, dupeClassInSameRoot.end - 1,
+        yieldPatch(
+            dupeClassInSameRoot.rightBracket.offset,
+            dupeClassInSameRoot.rightBracket.offset,
             node.members.map((member) => member.toSource()).join('\n'));
 
         newDeclarationBuffer.write(node.isAbstract ? '{}' : ';');
