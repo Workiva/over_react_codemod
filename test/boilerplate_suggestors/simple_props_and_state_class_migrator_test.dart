@@ -12,17 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
+import 'boilerplate_utilities_test.dart';
 
 main() {
   group('SimplePropsAndStateClassMigrator', () {
     final converter = ClassToMixinConverter();
     final testSuggestor =
         getSuggestorTester(SimplePropsAndStateClassMigrator(converter));
+
+    setUpAll(() {
+      semverHelper = SemverHelper(jsonDecode(reportJson));
+    });
 
     tearDown(() {
       converter.setConvertedClassNames({});
@@ -116,7 +123,36 @@ main() {
         expect(converter.convertedClassNames, isEmpty);
       });
 
-      // TODO add a test for when the class is publicly exported
+      test('when the props class is publicly exported', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            @Factory()
+            UiFactory<BarProps> Bar =
+                // ignore: undefined_identifier
+                \$Bar;
+      
+            @Props()
+            class BarProps extends UiProps {
+              String foo;
+              int bar;
+            }
+      
+            @Component2()
+            class BarComponent extends UiComponent2<BarProps> {
+              @override
+              render() {
+                return Dom.ul()(
+                  Dom.li()('Foo: ', props.foo),
+                  Dom.li()('Bar: ', props.bar),
+                );
+              }
+            }
+          ''',
+        );
+
+        expect(converter.convertedClassNames, isEmpty);
+      });
 
       group('the classes are not simple', () {
         test('and there are both a props and a state class', () {

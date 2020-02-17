@@ -12,17 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
+import 'boilerplate_utilities_test.dart';
 
 void main() {
   group('AdvancedPropsAndStateClassMigrator', () {
     final converter = ClassToMixinConverter();
     final testSuggestor =
         getSuggestorTester(AdvancedPropsAndStateClassMigrator(converter));
+
+    setUpAll(() {
+      semverHelper = SemverHelper(jsonDecode(reportJson));
+    });
 
     tearDown(() {
       converter.setConvertedClassNames({});
@@ -61,6 +68,43 @@ void main() {
             }
           }
         ''',
+        );
+
+        expect(converter.convertedClassNames, isEmpty);
+      });
+
+      test('advanced classes are public API', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: r'''
+            @Factory()
+            UiFactory<BarProps> Bar =
+                // ignore: undefined_identifier
+                $Bar;
+    
+            @Props()
+            class BarProps extends ADifferentPropsClass {
+              String foo;
+              int bar;
+            }
+    
+            @State()
+            class BarState extends ADifferentStateClass {
+              String foo;
+              int bar;
+            }
+    
+            @Component2()
+            class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
+              @override
+              render() {
+                return Dom.ul()(
+                  Dom.li()('Foo: ', props.foo),
+                  Dom.li()('Bar: ', props.bar),
+                );
+              }
+            }
+          ''',
         );
 
         expect(converter.convertedClassNames, isEmpty);

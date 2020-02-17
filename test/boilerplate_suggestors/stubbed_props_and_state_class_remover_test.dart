@@ -12,16 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
+import 'boilerplate_utilities_test.dart';
 
 main() {
   group('StubbedPropsAndStateClassRemover', () {
     final testSuggestor = getSuggestorTester(
       StubbedPropsAndStateClassRemover(),
     );
+
+    setUpAll(() {
+      semverHelper = SemverHelper(jsonDecode(reportJson));
+    });
 
     group('does not perform a migration', () {
       test('when it encounters an empty file', () {
@@ -84,7 +92,39 @@ main() {
       });
 
       test('when the stubbed "companion" class(es) are publicly exported', () {
-        // TODO add a test for when the class is publicly exported
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+          @Factory()
+          UiFactory<BarProps> Bar =
+              // ignore: undefined_identifier
+              \$Bar;
+      
+          @Props()
+          class _\$_BarProps extends UiProps {
+            String foo;
+            int bar;
+          }
+      
+          @Component2()
+          class BarComponent extends UiComponent2<BarProps> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+          
+          // AF-3369 This will be removed once the transition to Dart 2 is complete.
+          // ignore: mixin_of_non_class, undefined_class
+          class BarProps extends _\$_BarProps with _\$_BarPropsAccessorsMixin {
+            // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+            static const PropsMeta meta = _\$metaFor_BarProps;
+          }
+        ''',
+        );
       });
     });
 
