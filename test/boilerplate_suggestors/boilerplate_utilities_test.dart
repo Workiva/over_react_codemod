@@ -14,6 +14,7 @@
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_constants.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:test/test.dart';
 
@@ -66,6 +67,8 @@ const reportJson = r'''{
 
 String exportLocationsComment(List<String> locations) =>
     '// This class was not updated because it was exported from: $locations';
+
+const reportNotAvailableCommentTest = '// $reportNotAvailableComment';
 
 void main() {
   group('Boilerplate Utilities', () {
@@ -384,7 +387,7 @@ void semverUtilitiesTestHelper({
           semverHelper.getPublicExportLocations(classNode),
           isValidFilePath || shouldTreatAllComponentsAsPrivate
               ? isEmpty
-              : ['semver report not available; assuming this to be public']);
+              : [reportNotAvailableComment]);
       expect(isPublic(classNode, semverHelper),
           isValidFilePath || shouldTreatAllComponentsAsPrivate ? false : true);
     });
@@ -403,7 +406,7 @@ void semverUtilitiesTestHelper({
             'lib/web_skin_dart.dart/ButtonProps',
             'lib/another_file.dart/ButtonProps',
           ]
-        : ['semver report not available; assuming this to be public'];
+        : [reportNotAvailableComment];
 
     CompilationUnit unit = parseString(content: input).unit;
     expect(unit.declarations.whereType<ClassDeclaration>().length, 1);

@@ -17,8 +17,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'boilerplate_utilities.dart';
 
 const reportNotAvailableComment =
-    'semver report not available; assuming this to be public';
+    'Semver report not available; this class is assumed to be public.';
 
 String publicExportLocationsComment(
-        ClassDeclaration node, SemverHelper semverHelper) =>
-    '// This class was not updated because it was exported from: ${semverHelper.getPublicExportLocations(node)}';
+    ClassDeclaration node, SemverHelper semverHelper) {
+  if (semverHelper.getPublicExportLocations(node).first ==
+      reportNotAvailableComment) {
+    return '// ${reportNotAvailableComment}';
+  }
+  return '// This class was not updated because it was exported from: ${semverHelper.getPublicExportLocations(node)}';
+}

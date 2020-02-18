@@ -212,10 +212,10 @@ void SimplePropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Button;
       
-            ${exportLocationsComment(isValidFilePath ? [
+            ${isValidFilePath ? exportLocationsComment([
                 'lib/web_skin_dart.dart/ButtonProps',
                 'lib/another_file.dart/ButtonProps'
-              ] : [reportNotAvailableComment])}
+              ]) : '// $reportNotAvailableComment'}
             @Props()
             class ButtonProps extends UiProps {
               String foo;
@@ -382,14 +382,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
           
-          ${exportLocationsComment([reportNotAvailableComment])}
+          /\/ $reportNotAvailableComment
           @Props()
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
           
-          ${exportLocationsComment([reportNotAvailableComment])}
+          /\/ $reportNotAvailableComment
           @State()
           class _\$FooState extends UiState {
             String foo;
@@ -475,7 +475,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
     
-          ${exportLocationsComment([reportNotAvailableComment])}
+          /\/ $reportNotAvailableComment
           @Props()
           class _\$FooProps extends UiProps {
             String foo;
@@ -572,14 +572,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
     
-          ${exportLocationsComment([reportNotAvailableComment])}
+          /\/ $reportNotAvailableComment
           @AbstractProps()
           abstract class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
     
-          ${exportLocationsComment([reportNotAvailableComment])}
+          /\/ $reportNotAvailableComment
           @AbstractState()
           abstract class _\$FooState extends UiState {
             String foo;

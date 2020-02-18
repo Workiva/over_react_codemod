@@ -39,9 +39,9 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (!hasComment(node, sourceFile,
-            publicExportLocationsComment(node, semverHelper)) &&
-        shouldAddPublicExportLocationsSimpleClassComment(node, semverHelper)) {
+    if (shouldAddPublicExportLocationsSimpleClassComment(node, semverHelper) &&
+        !hasComment(node, sourceFile,
+            publicExportLocationsComment(node, semverHelper))) {
       yieldPatch(
         node.metadata.first.offset,
         node.metadata.first.offset,

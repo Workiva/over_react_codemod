@@ -34,12 +34,12 @@ class StubbedPropsAndStateClassRemover
   @override
   bool shouldRemoveCompanionClassFor(
       ClassDeclaration candidate, CompilationUnit node) {
-    if (!hasComment(candidate, sourceFile,
-            publicExportLocationsComment(candidate, semverHelper)) &&
-        (shouldAddPublicExportLocationsSimpleClassComment(
+    if ((shouldAddPublicExportLocationsSimpleClassComment(
                 candidate, semverHelper) ||
             shouldAddPublicExportLocationsAdvancedClassComment(
-                candidate, semverHelper))) {
+                candidate, semverHelper)) &&
+        !hasComment(candidate, sourceFile,
+            publicExportLocationsComment(candidate, semverHelper))) {
       yieldPatch(
         candidate.metadata.first.offset,
         candidate.metadata.first.offset,
