@@ -164,6 +164,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               $Button;
     
+          /// doc comment
           @Props()
           class ButtonProps extends UiProps {
             String foo;
@@ -188,6 +189,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 $Button;
     
+          /// doc comment
             @Props()
             mixin ButtonProps on UiProps {
               String foo;
@@ -214,7 +216,8 @@ void SimplePropsAndStateClassMigratorTestHelper({
             ${isValidFilePath ? exportLocationsComment([
                 'lib/web_skin_dart.dart/ButtonProps',
                 'lib/another_file.dart/ButtonProps'
-              ]) : '// $reportNotAvailableComment'}
+              ]) : reportNotAvailableComment}
+            /// doc comment
             @Props()
             class ButtonProps extends UiProps {
               String foo;

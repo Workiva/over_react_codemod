@@ -33,16 +33,10 @@ class StubbedPropsAndStateClassRemover
   @override
   bool shouldRemoveCompanionClassFor(ClassDeclaration candidate,
       ClassDeclaration companion, CompilationUnit node) {
-    if (isAssociatedWithComponent2(candidate) &&
-        isAPropsOrStateClass(candidate) &&
-        isPublic(companion, semverHelper) &&
-        !hasComment(companion, sourceFile,
-            publicExportLocationsComment(companion, semverHelper))) {
-      yieldPatch(
-        companion.offset,
-        companion.offset,
-        publicExportLocationsComment(companion, semverHelper) + '\n',
-      );
+    if (shouldAddPublicExportLocationsStubbedClassComment(
+        candidate, companion, semverHelper)) {
+      addPublicExportLocationsComment(
+          companion, sourceFile, semverHelper, yieldPatch);
     }
 
     return super.shouldRemoveCompanionClassFor(candidate, companion, node) &&
@@ -52,3 +46,11 @@ class StubbedPropsAndStateClassRemover
         !isPublic(companion, semverHelper);
   }
 }
+
+bool shouldAddPublicExportLocationsStubbedClassComment(
+        ClassDeclaration candidate,
+        ClassDeclaration companion,
+        SemverHelper semverHelper) =>
+    isAssociatedWithComponent2(candidate) &&
+    isAPropsOrStateClass(candidate) &&
+    isPublic(companion, semverHelper);

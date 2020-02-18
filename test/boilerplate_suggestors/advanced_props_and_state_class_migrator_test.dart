@@ -105,123 +105,45 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
       expect(converter.convertedClassNames, isEmpty);
     });
 
-    test('advanced classes are public API', () {
-      testSuggestor(
-        expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 10 : 2,
-        input: r'''
-            @Factory()
-            UiFactory<BarProps> Bar =
-                // ignore: undefined_identifier
-                $Bar;
-    
-            @Props()
-            class BarProps extends ADifferentPropsClass {
-              String foo;
-              int bar;
-            }
-    
-            @State()
-            class BarState extends ADifferentStateClass {
-              String foo;
-              int bar;
-            }
-    
-            @Component2()
-            class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-          ''',
-        expectedOutput: shouldTreatAllComponentsAsPrivate
-            ? r'''
-            @Factory()
-              UiFactory<BarProps> Bar =
-                  // ignore: undefined_identifier
-                  $Bar;
-      
-              @Props()
-              mixin BarPropsMixin on UiProps {
-                String foo;
-                int bar;
-              }
-      
-              // FIXME:
-              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
-              //   2. Fix any analyzer warnings on this class about missing mixins
-              class BarProps = UiProps with ADifferentPropsClass, BarPropsMixin;
-      
-              @State()
-              mixin BarStateMixin on UiState {
-                String foo;
-                int bar;
-              }
-              
-              // FIXME:
-              //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
-              //   2. Fix any analyzer warnings on this class about missing mixins
-              class BarState = UiState with ADifferentStateClass, BarStateMixin;
-      
-              @Component2()
-              class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
-          '''
-            : '''
-            @Factory()
-            UiFactory<BarProps> Bar =
-                // ignore: undefined_identifier
-                \$Bar;
-    
-            ${isValidFilePath ? exportLocationsComment([
-                'lib/web_skin_dart.dart/BarProps'
-              ]) : '// $reportNotAvailableComment'}
-            @Props()
-            class BarProps extends ADifferentPropsClass {
-              String foo;
-              int bar;
-            }
-    
-            ${isValidFilePath ? exportLocationsComment([
-                'lib/web_skin_dart.dart/BarState'
-              ]) : '// $reportNotAvailableComment'}
-            @State()
-            class BarState extends ADifferentStateClass {
-              String foo;
-              int bar;
-            }
-    
-            @Component2()
-            class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-          ''',
-      );
+    group('advanced classes are public API', () {
+      test('', () {
+        exportLocationsCommentTestHelper(
+          testSuggestor: testSuggestor,
+          converter: converter,
+          shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate,
+          isValidFilePath: isValidFilePath,
+          doesCommentExist: false,
+          patchCount: shouldTreatAllComponentsAsPrivate ? 10 : 2,
+        );
+      });
 
-      expect(
-          converter.convertedClassNames,
-          shouldTreatAllComponentsAsPrivate
-              ? {
-                  'BarProps': 'BarPropsMixin',
-                  'BarState': 'BarStateMixin',
-                }
-              : isEmpty);
+      test('with existing exported locations comment', () {
+        exportLocationsCommentTestHelper(
+          testSuggestor: testSuggestor,
+          converter: converter,
+          shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate,
+          isValidFilePath: isValidFilePath,
+          doesCommentExist: true,
+          isReportUnavailableComment: false,
+          patchCount: shouldTreatAllComponentsAsPrivate
+              ? 12
+              : (isValidFilePath ? 0 : 2),
+        );
+      });
+
+      test('with existing semver report unavailable comment', () {
+        exportLocationsCommentTestHelper(
+          testSuggestor: testSuggestor,
+          converter: converter,
+          shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate,
+          isValidFilePath: isValidFilePath,
+          doesCommentExist: true,
+          isReportUnavailableComment: true,
+          patchCount: shouldTreatAllComponentsAsPrivate
+              ? 12
+              : (isValidFilePath ? 2 : 0),
+        );
+      });
     });
   });
 
@@ -307,14 +229,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
     
-            // $reportNotAvailableComment
+            $reportNotAvailableComment
             @Props()
             class _\$FooProps extends ADifferentPropsClass {
               String foo;
               int bar;
             }
     
-            // $reportNotAvailableComment
+            $reportNotAvailableComment
             @State()
             class _\$FooState extends ADifferentStateClass {
               String foo;
@@ -429,14 +351,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
             
-            // $reportNotAvailableComment
+            $reportNotAvailableComment
             @Props()
             class _\$FooProps extends ADifferentPropsClass {
               String foo;
               int bar;
             }
             
-            // $reportNotAvailableComment
+            $reportNotAvailableComment
             @State()
             class _\$FooState extends ADifferentStateClass {
               String foo;
@@ -543,14 +465,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
       
-            // $reportNotAvailableComment
+            $reportNotAvailableComment
             @Props()
             class _\$FooProps extends UiProps with AMixin, AnotherMixin {
               String foo;
               int bar;
             }
       
-            // $reportNotAvailableComment
+            $reportNotAvailableComment
             @State()
             class _\$FooState extends UiState with AStateMixin, AnotherStateMixin {
               String foo;
@@ -643,7 +565,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
     
-            // $reportNotAvailableComment
+            $reportNotAvailableComment
             @Props()
             class _\$FooProps extends FluxUiProps<SomeActions, SomeStore> {
               String foo;
@@ -733,7 +655,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
     
-            // $reportNotAvailableComment
+            $reportNotAvailableComment
             @Props()
             class _\$FooProps extends BuiltReduxUiProps<_, __, ___> {
               String foo;
@@ -828,7 +750,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   // ignore: undefined_identifier
                   \$Foo;
         
-              // $reportNotAvailableComment
+              $reportNotAvailableComment
               @Props()
               class _\$FooProps extends ADifferentPropsClass {
                 String foo;
@@ -912,7 +834,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     with LayoutMixin<T>, BlockMixin<T> {}
               '''
                   : '''
-                // $reportNotAvailableComment
+                $reportNotAvailableComment
                 @AbstractProps()
                 abstract class _\$AbstractBlockProps extends SomeAbstractPropsClass
                     with
@@ -987,7 +909,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     with LayoutMixin<T>, BlockMixin<T> {}
               '''
                   : '''
-                // $reportNotAvailableComment
+                $reportNotAvailableComment
                 @AbstractProps()
                 abstract class _\$AbstractBlockProps extends SomeAbstractPropsClass
                     with
@@ -1086,7 +1008,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     // ignore: undefined_identifier
                     \$Foo;
           
-                // $reportNotAvailableComment
+                $reportNotAvailableComment
                 @Props()
                 class _\$FooProps extends SomeAbstractPropsClass implements SomeInterface {
                   String foo;
@@ -1170,7 +1092,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     // ignore: undefined_identifier
                     \$Foo;
           
-                // $reportNotAvailableComment
+                $reportNotAvailableComment
                 @Props()
                 class _\$FooProps extends SomeAbstractPropsClass implements SomeInterface {}
           
@@ -1268,7 +1190,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
       
-            // $reportNotAvailableComment
+            $reportNotAvailableComment
             @Props()
             class _\$FooProps extends UiProps 
                 with ConvertedMixin, 
@@ -1366,7 +1288,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   // ignore: undefined_identifier
                   \$Foo;
                 
-              // $reportNotAvailableComment
+              $reportNotAvailableComment
               @Props()
               class _\$FooProps extends UiProps with ConvertedMixin implements SomeInterface, SomeOtherInterface {
                 String foo;
@@ -1443,7 +1365,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     with LayoutMixin<T>, BlockMixin<T> {}
               '''
                   : '''
-                // $reportNotAvailableComment
+                $reportNotAvailableComment
                 @AbstractProps()
                 abstract class _\$AbstractBlockProps extends UiProps
                     with
@@ -1514,7 +1436,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     with LayoutMixin<T>, BlockMixin<T> {}
               '''
                   : '''
-                // $reportNotAvailableComment
+                $reportNotAvailableComment
                 @AbstractProps()
                 abstract class _\$AbstractBlockProps extends UiProps
                     with
@@ -1621,7 +1543,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
       
-              // $reportNotAvailableComment
+              $reportNotAvailableComment
               @Props()
               class _\$FooProps extends UiProps with FooPropsMixin {}
       
@@ -1724,7 +1646,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
       
-              // $reportNotAvailableComment
+              $reportNotAvailableComment
               @Props()
               class _\$FooProps extends UiProps with FooPropsMixin {
                 String baz;
@@ -1843,14 +1765,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
   
-          // $reportNotAvailableComment
+          $reportNotAvailableComment
           @Props()
           class _\$FooProps extends ADifferentPropsClass with AMixin, AnotherMixin {
             String foo;
             int bar;
           }
   
-          // $reportNotAvailableComment
+          $reportNotAvailableComment
           @State()
           class _\$FooState extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
             String foo;
@@ -1963,7 +1885,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
       
-              // $reportNotAvailableComment
+              $reportNotAvailableComment
               @Props()
               class _\$FooProps extends ADifferentPropsClass with FooPropsMixin {}
       
@@ -2065,7 +1987,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
       
-              // $reportNotAvailableComment
+              $reportNotAvailableComment
               @Props()
               class _\$FooProps extends ADifferentPropsClass with FooPropsMixin {
                 String baz;
@@ -2159,7 +2081,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   // ignore: undefined_identifier
                   \$Foo;
       
-              // $reportNotAvailableComment
+              $reportNotAvailableComment
               @Props()
               class _\$FooProps extends ADifferentPropsClass with FooPropsMixin {}
       
@@ -2248,7 +2170,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   // ignore: undefined_identifier
                   \$Foo;
       
-              // $reportNotAvailableComment
+              $reportNotAvailableComment
               @Props()
               class _\$FooProps extends ADifferentPropsClass with FooPropsMixin { 
                 String baz;
@@ -2283,4 +2205,137 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
       });
     });
   });
+}
+
+exportLocationsCommentTestHelper({
+  SuggestorTester testSuggestor,
+  ClassToMixinConverter converter,
+  bool shouldTreatAllComponentsAsPrivate,
+  bool isValidFilePath,
+  bool doesCommentExist = false,
+  bool isReportUnavailableComment,
+  int patchCount,
+}) {
+  testSuggestor(
+    expectedPatchCount: patchCount,
+    input: '''
+            @Factory()
+            UiFactory<BarProps> Bar =
+                // ignore: undefined_identifier
+                \$Bar;
+    
+            ${doesCommentExist ? (isReportUnavailableComment ? reportNotAvailableComment : exportLocationsComment([
+            'lib/web_skin_dart.dart/BarProps'
+          ])) : ''}
+            @Props()
+            class BarProps extends ADifferentPropsClass {
+              String foo;
+              int bar;
+            }
+    
+            ${doesCommentExist ? (isReportUnavailableComment ? reportNotAvailableComment : exportLocationsComment([
+            'lib/web_skin_dart.dart/BarState'
+          ])) : ''}
+            @State()
+            class BarState extends ADifferentStateClass {
+              String foo;
+              int bar;
+            }
+    
+            @Component2()
+            class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
+              @override
+              render() {
+                return Dom.ul()(
+                  Dom.li()('Foo: ', props.foo),
+                  Dom.li()('Bar: ', props.bar),
+                );
+              }
+            }
+          ''',
+    expectedOutput: shouldTreatAllComponentsAsPrivate
+        ? r'''
+            @Factory()
+              UiFactory<BarProps> Bar =
+                  // ignore: undefined_identifier
+                  $Bar;
+      
+              @Props()
+              mixin BarPropsMixin on UiProps {
+                String foo;
+                int bar;
+              }
+      
+              // FIXME:
+              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
+              //   2. Fix any analyzer warnings on this class about missing mixins
+              class BarProps = UiProps with ADifferentPropsClass, BarPropsMixin;
+      
+              @State()
+              mixin BarStateMixin on UiState {
+                String foo;
+                int bar;
+              }
+              
+              // FIXME:
+              //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
+              //   2. Fix any analyzer warnings on this class about missing mixins
+              class BarState = UiState with ADifferentStateClass, BarStateMixin;
+      
+              @Component2()
+              class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
+                @override
+                render() {
+                  return Dom.ul()(
+                    Dom.li()('Foo: ', props.foo),
+                    Dom.li()('Bar: ', props.bar),
+                  );
+                }
+              }
+          '''
+        : '''
+            @Factory()
+            UiFactory<BarProps> Bar =
+                // ignore: undefined_identifier
+                \$Bar;
+    
+            ${isValidFilePath ? exportLocationsComment([
+            'lib/web_skin_dart.dart/BarProps'
+          ]) : reportNotAvailableComment}
+            @Props()
+            class BarProps extends ADifferentPropsClass {
+              String foo;
+              int bar;
+            }
+    
+            ${isValidFilePath ? exportLocationsComment([
+            'lib/web_skin_dart.dart/BarState'
+          ]) : reportNotAvailableComment}
+            @State()
+            class BarState extends ADifferentStateClass {
+              String foo;
+              int bar;
+            }
+    
+            @Component2()
+            class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
+              @override
+              render() {
+                return Dom.ul()(
+                  Dom.li()('Foo: ', props.foo),
+                  Dom.li()('Bar: ', props.bar),
+                );
+              }
+            }
+          ''',
+  );
+
+  expect(
+      converter.convertedClassNames,
+      shouldTreatAllComponentsAsPrivate
+          ? {
+              'BarProps': 'BarPropsMixin',
+              'BarState': 'BarStateMixin',
+            }
+          : isEmpty);
 }

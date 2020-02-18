@@ -16,6 +16,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/util.dart';
@@ -26,6 +27,15 @@ import 'boilerplate_constants.dart';
 typedef YieldPatch = void Function(
     int startingOffset, int endingOffset, String replacement);
 
+/// Returns a [SemverHelper] using the file at [path].
+///
+/// If the file at [path] does not exist, the returned [SemverHelper] assumes
+/// all classes passed to [getPublicExportLocations] are public
+/// (see: [SemverHelper.alwaysPublic] constructor).
+///
+/// If [shouldTreatAllComponentsAsPrivate] is true, the returned [SemverHelper]
+/// assumes all classes passed to [getPublicExportLocations] are private
+/// (see: [SemverHelper.alwaysPrivate] constructor).
 Future<SemverHelper> getSemverHelper(String path,
     {bool shouldTreatAllComponentsAsPrivate = false}) async {
   if (shouldTreatAllComponentsAsPrivate) {
@@ -457,4 +467,89 @@ extension IterableAstUtils on Iterable<NamedType> {
       return '${t.name.name}${_typeArgs(t)}';
     }).join('${separator ?? ','} ');
   }
+}
+
+/// Adds [publicExportLocationsComment] to [classNode] or updates an existing comment.
+void addPublicExportLocationsComment(ClassDeclaration classNode,
+    SourceFile sourceFile, SemverHelper semverHelper, YieldPatch yieldPatch) {
+  final existingReportUnavailableCommentToken =
+      getComment(classNode, sourceFile, reportNotAvailableComment, yieldPatch);
+  final existingExportLocationsCommentToken =
+      getComment(classNode, sourceFile, classNotUpdatedComment, yieldPatch);
+  final exportLocationsComment =
+      publicExportLocationsComment(classNode, semverHelper);
+
+  if (hasComment(classNode, sourceFile, exportLocationsComment)) return;
+
+  if (existingReportUnavailableCommentToken != null) {
+    // Replace existing semver report unavailable with new comment.
+    yieldPatch(
+      existingReportUnavailableCommentToken.offset,
+      existingReportUnavailableCommentToken.end,
+      exportLocationsComment,
+    );
+  } else if (existingExportLocationsCommentToken != null) {
+    // Replace public export locations comment with new comment.
+    yieldPatch(
+      existingExportLocationsCommentToken.offset,
+      existingExportLocationsCommentToken.end,
+      exportLocationsComment,
+    );
+  } else {
+    // Add public export locations comment.
+    yieldPatch(
+      classNode.offset,
+      classNode.offset,
+      publicExportLocationsComment(classNode, semverHelper) + '\n',
+    );
+  }
+}
+
+/// Removes [publicExportLocationsComment] from [classNode].
+void removePublicExportLocationsComment(ClassDeclaration classNode,
+    SourceFile sourceFile, SemverHelper semverHelper, YieldPatch yieldPatch) {
+  final existingReportUnavailableCommentToken =
+      getComment(classNode, sourceFile, reportNotAvailableComment, yieldPatch);
+  final existingExportLocationsCommentToken =
+      getComment(classNode, sourceFile, classNotUpdatedComment, yieldPatch);
+
+  // Remove semver report unavailable comment.
+  if (existingReportUnavailableCommentToken != null) {
+    yieldPatch(
+      existingReportUnavailableCommentToken.offset,
+      existingReportUnavailableCommentToken.end,
+      '',
+    );
+  }
+
+  // Remove public export locations comment.
+  if (existingExportLocationsCommentToken != null) {
+    yieldPatch(
+      existingExportLocationsCommentToken.offset,
+      existingExportLocationsCommentToken.end,
+      '',
+    );
+  }
+}
+
+/// Returns AST token for [commentToGet] from the comments above [node].
+///
+/// If [commentToGet] does not exist above [node], returns null.
+Token getComment(AstNode node, SourceFile sourceFile, String commentToGet,
+    YieldPatch yieldPatch) {
+  final line = sourceFile.getLine(node.offset);
+
+  // Find the comment associated with this line.
+  String commentText;
+  for (var comment in allComments(node.root.beginToken)) {
+    final commentLine = sourceFile.getLine(comment.end);
+    if (commentLine == line ||
+        commentLine == line + 1 ||
+        commentLine == line - 1) {
+      commentText = sourceFile.getText(comment.offset, comment.end);
+      if (commentText.contains(commentToGet)) return comment;
+      break;
+    }
+  }
+  return null;
 }

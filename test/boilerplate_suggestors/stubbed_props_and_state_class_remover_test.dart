@@ -231,7 +231,7 @@ void StubbedPropsAndStateClassRemoverTestHelper({
           // ignore: mixin_of_non_class, undefined_class
           ${isValidFilePath ? exportLocationsComment([
                   'lib/web_skin_dart.dart/BarProps'
-                ]) : '// $reportNotAvailableComment'}
+                ]) : reportNotAvailableComment}
           class BarProps extends _\$BarProps with _\$BarPropsAccessorsMixin {
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
             static const PropsMeta meta = _\$metaForBarProps;
@@ -241,7 +241,7 @@ void StubbedPropsAndStateClassRemoverTestHelper({
           // ignore: mixin_of_non_class, undefined_class
           ${isValidFilePath ? exportLocationsComment([
                   'lib/web_skin_dart.dart/BarState'
-                ]) : '// $reportNotAvailableComment'}
+                ]) : reportNotAvailableComment}
           class BarState extends _\$BarState with _\$BarStateAccessorsMixin {
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
             static const StateMeta meta = _\$metaForBarState;
@@ -364,7 +364,7 @@ void StubbedPropsAndStateClassRemoverTestHelper({
           
           // AF-3369 This will be removed once the transition to Dart 2 is complete.
           // ignore: mixin_of_non_class, undefined_class
-          // $reportNotAvailableComment
+          $reportNotAvailableComment
           class _FooProps extends _\$_FooProps with _\$_FooPropsAccessorsMixin {
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
             static const PropsMeta meta = _\$metaFor_FooProps;
@@ -372,7 +372,7 @@ void StubbedPropsAndStateClassRemoverTestHelper({
           
           // AF-3369 This will be removed once the transition to Dart 2 is complete.
           // ignore: mixin_of_non_class, undefined_class
-          // $reportNotAvailableComment
+          $reportNotAvailableComment
           class _FooState extends _\$_FooState with _\$_FooStateAccessorsMixin {
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
             static const StateMeta meta = _\$metaFor_FooState;
@@ -488,7 +488,7 @@ void StubbedPropsAndStateClassRemoverTestHelper({
           
           // AF-3369 This will be removed once the transition to Dart 2 is complete.
           // ignore: mixin_of_non_class, undefined_class
-          // $reportNotAvailableComment
+          $reportNotAvailableComment
           class FooProps extends _\$FooProps with _\$FooPropsAccessorsMixin {
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
             static const PropsMeta meta = _\$metaForFooProps;
@@ -496,7 +496,7 @@ void StubbedPropsAndStateClassRemoverTestHelper({
           
           // AF-3369 This will be removed once the transition to Dart 2 is complete.
           // ignore: mixin_of_non_class, undefined_class
-          // $reportNotAvailableComment
+          $reportNotAvailableComment
           class FooState extends _\$FooState with _\$FooStateAccessorsMixin {
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
             static const StateMeta meta = _\$metaForFooState;

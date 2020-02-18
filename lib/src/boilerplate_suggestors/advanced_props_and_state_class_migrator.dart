@@ -41,17 +41,15 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     super.visitClassDeclaration(node);
 
     if (shouldAddPublicExportLocationsAdvancedClassComment(
-            node, semverHelper) &&
-        !hasComment(node, sourceFile,
-            publicExportLocationsComment(node, semverHelper))) {
-      yieldPatch(
-        node.metadata.first.offset,
-        node.metadata.first.offset,
-        publicExportLocationsComment(node, semverHelper) + '\n',
-      );
+        node, semverHelper)) {
+      addPublicExportLocationsComment(
+          node, sourceFile, semverHelper, yieldPatch);
     }
 
     if (!shouldMigrateAdvancedPropsAndStateClass(node, semverHelper)) return;
+
+    removePublicExportLocationsComment(
+        node, sourceFile, semverHelper, yieldPatch);
 
     final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
     final hasMixins = node.withClause != null;

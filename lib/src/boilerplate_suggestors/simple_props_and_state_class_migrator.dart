@@ -39,17 +39,15 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (shouldAddPublicExportLocationsSimpleClassComment(node, semverHelper) &&
-        !hasComment(node, sourceFile,
-            publicExportLocationsComment(node, semverHelper))) {
-      yieldPatch(
-        node.metadata.first.offset,
-        node.metadata.first.offset,
-        publicExportLocationsComment(node, semverHelper) + '\n',
-      );
+    if (shouldAddPublicExportLocationsSimpleClassComment(node, semverHelper)) {
+      addPublicExportLocationsComment(
+          node, sourceFile, semverHelper, yieldPatch);
     }
 
     if (!shouldMigrateSimplePropsAndStateClass(node, semverHelper)) return;
+
+    removePublicExportLocationsComment(
+        node, sourceFile, semverHelper, yieldPatch);
 
     converter.migrate(node, yieldPatch, sourceFile: sourceFile);
   }
