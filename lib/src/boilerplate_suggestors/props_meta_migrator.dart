@@ -20,7 +20,7 @@ import 'package:over_react_codemod/src/component2_suggestors/component2_utilitie
 import 'package:over_react_codemod/src/util.dart';
 
 /// Suggestor that looks for `meta` getter access on props classes found within
-/// [convertedClassNames] as a result of being converted to the new
+/// [visitedClassNames] as a result of being converted to the new
 /// boilerplate via `SimplePropsAndStateClassMigrator` or `AdvancedPropsAndStateClassMigrator`, and converts
 /// them to the way meta is accessed using the new boilerplate.
 ///
@@ -53,7 +53,7 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
 
     if (node.identifier.name == 'meta') {
       final propsClassWithMetaWasConverted =
-          converter.convertedClassNames.containsKey(node.prefix.name);
+          converter.classWasMigrated(node.prefix.name);
       // If the component we're visiting does not extend from `UiComponent2`, then `propsMeta` will not exist.
       final componentWithMetaUsageIsComponent2 =
           extendsComponent2(getContainingClass(node));
@@ -63,7 +63,7 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
         yieldPatch(
           node.prefix.offset,
           node.identifier.end,
-          'propsMeta.forMixin(${converter.convertedClassNames[node.prefix.name]})',
+          'propsMeta.forMixin(${converter.visitedClassNames[node.prefix.name]})',
         );
 
         if (node.parent is TypedLiteral) {

@@ -14,6 +14,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
 import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/util.dart';
@@ -36,6 +37,15 @@ AstNode getAnnotationNode(ClassDeclaration classNode, String annotationName) {
       orElse: () => null);
 }
 
+/// Whether the provided [className] is considered a "reserved" (non-custom) base class name to extend from or implement.
+bool isReservedBaseClass(String className) {
+  return [
+    'UiProps',
+    'UiState',
+    'FluxUiProps',
+  ].contains(className);
+}
+
 /// A simple evaluation of the annotation(s) of the [classNode]
 /// to verify it is either a `@PropsMixin()` or `@StateMixin`.
 bool isAPropsOrStateMixin(ClassDeclaration classNode) =>
@@ -56,11 +66,34 @@ bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
     isAPropsOrStateMixin(classNode);
 
 /// Whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
-bool shouldMigratePropsAndStateClass(ClassDeclaration node) {
-  return isAssociatedWithComponent2(node) &&
-      isAPropsOrStateClass(node) &&
-      // Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
-      !isPublic(node);
+MigrationDecision shouldMigratePropsAndStateClass(ClassDeclaration node) {
+  final publicNodeName = stripPrivateGeneratedPrefix(node.name.name);
+  const reRunMigrationScriptInstructions =
+      'pub run over_react_codemod:boilerplate_upgrade';
+  if (!isAPropsOrStateClass(node)) {
+    return MigrationDecision(false);
+  } else if (isPublic(node)) {
+    return MigrationDecision(false,
+        reason: getPublicApiReasonComment(publicNodeName));
+  } else if (!isAssociatedWithComponent2(node)) {
+    if (getComponentNodeInRoot(node)?.name?.name == null) {
+      return MigrationDecision(false);
+    }
+
+    return MigrationDecision(
+      false,
+      reason: '''
+      // FIXME: `$publicNodeName` could not be auto-migrated to the new over_react boilerplate 
+      // because `${getComponentNodeInRoot(node).name.name}` does not extend from `react.Component2`.
+      // 
+      // Once you have upgraded the component, you can remove this FIXME comment and 
+      // re-run the boilerplate migration script:
+      // $reRunMigrationScriptInstructions
+      ''',
+    );
+  }
+
+  return MigrationDecision(true);
 }
 
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
@@ -108,8 +141,7 @@ bool isSimplePropsOrStateClass(ClassDeclaration classNode) {
 
   final superClass = classNode.extendsClause?.superclass?.name?.name;
 
-  if (superClass == null ||
-      superClass != 'UiProps' && superClass != 'UiState') {
+  if (superClass == null || !extendsFromUiPropsOrUiState(classNode)) {
     return false;
   }
   if (classNode.withClause != null) return false;
@@ -146,7 +178,7 @@ ClassOrMixinDeclaration getDupeClassInSameRoot(
 /// that has the same name as [className] when appended with "Mixin".
 String getNameOfDupeClass(
     String className, CompilationUnit root, ClassToMixinConverter converter) {
-  final possibleDupeClasses = converter.convertedClassNames.keys;
+  final possibleDupeClasses = converter.visitedClassNames.keys;
   String nameOfDupeClass;
   for (var possibleDupeClassName in possibleDupeClasses) {
     if (possibleDupeClassName == '${className}Mixin') {
@@ -160,17 +192,36 @@ String getNameOfDupeClass(
 
 /// A class used to handle the conversion of props / state classes to mixins.
 ///
-/// Should only be constructed once to initialize the value of [convertedClassNames].
+/// Should only be constructed once to initialize the value of [visitedClassNames].
 ///
 /// Then [migrate] should be called on that instance each time a class is visited and needs to be converted to a mixin.
 class ClassToMixinConverter {
-  ClassToMixinConverter() : _convertedClassNames = <String, String>{};
+  ClassToMixinConverter() : _visitedClassNames = <String, String>{};
 
-  /// A map of props / state classes that have been migrated to the new boilerplate via [migrate].
+  /// A map of props / state class names that have been visited in an attempt to [migrate].
   ///
-  /// The keys of the map are the original class names, with the values representing the new mixin names.
-  Map<String, String> get convertedClassNames => _convertedClassNames;
-  Map<String, String> _convertedClassNames;
+  /// The keys represent the names of all classes that were visited in an attempt to migrate.
+  ///
+  /// * If the value is non-null, it represents the name of mixin that should be used moving forward.
+  /// * If the value is null, the class was unable to be converted.
+  Map<String, String> get visitedClassNames => _visitedClassNames;
+  Map<String, String> _visitedClassNames;
+
+  /// Whether the provided [className] was migrated as a result of [migrate] being called.
+  bool classWasMigrated(String className) =>
+      visitedClassNames[className] != null;
+
+  /// Whether the provided [className] was migrated as a result of [migrate] being called.
+  bool classWasVisited(String className) =>
+      visitedClassNames.containsKey(className);
+
+  /// Adds the name of the provided [node] as a key within [visitedClassNames] if it is a props or state class.
+  void recordVisit(ClassDeclaration node) {
+    if (!isAPropsOrStateClass(node)) return;
+
+    _visitedClassNames.putIfAbsent(
+        stripPrivateGeneratedPrefix(node.name.name), () => null);
+  }
 
   /// Used to switch a props/state class, or a `@PropsMixin()`/`@StateMixin()` class to a mixin.
   ///
@@ -213,14 +264,62 @@ class ClassToMixinConverter {
   /// }
   /// ```
   ///
-  /// When a class is migrated, it gets added to [convertedClassNames]
+  /// When a class is migrated, it gets added to [visitedClassNames]
   /// so that suggestors that come after the suggestor that called this function - can know
   /// whether to yield a patch based on that information.
-  void migrate(ClassDeclaration node, YieldPatch yieldPatch,
-      {bool shouldAddMixinToName = false,
-      bool shouldSwapParentClass = false,
-      SourceFile sourceFile}) {
+  void migrate(
+    ClassDeclaration node,
+    YieldPatch yieldPatch, {
+    bool shouldAddMixinToName = false,
+    bool shouldSwapParentClass = false,
+    bool convertClassesWithExternalSuperclass = false,
+    SourceFile sourceFile,
+  }) {
+    // ---------------------------------------------------------------------------------------
+    // [1] If we are migrating an advanced props class that extends from a superclass coming
+    //     from an external lib, that means that:
+    //
+    //      1. The `AdvancedPropsAndStateClassMigrator` has already been run once, resulting in the
+    //         "FIX ME" comment regarding the use of external superclasses / mixins being added to the class declaration.
+    //      2. During this second run of the migrator, the consumer has
+    //         set the `--convert-classes-with-external-superclasses` CLI flag.
+    //      3. A new "FIX ME" comment will be added to the concrete class via `AdvancedPropsAndStateClassMigrator`
+    //         which will include instructions on how to complete the migration by replacing the deprecated
+    //         external class / mixins.
+    //      4. The "FIX ME" comment mentioned above in item 1 should now be removed since it will be positioned
+    //         above the new mixin created by this `migrate` method - which will result in inaccurate instructions
+    //         once the migration is completed.
+    // ---------------------------------------------------------------------------------------
+
     final originalPublicClassName = stripPrivateGeneratedPrefix(node.name.name);
+    final commentsToRemove = <String>[];
+
+    final mixinNames = node.withClause?.mixinTypes
+            ?.joinConvertedClassesByName(
+                converter: this, sourceFile: sourceFile)
+            ?.split(', ') ??
+        [];
+    final migratingAdvancedClassWithExternalMixins =
+        convertClassesWithExternalSuperclass &&
+            !mixinNames.every(classWasVisited);
+    if (migratingAdvancedClassWithExternalMixins) {
+      // ----- [1] ----- //
+      commentsToRemove.add(getExternalSuperclassOrMixinReasonComment(
+          originalPublicClassName, mixinNames,
+          mixinsAreExternal: true));
+    }
+
+    final migratingAdvancedClassWithExternalSuperclass =
+        shouldSwapParentClass && convertClassesWithExternalSuperclass;
+    if (migratingAdvancedClassWithExternalSuperclass) {
+      // ----- [1] ----- //
+      commentsToRemove.add(getExternalSuperclassOrMixinReasonComment(
+          originalPublicClassName, [node.extendsClause.superclass.name.name]));
+    }
+
+    if (commentsToRemove.isNotEmpty) {
+      removeCommentFromNode(node, commentsToRemove.join('//\n'), yieldPatch);
+    }
 
     if (shouldAddMixinToName) {
       // Check to make sure we're not creating a duplicate mixin
@@ -230,7 +329,7 @@ class ClassToMixinConverter {
         // Delete the class since a mixin with the same name already exists,
         // or the class has no members of its own.
         yieldPatch(node.offset, node.end, '');
-        convertedClassNames[originalPublicClassName] = originalPublicClassName;
+        _visitedClassNames[originalPublicClassName] = originalPublicClassName;
         return;
       }
     }
@@ -308,12 +407,12 @@ class ClassToMixinConverter {
       }
     }
 
-    convertedClassNames[originalPublicClassName] = newMixinName;
+    _visitedClassNames[originalPublicClassName] = newMixinName;
   }
 
   @visibleForTesting
-  void setConvertedClassNames(Map<String, String> mapOfConvertedClassNames) =>
-      _convertedClassNames = mapOfConvertedClassNames;
+  void setVisitedClassNames(Map<String, String> mapOfConvertedClassNames) =>
+      _visitedClassNames = mapOfConvertedClassNames;
 }
 
 /// Returns the name of the props class for a given [factoryDeclaration].
@@ -328,12 +427,11 @@ String getPropsClassNameFromFactoryDeclaration(
 }
 
 /// Returns the name of the mixin that the [originalClassName] was converted to, or the [originalClassName]
-/// if no matching key is found within [ClassToMixinConverter.convertedClassNames] on the provided [converter] instance.
+/// if no matching key is found within [ClassToMixinConverter.visitedClassNames] on the provided [converter] instance.
 String getConvertedClassMixinName(
     String originalClassName, ClassToMixinConverter converter) {
   const reservedBaseClassNames = {
     'FluxUiProps': 'FluxUiPropsMixin',
-    'BuiltReduxUiProps': 'BuiltReduxUiPropsMixin',
   };
 
   // If it is a "reserved" base class that the consumer doesn't control / won't be converted as
@@ -342,7 +440,7 @@ String getConvertedClassMixinName(
     return reservedBaseClassNames[originalClassName];
   }
 
-  return converter.convertedClassNames[originalClassName] ?? originalClassName;
+  return converter.visitedClassNames[originalClassName] ?? originalClassName;
 }
 
 extension IterableAstUtils on Iterable<NamedType> {
@@ -352,30 +450,40 @@ extension IterableAstUtils on Iterable<NamedType> {
   /// 1. A non-generated _(no `$` prefix)_ mixin / class
   /// 2. A generated mixin name that has not been converted by a migrator
   ///     * The `// ignore` comments will be preserved in this case
-  String joinConvertedClassesByName(
-      {ClassToMixinConverter converter,
-      SourceFile sourceFile,
-      String separator}) {
-    bool _mixinHasBeenConverted(NamedType t) => converter.convertedClassNames
-        .containsKey(t.name.name.replaceFirst('\$', ''));
+  String joinConvertedClassesByName({
+    ClassToMixinConverter converter,
+    SourceFile sourceFile,
+    String separator,
+    bool includeGenericParameters = true,
+    bool includeComments = true,
+    bool includePrivateGeneratedClassNames = true,
+  }) {
+    bool _mixinHasBeenConverted(NamedType t) =>
+        converter.classWasMigrated(t.name.name.replaceFirst('\$', ''));
 
     bool _mixinNameIsOldGeneratedBoilerplate(NamedType t) =>
         t.name.name.startsWith('\$');
 
-    String _typeArgs(NamedType t) => '${t.typeArguments ?? ''}';
+    String _typeArgs(NamedType t) =>
+        includeGenericParameters ? '${t.typeArguments ?? ''}' : '';
 
     return where((t) {
       if (converter == null) return true;
-      return !_mixinNameIsOldGeneratedBoilerplate(t) ||
-          !_mixinHasBeenConverted(t);
+      if (includePrivateGeneratedClassNames) {
+        return !_mixinNameIsOldGeneratedBoilerplate(t) ||
+            !_mixinHasBeenConverted(t);
+      } else {
+        return !_mixinNameIsOldGeneratedBoilerplate(t);
+      }
     }).map((t) {
       if (converter != null &&
           sourceFile != null &&
           _mixinNameIsOldGeneratedBoilerplate(t) &&
           !_mixinHasBeenConverted(t)) {
         // Preserve ignore comments for generated, unconverted props mixins
-        if (hasComment(
-            t, sourceFile, 'ignore: mixin_of_non_class, undefined_class')) {
+        if (includeComments &&
+            hasComment(
+                t, sourceFile, 'ignore: mixin_of_non_class, undefined_class')) {
           return '// ignore: mixin_of_non_class, undefined_class\n${getConvertedClassMixinName(t.name.name, converter)}${_typeArgs(t)}';
         }
       }

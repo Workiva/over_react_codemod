@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:test/test.dart';
 
@@ -25,14 +26,15 @@ main() {
         getSuggestorTester(SimplePropsAndStateClassMigrator(converter));
 
     tearDown(() {
-      converter.setConvertedClassNames({});
+      converter.setVisitedClassNames({});
+      isPublicForTest = false;
     });
 
-    group('does not run when', () {
+    group('does not migrate when', () {
       test('its an empty file', () {
         testSuggestor(expectedPatchCount: 0, input: '');
 
-        expect(converter.convertedClassNames, isEmpty);
+        expect(converter.visitedClassNames, isEmpty);
       });
 
       test('there are no matches', () {
@@ -45,12 +47,12 @@ main() {
       ''',
         );
 
-        expect(converter.convertedClassNames, isEmpty);
+        expect(converter.visitedClassNames, isEmpty);
       });
 
-      test('the component is not Component2', () {
+      test('the component is not Component2, but does add a FIXME comment', () {
         testSuggestor(
-          expectedPatchCount: 0,
+          expectedPatchCount: 1,
           input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
@@ -64,7 +66,36 @@ main() {
         }
 
         @Component()
-        class FooComponent extends UiComponent<FooProps, FooState> {
+        class FooComponent extends UiComponent<FooProps> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+          expectedOutput: r'''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+
+        // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
+        // because `FooComponent` does not extend from `react.Component2`.
+        // 
+        // Once you have upgraded the component, you can remove this FIXME comment and 
+        // re-run the boilerplate migration script:
+        // pub run over_react_codemod:boilerplate_upgrade
+        @Props()
+        class _$FooProps extends UiProps {
+          String foo;
+          int bar;
+        }
+
+        @Component()
+        class FooComponent extends UiComponent<FooProps> {
           @override
           render() {
             return Dom.ul()(
@@ -76,7 +107,9 @@ main() {
       ''',
         );
 
-        expect(converter.convertedClassNames, isEmpty);
+        expect(converter.visitedClassNames, {
+          'FooProps': null,
+        });
       });
 
       test('the class is a PropsMixin', () {
@@ -113,10 +146,85 @@ main() {
       ''',
         );
 
-        expect(converter.convertedClassNames, isEmpty);
+        expect(converter.visitedClassNames, {
+          'FooProps': null,
+        });
       });
 
-      // TODO add a test for when the class is publicly exported
+      test('the class is publicly exported, but does add a FIXME comment', () {
+        isPublicForTest = true;
+
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: r'''
+          @Factory()
+          UiFactory<FooProps> Foo =
+              // ignore: undefined_identifier
+              $Foo;
+  
+          @Props()
+          class _$FooProps extends UiProps {
+            String foo;
+            int bar;
+          }
+  
+          @Component()
+          class FooComponent extends UiComponent2<FooProps> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+      ''',
+          expectedOutput: '''
+          @Factory()
+          UiFactory<FooProps> Foo =
+              // ignore: undefined_identifier
+              \$Foo;
+  
+          // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
+          // because doing so would be a breaking change since `FooProps` is exported from a 
+          // library in this repo.
+          //
+          // To complete the migration, you should: 
+          //   1. Deprecate `FooProps`.
+          //   2. Make a copy of it, renaming it something like `FooPropsV2`.
+          //   3. Replace all your current usage of the deprecated `FooProps` with `FooPropsV2`.
+          //   4. Add a `hide FooPropsV2` clause to all places where it is exported, and then run:
+          //        pub run over_react_codemod:boilerplate_upgrade
+          //   5a. If `FooProps` had consumers outside this repo, and it was intentionally made public,
+          //       remove the `hide` clause you added in step 4 so that the new mixin created from `FooPropsV2` 
+          //       will be a viable replacement for `FooProps`.
+          //   5b. If `FooProps` had no consumers outside this repo, and you have no reason to make the new
+          //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
+          //       concrete class and the newly created mixin.
+          //   6. Remove this FIXME comment.
+          @Props()
+          class _\$FooProps extends UiProps {
+            String foo;
+            int bar;
+          }
+  
+          @Component()
+          class FooComponent extends UiComponent2<FooProps> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+      ''',
+        );
+
+        expect(converter.visitedClassNames, {
+          'FooProps': null,
+        });
+      });
 
       group('the classes are not simple', () {
         test('and there are both a props and a state class', () {
@@ -153,7 +261,10 @@ main() {
       ''',
           );
 
-          expect(converter.convertedClassNames, isEmpty);
+          expect(converter.visitedClassNames, {
+            'FooProps': null,
+            'FooState': null,
+          });
         });
 
         test('and there is just a props class', () {
@@ -184,12 +295,14 @@ main() {
       ''',
           );
 
-          expect(converter.convertedClassNames, isEmpty);
+          expect(converter.visitedClassNames, {
+            'FooProps': null,
+          });
         });
       });
     });
 
-    group('runs when the classes are simple', () {
+    group('migrates when the classes are simple', () {
       test('and there are both a props and a state class', () {
         testSuggestor(
           expectedPatchCount: 6,
@@ -253,7 +366,7 @@ main() {
         ''',
         );
 
-        expect(converter.convertedClassNames, {
+        expect(converter.visitedClassNames, {
           'FooProps': 'FooProps',
           'FooState': 'FooState',
         });
@@ -310,7 +423,7 @@ main() {
         ''',
         );
 
-        expect(converter.convertedClassNames, {
+        expect(converter.visitedClassNames, {
           'FooProps': 'FooProps',
         });
       });
@@ -378,7 +491,7 @@ main() {
           ''',
         );
 
-        expect(converter.convertedClassNames, {
+        expect(converter.visitedClassNames, {
           'FooProps': 'FooProps',
           'FooState': 'FooState',
         });

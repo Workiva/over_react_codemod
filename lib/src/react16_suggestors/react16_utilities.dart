@@ -15,12 +15,14 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:source_span/source_span.dart';
 
 import 'constants.dart';
+
+export 'package:over_react_codemod/src/util.dart' show allComments;
 
 /// Returns whether or not the source file contains the React 16 validation
 /// required comment.
@@ -93,24 +95,6 @@ SourceSpan nodeCommentSpan(AnnotatedNode node, SourceFile sourceFile) {
       node.beginToken.offset,
       node.metadata?.beginToken?.offset ??
           node.firstTokenAfterCommentAndMetadata.offset);
-}
-
-/// Returns an iterable of all the comments from [beginToken] to the end of the
-/// file.
-///
-/// Comments are part of the normal stream, and need to be accessed via
-/// [Token.precedingComments], so it's difficult to iterate over them without
-/// this method.
-Iterable<Token> allComments(Token beginToken) sync* {
-  var currentToken = beginToken;
-  while (!currentToken.isEof) {
-    var currentComment = currentToken.precedingComments;
-    while (currentComment != null) {
-      yield currentComment;
-      currentComment = currentComment.next;
-    }
-    currentToken = currentToken.next;
-  }
 }
 
 /// Returns whether or not there is a React 16 upgrade comment within a

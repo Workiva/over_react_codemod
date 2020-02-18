@@ -24,12 +24,12 @@ main() {
     final testSuggestor = getSuggestorTester(PropsMetaMigrator(converter));
 
     tearDown(() {
-      converter.setConvertedClassNames({});
+      converter.setVisitedClassNames({});
     });
 
     group('does not perform a migration', () {
       test('when it encounters an empty file', () {
-        converter.setConvertedClassNames({
+        converter.setVisitedClassNames({
           'FooProps': 'FooProps',
         });
 
@@ -37,7 +37,7 @@ main() {
       });
 
       test('when there are no `PropsClass.meta` identifiers', () {
-        converter.setConvertedClassNames({
+        converter.setVisitedClassNames({
           'FooProps': 'FooProps',
         });
 
@@ -56,7 +56,7 @@ main() {
         'performs a migration when there are one or more `PropsClass.meta` identifiers',
         () {
       test('', () {
-        converter.setConvertedClassNames({
+        converter.setVisitedClassNames({
           'FooProps': 'FooProps',
           'BarProps': 'BarPropsMixin',
         });
@@ -127,7 +127,7 @@ main() {
       test(
           'unless the props class is not found within `propsAndStateClassNamesConvertedToNewBoilerplate`',
           () {
-        converter.setConvertedClassNames({
+        converter.setVisitedClassNames({
           'BarProps': 'BarProps',
         });
 
@@ -156,7 +156,7 @@ main() {
       test(
           'unless component class containing the meta usage is not @Component2()',
           () {
-        converter.setConvertedClassNames({
+        converter.setVisitedClassNames({
           'FooProps': 'FooProps',
           'BarProps': 'BarPropsMixin',
         });

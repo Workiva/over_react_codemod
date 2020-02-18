@@ -24,7 +24,7 @@ main() {
     final testSuggestor = getSuggestorTester(PropsMixinMigrator(converter));
 
     tearDown(() {
-      converter.setConvertedClassNames({});
+      converter.setVisitedClassNames({});
     });
 
     group('does not perform a migration', () {
@@ -75,7 +75,7 @@ main() {
             ''',
             );
 
-            expect(converter.convertedClassNames, {
+            expect(converter.visitedClassNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -106,7 +106,7 @@ main() {
             ''',
             );
 
-            expect(converter.convertedClassNames, {
+            expect(converter.visitedClassNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -137,7 +137,7 @@ main() {
             ''',
             );
 
-            expect(converter.convertedClassNames, {
+            expect(converter.visitedClassNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -170,7 +170,7 @@ main() {
             ''',
             );
 
-            expect(converter.convertedClassNames, {
+            expect(converter.visitedClassNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -200,7 +200,7 @@ main() {
             ''',
             );
 
-            expect(converter.convertedClassNames, {
+            expect(converter.visitedClassNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:test/test.dart';
 
@@ -19,8 +20,9 @@ import '../util.dart';
 
 main() {
   group('StubbedPropsAndStateClassRemover', () {
+    final converter = ClassToMixinConverter();
     final testSuggestor = getSuggestorTester(
-      StubbedPropsAndStateClassRemover(),
+      StubbedPropsAndStateClassRemover(converter),
     );
 
     group('does not perform a migration', () {
