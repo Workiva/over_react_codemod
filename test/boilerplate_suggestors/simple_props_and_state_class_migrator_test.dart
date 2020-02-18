@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:test/test.dart';
 

@@ -270,12 +270,11 @@ void main() {
             // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
             // being set - which allows conversion of external superclasses
             testSuggestor(convertClassesWithExternalSuperclass: true)(
-              expectedPatchCount: 7,
+              expectedPatchCount: 8,
               input: expectedOutputWithExternalSuperclassReasonComment,
               expectedOutput: '''
               $factoryDecl
   
-              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
@@ -291,6 +290,7 @@ void main() {
               //
               //      If it is not deprecated, something most likely went wrong during the migration of the 
               //      library that contains it. 
+              @Props()
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
               $componentDecl
@@ -317,7 +317,7 @@ void main() {
           // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
           // being set - which allows conversion of external superclasses
           testSuggestor(convertClassesWithExternalSuperclass: true)(
-            expectedPatchCount: 6,
+            expectedPatchCount: 7,
             input: '''
             $factoryDecl
 
@@ -332,7 +332,6 @@ void main() {
             expectedOutput: '''
               $factoryDecl
   
-              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
@@ -348,6 +347,7 @@ void main() {
               //
               //      If it is not deprecated, something most likely went wrong during the migration of the 
               //      library that contains it. 
+              @Props()
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
               $componentDecl
@@ -454,12 +454,11 @@ void main() {
             // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
             // being set - which allows conversion of external superclasses
             testSuggestor(convertClassesWithExternalSuperclass: true)(
-              expectedPatchCount: 8,
+              expectedPatchCount: 9,
               input: expectedOutputWithExternalSuperclassReasonComment,
               expectedOutput: '''
               $factoryDecl
   
-              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
@@ -475,6 +474,7 @@ void main() {
               //
               //      If they are not deprecated, something most likely went wrong during the migration of the 
               //      library that contains them. 
+              @Props()
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
               $componentDecl
@@ -501,12 +501,11 @@ void main() {
           // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
           // being set - which allows conversion of external superclasses
           testSuggestor(convertClassesWithExternalSuperclass: true)(
-            expectedPatchCount: 7,
+            expectedPatchCount: 8,
             input: input,
             expectedOutput: '''
               $factoryDecl
   
-              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
@@ -522,6 +521,7 @@ void main() {
               //
               //      If they are not deprecated, something most likely went wrong during the migration of the 
               //      library that contains them. 
+              @Props()
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
               $componentDecl
@@ -609,12 +609,11 @@ void main() {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             },
           )(
-            expectedPatchCount: 7,
+            expectedPatchCount: 8,
             input: expectedOutputWithUnMigratedSuperclassReasonComment,
             expectedOutput: '''
             $factoryDecl
             
-            @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
               int bar;
@@ -623,6 +622,7 @@ void main() {
             // FIXME:
             //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins.
+            @Props()
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
     
             $componentDecl
@@ -710,12 +710,11 @@ void main() {
               // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
               // being set - which allows conversion of external mixins
               testSuggestor(convertClassesWithExternalSuperclass: true)(
-                expectedPatchCount: 7,
+                expectedPatchCount: 8,
                 input: expectedOutputWithExternalMixinReasonComment,
                 expectedOutput: '''
                 $factoryDecl
     
-                @Props()
                 mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
@@ -729,6 +728,7 @@ void main() {
                 //
                 //      If it is not deprecated, something most likely went wrong during the migration of the 
                 //      library that contains it. 
+                @Props()
                 class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, $externalMixinName;
     
                 $componentDecl
@@ -818,12 +818,11 @@ void main() {
               // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
               // being set - which allows conversion of external mixins
               testSuggestor(convertClassesWithExternalSuperclass: true)(
-                expectedPatchCount: 7,
+                expectedPatchCount: 8,
                 input: expectedOutputWithExternalMixinReasonComment,
                 expectedOutput: '''
                 $factoryDecl
     
-                @Props()
                 mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
@@ -837,6 +836,7 @@ void main() {
                 //
                 //      If they are not deprecated, something most likely went wrong during the migration of the 
                 //      library that contains them. 
+                @Props()
                 class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, $externalMixinNames;
     
                 $componentDecl
@@ -882,7 +882,6 @@ void main() {
         const expectedOutput = '''
             $factoryDecl
     
-            @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
               int bar;
@@ -891,9 +890,9 @@ void main() {
             // FIXME:
             //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins.
+            @Props()
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
     
-            @State()
             mixin ${publicStateClassName}Mixin on UiState {
               String foo;
               int bar;
@@ -902,6 +901,7 @@ void main() {
             // FIXME:
             //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins.
+            @State()
             class $publicStateClassName = UiState with ADifferentStateClassMixin, ${publicStateClassName}Mixin;
     
             $statefulComponentDecl
@@ -915,7 +915,7 @@ void main() {
               'ADifferentStateClass': 'ADifferentStateClassMixin',
             },
           )(
-            expectedPatchCount: 12,
+            expectedPatchCount: 14,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -943,7 +943,7 @@ void main() {
               'ADifferentStateClass': 'ADifferentStateClassMixin',
             },
           )(
-            expectedPatchCount: 12,
+            expectedPatchCount: 14,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -981,20 +981,20 @@ void main() {
         const expectedOutput = '''
             $factoryDecl
     
-            @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
               int bar;
             }
-    
+
+            @Props()
             class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, AMixin, AnotherMixin;
-    
-            @State()
+
             mixin ${publicStateClassName}Mixin on UiState {
               String foo;
               int bar;
             }
     
+            @State()
             class $publicStateClassName = UiState with ${publicStateClassName}Mixin, AStateMixin, AnotherStateMixin;
     
             $statefulComponentDecl
@@ -1010,7 +1010,7 @@ void main() {
               'AnotherStateMixin': 'AnotherStateMixin',
             },
           )(
-            expectedPatchCount: 12,
+            expectedPatchCount: 14,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -1037,7 +1037,7 @@ void main() {
               'AnotherStateMixin': 'AnotherStateMixin',
             },
           )(
-            expectedPatchCount: 12,
+            expectedPatchCount: 14,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -1078,17 +1078,17 @@ void main() {
                 ''';
 
             testSuggestor()(
-              expectedPatchCount: 6,
+              expectedPatchCount: 7,
               input: input,
               expectedOutput: '''
               $factoryDecl
   
-              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
   
+              @Props()
               class $publicPropsClassName = UiProps 
                   with FluxUiPropsMixin<SomeActions, SomeStore>, ${publicPropsClassName}Mixin;
   
@@ -1135,12 +1135,12 @@ void main() {
             const expectedOutput = '''
                 $factoryDecl
     
-                @Props()
                 mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
                 }
-    
+
+                @Props()    
                 class $publicPropsClassName = UiProps 
                     with 
                         FluxUiPropsMixin<SomeActions, SomeStore>, 
@@ -1163,7 +1163,7 @@ void main() {
               testSuggestor(visitedClassNames: {
                 'SomePropsMixin': 'SomePropsMixin',
               })(
-                expectedPatchCount: 7,
+                expectedPatchCount: 8,
                 input: input,
                 expectedOutput: expectedOutput,
               );
@@ -1181,7 +1181,7 @@ void main() {
               testSuggestor(visitedClassNames: {
                 'SomePropsMixin': 'SomePropsMixin',
               })(
-                expectedPatchCount: 7,
+                expectedPatchCount: 8,
                 input: input,
                 expectedOutput: expectedOutput,
               );
@@ -1199,7 +1199,7 @@ void main() {
             testSuggestor(visitedClassNames: {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             })(
-              expectedPatchCount: 6,
+              expectedPatchCount: 7,
               input: '''
               $factoryDecl
 
@@ -1214,7 +1214,6 @@ void main() {
               expectedOutput: '''
               $factoryDecl
 
-              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
@@ -1223,6 +1222,7 @@ void main() {
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
+              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               $componentDecl
@@ -1266,10 +1266,9 @@ void main() {
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
               })(
-                expectedPatchCount: 8,
+                expectedPatchCount: 9,
                 input: input,
                 expectedOutput: r'''
-                @AbstractProps()
                 mixin AbstractBlockPropsMixin on UiProps implements BlockClassHelperMapView {
                   String foo;
                   int bar;
@@ -1278,6 +1277,7 @@ void main() {
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
+                @AbstractProps()
                 abstract class AbstractBlockProps implements
                         SomeAbstractPropsClass,
                         AbstractBlockPropsMixin,
@@ -1333,6 +1333,7 @@ void main() {
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
+                @AbstractProps()
                 abstract class AbstractBlockProps implements
                         SomeAbstractPropsClass,
                         LayoutPropsMixin,
@@ -1360,7 +1361,7 @@ void main() {
               testSuggestor(visitedClassNames: {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
               })(
-                expectedPatchCount: 6,
+                expectedPatchCount: 7,
                 input: '''
                 $factoryDecl
 
@@ -1384,7 +1385,6 @@ void main() {
                 expectedOutput: '''
                 $factoryDecl
 
-                @Props()
                 mixin ${publicPropsClassName}Mixin on UiProps implements SomeInterface {
                   String foo;
                   int bar;
@@ -1393,6 +1393,7 @@ void main() {
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
+                @Props()
                 class $publicPropsClassName = UiProps 
                     with SomeAbstractPropsClassMixin, ${publicPropsClassName}Mixin
                     implements SomeAbstractPropsClass, SomeInterface;
@@ -1444,6 +1445,7 @@ void main() {
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
+                @Props()
                 class $publicPropsClassName extends UiProps implements SomeAbstractPropsClass, SomeInterface {}
 
                 @Component2()
@@ -1493,17 +1495,17 @@ void main() {
             'ConvertedMixin': 'ConvertedMixin',
             'UnconvertedMixin': null,
           })(
-            expectedPatchCount: 6,
+            expectedPatchCount: 7,
             input: input,
             expectedOutput: '''
             $factoryDecl
 
-            @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
               int bar;
             }
 
+            @Props()
             class $publicPropsClassName = UiProps
                 with ${publicPropsClassName}Mixin, ConvertedMixin, UnconvertedMixin, // ignore: mixin_of_non_class, undefined_class
                 \$UnconvertedMixin;
@@ -1525,7 +1527,7 @@ void main() {
             testSuggestor(visitedClassNames: {
               'ConvertedMixin': 'ConvertedMixin',
             })(
-              expectedPatchCount: 6,
+              expectedPatchCount: 7,
               input: '''
               $factoryDecl
 
@@ -1540,12 +1542,12 @@ void main() {
               expectedOutput: '''
               $factoryDecl
 
-              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps implements SomeInterface, SomeOtherInterface {
                 String foo;
                 int bar;
               }
 
+              @Props()
               class $publicPropsClassName = UiProps 
                   with ${publicPropsClassName}Mixin, ConvertedMixin implements SomeInterface, SomeOtherInterface;
 
@@ -1589,15 +1591,15 @@ void main() {
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
               })(
-                expectedPatchCount: 7,
+                expectedPatchCount: 8,
                 input: input,
                 expectedOutput: r'''
-                @AbstractProps()
                 mixin AbstractBlockPropsMixin on UiProps implements BlockClassHelperMapView {
                   String foo;
                   int bar;
                 }
 
+                @AbstractProps()
                 abstract class AbstractBlockProps implements
                         AbstractBlockPropsMixin,
                         LayoutPropsMixin,
@@ -1647,6 +1649,7 @@ void main() {
                 expectedPatchCount: 2,
                 input: input,
                 expectedOutput: r'''
+                @AbstractProps()
                 abstract class AbstractBlockProps implements
                         LayoutPropsMixin,
                         BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
@@ -1699,6 +1702,7 @@ void main() {
                 int bar;
               }
 
+              @Props()
               class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin;
 
               $componentDecl
@@ -1742,6 +1746,7 @@ void main() {
                 String baz;
               }
 
+              @Props()
               class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin;
 
               $componentDecl
@@ -1788,12 +1793,11 @@ void main() {
           'AnotherStateMixin': 'AnotherStateMixin',
           'ADifferentStateClass': 'ADifferentStateClass',
         })(
-          expectedPatchCount: 14,
+          expectedPatchCount: 16,
           input: input,
           expectedOutput: '''
           $factoryDecl
 
-          @Props()
           mixin ${publicPropsClassName}Mixin on UiProps {
             String foo;
             int bar;
@@ -1802,10 +1806,10 @@ void main() {
           // FIXME:
           //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins.
+          @Props()
           class $publicPropsClassName = UiProps 
               with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin, AMixin, AnotherMixin;
 
-          @State()
           mixin ${publicStateClassName}Mixin on UiState {
             String foo;
             int bar;
@@ -1814,6 +1818,7 @@ void main() {
           // FIXME:
           //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins.
+          @State()
           class $publicStateClassName = UiState 
               with ADifferentStateClass, ${publicStateClassName}Mixin, AStateMixin, AnotherStateMixin;
 
@@ -1874,6 +1879,7 @@ void main() {
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
+              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               $componentDecl
@@ -1919,6 +1925,7 @@ void main() {
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
+              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               $componentDecl
@@ -1960,6 +1967,7 @@ void main() {
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
+              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               $componentDecl
@@ -1992,6 +2000,7 @@ void main() {
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
+              @Props()
               class $publicPropsClassName extends UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin {
                 // FIXME: Everything in this body needs to be moved to the body of ${publicPropsClassName}Mixin.
                 // Once that is done, the body can be removed, and `extends` can be replaced with `=`.

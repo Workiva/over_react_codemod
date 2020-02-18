@@ -90,7 +90,6 @@ void main(List<String> args) {
       // We need this to run first so that the AdvancedPropsAndStateClassMigrator
       // can check for duplicate mixin names before creating one.
       PropsMixinMigrator(classToMixinConverter),
-      StubbedPropsAndStateClassRemover(classToMixinConverter),
       SimplePropsAndStateClassMigrator(classToMixinConverter),
       AdvancedPropsAndStateClassMigrator(
         classToMixinConverter,
@@ -111,6 +110,10 @@ void main(List<String> args) {
         treatUnvisitedClassesAsExternal: true,
       ),
       PropsMetaMigrator(classToMixinConverter),
+      // Run this last so that the decision about whether to migrate the class is based on
+      // the final migrated / un-migrated state of the class after the simple/advanced class
+      // migrators have finished, but before the annotations are removed.
+      StubbedPropsAndStateClassRemover(classToMixinConverter),
       AnnotationsRemover(classToMixinConverter),
     ].map((s) => Ignoreable(s)),
     args: args,

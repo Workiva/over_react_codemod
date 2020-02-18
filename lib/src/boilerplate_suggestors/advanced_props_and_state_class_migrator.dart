@@ -143,6 +143,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
                 convertClassesWithExternalSuperclass,
           ) ??
           '')
+      ..write('${node.metadata.join('\n')}\n')
       // Create the class name
       ..write(node.isAbstract ? 'abstract class ' : 'class ')
       ..write('$className$classTypeArgs');
@@ -261,6 +262,10 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
   bool treatUnvisitedClassesAsExternal = false,
   List<String> mixinNames = const [],
 }) {
+  if (converter.classWasMigrated(node.name.name)) {
+    return MigrationDecision(false);
+  }
+
   final _shouldMigratePropsAndStateClass =
       shouldMigratePropsAndStateClass(node);
   if (!_shouldMigratePropsAndStateClass.yee) {
