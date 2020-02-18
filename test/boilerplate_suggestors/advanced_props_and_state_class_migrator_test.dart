@@ -18,6 +18,7 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilit
 import 'package:test/test.dart';
 
 import '../util.dart';
+import 'boilerplate_utilities_test.dart';
 
 void main() {
   group('AdvancedPropsAndStateClassMigrator', () {
@@ -2287,6 +2288,3 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
     });
   });
 }
-
-String exportLocationsComment(List<String> locations) =>
-    '// This class was not updated because it was exported from: $locations';

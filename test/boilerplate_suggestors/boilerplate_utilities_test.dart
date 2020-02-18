@@ -64,6 +64,9 @@ const reportJson = r'''{
   }
 }''';
 
+String exportLocationsComment(List<String> locations) =>
+    '// This class was not updated because it was exported from: $locations';
+
 void main() {
   group('Boilerplate Utilities', () {
     group('isPropsUsageSimple', () {
