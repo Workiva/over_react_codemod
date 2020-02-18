@@ -53,14 +53,13 @@ PropsMixinMigratorTestHelper({
 }) {
   group('PropsMixinMigrator', () {
     final converter = ClassToMixinConverter();
+    final semverHelper = getSemverHelper(path,
+        shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
     SuggestorTester testSuggestor;
 
     setUpAll(() async {
-      testSuggestor = getSuggestorTester(PropsMixinMigrator(
-          converter,
-          await getSemverHelper(path,
-              shouldTreatAllComponentsAsPrivate:
-                  shouldTreatAllComponentsAsPrivate)));
+      testSuggestor =
+          getSuggestorTester(PropsMixinMigrator(converter, await semverHelper));
     });
 
     tearDown(() {

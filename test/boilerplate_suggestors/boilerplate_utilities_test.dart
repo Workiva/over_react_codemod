@@ -18,57 +18,8 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_consta
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:test/test.dart';
 
-const reportJson = r'''{
-  "exports": {
-    "lib/web_skin_dart.dart/ButtonProps": {
-      "type": "class",
-      "grammar": {
-        "name": "ButtonProps",
-        "meta": ["@Props()"]
-      }
-    },
-    "lib/web_skin_dart.dart/BarProps": {
-      "type": "class",
-      "grammar": {
-        "name": "BarProps",
-        "meta": ["@Props()"]
-      }
-    },
-    "lib/web_skin_dart.dart/BarState": {
-      "type": "class",
-      "grammar": {
-        "name": "BarState",
-        "meta": ["@State()"]
-      }
-    },
-    "lib/web_skin_dart.dart/BarPropsMixin": {
-      "type": "class",
-      "grammar": {
-        "name": "BarPropsMixin",
-        "meta": ["@Props()"]
-      }
-    },
-    "lib/web_skin_dart.dart/BarStateMixin": {
-      "type": "class",
-      "grammar": {
-        "name": "BarStateMixin",
-        "meta": ["@State()"]
-      }
-    },
-    "lib/another_file.dart/ButtonProps": {
-      "type": "class",
-      "grammar": {
-        "name": "ButtonProps",
-        "meta": ["@Props()"]
-      }
-    }
-  }
-}''';
-
 String exportLocationsComment(List<String> locations) =>
     '// This class was not updated because it was exported from: $locations';
-
-const reportNotAvailableCommentTest = '// $reportNotAvailableComment';
 
 void main() {
   group('Boilerplate Utilities', () {

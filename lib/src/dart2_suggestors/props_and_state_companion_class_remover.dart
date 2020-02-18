@@ -24,8 +24,8 @@ import '../util.dart';
 class PropsAndStateCompanionClassRemover extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  bool shouldRemoveCompanionClassFor(
-          ClassDeclaration candidate, CompilationUnit node) =>
+  bool shouldRemoveCompanionClassFor(ClassDeclaration candidate,
+          ClassDeclaration companion, CompilationUnit node) =>
       true;
 
   @override
@@ -34,7 +34,8 @@ class PropsAndStateCompanionClassRemover extends RecursiveAstVisitor
     for (final cd in classDeclarations) {
       final companionClass = _getCompanionClassFor(cd, node);
 
-      if (companionClass != null && shouldRemoveCompanionClassFor(cd, node)) {
+      if (companionClass != null &&
+          shouldRemoveCompanionClassFor(cd, companionClass, node)) {
         // The single-line comment about the companion class being temporary
         // isn't associated with the class declaration node, so we need to
         // explicitly check for it on the preceding line and remove that line

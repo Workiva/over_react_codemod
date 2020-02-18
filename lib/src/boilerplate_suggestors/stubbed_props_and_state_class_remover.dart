@@ -14,12 +14,11 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_companion_class_remover.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 
+import '../util.dart';
 import 'boilerplate_constants.dart';
 import 'boilerplate_utilities.dart';
 
@@ -32,23 +31,24 @@ class StubbedPropsAndStateClassRemover
   StubbedPropsAndStateClassRemover(this.semverHelper);
 
   @override
-  bool shouldRemoveCompanionClassFor(
-      ClassDeclaration candidate, CompilationUnit node) {
-    if ((shouldAddPublicExportLocationsSimpleClassComment(
-                candidate, semverHelper) ||
-            shouldAddPublicExportLocationsAdvancedClassComment(
-                candidate, semverHelper)) &&
-        !hasComment(candidate, sourceFile,
-            publicExportLocationsComment(candidate, semverHelper))) {
+  bool shouldRemoveCompanionClassFor(ClassDeclaration candidate,
+      ClassDeclaration companion, CompilationUnit node) {
+    if (isAssociatedWithComponent2(candidate) &&
+        isAPropsOrStateClass(candidate) &&
+        isPublic(companion, semverHelper) &&
+        !hasComment(companion, sourceFile,
+            publicExportLocationsComment(companion, semverHelper))) {
       yieldPatch(
-        candidate.metadata.first.offset,
-        candidate.metadata.first.offset,
-        publicExportLocationsComment(candidate, semverHelper) + '\n',
+        companion.offset,
+        companion.offset,
+        publicExportLocationsComment(companion, semverHelper) + '\n',
       );
     }
 
-    return super.shouldRemoveCompanionClassFor(candidate, node) &&
-        (shouldMigrateSimplePropsAndStateClass(candidate, semverHelper) ||
-            shouldMigrateAdvancedPropsAndStateClass(candidate, semverHelper));
+    return super.shouldRemoveCompanionClassFor(candidate, companion, node) &&
+        isAssociatedWithComponent2(candidate) &&
+        isAPropsOrStateClass(candidate) &&
+        // Do not remove companion class if it is public.
+        !isPublic(companion, semverHelper);
   }
 }

@@ -54,14 +54,13 @@ void SimplePropsAndStateClassMigratorTestHelper({
   bool isValidFilePath,
 }) {
   final converter = ClassToMixinConverter();
+  final semverHelper = getSemverHelper(path,
+      shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
   SuggestorTester testSuggestor;
 
   setUpAll(() async {
-    testSuggestor = getSuggestorTester(SimplePropsAndStateClassMigrator(
-        converter,
-        await getSemverHelper(path,
-            shouldTreatAllComponentsAsPrivate:
-                shouldTreatAllComponentsAsPrivate)));
+    testSuggestor = getSuggestorTester(
+        SimplePropsAndStateClassMigrator(converter, await semverHelper));
   });
 
   tearDown(() {
