@@ -182,7 +182,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Bar;
     
-            ${exportLocationsComment([
+            ${publicExportLocationsComment([
                 isValidFilePath
                     ? 'lib/web_skin_dart.dart/BarProps'
                     : reportNotAvailableComment
@@ -193,7 +193,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               int bar;
             }
     
-            ${exportLocationsComment([
+            ${publicExportLocationsComment([
                 isValidFilePath
                     ? 'lib/web_skin_dart.dart/BarState'
                     : reportNotAvailableComment
@@ -310,14 +310,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
     
-            ${exportLocationsComment([reportNotAvailableComment])}
+            ${publicExportLocationsComment([reportNotAvailableComment])}
             @Props()
             class _\$FooProps extends ADifferentPropsClass {
               String foo;
               int bar;
             }
     
-            ${exportLocationsComment([reportNotAvailableComment])}
+            ${publicExportLocationsComment([reportNotAvailableComment])}
             @State()
             class _\$FooState extends ADifferentStateClass {
               String foo;
@@ -432,14 +432,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
             
-            ${exportLocationsComment([reportNotAvailableComment])}
+            ${publicExportLocationsComment([reportNotAvailableComment])}
             @Props()
             class _\$FooProps extends ADifferentPropsClass {
               String foo;
               int bar;
             }
             
-            ${exportLocationsComment([reportNotAvailableComment])}
+            ${publicExportLocationsComment([reportNotAvailableComment])}
             @State()
             class _\$FooState extends ADifferentStateClass {
               String foo;
@@ -546,14 +546,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
       
-            ${exportLocationsComment([reportNotAvailableComment])}
+            ${publicExportLocationsComment([reportNotAvailableComment])}
             @Props()
             class _\$FooProps extends UiProps with AMixin, AnotherMixin {
               String foo;
               int bar;
             }
       
-            ${exportLocationsComment([reportNotAvailableComment])}
+            ${publicExportLocationsComment([reportNotAvailableComment])}
             @State()
             class _\$FooState extends UiState with AStateMixin, AnotherStateMixin {
               String foo;
@@ -646,7 +646,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
     
-            ${exportLocationsComment([reportNotAvailableComment])}
+            ${publicExportLocationsComment([reportNotAvailableComment])}
             @Props()
             class _\$FooProps extends FluxUiProps<SomeActions, SomeStore> {
               String foo;
@@ -736,7 +736,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
     
-            ${exportLocationsComment([reportNotAvailableComment])}
+            ${publicExportLocationsComment([reportNotAvailableComment])}
             @Props()
             class _\$FooProps extends BuiltReduxUiProps<_, __, ___> {
               String foo;
@@ -831,7 +831,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   // ignore: undefined_identifier
                   \$Foo;
         
-              ${exportLocationsComment([reportNotAvailableComment])}
+              ${publicExportLocationsComment([reportNotAvailableComment])}
               @Props()
               class _\$FooProps extends ADifferentPropsClass {
                 String foo;
@@ -915,7 +915,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     with LayoutMixin<T>, BlockMixin<T> {}
               '''
                   : '''
-                ${exportLocationsComment([reportNotAvailableComment])}
+                ${publicExportLocationsComment([reportNotAvailableComment])}
                 @AbstractProps()
                 abstract class _\$AbstractBlockProps extends SomeAbstractPropsClass
                     with
@@ -990,7 +990,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     with LayoutMixin<T>, BlockMixin<T> {}
               '''
                   : '''
-                ${exportLocationsComment([reportNotAvailableComment])}
+                ${publicExportLocationsComment([reportNotAvailableComment])}
                 @AbstractProps()
                 abstract class _\$AbstractBlockProps extends SomeAbstractPropsClass
                     with
@@ -1089,7 +1089,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     // ignore: undefined_identifier
                     \$Foo;
           
-                ${exportLocationsComment([reportNotAvailableComment])}
+                ${publicExportLocationsComment([reportNotAvailableComment])}
                 @Props()
                 class _\$FooProps extends SomeAbstractPropsClass implements SomeInterface {
                   String foo;
@@ -1173,7 +1173,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     // ignore: undefined_identifier
                     \$Foo;
           
-                ${exportLocationsComment([reportNotAvailableComment])}
+                ${publicExportLocationsComment([reportNotAvailableComment])}
                 @Props()
                 class _\$FooProps extends SomeAbstractPropsClass implements SomeInterface {}
           
@@ -1271,7 +1271,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Foo;
       
-            ${exportLocationsComment([reportNotAvailableComment])}
+            ${publicExportLocationsComment([reportNotAvailableComment])}
             @Props()
             class _\$FooProps extends UiProps 
                 with ConvertedMixin, 
@@ -1369,7 +1369,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   // ignore: undefined_identifier
                   \$Foo;
                 
-              ${exportLocationsComment([reportNotAvailableComment])}
+              ${publicExportLocationsComment([reportNotAvailableComment])}
               @Props()
               class _\$FooProps extends UiProps with ConvertedMixin implements SomeInterface, SomeOtherInterface {
                 String foo;
@@ -1446,7 +1446,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     with LayoutMixin<T>, BlockMixin<T> {}
               '''
                   : '''
-                ${exportLocationsComment([reportNotAvailableComment])}
+                ${publicExportLocationsComment([reportNotAvailableComment])}
                 @AbstractProps()
                 abstract class _\$AbstractBlockProps extends UiProps
                     with
@@ -1517,7 +1517,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     with LayoutMixin<T>, BlockMixin<T> {}
               '''
                   : '''
-                ${exportLocationsComment([reportNotAvailableComment])}
+                ${publicExportLocationsComment([reportNotAvailableComment])}
                 @AbstractProps()
                 abstract class _\$AbstractBlockProps extends UiProps
                     with
@@ -1624,7 +1624,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
       
-              ${exportLocationsComment([reportNotAvailableComment])}
+              ${publicExportLocationsComment([reportNotAvailableComment])}
               @Props()
               class _\$FooProps extends UiProps with FooPropsMixin {}
       
@@ -1727,7 +1727,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
       
-              ${exportLocationsComment([reportNotAvailableComment])}
+              ${publicExportLocationsComment([reportNotAvailableComment])}
               @Props()
               class _\$FooProps extends UiProps with FooPropsMixin {
                 String baz;
@@ -1846,14 +1846,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
   
-          ${exportLocationsComment([reportNotAvailableComment])}
+          ${publicExportLocationsComment([reportNotAvailableComment])}
           @Props()
           class _\$FooProps extends ADifferentPropsClass with AMixin, AnotherMixin {
             String foo;
             int bar;
           }
   
-          ${exportLocationsComment([reportNotAvailableComment])}
+          ${publicExportLocationsComment([reportNotAvailableComment])}
           @State()
           class _\$FooState extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
             String foo;
@@ -1966,7 +1966,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
       
-              ${exportLocationsComment([reportNotAvailableComment])}
+              ${publicExportLocationsComment([reportNotAvailableComment])}
               @Props()
               class _\$FooProps extends ADifferentPropsClass with FooPropsMixin {}
       
@@ -2068,7 +2068,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
       
-              ${exportLocationsComment([reportNotAvailableComment])}
+              ${publicExportLocationsComment([reportNotAvailableComment])}
               @Props()
               class _\$FooProps extends ADifferentPropsClass with FooPropsMixin {
                 String baz;
@@ -2162,7 +2162,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   // ignore: undefined_identifier
                   \$Foo;
       
-              ${exportLocationsComment([reportNotAvailableComment])}
+              ${publicExportLocationsComment([reportNotAvailableComment])}
               @Props()
               class _\$FooProps extends ADifferentPropsClass with FooPropsMixin {}
       
@@ -2251,7 +2251,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   // ignore: undefined_identifier
                   \$Foo;
       
-              ${exportLocationsComment([reportNotAvailableComment])}
+              ${publicExportLocationsComment([reportNotAvailableComment])}
               @Props()
               class _\$FooProps extends ADifferentPropsClass with FooPropsMixin { 
                 String baz;
@@ -2287,6 +2287,3 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
     });
   });
 }
-
-String exportLocationsComment(List<String> locations) =>
-    '// This class was not updated because it was exported from: $locations';

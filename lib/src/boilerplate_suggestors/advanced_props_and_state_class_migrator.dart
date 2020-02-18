@@ -41,13 +41,13 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     super.visitClassDeclaration(node);
 
     if (!hasComment(node, sourceFile,
-            publicExportLocationsComment(node, semverHelper)) &&
+            publicExportLocationsComment(semverHelper.getPublicExportLocations(node))) &&
         shouldAddPublicExportLocationsAdvancedClassComment(
             node, semverHelper)) {
       yieldPatch(
         node.metadata.first.offset,
         node.metadata.first.offset,
-        publicExportLocationsComment(node, semverHelper) + '\n',
+        publicExportLocationsComment(semverHelper.getPublicExportLocations(node)) + '\n',
       );
     }
 
