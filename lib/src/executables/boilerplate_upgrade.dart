@@ -90,10 +90,12 @@ Future<void> main(List<String> args) async {
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[
+      // We need this to run first so that the AdvancedPropsAndStateClassMigrator
+      // can check for duplicate mixin names before creating one.
+      PropsMixinMigrator(classToMixinConverter, semverHelper),
       StubbedPropsAndStateClassRemover(semverHelper),
       SimplePropsAndStateClassMigrator(classToMixinConverter, semverHelper),
       AdvancedPropsAndStateClassMigrator(classToMixinConverter, semverHelper),
-      PropsMixinMigrator(classToMixinConverter, semverHelper),
       PropsMetaMigrator(classToMixinConverter),
       AnnotationsRemover(classToMixinConverter),
     ].map((s) => Ignoreable(s)),
