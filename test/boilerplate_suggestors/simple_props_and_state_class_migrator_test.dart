@@ -18,6 +18,7 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_s
 import 'package:test/test.dart';
 
 import '../util.dart';
+import 'advanced_props_and_state_class_migrator_test.dart';
 
 void main() {
   group('SimplePropsAndStateClassMigrator', () {
@@ -211,7 +212,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Button;
       
-            ${publicExportLocationsComment(isValidFilePath ? [
+            ${exportLocationsComment(isValidFilePath ? [
                 'lib/web_skin_dart.dart/ButtonProps',
                 'lib/another_file.dart/ButtonProps'
               ] : [reportNotAvailableComment])}
@@ -381,14 +382,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
           
-          ${publicExportLocationsComment([reportNotAvailableComment])}
+          ${exportLocationsComment([reportNotAvailableComment])}
           @Props()
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
           
-          ${publicExportLocationsComment([reportNotAvailableComment])}
+          ${exportLocationsComment([reportNotAvailableComment])}
           @State()
           class _\$FooState extends UiState {
             String foo;
@@ -474,7 +475,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
     
-          ${publicExportLocationsComment([reportNotAvailableComment])}
+          ${exportLocationsComment([reportNotAvailableComment])}
           @Props()
           class _\$FooProps extends UiProps {
             String foo;
@@ -571,14 +572,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
     
-          ${publicExportLocationsComment([reportNotAvailableComment])}
+          ${exportLocationsComment([reportNotAvailableComment])}
           @AbstractProps()
           abstract class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
     
-          ${publicExportLocationsComment([reportNotAvailableComment])}
+          ${exportLocationsComment([reportNotAvailableComment])}
           @AbstractState()
           abstract class _\$FooState extends UiState {
             String foo;
