@@ -19,6 +19,25 @@ import 'package:test/test.dart';
 import '../util.dart';
 
 void main() {
+  const publicPropsClassName = 'FooProps';
+  const propsClassName = '_\$$publicPropsClassName';
+  const publicStateClassName = 'FooState';
+  const stateClassName = '_\$$publicStateClassName';
+  const factoryDecl = '''
+      @Factory()
+      UiFactory<$publicPropsClassName> Foo =
+          // ignore: undefined_identifier
+          \$Foo;
+      ''';
+  const componentDecl = '''
+      @Component2()
+      class FooComponent extends UiComponent2<$publicPropsClassName> {}
+      ''';
+  const statefulComponentDecl = '''
+      @Component2()
+      class FooComponent extends UiStatefulComponent2<$publicPropsClassName, $publicStateClassName> {}
+      ''';
+
   group('AdvancedPropsAndStateClassMigrator', () {
     var runCount = 0;
     final converter = ClassToMixinConverter();
@@ -33,7 +52,7 @@ void main() {
           convertClassesWithExternalSuperclass:
               convertClassesWithExternalSuperclass));
 
-      // If customVisitedClassNameKeys is set, append the value of `converter.visitedClassNames`.
+      // If visitedClassNames is set, append the value of `converter.visitedClassNames`.
       // This is done to ensure that those custom classNames are not treated as members of an external library API.
       if (visitedClassNames.isNotEmpty) {
         converter.setVisitedClassNames(
@@ -59,51 +78,36 @@ void main() {
       test('the class is simple', () {
         testSuggestor()(
           expectedPatchCount: 0,
-          input: r'''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              $Foo;
+          input: '''
+          $factoryDecl
   
           @Props()
-          class _$FooProps extends UiProps {
+          class $propsClassName extends UiProps {
             String foo;
             int bar;
           }
   
-          @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
+          $componentDecl
         ''',
         );
 
-        expect(converter.classWasMigrated('FooProps'), isFalse);
+        expect(converter.classWasMigrated(publicPropsClassName), isFalse);
       });
 
       test('the class is not Component2, but does add a FIXME comment', () {
         testSuggestor()(
           expectedPatchCount: 1,
-          input: r'''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              $Foo;
+          input: '''
+          $factoryDecl
   
           @Props()
-          class _$FooProps extends UiProps with SomePropsMixin {
+          class $propsClassName extends UiProps with SomePropsMixin {
             String foo;
             int bar;
           }
   
           @Component()
-          class FooComponent extends UiComponent<FooProps> {
+          class FooComponent extends UiComponent<$publicPropsClassName> {
             @override
             render() {
               return Dom.ul()(
@@ -114,25 +118,22 @@ void main() {
           }
       ''',
           expectedOutput: '''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              \$Foo;
+          $factoryDecl
   
-          // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
+          // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
           // because `FooComponent` does not extend from `react.Component2`.
           // 
           // Once you have upgraded the component, you can remove this FIXME comment and 
           // re-run the boilerplate migration script:
           // pub run over_react_codemod:boilerplate_upgrade
           @Props()
-          class _\$FooProps extends UiProps with SomePropsMixin {
+          class $propsClassName extends UiProps with SomePropsMixin {
             String foo;
             int bar;
           }
   
           @Component()
-          class FooComponent extends UiComponent<FooProps> {
+          class FooComponent extends UiComponent<$publicPropsClassName> {
             @override
             render() {
               return Dom.ul()(
@@ -144,7 +145,7 @@ void main() {
       ''',
         );
 
-        expect(converter.classWasMigrated('FooProps'), isFalse);
+        expect(converter.classWasMigrated(publicPropsClassName), isFalse);
       });
 
       test('the class is publicly exported, but does add a FIXME comment', () {
@@ -152,72 +153,48 @@ void main() {
 
         testSuggestor()(
           expectedPatchCount: 1,
-          input: r'''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              $Foo;
+          input: '''
+          $factoryDecl
   
           @Props()
-          class _$FooProps extends UiProps with SomePropsMixin {
+          class $propsClassName extends UiProps with SomePropsMixin {
             String foo;
             int bar;
           }
   
-          @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
+          $componentDecl
       ''',
           expectedOutput: '''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              \$Foo;
+          $factoryDecl
   
-          // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
-          // because doing so would be a breaking change since `FooProps` is exported from a 
+          // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
+          // because doing so would be a breaking change since `$publicPropsClassName` is exported from a 
           // library in this repo.
           //
           // To complete the migration, you should: 
-          //   1. Deprecate `FooProps`.
-          //   2. Make a copy of it, renaming it something like `FooPropsV2`.
-          //   3. Replace all your current usage of the deprecated `FooProps` with `FooPropsV2`.
-          //   4. Add a `hide FooPropsV2` clause to all places where it is exported, and then run:
+          //   1. Deprecate `$publicPropsClassName`.
+          //   2. Make a copy of it, renaming it something like `${publicPropsClassName}V2`.
+          //   3. Replace all your current usage of the deprecated `$publicPropsClassName` with `${publicPropsClassName}V2`.
+          //   4. Add a `hide ${publicPropsClassName}V2` clause to all places where it is exported, and then run:
           //        pub run over_react_codemod:boilerplate_upgrade
-          //   5a. If `FooProps` had consumers outside this repo, and it was intentionally made public,
-          //       remove the `hide` clause you added in step 4 so that the new mixin created from `FooPropsV2` 
-          //       will be a viable replacement for `FooProps`.
-          //   5b. If `FooProps` had no consumers outside this repo, and you have no reason to make the new
+          //   5a. If `$publicPropsClassName` had consumers outside this repo, and it was intentionally made public,
+          //       remove the `hide` clause you added in step 4 so that the new mixin created from `${publicPropsClassName}V2` 
+          //       will be a viable replacement for `$publicPropsClassName`.
+          //   5b. If `$publicPropsClassName` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
           //   6. Remove this FIXME comment.
           @Props()
-          class _\$FooProps extends UiProps with SomePropsMixin {
+          class $propsClassName extends UiProps with SomePropsMixin {
             String foo;
             int bar;
           }
   
-          @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
+          $componentDecl
       ''',
         );
 
-        expect(converter.classWasMigrated('FooProps'), isFalse);
+        expect(converter.classWasMigrated(publicPropsClassName), isFalse);
       });
 
       group(
@@ -225,66 +202,42 @@ void main() {
           () {
         const externalSuperclassName = 'SomeExternalPropsClass';
 
-        final input = '''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                \$Foo;
+        const input = '''
+            $factoryDecl
             
             @Props()
-            class _\$FooProps extends $externalSuperclassName {
+            class $propsClassName extends $externalSuperclassName {
               String foo;
               int bar;
             }
             
-            @Component2()
-            class FooComponent extends UiComponent2<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
+            $componentDecl
             ''';
 
-        final expectedOutputWithExternalSuperclassReasonComment = '''
-        @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            \$Foo;
-        
-        // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
-        // because it extends from: $externalSuperclassName - which comes from an external library.
-        //
-        // To complete the migration, you should:
-        //   1. Check on the boilerplate migration status of the library it comes from.
-        //   2. Once the library has released a version that includes updated boilerplate,
-        //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
-        //   3. Re-run the migration script with the following flag:
-        //      pub run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-        //   4. Once the migration is complete, you should notice that $externalSuperclassName has been deprecated. 
-        //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-        //      the new class name and/or updating to a different entrypoint that exports the version(s) of 
-        //      $externalSuperclassName that is compatible with the new over_react boilerplate.
-        @Props()
-        class _\$FooProps extends $externalSuperclassName {
-          String foo;
-          int bar;
-        }
-        
-        @Component2()
-        class FooComponent extends UiComponent2<FooProps> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
-        }
-      ''';
+        const expectedOutputWithExternalSuperclassReasonComment = '''
+            $factoryDecl
+            
+            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
+            // because it extends from: $externalSuperclassName - which comes from an external library.
+            //
+            // To complete the migration, you should:
+            //   1. Check on the boilerplate migration status of the library it comes from.
+            //   2. Once the library has released a version that includes updated boilerplate,
+            //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
+            //   3. Re-run the migration script with the following flag:
+            //      pub run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
+            //   4. Once the migration is complete, you should notice that $externalSuperclassName has been deprecated. 
+            //      Follow the deprecation instructions to consume the replacement by either updating your usage to
+            //      the new class name and/or updating to a different entrypoint that exports the version(s) of 
+            //      $externalSuperclassName that is compatible with the new over_react boilerplate.
+            @Props()
+            class $propsClassName extends $externalSuperclassName {
+              String foo;
+              int bar;
+            }
+            
+            $componentDecl
+          ''';
 
         group('but does add a FIXME comment', () {
           setUp(() {
@@ -302,10 +255,11 @@ void main() {
             expect(
                 converter.visitedClassNames,
                 {
-                  'FooProps': null,
+                  publicPropsClassName: null,
                 },
                 reason:
-                    'FooProps should not be converted since $externalSuperclassName is external, and the --convert-classes-with-external-superclasses flag is not set');
+                    '$publicPropsClassName should not be converted since $externalSuperclassName is external, '
+                    'and the --convert-classes-with-external-superclasses flag is not set');
           });
 
           test(
@@ -319,13 +273,10 @@ void main() {
               expectedPatchCount: 7,
               input: expectedOutputWithExternalSuperclassReasonComment,
               expectedOutput: '''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  \$Foo;
+              $factoryDecl
   
               @Props()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
@@ -340,28 +291,20 @@ void main() {
               //
               //      If it is not deprecated, something most likely went wrong during the migration of the 
               //      library that contains it. 
-              class FooProps = UiProps with $externalSuperclassName, FooPropsMixin;
+              class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
             );
 
             expect(
                 converter.visitedClassNames,
                 {
-                  'FooProps': 'FooPropsMixin',
+                  publicPropsClassName: '${publicPropsClassName}Mixin',
                 },
                 reason:
-                    'FooProps should be converted to a mixin since the --convert-classes-with-external-superclasses flag is set');
+                    '$publicPropsClassName should be converted to a mixin since the '
+                    '--convert-classes-with-external-superclasses flag is set');
           });
         });
 
@@ -376,36 +319,21 @@ void main() {
           testSuggestor(convertClassesWithExternalSuperclass: true)(
             expectedPatchCount: 6,
             input: '''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                \$Foo;
+            $factoryDecl
 
             @Props()
-            class _\$FooProps extends $externalSuperclassName {
+            class $propsClassName extends $externalSuperclassName {
               String foo;
               int bar;
             }
 
-            @Component2()
-            class FooComponent extends UiComponent2<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
+            $componentDecl
           ''',
             expectedOutput: '''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  \$Foo;
+              $factoryDecl
   
               @Props()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
@@ -420,28 +348,20 @@ void main() {
               //
               //      If it is not deprecated, something most likely went wrong during the migration of the 
               //      library that contains it. 
-              class FooProps = UiProps with $externalSuperclassName, FooPropsMixin;
+              class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
           );
 
           expect(
               converter.visitedClassNames,
               {
-                'FooProps': 'FooPropsMixin',
+                publicPropsClassName: '${publicPropsClassName}Mixin',
               },
               reason:
-                  'FooProps should be converted to a mixin since the --convert-classes-with-external-superclasses flag is set');
+                  '$publicPropsClassName should be converted to a mixin since the '
+                  '--convert-classes-with-external-superclasses flag is set');
         });
       });
 
@@ -451,80 +371,56 @@ void main() {
         const externalSuperclassName = 'SomeExternalPropsClass';
         const externalMixinName = 'SomeExternalMixin';
 
-        final input = '''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                \$Foo;
+        const input = '''
+            $factoryDecl
             
             @Props()
-            class _\$FooProps extends $externalSuperclassName with $externalMixinName {
+            class $propsClassName extends $externalSuperclassName with $externalMixinName {
               String foo;
               int bar;
             }
             
-            @Component2()
-            class FooComponent extends UiComponent2<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
+            $componentDecl
             ''';
 
-        final expectedOutputWithExternalSuperclassReasonComment = '''
-        @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            \$Foo;
-        
-        // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
-        // because it mixes in: $externalMixinName - which comes from an external library.
-        //
-        // To complete the migration, you should:
-        //   1. Check on the boilerplate migration status of the library it comes from.
-        //   2. Once the library has released a version that includes updated boilerplate,
-        //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
-        //   3. Re-run the migration script with the following flag:
-        //      pub run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-        //   4. Once the migration is complete, you should notice that $externalMixinName has been deprecated. 
-        //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-        //      the new mixin name and/or updating to a different entrypoint that exports the version(s) of 
-        //      $externalMixinName that is compatible with the new over_react boilerplate.
-        //
-        // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
-        // because it extends from: $externalSuperclassName - which comes from an external library.
-        //
-        // To complete the migration, you should:
-        //   1. Check on the boilerplate migration status of the library it comes from.
-        //   2. Once the library has released a version that includes updated boilerplate,
-        //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
-        //   3. Re-run the migration script with the following flag:
-        //      pub run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-        //   4. Once the migration is complete, you should notice that $externalSuperclassName has been deprecated. 
-        //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-        //      the new class name and/or updating to a different entrypoint that exports the version(s) of 
-        //      $externalSuperclassName that is compatible with the new over_react boilerplate.
-        @Props()
-        class _\$FooProps extends $externalSuperclassName with $externalMixinName {
-          String foo;
-          int bar;
-        }
-        
-        @Component2()
-        class FooComponent extends UiComponent2<FooProps> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
-        }
-      ''';
+        const expectedOutputWithExternalSuperclassReasonComment = '''
+            $factoryDecl
+            
+            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
+            // because it mixes in: $externalMixinName - which comes from an external library.
+            //
+            // To complete the migration, you should:
+            //   1. Check on the boilerplate migration status of the library it comes from.
+            //   2. Once the library has released a version that includes updated boilerplate,
+            //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
+            //   3. Re-run the migration script with the following flag:
+            //      pub run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
+            //   4. Once the migration is complete, you should notice that $externalMixinName has been deprecated. 
+            //      Follow the deprecation instructions to consume the replacement by either updating your usage to
+            //      the new mixin name and/or updating to a different entrypoint that exports the version(s) of 
+            //      $externalMixinName that is compatible with the new over_react boilerplate.
+            //
+            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
+            // because it extends from: $externalSuperclassName - which comes from an external library.
+            //
+            // To complete the migration, you should:
+            //   1. Check on the boilerplate migration status of the library it comes from.
+            //   2. Once the library has released a version that includes updated boilerplate,
+            //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
+            //   3. Re-run the migration script with the following flag:
+            //      pub run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
+            //   4. Once the migration is complete, you should notice that $externalSuperclassName has been deprecated. 
+            //      Follow the deprecation instructions to consume the replacement by either updating your usage to
+            //      the new class name and/or updating to a different entrypoint that exports the version(s) of 
+            //      $externalSuperclassName that is compatible with the new over_react boilerplate.
+            @Props()
+            class $propsClassName extends $externalSuperclassName with $externalMixinName {
+              String foo;
+              int bar;
+            }
+            
+            $componentDecl
+          ''';
 
         group('but does add a FIXME comment', () {
           setUp(() {
@@ -542,10 +438,12 @@ void main() {
             expect(
                 converter.visitedClassNames,
                 {
-                  'FooProps': null,
+                  publicPropsClassName: null,
                 },
                 reason:
-                    'FooProps should not be converted since $externalSuperclassName and $externalMixinName are external, and the --convert-classes-with-external-superclasses flag is not set');
+                    '$publicPropsClassName should not be converted since $externalSuperclassName '
+                    'and $externalMixinName are external, and the --convert-classes-with-external-superclasses '
+                    'flag is not set');
           });
 
           test(
@@ -559,13 +457,10 @@ void main() {
               expectedPatchCount: 8,
               input: expectedOutputWithExternalSuperclassReasonComment,
               expectedOutput: '''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  \$Foo;
+              $factoryDecl
   
               @Props()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
@@ -580,28 +475,20 @@ void main() {
               //
               //      If they are not deprecated, something most likely went wrong during the migration of the 
               //      library that contains them. 
-              class FooProps = UiProps with $externalSuperclassName, FooPropsMixin, $externalMixinName;
+              class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
             );
 
             expect(
                 converter.visitedClassNames,
                 {
-                  'FooProps': 'FooPropsMixin',
+                  publicPropsClassName: '${publicPropsClassName}Mixin',
                 },
                 reason:
-                    'FooProps should be converted to a mixin since the --convert-classes-with-external-superclasses flag is set');
+                    '$publicPropsClassName should be converted to a mixin since the '
+                    '--convert-classes-with-external-superclasses flag is set');
           });
         });
 
@@ -617,13 +504,10 @@ void main() {
             expectedPatchCount: 7,
             input: input,
             expectedOutput: '''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  \$Foo;
+              $factoryDecl
   
               @Props()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
@@ -638,28 +522,20 @@ void main() {
               //
               //      If they are not deprecated, something most likely went wrong during the migration of the 
               //      library that contains them. 
-              class FooProps = UiProps with $externalSuperclassName, FooPropsMixin, $externalMixinName;
+              class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
           );
 
           expect(
               converter.visitedClassNames,
               {
-                'FooProps': 'FooPropsMixin',
+                publicPropsClassName: '${publicPropsClassName}Mixin',
               },
               reason:
-                  'FooProps should be converted to a mixin since the --convert-classes-with-external-superclasses flag is set');
+                  '$publicPropsClassName should be converted to a mixin since the '
+                  '--convert-classes-with-external-superclasses flag is set');
         });
       });
 
@@ -667,62 +543,38 @@ void main() {
           'the class extends from a custom class that has been visited, '
           'but not yet converted to the new boilerplate after two runs '
           'but does add a FIXME comment', () {
-        final expectedOutputWithUnMigratedSuperclassReasonComment = '''
-        @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            \$Foo;
-        
-        // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
-        // because it extends from `ADifferentPropsClass`, which was not able to be migrated.
-        //
-        // To complete the migration, you should:
-        //   1. Look at the "FIXME" comment that has been added to `ADifferentPropsClass` - 
-        //      and follow the steps outlined there to complete the migration.
-        //   2. Re-run the migration script:
-        //      pub run over_react_codemod:boilerplate_upgrade
-        @Props()
-        class _\$FooProps extends ADifferentPropsClass {
-          String foo;
-          int bar;
-        }
-
-        @Component2()
-        class FooComponent extends UiComponent2<FooProps> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
-        }
-        ''';
+        const expectedOutputWithUnMigratedSuperclassReasonComment = '''
+            $factoryDecl
+            
+            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
+            // because it extends from `ADifferentPropsClass`, which was not able to be migrated.
+            //
+            // To complete the migration, you should:
+            //   1. Look at the "FIXME" comment that has been added to `ADifferentPropsClass` - 
+            //      and follow the steps outlined there to complete the migration.
+            //   2. Re-run the migration script:
+            //      pub run over_react_codemod:boilerplate_upgrade
+            @Props()
+            class $propsClassName extends ADifferentPropsClass {
+              String foo;
+              int bar;
+            }
+    
+            $componentDecl
+            ''';
 
         test('', () {
-          const input = r'''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              $Foo;
-  
-          @Props()
-          class _$FooProps extends ADifferentPropsClass {
-            String foo;
-            int bar;
-          }
-  
-          @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-        ''';
+          const input = '''
+              $factoryDecl
+      
+              @Props()
+              class $propsClassName extends ADifferentPropsClass {
+                String foo;
+                int bar;
+              }
+      
+              $componentDecl
+            ''';
 
           // When it is run the first time, nothing should happen since
           // we don't know if the custom classes are "migratable" or not.
@@ -739,7 +591,7 @@ void main() {
 
           expect(converter.visitedClassNames, {
             'ADifferentPropsClass': null,
-            'FooProps': null,
+            publicPropsClassName: null,
           });
         });
 
@@ -760,13 +612,10 @@ void main() {
             expectedPatchCount: 7,
             input: expectedOutputWithUnMigratedSuperclassReasonComment,
             expectedOutput: '''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                \$Foo;
+            $factoryDecl
             
             @Props()
-            mixin FooPropsMixin on UiProps {
+            mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
               int bar;
             }
@@ -774,24 +623,15 @@ void main() {
             // FIXME:
             //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins.
-            class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
+            class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
     
-            @Component2()
-            class FooComponent extends UiComponent2<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
+            $componentDecl
           ''',
           );
 
           expect(converter.visitedClassNames, {
             'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-            'FooProps': 'FooPropsMixin',
+            publicPropsClassName: '${publicPropsClassName}Mixin',
           });
         });
       });
@@ -802,66 +642,42 @@ void main() {
         group('single external mixin:', () {
           const externalMixinName = 'SomeExternalMixin';
 
-          final input = '''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              \$Foo;
+          const input = '''
+              $factoryDecl
+    
+              @Props()
+              class $propsClassName extends UiProps with $externalMixinName {
+                String foo;
+                int bar;
+              }
+    
+              $componentDecl
+              ''';
 
-          @Props()
-          class _\$FooProps extends UiProps with $externalMixinName {
-            String foo;
-            int bar;
-          }
-
-          @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-          ''';
-
-          final expectedOutputWithExternalMixinReasonComment = '''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              \$Foo;
-
-          // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
-          // because it mixes in: $externalMixinName - which comes from an external library.
-          //
-          // To complete the migration, you should:
-          //   1. Check on the boilerplate migration status of the library it comes from.
-          //   2. Once the library has released a version that includes updated boilerplate,
-          //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
-          //   3. Re-run the migration script with the following flag:
-          //      pub run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-          //   4. Once the migration is complete, you should notice that $externalMixinName has been deprecated. 
-          //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-          //      the new mixin name and/or updating to a different entrypoint that exports the version(s) of 
-          //      $externalMixinName that is compatible with the new over_react boilerplate.
-          @Props()
-          class _\$FooProps extends UiProps with $externalMixinName {
-            String foo;
-            int bar;
-          }
-
-          @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-        ''';
+          const expectedOutputWithExternalMixinReasonComment = '''
+              $factoryDecl
+    
+              // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
+              // because it mixes in: $externalMixinName - which comes from an external library.
+              //
+              // To complete the migration, you should:
+              //   1. Check on the boilerplate migration status of the library it comes from.
+              //   2. Once the library has released a version that includes updated boilerplate,
+              //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
+              //   3. Re-run the migration script with the following flag:
+              //      pub run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
+              //   4. Once the migration is complete, you should notice that $externalMixinName has been deprecated. 
+              //      Follow the deprecation instructions to consume the replacement by either updating your usage to
+              //      the new mixin name and/or updating to a different entrypoint that exports the version(s) of 
+              //      $externalMixinName that is compatible with the new over_react boilerplate.
+              @Props()
+              class $propsClassName extends UiProps with $externalMixinName {
+                String foo;
+                int bar;
+              }
+    
+              $componentDecl
+            ''';
 
           group('but does add a FIXME comment', () {
             setUp(() {
@@ -879,10 +695,11 @@ void main() {
               expect(
                   converter.visitedClassNames,
                   {
-                    'FooProps': null,
+                    publicPropsClassName: null,
                   },
                   reason:
-                      'FooProps should not be converted since $externalMixinName is external, and the --convert-classes-with-external-superclasses flag is not set');
+                      '$publicPropsClassName should not be converted since $externalMixinName is external, '
+                      'and the --convert-classes-with-external-superclasses flag is not set');
             });
 
             test(
@@ -896,13 +713,10 @@ void main() {
                 expectedPatchCount: 7,
                 input: expectedOutputWithExternalMixinReasonComment,
                 expectedOutput: '''
-                @Factory()
-                UiFactory<FooProps> Foo =
-                    // ignore: undefined_identifier
-                    \$Foo;
+                $factoryDecl
     
                 @Props()
-                mixin FooPropsMixin on UiProps {
+                mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
                 }
@@ -915,28 +729,20 @@ void main() {
                 //
                 //      If it is not deprecated, something most likely went wrong during the migration of the 
                 //      library that contains it. 
-                class FooProps = UiProps with FooPropsMixin, $externalMixinName;
+                class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, $externalMixinName;
     
-                @Component2()
-                class FooComponent extends UiComponent2<FooProps> {
-                  @override
-                  render() {
-                    return Dom.ul()(
-                      Dom.li()('Foo: ', props.foo),
-                      Dom.li()('Bar: ', props.bar),
-                    );
-                  }
-                }
+                $componentDecl
               ''',
               );
 
               expect(
                   converter.visitedClassNames,
                   {
-                    'FooProps': 'FooPropsMixin',
+                    publicPropsClassName: '${publicPropsClassName}Mixin',
                   },
                   reason:
-                      'FooProps should be converted to a mixin since the --convert-classes-with-external-superclasses flag is set');
+                      '$publicPropsClassName should be converted to a mixin since the '
+                      '--convert-classes-with-external-superclasses flag is set');
             });
           });
         });
@@ -944,66 +750,42 @@ void main() {
         group('multiple external mixins:', () {
           const externalMixinNames = 'SomeExternalMixin, AnotherExternalMixin';
 
-          final input = '''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              \$Foo;
+          const input = '''
+              $factoryDecl
+    
+              @Props()
+              class $propsClassName extends UiProps with $externalMixinNames {
+                String foo;
+                int bar;
+              }
+    
+              $componentDecl
+              ''';
 
-          @Props()
-          class _\$FooProps extends UiProps with $externalMixinNames {
-            String foo;
-            int bar;
-          }
-
-          @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-          ''';
-
-          final expectedOutputWithExternalMixinReasonComment = '''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              \$Foo;
-
-          // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
-          // because it mixes in: $externalMixinNames - which come from an external library.
-          //
-          // To complete the migration, you should:
-          //   1. Check on the boilerplate migration status of the library they come from.
-          //   2. Once the library has released a version that includes updated boilerplate,
-          //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
-          //   3. Re-run the migration script with the following flag:
-          //      pub run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-          //   4. Once the migration is complete, you should notice that $externalMixinNames have been deprecated. 
-          //      Follow the deprecation instructions to consume the replacements by either updating your usage to
-          //      the new mixin names and/or updating to a different entrypoint that exports the version(s) of 
-          //      $externalMixinNames that are compatible with the new over_react boilerplate.
-          @Props()
-          class _\$FooProps extends UiProps with $externalMixinNames {
-            String foo;
-            int bar;
-          }
-
-          @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-        ''';
+          const expectedOutputWithExternalMixinReasonComment = '''
+              $factoryDecl
+    
+              // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
+              // because it mixes in: $externalMixinNames - which come from an external library.
+              //
+              // To complete the migration, you should:
+              //   1. Check on the boilerplate migration status of the library they come from.
+              //   2. Once the library has released a version that includes updated boilerplate,
+              //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
+              //   3. Re-run the migration script with the following flag:
+              //      pub run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
+              //   4. Once the migration is complete, you should notice that $externalMixinNames have been deprecated. 
+              //      Follow the deprecation instructions to consume the replacements by either updating your usage to
+              //      the new mixin names and/or updating to a different entrypoint that exports the version(s) of 
+              //      $externalMixinNames that are compatible with the new over_react boilerplate.
+              @Props()
+              class $propsClassName extends UiProps with $externalMixinNames {
+                String foo;
+                int bar;
+              }
+    
+              $componentDecl
+            ''';
 
           group('but does add a FIXME comment', () {
             setUp(() {
@@ -1021,10 +803,11 @@ void main() {
               expect(
                   converter.visitedClassNames,
                   {
-                    'FooProps': null,
+                    publicPropsClassName: null,
                   },
                   reason:
-                      'FooProps should not be converted since $externalMixinNames are external, and the --convert-classes-with-external-superclasses flag is not set');
+                      '$publicPropsClassName should not be converted since $externalMixinNames are external, '
+                      'and the --convert-classes-with-external-superclasses flag is not set');
             });
 
             test(
@@ -1038,13 +821,10 @@ void main() {
                 expectedPatchCount: 7,
                 input: expectedOutputWithExternalMixinReasonComment,
                 expectedOutput: '''
-                @Factory()
-                UiFactory<FooProps> Foo =
-                    // ignore: undefined_identifier
-                    \$Foo;
+                $factoryDecl
     
                 @Props()
-                mixin FooPropsMixin on UiProps {
+                mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
                 }
@@ -1057,28 +837,20 @@ void main() {
                 //
                 //      If they are not deprecated, something most likely went wrong during the migration of the 
                 //      library that contains them. 
-                class FooProps = UiProps with FooPropsMixin, $externalMixinNames;
+                class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, $externalMixinNames;
     
-                @Component2()
-                class FooComponent extends UiComponent2<FooProps> {
-                  @override
-                  render() {
-                    return Dom.ul()(
-                      Dom.li()('Foo: ', props.foo),
-                      Dom.li()('Bar: ', props.bar),
-                    );
-                  }
-                }
+                $componentDecl
               ''',
               );
 
               expect(
                   converter.visitedClassNames,
                   {
-                    'FooProps': 'FooPropsMixin',
+                    publicPropsClassName: '${publicPropsClassName}Mixin',
                   },
                   reason:
-                      'FooProps should be converted to a mixin since the --convert-classes-with-external-superclasses flag is set');
+                      '$publicPropsClassName should be converted to a mixin since the '
+                      '--convert-classes-with-external-superclasses flag is set');
             });
           });
         });
@@ -1089,75 +861,51 @@ void main() {
       group(
           'and there are both a props and a state class that extend '
           'from custom classes that were converted to the new boilerplate', () {
-        const input = r'''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              $Foo;
-  
-          @Props()
-          class _$FooProps extends ADifferentPropsClass {
-            String foo;
-            int bar;
-          }
-  
-          @State()
-          class _$FooState extends ADifferentStateClass {
-            String foo;
-            int bar;
-          }
-  
-          @Component2()
-          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
+        const input = '''
+            $factoryDecl
+    
+            @Props()
+            class $propsClassName extends ADifferentPropsClass {
+              String foo;
+              int bar;
             }
-          }
-        ''';
+    
+            @State()
+            class $stateClassName extends ADifferentStateClass {
+              String foo;
+              int bar;
+            }
+    
+            $statefulComponentDecl
+          ''';
 
-        final expectedOutput = '''
-        @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            \$Foo;
-
-        @Props()
-        mixin FooPropsMixin on UiProps {
-          String foo;
-          int bar;
-        }
-
-        // FIXME:
-        //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
-        //   2. Fix any analyzer warnings on this class about missing mixins.
-        class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
-
-        @State()
-        mixin FooStateMixin on UiState {
-          String foo;
-          int bar;
-        }
-        
-        // FIXME:
-        //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
-        //   2. Fix any analyzer warnings on this class about missing mixins.
-        class FooState = UiState with ADifferentStateClassMixin, FooStateMixin;
-
-        @Component2()
-        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
-        }
-      ''';
+        const expectedOutput = '''
+            $factoryDecl
+    
+            @Props()
+            mixin ${publicPropsClassName}Mixin on UiProps {
+              String foo;
+              int bar;
+            }
+    
+            // FIXME:
+            //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
+            //   2. Fix any analyzer warnings on this class about missing mixins.
+            class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
+    
+            @State()
+            mixin ${publicStateClassName}Mixin on UiState {
+              String foo;
+              int bar;
+            }
+            
+            // FIXME:
+            //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
+            //   2. Fix any analyzer warnings on this class about missing mixins.
+            class $publicStateClassName = UiState with ADifferentStateClassMixin, ${publicStateClassName}Mixin;
+    
+            $statefulComponentDecl
+          ''';
 
         test('on the first run', () {
           // Simulates the case where the superclasses were visited first and successfully converted
@@ -1175,8 +923,8 @@ void main() {
           expect(converter.visitedClassNames, {
             'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             'ADifferentStateClass': 'ADifferentStateClassMixin',
-            'FooProps': 'FooPropsMixin',
-            'FooState': 'FooStateMixin',
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+            publicStateClassName: '${publicStateClassName}Mixin',
           });
         });
 
@@ -1203,8 +951,8 @@ void main() {
           expect(converter.visitedClassNames, {
             'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             'ADifferentStateClass': 'ADifferentStateClassMixin',
-            'FooProps': 'FooPropsMixin',
-            'FooState': 'FooStateMixin',
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+            publicStateClassName: '${publicStateClassName}Mixin',
           });
         });
       });
@@ -1212,69 +960,45 @@ void main() {
       group(
           'and there are both a props and state class that use mixins that were converted to the new boilerplate',
           () {
-        const input = r'''
-        @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            $Foo;
+        const input = '''
+            $factoryDecl
+    
+            @Props()
+            class $propsClassName extends UiProps with AMixin, AnotherMixin {
+              String foo;
+              int bar;
+            }
+    
+            @State()
+            class $stateClassName extends UiState with AStateMixin, AnotherStateMixin {
+              String foo;
+              int bar;
+            }
+    
+            $statefulComponentDecl
+            ''';
 
-        @Props()
-        class _$FooProps extends UiProps with AMixin, AnotherMixin {
-          String foo;
-          int bar;
-        }
-
-        @State()
-        class _$FooState extends UiState with AStateMixin, AnotherStateMixin {
-          String foo;
-          int bar;
-        }
-
-        @Component2()
-        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
-        }
-        ''';
-
-        const expectedOutput = r'''
-        @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            $Foo;
-
-        @Props()
-        mixin FooPropsMixin on UiProps {
-          String foo;
-          int bar;
-        }
-
-        class FooProps = UiProps with FooPropsMixin, AMixin, AnotherMixin;
-
-        @State()
-        mixin FooStateMixin on UiState {
-          String foo;
-          int bar;
-        }
-
-        class FooState = UiState with FooStateMixin, AStateMixin, AnotherStateMixin;
-
-        @Component2()
-        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
-        }
-      ''';
+        const expectedOutput = '''
+            $factoryDecl
+    
+            @Props()
+            mixin ${publicPropsClassName}Mixin on UiProps {
+              String foo;
+              int bar;
+            }
+    
+            class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, AMixin, AnotherMixin;
+    
+            @State()
+            mixin ${publicStateClassName}Mixin on UiState {
+              String foo;
+              int bar;
+            }
+    
+            class $publicStateClassName = UiState with ${publicStateClassName}Mixin, AStateMixin, AnotherStateMixin;
+    
+            $statefulComponentDecl
+          ''';
 
         test('on the first run', () {
           // Simulates the case where the superclasses were visited first and successfully converted
@@ -1296,8 +1020,8 @@ void main() {
             'AnotherMixin': 'AnotherMixin',
             'AStateMixin': 'AStateMixin',
             'AnotherStateMixin': 'AnotherStateMixin',
-            'FooProps': 'FooPropsMixin',
-            'FooState': 'FooStateMixin',
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+            publicStateClassName: '${publicStateClassName}Mixin',
           });
         });
 
@@ -1323,8 +1047,8 @@ void main() {
             'AnotherMixin': 'AnotherMixin',
             'AStateMixin': 'AStateMixin',
             'AnotherStateMixin': 'AnotherStateMixin',
-            'FooProps': 'FooPropsMixin',
-            'FooState': 'FooStateMixin',
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+            publicStateClassName: '${publicStateClassName}Mixin',
           });
         });
       });
@@ -1332,49 +1056,44 @@ void main() {
       group('and there is just a props class', () {
         group('that extends from the reserved FluxUiProps class', () {
           test('and uses no mixins', () {
-            final input = r'''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                $Foo;
-  
-            @Props()
-            class _$FooProps extends FluxUiProps<SomeActions, SomeStore> {
-              String foo;
-              int bar;
-            }
-  
-            @Component2()
-            class FooComponent extends FluxUiComponent2<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-            ''';
+            const input = '''
+                $factoryDecl
+      
+                @Props()
+                class $propsClassName extends FluxUiProps<SomeActions, SomeStore> {
+                  String foo;
+                  int bar;
+                }
+      
+                @Component2()
+                class FooComponent extends FluxUiComponent2<$publicPropsClassName> {
+                  @override
+                  render() {
+                    return Dom.ul()(
+                      Dom.li()('Foo: ', props.foo),
+                      Dom.li()('Bar: ', props.bar),
+                    );
+                  }
+                }
+                ''';
 
             testSuggestor()(
               expectedPatchCount: 6,
               input: input,
-              expectedOutput: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              expectedOutput: '''
+              $factoryDecl
   
               @Props()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
   
-              class FooProps = UiProps with FluxUiPropsMixin<SomeActions, SomeStore>, FooPropsMixin;
+              class $publicPropsClassName = UiProps 
+                  with FluxUiPropsMixin<SomeActions, SomeStore>, ${publicPropsClassName}Mixin;
   
               @Component2()
-              class FooComponent extends FluxUiComponent2<FooProps> {
+              class FooComponent extends FluxUiComponent2<$publicPropsClassName> {
                 @override
                 render() {
                   return Dom.ul()(
@@ -1387,64 +1106,58 @@ void main() {
             );
 
             expect(converter.visitedClassNames, {
-              'FooProps': 'FooPropsMixin',
+              publicPropsClassName: '${publicPropsClassName}Mixin',
             });
           });
 
           group('and uses a mixin', () {
-            const input = r'''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                $Foo;
-  
-            @Props()
-            class _$FooProps extends FluxUiProps<SomeActions, SomeStore> with SomePropsMixin<SomeStore> {
-              String foo;
-              int bar;
-            }
-  
-            @Component2()
-            class FooComponent extends FluxUiComponent2<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-            ''';
+            const input = '''
+                $factoryDecl
+      
+                @Props()
+                class $propsClassName extends FluxUiProps<SomeActions, SomeStore> with SomePropsMixin<SomeStore> {
+                  String foo;
+                  int bar;
+                }
+      
+                @Component2()
+                class FooComponent extends FluxUiComponent2<$publicPropsClassName> {
+                  @override
+                  render() {
+                    return Dom.ul()(
+                      Dom.li()('Foo: ', props.foo),
+                      Dom.li()('Bar: ', props.bar),
+                    );
+                  }
+                }
+                ''';
 
-            const expectedOutput = r'''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                $Foo;
-
-            @Props()
-            mixin FooPropsMixin on UiProps {
-              String foo;
-              int bar;
-            }
-
-            class FooProps = UiProps 
-                with 
-                    FluxUiPropsMixin<SomeActions, SomeStore>, 
-                    FooPropsMixin, 
-                    SomePropsMixin<SomeStore>;
-
-            @Component2()
-            class FooComponent extends FluxUiComponent2<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-          ''';
+            const expectedOutput = '''
+                $factoryDecl
+    
+                @Props()
+                mixin ${publicPropsClassName}Mixin on UiProps {
+                  String foo;
+                  int bar;
+                }
+    
+                class $publicPropsClassName = UiProps 
+                    with 
+                        FluxUiPropsMixin<SomeActions, SomeStore>, 
+                        ${publicPropsClassName}Mixin, 
+                        SomePropsMixin<SomeStore>;
+    
+                @Component2()
+                class FooComponent extends FluxUiComponent2<$publicPropsClassName> {
+                  @override
+                  render() {
+                    return Dom.ul()(
+                      Dom.li()('Foo: ', props.foo),
+                      Dom.li()('Bar: ', props.bar),
+                    );
+                  }
+                }
+              ''';
 
             test('that has already been converted', () {
               testSuggestor(visitedClassNames: {
@@ -1457,7 +1170,7 @@ void main() {
 
               expect(converter.visitedClassNames, {
                 'SomePropsMixin': 'SomePropsMixin',
-                'FooProps': 'FooPropsMixin',
+                publicPropsClassName: '${publicPropsClassName}Mixin',
               });
             });
 
@@ -1475,7 +1188,7 @@ void main() {
 
               expect(converter.visitedClassNames, {
                 'SomePropsMixin': 'SomePropsMixin',
-                'FooProps': 'FooPropsMixin',
+                publicPropsClassName: '${publicPropsClassName}Mixin',
               });
             });
           });
@@ -1487,37 +1200,22 @@ void main() {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             })(
               expectedPatchCount: 6,
-              input: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              input: '''
+              $factoryDecl
 
               @Props()
-              class _$FooProps extends ADifferentPropsClass {
+              class $propsClassName extends ADifferentPropsClass {
                 String foo;
                 int bar;
               }
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
-              expectedOutput: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              expectedOutput: '''
+              $factoryDecl
 
               @Props()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
@@ -1525,24 +1223,15 @@ void main() {
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
+              class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
             );
 
             expect(converter.visitedClassNames, {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-              'FooProps': 'FooPropsMixin',
+              publicPropsClassName: '${publicPropsClassName}Mixin',
             });
           });
 
@@ -1672,20 +1361,17 @@ void main() {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
               })(
                 expectedPatchCount: 6,
-                input: r'''
-                @Factory()
-                UiFactory<FooProps> Foo =
-                    // ignore: undefined_identifier
-                    $Foo;
+                input: '''
+                $factoryDecl
 
                 @Props()
-                class _$FooProps extends SomeAbstractPropsClass implements SomeInterface {
+                class $propsClassName extends SomeAbstractPropsClass implements SomeInterface {
                   String foo;
                   int bar;
                 }
 
                 @Component2()
-                class FooComponent extends AbstractComponentClass<FooProps> {
+                class FooComponent extends AbstractComponentClass<$publicPropsClassName> {
                   @override
                   render() {
                     return Dom.ul()(
@@ -1695,14 +1381,11 @@ void main() {
                   }
                 }
               ''',
-                expectedOutput: r'''
-                @Factory()
-                UiFactory<FooProps> Foo =
-                    // ignore: undefined_identifier
-                    $Foo;
+                expectedOutput: '''
+                $factoryDecl
 
                 @Props()
-                mixin FooPropsMixin on UiProps implements SomeInterface {
+                mixin ${publicPropsClassName}Mixin on UiProps implements SomeInterface {
                   String foo;
                   int bar;
                 }
@@ -1710,11 +1393,12 @@ void main() {
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
-                class FooProps = UiProps with SomeAbstractPropsClassMixin, FooPropsMixin
+                class $publicPropsClassName = UiProps 
+                    with SomeAbstractPropsClassMixin, ${publicPropsClassName}Mixin
                     implements SomeAbstractPropsClass, SomeInterface;
 
                 @Component2()
-                class FooComponent extends AbstractComponentClass<FooProps> {
+                class FooComponent extends AbstractComponentClass<$publicPropsClassName> {
                   @override
                   render() {
                     return Dom.ul()(
@@ -1728,7 +1412,7 @@ void main() {
 
               expect(converter.visitedClassNames, {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
-                'FooProps': 'FooPropsMixin',
+                publicPropsClassName: '${publicPropsClassName}Mixin',
               });
             });
 
@@ -1737,17 +1421,14 @@ void main() {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
               })(
                 expectedPatchCount: 2,
-                input: r'''
-                @Factory()
-                UiFactory<FooProps> Foo =
-                    // ignore: undefined_identifier
-                    $Foo;
+                input: '''
+                $factoryDecl
 
                 @Props()
-                class _$FooProps extends SomeAbstractPropsClass implements SomeInterface {}
+                class $propsClassName extends SomeAbstractPropsClass implements SomeInterface {}
 
                 @Component2()
-                class FooComponent extends AbstractComponentClass<FooProps> {
+                class FooComponent extends AbstractComponentClass<$publicPropsClassName> {
                   @override
                   render() {
                     return Dom.ul()(
@@ -1757,19 +1438,16 @@ void main() {
                   }
                 }
               ''',
-                expectedOutput: r'''
-                @Factory()
-                UiFactory<FooProps> Foo =
-                    // ignore: undefined_identifier
-                    $Foo;
+                expectedOutput: '''
+                $factoryDecl
 
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
-                class FooProps extends UiProps implements SomeAbstractPropsClass, SomeInterface {}
+                class $publicPropsClassName extends UiProps implements SomeAbstractPropsClass, SomeInterface {}
 
                 @Component2()
-                class FooComponent extends AbstractComponentClass<FooProps> {
+                class FooComponent extends AbstractComponentClass<$publicPropsClassName> {
                   @override
                   render() {
                     return Dom.ul()(
@@ -1783,42 +1461,30 @@ void main() {
 
               expect(converter.visitedClassNames, {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
-                'FooProps': 'FooProps',
+                publicPropsClassName: publicPropsClassName,
               });
             });
           });
         });
 
         test('that extends from UiProps, but uses mixins', () {
-          const input = r'''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              $Foo;
-
-          @Props()
-          class _$FooProps extends UiProps
-              with ConvertedMixin,
-                   // ignore: mixin_of_non_class, undefined_class
-                   $ConvertedMixin,
-                   UnconvertedMixin,
-                   // ignore: mixin_of_non_class, undefined_class
-                   $UnconvertedMixin {
-            String foo;
-            int bar;
-          }
-
-          @Component2()
-          class FooComponent extends UiComponent2<FooProps> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-        ''';
+          const input = '''
+              $factoryDecl
+    
+              @Props()
+              class $propsClassName extends UiProps
+                  with ConvertedMixin,
+                       // ignore: mixin_of_non_class, undefined_class
+                       \$ConvertedMixin,
+                       UnconvertedMixin,
+                       // ignore: mixin_of_non_class, undefined_class
+                       \$UnconvertedMixin {
+                String foo;
+                int bar;
+              }
+    
+              $componentDecl
+            ''';
 
           // When it is run the first time, nothing should happen since
           // we don't know for sure if UnconvertedMixin can be converted yet.
@@ -1829,39 +1495,27 @@ void main() {
           })(
             expectedPatchCount: 6,
             input: input,
-            expectedOutput: r'''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                $Foo;
+            expectedOutput: '''
+            $factoryDecl
 
             @Props()
-            mixin FooPropsMixin on UiProps {
+            mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
               int bar;
             }
 
-            class FooProps = UiProps
-                with FooPropsMixin, ConvertedMixin, UnconvertedMixin, // ignore: mixin_of_non_class, undefined_class
-                $UnconvertedMixin;
+            class $publicPropsClassName = UiProps
+                with ${publicPropsClassName}Mixin, ConvertedMixin, UnconvertedMixin, // ignore: mixin_of_non_class, undefined_class
+                \$UnconvertedMixin;
 
-            @Component2()
-            class FooComponent extends UiComponent2<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
+            $componentDecl
           ''',
           );
 
           expect(converter.visitedClassNames, {
             'ConvertedMixin': 'ConvertedMixin',
             'UnconvertedMixin': null,
-            'FooProps': 'FooPropsMixin',
+            publicPropsClassName: '${publicPropsClassName}Mixin',
           });
         });
 
@@ -1872,59 +1526,36 @@ void main() {
               'ConvertedMixin': 'ConvertedMixin',
             })(
               expectedPatchCount: 6,
-              input: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              input: '''
+              $factoryDecl
 
               @Props()
-              class _$FooProps extends UiProps with ConvertedMixin implements SomeInterface, SomeOtherInterface {
+              class $propsClassName extends UiProps with ConvertedMixin implements SomeInterface, SomeOtherInterface {
                 String foo;
                 int bar;
               }
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
-              expectedOutput: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              expectedOutput: '''
+              $factoryDecl
 
               @Props()
-              mixin FooPropsMixin on UiProps implements SomeInterface, SomeOtherInterface {
+              mixin ${publicPropsClassName}Mixin on UiProps implements SomeInterface, SomeOtherInterface {
                 String foo;
                 int bar;
               }
 
-              class FooProps = UiProps with FooPropsMixin, ConvertedMixin implements SomeInterface, SomeOtherInterface;
+              class $publicPropsClassName = UiProps 
+                  with ${publicPropsClassName}Mixin, ConvertedMixin implements SomeInterface, SomeOtherInterface;
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
             );
 
             expect(converter.visitedClassNames, {
               'ConvertedMixin': 'ConvertedMixin',
-              'FooProps': 'FooPropsMixin',
+              publicPropsClassName: '${publicPropsClassName}Mixin',
             });
           });
 
@@ -2042,132 +1673,84 @@ void main() {
             () {
           test('and the class has no members of its own', () {
             testSuggestor(visitedClassNames: {
-              'FooPropsMixin': 'FooPropsMixin',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
             })(
               expectedPatchCount: 2,
-              input: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              input: '''
+              $factoryDecl
 
               @PropsMixin()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
 
               @Props()
-              class _$FooProps extends UiProps with FooPropsMixin {}
+              class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
-              expectedOutput: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              expectedOutput: '''
+              $factoryDecl
 
               @PropsMixin()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
 
-              class FooProps = UiProps with FooPropsMixin;
+              class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin;
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
             );
 
             expect(converter.visitedClassNames, {
-              'FooPropsMixin': 'FooPropsMixin',
-              'FooProps': 'FooProps',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              publicPropsClassName: publicPropsClassName,
             });
           });
 
           test('and the class has members', () {
             testSuggestor(visitedClassNames: {
-              'FooPropsMixin': 'FooPropsMixin',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
             })(
               expectedPatchCount: 3,
-              input: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              input: '''
+              $factoryDecl
 
               @PropsMixin()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
 
               @Props()
-              class _$FooProps extends UiProps with FooPropsMixin {
+              class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
                 String baz;
               }
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
-              expectedOutput: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              expectedOutput: '''
+              $factoryDecl
 
               @PropsMixin()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
                 String baz;
               }
 
-              class FooProps = UiProps with FooPropsMixin;
+              class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin;
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
             );
 
             expect(converter.visitedClassNames, {
-              'FooPropsMixin': 'FooPropsMixin',
-              'FooProps': 'FooProps',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              publicPropsClassName: publicPropsClassName,
             });
           });
         });
@@ -2176,35 +1759,23 @@ void main() {
       test(
           'and there are classes that extend from arbitrary custom classes, along with mixins',
           () {
-        const input = r'''
-        @Factory()
-        UiFactory<FooProps> Foo =
-            // ignore: undefined_identifier
-            $Foo;
-
-        @Props()
-        class _$FooProps extends ADifferentPropsClass with AMixin, AnotherMixin {
-          String foo;
-          int bar;
-        }
-
-        @State()
-        class _$FooState extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
-          String foo;
-          int bar;
-        }
-
-        @Component2()
-        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-          @override
-          render() {
-            return Dom.ul()(
-              Dom.li()('Foo: ', props.foo),
-              Dom.li()('Bar: ', props.bar),
-            );
-          }
-        }
-      ''';
+        const input = '''
+            $factoryDecl
+    
+            @Props()
+            class $propsClassName extends ADifferentPropsClass with AMixin, AnotherMixin {
+              String foo;
+              int bar;
+            }
+    
+            @State()
+            class $stateClassName extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
+              String foo;
+              int bar;
+            }
+    
+            $statefulComponentDecl
+          ''';
 
         // When it is run the first time, nothing should happen since
         // we don't know if the mixin(s) are external or not.
@@ -2219,14 +1790,11 @@ void main() {
         })(
           expectedPatchCount: 14,
           input: input,
-          expectedOutput: r'''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              $Foo;
+          expectedOutput: '''
+          $factoryDecl
 
           @Props()
-          mixin FooPropsMixin on UiProps {
+          mixin ${publicPropsClassName}Mixin on UiProps {
             String foo;
             int bar;
           }
@@ -2234,10 +1802,11 @@ void main() {
           // FIXME:
           //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins.
-          class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin, AMixin, AnotherMixin;
+          class $publicPropsClassName = UiProps 
+              with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin, AMixin, AnotherMixin;
 
           @State()
-          mixin FooStateMixin on UiState {
+          mixin ${publicStateClassName}Mixin on UiState {
             String foo;
             int bar;
           }
@@ -2245,18 +1814,10 @@ void main() {
           // FIXME:
           //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins.
-          class FooState = UiState with ADifferentStateClass, FooStateMixin, AStateMixin, AnotherStateMixin;
+          class $publicStateClassName = UiState 
+              with ADifferentStateClass, ${publicStateClassName}Mixin, AStateMixin, AnotherStateMixin;
 
-          @Component2()
-          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
+          $statefulComponentDecl
         ''',
         );
 
@@ -2267,8 +1828,8 @@ void main() {
           'AStateMixin': 'AStateMixin',
           'AnotherStateMixin': 'AnotherStateMixin',
           'ADifferentStateClass': 'ADifferentStateClass',
-          'FooProps': 'FooPropsMixin',
-          'FooState': 'FooStateMixin',
+          publicPropsClassName: '${publicPropsClassName}Mixin',
+          publicStateClassName: '${publicStateClassName}Mixin',
         });
       });
 
@@ -2279,7 +1840,7 @@ void main() {
         group('and that mixin exists in the same root', () {
           setUp(() {
             converter.setVisitedClassNames({
-              'FooPropsMixin': 'FooPropsMixin',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             });
           });
@@ -2287,40 +1848,25 @@ void main() {
           test('and the class has no members', () {
             testSuggestor()(
               expectedPatchCount: 2,
-              input: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              input: '''
+              $factoryDecl
 
               @PropsMixin()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
 
               @Props()
-              class _$FooProps extends ADifferentPropsClass with FooPropsMixin {}
+              class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {}
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
-              expectedOutput: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              expectedOutput: '''
+              $factoryDecl
 
               @PropsMixin()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
@@ -2328,67 +1874,43 @@ void main() {
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
+              class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
             );
 
             expect(converter.visitedClassNames, {
-              'FooPropsMixin': 'FooPropsMixin',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-              'FooProps': 'FooProps',
+              publicPropsClassName: publicPropsClassName,
             });
           });
 
           test('and the class has members', () {
             testSuggestor()(
               expectedPatchCount: 3,
-              input: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              input: '''
+              $factoryDecl
 
               @PropsMixin()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
 
               @Props()
-              class _$FooProps extends ADifferentPropsClass with FooPropsMixin {
+              class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {
                 String baz;
               }
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
-              expectedOutput: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              expectedOutput: '''
+              $factoryDecl
 
               @PropsMixin()
-              mixin FooPropsMixin on UiProps {
+              mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
                 String baz;
@@ -2397,25 +1919,16 @@ void main() {
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
+              class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
             );
 
             expect(converter.visitedClassNames, {
-              'FooPropsMixin': 'FooPropsMixin',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-              'FooProps': 'FooProps',
+              publicPropsClassName: publicPropsClassName,
             });
           });
         });
@@ -2426,121 +1939,73 @@ void main() {
           setUp(() {
             converter.setVisitedClassNames({
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-              'FooPropsMixin': 'FooPropsMixin',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
             });
           });
 
           test('and the class has no members', () {
             testSuggestor()(
               expectedPatchCount: 2,
-              input: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              input: '''
+              $factoryDecl
 
               @Props()
-              class _$FooProps extends ADifferentPropsClass with FooPropsMixin {}
+              class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {}
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
-              expectedOutput: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              expectedOutput: '''
+              $factoryDecl
 
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              class FooProps = UiProps with ADifferentPropsClassMixin, FooPropsMixin;
+              class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
             );
 
             expect(converter.visitedClassNames, {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-              'FooPropsMixin': 'FooPropsMixin',
-              'FooProps': 'FooProps',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              publicPropsClassName: publicPropsClassName,
             });
           });
 
           test('and the class has members', () {
             testSuggestor()(
               expectedPatchCount: 2,
-              input: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              input: '''
+              $factoryDecl
 
               @Props()
-              class _$FooProps extends ADifferentPropsClass with FooPropsMixin {
+              class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {
                 String baz;
               }
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
-              expectedOutput: r'''
-              @Factory()
-              UiFactory<FooProps> Foo =
-                  // ignore: undefined_identifier
-                  $Foo;
+              expectedOutput: '''
+              $factoryDecl
 
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              class FooProps extends UiProps with ADifferentPropsClassMixin, FooPropsMixin {
-                // FIXME: Everything in this body needs to be moved to the body of FooPropsMixin.
+              class $publicPropsClassName extends UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin {
+                // FIXME: Everything in this body needs to be moved to the body of ${publicPropsClassName}Mixin.
                 // Once that is done, the body can be removed, and `extends` can be replaced with `=`.
                 String baz;
               }
 
-              @Component2()
-              class FooComponent extends UiComponent2<FooProps, FooState> {
-                @override
-                render() {
-                  return Dom.ul()(
-                    Dom.li()('Foo: ', props.foo),
-                    Dom.li()('Bar: ', props.bar),
-                  );
-                }
-              }
+              $componentDecl
             ''',
             );
 
             expect(converter.visitedClassNames, {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-              'FooPropsMixin': 'FooPropsMixin',
-              'FooProps': 'FooProps',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              publicPropsClassName: publicPropsClassName,
             });
           });
         });
