@@ -17,7 +17,6 @@ import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
-import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:source_span/source_span.dart';
@@ -119,7 +118,8 @@ bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
     isAPropsOrStateMixin(classNode);
 
 /// Whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
-bool shouldMigratePropsAndStateClass(ClassDeclaration node, SemverHelper semverHelper) {
+bool shouldMigratePropsAndStateClass(
+    ClassDeclaration node, SemverHelper semverHelper) {
   return isAssociatedWithComponent2(node) &&
       isAPropsOrStateClass(node) &&
       !isPublic(node, semverHelper);
