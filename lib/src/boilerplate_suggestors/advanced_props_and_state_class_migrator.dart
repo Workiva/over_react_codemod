@@ -384,6 +384,11 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
       final reasons = migrationDecisions.values
           .where((decision) => !decision.yee && decision.reason != null)
           .map((decisionWithReason) => decisionWithReason.reason);
+
+      if (reasons.isEmpty) {
+        return MigrationDecision(false);
+      }
+
       return MigrationDecision(false, reason: reasons.join('//\n'));
     }
   }
