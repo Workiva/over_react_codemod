@@ -261,7 +261,7 @@ class ClassToMixinConverter {
   ///
   /// > NOTE: The key will be the name of the [node] with the [privateGeneratedPrefix] removed.
   void recordVisit(ClassOrMixinDeclaration node) {
-    if (!isAPropsOrStateClass(node)) return;
+    if (!(isAPropsOrStateClass(node) || isAPropsOrStateMixin(node))) return;
 
     _visitedNames.putIfAbsent(
         stripPrivateGeneratedPrefix(node.name.name), () => null);

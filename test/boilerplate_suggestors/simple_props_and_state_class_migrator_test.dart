@@ -152,6 +152,7 @@ main() {
         );
 
         expect(converter.visitedNames, {
+          'FooPropsMixin': null,
           'FooProps': null,
         });
       });
