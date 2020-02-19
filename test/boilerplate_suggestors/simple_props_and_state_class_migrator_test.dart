@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
+import 'boilerplate_utilities_test.dart';
 
 main() {
   group('SimplePropsAndStateClassMigrator', () {
@@ -24,9 +27,12 @@ main() {
     final testSuggestor =
         getSuggestorTester(SimplePropsAndStateClassMigrator(converter));
 
+    setUpAll(() {
+      semverHelper = SemverHelper(jsonDecode(reportJson));
+    });
+
     tearDown(() {
       converter.setVisitedClassNames({});
-      isPublicForTest = false;
     });
 
     group('does not migrate when', () {
@@ -151,24 +157,22 @@ main() {
       });
 
       test('the class is publicly exported, but does add a FIXME comment', () {
-        isPublicForTest = true;
-
         testSuggestor(
           expectedPatchCount: 1,
           input: r'''
           @Factory()
-          UiFactory<FooProps> Foo =
+          UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
-              $Foo;
+              $Bar;
   
           @Props()
-          class _$FooProps extends UiProps {
+          class _$BarProps extends UiProps {
             String foo;
             int bar;
           }
   
-          @Component()
-          class FooComponent extends UiComponent2<FooProps> {
+          @Component2()
+          class BarComponent extends UiComponent2<BarProps> {
             @override
             render() {
               return Dom.ul()(
@@ -178,37 +182,37 @@ main() {
             }
           }
       ''',
-          expectedOutput: '''
+          expectedOutput: r'''
           @Factory()
-          UiFactory<FooProps> Foo =
+          UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
-              \$Foo;
+              $Bar;
   
-          // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
-          // because doing so would be a breaking change since `FooProps` is exported from a 
+          // FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate 
+          // because doing so would be a breaking change since `BarProps` is exported from a 
           // library in this repo.
           //
           // To complete the migration, you should: 
-          //   1. Deprecate `FooProps`.
-          //   2. Make a copy of it, renaming it something like `FooPropsV2`.
-          //   3. Replace all your current usage of the deprecated `FooProps` with `FooPropsV2`.
-          //   4. Add a `hide FooPropsV2` clause to all places where it is exported, and then run:
+          //   1. Deprecate `BarProps`.
+          //   2. Make a copy of it, renaming it something like `BarPropsV2`.
+          //   3. Replace all your current usage of the deprecated `BarProps` with `BarPropsV2`.
+          //   4. Add a `hide BarPropsV2` clause to all places where it is exported, and then run:
           //        pub run over_react_codemod:boilerplate_upgrade
-          //   5a. If `FooProps` had consumers outside this repo, and it was intentionally made public,
-          //       remove the `hide` clause you added in step 4 so that the new mixin created from `FooPropsV2` 
-          //       will be a viable replacement for `FooProps`.
-          //   5b. If `FooProps` had no consumers outside this repo, and you have no reason to make the new
+          //   5a. If `BarProps` had consumers outside this repo, and it was intentionally made public,
+          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarPropsV2` 
+          //       will be a viable replacement for `BarProps`.
+          //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
           //   6. Remove this FIXME comment.
           @Props()
-          class _\$FooProps extends UiProps {
+          class _$BarProps extends UiProps {
             String foo;
             int bar;
           }
   
-          @Component()
-          class FooComponent extends UiComponent2<FooProps> {
+          @Component2()
+          class BarComponent extends UiComponent2<BarProps> {
             @override
             render() {
               return Dom.ul()(
@@ -221,7 +225,7 @@ main() {
         );
 
         expect(converter.visitedClassNames, {
-          'FooProps': null,
+          'BarProps': null,
         });
       });
 

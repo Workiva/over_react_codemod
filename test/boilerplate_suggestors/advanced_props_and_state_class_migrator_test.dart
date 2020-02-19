@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
+import 'boilerplate_utilities_test.dart';
 
 void main() {
   const publicPropsClassName = 'FooProps';
@@ -62,10 +65,13 @@ void main() {
       return tester;
     }
 
+    setUpAll(() {
+      semverHelper = SemverHelper(jsonDecode(reportJson));
+    });
+
     tearDown(() {
       runCount = 0;
       converter.setVisitedClassNames({});
-      isPublicForTest = false;
     });
 
     group('does not perform a migration when', () {
@@ -149,52 +155,104 @@ void main() {
       });
 
       test('the class is publicly exported, but does add a FIXME comment', () {
-        isPublicForTest = true;
-
         testSuggestor()(
-          expectedPatchCount: 1,
-          input: '''
-          $factoryDecl
+          expectedPatchCount: 2,
+          input: r'''
+          @Factory()
+          UiFactory<BarProps> Bar =
+              // ignore: undefined_identifier
+              $Bar;
   
           @Props()
-          class $propsClassName extends UiProps with SomePropsMixin {
+          class _$BarProps extends ADifferentPropsClass {
             String foo;
             int bar;
           }
   
-          $componentDecl
-      ''',
-          expectedOutput: '''
-          $factoryDecl
+          @State()
+          class _$BarState extends ADifferentStateClass {
+            String foo;
+            int bar;
+          }
   
-          // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
-          // because doing so would be a breaking change since `$publicPropsClassName` is exported from a 
+          @Component2()
+          class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+        ''',
+          expectedOutput: r'''
+          @Factory()
+          UiFactory<BarProps> Bar =
+              // ignore: undefined_identifier
+              $Bar;
+  
+          // FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate 
+          // because doing so would be a breaking change since `BarProps` is exported from a 
           // library in this repo.
           //
           // To complete the migration, you should: 
-          //   1. Deprecate `$publicPropsClassName`.
-          //   2. Make a copy of it, renaming it something like `${publicPropsClassName}V2`.
-          //   3. Replace all your current usage of the deprecated `$publicPropsClassName` with `${publicPropsClassName}V2`.
-          //   4. Add a `hide ${publicPropsClassName}V2` clause to all places where it is exported, and then run:
+          //   1. Deprecate `BarProps`.
+          //   2. Make a copy of it, renaming it something like `BarPropsV2`.
+          //   3. Replace all your current usage of the deprecated `BarProps` with `BarPropsV2`.
+          //   4. Add a `hide BarPropsV2` clause to all places where it is exported, and then run:
           //        pub run over_react_codemod:boilerplate_upgrade
-          //   5a. If `$publicPropsClassName` had consumers outside this repo, and it was intentionally made public,
-          //       remove the `hide` clause you added in step 4 so that the new mixin created from `${publicPropsClassName}V2` 
-          //       will be a viable replacement for `$publicPropsClassName`.
-          //   5b. If `$publicPropsClassName` had no consumers outside this repo, and you have no reason to make the new
+          //   5a. If `BarProps` had consumers outside this repo, and it was intentionally made public,
+          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarPropsV2` 
+          //       will be a viable replacement for `BarProps`.
+          //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
           //   6. Remove this FIXME comment.
           @Props()
-          class $propsClassName extends UiProps with SomePropsMixin {
+          class _$BarProps extends ADifferentPropsClass {
             String foo;
             int bar;
           }
   
-          $componentDecl
-      ''',
+          // FIXME: `BarState` could not be auto-migrated to the new over_react boilerplate 
+          // because doing so would be a breaking change since `BarState` is exported from a 
+          // library in this repo.
+          //
+          // To complete the migration, you should: 
+          //   1. Deprecate `BarState`.
+          //   2. Make a copy of it, renaming it something like `BarStateV2`.
+          //   3. Replace all your current usage of the deprecated `BarState` with `BarStateV2`.
+          //   4. Add a `hide BarStateV2` clause to all places where it is exported, and then run:
+          //        pub run over_react_codemod:boilerplate_upgrade
+          //   5a. If `BarState` had consumers outside this repo, and it was intentionally made public,
+          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarStateV2` 
+          //       will be a viable replacement for `BarState`.
+          //   5b. If `BarState` had no consumers outside this repo, and you have no reason to make the new
+          //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
+          //       concrete class and the newly created mixin.
+          //   6. Remove this FIXME comment.
+          @State()
+          class _$BarState extends ADifferentStateClass {
+            String foo;
+            int bar;
+          }
+  
+          @Component2()
+          class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+        ''',
         );
 
-        expect(converter.classWasMigrated(publicPropsClassName), isFalse);
+        expect(converter.classWasMigrated('BarProps'), isFalse);
+        expect(converter.classWasMigrated('BarState'), isFalse);
       });
 
       group(

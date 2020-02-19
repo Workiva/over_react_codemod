@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
@@ -34,7 +35,7 @@ const _changesRequiredOutput = '''
   Then, review the the changes, address any FIXMEs, and commit.
 ''';
 
-void main(List<String> args) {
+Future<void> main(List<String> args) async {
   final convertClassesWithExternalSuperclass =
       args.contains(_convertedClassesWithExternalSuperclassFlag);
   args.removeWhere((arg) => arg == _convertedClassesWithExternalSuperclassFlag);
@@ -47,6 +48,10 @@ void main(List<String> args) {
   );
 
   final classToMixinConverter = ClassToMixinConverter();
+
+  // TODO: determine file path of semver report
+  semverHelper = SemverHelper(jsonDecode(
+      await File('lib/src/boilerplate_suggestors/report.json').readAsString()));
 
   // General plan:
   //  - Things that need to be accomplished (very simplified)

@@ -23,11 +23,37 @@ import 'package:source_span/source_span.dart';
 typedef YieldPatch = void Function(
     int startingOffset, int endingOffset, String replacement);
 
-@visibleForTesting
-bool isPublicForTest = false;
+SemverHelper semverHelper;
 
-// Stub while <https://jira.atl.workiva.net/browse/CPLAT-9308> is in progress
-bool isPublic(ClassDeclaration node) => isPublicForTest;
+/// Returns whether or not [node] is publicly exported.
+bool isPublic(ClassDeclaration node) {
+  assert(semverHelper != null);
+  return semverHelper.getPublicExportLocations(node).isNotEmpty;
+}
+
+class SemverHelper {
+  final Map _exportList;
+
+  SemverHelper(Map jsonReport)
+      : _exportList = jsonReport['exports'],
+        assert(jsonReport['exports'] != null);
+
+  /// Returns a list of locations where [node] is publicly exported.
+  ///
+  /// If [node] is not publicly exported, returns an empty list.
+  List<String> getPublicExportLocations(ClassDeclaration node) {
+    final className = stripPrivateGeneratedPrefix(node.name.name);
+    final List<String> locations = List();
+
+    _exportList.forEach((key, value) {
+      if (value['type'] == 'class' && value['grammar']['name'] == className) {
+        locations.add(key);
+      }
+    });
+
+    return locations;
+  }
+}
 
 /// Returns the annotation node associated with the provided [classNode]
 /// that matches the provided [annotationName], if one exists.
