@@ -76,6 +76,14 @@ bool isReservedBaseClass(String className) {
       .contains(className);
 }
 
+/// Returns whether the [classNode] should be considered "abstract" based on both
+/// the presence of the `abstract` keyword, and also the `@AbstractProps()` / `@AbstractState()`
+/// annotations present.
+bool isAbstract(ClassDeclaration classNode) =>
+    classNode.isAbstract ||
+    getAnnotationNode(classNode, 'AbstractProps') != null ||
+    getAnnotationNode(classNode, 'AbstractState') != null;
+
 /// A simple evaluation of the annotation(s) of the [classNode]
 /// to verify it is either a `@PropsMixin()` or `@StateMixin`.
 bool isAPropsOrStateMixin(ClassDeclaration classNode) =>

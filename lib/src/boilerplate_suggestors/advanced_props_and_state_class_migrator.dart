@@ -99,7 +99,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       }
 
       if (forUseInImplementsOrWithClause) {
-        if (!node.isAbstract) {
+        if (!isAbstract(node)) {
           return node.typeParameters.toString();
         } else {
           // The node is abstract, and these typeArgs will be used on a mixin/interface for that node
@@ -174,10 +174,10 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       // `AnnotationsRemover` migrator in a later step of the migration.
       ..write('${node.metadata.join('\n')}\n')
       // Create the class name
-      ..write(node.isAbstract ? 'abstract class ' : 'class ')
+      ..write(isAbstract(node) ? 'abstract class ' : 'class ')
       ..write('$className${getClassTypeArgs()}');
 
-    if (node.isAbstract) {
+    if (isAbstract(node)) {
       mixins = getMixinsForNewDeclaration();
       // Since its abstract, we'll create an interface-only class which can then be implemented by
       // concrete subclasses that have component classes that extend from the analogous abstract component class.
@@ -244,7 +244,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
             dupeClassInSameRoot.rightBracket.offset,
             node.members.map((member) => member.toSource()).join('\n'));
 
-        newDeclarationBuffer.write(node.isAbstract ? '{}' : ';');
+        newDeclarationBuffer.write(isAbstract(node) ? '{}' : ';');
       } else {
         newDeclarationBuffer
           ..write('{\n')
@@ -257,7 +257,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       }
     } else {
       newDeclarationBuffer
-          .write(node.isAbstract || mixins.isEmpty ? '{}' : ';');
+          .write(isAbstract(node) || mixins.isEmpty ? '{}' : ';');
     }
 
     converter.migrate(node, yieldPatch,

@@ -1504,6 +1504,117 @@ void main() {
             });
           });
 
+          group('that is abstract based on annotation only (edge case)', () {
+            test('with members of its own', () {
+              const input = r'''
+                  @PropsMixin()
+                  abstract class BreadcrumbPathPropsMixin {}
+                  
+                  @AbstractProps()
+                  class _$AbstractBreadcrumbPathProps extends AbstractGraphFormProps
+                      with
+                          BreadcrumbPathPropsMixin,
+                          // ignore: mixin_of_non_class, undefined_class
+                          $BreadcrumbPathPropsMixin {
+                    String foo;
+                    int bar;
+                  }
+                  
+                  @AbstractComponent2()
+                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                      extends UiComponent2<T> {}
+                ''';
+
+              testSuggestor(visitedClassNames: {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractGraphFormProps': 'AbstractGraphFormProps',
+              })(
+                expectedPatchCount: 7,
+                input: input,
+                expectedOutput: r'''
+                @PropsMixin()
+                abstract class BreadcrumbPathPropsMixin {}
+              
+                @AbstractProps()
+                mixin AbstractBreadcrumbPathPropsMixin on UiProps {
+                  String foo;
+                  int bar;
+                }
+
+                // FIXME:
+                //   1. Ensure that all mixins used by AbstractGraphFormProps are also mixed into this class.
+                //   2. Fix any analyzer warnings on this class about missing mixins.
+                @AbstractProps()
+                abstract class AbstractBreadcrumbPathProps 
+                    implements
+                        AbstractGraphFormProps,
+                        AbstractBreadcrumbPathPropsMixin,
+                        BreadcrumbPathPropsMixin {}
+
+                @AbstractComponent2()
+                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                    extends UiComponent2<T> {}
+              ''',
+              );
+
+              expect(converter.visitedNames, {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractGraphFormProps': 'AbstractGraphFormProps',
+                'AbstractBreadcrumbPathProps':
+                    'AbstractBreadcrumbPathPropsMixin',
+              });
+            });
+
+            test('with no members', () {
+              const input = r'''
+                  @PropsMixin()
+                  abstract class BreadcrumbPathPropsMixin {}
+                  
+                  @AbstractProps()
+                  class _$AbstractBreadcrumbPathProps extends AbstractGraphFormProps
+                      with
+                          BreadcrumbPathPropsMixin,
+                          // ignore: mixin_of_non_class, undefined_class
+                          $BreadcrumbPathPropsMixin {}
+                  
+                  @AbstractComponent2()
+                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                      extends UiComponent2<T> {}
+                ''';
+
+              testSuggestor(visitedClassNames: {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractGraphFormProps': 'AbstractGraphFormProps',
+              })(
+                expectedPatchCount: 2,
+                input: input,
+                expectedOutput: r'''
+                @PropsMixin()
+                abstract class BreadcrumbPathPropsMixin {}
+                  
+                // FIXME:
+                //   1. Ensure that all mixins used by AbstractGraphFormProps are also mixed into this class.
+                //   2. Fix any analyzer warnings on this class about missing mixins.
+                @AbstractProps()
+                abstract class AbstractBreadcrumbPathProps 
+                    implements 
+                        AbstractGraphFormProps, 
+                        BreadcrumbPathPropsMixin {}
+
+                @AbstractComponent2()
+                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                    extends UiComponent2<T> {}
+              ''',
+              );
+
+              expect(converter.visitedNames, {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractGraphFormProps': 'AbstractGraphFormProps',
+                'AbstractBreadcrumbPathProps': 'AbstractBreadcrumbPathProps',
+              });
+            });
+          });
+
           group('that has an analagous abstract component class', () {
             test('and members of its own', () {
               testSuggestor(visitedClassNames: {
@@ -1818,6 +1929,104 @@ void main() {
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
                 'AbstractBlockProps': 'AbstractBlockProps',
+              });
+            });
+          });
+
+          group('and is abstract based on annotation only (edge case)', () {
+            test('with members of its own', () {
+              const input = r'''
+                  @PropsMixin()
+                  abstract class BreadcrumbPathPropsMixin {}
+                  
+                  @AbstractProps()
+                  class _$AbstractBreadcrumbPathProps extends UiProps
+                      with
+                          BreadcrumbPathPropsMixin,
+                          // ignore: mixin_of_non_class, undefined_class
+                          $BreadcrumbPathPropsMixin {
+                    String foo;
+                    int bar;
+                  }
+                  
+                  @AbstractComponent2()
+                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                      extends UiComponent2<T> {}
+                ''';
+
+              testSuggestor(visitedClassNames: {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+              })(
+                expectedPatchCount: 6,
+                input: input,
+                expectedOutput: r'''
+                @PropsMixin()
+                abstract class BreadcrumbPathPropsMixin {}
+              
+                @AbstractProps()
+                mixin AbstractBreadcrumbPathPropsMixin on UiProps {
+                  String foo;
+                  int bar;
+                }
+
+                @AbstractProps()
+                abstract class AbstractBreadcrumbPathProps 
+                    implements
+                        AbstractBreadcrumbPathPropsMixin,
+                        BreadcrumbPathPropsMixin {}
+
+                @AbstractComponent2()
+                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                    extends UiComponent2<T> {}
+              ''',
+              );
+
+              expect(converter.visitedNames, {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractBreadcrumbPathProps':
+                    'AbstractBreadcrumbPathPropsMixin',
+              });
+            });
+
+            test('with no members', () {
+              const input = r'''
+                  @PropsMixin()
+                  abstract class BreadcrumbPathPropsMixin {}
+                  
+                  @AbstractProps()
+                  class _$AbstractBreadcrumbPathProps extends UiProps
+                      with
+                          BreadcrumbPathPropsMixin,
+                          // ignore: mixin_of_non_class, undefined_class
+                          $BreadcrumbPathPropsMixin {}
+                  
+                  @AbstractComponent2()
+                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                      extends UiComponent2<T> {}
+                ''';
+
+              testSuggestor(visitedClassNames: {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+              })(
+                expectedPatchCount: 2,
+                input: input,
+                expectedOutput: r'''
+                @PropsMixin()
+                abstract class BreadcrumbPathPropsMixin {}
+                  
+                @AbstractProps()
+                abstract class AbstractBreadcrumbPathProps 
+                    implements BreadcrumbPathPropsMixin {}
+
+                @AbstractComponent2()
+                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                    extends UiComponent2<T> {}
+              ''',
+              );
+
+              expect(converter.visitedNames, {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractBreadcrumbPathProps': 'AbstractBreadcrumbPathProps',
               });
             });
           });
