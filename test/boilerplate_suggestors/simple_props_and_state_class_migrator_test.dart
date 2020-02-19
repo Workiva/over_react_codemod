@@ -87,13 +87,13 @@ main() {
             // ignore: undefined_identifier
             $Foo;
 
+        @Props()
         // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
         // because `FooComponent` does not extend from `react.Component2`.
         // 
         // Once you have upgraded the component, you can remove this FIXME comment and 
         // re-run the boilerplate migration script:
         // pub run over_react_codemod:boilerplate_upgrade
-        @Props()
         class _$FooProps extends UiProps {
           String foo;
           int bar;
@@ -188,7 +188,8 @@ main() {
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
               $Bar;
-  
+
+          @Props()
           // FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate 
           // because doing so would be a breaking change since `BarProps` is exported from a 
           // library in this repo.
@@ -206,7 +207,6 @@ main() {
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
           //   6. Remove this FIXME comment.
-          @Props()
           class _$BarProps extends UiProps {
             String foo;
             int bar;

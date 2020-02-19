@@ -106,6 +106,8 @@ void main() {
           input: '''
           $factoryDecl
   
+          /// Some documentation comment 
+          /// might get in the way of fix me comment removal
           @Props()
           class $propsClassName extends UiProps with SomePropsMixin {
             String foo;
@@ -126,13 +128,15 @@ void main() {
           expectedOutput: '''
           $factoryDecl
   
+          /// Some documentation comment 
+          /// might get in the way of fix me comment removal
+          @Props()
           // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
           // because `FooComponent` does not extend from `react.Component2`.
           // 
           // Once you have upgraded the component, you can remove this FIXME comment and 
           // re-run the boilerplate migration script:
           // pub run over_react_codemod:boilerplate_upgrade
-          @Props()
           class $propsClassName extends UiProps with SomePropsMixin {
             String foo;
             int bar;
@@ -192,6 +196,7 @@ void main() {
               // ignore: undefined_identifier
               $Bar;
   
+          @Props()
           // FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate 
           // because doing so would be a breaking change since `BarProps` is exported from a 
           // library in this repo.
@@ -209,12 +214,12 @@ void main() {
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
           //   6. Remove this FIXME comment.
-          @Props()
           class _$BarProps extends ADifferentPropsClass {
             String foo;
             int bar;
           }
-  
+
+          @State()
           // FIXME: `BarState` could not be auto-migrated to the new over_react boilerplate 
           // because doing so would be a breaking change since `BarState` is exported from a 
           // library in this repo.
@@ -232,7 +237,6 @@ void main() {
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
           //   6. Remove this FIXME comment.
-          @State()
           class _$BarState extends ADifferentStateClass {
             String foo;
             int bar;
@@ -275,6 +279,7 @@ void main() {
         const expectedOutputWithExternalSuperclassReasonComment = '''
             $factoryDecl
             
+            @Props()
             // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
             // because it extends from: $externalSuperclassName - which comes from an external library.
             //
@@ -288,7 +293,6 @@ void main() {
             //      Follow the deprecation instructions to consume the replacement by either updating your usage to
             //      the new class name and/or updating to a different entrypoint that exports the version(s) of 
             //      $externalSuperclassName that is compatible with the new over_react boilerplate.
-            @Props()
             class $propsClassName extends $externalSuperclassName {
               String foo;
               int bar;
@@ -339,6 +343,7 @@ void main() {
                 int bar;
               }
   
+              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
@@ -349,7 +354,6 @@ void main() {
               //
               //      If it is not deprecated, something most likely went wrong during the migration of the 
               //      library that contains it. 
-              @Props()
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
               $componentDecl
@@ -397,6 +401,7 @@ void main() {
                 int bar;
               }
   
+              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
@@ -406,8 +411,7 @@ void main() {
               //      $externalSuperclassName that is compatible with the new over_react boilerplate.
               //
               //      If it is not deprecated, something most likely went wrong during the migration of the 
-              //      library that contains it. 
-              @Props()
+              //      library that contains it.
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
               $componentDecl
@@ -446,6 +450,7 @@ void main() {
         const expectedOutputWithExternalSuperclassReasonComment = '''
             $factoryDecl
             
+            @Props()
             // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
             // because it mixes in: $externalMixinName - which comes from an external library.
             //
@@ -473,7 +478,6 @@ void main() {
             //      Follow the deprecation instructions to consume the replacement by either updating your usage to
             //      the new class name and/or updating to a different entrypoint that exports the version(s) of 
             //      $externalSuperclassName that is compatible with the new over_react boilerplate.
-            @Props()
             class $propsClassName extends $externalSuperclassName with $externalMixinName {
               String foo;
               int bar;
@@ -524,7 +528,8 @@ void main() {
                 String foo;
                 int bar;
               }
-  
+
+              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
@@ -535,7 +540,6 @@ void main() {
               //
               //      If they are not deprecated, something most likely went wrong during the migration of the 
               //      library that contains them. 
-              @Props()
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
               $componentDecl
@@ -572,7 +576,8 @@ void main() {
                 String foo;
                 int bar;
               }
-  
+
+              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
@@ -583,7 +588,6 @@ void main() {
               //
               //      If they are not deprecated, something most likely went wrong during the migration of the 
               //      library that contains them. 
-              @Props()
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
               $componentDecl
@@ -608,6 +612,7 @@ void main() {
         const expectedOutputWithUnMigratedSuperclassReasonComment = '''
             $factoryDecl
             
+            @Props()
             // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
             // because it extends from `ADifferentPropsClass`, which was not able to be migrated.
             //
@@ -616,7 +621,6 @@ void main() {
             //      and follow the steps outlined there to complete the migration.
             //   2. Re-run the migration script:
             //      pub run over_react_codemod:boilerplate_upgrade
-            @Props()
             class $propsClassName extends ADifferentPropsClass {
               String foo;
               int bar;
@@ -682,10 +686,10 @@ void main() {
               int bar;
             }
 
+            @Props()
             // FIXME:
             //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins.
-            @Props()
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
     
             $componentDecl
@@ -719,7 +723,8 @@ void main() {
 
           const expectedOutputWithExternalMixinReasonComment = '''
               $factoryDecl
-    
+
+              @Props()
               // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
               // because it mixes in: $externalMixinName - which comes from an external library.
               //
@@ -733,7 +738,6 @@ void main() {
               //      Follow the deprecation instructions to consume the replacement by either updating your usage to
               //      the new mixin name and/or updating to a different entrypoint that exports the version(s) of 
               //      $externalMixinName that is compatible with the new over_react boilerplate.
-              @Props()
               class $propsClassName extends UiProps with $externalMixinName {
                 String foo;
                 int bar;
@@ -783,7 +787,8 @@ void main() {
                   String foo;
                   int bar;
                 }
-    
+
+                @Props()
                 // FIXME:
                 //   1. You should notice that $externalMixinName is deprecated.  
                 //      Follow the deprecation instructions to consume the replacement by either updating your usage to
@@ -792,7 +797,6 @@ void main() {
                 //
                 //      If it is not deprecated, something most likely went wrong during the migration of the 
                 //      library that contains it. 
-                @Props()
                 class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, $externalMixinName;
     
                 $componentDecl
@@ -828,7 +832,8 @@ void main() {
 
           const expectedOutputWithExternalMixinReasonComment = '''
               $factoryDecl
-    
+
+              @Props()
               // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
               // because it mixes in: $externalMixinNames - which come from an external library.
               //
@@ -842,7 +847,6 @@ void main() {
               //      Follow the deprecation instructions to consume the replacements by either updating your usage to
               //      the new mixin names and/or updating to a different entrypoint that exports the version(s) of 
               //      $externalMixinNames that are compatible with the new over_react boilerplate.
-              @Props()
               class $propsClassName extends UiProps with $externalMixinNames {
                 String foo;
                 int bar;
@@ -892,7 +896,8 @@ void main() {
                   String foo;
                   int bar;
                 }
-    
+
+                @Props()
                 // FIXME:
                 //   1. You should notice that $externalMixinNames are deprecated.  
                 //      Follow the deprecation instructions to consume the replacement by either updating your usage to
@@ -901,7 +906,6 @@ void main() {
                 //
                 //      If they are not deprecated, something most likely went wrong during the migration of the 
                 //      library that contains them. 
-                @Props()
                 class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, $externalMixinNames;
     
                 $componentDecl
@@ -952,11 +956,11 @@ void main() {
               String foo;
               int bar;
             }
-    
+
+            @Props()
             // FIXME:
             //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins.
-            @Props()
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
     
             @State()
@@ -964,11 +968,11 @@ void main() {
               String foo;
               int bar;
             }
-            
+
+            @State()
             // FIXME:
             //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins.
-            @State()
             class $publicStateClassName = UiState with ADifferentStateClassMixin, ${publicStateClassName}Mixin;
     
             $statefulComponentDecl
@@ -1366,10 +1370,10 @@ void main() {
                 int bar;
               }
 
+              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               $componentDecl
@@ -1422,10 +1426,10 @@ void main() {
                   int bar;
                 }
 
+                @AbstractProps()
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
-                @AbstractProps()
                 abstract class AbstractBlockProps<A extends Something> implements
                         SomeAbstractPropsClass<A>,
                         AbstractBlockPropsMixin<A>,
@@ -1478,10 +1482,10 @@ void main() {
                 expectedPatchCount: 2,
                 input: input,
                 expectedOutput: r'''
+                @AbstractProps()
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
-                @AbstractProps()
                 abstract class AbstractBlockProps<A extends Something> implements
                         SomeAbstractPropsClass<A>,
                         LayoutPropsMixin,
@@ -1541,10 +1545,10 @@ void main() {
                   int bar;
                 }
 
+                @AbstractProps()
                 // FIXME:
                 //   1. Ensure that all mixins used by AbstractGraphFormProps are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
-                @AbstractProps()
                 abstract class AbstractBreadcrumbPathProps 
                     implements
                         AbstractGraphFormProps,
@@ -1591,11 +1595,11 @@ void main() {
                 expectedOutput: r'''
                 @PropsMixin()
                 abstract class BreadcrumbPathPropsMixin {}
-                  
+
+                @AbstractProps()
                 // FIXME:
                 //   1. Ensure that all mixins used by AbstractGraphFormProps are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
-                @AbstractProps()
                 abstract class AbstractBreadcrumbPathProps 
                     implements 
                         AbstractGraphFormProps, 
@@ -1650,10 +1654,10 @@ void main() {
                   int bar;
                 }
 
+                @Props()
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
-                @Props()
                 class $publicPropsClassName = UiProps 
                     with SomeAbstractPropsClassMixin, ${publicPropsClassName}Mixin
                     implements SomeAbstractPropsClass, SomeInterface;
@@ -1702,10 +1706,10 @@ void main() {
                 expectedOutput: '''
                 $factoryDecl
 
+                @Props()
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
-                @Props()
                 class $publicPropsClassName extends UiProps implements SomeAbstractPropsClass, SomeInterface {}
 
                 @Component2()
@@ -2165,10 +2169,10 @@ void main() {
             int bar;
           }
 
+          @Props()
           // FIXME:
           //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins.
-          @Props()
           class $publicPropsClassName = UiProps 
               with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin, AMixin, AnotherMixin;
 
@@ -2178,10 +2182,10 @@ void main() {
             int bar;
           }
 
+          @State()
           // FIXME:
           //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins.
-          @State()
           class $publicStateClassName = UiState 
               with ADifferentStateClass, ${publicStateClassName}Mixin, AStateMixin, AnotherStateMixin;
 
@@ -2239,10 +2243,10 @@ void main() {
                 int bar;
               }
 
+              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               $componentDecl
@@ -2285,10 +2289,10 @@ void main() {
                 String baz;
               }
 
+              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               $componentDecl
@@ -2327,10 +2331,10 @@ void main() {
               expectedOutput: '''
               $factoryDecl
 
+              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               $componentDecl
@@ -2360,10 +2364,10 @@ void main() {
               expectedOutput: '''
               $factoryDecl
 
+              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              @Props()
               class $publicPropsClassName extends UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin {
                 // FIXME: Everything in this body needs to be moved to the body of ${publicPropsClassName}Mixin.
                 // Once that is done, the body can be removed, and `extends` can be replaced with `=`.

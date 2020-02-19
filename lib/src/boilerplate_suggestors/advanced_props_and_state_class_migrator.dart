@@ -161,6 +161,11 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     final newDeclarationBuffer = StringBuffer()
       ..write('\n\n')
+      // The metadata (e.g. `@Props()` / `@State()` annotations) must remain
+      // on the concrete class in order for the `StubbedPropsAndStateClassRemover`
+      // migrator to work correctly. The vast majority of these will be removed by the
+      // `AnnotationsRemover` migrator in a later step of the migration.
+      ..write('${node.metadata.join('\n')}\n')
       ..write(getFixMeCommentForConvertedClassDeclaration(
         converter: converter,
         mixinNames: mixinNames,
@@ -168,11 +173,6 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         convertClassesWithExternalSuperclass:
             convertClassesWithExternalSuperclass,
       ))
-      // The metadata (e.g. `@Props()` / `@State()` annotations) must remain
-      // on the concrete class in order for the `StubbedPropsAndStateClassRemover`
-      // migrator to work correctly. The vast majority of these will be removed by the
-      // `AnnotationsRemover` migrator in a later step of the migration.
-      ..write('${node.metadata.join('\n')}\n')
       // Create the class name
       ..write(isAbstract(node) ? 'abstract class ' : 'class ')
       ..write('$className${getClassTypeArgs()}');

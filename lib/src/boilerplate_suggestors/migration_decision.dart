@@ -34,8 +34,10 @@ class MigrationDecision {
     var fixmeCommentAlreadyAdded = false;
     if (reason != null) {
       final firstLineOfReasonComment = reason.split('\n').first.trim();
-      final firstLineOfNodeComment =
-          node.beginToken.precedingComments.toString().trim();
+      final firstLineOfNodeComment = node
+          .firstTokenAfterCommentAndMetadata.precedingComments
+          .toString()
+          .trim();
       fixmeCommentAlreadyAdded =
           firstLineOfReasonComment == firstLineOfNodeComment;
     }
@@ -44,7 +46,8 @@ class MigrationDecision {
       return;
     }
 
-    yieldPatch(node.offset, node.offset, reason);
+    yieldPatch(node.firstTokenAfterCommentAndMetadata.offset,
+        node.firstTokenAfterCommentAndMetadata.offset, reason);
   }
 }
 
