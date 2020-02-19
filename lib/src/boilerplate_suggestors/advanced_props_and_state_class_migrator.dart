@@ -84,7 +84,6 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         node.extendsClause.superclass.typeArguments ?? '';
 
     final className = stripPrivateGeneratedPrefix(node.name.name);
-    final classTypeArgs = node.typeParameters ?? '';
     final dupeMixinExists =
         getNameOfDupeClass(className, node.root, converter) != null;
     final mixinWillBeCreatedFromClass =
@@ -93,6 +92,32 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     final classNeedsBody = node.members.isNotEmpty &&
         dupeMixinExists &&
         dupeClassInSameRoot == null;
+
+    String getClassTypeArgs({bool forUseInImplementsOrWithClause = false}) {
+      if (node.typeParameters == null) {
+        return '';
+      }
+
+      if (forUseInImplementsOrWithClause) {
+        if (!node.isAbstract) {
+          return node.typeParameters.toString();
+        } else {
+          // The node is abstract, and these typeArgs will be used on a mixin/interface for that node
+          // which means they should only have the type identifiers as args - not the
+          // full `<<SimpleIdentifier> extends <TypeName>>` args.
+          final typeIdentifiers = node.typeParameters.childEntities
+              .whereType<TypeParameter>()
+              .map((typeParam) =>
+                  typeParam.childEntities.whereType<SimpleIdentifier>())
+              .expand((i) => i);
+          if (typeIdentifiers.isNotEmpty) {
+            return '<${typeIdentifiers.join(',')}>';
+          }
+        }
+      }
+
+      return node.typeParameters.toString();
+    }
 
     StringBuffer mixins;
     StringBuffer getMixinsForNewDeclaration({bool includeParentClass = true}) {
@@ -106,7 +131,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         }
 
         if (mixinWillBeCreatedFromClass) {
-          baseAndParentClassMixins.add('${className}Mixin$classTypeArgs');
+          baseAndParentClassMixins.add(
+              '${className}Mixin${getClassTypeArgs(forUseInImplementsOrWithClause: true)}');
         }
 
         if (baseAndParentClassMixins.isNotEmpty) {
@@ -121,7 +147,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       if (hasMixins) {
         if (!(extendsFromCustomClass || extendsFromReservedClass) &&
             mixinWillBeCreatedFromClass) {
-          mixinsForNewDeclaration.write('${className}Mixin$classTypeArgs, ');
+          mixinsForNewDeclaration.write(
+              '${className}Mixin${getClassTypeArgs(forUseInImplementsOrWithClause: true)}, ');
         }
 
         mixinsForNewDeclaration.write(node.withClause.mixinTypes
@@ -148,7 +175,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       ..write('${node.metadata.join('\n')}\n')
       // Create the class name
       ..write(node.isAbstract ? 'abstract class ' : 'class ')
-      ..write('$className$classTypeArgs');
+      ..write('$className${getClassTypeArgs()}');
 
     if (node.isAbstract) {
       mixins = getMixinsForNewDeclaration();

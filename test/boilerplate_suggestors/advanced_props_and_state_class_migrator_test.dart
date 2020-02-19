@@ -1263,6 +1263,81 @@ void main() {
               });
             });
           });
+
+          group('and is abstract', () {
+            test('with members of its own', () {
+              const input = r'''
+                  @AbstractProps()
+                  abstract class _$AbstractFluxProps<A extends SomeActions, S extends SomeStore> 
+                      extends FluxUiProps<A, S>
+                      with SomePropsMixin<S> {
+                    String foo;
+                    int bar;
+                  }
+    
+                  @AbstractComponent2()
+                  abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
+                ''';
+
+              testSuggestor(visitedClassNames: {
+                'SomePropsMixin': 'SomePropsMixin',
+              })(
+                expectedPatchCount: 8,
+                input: input,
+                expectedOutput: r'''
+                @AbstractProps()
+                mixin AbstractFluxPropsMixin<A extends SomeActions, S extends SomeStore> on UiProps {
+                  String foo;
+                  int bar;
+                }
+
+                @AbstractProps()
+                abstract class AbstractFluxProps<A extends SomeActions, S extends SomeStore> 
+                    implements FluxUiPropsMixin<A, S>, AbstractFluxPropsMixin<A, S>, SomePropsMixin<S> {}
+
+                @AbstractComponent2()
+                abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
+              ''',
+              );
+
+              expect(converter.visitedNames, {
+                'SomePropsMixin': 'SomePropsMixin',
+                'AbstractFluxProps': 'AbstractFluxPropsMixin',
+              });
+            });
+
+            test('with no members', () {
+              const input = r'''
+                  @AbstractProps()
+                  abstract class _$AbstractFluxProps<A extends SomeActions, S extends SomeStore> 
+                      extends FluxUiProps<A, S>
+                      with SomePropsMixin<S> {}
+
+                  @AbstractComponent2()
+                  abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
+                ''';
+
+              testSuggestor(visitedClassNames: {
+                'SomePropsMixin': 'SomePropsMixin',
+              })(
+                expectedPatchCount: 2,
+                input: input,
+                expectedOutput: r'''
+                @AbstractProps()
+                abstract class AbstractFluxProps<A extends SomeActions, S extends SomeStore>
+                    implements FluxUiPropsMixin<A, S>, SomePropsMixin<S> {}
+
+                @AbstractComponent2()
+                abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
+              ''',
+              );
+
+              expect(converter.visitedNames, {
+                'SomePropsMixin': 'SomePropsMixin',
+                'AbstractFluxProps': 'AbstractFluxProps',
+              });
+            });
+          });
         });
 
         group('that extends from an arbitrary custom class', () {
@@ -1311,7 +1386,7 @@ void main() {
             test('with members of its own', () {
               const input = r'''
                   @AbstractProps()
-                  abstract class _$AbstractBlockProps extends SomeAbstractPropsClass
+                  abstract class _$AbstractBlockProps<A extends Something> extends SomeAbstractPropsClass<A>
                       with
                           LayoutPropsMixin,
                           // ignore: mixin_of_non_class, undefined_class
@@ -1342,7 +1417,7 @@ void main() {
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
-                mixin AbstractBlockPropsMixin on UiProps implements BlockClassHelperMapView {
+                mixin AbstractBlockPropsMixin<A extends Something> on UiProps implements BlockClassHelperMapView {
                   String foo;
                   int bar;
                 }
@@ -1351,9 +1426,9 @@ void main() {
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
                 @AbstractProps()
-                abstract class AbstractBlockProps implements
-                        SomeAbstractPropsClass,
-                        AbstractBlockPropsMixin,
+                abstract class AbstractBlockProps<A extends Something> implements
+                        SomeAbstractPropsClass<A>,
+                        AbstractBlockPropsMixin<A>,
                         LayoutPropsMixin,
                         BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
                         $BlockPropsMixin,
@@ -1376,7 +1451,7 @@ void main() {
             test('with no members', () {
               const input = r'''
                   @AbstractProps()
-                  abstract class _$AbstractBlockProps extends SomeAbstractPropsClass
+                  abstract class _$AbstractBlockProps<A extends Something> extends SomeAbstractPropsClass<A>
                       with
                           LayoutPropsMixin,
                           // ignore: mixin_of_non_class, undefined_class
@@ -1407,8 +1482,8 @@ void main() {
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
                 @AbstractProps()
-                abstract class AbstractBlockProps implements
-                        SomeAbstractPropsClass,
+                abstract class AbstractBlockProps<A extends Something> implements
+                        SomeAbstractPropsClass<A>,
                         LayoutPropsMixin,
                         BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
                         $BlockPropsMixin,
