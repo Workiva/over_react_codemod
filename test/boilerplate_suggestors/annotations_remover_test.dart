@@ -57,13 +57,14 @@ main() {
       test('', () {
         converter.setVisitedClassNames({
           'AbstractFooProps': 'AbstractFooProps',
+          'AbstractBarProps': 'AbstractBarProps',
           'FooProps': 'FooProps',
           'AbstractFooState': 'AbstractFooState',
           'FooState': 'FooState',
         });
 
         testSuggestor(
-          expectedPatchCount: 6,
+          expectedPatchCount: 8,
           input: '''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -72,6 +73,11 @@ main() {
     
           @AbstractProps()
           mixin AbstractFooProps on UiProps {
+            bool baz;
+          }
+          
+          @AbstractProps()
+          abstract class AbstractBarProps implements UiProps {
             bool baz;
           }
           
@@ -102,6 +108,9 @@ main() {
               );
             }
           }
+    
+          @AbstractComponent2()
+          abstract class AbstractBarComponent extends UiComponent2<AbstractBarProps> {}
         ''',
           expectedOutput: '''
           UiFactory<FooProps> Foo =
@@ -109,6 +118,10 @@ main() {
               \$Foo;
     
           mixin AbstractFooProps on UiProps {
+            bool baz;
+          }
+          
+          abstract class AbstractBarProps implements UiProps {
             bool baz;
           }
           
@@ -135,6 +148,8 @@ main() {
               );
             }
           }
+
+          abstract class AbstractBarComponent extends UiComponent2<AbstractBarProps> {}
       ''',
         );
       });

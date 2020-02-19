@@ -52,6 +52,7 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     'Props',
     'AbstractState',
     'State',
+    'AbstractComponent2',
     'Component2',
   ];
 
@@ -79,18 +80,16 @@ class AnnotationsRemover extends GeneralizingAstVisitor
   bool _propsOrStateClassWasConvertedToNewBoilerplate(
       CompilationUnitMember node) {
     if (_nodeHasAnnotationWithName(node, 'Factory') ||
-        _nodeHasAnnotationWithName(node, 'Component2')) {
+        _nodeHasAnnotationWithName(node, 'Component2') ||
+        _nodeHasAnnotationWithName(node, 'AbstractComponent2')) {
       // Its not a props or state class that would have been converted to the new boilerplate by a previous migrator.
       // but it is a UiComponent-related class with an annotation.
       final analogousPropsMixinOrClassName =
           _getNameOfPropsClassThatMayHaveBeenConverted(node);
-      return converter.visitedClassNames
-          .containsKey(analogousPropsMixinOrClassName);
-    } else if (_nodeHasRelevantAnnotation(node)) {
-      // Its a props, abstract props, state or abstract state annotated mixin
-      // If it has the annotation, and it is a `MixinDeclaration`,
-      // we can be confident that it has been converted to the new boilerplate.
-      return node is MixinDeclaration;
+      return converter.classWasMigrated(analogousPropsMixinOrClassName);
+    } else if (_nodeHasRelevantAnnotation(node) &&
+        node is NamedCompilationUnitMember) {
+      return converter.classWasMigrated(node.name.name);
     }
 
     return false;
