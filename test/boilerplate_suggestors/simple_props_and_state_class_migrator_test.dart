@@ -32,14 +32,14 @@ main() {
     });
 
     tearDown(() {
-      converter.setVisitedClassNames({});
+      converter.setVisitedNames({});
     });
 
     group('does not migrate when', () {
       test('its an empty file', () {
         testSuggestor(expectedPatchCount: 0, input: '');
 
-        expect(converter.visitedClassNames, isEmpty);
+        expect(converter.visitedNames, isEmpty);
       });
 
       test('there are no matches', () {
@@ -52,7 +52,7 @@ main() {
       ''',
         );
 
-        expect(converter.visitedClassNames, isEmpty);
+        expect(converter.visitedNames, isEmpty);
       });
 
       test('the component is not Component2, but does add a FIXME comment', () {
@@ -112,7 +112,7 @@ main() {
       ''',
         );
 
-        expect(converter.visitedClassNames, {
+        expect(converter.visitedNames, {
           'FooProps': null,
         });
       });
@@ -151,7 +151,7 @@ main() {
       ''',
         );
 
-        expect(converter.visitedClassNames, {
+        expect(converter.visitedNames, {
           'FooProps': null,
         });
       });
@@ -224,7 +224,7 @@ main() {
       ''',
         );
 
-        expect(converter.visitedClassNames, {
+        expect(converter.visitedNames, {
           'BarProps': null,
         });
       });
@@ -264,7 +264,7 @@ main() {
       ''',
           );
 
-          expect(converter.visitedClassNames, {
+          expect(converter.visitedNames, {
             'FooProps': null,
             'FooState': null,
           });
@@ -298,7 +298,7 @@ main() {
       ''',
           );
 
-          expect(converter.visitedClassNames, {
+          expect(converter.visitedNames, {
             'FooProps': null,
           });
         });
@@ -369,7 +369,7 @@ main() {
         ''',
         );
 
-        expect(converter.visitedClassNames, {
+        expect(converter.visitedNames, {
           'FooProps': 'FooProps',
           'FooState': 'FooState',
         });
@@ -426,7 +426,7 @@ main() {
         ''',
         );
 
-        expect(converter.visitedClassNames, {
+        expect(converter.visitedNames, {
           'FooProps': 'FooProps',
         });
       });
@@ -494,7 +494,7 @@ main() {
           ''',
         );
 
-        expect(converter.visitedClassNames, {
+        expect(converter.visitedNames, {
           'FooProps': 'FooProps',
           'FooState': 'FooState',
         });

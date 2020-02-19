@@ -24,12 +24,12 @@ main() {
     final testSuggestor = getSuggestorTester(AnnotationsRemover(converter));
 
     tearDown(() {
-      converter.setVisitedClassNames({});
+      converter.setVisitedNames({});
     });
 
     group('does not perform a migration', () {
       test('when it encounters an empty file', () {
-        converter.setVisitedClassNames({
+        converter.setVisitedNames({
           'FooProps': 'FooProps',
         });
 
@@ -37,7 +37,7 @@ main() {
       });
 
       test('when there are no relevant annotations present', () {
-        converter.setVisitedClassNames({
+        converter.setVisitedNames({
           'FooProps': 'FooProps',
         });
 
@@ -55,8 +55,8 @@ main() {
     group('performs a migration when there are relevant annotations present',
         () {
       test('', () {
-        converter.setVisitedClassNames({
           'AbstractFooProps': 'AbstractFooProps',
+        converter.setVisitedNames({
           'AbstractBarProps': 'AbstractBarProps',
           'FooProps': 'FooProps',
           'AbstractFooState': 'AbstractFooState',
@@ -155,7 +155,7 @@ main() {
       });
 
       test('handling class name edge cases', () {
-        converter.setVisitedClassNames({
+        converter.setVisitedNames({
           'GraphFormStateWrapperProps': 'GraphFormStateWrapperProps',
           'GraphFormStateWrapperState': 'GraphFormStateWrapperState',
         });
@@ -220,9 +220,9 @@ main() {
       });
 
       test('leaving annotations with arguments in place', () {
-        converter.setVisitedClassNames({
           'AbstractFooProps': 'AbstractFooProps',
           'FooProps': 'FooProps',
+        converter.setVisitedNames({
           'AbstractFooState': 'AbstractFooState',
           'FooState': 'FooState',
         });

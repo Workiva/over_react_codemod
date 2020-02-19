@@ -86,10 +86,10 @@ class AnnotationsRemover extends GeneralizingAstVisitor
       // but it is a UiComponent-related class with an annotation.
       final analogousPropsMixinOrClassName =
           _getNameOfPropsClassThatMayHaveBeenConverted(node);
-      return converter.classWasMigrated(analogousPropsMixinOrClassName);
+      return converter.wasMigrated(analogousPropsMixinOrClassName);
     } else if (_nodeHasRelevantAnnotation(node) &&
         node is NamedCompilationUnitMember) {
-      return converter.classWasMigrated(node.name.name);
+      return converter.wasMigrated(node.name.name);
     }
 
     return false;

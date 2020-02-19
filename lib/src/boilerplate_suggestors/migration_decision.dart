@@ -117,7 +117,7 @@ String getFixMeCommentForConvertedClassDeclaration({
 }) {
   final extendsFromCustomNonReservedClass =
       !isReservedBaseClass(parentClassName);
-  final usesExternalMixins = !mixinNames.every(converter.classWasVisited);
+  final usesExternalMixins = !mixinNames.every(converter.wasVisited);
   if (!extendsFromCustomNonReservedClass && !usesExternalMixins) return null;
 
   final fixMeBuffer = StringBuffer()..writeln('// FIXME:');
@@ -134,9 +134,9 @@ String getFixMeCommentForConvertedClassDeclaration({
   // Add more context about what they need to do next after they force the initial migration.
   if (convertClassesWithExternalSuperclass) {
     final extendsFromExternalCustomClass = extendsFromCustomNonReservedClass &&
-        !converter.classWasVisited(parentClassName);
+        !converter.wasVisited(parentClassName);
     final externalMixins =
-        mixinNames.where((name) => !converter.classWasVisited(name));
+        mixinNames.where((name) => !converter.wasVisited(name));
     var externalApis = extendsFromExternalCustomClass
         ? [parentClassName, ...externalMixins]
         : [...externalMixins];

@@ -29,6 +29,6 @@ class StubbedPropsAndStateClassRemover
   bool shouldRemoveCompanionClassFor(
       NamedCompilationUnitMember candidate, CompilationUnit node) {
     return super.shouldRemoveCompanionClassFor(candidate, node) &&
-        converter.classWasMigrated(candidate.name.name);
+        converter.wasMigrated(candidate.name.name);
   }
 }

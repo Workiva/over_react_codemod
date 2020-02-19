@@ -31,7 +31,7 @@ main() {
     });
 
     tearDown(() {
-      converter.setVisitedClassNames({});
+      converter.setVisitedNames({});
     });
 
     group('does not perform a migration', () {
@@ -82,7 +82,7 @@ main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -113,7 +113,7 @@ main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -144,7 +144,7 @@ main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -177,7 +177,7 @@ main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -207,7 +207,7 @@ main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });

@@ -95,7 +95,7 @@ main() {
 
     group('performs a migration', () {
       test('when the analogous private class has been migrated (simple)', () {
-        converter.setVisitedClassNames({
+        converter.setVisitedNames({
           'FooProps': 'FooProps',
           'FooState': 'FooState',
         });
@@ -177,7 +177,7 @@ main() {
       });
 
       test('when the analogous private class has been migrated (advanced)', () {
-        converter.setVisitedClassNames({
+        converter.setVisitedNames({
           'FooProps': 'FooPropsMixin',
           'FooState': 'FooStateMixin',
         });

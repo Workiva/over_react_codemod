@@ -58,8 +58,8 @@ void main() {
       // If visitedClassNames is set, append the value of `converter.visitedClassNames`.
       // This is done to ensure that those custom classNames are not treated as members of an external library API.
       if (visitedClassNames.isNotEmpty) {
-        converter.setVisitedClassNames(
-            {...converter.visitedClassNames, ...visitedClassNames});
+        converter
+            .setVisitedNames({...converter.visitedNames, ...visitedClassNames});
       }
 
       return tester;
@@ -71,14 +71,14 @@ void main() {
 
     tearDown(() {
       runCount = 0;
-      converter.setVisitedClassNames({});
+      converter.setVisitedNames({});
     });
 
     group('does not perform a migration when', () {
       test('it\'s an empty file', () {
         testSuggestor()(expectedPatchCount: 0, input: '');
 
-        expect(converter.visitedClassNames, isEmpty);
+        expect(converter.visitedNames, isEmpty);
       });
 
       test('the class is simple', () {
@@ -97,7 +97,7 @@ void main() {
         ''',
         );
 
-        expect(converter.classWasMigrated(publicPropsClassName), isFalse);
+        expect(converter.wasMigrated(publicPropsClassName), isFalse);
       });
 
       test('the class is not Component2, but does add a FIXME comment', () {
@@ -151,7 +151,7 @@ void main() {
       ''',
         );
 
-        expect(converter.classWasMigrated(publicPropsClassName), isFalse);
+        expect(converter.wasMigrated(publicPropsClassName), isFalse);
       });
 
       test('the class is publicly exported, but does add a FIXME comment', () {
@@ -251,8 +251,8 @@ void main() {
         ''',
         );
 
-        expect(converter.classWasMigrated('BarProps'), isFalse);
-        expect(converter.classWasMigrated('BarState'), isFalse);
+        expect(converter.wasMigrated('BarProps'), isFalse);
+        expect(converter.wasMigrated('BarState'), isFalse);
       });
 
       group(
@@ -311,7 +311,7 @@ void main() {
 
           test('', () {
             expect(
-                converter.visitedClassNames,
+                converter.visitedNames,
                 {
                   publicPropsClassName: null,
                 },
@@ -356,7 +356,7 @@ void main() {
             );
 
             expect(
-                converter.visitedClassNames,
+                converter.visitedNames,
                 {
                   publicPropsClassName: '${publicPropsClassName}Mixin',
                 },
@@ -413,7 +413,7 @@ void main() {
           );
 
           expect(
-              converter.visitedClassNames,
+              converter.visitedNames,
               {
                 publicPropsClassName: '${publicPropsClassName}Mixin',
               },
@@ -494,7 +494,7 @@ void main() {
 
           test('', () {
             expect(
-                converter.visitedClassNames,
+                converter.visitedNames,
                 {
                   publicPropsClassName: null,
                 },
@@ -540,7 +540,7 @@ void main() {
             );
 
             expect(
-                converter.visitedClassNames,
+                converter.visitedNames,
                 {
                   publicPropsClassName: '${publicPropsClassName}Mixin',
                 },
@@ -587,7 +587,7 @@ void main() {
           );
 
           expect(
-              converter.visitedClassNames,
+              converter.visitedNames,
               {
                 publicPropsClassName: '${publicPropsClassName}Mixin',
               },
@@ -647,7 +647,7 @@ void main() {
             expectedOutput: expectedOutputWithUnMigratedSuperclassReasonComment,
           );
 
-          expect(converter.visitedClassNames, {
+          expect(converter.visitedNames, {
             'ADifferentPropsClass': null,
             publicPropsClassName: null,
           });
@@ -687,7 +687,7 @@ void main() {
           ''',
           );
 
-          expect(converter.visitedClassNames, {
+          expect(converter.visitedNames, {
             'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             publicPropsClassName: '${publicPropsClassName}Mixin',
           });
@@ -751,7 +751,7 @@ void main() {
 
             test('', () {
               expect(
-                  converter.visitedClassNames,
+                  converter.visitedNames,
                   {
                     publicPropsClassName: null,
                   },
@@ -794,7 +794,7 @@ void main() {
               );
 
               expect(
-                  converter.visitedClassNames,
+                  converter.visitedNames,
                   {
                     publicPropsClassName: '${publicPropsClassName}Mixin',
                   },
@@ -859,7 +859,7 @@ void main() {
 
             test('', () {
               expect(
-                  converter.visitedClassNames,
+                  converter.visitedNames,
                   {
                     publicPropsClassName: null,
                   },
@@ -902,7 +902,7 @@ void main() {
               );
 
               expect(
-                  converter.visitedClassNames,
+                  converter.visitedNames,
                   {
                     publicPropsClassName: '${publicPropsClassName}Mixin',
                   },
@@ -978,7 +978,7 @@ void main() {
             expectedOutput: expectedOutput,
           );
 
-          expect(converter.visitedClassNames, {
+          expect(converter.visitedNames, {
             'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             'ADifferentStateClass': 'ADifferentStateClassMixin',
             publicPropsClassName: '${publicPropsClassName}Mixin',
@@ -1006,7 +1006,7 @@ void main() {
             expectedOutput: expectedOutput,
           );
 
-          expect(converter.visitedClassNames, {
+          expect(converter.visitedNames, {
             'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             'ADifferentStateClass': 'ADifferentStateClassMixin',
             publicPropsClassName: '${publicPropsClassName}Mixin',
@@ -1073,7 +1073,7 @@ void main() {
             expectedOutput: expectedOutput,
           );
 
-          expect(converter.visitedClassNames, {
+          expect(converter.visitedNames, {
             'AMixin': 'AMixin',
             'AnotherMixin': 'AnotherMixin',
             'AStateMixin': 'AStateMixin',
@@ -1100,7 +1100,7 @@ void main() {
             expectedOutput: expectedOutput,
           );
 
-          expect(converter.visitedClassNames, {
+          expect(converter.visitedNames, {
             'AMixin': 'AMixin',
             'AnotherMixin': 'AnotherMixin',
             'AStateMixin': 'AStateMixin',
@@ -1163,7 +1163,7 @@ void main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               publicPropsClassName: '${publicPropsClassName}Mixin',
             });
           });
@@ -1226,7 +1226,7 @@ void main() {
                 expectedOutput: expectedOutput,
               );
 
-              expect(converter.visitedClassNames, {
+              expect(converter.visitedNames, {
                 'SomePropsMixin': 'SomePropsMixin',
                 publicPropsClassName: '${publicPropsClassName}Mixin',
               });
@@ -1244,7 +1244,7 @@ void main() {
                 expectedOutput: expectedOutput,
               );
 
-              expect(converter.visitedClassNames, {
+              expect(converter.visitedNames, {
                 'SomePropsMixin': 'SomePropsMixin',
                 publicPropsClassName: '${publicPropsClassName}Mixin',
               });
@@ -1287,7 +1287,7 @@ void main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
               publicPropsClassName: '${publicPropsClassName}Mixin',
             });
@@ -1350,7 +1350,7 @@ void main() {
               ''',
               );
 
-              expect(converter.visitedClassNames, {
+              expect(converter.visitedNames, {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
@@ -1405,7 +1405,7 @@ void main() {
               ''',
               );
 
-              expect(converter.visitedClassNames, {
+              expect(converter.visitedNames, {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
@@ -1469,7 +1469,7 @@ void main() {
               ''',
               );
 
-              expect(converter.visitedClassNames, {
+              expect(converter.visitedNames, {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
                 publicPropsClassName: '${publicPropsClassName}Mixin',
               });
@@ -1519,7 +1519,7 @@ void main() {
               ''',
               );
 
-              expect(converter.visitedClassNames, {
+              expect(converter.visitedNames, {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
                 publicPropsClassName: publicPropsClassName,
               });
@@ -1572,7 +1572,7 @@ void main() {
           ''',
           );
 
-          expect(converter.visitedClassNames, {
+          expect(converter.visitedNames, {
             'ConvertedMixin': 'ConvertedMixin',
             'UnconvertedMixin': null,
             publicPropsClassName: '${publicPropsClassName}Mixin',
@@ -1613,7 +1613,7 @@ void main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               'ConvertedMixin': 'ConvertedMixin',
               publicPropsClassName: '${publicPropsClassName}Mixin',
             });
@@ -1671,7 +1671,7 @@ void main() {
               ''',
               );
 
-              expect(converter.visitedClassNames, {
+              expect(converter.visitedNames, {
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
                 'AbstractBlockProps': 'AbstractBlockPropsMixin',
@@ -1720,7 +1720,7 @@ void main() {
               ''',
               );
 
-              expect(converter.visitedClassNames, {
+              expect(converter.visitedNames, {
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
                 'AbstractBlockProps': 'AbstractBlockProps',
@@ -1767,7 +1767,7 @@ void main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               publicPropsClassName: publicPropsClassName,
             });
@@ -1811,7 +1811,7 @@ void main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               publicPropsClassName: publicPropsClassName,
             });
@@ -1884,7 +1884,7 @@ void main() {
         ''',
         );
 
-        expect(converter.visitedClassNames, {
+        expect(converter.visitedNames, {
           'AMixin': 'AMixin',
           'AnotherMixin': 'AnotherMixin',
           'ADifferentPropsClass': 'ADifferentPropsClassMixin',
@@ -1902,7 +1902,7 @@ void main() {
           () {
         group('and that mixin exists in the same root', () {
           setUp(() {
-            converter.setVisitedClassNames({
+            converter.setVisitedNames({
               '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             });
@@ -1944,7 +1944,7 @@ void main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
               publicPropsClassName: publicPropsClassName,
@@ -1990,7 +1990,7 @@ void main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
               publicPropsClassName: publicPropsClassName,
@@ -2002,7 +2002,7 @@ void main() {
             'and that mixin does not exist in the same root, but has already been converted',
             () {
           setUp(() {
-            converter.setVisitedClassNames({
+            converter.setVisitedNames({
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
               '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
             });
@@ -2032,7 +2032,7 @@ void main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
               '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               publicPropsClassName: publicPropsClassName,
@@ -2069,7 +2069,7 @@ void main() {
             ''',
             );
 
-            expect(converter.visitedClassNames, {
+            expect(converter.visitedNames, {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
               '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               publicPropsClassName: publicPropsClassName,

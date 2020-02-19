@@ -66,8 +66,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       converter,
       convertClassesWithExternalSuperclass:
           convertClassesWithExternalSuperclass,
-      parentClassHasBeenVisited: converter.classWasVisited(parentClassName),
-      parentClassHasBeenConverted: converter.classWasMigrated(parentClassName),
+      parentClassHasBeenVisited: converter.wasVisited(parentClassName),
+      parentClassHasBeenConverted: converter.wasMigrated(parentClassName),
       treatUnvisitedClassesAsExternal: _treatUnvisitedClassesAsExternal,
       mixinNames: mixinNames,
     );
@@ -249,7 +249,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     // If a class did not get migrated previously because it extended from a custom superclass that
     // did not get migrated, the FIX ME comment that was added may now need to be removed if the
     // consumer has gone through and manually addressed issues such that the superclass is now "migratable".
-    if (extendsFromCustomClass && converter.classWasMigrated(parentClassName)) {
+    if (extendsFromCustomClass && converter.wasMigrated(parentClassName)) {
       final commentToRemove = getUnMigratedSuperclassReasonComment(
           stripPrivateGeneratedPrefix(node.name.name), parentClassName);
       removeCommentFromNode(node, commentToRemove, yieldPatch);
@@ -266,7 +266,7 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
   bool treatUnvisitedClassesAsExternal = false,
   List<String> mixinNames = const [],
 }) {
-  if (converter.classWasMigrated(node.name.name)) {
+  if (converter.wasMigrated(node.name.name)) {
     return MigrationDecision(false);
   }
 
@@ -295,7 +295,7 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
 
       // Has one or more mixins
       for (var mixinName in mixinNames) {
-        if (!converter.classWasVisited(mixinName)) {
+        if (!converter.wasVisited(mixinName)) {
           if (isFirstTimeVisitingClasses) {
             // An advanced class with a mixin that has not been visited yet.
             // However, this is the first run through the script since `treatUnvisitedClassesAsExternal` is false,

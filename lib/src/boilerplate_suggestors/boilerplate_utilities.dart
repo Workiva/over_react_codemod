@@ -208,7 +208,7 @@ ClassOrMixinDeclaration getDupeClassInSameRoot(
 /// that has the same name as [className] when appended with "Mixin".
 String getNameOfDupeClass(
     String className, CompilationUnit root, ClassToMixinConverter converter) {
-  final possibleDupeClasses = converter.visitedClassNames.keys;
+  final possibleDupeClasses = converter.visitedNames.keys;
   String nameOfDupeClass;
   for (var possibleDupeClassName in possibleDupeClasses) {
     if (possibleDupeClassName == '${className}Mixin') {
@@ -222,34 +222,48 @@ String getNameOfDupeClass(
 
 /// A class used to handle the conversion of props / state classes to mixins.
 ///
-/// Should only be constructed once to initialize the value of [visitedClassNames].
+/// Should only be constructed once to initialize the value of [visitedNames].
 ///
 /// Then [migrate] should be called on that instance each time a class is visited and needs to be converted to a mixin.
 class ClassToMixinConverter {
-  ClassToMixinConverter() : _visitedClassNames = <String, String>{};
+  ClassToMixinConverter() : _visitedNames = <String, String>{};
 
-  /// A map of props / state class names that have been visited in an attempt to [migrate].
+  /// A map of props / state class or mixin names that have been visited in an attempt to [migrate].
   ///
-  /// The keys represent the names of all classes that were visited in an attempt to migrate.
+  /// The keys represent the names of all classes / mixins that were visited in an attempt to migrate.
   ///
-  /// * If the value is non-null, it represents the name of mixin that should be used moving forward.
+  /// * If the value is non-null, it represents the name of the mixin that was created.
   /// * If the value is null, the class was unable to be converted.
-  Map<String, String> get visitedClassNames => _visitedClassNames;
-  Map<String, String> _visitedClassNames;
+  ///
+  /// > Instead of trying to parse the keys / values for semantic meaning,
+  ///   it is strongly recommended that you utilize helper methods like
+  ///   [wasVisited] and [wasMigrated] instead.
+  Map<String, String> get visitedNames => _visitedNames;
+  Map<String, String> _visitedNames;
 
-  /// Whether the provided [className] was migrated as a result of [migrate] being called.
-  bool classWasMigrated(String className) =>
-      visitedClassNames[className] != null;
+  /// Whether the provided [classOrMixinName] was migrated as a result of [migrate] being called.
+  ///
+  /// Returns true if:
+  ///
+  /// 1. A new mixin was created from the [classOrMixinName], while leaving the [classOrMixinName]
+  ///    in place as a result of advanced inheritance.
+  /// 2. The [classOrMixinName] was a [ClassDeclaration], and it was converted into a [MixinDeclaration]
+  ///    as a result of simple inheritance.
+  bool wasMigrated(String classOrMixinName) =>
+      visitedNames[classOrMixinName] != null;
 
-  /// Whether the provided [className] was migrated as a result of [migrate] being called.
-  bool classWasVisited(String className) =>
-      visitedClassNames.containsKey(className);
+  /// Whether the provided [classOrMixinName] was migrated as a result of [migrate] being called.
+  bool wasVisited(String classOrMixinName) =>
+      visitedNames.containsKey(classOrMixinName);
 
-  /// Adds the name of the provided [node] as a key within [visitedClassNames] if it is a props or state class.
-  void recordVisit(ClassDeclaration node) {
+  /// Adds the name of the provided [node] as a key within [visitedNames] if
+  /// it is a props/state class, or a props/state mixin.
+  ///
+  /// > NOTE: The key will be the name of the [node] with the [privateGeneratedPrefix] removed.
+  void recordVisit(ClassOrMixinDeclaration node) {
     if (!isAPropsOrStateClass(node)) return;
 
-    _visitedClassNames.putIfAbsent(
+    _visitedNames.putIfAbsent(
         stripPrivateGeneratedPrefix(node.name.name), () => null);
   }
 
@@ -294,7 +308,7 @@ class ClassToMixinConverter {
   /// }
   /// ```
   ///
-  /// When a class is migrated, it gets added to [visitedClassNames]
+  /// When a class is migrated, it gets added to [visitedNames]
   /// so that suggestors that come after the suggestor that called this function - can know
   /// whether to yield a patch based on that information.
   void migrate(
@@ -330,8 +344,7 @@ class ClassToMixinConverter {
             ?.split(', ') ??
         [];
     final migratingAdvancedClassWithExternalMixins =
-        convertClassesWithExternalSuperclass &&
-            !mixinNames.every(classWasVisited);
+        convertClassesWithExternalSuperclass && !mixinNames.every(wasVisited);
     if (migratingAdvancedClassWithExternalMixins) {
       // ----- [1] ----- //
       commentsToRemove.add(getExternalSuperclassOrMixinReasonComment(
@@ -359,7 +372,7 @@ class ClassToMixinConverter {
         // Delete the class since a mixin with the same name already exists,
         // or the class has no members of its own.
         yieldPatch(node.offset, node.end, '');
-        _visitedClassNames[originalPublicClassName] = originalPublicClassName;
+        _visitedNames[originalPublicClassName] = originalPublicClassName;
         return;
       }
     }
@@ -444,12 +457,12 @@ class ClassToMixinConverter {
       }
     }
 
-    _visitedClassNames[originalPublicClassName] = newMixinName;
+    _visitedNames[originalPublicClassName] = newMixinName;
   }
 
   @visibleForTesting
-  void setVisitedClassNames(Map<String, String> mapOfConvertedClassNames) =>
-      _visitedClassNames = mapOfConvertedClassNames;
+  void setVisitedNames(Map<String, String> mapOfMigratedNames) =>
+      _visitedNames = mapOfMigratedNames;
 }
 
 /// Returns the name of the props class for a given [factoryDeclaration].
@@ -464,7 +477,7 @@ String getPropsClassNameFromFactoryDeclaration(
 }
 
 /// Returns the name of the mixin that the [originalClassName] was converted to, or the [originalClassName]
-/// if no matching key is found within [ClassToMixinConverter.visitedClassNames] on the provided [converter] instance.
+/// if no matching key is found within [ClassToMixinConverter.visitedNames] on the provided [converter] instance.
 String getConvertedClassMixinName(
     String originalClassName, ClassToMixinConverter converter) {
   // If it is a "reserved" base class that the consumer doesn't control / won't be converted as
@@ -473,7 +486,7 @@ String getConvertedClassMixinName(
     return reservedBaseClassNames[originalClassName];
   }
 
-  return converter.visitedClassNames[originalClassName] ?? originalClassName;
+  return converter.visitedNames[originalClassName] ?? originalClassName;
 }
 
 extension IterableAstUtils on Iterable<NamedType> {
@@ -492,7 +505,7 @@ extension IterableAstUtils on Iterable<NamedType> {
     bool includePrivateGeneratedClassNames = true,
   }) {
     bool _mixinHasBeenConverted(NamedType t) =>
-        converter.classWasMigrated(t.name.name.replaceFirst('\$', ''));
+        converter.wasMigrated(t.name.name.replaceFirst('\$', ''));
 
     bool _mixinNameIsOldGeneratedBoilerplate(NamedType t) =>
         t.name.name.startsWith('\$');
