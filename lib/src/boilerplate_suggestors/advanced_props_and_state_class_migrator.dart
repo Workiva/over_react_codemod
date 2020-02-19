@@ -143,6 +143,10 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
                 convertClassesWithExternalSuperclass,
           ) ??
           '')
+      // The metadata (e.g. `@Props()` / `@State()` annotations) must remain
+      // on the concrete class in order for the `StubbedPropsAndStateClassRemover`
+      // migrator to work correctly. The vast majority of these will be removed by the
+      // `AnnotationsRemover` migrator in a later step of the migration.
       ..write('${node.metadata.join('\n')}\n')
       // Create the class name
       ..write(node.isAbstract ? 'abstract class ' : 'class ')
