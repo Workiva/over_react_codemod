@@ -1786,6 +1786,47 @@ void main() {
           });
         });
 
+        test('that extends from UiProps, but uses a "reserved" mixin', () {
+          const input = '''
+              $factoryDecl
+    
+              @Props()
+              class $propsClassName extends UiProps
+                  with DomPropsMixin,
+                       // ignore: mixin_of_non_class, undefined_class
+                       \$DomPropsMixin {
+                String foo;
+                int bar;
+              }
+    
+              $componentDecl
+            ''';
+
+          testSuggestor()(
+            expectedPatchCount: 6,
+            input: input,
+            expectedOutput: '''
+            $factoryDecl
+
+            @Props()
+            mixin ${publicPropsClassName}Mixin on UiProps {
+              String foo;
+              int bar;
+            }
+
+            @Props()
+            class $publicPropsClassName = UiProps
+                with ${publicPropsClassName}Mixin, DomPropsMixin;
+
+            $componentDecl
+          ''',
+          );
+
+          expect(converter.visitedNames, {
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+          });
+        });
+
         group('that extends from UiProps, uses mixins, implements interfaces',
             () {
           test('and is not abstract', () {

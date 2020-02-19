@@ -68,6 +68,7 @@ AstNode getAnnotationNode(ClassDeclaration classNode, String annotationName) {
 /// base class is never visited by them.
 const reservedBaseClassNames = {
   'FluxUiProps': 'FluxUiPropsMixin',
+  'DomPropsMixin': 'DomPropsMixin',
 };
 
 /// Whether the provided [className] is considered a "reserved" (non-custom) base class name to extend from or implement.
@@ -514,8 +515,11 @@ extension IterableAstUtils on Iterable<NamedType> {
     bool includeComments = true,
     bool includePrivateGeneratedClassNames = true,
   }) {
-    bool _mixinBoilerplateIsCompatible(NamedType t) =>
-        converter.isBoilerplateCompatible(t.name.name.replaceFirst('\$', ''));
+    bool _mixinBoilerplateIsCompatible(NamedType t) {
+      final publicName = t.name.name.replaceFirst('\$', '');
+      return converter.isBoilerplateCompatible(publicName) ||
+          isReservedBaseClass(publicName);
+    }
 
     bool _mixinNameIsOldGeneratedBoilerplate(NamedType t) =>
         t.name.name.startsWith('\$');

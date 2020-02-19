@@ -318,7 +318,8 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
 
       // Has one or more mixins
       for (var mixinName in mixinNames) {
-        if (!converter.wasVisited(mixinName)) {
+        if (!isReservedBaseClass(mixinName) &&
+            !converter.wasVisited(mixinName)) {
           if (isFirstTimeVisitingClasses) {
             // An advanced class with a mixin that has not been visited yet.
             // However, this is the first run through the script since `treatUnvisitedClassesAsExternal` is false,
