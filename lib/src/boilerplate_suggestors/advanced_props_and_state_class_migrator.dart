@@ -15,10 +15,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 
 import '../util.dart';
-import 'boilerplate_constants.dart';
 import 'boilerplate_utilities.dart';
 
 /// Suggestor that updates props and state classes to new boilerplate.

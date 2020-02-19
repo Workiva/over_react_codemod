@@ -384,14 +384,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
           
-          /\/ $reportNotAvailableComment
+          $reportNotAvailableComment
           @Props()
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
           
-          /\/ $reportNotAvailableComment
+          $reportNotAvailableComment
           @State()
           class _\$FooState extends UiState {
             String foo;
@@ -477,7 +477,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
     
-          /\/ $reportNotAvailableComment
+          $reportNotAvailableComment
           @Props()
           class _\$FooProps extends UiProps {
             String foo;
@@ -574,14 +574,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
     
-          /\/ $reportNotAvailableComment
+          $reportNotAvailableComment
           @AbstractProps()
           abstract class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
     
-          /\/ $reportNotAvailableComment
+          $reportNotAvailableComment
           @AbstractState()
           abstract class _\$FooState extends UiState {
             String foo;

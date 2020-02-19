@@ -18,7 +18,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:source_span/source_span.dart';
 
 import 'constants.dart';

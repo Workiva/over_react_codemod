@@ -16,10 +16,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_companion_class_remover.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 
 import '../util.dart';
-import 'boilerplate_constants.dart';
 import 'boilerplate_utilities.dart';
 
 /// Suggestor that removes every companion class for props and state classes, as
