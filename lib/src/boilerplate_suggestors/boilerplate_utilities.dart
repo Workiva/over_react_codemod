@@ -397,13 +397,6 @@ class ClassToMixinConverter {
       if (shouldAddMixinToName) {
         yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
         newMixinName = '${newMixinName}Mixin';
-
-        final metadataThatBelongsOnConcreteClassDeclOnly = node.metadata.where(
-            (m) => overReactPropsStateNonMixinAnnotationNames
-                .contains(m.name.name));
-        for (var metadata in metadataThatBelongsOnConcreteClassDeclOnly) {
-          yieldPatch(metadata.offset, metadata.end, '');
-        }
       }
 
       if (shouldSwapParentClass) {

@@ -328,11 +328,12 @@ void main() {
             // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
             // being set - which allows conversion of external superclasses
             testSuggestor(convertClassesWithExternalSuperclass: true)(
-              expectedPatchCount: 8,
+              expectedPatchCount: 7,
               input: expectedOutputWithExternalSuperclassReasonComment,
               expectedOutput: '''
               $factoryDecl
   
+              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
@@ -375,7 +376,7 @@ void main() {
           // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
           // being set - which allows conversion of external superclasses
           testSuggestor(convertClassesWithExternalSuperclass: true)(
-            expectedPatchCount: 7,
+            expectedPatchCount: 6,
             input: '''
             $factoryDecl
 
@@ -390,6 +391,7 @@ void main() {
             expectedOutput: '''
               $factoryDecl
   
+              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
@@ -512,11 +514,12 @@ void main() {
             // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
             // being set - which allows conversion of external superclasses
             testSuggestor(convertClassesWithExternalSuperclass: true)(
-              expectedPatchCount: 9,
+              expectedPatchCount: 8,
               input: expectedOutputWithExternalSuperclassReasonComment,
               expectedOutput: '''
               $factoryDecl
   
+              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
@@ -559,11 +562,12 @@ void main() {
           // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
           // being set - which allows conversion of external superclasses
           testSuggestor(convertClassesWithExternalSuperclass: true)(
-            expectedPatchCount: 8,
+            expectedPatchCount: 7,
             input: input,
             expectedOutput: '''
               $factoryDecl
   
+              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
@@ -667,11 +671,12 @@ void main() {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             },
           )(
-            expectedPatchCount: 8,
+            expectedPatchCount: 7,
             input: expectedOutputWithUnMigratedSuperclassReasonComment,
             expectedOutput: '''
             $factoryDecl
             
+            @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
               int bar;
@@ -768,11 +773,12 @@ void main() {
               // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
               // being set - which allows conversion of external mixins
               testSuggestor(convertClassesWithExternalSuperclass: true)(
-                expectedPatchCount: 8,
+                expectedPatchCount: 7,
                 input: expectedOutputWithExternalMixinReasonComment,
                 expectedOutput: '''
                 $factoryDecl
     
+                @Props()
                 mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
@@ -876,11 +882,12 @@ void main() {
               // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
               // being set - which allows conversion of external mixins
               testSuggestor(convertClassesWithExternalSuperclass: true)(
-                expectedPatchCount: 8,
+                expectedPatchCount: 7,
                 input: expectedOutputWithExternalMixinReasonComment,
                 expectedOutput: '''
                 $factoryDecl
     
+                @Props()
                 mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
@@ -940,6 +947,7 @@ void main() {
         const expectedOutput = '''
             $factoryDecl
     
+            @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
               int bar;
@@ -951,6 +959,7 @@ void main() {
             @Props()
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
     
+            @State()
             mixin ${publicStateClassName}Mixin on UiState {
               String foo;
               int bar;
@@ -973,7 +982,7 @@ void main() {
               'ADifferentStateClass': 'ADifferentStateClassMixin',
             },
           )(
-            expectedPatchCount: 14,
+            expectedPatchCount: 12,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -1001,7 +1010,7 @@ void main() {
               'ADifferentStateClass': 'ADifferentStateClassMixin',
             },
           )(
-            expectedPatchCount: 14,
+            expectedPatchCount: 12,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -1039,6 +1048,7 @@ void main() {
         const expectedOutput = '''
             $factoryDecl
     
+            @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
               int bar;
@@ -1047,6 +1057,7 @@ void main() {
             @Props()
             class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, AMixin, AnotherMixin;
 
+            @State()
             mixin ${publicStateClassName}Mixin on UiState {
               String foo;
               int bar;
@@ -1068,7 +1079,7 @@ void main() {
               'AnotherStateMixin': 'AnotherStateMixin',
             },
           )(
-            expectedPatchCount: 14,
+            expectedPatchCount: 12,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -1095,7 +1106,7 @@ void main() {
               'AnotherStateMixin': 'AnotherStateMixin',
             },
           )(
-            expectedPatchCount: 14,
+            expectedPatchCount: 12,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -1136,11 +1147,12 @@ void main() {
                 ''';
 
             testSuggestor()(
-              expectedPatchCount: 7,
+              expectedPatchCount: 6,
               input: input,
               expectedOutput: '''
               $factoryDecl
   
+              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
@@ -1193,6 +1205,7 @@ void main() {
             const expectedOutput = '''
                 $factoryDecl
     
+                @Props()
                 mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
@@ -1221,7 +1234,7 @@ void main() {
               testSuggestor(visitedClassNames: {
                 'SomePropsMixin': 'SomePropsMixin',
               })(
-                expectedPatchCount: 8,
+                expectedPatchCount: 7,
                 input: input,
                 expectedOutput: expectedOutput,
               );
@@ -1239,7 +1252,7 @@ void main() {
               testSuggestor(visitedClassNames: {
                 'SomePropsMixin': 'SomePropsMixin',
               })(
-                expectedPatchCount: 8,
+                expectedPatchCount: 7,
                 input: input,
                 expectedOutput: expectedOutput,
               );
@@ -1257,7 +1270,7 @@ void main() {
             testSuggestor(visitedClassNames: {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             })(
-              expectedPatchCount: 7,
+              expectedPatchCount: 6,
               input: '''
               $factoryDecl
 
@@ -1272,6 +1285,7 @@ void main() {
               expectedOutput: '''
               $factoryDecl
 
+              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
@@ -1324,9 +1338,10 @@ void main() {
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
               })(
-                expectedPatchCount: 9,
+                expectedPatchCount: 8,
                 input: input,
                 expectedOutput: r'''
+                @AbstractProps()
                 mixin AbstractBlockPropsMixin on UiProps implements BlockClassHelperMapView {
                   String foo;
                   int bar;
@@ -1419,7 +1434,7 @@ void main() {
               testSuggestor(visitedClassNames: {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
               })(
-                expectedPatchCount: 7,
+                expectedPatchCount: 6,
                 input: '''
                 $factoryDecl
 
@@ -1443,6 +1458,7 @@ void main() {
                 expectedOutput: '''
                 $factoryDecl
 
+                @Props()
                 mixin ${publicPropsClassName}Mixin on UiProps implements SomeInterface {
                   String foo;
                   int bar;
@@ -1553,11 +1569,12 @@ void main() {
             'ConvertedMixin': 'ConvertedMixin',
             'UnconvertedMixin': null,
           })(
-            expectedPatchCount: 7,
+            expectedPatchCount: 6,
             input: input,
             expectedOutput: '''
             $factoryDecl
 
+            @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
               int bar;
@@ -1585,7 +1602,7 @@ void main() {
             testSuggestor(visitedClassNames: {
               'ConvertedMixin': 'ConvertedMixin',
             })(
-              expectedPatchCount: 7,
+              expectedPatchCount: 6,
               input: '''
               $factoryDecl
 
@@ -1600,6 +1617,7 @@ void main() {
               expectedOutput: '''
               $factoryDecl
 
+              @Props()
               mixin ${publicPropsClassName}Mixin on UiProps implements SomeInterface, SomeOtherInterface {
                 String foo;
                 int bar;
@@ -1649,9 +1667,10 @@ void main() {
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
               })(
-                expectedPatchCount: 8,
+                expectedPatchCount: 7,
                 input: input,
                 expectedOutput: r'''
+                @AbstractProps()
                 mixin AbstractBlockPropsMixin on UiProps implements BlockClassHelperMapView {
                   String foo;
                   int bar;
@@ -1851,11 +1870,12 @@ void main() {
           'AnotherStateMixin': 'AnotherStateMixin',
           'ADifferentStateClass': 'ADifferentStateClass',
         })(
-          expectedPatchCount: 16,
+          expectedPatchCount: 14,
           input: input,
           expectedOutput: '''
           $factoryDecl
 
+          @Props()
           mixin ${publicPropsClassName}Mixin on UiProps {
             String foo;
             int bar;
@@ -1868,6 +1888,7 @@ void main() {
           class $publicPropsClassName = UiProps 
               with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin, AMixin, AnotherMixin;
 
+          @State()
           mixin ${publicStateClassName}Mixin on UiState {
             String foo;
             int bar;
