@@ -55,16 +55,16 @@ main() {
     group('performs a migration when there are relevant annotations present',
         () {
       test('', () {
-          'AbstractFooProps': 'AbstractFooProps',
         converter.setVisitedNames({
+          'AbstractFooProps': 'AbstractFooPropsMixin',
           'AbstractBarProps': 'AbstractBarProps',
-          'FooProps': 'FooProps',
+          'FooProps': 'FooPropsMixin',
           'AbstractFooState': 'AbstractFooState',
           'FooState': 'FooState',
         });
 
         testSuggestor(
-          expectedPatchCount: 8,
+          expectedPatchCount: 9,
           input: '''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -72,7 +72,7 @@ main() {
               \$Foo;
     
           @AbstractProps()
-          mixin AbstractFooProps on UiProps {
+          mixin AbstractFooPropsMixin on UiProps {
             bool baz;
           }
           
@@ -82,10 +82,13 @@ main() {
           }
           
           @Props()
-          mixin FooProps on UiProps {
+          mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
+          
+          @Props()
+          class FooProps = UiProps with FooPropsMixin;
           
           @AbstractState()
           mixin AbstractFooState on UiState {
@@ -117,7 +120,7 @@ main() {
               // ignore: undefined_identifier
               \$Foo;
     
-          mixin AbstractFooProps on UiProps {
+          mixin AbstractFooPropsMixin on UiProps {
             bool baz;
           }
           
@@ -125,10 +128,12 @@ main() {
             bool baz;
           }
           
-          mixin FooProps on UiProps {
+          mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
+          
+          class FooProps = UiProps with FooPropsMixin;
           
           mixin AbstractFooState on UiState {
             bool baz;
@@ -220,11 +225,12 @@ main() {
       });
 
       test('leaving annotations with arguments in place', () {
-          'AbstractFooProps': 'AbstractFooProps',
-          'FooProps': 'FooProps',
         converter.setVisitedNames({
+          'AbstractFooProps': 'AbstractFooPropsMixin',
+          'AbstractBarProps': 'AbstractBarProps',
+          'FooProps': 'FooPropsMixin',
           'AbstractFooState': 'AbstractFooState',
-          'FooState': 'FooState',
+          'FooState': 'FooStateMixin',
         });
 
         testSuggestor(
@@ -236,15 +242,23 @@ main() {
               \$Foo;
     
           @AbstractProps(keyNamespace: '')
-          mixin AbstractFooProps on UiProps {
+          mixin AbstractFooPropsMixin on UiProps {
+            bool baz;
+          }
+          
+          @AbstractProps(keyNamespace: '')
+          abstract class AbstractBarProps implements UiProps {
             bool baz;
           }
     
           @Props(keyNamespace: '')
-          mixin FooProps on UiProps {
+          mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
+          
+          @Props(keyNamespace: '')
+          class FooProps = UiProps with FooPropsMixin;
           
           @AbstractState(keyNamespace: '')
           mixin AbstractFooState on UiState {
@@ -274,15 +288,23 @@ main() {
               \$Foo;
     
           @AbstractProps(keyNamespace: '')
-          mixin AbstractFooProps on UiProps {
+          mixin AbstractFooPropsMixin on UiProps {
+            bool baz;
+          }
+          
+          @AbstractProps(keyNamespace: '')
+          abstract class AbstractBarProps implements UiProps {
             bool baz;
           }
     
           @Props(keyNamespace: '')
-          mixin FooProps on UiProps {
+          mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
+          
+          @Props(keyNamespace: '')
+          class FooProps = UiProps with FooPropsMixin;
           
           @AbstractState(keyNamespace: '')
           mixin AbstractFooState on UiState {

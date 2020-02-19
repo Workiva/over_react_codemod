@@ -40,7 +40,7 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     // --- Short Circuit Conditions --- //
     if (annotationToRemove == null) return;
     if (annotationToRemove.arguments.arguments.isNotEmpty) return;
-    if (!_propsOrStateClassWasConvertedToNewBoilerplate(node)) return;
+    if (!_propsOrStateClassBoilerplateIsCompatible(node)) return;
 
     // --- Migrate --- //
     yieldPatch(annotationToRemove.offset, annotationToRemove.end, '');
@@ -77,8 +77,7 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     return null;
   }
 
-  bool _propsOrStateClassWasConvertedToNewBoilerplate(
-      CompilationUnitMember node) {
+  bool _propsOrStateClassBoilerplateIsCompatible(CompilationUnitMember node) {
     if (_nodeHasAnnotationWithName(node, 'Factory') ||
         _nodeHasAnnotationWithName(node, 'Component2') ||
         _nodeHasAnnotationWithName(node, 'AbstractComponent2')) {
@@ -86,10 +85,10 @@ class AnnotationsRemover extends GeneralizingAstVisitor
       // but it is a UiComponent-related class with an annotation.
       final analogousPropsMixinOrClassName =
           _getNameOfPropsClassThatMayHaveBeenConverted(node);
-      return converter.wasMigrated(analogousPropsMixinOrClassName);
+      return converter.isBoilerplateCompatible(analogousPropsMixinOrClassName);
     } else if (_nodeHasRelevantAnnotation(node) &&
         node is NamedCompilationUnitMember) {
-      return converter.wasMigrated(node.name.name);
+      return converter.isBoilerplateCompatible(node.name.name);
     }
 
     return false;

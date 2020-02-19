@@ -237,9 +237,18 @@ class ClassToMixinConverter {
   ///
   /// > Instead of trying to parse the keys / values for semantic meaning,
   ///   it is strongly recommended that you utilize helper methods like
-  ///   [wasVisited] and [wasMigrated] instead.
+  ///   [wasVisited] and [wasMigrated] and [isBoilerplateCompatible] instead.
   Map<String, String> get visitedNames => _visitedNames;
   Map<String, String> _visitedNames;
+
+  /// Whether the provided [classOrMixinName] was either created or migrated
+  /// as a result of [migrate] being called.
+  ///
+  /// A true return value indicates that the [classOrMixinName] is
+  /// compatible with the new over_react boilerplate.
+  bool isBoilerplateCompatible(String classOrMixinName) =>
+      visitedNames.containsValue(classOrMixinName) ||
+      wasMigrated(classOrMixinName);
 
   /// Whether the provided [classOrMixinName] was migrated as a result of [migrate] being called.
   ///
@@ -497,8 +506,8 @@ extension IterableAstUtils on Iterable<NamedType> {
     bool includeComments = true,
     bool includePrivateGeneratedClassNames = true,
   }) {
-    bool _mixinHasBeenConverted(NamedType t) =>
-        converter.wasMigrated(t.name.name.replaceFirst('\$', ''));
+    bool _mixinBoilerplateIsCompatible(NamedType t) =>
+        converter.isBoilerplateCompatible(t.name.name.replaceFirst('\$', ''));
 
     bool _mixinNameIsOldGeneratedBoilerplate(NamedType t) =>
         t.name.name.startsWith('\$');
@@ -510,7 +519,7 @@ extension IterableAstUtils on Iterable<NamedType> {
       if (converter == null) return true;
       if (includePrivateGeneratedClassNames) {
         return !_mixinNameIsOldGeneratedBoilerplate(t) ||
-            !_mixinHasBeenConverted(t);
+            !_mixinBoilerplateIsCompatible(t);
       } else {
         return !_mixinNameIsOldGeneratedBoilerplate(t);
       }
@@ -518,7 +527,7 @@ extension IterableAstUtils on Iterable<NamedType> {
       if (converter != null &&
           sourceFile != null &&
           _mixinNameIsOldGeneratedBoilerplate(t) &&
-          !_mixinHasBeenConverted(t)) {
+          !_mixinBoilerplateIsCompatible(t)) {
         // Preserve ignore comments for generated, unconverted props mixins
         if (includeComments &&
             hasComment(
