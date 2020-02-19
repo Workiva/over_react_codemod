@@ -63,13 +63,17 @@ AstNode getAnnotationNode(ClassDeclaration classNode, String annotationName) {
       orElse: () => null);
 }
 
+/// A map with keys of "reserved" base props/state class names, and values of the
+/// analogous mixin that the migrator(s) can assume will exist - even if the
+/// base class is never visited by them.
+const reservedBaseClassNames = {
+  'FluxUiProps': 'FluxUiPropsMixin',
+};
+
 /// Whether the provided [className] is considered a "reserved" (non-custom) base class name to extend from or implement.
 bool isReservedBaseClass(String className) {
-  return [
-    'UiProps',
-    'UiState',
-    'FluxUiProps',
-  ].contains(className);
+  return ['UiProps', 'UiState', ...reservedBaseClassNames.keys]
+      .contains(className);
 }
 
 /// A simple evaluation of the annotation(s) of the [classNode]
@@ -463,10 +467,6 @@ String getPropsClassNameFromFactoryDeclaration(
 /// if no matching key is found within [ClassToMixinConverter.visitedClassNames] on the provided [converter] instance.
 String getConvertedClassMixinName(
     String originalClassName, ClassToMixinConverter converter) {
-  const reservedBaseClassNames = {
-    'FluxUiProps': 'FluxUiPropsMixin',
-  };
-
   // If it is a "reserved" base class that the consumer doesn't control / won't be converted as
   // part of running the codemod in their repo, return the new "known" mixin name.
   if (reservedBaseClassNames.containsKey(originalClassName)) {
