@@ -118,7 +118,7 @@ String getFixMeCommentForConvertedClassDeclaration({
   final extendsFromCustomNonReservedClass =
       !isReservedBaseClass(parentClassName);
   final usesExternalMixins = !mixinNames.every(converter.wasVisited);
-  if (!extendsFromCustomNonReservedClass && !usesExternalMixins) return null;
+  if (!extendsFromCustomNonReservedClass && !usesExternalMixins) return '';
 
   final fixMeBuffer = StringBuffer()..writeln('// FIXME:');
 

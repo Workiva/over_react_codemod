@@ -60,26 +60,24 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
             ?.split(', ') ??
         [];
 
-    final _shouldMigrateAdvancedPropsAndStateClass =
-        shouldMigrateAdvancedPropsAndStateClass(
+    final shouldMigrate = shouldMigrateAdvancedPropsAndStateClass(
       node,
       converter,
-      convertClassesWithExternalSuperclass:
-          convertClassesWithExternalSuperclass,
+      mixinNames: mixinNames,
       parentClassHasBeenVisited: converter.wasVisited(parentClassName),
       parentClassHasBeenConverted: converter.wasMigrated(parentClassName),
       treatUnvisitedClassesAsExternal: _treatUnvisitedClassesAsExternal,
-      mixinNames: mixinNames,
+      convertClassesWithExternalSuperclass:
+          convertClassesWithExternalSuperclass,
     );
-    if (!_shouldMigrateAdvancedPropsAndStateClass.yee) {
-      _shouldMigrateAdvancedPropsAndStateClass.patchWithReasonComment(
-          node, yieldPatch);
+    if (!shouldMigrate.yee) {
+      shouldMigrate.patchWithReasonComment(node, yieldPatch);
       return;
     }
 
     final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
-    final extendsFromReservedClass = !extendsFromUiPropsOrUiState(node) &&
-        isReservedBaseClass(parentClassName);
+    final extendsFromReservedClass = isReservedBaseClass(parentClassName) &&
+        !extendsFromUiPropsOrUiState(node);
     final hasMixins = node.withClause != null;
     final hasInterfaces = node.implementsClause != null;
     final parentClassTypeArgs =
@@ -96,6 +94,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         dupeMixinExists &&
         dupeClassInSameRoot == null;
 
+    StringBuffer mixins;
     StringBuffer getMixinsForNewDeclaration({bool includeParentClass = true}) {
       final mixinsForNewDeclaration = StringBuffer();
       if (extendsFromCustomClass || extendsFromReservedClass) {
@@ -111,7 +110,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         }
 
         if (baseAndParentClassMixins.isNotEmpty) {
-          mixinsForNewDeclaration.write(baseAndParentClassMixins.join(', '));
+          mixinsForNewDeclaration.write(baseAndParentClassMixins.join(','));
 
           if (hasMixins) {
             mixinsForNewDeclaration.write(', ');
@@ -136,13 +135,12 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     final newDeclarationBuffer = StringBuffer()
       ..write('\n\n')
       ..write(getFixMeCommentForConvertedClassDeclaration(
-            converter: converter,
-            parentClassName: parentClassName,
-            mixinNames: mixinNames,
-            convertClassesWithExternalSuperclass:
-                convertClassesWithExternalSuperclass,
-          ) ??
-          '')
+        converter: converter,
+        mixinNames: mixinNames,
+        parentClassName: parentClassName,
+        convertClassesWithExternalSuperclass:
+            convertClassesWithExternalSuperclass,
+      ))
       // The metadata (e.g. `@Props()` / `@State()` annotations) must remain
       // on the concrete class in order for the `StubbedPropsAndStateClassRemover`
       // migrator to work correctly. The vast majority of these will be removed by the
@@ -151,8 +149,6 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       // Create the class name
       ..write(node.isAbstract ? 'abstract class ' : 'class ')
       ..write('$className$classTypeArgs');
-
-    StringBuffer mixins;
 
     if (node.isAbstract) {
       mixins = getMixinsForNewDeclaration();

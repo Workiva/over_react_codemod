@@ -1310,25 +1310,25 @@ void main() {
           group('that is abstract', () {
             test('with members of its own', () {
               const input = r'''
-              @AbstractProps()
-              abstract class _$AbstractBlockProps extends SomeAbstractPropsClass
-                  with
-                      LayoutPropsMixin,
-                      // ignore: mixin_of_non_class, undefined_class
-                      $LayoutPropsMixin,
-                      BlockPropsMixin,
-                      // ignore: mixin_of_non_class, undefined_class
-                      $BlockPropsMixin
-                  implements
-                      BlockClassHelperMapView {
-                String foo;
-                int bar;
-              }
-
-              @AbstractComponent2()
-              abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
-                  with LayoutMixin<T>, BlockMixin<T> {}
-            ''';
+                  @AbstractProps()
+                  abstract class _$AbstractBlockProps extends SomeAbstractPropsClass
+                      with
+                          LayoutPropsMixin,
+                          // ignore: mixin_of_non_class, undefined_class
+                          $LayoutPropsMixin,
+                          BlockPropsMixin,
+                          // ignore: mixin_of_non_class, undefined_class
+                          $BlockPropsMixin
+                      implements
+                          BlockClassHelperMapView {
+                    String foo;
+                    int bar;
+                  }
+    
+                  @AbstractComponent2()
+                  abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
+                      with LayoutMixin<T>, BlockMixin<T> {}
+                ''';
 
               // When it is run the first time, nothing should happen since
               // we don't know if the mixin(s) are external or not.
@@ -1375,22 +1375,22 @@ void main() {
 
             test('with no members', () {
               const input = r'''
-              @AbstractProps()
-              abstract class _$AbstractBlockProps extends SomeAbstractPropsClass
-                  with
-                      LayoutPropsMixin,
-                      // ignore: mixin_of_non_class, undefined_class
-                      $LayoutPropsMixin,
-                      BlockPropsMixin,
-                      // ignore: mixin_of_non_class, undefined_class
-                      $BlockPropsMixin
-                  implements
-                      BlockClassHelperMapView {}
-
-              @AbstractComponent2()
-              abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
-                  with LayoutMixin<T>, BlockMixin<T> {}
-            ''';
+                  @AbstractProps()
+                  abstract class _$AbstractBlockProps extends SomeAbstractPropsClass
+                      with
+                          LayoutPropsMixin,
+                          // ignore: mixin_of_non_class, undefined_class
+                          $LayoutPropsMixin,
+                          BlockPropsMixin,
+                          // ignore: mixin_of_non_class, undefined_class
+                          $BlockPropsMixin
+                      implements
+                          BlockClassHelperMapView {}
+    
+                  @AbstractComponent2()
+                  abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
+                      with LayoutMixin<T>, BlockMixin<T> {}
+                ''';
 
               // When it is run the first time, nothing should happen since
               // we don't know if the mixin(s) are external or not.
