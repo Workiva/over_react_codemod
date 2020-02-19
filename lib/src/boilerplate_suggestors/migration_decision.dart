@@ -35,7 +35,7 @@ class MigrationDecision {
     if (reason != null) {
       final firstLineOfReasonComment = reason.split('\n').first.trim();
       final firstLineOfNodeComment =
-          node.beginToken.precedingComments.toString();
+          node.beginToken.precedingComments.toString().trim();
       fixmeCommentAlreadyAdded =
           firstLineOfReasonComment == firstLineOfNodeComment;
     }
