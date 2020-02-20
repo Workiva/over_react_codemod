@@ -16,7 +16,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/util.dart';
@@ -474,9 +473,9 @@ extension IterableAstUtils on Iterable<NamedType> {
 void addPublicExportLocationsComment(ClassDeclaration classNode,
     SourceFile sourceFile, SemverHelper semverHelper, YieldPatch yieldPatch) {
   final existingReportUnavailableCommentToken =
-      getComment(classNode, sourceFile, reportNotAvailableComment, yieldPatch);
+      getComment(classNode, sourceFile, reportNotAvailableComment);
   final existingExportLocationsCommentToken =
-      getComment(classNode, sourceFile, classNotUpdatedComment, yieldPatch);
+      getComment(classNode, sourceFile, classNotUpdatedComment);
   final exportLocationsComment =
       publicExportLocationsComment(classNode, semverHelper);
 
@@ -510,9 +509,9 @@ void addPublicExportLocationsComment(ClassDeclaration classNode,
 void removePublicExportLocationsComment(ClassDeclaration classNode,
     SourceFile sourceFile, SemverHelper semverHelper, YieldPatch yieldPatch) {
   final existingReportUnavailableCommentToken =
-      getComment(classNode, sourceFile, reportNotAvailableComment, yieldPatch);
+      getComment(classNode, sourceFile, reportNotAvailableComment);
   final existingExportLocationsCommentToken =
-      getComment(classNode, sourceFile, classNotUpdatedComment, yieldPatch);
+      getComment(classNode, sourceFile, classNotUpdatedComment);
 
   // Remove semver report unavailable comment.
   if (existingReportUnavailableCommentToken != null) {
@@ -531,26 +530,4 @@ void removePublicExportLocationsComment(ClassDeclaration classNode,
       '',
     );
   }
-}
-
-/// Returns AST token for [commentToGet] from the comments above [node].
-///
-/// If [commentToGet] does not exist above [node], returns null.
-Token getComment(AstNode node, SourceFile sourceFile, String commentToGet,
-    YieldPatch yieldPatch) {
-  final line = sourceFile.getLine(node.offset);
-
-  // Find the comment associated with this line.
-  String commentText;
-  for (var comment in allComments(node.root.beginToken)) {
-    final commentLine = sourceFile.getLine(comment.end);
-    if (commentLine == line ||
-        commentLine == line + 1 ||
-        commentLine == line - 1) {
-      commentText = sourceFile.getText(comment.offset, comment.end);
-      if (commentText.contains(commentToGet)) return comment;
-      break;
-    }
-  }
-  return null;
 }

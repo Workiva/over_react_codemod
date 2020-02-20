@@ -30,14 +30,10 @@ bool hasValidationComment(AstNode node, SourceFile sourceFile) {
   return hasComment(node, sourceFile, manualValidationCommentSubstring);
 }
 
-/// Returns whether or not the node passed in has the passed in comment above
-/// or below it.
+/// Returns AST token for [commentToGet] from the comments above [node].
 ///
-/// Can be used to determine whether or not the file has been modified
-/// already. This is useful (in combination with [allComments] because the
-/// visitor used for visiting comments does not work as expected, making it
-/// difficult to iterate over comments.
-bool hasComment(AstNode node, SourceFile sourceFile, String comment) {
+/// If [commentToGet] does not exist above [node], returns null.
+Token getComment(AstNode node, SourceFile sourceFile, String commentToGet) {
   final line = sourceFile.getLine(node.offset);
 
   // Find the comment associated with this line.
@@ -48,12 +44,22 @@ bool hasComment(AstNode node, SourceFile sourceFile, String comment) {
         commentLine == line + 1 ||
         commentLine == line - 1) {
       commentText = sourceFile.getText(comment.offset, comment.end);
+      if (commentText.contains(commentToGet)) return comment;
       break;
     }
   }
-
-  return commentText?.contains(comment) ?? false;
+  return null;
 }
+
+/// Returns whether or not the node passed in has the passed in comment above
+/// or below it.
+///
+/// Can be used to determine whether or not the file has been modified
+/// already. This is useful (in combination with [allComments] because the
+/// visitor used for visiting comments does not work as expected, making it
+/// difficult to iterate over comments.
+bool hasComment(AstNode node, SourceFile sourceFile, String comment) =>
+    getComment(node, sourceFile, comment) != null;
 
 /// Whether the [node] has a documentation comment that has
 /// any lines that match lines found within the provided [comment].
