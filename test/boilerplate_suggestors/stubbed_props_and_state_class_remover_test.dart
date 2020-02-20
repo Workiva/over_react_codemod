@@ -57,9 +57,9 @@ void StubbedPropsAndStateClassRemoverTestHelper({
       shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
   SuggestorTester testSuggestor;
 
-  setUpAll(() async {
-    testSuggestor = getSuggestorTester(
-        StubbedPropsAndStateClassRemover(await semverHelper));
+  setUpAll(() {
+    testSuggestor =
+        getSuggestorTester(StubbedPropsAndStateClassRemover(semverHelper));
   });
 
   group('does not perform a migration', () {

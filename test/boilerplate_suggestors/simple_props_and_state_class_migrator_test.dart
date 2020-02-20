@@ -58,9 +58,9 @@ void SimplePropsAndStateClassMigratorTestHelper({
       shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
   SuggestorTester testSuggestor;
 
-  setUpAll(() async {
+  setUpAll(() {
     testSuggestor = getSuggestorTester(
-        SimplePropsAndStateClassMigrator(converter, await semverHelper));
+        SimplePropsAndStateClassMigrator(converter, semverHelper));
   });
 
   tearDown(() {

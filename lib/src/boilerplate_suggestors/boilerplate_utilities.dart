@@ -35,15 +35,15 @@ typedef YieldPatch = void Function(
 /// If [shouldTreatAllComponentsAsPrivate] is true, the returned [SemverHelper]
 /// assumes all classes passed to [getPublicExportLocations] are private
 /// (see: [SemverHelper.alwaysPrivate] constructor).
-Future<SemverHelper> getSemverHelper(String path,
-    {bool shouldTreatAllComponentsAsPrivate = false}) async {
+SemverHelper getSemverHelper(String path,
+    {bool shouldTreatAllComponentsAsPrivate = false}) {
   if (shouldTreatAllComponentsAsPrivate) {
     return SemverHelper.alwaysPrivate();
   } else {
     final file = File(path);
 
-    if (await file.exists()) {
-      return SemverHelper(jsonDecode(await file.readAsString()));
+    if (file.existsSync()) {
+      return SemverHelper(jsonDecode(file.readAsStringSync()));
     } else {
       return SemverHelper.alwaysPublic();
     }

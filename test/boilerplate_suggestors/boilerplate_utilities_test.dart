@@ -316,8 +316,8 @@ void semverUtilitiesTestHelper({
 }) {
   SemverHelper semverHelper;
 
-  setUpAll(() async {
-    semverHelper = await getSemverHelper(path,
+  setUpAll(() {
+    semverHelper = getSemverHelper(path,
         shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
   });
 

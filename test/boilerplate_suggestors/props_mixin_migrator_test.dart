@@ -57,9 +57,9 @@ PropsMixinMigratorTestHelper({
         shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
     SuggestorTester testSuggestor;
 
-    setUpAll(() async {
+    setUpAll(() {
       testSuggestor =
-          getSuggestorTester(PropsMixinMigrator(converter, await semverHelper));
+          getSuggestorTester(PropsMixinMigrator(converter, semverHelper));
     });
 
     tearDown(() {
