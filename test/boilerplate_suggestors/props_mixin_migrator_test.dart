@@ -55,12 +55,8 @@ PropsMixinMigratorTestHelper({
     final converter = ClassToMixinConverter();
     final semverHelper = getSemverHelper(path,
         shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
-    SuggestorTester testSuggestor;
-
-    setUpAll(() {
-      testSuggestor =
-          getSuggestorTester(PropsMixinMigrator(converter, semverHelper));
-    });
+    final testSuggestor =
+        getSuggestorTester(PropsMixinMigrator(converter, semverHelper));
 
     tearDown(() {
       converter.setConvertedClassNames({});

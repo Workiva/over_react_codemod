@@ -56,12 +56,8 @@ void SimplePropsAndStateClassMigratorTestHelper({
   final converter = ClassToMixinConverter();
   final semverHelper = getSemverHelper(path,
       shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
-  SuggestorTester testSuggestor;
-
-  setUpAll(() {
-    testSuggestor = getSuggestorTester(
-        SimplePropsAndStateClassMigrator(converter, semverHelper));
-  });
+  final testSuggestor = getSuggestorTester(
+      SimplePropsAndStateClassMigrator(converter, semverHelper));
 
   tearDown(() {
     converter.setConvertedClassNames({});
