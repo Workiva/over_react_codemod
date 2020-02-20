@@ -21,8 +21,6 @@ import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart
 import 'package:over_react_codemod/src/util.dart';
 import 'package:source_span/source_span.dart';
 
-import 'boilerplate_constants.dart';
-
 typedef YieldPatch = void Function(
     int startingOffset, int endingOffset, String replacement);
 
@@ -86,7 +84,9 @@ class SemverHelper {
 
     if (_exportList == null && _isAlwaysPrivate) return locations;
     if (_exportList == null && !_isAlwaysPrivate) {
-      return [reportNotAvailableComment];
+      return [
+        'Semver report not available; this class is assumed to be public and thus will not be updated.'
+      ];
     }
 
     _exportList.forEach((key, value) {
@@ -132,14 +132,6 @@ bool shouldMigratePropsAndStateClass(
   return isAssociatedWithComponent2(node) &&
       isAPropsOrStateClass(node) &&
       !isPublic(node, semverHelper);
-}
-
-/// Whether a comment should be added explaining that [node] was not updated because it is publicly exported.
-bool shouldAddPublicExportLocationsComment(
-    ClassDeclaration node, SemverHelper semverHelper) {
-  return isAssociatedWithComponent2(node) &&
-      isAPropsOrStateClass(node) &&
-      isPublic(node, semverHelper);
 }
 
 /// A simple RegExp against the parent of the class to verify it is `UiProps`
@@ -466,68 +458,5 @@ extension IterableAstUtils on Iterable<NamedType> {
 
       return '${t.name.name}${_typeArgs(t)}';
     }).join('${separator ?? ','} ');
-  }
-}
-
-/// Adds [publicExportLocationsComment] to [classNode] or updates an existing comment.
-void addPublicExportLocationsComment(ClassDeclaration classNode,
-    SourceFile sourceFile, SemverHelper semverHelper, YieldPatch yieldPatch) {
-  final existingReportUnavailableCommentToken =
-      getComment(classNode, sourceFile, reportNotAvailableComment);
-  final existingExportLocationsCommentToken =
-      getComment(classNode, sourceFile, classNotUpdatedComment);
-  final exportLocationsComment =
-      publicExportLocationsComment(classNode, semverHelper);
-
-  if (hasComment(classNode, sourceFile, exportLocationsComment)) return;
-
-  if (existingReportUnavailableCommentToken != null) {
-    // Replace existing semver report unavailable with new comment.
-    yieldPatch(
-      existingReportUnavailableCommentToken.offset,
-      existingReportUnavailableCommentToken.end,
-      exportLocationsComment,
-    );
-  } else if (existingExportLocationsCommentToken != null) {
-    // Replace public export locations comment with new comment.
-    yieldPatch(
-      existingExportLocationsCommentToken.offset,
-      existingExportLocationsCommentToken.end,
-      exportLocationsComment,
-    );
-  } else {
-    // Add public export locations comment.
-    yieldPatch(
-      classNode.offset,
-      classNode.offset,
-      publicExportLocationsComment(classNode, semverHelper) + '\n',
-    );
-  }
-}
-
-/// Removes [publicExportLocationsComment] from [classNode].
-void removePublicExportLocationsComment(ClassDeclaration classNode,
-    SourceFile sourceFile, SemverHelper semverHelper, YieldPatch yieldPatch) {
-  final existingReportUnavailableCommentToken =
-      getComment(classNode, sourceFile, reportNotAvailableComment);
-  final existingExportLocationsCommentToken =
-      getComment(classNode, sourceFile, classNotUpdatedComment);
-
-  // Remove semver report unavailable comment.
-  if (existingReportUnavailableCommentToken != null) {
-    yieldPatch(
-      existingReportUnavailableCommentToken.offset,
-      existingReportUnavailableCommentToken.end,
-      '',
-    );
-  }
-
-  // Remove public export locations comment.
-  if (existingExportLocationsCommentToken != null) {
-    yieldPatch(
-      existingExportLocationsCommentToken.offset,
-      existingExportLocationsCommentToken.end,
-      '',
-    );
   }
 }

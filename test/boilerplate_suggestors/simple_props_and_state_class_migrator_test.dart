@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_constants.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:test/test.dart';
@@ -145,7 +144,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
 
     test('when the props class is publicly exported', () {
       testSuggestor(
-        expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 2 : 1,
+        expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 2 : 0,
         input: r'''
           @Factory()
           UiFactory<ButtonProps> Button =
@@ -201,10 +200,6 @@ void SimplePropsAndStateClassMigratorTestHelper({
                 // ignore: undefined_identifier
                 \$Button;
       
-            ${isValidFilePath ? exportLocationsComment([
-                'lib/web_skin_dart.dart/ButtonProps',
-                'lib/another_file.dart/ButtonProps'
-              ]) : reportNotAvailableComment}
             /// doc comment
             @Props()
             class ButtonProps extends UiProps {
@@ -306,7 +301,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
   group('runs when the classes are simple', () {
     test('and there are both a props and a state class', () {
       testSuggestor(
-        expectedPatchCount: isValidFilePath ? 6 : 2,
+        expectedPatchCount: isValidFilePath ? 6 : 0,
         input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -372,14 +367,12 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
           
-          $reportNotAvailableComment
           @Props()
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
           
-          $reportNotAvailableComment
           @State()
           class _\$FooState extends UiState {
             String foo;
@@ -411,7 +404,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
 
     test('and there is only a props class', () {
       testSuggestor(
-        expectedPatchCount: isValidFilePath ? 3 : 1,
+        expectedPatchCount: isValidFilePath ? 3 : 0,
         input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -465,7 +458,6 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
     
-          $reportNotAvailableComment
           @Props()
           class _\$FooProps extends UiProps {
             String foo;
@@ -496,7 +488,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
 
     test('and are abstract', () {
       testSuggestor(
-        expectedPatchCount: isValidFilePath ? 8 : 2,
+        expectedPatchCount: isValidFilePath ? 8 : 0,
         input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -562,14 +554,12 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
     
-          $reportNotAvailableComment
           @AbstractProps()
           abstract class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
     
-          $reportNotAvailableComment
           @AbstractState()
           abstract class _\$FooState extends UiState {
             String foo;

@@ -38,16 +38,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
   void visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
 
-    if (shouldAddPublicExportLocationsAdvancedClassComment(
-        node, semverHelper)) {
-      addPublicExportLocationsComment(
-          node, sourceFile, semverHelper, yieldPatch);
-    }
-
     if (!shouldMigrateAdvancedPropsAndStateClass(node, semverHelper)) return;
-
-    removePublicExportLocationsComment(
-        node, sourceFile, semverHelper, yieldPatch);
 
     final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
     final hasMixins = node.withClause != null;
@@ -212,9 +203,4 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 bool shouldMigrateAdvancedPropsAndStateClass(
         ClassDeclaration node, SemverHelper semverHelper) =>
     shouldMigratePropsAndStateClass(node, semverHelper) &&
-    isAdvancedPropsOrStateClass(node);
-
-bool shouldAddPublicExportLocationsAdvancedClassComment(
-        ClassDeclaration node, SemverHelper semverHelper) =>
-    shouldAddPublicExportLocationsComment(node, semverHelper) &&
     isAdvancedPropsOrStateClass(node);

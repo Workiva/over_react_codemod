@@ -14,7 +14,6 @@
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_constants.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:test/test.dart';
 
@@ -328,7 +327,9 @@ void semverUtilitiesTestHelper({
           semverHelper.getPublicExportLocations(classNode),
           isValidFilePath || shouldTreatAllComponentsAsPrivate
               ? isEmpty
-              : [reportNotAvailableComment]);
+              : [
+                  'Semver report not available; this class is assumed to be public and thus will not be updated.'
+                ]);
       expect(isPublic(classNode, semverHelper),
           !isValidFilePath && !shouldTreatAllComponentsAsPrivate);
     });
@@ -347,7 +348,9 @@ void semverUtilitiesTestHelper({
             'lib/web_skin_dart.dart/ButtonProps',
             'lib/another_file.dart/ButtonProps',
           ]
-        : [reportNotAvailableComment];
+        : [
+            'Semver report not available; this class is assumed to be public and thus will not be updated.'
+          ];
 
     final unit = parseString(content: input).unit;
     expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
