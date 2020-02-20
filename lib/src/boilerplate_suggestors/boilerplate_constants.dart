@@ -17,7 +17,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'boilerplate_utilities.dart';
 
 const reportNotAvailable =
-    'Semver report not available; this class is assumed to be public.';
+    'Semver report not available; this class is assumed to be public and thus will not be updated.';
 
 const reportNotAvailableComment = '// $reportNotAvailable';
 

@@ -135,6 +135,7 @@ bool shouldMigratePropsAndStateClass(
       !isPublic(node, semverHelper);
 }
 
+/// Whether a comment should be added explaining that [node] was not updated because it is publicly exported.
 bool shouldAddPublicExportLocationsComment(
     ClassDeclaration node, SemverHelper semverHelper) {
   return isAssociatedWithComponent2(node) &&
