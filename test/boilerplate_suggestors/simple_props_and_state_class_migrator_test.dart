@@ -18,30 +18,22 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_s
 import 'package:test/test.dart';
 
 import '../util.dart';
-import 'boilerplate_utilities_test.dart';
 
 void main() {
   group('SimplePropsAndStateClassMigrator', () {
     group('', () {
-      SimplePropsAndStateClassMigratorTestHelper(
-        path: 'test/boilerplate_suggestors/semver_report.json',
-        shouldTreatAllComponentsAsPrivate: false,
-        isValidFilePath: true,
-      );
+      SimplePropsAndStateClassMigratorTestHelper();
     });
 
     group('with --treat-all-components-as-private flag', () {
       SimplePropsAndStateClassMigratorTestHelper(
-        path: 'test/boilerplate_suggestors/semver_report.json',
         shouldTreatAllComponentsAsPrivate: true,
-        isValidFilePath: true,
       );
     });
 
     group('with invalid file path', () {
       SimplePropsAndStateClassMigratorTestHelper(
         path: 'test/boilerplate_suggestors/does_not_exist.json',
-        shouldTreatAllComponentsAsPrivate: false,
         isValidFilePath: false,
       );
     });
@@ -49,9 +41,9 @@ void main() {
 }
 
 void SimplePropsAndStateClassMigratorTestHelper({
-  String path,
-  bool shouldTreatAllComponentsAsPrivate,
-  bool isValidFilePath,
+  String path = 'test/boilerplate_suggestors/semver_report.json',
+  bool shouldTreatAllComponentsAsPrivate = false,
+  bool isValidFilePath = true,
 }) {
   final converter = ClassToMixinConverter();
   final semverHelper = getSemverHelper(path,

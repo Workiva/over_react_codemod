@@ -21,35 +21,28 @@ import '../util.dart';
 void main() {
   group('PropsMixinMigrator', () {
     group('', () {
-      PropsMixinMigratorTestHelper(
-        path: 'test/boilerplate_suggestors/semver_report.json',
-        shouldTreatAllComponentsAsPrivate: false,
-        isValidFilePath: true,
-      );
+      PropsMixinMigratorTestHelper();
     });
 
     group('with --treat-all-components-as-private flag', () {
       PropsMixinMigratorTestHelper(
-        path: 'test/boilerplate_suggestors/semver_report.json',
         shouldTreatAllComponentsAsPrivate: true,
-        isValidFilePath: true,
       );
     });
 
     group('with invalid file path', () {
       PropsMixinMigratorTestHelper(
         path: 'test/boilerplate_suggestors/does_not_exist.json',
-        shouldTreatAllComponentsAsPrivate: false,
         isValidFilePath: false,
       );
     });
   });
 }
 
-PropsMixinMigratorTestHelper({
-  String path,
-  bool shouldTreatAllComponentsAsPrivate,
-  bool isValidFilePath,
+void PropsMixinMigratorTestHelper({
+  String path = 'test/boilerplate_suggestors/semver_report.json',
+  bool shouldTreatAllComponentsAsPrivate = false,
+  bool isValidFilePath = true,
 }) {
   group('PropsMixinMigrator', () {
     final converter = ClassToMixinConverter();

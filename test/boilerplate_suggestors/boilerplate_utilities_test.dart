@@ -18,9 +18,6 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_consta
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:test/test.dart';
 
-String exportLocationsComment(List<String> locations) =>
-    '// This class was not updated because it was exported from: $locations';
-
 void main() {
   group('Boilerplate Utilities', () {
     group('isPropsUsageSimple', () {
@@ -330,7 +327,7 @@ void semverUtilitiesTestHelper({
       }
     ''';
 
-    CompilationUnit unit = parseString(content: input).unit;
+    final unit = parseString(content: input).unit;
     expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
     unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
@@ -340,7 +337,7 @@ void semverUtilitiesTestHelper({
               ? isEmpty
               : [reportNotAvailableComment]);
       expect(isPublic(classNode, semverHelper),
-          isValidFilePath || shouldTreatAllComponentsAsPrivate ? false : true);
+          isValidFilePath || !shouldTreatAllComponentsAsPrivate);
     });
   });
 
@@ -359,14 +356,14 @@ void semverUtilitiesTestHelper({
           ]
         : [reportNotAvailableComment];
 
-    CompilationUnit unit = parseString(content: input).unit;
+    final unit = parseString(content: input).unit;
     expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
     unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
       expect(semverHelper.getPublicExportLocations(classNode),
           shouldTreatAllComponentsAsPrivate ? isEmpty : expectedOutput);
       expect(isPublic(classNode, semverHelper),
-          shouldTreatAllComponentsAsPrivate ? false : true);
+          !shouldTreatAllComponentsAsPrivate);
     });
   });
 }

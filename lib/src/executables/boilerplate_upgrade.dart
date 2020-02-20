@@ -47,7 +47,7 @@ Future<void> main(List<String> args) async {
 
   final classToMixinConverter = ClassToMixinConverter();
 
-  SemverHelper semverHelper = await getSemverHelper(
+  final semverHelper = await getSemverHelper(
       'lib/src/boilerplate_suggestors/semver_report.json',
       shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
 

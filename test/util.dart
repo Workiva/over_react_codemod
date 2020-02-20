@@ -267,3 +267,6 @@ void validatePubspecYaml(String yaml) {
       reason: 'unexpected top-level keys in pubspec.yaml;'
           ' could the dependencies be missing indentation?');
 }
+
+String exportLocationsComment(List<String> locations) =>
+    '// This class was not updated because it was exported from: $locations';
