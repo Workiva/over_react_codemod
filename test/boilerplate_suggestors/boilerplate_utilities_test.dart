@@ -273,22 +273,19 @@ void main() {
         () {
       group('with --treat-all-components-as-private flag', () {
         semverUtilitiesTestHelper(
-          path: 'test/boilerplate_suggestors/semver_report.json',
           shouldTreatAllComponentsAsPrivate: true,
-          isValidFilePath: true,
         );
       });
 
       group('json file does not exist', () {
         semverUtilitiesTestHelper(
           path: 'test/boilerplate_suggestors/does_not_exist.json',
-          shouldTreatAllComponentsAsPrivate: false,
           isValidFilePath: false,
         );
 
         group('with --treat-all-components-as-private flag', () {
           semverUtilitiesTestHelper(
-            path: 'test/boilerplate_suggestors/semver_report.json',
+            path: 'test/boilerplate_suggestors/does_not_exist.json',
             shouldTreatAllComponentsAsPrivate: true,
             isValidFilePath: false,
           );
@@ -296,20 +293,16 @@ void main() {
       });
 
       group('json file does exist', () {
-        semverUtilitiesTestHelper(
-          path: 'test/boilerplate_suggestors/semver_report.json',
-          shouldTreatAllComponentsAsPrivate: false,
-          isValidFilePath: true,
-        );
+        semverUtilitiesTestHelper();
       });
     });
   });
 }
 
 void semverUtilitiesTestHelper({
-  String path,
-  bool shouldTreatAllComponentsAsPrivate,
-  bool isValidFilePath,
+  String path = 'test/boilerplate_suggestors/semver_report.json',
+  bool shouldTreatAllComponentsAsPrivate = false,
+  bool isValidFilePath = true,
 }) {
   SemverHelper semverHelper;
 
@@ -337,7 +330,7 @@ void semverUtilitiesTestHelper({
               ? isEmpty
               : [reportNotAvailableComment]);
       expect(isPublic(classNode, semverHelper),
-          isValidFilePath || !shouldTreatAllComponentsAsPrivate);
+          !isValidFilePath && !shouldTreatAllComponentsAsPrivate);
     });
   });
 
