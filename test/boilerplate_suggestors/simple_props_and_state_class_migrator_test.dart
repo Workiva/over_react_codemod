@@ -51,14 +51,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
       SimplePropsAndStateClassMigrator(converter, semverHelper));
 
   tearDown(() {
-    converter.setConvertedClassNames({});
+    converter.setVisitedNames({});
   });
 
-  group('does not run when', () {
+  group('does not migrate when', () {
     test('its an empty file', () {
       testSuggestor(expectedPatchCount: 0, input: '');
 
-      expect(converter.convertedClassNames, isEmpty);
+      expect(converter.visitedNames, isEmpty);
     });
 
     test('there are no matches', () {
@@ -71,95 +71,201 @@ void SimplePropsAndStateClassMigratorTestHelper({
       ''',
       );
 
-      expect(converter.convertedClassNames, isEmpty);
+      expect(converter.visitedNames, isEmpty);
     });
 
-    test('the component is not Component2', () {
+    test('the component is not Component2, but does add a FIXME comment', () {
       testSuggestor(
-        expectedPatchCount: 0,
+        expectedPatchCount: 1,
         input: r'''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              $Foo;
-  
-          @Props()
-          class _$FooProps extends UiProps {
-            String foo;
-            int bar;
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+        @Props()
+        class _$FooProps extends UiProps {
+          String foo;
+          int bar;
+        }
+        @Component()
+        class FooComponent extends UiComponent<FooProps> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
           }
-  
-          @Component()
-          class FooComponent extends UiComponent<FooProps, FooState> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
+        }
+      ''',
+        expectedOutput: isValidFilePath
+            ? r'''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+        @Props()
+        // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
+        // because `FooComponent` does not extend from `react.Component2`.
+        // 
+        // Once you have upgraded the component, you can remove this FIXME comment and 
+        // re-run the boilerplate migration script:
+        // pub run over_react_codemod:boilerplate_upgrade
+        class _$FooProps extends UiProps {
+          String foo;
+          int bar;
+        }
+        @Component()
+        class FooComponent extends UiComponent<FooProps> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
           }
-        ''',
+        }
+      '''
+            : '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+        @Props()
+        ${publiclyExportedFixmeComment('FooProps')}
+        class _\$FooProps extends UiProps {
+          String foo;
+          int bar;
+        }
+        @Component()
+        class FooComponent extends UiComponent<FooProps> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
       );
 
-      expect(converter.convertedClassNames, isEmpty);
+      expect(converter.visitedNames, {
+        'FooProps': null,
+      });
     });
 
     test('the class is a PropsMixin', () {
       testSuggestor(
-        expectedPatchCount: 0,
+        expectedPatchCount: isValidFilePath ? 0 : 1,
         input: r'''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              $Foo;
-          
-          @PropsMixin()
-          class FooPropsMixin {
-            String foo;
-            int bar;
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+        
+        @PropsMixin()
+        class FooPropsMixin {
+          String foo;
+          int bar;
+        }
+        @Props()
+        class _$FooProps extends UiProps with FooPropsMixin {
+          String foo;
+          int bar;
+        }
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
           }
-  
-          @Props()
-          class _$FooProps extends UiProps with FooPropsMixin {
-            String foo;
-            int bar;
+        }
+      ''',
+        expectedOutput: isValidFilePath
+            ? r'''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+        
+        @PropsMixin()
+        class FooPropsMixin {
+          String foo;
+          int bar;
+        }
+        @Props()
+        class _$FooProps extends UiProps with FooPropsMixin {
+          String foo;
+          int bar;
+        }
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
           }
-  
-          @Component2()
-          class FooComponent extends UiComponent2<FooProps, FooState> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
+        }
+      '''
+            : '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+        
+        @PropsMixin()
+        class FooPropsMixin {
+          String foo;
+          int bar;
+        }
+        @Props()
+        ${publiclyExportedFixmeComment('FooProps')}
+        class _\$FooProps extends UiProps with FooPropsMixin {
+          String foo;
+          int bar;
+        }
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
           }
-        ''',
+        }
+      ''',
       );
 
-      expect(converter.convertedClassNames, isEmpty);
+      expect(converter.visitedNames, {
+        'FooPropsMixin': null,
+        'FooProps': null,
+      });
     });
 
-    test('when the props class is publicly exported', () {
+    test('the class is publicly exported, but does add a FIXME comment', () {
       testSuggestor(
-        expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 2 : 0,
+        expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 3 : 1,
         input: r'''
           @Factory()
-          UiFactory<ButtonProps> Button =
+          UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
-              $Button;
-    
-          /// doc comment
+              $Bar;
+  
           @Props()
-          class ButtonProps extends UiProps {
+          class _$BarProps extends UiProps {
             String foo;
             int bar;
           }
-    
+  
           @Component2()
-          class ButtonComponent extends UiComponent2<ButtonProps> {
+          class BarComponent extends UiComponent2<BarProps> {
             @override
             render() {
               return Dom.ul()(
@@ -168,87 +274,135 @@ void SimplePropsAndStateClassMigratorTestHelper({
               );
             }
           }
-        ''',
+      ''',
         expectedOutput: shouldTreatAllComponentsAsPrivate
             ? r'''
-            @Factory()
-            UiFactory<ButtonProps> Button =
-                // ignore: undefined_identifier
-                $Button;
+          @Factory()
+          UiFactory<BarProps> Bar =
+              // ignore: undefined_identifier
+              $Bar;
     
-          /// doc comment
-            @Props()
-            mixin ButtonProps on UiProps {
-              String foo;
-              int bar;
+          @Props()
+          mixin BarProps on UiProps {
+            String foo;
+            int bar;
+          }
+    
+          @Component2()
+          class BarComponent extends UiComponent2<BarProps> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
             }
-      
-            @Component2()
-            class ButtonComponent extends UiComponent2<ButtonProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-          '''
+          }
+        '''
             : '''
-            @Factory()
-            UiFactory<ButtonProps> Button =
-                // ignore: undefined_identifier
-                \$Button;
-      
-            /// doc comment
-            @Props()
-            class ButtonProps extends UiProps {
-              String foo;
-              int bar;
+          @Factory()
+          UiFactory<BarProps> Bar =
+              // ignore: undefined_identifier
+              \$Bar;
+          @Props()
+          ${publiclyExportedFixmeComment('BarProps')}
+          class _\$BarProps extends UiProps {
+            String foo;
+            int bar;
+          }
+  
+          @Component2()
+          class BarComponent extends UiComponent2<BarProps> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
             }
-      
-            @Component2()
-            class ButtonComponent extends UiComponent2<ButtonProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-          ''',
+          }
+      ''',
       );
 
-      expect(
-          converter.convertedClassNames,
-          shouldTreatAllComponentsAsPrivate
-              ? {'ButtonProps': 'ButtonProps'}
-              : isEmpty);
+      expect(converter.visitedNames, {
+        'BarProps': shouldTreatAllComponentsAsPrivate ? 'BarProps' : null,
+      });
     });
 
     group('the classes are not simple', () {
       test('and there are both a props and a state class', () {
         testSuggestor(
-          expectedPatchCount: 0,
+          expectedPatchCount: isValidFilePath ? 0 : 2,
           input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             $Foo;
-
         @Props()
         class _$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
-
         @State()
         class _$FooState extends ADifferentStateClass {
           String foo;
           int bar;
         }
-
+        @Component2()
+        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+          expectedOutput: isValidFilePath
+              ? r'''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+        @Props()
+        class _$FooProps extends ADifferentPropsClass {
+          String foo;
+          int bar;
+        }
+        @State()
+        class _$FooState extends ADifferentStateClass {
+          String foo;
+          int bar;
+        }
+        @Component2()
+        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      '''
+              : '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+        @Props()
+        ${publiclyExportedFixmeComment('FooProps')}
+        class _\$FooProps extends ADifferentPropsClass {
+          String foo;
+          int bar;
+        }
+        @State()
+        ${publiclyExportedFixmeComment('FooState')}
+        class _\$FooState extends ADifferentStateClass {
+          String foo;
+          int bar;
+        }
         @Component2()
         class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
           @override
@@ -262,24 +416,69 @@ void SimplePropsAndStateClassMigratorTestHelper({
       ''',
         );
 
-        expect(converter.convertedClassNames, isEmpty);
+        expect(converter.visitedNames, {
+          'FooProps': null,
+          'FooState': null,
+        });
       });
 
       test('and there is just a props class', () {
         testSuggestor(
-          expectedPatchCount: 0,
+          expectedPatchCount: isValidFilePath ? 0 : 1,
           input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             $Foo;
-
         @Props()
         class _$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
-
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+          expectedOutput: isValidFilePath
+              ? r'''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+        @Props()
+        class _$FooProps extends ADifferentPropsClass {
+          String foo;
+          int bar;
+        }
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      '''
+              : '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+        @Props()
+        ${publiclyExportedFixmeComment('FooProps')}
+        class _\$FooProps extends ADifferentPropsClass {
+          String foo;
+          int bar;
+        }
         @Component2()
         class FooComponent extends UiComponent2<FooProps, FooState> {
           @override
@@ -293,15 +492,17 @@ void SimplePropsAndStateClassMigratorTestHelper({
       ''',
         );
 
-        expect(converter.convertedClassNames, isEmpty);
+        expect(converter.visitedNames, {
+          'FooProps': null,
+        });
       });
     });
   });
 
-  group('runs when the classes are simple', () {
+  group('migrates when the classes are simple', () {
     test('and there are both a props and a state class', () {
       testSuggestor(
-        expectedPatchCount: isValidFilePath ? 6 : 0,
+        expectedPatchCount: isValidFilePath ? 6 : 2,
         input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -366,14 +567,16 @@ void SimplePropsAndStateClassMigratorTestHelper({
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               \$Foo;
-          
+    
           @Props()
+          ${publiclyExportedFixmeComment('FooProps')}
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
-          
+    
           @State()
+          ${publiclyExportedFixmeComment('FooState')}
           class _\$FooState extends UiState {
             String foo;
             int bar;
@@ -392,19 +595,15 @@ void SimplePropsAndStateClassMigratorTestHelper({
         ''',
       );
 
-      expect(
-          converter.convertedClassNames,
-          isValidFilePath
-              ? {
-                  'FooProps': 'FooProps',
-                  'FooState': 'FooState',
-                }
-              : isEmpty);
+      expect(converter.visitedNames, {
+        'FooProps': isValidFilePath ? 'FooProps' : null,
+        'FooState': isValidFilePath ? 'FooState' : null,
+      });
     });
 
     test('and there is only a props class', () {
       testSuggestor(
-        expectedPatchCount: isValidFilePath ? 3 : 0,
+        expectedPatchCount: isValidFilePath ? 3 : 1,
         input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -459,6 +658,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
               \$Foo;
     
           @Props()
+          ${publiclyExportedFixmeComment('FooProps')}
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
@@ -477,18 +677,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
         ''',
       );
 
-      expect(
-          converter.convertedClassNames,
-          isValidFilePath
-              ? {
-                  'FooProps': 'FooProps',
-                }
-              : isEmpty);
+      expect(converter.visitedNames, {
+        'FooProps': isValidFilePath ? 'FooProps' : null,
+      });
     });
 
     test('and are abstract', () {
       testSuggestor(
-        expectedPatchCount: isValidFilePath ? 8 : 0,
+        expectedPatchCount: isValidFilePath ? 8 : 2,
         input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -555,12 +751,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
               \$Foo;
     
           @AbstractProps()
+          ${publiclyExportedFixmeComment('FooProps')}
           abstract class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
     
           @AbstractState()
+          ${publiclyExportedFixmeComment('FooState')}
           abstract class _\$FooState extends UiState {
             String foo;
             int bar;
@@ -579,14 +777,29 @@ void SimplePropsAndStateClassMigratorTestHelper({
         ''',
       );
 
-      expect(
-          converter.convertedClassNames,
-          isValidFilePath
-              ? {
-                  'FooProps': 'FooProps',
-                  'FooState': 'FooState',
-                }
-              : isEmpty);
+      expect(converter.visitedNames, {
+        'FooProps': isValidFilePath ? 'FooProps' : null,
+        'FooState': isValidFilePath ? 'FooState' : null,
+      });
     });
   });
 }
+
+String publiclyExportedFixmeComment(String className) =>
+    '''// FIXME: `$className` could not be auto-migrated to the new over_react boilerplate
+// because doing so would be a breaking change since `$className` is exported from a
+// library in this repo.
+//
+// To complete the migration, you should: 
+//   1. Deprecate `$className`.
+//   2. Make a copy of it, renaming it something like `${className}V2`.
+//   3. Replace all your current usage of the deprecated `$className` with `${className}V2`.
+//   4. Add a `hide ${className}V2` clause to all places where it is exported, and then run:
+//        pub run over_react_codemod:boilerplate_upgrade
+//   5a. If `$className` had consumers outside this repo, and it was intentionally made public,
+//       remove the `hide` clause you added in step 4 so that the new mixin created from `${className}V2`
+//       will be a viable replacement for `$className`.
+//   5b. If `$className` had no consumers outside this repo, and you have no reason to make the new
+//       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
+//       concrete class and the newly created mixin.
+//   6. Remove this FIXME comment.''';

@@ -151,7 +151,8 @@ bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
     isAPropsOrStateMixin(classNode);
 
 /// Whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
-MigrationDecision shouldMigratePropsAndStateClass(ClassDeclaration node, SemverHelper semverHelper) {
+MigrationDecision shouldMigratePropsAndStateClass(
+    ClassDeclaration node, SemverHelper semverHelper) {
   final publicNodeName = stripPrivateGeneratedPrefix(node.name.name);
   const reRunMigrationScriptInstructions =
       'pub run over_react_codemod:boilerplate_upgrade';
