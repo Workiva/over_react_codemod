@@ -20,11 +20,10 @@ import '../util.dart';
 
 main() {
   group('StubbedPropsAndStateClassRemover', () {
-    final semverHelper = getSemverHelper(
-        'test/boilerplate_suggestors/semver_report.json',
-        shouldTreatAllComponentsAsPrivate: false);
-    final testSuggestor =
-        getSuggestorTester(StubbedPropsAndStateClassRemover(semverHelper));
+    final converter = ClassToMixinConverter();
+    final testSuggestor = getSuggestorTester(
+      StubbedPropsAndStateClassRemover(converter),
+    );
 
     group('does not perform a migration', () {
       test('when it encounters an empty file', () {
@@ -42,189 +41,25 @@ main() {
         );
       });
 
-      test(
-          'when the stubbed "companion" class(es) are not associated with a UiComponent2 instance',
-          () {
+      test('when the class was unable able to be migrated', () {
+        // The empty value of converter.visitedClassNames
+        // will signify that FooProps / FooState were not converted
         testSuggestor(
           expectedPatchCount: 0,
-          input: '''
+          input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
-              \$Foo;
-  
-          @Props()
-          class _\$FooProps extends UiProps {
-            String foo;
-            int bar;
-          }
-  
-          @Component()
-          class FooComponent extends UiComponent<FooProps, FooState> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-          
-          // AF-3369 This will be removed once the transition to Dart 2 is complete.
-          // ignore: mixin_of_non_class, undefined_class
-          class FooProps extends _\$FooProps with _\$FooPropsAccessorsMixin {
-            // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-            static const PropsMeta meta = _\$metaForFooProps;
-          }
-        ''',
-        );
-      });
-
-      test(
-          'when the class inheritance is advanced and unable able to be migrated',
-          () {
-        // TODO add a test for when the class is advanced and unable to be migrated
-      });
-
-      test('when the stubbed "companion" class(es) are publicly exported', () {
-        testSuggestor(
-          expectedPatchCount: 0,
-          input: '''
-          @Factory()
-          UiFactory<BarProps> Bar =
-              // ignore: undefined_identifier
-              \$Bar;
+              $Foo;
       
           @Props()
-          class _\$_BarProps extends UiProps {
-            String foo;
-            int bar;
-          }
-      
-          @Component2()
-          class BarComponent extends UiComponent2<BarProps> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-          
-          // AF-3369 This will be removed once the transition to Dart 2 is complete.
-          // ignore: mixin_of_non_class, undefined_class
-          class BarProps extends _\$_BarProps with _\$_BarPropsAccessorsMixin {
-            // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-            static const PropsMeta meta = _\$metaFor_BarProps;
-          }
-        ''',
-        );
-      });
-    });
-
-    group('performs a migration', () {
-      test(
-          'when the class inheritance is advanced, but still able to be migrated',
-          () {
-        // TODO add a test for when the class is advanced, but still able to be migrated
-      });
-
-      test('when the class inheritance is simple (private)', () {
-        testSuggestor(
-          expectedPatchCount: 2,
-          input: '''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              \$Foo;
-      
-          @Props()
-          class _\$_FooProps extends UiProps {
+          class _$FooProps extends SomeCustomExternalPropsClass {
             String foo;
             int bar;
           }
       
           @State()
-          class _\$_FooState extends UiState {
-            String foo;
-            int bar;
-          }
-      
-          @Component2()
-          class FooComponent extends UiStatefulComponent2<_FooProps, _FooState> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-          
-          // AF-3369 This will be removed once the transition to Dart 2 is complete.
-          // ignore: mixin_of_non_class, undefined_class
-          class _FooProps extends _\$_FooProps with _\$_FooPropsAccessorsMixin {
-            // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-            static const PropsMeta meta = _\$metaFor_FooProps;
-          }
-          
-          // AF-3369 This will be removed once the transition to Dart 2 is complete.
-          // ignore: mixin_of_non_class, undefined_class
-          class _FooState extends _\$_FooState with _\$_FooStateAccessorsMixin {
-            // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-            static const StateMeta meta = _\$metaFor_FooState;
-          }
-        ''',
-          expectedOutput: '''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              \$Foo;
-      
-          @Props()
-          class _\$_FooProps extends UiProps {
-            String foo;
-            int bar;
-          }
-      
-          @State()
-          class _\$_FooState extends UiState {
-            String foo;
-            int bar;
-          }
-      
-          @Component2()
-          class FooComponent extends UiStatefulComponent2<_FooProps, _FooState> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-        ''',
-        );
-      });
-
-      test('when the class inheritance is simple (public)', () {
-        testSuggestor(
-          expectedPatchCount: 2,
-          input: '''
-          @Factory()
-          UiFactory<FooProps> Foo =
-              // ignore: undefined_identifier
-              \$Foo;
-      
-          @Props()
-          class _\$FooProps extends UiProps {
-            String foo;
-            int bar;
-          }
-      
-          @State()
-          class _\$FooState extends UiState {
+          class _$FooState extends SomeCustomExternalStateClass {
             String foo;
             int bar;
           }
@@ -242,35 +77,180 @@ main() {
           
           // AF-3369 This will be removed once the transition to Dart 2 is complete.
           // ignore: mixin_of_non_class, undefined_class
-          class FooProps extends _\$FooProps with _\$FooPropsAccessorsMixin {
+          class FooProps extends _$FooProps with _$FooPropsAccessorsMixin {
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-            static const PropsMeta meta = _\$metaForFooProps;
+            static const PropsMeta meta = _$metaForFooProps;
           }
           
           // AF-3369 This will be removed once the transition to Dart 2 is complete.
           // ignore: mixin_of_non_class, undefined_class
-          class FooState extends _\$FooState with _\$FooStateAccessorsMixin {
+          class FooState extends _$FooState with _$FooStateAccessorsMixin {
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-            static const StateMeta meta = _\$metaForFooState;
+            static const StateMeta meta = _$metaForFooState;
           }
         ''',
-          expectedOutput: '''
+        );
+      });
+    });
+
+    group('performs a migration', () {
+      test('when the analogous private class has been migrated (simple)', () {
+        converter.setVisitedNames({
+          'FooProps': 'FooProps',
+          'FooState': 'FooState',
+        });
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
-              \$Foo;
+              $Foo;
       
           @Props()
-          class _\$FooProps extends UiProps {
+          mixin FooProps on UiProps {
             String foo;
             int bar;
           }
       
           @State()
-          class _\$FooState extends UiState {
+          mixin FooState on UiState {
             String foo;
             int bar;
           }
+      
+          @Component2()
+          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+          
+          // AF-3369 This will be removed once the transition to Dart 2 is complete.
+          // ignore: mixin_of_non_class, undefined_class
+          class FooProps extends _$FooProps with _$FooPropsAccessorsMixin {
+            // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+            static const PropsMeta meta = _$metaForFooProps;
+          }
+          
+          // AF-3369 This will be removed once the transition to Dart 2 is complete.
+          // ignore: mixin_of_non_class, undefined_class
+          class FooState extends _$FooState with _$FooStateAccessorsMixin {
+            // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+            static const StateMeta meta = _$metaForFooState;
+          }
+        ''',
+          expectedOutput: r'''
+          @Factory()
+          UiFactory<FooProps> Foo =
+              // ignore: undefined_identifier
+              $Foo;
+      
+          @Props()
+          mixin FooProps on UiProps {
+            String foo;
+            int bar;
+          }
+      
+          @State()
+          mixin FooState on UiState {
+            String foo;
+            int bar;
+          }
+      
+          @Component2()
+          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+        ''',
+        );
+      });
+
+      test('when the analogous private class has been migrated (advanced)', () {
+        converter.setVisitedNames({
+          'FooProps': 'FooPropsMixin',
+          'FooState': 'FooStateMixin',
+        });
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: r'''
+          @Factory()
+          UiFactory<FooProps> Foo =
+              // ignore: undefined_identifier
+              $Foo;
+      
+          mixin FooPropsMixin on UiProps {
+            String foo;
+            int bar;
+          }
+      
+          @Props()    
+          class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
+      
+          mixin FooStateMixin on UiState {
+            String foo;
+            int bar;
+          }
+      
+          @State()    
+          class FooState = UiProps with FooPropsMixin, SomeOtherStateMixin;
+      
+          @Component2()
+          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+          
+          // AF-3369 This will be removed once the transition to Dart 2 is complete.
+          // ignore: mixin_of_non_class, undefined_class
+          class FooProps extends _$FooProps with _$FooPropsAccessorsMixin {
+            // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+            static const PropsMeta meta = _$metaForFooProps;
+          }
+          
+          // AF-3369 This will be removed once the transition to Dart 2 is complete.
+          // ignore: mixin_of_non_class, undefined_class
+          class FooState extends _$FooState with _$FooStateAccessorsMixin {
+            // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
+            static const StateMeta meta = _$metaForFooState;
+          }
+        ''',
+          expectedOutput: r'''
+          @Factory()
+          UiFactory<FooProps> Foo =
+              // ignore: undefined_identifier
+              $Foo;
+      
+          mixin FooPropsMixin on UiProps {
+            String foo;
+            int bar;
+          }
+      
+          @Props()    
+          class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
+      
+          mixin FooStateMixin on UiState {
+            String foo;
+            int bar;
+          }
+      
+          @State()    
+          class FooState = UiProps with FooPropsMixin, SomeOtherStateMixin;
       
           @Component2()
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {

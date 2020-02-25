@@ -52,7 +52,7 @@ void PropsMixinMigratorTestHelper({
         getSuggestorTester(PropsMixinMigrator(converter, semverHelper));
 
     tearDown(() {
-      converter.setConvertedClassNames({});
+      converter.setVisitedNames({});
     });
 
     group('does not perform a migration', () {
@@ -116,7 +116,7 @@ void PropsMixinMigratorTestHelper({
             ''',
             );
 
-            expect(converter.convertedClassNames, {
+            expect(converter.visitedNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -160,7 +160,7 @@ void PropsMixinMigratorTestHelper({
             ''',
             );
 
-            expect(converter.convertedClassNames, {
+            expect(converter.visitedNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -204,7 +204,7 @@ void PropsMixinMigratorTestHelper({
             ''',
             );
 
-            expect(converter.convertedClassNames, {
+            expect(converter.visitedNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -250,7 +250,7 @@ void PropsMixinMigratorTestHelper({
             ''',
             );
 
-            expect(converter.convertedClassNames, {
+            expect(converter.visitedNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });
@@ -293,7 +293,7 @@ void PropsMixinMigratorTestHelper({
             ''',
             );
 
-            expect(converter.convertedClassNames, {
+            expect(converter.visitedNames, {
               'Foo${typeStr}Mixin': 'Foo${typeStr}Mixin',
             });
           });

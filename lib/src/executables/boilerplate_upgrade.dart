@@ -24,6 +24,8 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migra
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 
+const _convertedClassesWithExternalSuperclassFlag =
+    '--convert-classes-with-external-superclasses';
 const _treatAllComponentsAsPrivateFlag = '--treat-all-components-as-private';
 const _changesRequiredOutput = '''
   To update your code, run the following commands in your repository:
@@ -34,6 +36,10 @@ const _changesRequiredOutput = '''
 ''';
 
 Future<void> main(List<String> args) async {
+  final convertClassesWithExternalSuperclass =
+      args.contains(_convertedClassesWithExternalSuperclassFlag);
+  args.removeWhere((arg) => arg == _convertedClassesWithExternalSuperclassFlag);
+
   final shouldTreatAllComponentsAsPrivate =
       args.contains(_treatAllComponentsAsPrivateFlag);
   args.removeWhere((arg) => arg == _treatAllComponentsAsPrivateFlag);
@@ -93,10 +99,32 @@ Future<void> main(List<String> args) async {
       // We need this to run first so that the AdvancedPropsAndStateClassMigrator
       // can check for duplicate mixin names before creating one.
       PropsMixinMigrator(classToMixinConverter, semverHelper),
-      StubbedPropsAndStateClassRemover(semverHelper),
       SimplePropsAndStateClassMigrator(classToMixinConverter, semverHelper),
-      AdvancedPropsAndStateClassMigrator(classToMixinConverter, semverHelper),
+      AdvancedPropsAndStateClassMigrator(
+        classToMixinConverter,
+        semverHelper,
+        // When we visit these nodes the first time around, we can't assume that
+        // they come from an external lib just because they do not
+        // appear within `ClassToMixinConverter.visitedClassNames`
+        treatUnvisitedClassesAsExternal: false,
+      ),
+      // NOTE: The convertClassesWithExternalSuperclass is intentionally only set
+      // based on the CLI flag value the second time around.
+      AdvancedPropsAndStateClassMigrator(
+        classToMixinConverter,
+        semverHelper,
+        convertClassesWithExternalSuperclass:
+            convertClassesWithExternalSuperclass,
+        // Now that we have visited all of the nodes once, we can assume that
+        // they come from an external lib if they do not
+        // appear within `ClassToMixinConverter.visitedClassNames`
+        treatUnvisitedClassesAsExternal: true,
+      ),
       PropsMetaMigrator(classToMixinConverter),
+      // Run this last so that the decision about whether to migrate the class is based on
+      // the final migrated / un-migrated state of the class after the simple/advanced class
+      // migrators have finished, but before the annotations are removed.
+      StubbedPropsAndStateClassRemover(classToMixinConverter),
       AnnotationsRemover(classToMixinConverter),
     ].map((s) => Ignoreable(s)),
     args: args,
