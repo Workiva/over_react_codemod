@@ -40,7 +40,7 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
     converter.recordVisit(node);
 
     final _shouldMigrateSimplePropsAndStateClass =
-        shouldMigrateSimplePropsAndStateClass(node);
+        shouldMigrateSimplePropsAndStateClass(node, semverHelper);
     if (!_shouldMigrateSimplePropsAndStateClass.yee) {
       _shouldMigrateSimplePropsAndStateClass.patchWithReasonComment(
           node, yieldPatch);
@@ -51,9 +51,9 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
   }
 }
 
-MigrationDecision shouldMigrateSimplePropsAndStateClass(ClassDeclaration node) {
+MigrationDecision shouldMigrateSimplePropsAndStateClass(ClassDeclaration node, SemverHelper semverHelper) {
   final _shouldMigratePropsAndStateClass =
-      shouldMigratePropsAndStateClass(node);
+      shouldMigratePropsAndStateClass(node, semverHelper);
   if (!_shouldMigratePropsAndStateClass.yee) {
     return _shouldMigratePropsAndStateClass;
   }

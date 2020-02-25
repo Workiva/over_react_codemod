@@ -65,6 +65,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     final shouldMigrate = shouldMigrateAdvancedPropsAndStateClass(
       node,
       converter,
+      semverHelper,
       mixinNames: mixinNames,
       parentClassHasBeenVisited: converter.wasVisited(parentClassName),
       parentClassHasBeenConverted: converter.wasMigrated(parentClassName),
@@ -284,7 +285,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
 MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
   ClassDeclaration node,
-  ClassToMixinConverter converter, {
+  ClassToMixinConverter converter,
+  SemverHelper semverHelper, {
   bool convertClassesWithExternalSuperclass = false,
   bool parentClassHasBeenVisited = false,
   bool parentClassHasBeenConverted = false,
@@ -296,7 +298,7 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
   }
 
   final _shouldMigratePropsAndStateClass =
-      shouldMigratePropsAndStateClass(node);
+      shouldMigratePropsAndStateClass(node, semverHelper);
   if (!_shouldMigratePropsAndStateClass.yee) {
     return _shouldMigratePropsAndStateClass;
   } else if (!isAdvancedPropsOrStateClass(node)) {
