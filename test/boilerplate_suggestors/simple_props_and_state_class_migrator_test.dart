@@ -17,6 +17,7 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_s
 import 'package:test/test.dart';
 
 import '../util.dart';
+import 'utils.dart';
 
 void main() {
   group('SimplePropsAndStateClassMigrator', () {
@@ -812,22 +813,3 @@ void SimplePropsAndStateClassMigratorTestHelper({
     });
   });
 }
-
-String publiclyExportedFixmeComment(String className) =>
-    '''// FIXME: `$className` could not be auto-migrated to the new over_react boilerplate
-// because doing so would be a breaking change since `$className` is exported from a
-// library in this repo.
-//
-// To complete the migration, you should: 
-//   1. Deprecate `$className`.
-//   2. Make a copy of it, renaming it something like `${className}V2`.
-//   3. Replace all your current usage of the deprecated `$className` with `${className}V2`.
-//   4. Add a `hide ${className}V2` clause to all places where it is exported, and then run:
-//        pub run over_react_codemod:boilerplate_upgrade
-//   5a. If `$className` had consumers outside this repo, and it was intentionally made public,
-//       remove the `hide` clause you added in step 4 so that the new mixin created from `${className}V2`
-//       will be a viable replacement for `$className`.
-//   5b. If `$className` had no consumers outside this repo, and you have no reason to make the new
-//       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
-//       concrete class and the newly created mixin.
-//   6. Remove this FIXME comment.''';
