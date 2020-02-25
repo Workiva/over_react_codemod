@@ -82,11 +82,13 @@ void SimplePropsAndStateClassMigratorTestHelper({
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             $Foo;
+
         @Props()
         class _$FooProps extends UiProps {
           String foo;
           int bar;
         }
+
         @Component()
         class FooComponent extends UiComponent<FooProps> {
           @override
@@ -104,6 +106,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             $Foo;
+
         @Props()
         // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
         // because `FooComponent` does not extend from `react.Component2`.
@@ -115,6 +118,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
           String foo;
           int bar;
         }
+
         @Component()
         class FooComponent extends UiComponent<FooProps> {
           @override
@@ -131,12 +135,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             \$Foo;
+
         @Props()
         ${publiclyExportedFixmeComment('FooProps')}
         class _\$FooProps extends UiProps {
           String foo;
           int bar;
         }
+
         @Component()
         class FooComponent extends UiComponent<FooProps> {
           @override
@@ -169,11 +175,13 @@ void SimplePropsAndStateClassMigratorTestHelper({
           String foo;
           int bar;
         }
+
         @Props()
         class _$FooProps extends UiProps with FooPropsMixin {
           String foo;
           int bar;
         }
+
         @Component2()
         class FooComponent extends UiComponent2<FooProps, FooState> {
           @override
@@ -192,16 +200,19 @@ void SimplePropsAndStateClassMigratorTestHelper({
             // ignore: undefined_identifier
             $Foo;
         
+
         @PropsMixin()
         class FooPropsMixin {
           String foo;
           int bar;
         }
+
         @Props()
         class _$FooProps extends UiProps with FooPropsMixin {
           String foo;
           int bar;
         }
+
         @Component2()
         class FooComponent extends UiComponent2<FooProps, FooState> {
           @override
@@ -224,12 +235,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
           String foo;
           int bar;
         }
+
         @Props()
         ${publiclyExportedFixmeComment('FooProps')}
         class _\$FooProps extends UiProps with FooPropsMixin {
           String foo;
           int bar;
         }
+
         @Component2()
         class FooComponent extends UiComponent2<FooProps, FooState> {
           @override
@@ -281,7 +294,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
               $Bar;
-    
+
           @Props()
           mixin BarProps on UiProps {
             String foo;
@@ -338,16 +351,19 @@ void SimplePropsAndStateClassMigratorTestHelper({
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             $Foo;
+
         @Props()
         class _$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
+
         @State()
         class _$FooState extends ADifferentStateClass {
           String foo;
           int bar;
         }
+
         @Component2()
         class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
           @override
@@ -365,16 +381,19 @@ void SimplePropsAndStateClassMigratorTestHelper({
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             $Foo;
+
         @Props()
         class _$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
+
         @State()
         class _$FooState extends ADifferentStateClass {
           String foo;
           int bar;
         }
+
         @Component2()
         class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
           @override
@@ -391,18 +410,21 @@ void SimplePropsAndStateClassMigratorTestHelper({
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             \$Foo;
+
         @Props()
         ${publiclyExportedFixmeComment('FooProps')}
         class _\$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
+
         @State()
         ${publiclyExportedFixmeComment('FooState')}
         class _\$FooState extends ADifferentStateClass {
           String foo;
           int bar;
         }
+
         @Component2()
         class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
           @override
@@ -430,11 +452,13 @@ void SimplePropsAndStateClassMigratorTestHelper({
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             $Foo;
+
         @Props()
         class _$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
+
         @Component2()
         class FooComponent extends UiComponent2<FooProps, FooState> {
           @override
@@ -452,11 +476,13 @@ void SimplePropsAndStateClassMigratorTestHelper({
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             $Foo;
+
         @Props()
         class _$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
+
         @Component2()
         class FooComponent extends UiComponent2<FooProps, FooState> {
           @override
@@ -473,12 +499,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             \$Foo;
+
         @Props()
         ${publiclyExportedFixmeComment('FooProps')}
         class _\$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
+
         @Component2()
         class FooComponent extends UiComponent2<FooProps, FooState> {
           @override
