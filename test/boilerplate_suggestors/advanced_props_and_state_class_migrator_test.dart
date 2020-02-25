@@ -17,7 +17,7 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilit
 import 'package:test/test.dart';
 
 import '../util.dart';
-import 'utils.dart';
+import 'boilerplate_test_utils.dart';
 
 void main() {
   group('AdvancedPropsAndStateClassMigrator', () {
@@ -158,7 +158,8 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             }
           }
       ''',
-        expectedOutput: isValidFilePath ? '''
+        expectedOutput: isValidFilePath
+            ? '''
           $factoryDecl
   
           /// Some documentation comment 
@@ -185,7 +186,8 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               );
             }
           }
-      ''' : '''
+      '''
+            : '''
           $factoryDecl
   
           /// Some documentation comment 
@@ -377,11 +379,21 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
         setUp(() {
           // When it is run the first time, nothing should happen since
           // we don't know if the custom classes are external or not.
-          testSuggestor()(expectedPatchCount: isValidFilePath ? 0 : 1, input: input, expectedOutput: isValidFilePath ? input : expectedOutputWithPubliclyExportedReasonComment,);
+          testSuggestor()(
+            expectedPatchCount: isValidFilePath ? 0 : 1,
+            input: input,
+            expectedOutput: isValidFilePath
+                ? input
+                : expectedOutputWithPubliclyExportedReasonComment,
+          );
           testSuggestor()(
             expectedPatchCount: isValidFilePath ? 1 : 0,
-            input: isValidFilePath ? input : expectedOutputWithPubliclyExportedReasonComment,
-            expectedOutput: isValidFilePath ? expectedOutputWithExternalSuperclassReasonComment : expectedOutputWithPubliclyExportedReasonComment,
+            input: isValidFilePath
+                ? input
+                : expectedOutputWithPubliclyExportedReasonComment,
+            expectedOutput: isValidFilePath
+                ? expectedOutputWithExternalSuperclassReasonComment
+                : expectedOutputWithPubliclyExportedReasonComment,
           );
         });
 
@@ -405,8 +417,11 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           // being set - which allows conversion of external superclasses
           testSuggestor(convertClassesWithExternalSuperclass: true)(
             expectedPatchCount: isValidFilePath ? 7 : 0,
-            input: isValidFilePath ? expectedOutputWithExternalSuperclassReasonComment : expectedOutputWithPubliclyExportedReasonComment,
-            expectedOutput: isValidFilePath ? '''
+            input: isValidFilePath
+                ? expectedOutputWithExternalSuperclassReasonComment
+                : expectedOutputWithPubliclyExportedReasonComment,
+            expectedOutput: isValidFilePath
+                ? '''
               $factoryDecl
   
               @Props()
@@ -429,13 +444,15 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
               $componentDecl
-            ''' : expectedOutputWithPubliclyExportedReasonComment,
+            '''
+                : expectedOutputWithPubliclyExportedReasonComment,
           );
 
           expect(
               converter.visitedNames,
               {
-                publicPropsClassName: isValidFilePath ? '${publicPropsClassName}Mixin' : null,
+                publicPropsClassName:
+                    isValidFilePath ? '${publicPropsClassName}Mixin' : null,
               },
               reason:
                   '$publicPropsClassName should be converted to a mixin since the '
@@ -448,7 +465,13 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           () {
         // When it is run the first time, nothing should happen since
         // we don't know if the custom classes are external or not.
-        testSuggestor()(expectedPatchCount: isValidFilePath ? 0 : 1, input: input, expectedOutput: isValidFilePath ? input : expectedOutputWithPubliclyExportedReasonComment,);
+        testSuggestor()(
+          expectedPatchCount: isValidFilePath ? 0 : 1,
+          input: input,
+          expectedOutput: isValidFilePath
+              ? input
+              : expectedOutputWithPubliclyExportedReasonComment,
+        );
         // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
         // being set - which allows conversion of external superclasses
         testSuggestor(convertClassesWithExternalSuperclass: true)(
@@ -464,7 +487,8 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
             $componentDecl
           ''',
-          expectedOutput: isValidFilePath ? '''
+          expectedOutput: isValidFilePath
+              ? '''
               $factoryDecl
   
               @Props()
@@ -487,7 +511,8 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
               $componentDecl
-            ''' : '''
+            '''
+              : '''
             $factoryDecl
 
             @Props()
@@ -504,7 +529,8 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
         expect(
             converter.visitedNames,
             {
-              publicPropsClassName: isValidFilePath ? '${publicPropsClassName}Mixin' : null,
+              publicPropsClassName:
+                  isValidFilePath ? '${publicPropsClassName}Mixin' : null,
             },
             reason:
                 '$publicPropsClassName should be converted to a mixin since the '
@@ -586,11 +612,21 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
         setUp(() {
           // When it is run the first time, nothing should happen since
           // we don't know if the custom classes are external or not.
-          testSuggestor()(expectedPatchCount: isValidFilePath ? 0 : 1, input: input, expectedOutput: isValidFilePath ? input : expectedOutputWithPubliclyExportedReasonComment,);
+          testSuggestor()(
+            expectedPatchCount: isValidFilePath ? 0 : 1,
+            input: input,
+            expectedOutput: isValidFilePath
+                ? input
+                : expectedOutputWithPubliclyExportedReasonComment,
+          );
           testSuggestor()(
             expectedPatchCount: isValidFilePath ? 1 : 0,
-            input: isValidFilePath ? input : expectedOutputWithPubliclyExportedReasonComment,
-            expectedOutput: isValidFilePath ? expectedOutputWithExternalSuperclassReasonComment : expectedOutputWithPubliclyExportedReasonComment,
+            input: isValidFilePath
+                ? input
+                : expectedOutputWithPubliclyExportedReasonComment,
+            expectedOutput: isValidFilePath
+                ? expectedOutputWithExternalSuperclassReasonComment
+                : expectedOutputWithPubliclyExportedReasonComment,
           );
         });
 
@@ -615,8 +651,11 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           // being set - which allows conversion of external superclasses
           testSuggestor(convertClassesWithExternalSuperclass: true)(
             expectedPatchCount: isValidFilePath ? 8 : 0,
-            input: isValidFilePath ? expectedOutputWithExternalSuperclassReasonComment : expectedOutputWithPubliclyExportedReasonComment,
-            expectedOutput: isValidFilePath ? '''
+            input: isValidFilePath
+                ? expectedOutputWithExternalSuperclassReasonComment
+                : expectedOutputWithPubliclyExportedReasonComment,
+            expectedOutput: isValidFilePath
+                ? '''
               $factoryDecl
   
               @Props()
@@ -639,13 +678,15 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
               $componentDecl
-            ''' : expectedOutputWithPubliclyExportedReasonComment,
+            '''
+                : expectedOutputWithPubliclyExportedReasonComment,
           );
 
           expect(
               converter.visitedNames,
               {
-                publicPropsClassName: isValidFilePath ? '${publicPropsClassName}Mixin' : null,
+                publicPropsClassName:
+                    isValidFilePath ? '${publicPropsClassName}Mixin' : null,
               },
               reason:
                   '$publicPropsClassName should be converted to a mixin since the '
@@ -658,13 +699,22 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           () {
         // When it is run the first time, nothing should happen since
         // we don't know if the custom classes are external or not.
-        testSuggestor()(expectedPatchCount: isValidFilePath ? 0 : 1, input: input, expectedOutput: isValidFilePath ? input : expectedOutputWithPubliclyExportedReasonComment,);
+        testSuggestor()(
+          expectedPatchCount: isValidFilePath ? 0 : 1,
+          input: input,
+          expectedOutput: isValidFilePath
+              ? input
+              : expectedOutputWithPubliclyExportedReasonComment,
+        );
         // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
         // being set - which allows conversion of external superclasses
         testSuggestor(convertClassesWithExternalSuperclass: true)(
           expectedPatchCount: isValidFilePath ? 7 : 0,
-          input: isValidFilePath ? input : expectedOutputWithPubliclyExportedReasonComment,
-          expectedOutput: isValidFilePath ? '''
+          input: isValidFilePath
+              ? input
+              : expectedOutputWithPubliclyExportedReasonComment,
+          expectedOutput: isValidFilePath
+              ? '''
               $factoryDecl
   
               @Props()
@@ -687,13 +737,15 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
               $componentDecl
-            ''' : expectedOutputWithPubliclyExportedReasonComment,
+            '''
+              : expectedOutputWithPubliclyExportedReasonComment,
         );
 
         expect(
             converter.visitedNames,
             {
-              publicPropsClassName: isValidFilePath ? '${publicPropsClassName}Mixin' : null,
+              publicPropsClassName:
+                  isValidFilePath ? '${publicPropsClassName}Mixin' : null,
             },
             reason:
                 '$publicPropsClassName should be converted to a mixin since the '
@@ -753,15 +805,25 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
         // When it is run the first time, nothing should happen since
         // we don't know if the custom classes are "migratable" or not.
-        testSuggestor()(expectedPatchCount: isValidFilePath ? 0 : 1, input: input, expectedOutput: isValidFilePath ? input : expectedOutputWithPubliclyExportedReasonComment,);
+        testSuggestor()(
+          expectedPatchCount: isValidFilePath ? 0 : 1,
+          input: input,
+          expectedOutput: isValidFilePath
+              ? input
+              : expectedOutputWithPubliclyExportedReasonComment,
+        );
         testSuggestor(
           visitedClassNames: {
             'ADifferentPropsClass': null,
           },
         )(
           expectedPatchCount: isValidFilePath ? 1 : 0,
-          input: isValidFilePath ? input : expectedOutputWithPubliclyExportedReasonComment,
-          expectedOutput: isValidFilePath ? expectedOutputWithUnMigratedSuperclassReasonComment : expectedOutputWithPubliclyExportedReasonComment,
+          input: isValidFilePath
+              ? input
+              : expectedOutputWithPubliclyExportedReasonComment,
+          expectedOutput: isValidFilePath
+              ? expectedOutputWithUnMigratedSuperclassReasonComment
+              : expectedOutputWithPubliclyExportedReasonComment,
         );
 
         expect(converter.visitedNames, {
@@ -832,6 +894,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
         const expectedOutputWithExternalMixinReasonComment = '''
               $factoryDecl
+
               @Props()
               // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
               // because it mixes in: $externalMixinName - which comes from an external library.
@@ -940,6 +1003,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
         const expectedOutputWithExternalMixinReasonComment = '''
               $factoryDecl
+
               @Props()
               // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
               // because it mixes in: $externalMixinNames - which come from an external library.
@@ -1401,9 +1465,11 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   String foo;
                   int bar;
                 }
+
                 @AbstractProps()
                 abstract class AbstractFluxProps<A extends SomeActions, S extends SomeStore> 
                     implements FluxUiPropsMixin<A, S>, AbstractFluxPropsMixin<A, S>, SomePropsMixin<S> {}
+
                 @AbstractComponent2()
                 abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
               ''',
@@ -1421,6 +1487,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   abstract class _$AbstractFluxProps<A extends SomeActions, S extends SomeStore> 
                       extends FluxUiProps<A, S>
                       with SomePropsMixin<S> {}
+
                   @AbstractComponent2()
                   abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
                 ''';
@@ -1434,6 +1501,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 @AbstractProps()
                 abstract class AbstractFluxProps<A extends SomeActions, S extends SomeStore>
                     implements FluxUiPropsMixin<A, S>, SomePropsMixin<S> {}
+
                 @AbstractComponent2()
                 abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
               ''',
@@ -1455,15 +1523,18 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             expectedPatchCount: 6,
             input: '''
               $factoryDecl
+
               @Props()
               class $propsClassName extends ADifferentPropsClass {
                 String foo;
                 int bar;
               }
+
               $componentDecl
             ''',
             expectedOutput: '''
               $factoryDecl
+
               @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
@@ -1475,6 +1546,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
+
               $componentDecl
             ''',
           );
@@ -1524,6 +1596,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   String foo;
                   int bar;
                 }
+
                 @AbstractProps()
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
@@ -1535,6 +1608,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                         BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
                         $BlockPropsMixin,
                         BlockClassHelperMapView {}
+
                 @AbstractComponent2()
                 abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                     with LayoutMixin<T>, BlockMixin<T> {}
@@ -1589,6 +1663,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                         BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
                         $BlockPropsMixin,
                         BlockClassHelperMapView {}
+
                 @AbstractComponent2()
                 abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                     with LayoutMixin<T>, BlockMixin<T> {}
@@ -1640,6 +1715,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   String foo;
                   int bar;
                 }
+
                 @AbstractProps()
                 // FIXME:
                 //   1. Ensure that all mixins used by AbstractGraphFormProps are also mixed into this class.
@@ -1649,6 +1725,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                         AbstractGraphFormProps,
                         AbstractBreadcrumbPathPropsMixin,
                         BreadcrumbPathPropsMixin {}
+
                 @AbstractComponent2()
                 class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
                     extends UiComponent2<T> {}
@@ -1696,6 +1773,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                     implements 
                         AbstractGraphFormProps, 
                         BreadcrumbPathPropsMixin {}
+
                 @AbstractComponent2()
                 class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
                     extends UiComponent2<T> {}
@@ -1718,6 +1796,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               expectedPatchCount: 6,
               input: '''
                 $factoryDecl
+
                 @Props()
                 class $propsClassName extends SomeAbstractPropsClass implements SomeInterface {
                   String foo;
@@ -1737,6 +1816,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               ''',
               expectedOutput: '''
                 $factoryDecl
+
                 @Props()
                 mixin ${publicPropsClassName}Mixin on UiProps implements SomeInterface {
                   String foo;
@@ -1777,8 +1857,10 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               expectedPatchCount: 2,
               input: '''
                 $factoryDecl
+
                 @Props()
                 class $propsClassName extends SomeAbstractPropsClass implements SomeInterface {}
+
                 @Component2()
                 class FooComponent extends AbstractComponentClass<$publicPropsClassName> {
                   @override
@@ -1792,11 +1874,13 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               ''',
               expectedOutput: '''
                 $factoryDecl
+
                 @Props()
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
                 class $publicPropsClassName extends UiProps implements SomeAbstractPropsClass, SomeInterface {}
+
                 @Component2()
                 class FooComponent extends AbstractComponentClass<$publicPropsClassName> {
                   @override
@@ -1848,6 +1932,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           input: input,
           expectedOutput: '''
             $factoryDecl
+
             @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
@@ -1858,6 +1943,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             class $publicPropsClassName = UiProps
                 with ${publicPropsClassName}Mixin, ConvertedMixin, UnconvertedMixin, // ignore: mixin_of_non_class, undefined_class
                 \$UnconvertedMixin;
+
             $componentDecl
           ''',
         );
@@ -1890,6 +1976,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           input: input,
           expectedOutput: '''
             $factoryDecl
+
             @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
@@ -1899,6 +1986,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             @Props()
             class $publicPropsClassName = UiProps
                 with ${publicPropsClassName}Mixin, DomPropsMixin;
+
             $componentDecl
           ''',
         );
@@ -1917,15 +2005,18 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             expectedPatchCount: 6,
             input: '''
               $factoryDecl
+
               @Props()
               class $propsClassName extends UiProps with ConvertedMixin implements SomeInterface, SomeOtherInterface {
                 String foo;
                 int bar;
               }
+
               $componentDecl
             ''',
             expectedOutput: '''
               $factoryDecl
+
               @Props()
               mixin ${publicPropsClassName}Mixin on UiProps implements SomeInterface, SomeOtherInterface {
                 String foo;
@@ -1935,6 +2026,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               @Props()
               class $publicPropsClassName = UiProps 
                   with ${publicPropsClassName}Mixin, ConvertedMixin implements SomeInterface, SomeOtherInterface;
+
               $componentDecl
             ''',
           );
@@ -1962,6 +2054,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 String foo;
                 int bar;
               }
+
               @AbstractComponent2()
               abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                   with LayoutMixin<T>, BlockMixin<T> {}
@@ -1982,6 +2075,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   String foo;
                   int bar;
                 }
+
                 @AbstractProps()
                 abstract class AbstractBlockProps implements
                         AbstractBlockPropsMixin,
@@ -1989,6 +2083,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                         BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
                         $BlockPropsMixin,
                         BlockClassHelperMapView {}
+
                 @AbstractComponent2()
                 abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                     with LayoutMixin<T>, BlockMixin<T> {}
@@ -2015,6 +2110,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                       $BlockPropsMixin
                   implements
                       BlockClassHelperMapView {}
+
               @AbstractComponent2()
               abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                   with LayoutMixin<T>, BlockMixin<T> {}
@@ -2036,6 +2132,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                         BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
                         $BlockPropsMixin,
                         BlockClassHelperMapView {}
+
                 @AbstractComponent2()
                 abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                     with LayoutMixin<T>, BlockMixin<T> {}
@@ -2085,11 +2182,13 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   String foo;
                   int bar;
                 }
+
                 @AbstractProps()
                 abstract class AbstractBreadcrumbPathProps 
                     implements
                         AbstractBreadcrumbPathPropsMixin,
                         BreadcrumbPathPropsMixin {}
+
                 @AbstractComponent2()
                 class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
                     extends UiComponent2<T> {}
@@ -2131,6 +2230,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 @AbstractProps()
                 abstract class AbstractBreadcrumbPathProps 
                     implements BreadcrumbPathPropsMixin {}
+
                 @AbstractComponent2()
                 class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
                     extends UiComponent2<T> {}
@@ -2155,6 +2255,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             expectedPatchCount: 2,
             input: '''
               $factoryDecl
+
               @PropsMixin()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
@@ -2163,10 +2264,12 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               @Props()
               class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
+
               $componentDecl
             ''',
             expectedOutput: '''
               $factoryDecl
+
               @PropsMixin()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
@@ -2175,6 +2278,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               @Props()
               class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin;
+
               $componentDecl
             ''',
           );
@@ -2192,6 +2296,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             expectedPatchCount: 3,
             input: '''
               $factoryDecl
+
               @PropsMixin()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
@@ -2202,10 +2307,12 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
                 String baz;
               }
+
               $componentDecl
             ''',
             expectedOutput: '''
               $factoryDecl
+
               @PropsMixin()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
@@ -2215,6 +2322,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               @Props()
               class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin;
+
               $componentDecl
             ''',
           );
@@ -2263,6 +2371,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
         input: input,
         expectedOutput: '''
           $factoryDecl
+
           @Props()
           mixin ${publicPropsClassName}Mixin on UiProps {
             String foo;
@@ -2288,6 +2397,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           //   2. Fix any analyzer warnings on this class about missing mixins.
           class $publicStateClassName = UiState 
               with ADifferentStateClass, ${publicStateClassName}Mixin, AStateMixin, AnotherStateMixin;
+
           $statefulComponentDecl
         ''',
       );
@@ -2320,6 +2430,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             expectedPatchCount: 2,
             input: '''
               $factoryDecl
+
               @PropsMixin()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
@@ -2328,6 +2439,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               @Props()
               class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {}
+
               $componentDecl
             ''',
             expectedOutput: '''
@@ -2344,6 +2456,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
+
               $componentDecl
             ''',
           );
@@ -2360,6 +2473,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             expectedPatchCount: 3,
             input: '''
               $factoryDecl
+
               @PropsMixin()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
@@ -2370,10 +2484,12 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {
                 String baz;
               }
+
               $componentDecl
             ''',
             expectedOutput: '''
               $factoryDecl
+
               @PropsMixin()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
@@ -2386,6 +2502,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
+
               $componentDecl
             ''',
           );
@@ -2413,17 +2530,21 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             expectedPatchCount: 2,
             input: '''
               $factoryDecl
+
               @Props()
               class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {}
+
               $componentDecl
             ''',
             expectedOutput: '''
               $factoryDecl
+
               @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
+
               $componentDecl
             ''',
           );
@@ -2440,14 +2561,17 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             expectedPatchCount: 2,
             input: '''
               $factoryDecl
+
               @Props()
               class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {
                 String baz;
               }
+
               $componentDecl
             ''',
             expectedOutput: '''
               $factoryDecl
+
               @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
@@ -2457,6 +2581,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 // Once that is done, the body can be removed, and `extends` can be replaced with `=`.
                 String baz;
               }
+
               $componentDecl
             ''',
           );

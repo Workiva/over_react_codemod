@@ -17,7 +17,7 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_s
 import 'package:test/test.dart';
 
 import '../util.dart';
-import 'utils.dart';
+import 'boilerplate_test_utils.dart';
 
 void main() {
   group('SimplePropsAndStateClassMigrator', () {
