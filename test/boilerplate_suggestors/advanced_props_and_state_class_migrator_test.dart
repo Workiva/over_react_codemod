@@ -63,7 +63,10 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
     bool isValidSemverReportFilePath = true,
   }) {
     runCount++;
-    final semverHelper = getSemverHelper(isValidSemverReportFilePath ? 'test/boilerplate_suggestors/semver_report.json' : 'test/boilerplate_suggestors/does_not_exist.json',
+    final semverHelper = getSemverHelper(
+        isValidSemverReportFilePath
+            ? 'test/boilerplate_suggestors/semver_report.json'
+            : 'test/boilerplate_suggestors/does_not_exist.json',
         shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
     final tester = getSuggestorTester(AdvancedPropsAndStateClassMigrator(
       converter,
@@ -409,8 +412,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           expect(
               converter.visitedNames,
               {
-                publicPropsClassName:
-                    '${publicPropsClassName}Mixin',
+                publicPropsClassName: '${publicPropsClassName}Mixin',
               },
               reason:
                   '$publicPropsClassName should be converted to a mixin since the '
@@ -472,8 +474,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
         expect(
             converter.visitedNames,
             {
-              publicPropsClassName:
-                  '${publicPropsClassName}Mixin',
+              publicPropsClassName: '${publicPropsClassName}Mixin',
             },
             reason:
                 '$publicPropsClassName should be converted to a mixin since the '
@@ -670,8 +671,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
         expect(
             converter.visitedNames,
             {
-              publicPropsClassName:
-                  '${publicPropsClassName}Mixin',
+              publicPropsClassName: '${publicPropsClassName}Mixin',
             },
             reason:
                 '$publicPropsClassName should be converted to a mixin since the '
