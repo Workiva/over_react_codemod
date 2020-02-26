@@ -30,20 +30,11 @@ void main() {
         shouldTreatAllComponentsAsPrivate: true,
       );
     });
-
-    group('with invalid file path', () {
-      AdvancedPropsAndStateClassMigratorTestHelper(
-        path: 'test/boilerplate_suggestors/does_not_exist.json',
-        isValidFilePath: false,
-      );
-    });
   });
 }
 
 void AdvancedPropsAndStateClassMigratorTestHelper({
-  String path = 'test/boilerplate_suggestors/semver_report.json',
   bool shouldTreatAllComponentsAsPrivate = false,
-  bool isValidFilePath = true,
 }) {
   const publicPropsClassName = 'FooProps';
   const propsClassName = '_\$$publicPropsClassName';
@@ -69,9 +60,10 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
   SuggestorTester testSuggestor({
     bool convertClassesWithExternalSuperclass = false,
     Map<String, String> visitedClassNames = const {},
+    bool isValidSemverReportFilePath = true,
   }) {
     runCount++;
-    final semverHelper = getSemverHelper(path,
+    final semverHelper = getSemverHelper(isValidSemverReportFilePath ? 'test/boilerplate_suggestors/semver_report.json' : 'test/boilerplate_suggestors/does_not_exist.json',
         shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
     final tester = getSuggestorTester(AdvancedPropsAndStateClassMigrator(
       converter,
@@ -105,7 +97,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
     test('the class is simple', () {
       testSuggestor()(
-        expectedPatchCount: isValidFilePath ? 0 : 1,
+        expectedPatchCount: 0,
         input: '''
           $factoryDecl
   
@@ -120,7 +112,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
         expectedOutput: '''
           $factoryDecl
   
-          @Props()${isValidFilePath ? '' : '\n${publiclyExportedFixmeComment(publicPropsClassName)}'}
+          @Props()
           class $propsClassName extends UiProps {
             String foo;
             int bar;
@@ -158,8 +150,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             }
           }
       ''',
-        expectedOutput: isValidFilePath
-            ? '''
+        expectedOutput: '''
           $factoryDecl
   
           /// Some documentation comment 
@@ -171,29 +162,6 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           // Once you have upgraded the component, you can remove this FIXME comment and 
           // re-run the boilerplate migration script:
           // pub run over_react_codemod:boilerplate_upgrade
-          class $propsClassName extends UiProps with SomePropsMixin {
-            String foo;
-            int bar;
-          }
-  
-          @Component()
-          class FooComponent extends UiComponent<$publicPropsClassName> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-      '''
-            : '''
-          $factoryDecl
-  
-          /// Some documentation comment 
-          /// might get in the way of fix me comment removal
-          @Props()
-          ${publiclyExportedFixmeComment(publicPropsClassName)}
           class $propsClassName extends UiProps with SomePropsMixin {
             String foo;
             int bar;
@@ -380,20 +348,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           // When it is run the first time, nothing should happen since
           // we don't know if the custom classes are external or not.
           testSuggestor()(
-            expectedPatchCount: isValidFilePath ? 0 : 1,
+            expectedPatchCount: 0,
             input: input,
-            expectedOutput: isValidFilePath
-                ? input
-                : expectedOutputWithPubliclyExportedReasonComment,
+            expectedOutput: input,
           );
           testSuggestor()(
-            expectedPatchCount: isValidFilePath ? 1 : 0,
-            input: isValidFilePath
-                ? input
-                : expectedOutputWithPubliclyExportedReasonComment,
-            expectedOutput: isValidFilePath
-                ? expectedOutputWithExternalSuperclassReasonComment
-                : expectedOutputWithPubliclyExportedReasonComment,
+            expectedPatchCount: 1,
+            input: input,
+            expectedOutput: expectedOutputWithExternalSuperclassReasonComment,
           );
         });
 
@@ -416,12 +378,9 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
           // being set - which allows conversion of external superclasses
           testSuggestor(convertClassesWithExternalSuperclass: true)(
-            expectedPatchCount: isValidFilePath ? 7 : 0,
-            input: isValidFilePath
-                ? expectedOutputWithExternalSuperclassReasonComment
-                : expectedOutputWithPubliclyExportedReasonComment,
-            expectedOutput: isValidFilePath
-                ? '''
+            expectedPatchCount: 7,
+            input: expectedOutputWithExternalSuperclassReasonComment,
+            expectedOutput: '''
               $factoryDecl
   
               @Props()
@@ -444,15 +403,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
               $componentDecl
-            '''
-                : expectedOutputWithPubliclyExportedReasonComment,
+            ''',
           );
 
           expect(
               converter.visitedNames,
               {
                 publicPropsClassName:
-                    isValidFilePath ? '${publicPropsClassName}Mixin' : null,
+                    '${publicPropsClassName}Mixin',
               },
               reason:
                   '$publicPropsClassName should be converted to a mixin since the '
@@ -466,16 +424,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
         // When it is run the first time, nothing should happen since
         // we don't know if the custom classes are external or not.
         testSuggestor()(
-          expectedPatchCount: isValidFilePath ? 0 : 1,
+          expectedPatchCount: 0,
           input: input,
-          expectedOutput: isValidFilePath
-              ? input
-              : expectedOutputWithPubliclyExportedReasonComment,
+          expectedOutput: input,
         );
         // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
         // being set - which allows conversion of external superclasses
         testSuggestor(convertClassesWithExternalSuperclass: true)(
-          expectedPatchCount: isValidFilePath ? 6 : 1,
+          expectedPatchCount: 6,
           input: '''
             $factoryDecl
 
@@ -487,8 +443,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
             $componentDecl
           ''',
-          expectedOutput: isValidFilePath
-              ? '''
+          expectedOutput: '''
               $factoryDecl
   
               @Props()
@@ -511,26 +466,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
               $componentDecl
-            '''
-              : '''
-            $factoryDecl
-
-            @Props()
-            ${publiclyExportedFixmeComment(publicPropsClassName)}
-            class $propsClassName extends $externalSuperclassName {
-              String foo;
-              int bar;
-            }
-
-            $componentDecl
-          ''',
+            ''',
         );
 
         expect(
             converter.visitedNames,
             {
               publicPropsClassName:
-                  isValidFilePath ? '${publicPropsClassName}Mixin' : null,
+                  '${publicPropsClassName}Mixin',
             },
             reason:
                 '$publicPropsClassName should be converted to a mixin since the '
@@ -613,20 +556,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           // When it is run the first time, nothing should happen since
           // we don't know if the custom classes are external or not.
           testSuggestor()(
-            expectedPatchCount: isValidFilePath ? 0 : 1,
+            expectedPatchCount: 0,
             input: input,
-            expectedOutput: isValidFilePath
-                ? input
-                : expectedOutputWithPubliclyExportedReasonComment,
+            expectedOutput: input,
           );
           testSuggestor()(
-            expectedPatchCount: isValidFilePath ? 1 : 0,
-            input: isValidFilePath
-                ? input
-                : expectedOutputWithPubliclyExportedReasonComment,
-            expectedOutput: isValidFilePath
-                ? expectedOutputWithExternalSuperclassReasonComment
-                : expectedOutputWithPubliclyExportedReasonComment,
+            expectedPatchCount: 1,
+            input: input,
+            expectedOutput: expectedOutputWithExternalSuperclassReasonComment,
           );
         });
 
@@ -650,12 +587,9 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
           // being set - which allows conversion of external superclasses
           testSuggestor(convertClassesWithExternalSuperclass: true)(
-            expectedPatchCount: isValidFilePath ? 8 : 0,
-            input: isValidFilePath
-                ? expectedOutputWithExternalSuperclassReasonComment
-                : expectedOutputWithPubliclyExportedReasonComment,
-            expectedOutput: isValidFilePath
-                ? '''
+            expectedPatchCount: 8,
+            input: expectedOutputWithExternalSuperclassReasonComment,
+            expectedOutput: '''
               $factoryDecl
   
               @Props()
@@ -678,15 +612,13 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
               $componentDecl
-            '''
-                : expectedOutputWithPubliclyExportedReasonComment,
+            ''',
           );
 
           expect(
               converter.visitedNames,
               {
-                publicPropsClassName:
-                    isValidFilePath ? '${publicPropsClassName}Mixin' : null,
+                publicPropsClassName: '${publicPropsClassName}Mixin',
               },
               reason:
                   '$publicPropsClassName should be converted to a mixin since the '
@@ -700,21 +632,16 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
         // When it is run the first time, nothing should happen since
         // we don't know if the custom classes are external or not.
         testSuggestor()(
-          expectedPatchCount: isValidFilePath ? 0 : 1,
+          expectedPatchCount: 0,
           input: input,
-          expectedOutput: isValidFilePath
-              ? input
-              : expectedOutputWithPubliclyExportedReasonComment,
+          expectedOutput: input,
         );
         // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
         // being set - which allows conversion of external superclasses
         testSuggestor(convertClassesWithExternalSuperclass: true)(
-          expectedPatchCount: isValidFilePath ? 7 : 0,
-          input: isValidFilePath
-              ? input
-              : expectedOutputWithPubliclyExportedReasonComment,
-          expectedOutput: isValidFilePath
-              ? '''
+          expectedPatchCount: 7,
+          input: input,
+          expectedOutput: '''
               $factoryDecl
   
               @Props()
@@ -737,15 +664,14 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
               $componentDecl
-            '''
-              : expectedOutputWithPubliclyExportedReasonComment,
+            ''',
         );
 
         expect(
             converter.visitedNames,
             {
               publicPropsClassName:
-                  isValidFilePath ? '${publicPropsClassName}Mixin' : null,
+                  '${publicPropsClassName}Mixin',
             },
             reason:
                 '$publicPropsClassName should be converted to a mixin since the '
@@ -806,24 +732,18 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
         // When it is run the first time, nothing should happen since
         // we don't know if the custom classes are "migratable" or not.
         testSuggestor()(
-          expectedPatchCount: isValidFilePath ? 0 : 1,
+          expectedPatchCount: 0,
           input: input,
-          expectedOutput: isValidFilePath
-              ? input
-              : expectedOutputWithPubliclyExportedReasonComment,
+          expectedOutput: input,
         );
         testSuggestor(
           visitedClassNames: {
             'ADifferentPropsClass': null,
           },
         )(
-          expectedPatchCount: isValidFilePath ? 1 : 0,
-          input: isValidFilePath
-              ? input
-              : expectedOutputWithPubliclyExportedReasonComment,
-          expectedOutput: isValidFilePath
-              ? expectedOutputWithUnMigratedSuperclassReasonComment
-              : expectedOutputWithPubliclyExportedReasonComment,
+          expectedPatchCount: 1,
+          input: input,
+          expectedOutput: expectedOutputWithUnMigratedSuperclassReasonComment,
         );
 
         expect(converter.visitedNames, {
