@@ -112,17 +112,6 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
   
           $componentDecl
         ''',
-        expectedOutput: '''
-          $factoryDecl
-  
-          @Props()
-          class $propsClassName extends UiProps {
-            String foo;
-            int bar;
-          }
-  
-          $componentDecl
-        ''',
       );
 
       expect(converter.wasMigrated(publicPropsClassName), isFalse);
@@ -187,36 +176,6 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
     });
 
     test('the class is publicly exported, but does add a FIXME comment', () {
-      final expectedOutput = '''
-          @Factory()
-          UiFactory<BarProps> Bar =
-              // ignore: undefined_identifier
-              \$Bar;
-  
-          @Props()${shouldTreatAllComponentsAsPrivate ? '' : '\n${publiclyExportedFixmeComment('BarProps')}'}
-          class _\$BarProps extends ADifferentPropsClass {
-            String foo;
-            int bar;
-          }
-
-          @State()${shouldTreatAllComponentsAsPrivate ? '' : '\n${publiclyExportedFixmeComment('BarState')}'}
-          class _\$BarState extends ADifferentStateClass {
-            String foo;
-            int bar;
-          }
-  
-          @Component2()
-          class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
-            @override
-            render() {
-              return Dom.ul()(
-                Dom.li()('Foo: ', props.foo),
-                Dom.li()('Bar: ', props.bar),
-              );
-            }
-          }
-        ''';
-
       testSuggestor()(
         expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
         input: r'''
@@ -248,27 +207,19 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             }
           }
         ''',
-        expectedOutput: expectedOutput,
-      );
-
-      testSuggestor()(
-        expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 2 : 0,
-        input: expectedOutput,
         expectedOutput: '''
           @Factory()
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
               \$Bar;
   
-          @Props()
-          ${shouldTreatAllComponentsAsPrivate ? externalSuperclassComment('BarProps', 'ADifferentPropsClass') : publiclyExportedFixmeComment('BarProps')}
+          @Props()${shouldTreatAllComponentsAsPrivate ? '' : '\n${publiclyExportedFixmeComment('BarProps')}'}
           class _\$BarProps extends ADifferentPropsClass {
             String foo;
             int bar;
           }
 
-          @State()
-          ${shouldTreatAllComponentsAsPrivate ? externalSuperclassComment('BarState', 'ADifferentStateClass') : publiclyExportedFixmeComment('BarState')}
+          @State()${shouldTreatAllComponentsAsPrivate ? '' : '\n${publiclyExportedFixmeComment('BarState')}'}
           class _\$BarState extends ADifferentStateClass {
             String foo;
             int bar;
@@ -291,6 +242,49 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
       expect(converter.wasMigrated('BarState'), isFalse);
     });
 
+    test('the semver report does not exist, but does add a FIXME comment', () {
+      testSuggestor(isValidSemverReportFilePath: false)(
+        expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
+        input: '''
+          $factoryDecl
+  
+          @Props()
+          class $propsClassName extends ADifferentStateClass {
+            String foo;
+            int bar;
+          }
+  
+          @State()
+          class $stateClassName extends ADifferentStateClass {
+            String foo;
+            int bar;
+          }
+  
+          $componentDecl
+        ''',
+        expectedOutput: '''
+          $factoryDecl
+  
+          @Props()${shouldTreatAllComponentsAsPrivate ? '' : '\n${publiclyExportedFixmeComment(publicPropsClassName)}'}
+          class $propsClassName extends ADifferentStateClass {
+            String foo;
+            int bar;
+          }
+  
+          @State()${shouldTreatAllComponentsAsPrivate ? '' : '\n${publiclyExportedFixmeComment(publicStateClassName)}'}
+          class $stateClassName extends ADifferentStateClass {
+            String foo;
+            int bar;
+          }
+  
+          $componentDecl
+        ''',
+      );
+
+      expect(converter.wasMigrated('BarProps'), isFalse);
+      expect(converter.wasMigrated('BarState'), isFalse);
+    });
+
     group(
         'the class extends from a class not found within ClassToMixinConverter.visitedClassNames',
         () {
@@ -300,19 +294,6 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $factoryDecl
             
             @Props()
-            class $propsClassName extends $externalSuperclassName {
-              String foo;
-              int bar;
-            }
-            
-            $componentDecl
-            ''';
-
-      final expectedOutputWithPubliclyExportedReasonComment = '''
-            $factoryDecl
-            
-            @Props()
-            ${publiclyExportedFixmeComment(publicPropsClassName)}
             class $propsClassName extends $externalSuperclassName {
               String foo;
               int bar;
@@ -492,19 +473,6 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $factoryDecl
             
             @Props()
-            class $propsClassName extends $externalSuperclassName with $externalMixinName {
-              String foo;
-              int bar;
-            }
-            
-            $componentDecl
-            ''';
-
-      final expectedOutputWithPubliclyExportedReasonComment = '''
-            $factoryDecl
-            
-            @Props()
-            ${publiclyExportedFixmeComment(publicPropsClassName)}
             class $propsClassName extends $externalSuperclassName with $externalMixinName {
               String foo;
               int bar;
@@ -708,19 +676,6 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               $factoryDecl
       
               @Props()
-              class $propsClassName extends ADifferentPropsClass {
-                String foo;
-                int bar;
-              }
-      
-              $componentDecl
-            ''';
-
-        final expectedOutputWithPubliclyExportedReasonComment = '''
-              $factoryDecl
-      
-              @Props()
-              ${publiclyExportedFixmeComment(publicPropsClassName)}
               class $propsClassName extends ADifferentPropsClass {
                 String foo;
                 int bar;
