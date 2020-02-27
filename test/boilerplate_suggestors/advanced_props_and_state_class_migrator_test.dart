@@ -17,7 +17,6 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilit
 import 'package:test/test.dart';
 
 import '../util.dart';
-import 'boilerplate_test_utils.dart';
 
 void main() {
   group('AdvancedPropsAndStateClassMigrator', () {
@@ -212,13 +211,50 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Bar;
   
-          @Props()${shouldTreatAllComponentsAsPrivate ? '' : '\n${publiclyExportedFixmeComment('BarProps')}'}
+          @Props()
+          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate
+          // because doing so would be a breaking change since `BarProps` is exported from the
+          // following libraries in this repo:
+          // lib/web_skin_dart.dart/BarProps
+          // lib/another_file.dart/BarProps
+          //
+          // To complete the migration, you should: 
+          //   1. Deprecate `BarProps`.
+          //   2. Make a copy of it, renaming it something like `BarPropsV2`.
+          //   3. Replace all your current usage of the deprecated `BarProps` with `BarPropsV2`.
+          //   4. Add a `hide BarPropsV2` clause to all places where it is exported, and then run:
+          //        pub run over_react_codemod:boilerplate_upgrade
+          //   5a. If `BarProps` had consumers outside this repo, and it was intentionally made public,
+          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarPropsV2`
+          //       will be a viable replacement for `BarProps`.
+          //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
+          //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
+          //       concrete class and the newly created mixin.
+          //   6. Remove this FIXME comment.'''}
           class _\$BarProps extends ADifferentPropsClass {
             String foo;
             int bar;
           }
 
-          @State()${shouldTreatAllComponentsAsPrivate ? '' : '\n${publiclyExportedFixmeComment('BarState')}'}
+          @State()
+          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: `BarState` could not be auto-migrated to the new over_react boilerplate
+          // because doing so would be a breaking change since `BarState` is exported from the
+          // following library in this repo:
+          // lib/web_skin_dart.dart/BarState
+          //
+          // To complete the migration, you should: 
+          //   1. Deprecate `BarState`.
+          //   2. Make a copy of it, renaming it something like `BarStateV2`.
+          //   3. Replace all your current usage of the deprecated `BarState` with `BarStateV2`.
+          //   4. Add a `hide BarStateV2` clause to all places where it is exported, and then run:
+          //        pub run over_react_codemod:boilerplate_upgrade
+          //   5a. If `BarState` had consumers outside this repo, and it was intentionally made public,
+          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarStateV2`
+          //       will be a viable replacement for `BarState`.
+          //   5b. If `BarState` had no consumers outside this repo, and you have no reason to make the new
+          //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
+          //       concrete class and the newly created mixin.
+          //   6. Remove this FIXME comment.'''}
           class _\$BarState extends ADifferentStateClass {
             String foo;
             int bar;
@@ -265,13 +301,41 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           expectedOutput: '''
           $factoryDecl
   
-          @Props()${shouldTreatAllComponentsAsPrivate ? '' : '\n${publiclyExportedFixmeComment(publicPropsClassName)}'}
+          @Props()
+          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: Semver report was not found. `$publicPropsClassName` is assumed to be exported from
+          // a library in this repo and thus was not auto-migrated to the new over_react
+          // boilerplate.
+          //
+          // To complete the migration, you should:
+          //   1. Perform a semver report by running the following script:
+          //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
+          //      pub global run semver_audit generate > semver_report.json
+          //   2. Re-run the migration script:
+          //      pub run over_react_codemod:boilerplate_upgrade
+          //
+          // Alternatively, re-run the  migration script with the following flag to assume 
+          // all components are not publicly exported:
+          // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private'''}
           class $propsClassName extends ADifferentStateClass {
             String foo;
             int bar;
           }
   
-          @State()${shouldTreatAllComponentsAsPrivate ? '' : '\n${publiclyExportedFixmeComment(publicStateClassName)}'}
+          @State()
+          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: Semver report was not found. `$publicStateClassName` is assumed to be exported from
+          // a library in this repo and thus was not auto-migrated to the new over_react
+          // boilerplate.
+          //
+          // To complete the migration, you should:
+          //   1. Perform a semver report by running the following script:
+          //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
+          //      pub global run semver_audit generate > semver_report.json
+          //   2. Re-run the migration script:
+          //      pub run over_react_codemod:boilerplate_upgrade
+          //
+          // Alternatively, re-run the  migration script with the following flag to assume 
+          // all components are not publicly exported:
+          // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private'''}
           class $stateClassName extends ADifferentStateClass {
             String foo;
             int bar;

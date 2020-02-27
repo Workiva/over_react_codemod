@@ -338,15 +338,15 @@ void semverUtilitiesTestHelper({
   test('if props class is in export list', () {
     final input = '''
         @Props()
-        class ButtonProps extends UiProps{
+        class BarProps extends UiProps{
           String foo;
           int bar;
         }
       ''';
     final expectedOutput = isValidFilePath
         ? [
-            'lib/web_skin_dart.dart/ButtonProps',
-            'lib/another_file.dart/ButtonProps',
+            'lib/web_skin_dart.dart/BarProps',
+            'lib/another_file.dart/BarProps',
           ]
         : [
             'Semver report not available; this class is assumed to be public and thus will not be updated.'

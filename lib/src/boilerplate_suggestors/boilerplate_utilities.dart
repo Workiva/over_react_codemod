@@ -26,7 +26,7 @@ import 'package:source_span/source_span.dart';
 typedef YieldPatch = void Function(
     int startingOffset, int endingOffset, String replacement);
 
-const semverReportNotAvailableComment =
+const semverReportNotAvailable =
     'Semver report not available; this class is assumed to be public and thus will not be updated.';
 
 /// Returns a [SemverHelper] using the file at [path].
@@ -89,7 +89,7 @@ class SemverHelper {
 
     if (_exportList == null && _isAlwaysPrivate) return locations;
     if (_exportList == null && !_isAlwaysPrivate) {
-      return [semverReportNotAvailableComment];
+      return [semverReportNotAvailable];
     }
 
     _exportList.forEach((key, value) {

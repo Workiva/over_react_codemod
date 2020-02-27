@@ -77,7 +77,7 @@ String getExternalSuperclassOrMixinReasonComment(
 }
 
 String getPublicApiReasonComment(String nodeName, List<String> locations) {
-  if (locations.first == semverReportNotAvailableComment) {
+  if (locations.first == semverReportNotAvailable) {
     return '''
     // FIXME: Semver report was not found. `$nodeName` is assumed to be exported from
     // a library in this repo and thus was not auto-migrated to the new over_react
@@ -99,7 +99,7 @@ String getPublicApiReasonComment(String nodeName, List<String> locations) {
   // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate 
   // because doing so would be a breaking change since `$nodeName` is exported from the 
   // following librar${locations.length > 1 ? 'ies' : 'y'} in this repo: 
-  // ${locations}
+  // ${locations.join("\n// ")}
   //
   // To complete the migration, you should: 
   //   1. Deprecate `$nodeName`.

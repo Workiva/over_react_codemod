@@ -17,7 +17,6 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_s
 import 'package:test/test.dart';
 
 import '../util.dart';
-import 'boilerplate_test_utils.dart';
 
 void main() {
   group('SimplePropsAndStateClassMigrator', () {
@@ -137,7 +136,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
             \$Foo;
 
         @Props()
-        ${publiclyExportedFixmeComment('FooProps')}
+        ${semverReportUnavailableComment('FooProps')}
         class _\$FooProps extends UiProps {
           String foo;
           int bar;
@@ -237,7 +236,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
         }
 
         @Props()
-        ${publiclyExportedFixmeComment('FooProps')}
+        ${semverReportUnavailableComment('FooProps')}
         class _\$FooProps extends UiProps with FooPropsMixin {
           String foo;
           int bar;
@@ -318,7 +317,25 @@ void SimplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Bar;
           @Props()
-          ${publiclyExportedFixmeComment('BarProps')}
+          ${isValidFilePath ? '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate
+          // because doing so would be a breaking change since `BarProps` is exported from the
+          // following libraries in this repo:
+          // lib/web_skin_dart.dart/BarProps
+          // lib/another_file.dart/BarProps
+          //
+          // To complete the migration, you should: 
+          //   1. Deprecate `BarProps`.
+          //   2. Make a copy of it, renaming it something like `BarPropsV2`.
+          //   3. Replace all your current usage of the deprecated `BarProps` with `BarPropsV2`.
+          //   4. Add a `hide BarPropsV2` clause to all places where it is exported, and then run:
+          //        pub run over_react_codemod:boilerplate_upgrade
+          //   5a. If `BarProps` had consumers outside this repo, and it was intentionally made public,
+          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarPropsV2`
+          //       will be a viable replacement for `BarProps`.
+          //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
+          //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
+          //       concrete class and the newly created mixin.
+          //   6. Remove this FIXME comment.''' : semverReportUnavailableComment('BarProps')}
           class _\$BarProps extends UiProps {
             String foo;
             int bar;
@@ -412,14 +429,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
             \$Foo;
 
         @Props()
-        ${publiclyExportedFixmeComment('FooProps')}
+        ${semverReportUnavailableComment('FooProps')}
         class _\$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
 
         @State()
-        ${publiclyExportedFixmeComment('FooState')}
+        ${semverReportUnavailableComment('FooState')}
         class _\$FooState extends ADifferentStateClass {
           String foo;
           int bar;
@@ -501,7 +518,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
             \$Foo;
 
         @Props()
-        ${publiclyExportedFixmeComment('FooProps')}
+        ${semverReportUnavailableComment('FooProps')}
         class _\$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
@@ -597,14 +614,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
               \$Foo;
     
           @Props()
-          ${publiclyExportedFixmeComment('FooProps')}
+          ${semverReportUnavailableComment('FooProps')}
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
     
           @State()
-          ${publiclyExportedFixmeComment('FooState')}
+          ${semverReportUnavailableComment('FooState')}
           class _\$FooState extends UiState {
             String foo;
             int bar;
@@ -686,7 +703,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
               \$Foo;
     
           @Props()
-          ${publiclyExportedFixmeComment('FooProps')}
+          ${semverReportUnavailableComment('FooProps')}
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
@@ -779,14 +796,14 @@ void SimplePropsAndStateClassMigratorTestHelper({
               \$Foo;
     
           @AbstractProps()
-          ${publiclyExportedFixmeComment('FooProps')}
+          ${semverReportUnavailableComment('FooProps')}
           abstract class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
     
           @AbstractState()
-          ${publiclyExportedFixmeComment('FooState')}
+          ${semverReportUnavailableComment('FooState')}
           abstract class _\$FooState extends UiState {
             String foo;
             int bar;
@@ -812,4 +829,22 @@ void SimplePropsAndStateClassMigratorTestHelper({
       });
     });
   });
+}
+
+String semverReportUnavailableComment(String nodeName) {
+  return '''
+    // FIXME: Semver report was not found. `$nodeName` is assumed to be exported from
+    // a library in this repo and thus was not auto-migrated to the new over_react
+    // boilerplate.
+    //
+    // To complete the migration, you should:
+    //   1. Perform a semver report by running the following script:
+    //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
+    //      pub global run semver_audit generate > semver_report.json
+    //   2. Re-run the migration script:
+    //      pub run over_react_codemod:boilerplate_upgrade
+    //
+    // Alternatively, re-run the  migration script with the following flag to assume 
+    // all components are not publicly exported:
+    // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private''';
 }

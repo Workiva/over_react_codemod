@@ -1,14 +1,5 @@
 {
   "exports": {
-    "lib/web_skin_dart.dart/ButtonProps": {
-      "type": "class",
-      "grammar": {
-        "name": "ButtonProps",
-        "meta": [
-          "@Props()"
-        ]
-      }
-    },
     "lib/web_skin_dart.dart/BarProps": {
       "type": "class",
       "grammar": {
@@ -36,21 +27,21 @@
         ]
       }
     },
+    "lib/another_file.dart/BarProps": {
+      "type": "class",
+      "grammar": {
+        "name": "BarProps",
+        "meta": [
+          "@Props()"
+        ]
+      }
+    },
     "lib/web_skin_dart.dart/BarStateMixin": {
       "type": "class",
       "grammar": {
         "name": "BarStateMixin",
         "meta": [
           "@State()"
-        ]
-      }
-    },
-    "lib/another_file.dart/ButtonProps": {
-      "type": "class",
-      "grammar": {
-        "name": "ButtonProps",
-        "meta": [
-          "@Props()"
         ]
       }
     }
