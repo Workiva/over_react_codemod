@@ -16,11 +16,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
 import 'package:over_react_codemod/src/constants.dart';
-import 'package:over_react_codemod/src/executables/react16_ci_precheck.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:source_span/source_span.dart';

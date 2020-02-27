@@ -225,7 +225,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           //   4. Add a `hide BarPropsV2` clause to all places where it is exported, and then run:
           //        pub run over_react_codemod:boilerplate_upgrade
           //   5a. If `BarProps` had consumers outside this repo, and it was intentionally made public,
-          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarPropsV2`
+          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarPropsV2` 
           //       will be a viable replacement for `BarProps`.
           //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
@@ -249,7 +249,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           //   4. Add a `hide BarStateV2` clause to all places where it is exported, and then run:
           //        pub run over_react_codemod:boilerplate_upgrade
           //   5a. If `BarState` had consumers outside this repo, and it was intentionally made public,
-          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarStateV2`
+          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarStateV2` 
           //       will be a viable replacement for `BarState`.
           //   5b. If `BarState` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
