@@ -310,6 +310,14 @@ void semverUtilitiesTestHelper({
         shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
   });
 
+  test('correct warning', () {
+    expect(
+        semverHelper.warning,
+        isValidFilePath || shouldTreatAllComponentsAsPrivate
+            ? isNull
+            : 'Could not find semver_report.json.');
+  });
+
   test('if props class is not in export list', () {
     final input = '''
       @Props()

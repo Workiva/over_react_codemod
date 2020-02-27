@@ -15,6 +15,7 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_meta_migrator.dart';
@@ -35,7 +36,9 @@ const _changesRequiredOutput = '''
   Then, review the the changes, address any FIXMEs, and commit.
 ''';
 
-Future<void> main(List<String> args) async {
+void main(List<String> args) {
+  final logger = Logger('over_react_codemod.boilerplate_upgrade');
+
   final convertClassesWithExternalSuperclass =
       args.contains(_convertedClassesWithExternalSuperclassFlag);
   args.removeWhere((arg) => arg == _convertedClassesWithExternalSuperclassFlag);
@@ -53,7 +56,7 @@ Future<void> main(List<String> args) async {
 
   final classToMixinConverter = ClassToMixinConverter();
 
-  final semverHelper = await getSemverHelper('semver_report.json',
+  final semverHelper = getSemverHelper('semver_report.json',
       shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
 
   // General plan:
@@ -130,4 +133,10 @@ Future<void> main(List<String> args) async {
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
+
+  if (semverHelper.warning != null) {
+    logger?.warning(
+        '${semverHelper.warning} Assuming all components are public and thus will not be migrated.');
+    exitCode = 1;
+  }
 }

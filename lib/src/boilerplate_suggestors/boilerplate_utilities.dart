@@ -16,9 +16,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
 import 'package:over_react_codemod/src/constants.dart';
+import 'package:over_react_codemod/src/executables/react16_ci_precheck.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:source_span/source_span.dart';
@@ -44,12 +46,22 @@ SemverHelper getSemverHelper(String path,
     return SemverHelper.alwaysPrivate();
   } else {
     final file = File(path);
+    String warning;
 
     if (file.existsSync()) {
-      return SemverHelper(jsonDecode(file.readAsStringSync()));
+      try {
+        final jsonReport = jsonDecode(file.readAsStringSync());
+        if (jsonReport['exports'] != null) {
+          return SemverHelper(jsonReport['exports']);
+        }
+        warning = 'Could not find exports list in semver_report.json.';
+      } catch (e) {
+        warning = 'Could not parse semver_report.json.';
+      }
     } else {
-      return SemverHelper.alwaysPublic();
+      warning = 'Could not find semver_report.json.';
     }
+    return SemverHelper.alwaysPublic(warning);
   }
 }
 
@@ -63,10 +75,10 @@ class SemverHelper {
   final Map _exportList;
   final bool _isAlwaysPrivate;
 
-  SemverHelper(Map jsonReport)
-      : _exportList = jsonReport['exports'],
-        assert(jsonReport['exports'] != null),
-        _isAlwaysPrivate = false;
+  /// A warning message if semver report cannot be found.
+  String warning;
+
+  SemverHelper(this._exportList) : _isAlwaysPrivate = false;
 
   /// Used to ensure [getPublicExportLocations] always returns an empty list,
   /// treating all components as private.
@@ -76,7 +88,7 @@ class SemverHelper {
 
   /// Used to ensure [getPublicExportLocations] always returns a non-empty list,
   /// treating all components as public.
-  SemverHelper.alwaysPublic()
+  SemverHelper.alwaysPublic(this.warning)
       : _exportList = null,
         _isAlwaysPrivate = false;
 
