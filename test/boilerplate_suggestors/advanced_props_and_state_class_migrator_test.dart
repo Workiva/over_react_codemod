@@ -54,54 +54,54 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
       @Component2()
       class FooComponent extends UiStatefulComponent2<$publicPropsClassName, $publicStateClassName> {}
       ''';
+  group('', () {
+    var runCount = 0;
+    final converter = ClassToMixinConverter();
+    SuggestorTester testSuggestor({
+      bool convertClassesWithExternalSuperclass = false,
+      Map<String, String> visitedClassNames = const {},
+      bool isValidSemverReportFilePath = true,
+    }) {
+      runCount++;
+      final semverHelper = getSemverHelper(
+          isValidSemverReportFilePath
+              ? 'test/boilerplate_suggestors/semver_report.json'
+              : 'test/boilerplate_suggestors/does_not_exist.json',
+          shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
+      final tester = getSuggestorTester(AdvancedPropsAndStateClassMigrator(
+        converter,
+        semverHelper,
+        treatUnvisitedClassesAsExternal: runCount > 1,
+        convertClassesWithExternalSuperclass:
+            convertClassesWithExternalSuperclass,
+      ));
 
-  var runCount = 0;
-  final converter = ClassToMixinConverter();
-  SuggestorTester testSuggestor({
-    bool convertClassesWithExternalSuperclass = false,
-    Map<String, String> visitedClassNames = const {},
-    bool isValidSemverReportFilePath = true,
-  }) {
-    runCount++;
-    final semverHelper = getSemverHelper(
-        isValidSemverReportFilePath
-            ? 'test/boilerplate_suggestors/semver_report.json'
-            : 'test/boilerplate_suggestors/does_not_exist.json',
-        shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
-    final tester = getSuggestorTester(AdvancedPropsAndStateClassMigrator(
-      converter,
-      semverHelper,
-      treatUnvisitedClassesAsExternal: runCount > 1,
-      convertClassesWithExternalSuperclass:
-          convertClassesWithExternalSuperclass,
-    ));
+      // If visitedClassNames is set, append the value of `converter.visitedClassNames`.
+      // This is done to ensure that those custom classNames are not treated as members of an external library API.
+      if (visitedClassNames.isNotEmpty) {
+        converter
+            .setVisitedNames({...converter.visitedNames, ...visitedClassNames});
+      }
 
-    // If visitedClassNames is set, append the value of `converter.visitedClassNames`.
-    // This is done to ensure that those custom classNames are not treated as members of an external library API.
-    if (visitedClassNames.isNotEmpty) {
-      converter
-          .setVisitedNames({...converter.visitedNames, ...visitedClassNames});
+      return tester;
     }
 
-    return tester;
-  }
-
-  tearDown(() {
-    runCount = 0;
-    converter.setVisitedNames({});
-  });
-
-  group('does not perform a migration when', () {
-    test('it\'s an empty file', () {
-      testSuggestor()(expectedPatchCount: 0, input: '');
-
-      expect(converter.visitedNames, isEmpty);
+    tearDown(() {
+      runCount = 0;
+      converter.setVisitedNames({});
     });
 
-    test('the class is simple', () {
-      testSuggestor()(
-        expectedPatchCount: 0,
-        input: '''
+    group('does not perform a migration when', () {
+      test('it\'s an empty file', () {
+        testSuggestor()(expectedPatchCount: 0, input: '');
+
+        expect(converter.visitedNames, isEmpty);
+      });
+
+      test('the class is simple', () {
+        testSuggestor()(
+          expectedPatchCount: 0,
+          input: '''
           $factoryDecl
   
           @Props()
@@ -112,15 +112,15 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
   
           $componentDecl
         ''',
-      );
+        );
 
-      expect(converter.wasMigrated(publicPropsClassName), isFalse);
-    });
+        expect(converter.wasMigrated(publicPropsClassName), isFalse);
+      });
 
-    test('the class is not Component2, but does add a FIXME comment', () {
-      testSuggestor()(
-        expectedPatchCount: 1,
-        input: '''
+      test('the class is not Component2, but does add a FIXME comment', () {
+        testSuggestor()(
+          expectedPatchCount: 1,
+          input: '''
           $factoryDecl
   
           /// Some documentation comment 
@@ -142,7 +142,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             }
           }
       ''',
-        expectedOutput: '''
+          expectedOutput: '''
           $factoryDecl
   
           /// Some documentation comment 
@@ -170,15 +170,15 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             }
           }
       ''',
-      );
+        );
 
-      expect(converter.wasMigrated(publicPropsClassName), isFalse);
-    });
+        expect(converter.wasMigrated(publicPropsClassName), isFalse);
+      });
 
-    test('the class is publicly exported, but does add a FIXME comment', () {
-      testSuggestor()(
-        expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
-        input: r'''
+      test('the class is publicly exported, but does add a FIXME comment', () {
+        testSuggestor()(
+          expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
+          input: r'''
           @Factory()
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
@@ -207,7 +207,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             }
           }
         ''',
-        expectedOutput: '''
+          expectedOutput: '''
           @Factory()
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
@@ -236,16 +236,17 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             }
           }
         ''',
-      );
+        );
 
-      expect(converter.wasMigrated('BarProps'), isFalse);
-      expect(converter.wasMigrated('BarState'), isFalse);
-    });
+        expect(converter.wasMigrated('BarProps'), isFalse);
+        expect(converter.wasMigrated('BarState'), isFalse);
+      });
 
-    test('the semver report does not exist, but does add a FIXME comment', () {
-      testSuggestor(isValidSemverReportFilePath: false)(
-        expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
-        input: '''
+      test('the semver report does not exist, but does add a FIXME comment',
+          () {
+        testSuggestor(isValidSemverReportFilePath: false)(
+          expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
+          input: '''
           $factoryDecl
   
           @Props()
@@ -262,7 +263,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
   
           $componentDecl
         ''',
-        expectedOutput: '''
+          expectedOutput: '''
           $factoryDecl
   
           @Props()${shouldTreatAllComponentsAsPrivate ? '' : '\n${publiclyExportedFixmeComment(publicPropsClassName)}'}
@@ -279,18 +280,18 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
   
           $componentDecl
         ''',
-      );
+        );
 
-      expect(converter.wasMigrated('BarProps'), isFalse);
-      expect(converter.wasMigrated('BarState'), isFalse);
-    });
+        expect(converter.wasMigrated('BarProps'), isFalse);
+        expect(converter.wasMigrated('BarState'), isFalse);
+      });
 
-    group(
-        'the class extends from a class not found within ClassToMixinConverter.visitedClassNames',
-        () {
-      const externalSuperclassName = 'SomeExternalPropsClass';
+      group(
+          'the class extends from a class not found within ClassToMixinConverter.visitedClassNames',
+          () {
+        const externalSuperclassName = 'SomeExternalPropsClass';
 
-      const input = '''
+        const input = '''
             $factoryDecl
             
             @Props()
@@ -302,7 +303,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $componentDecl
             ''';
 
-      const expectedOutputWithExternalSuperclassReasonComment = '''
+        const expectedOutputWithExternalSuperclassReasonComment = '''
             $factoryDecl
             
             @Props()
@@ -327,44 +328,40 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $componentDecl
           ''';
 
-      group('but does add a FIXME comment', () {
-        setUp(() {
-          // When it is run the first time, nothing should happen since
-          // we don't know if the custom classes are external or not.
-          testSuggestor()(
-            expectedPatchCount: 0,
-            input: input,
-            expectedOutput: input,
-          );
-          testSuggestor()(
-            expectedPatchCount: 1,
-            input: input,
-            expectedOutput: expectedOutputWithExternalSuperclassReasonComment,
-          );
-        });
+        group('but does add a FIXME comment', () {
+          setUp(() {
+            // When it is run the first time, nothing should happen since
+            // we don't know if the custom classes are external or not.
+            testSuggestor()(expectedPatchCount: 0, input: input);
+            testSuggestor()(
+              expectedPatchCount: 1,
+              input: input,
+              expectedOutput: expectedOutputWithExternalSuperclassReasonComment,
+            );
+          });
 
-        test('', () {
-          expect(
-              converter.visitedNames,
-              {
-                publicPropsClassName: null,
-              },
-              reason:
-                  '$publicPropsClassName should not be converted since $externalSuperclassName is external, '
-                  'and the --convert-classes-with-external-superclasses flag is not set');
-        });
+          test('', () {
+            expect(
+                converter.visitedNames,
+                {
+                  publicPropsClassName: null,
+                },
+                reason:
+                    '$publicPropsClassName should not be converted since $externalSuperclassName is external, '
+                    'and the --convert-classes-with-external-superclasses flag is not set');
+          });
 
-        test(
-            'which then gets removed from the declaration that is converted to a mixin, and replaced '
-            'with updated instructions on the new concrete class declaration when the script '
-            'is re-ran with the --convert-classes-with-external-superclasses flag set',
-            () {
-          // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
-          // being set - which allows conversion of external superclasses
-          testSuggestor(convertClassesWithExternalSuperclass: true)(
-            expectedPatchCount: 7,
-            input: expectedOutputWithExternalSuperclassReasonComment,
-            expectedOutput: '''
+          test(
+              'which then gets removed from the declaration that is converted to a mixin, and replaced '
+              'with updated instructions on the new concrete class declaration when the script '
+              'is re-ran with the --convert-classes-with-external-superclasses flag set',
+              () {
+            // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
+            // being set - which allows conversion of external superclasses
+            testSuggestor(convertClassesWithExternalSuperclass: true)(
+              expectedPatchCount: 7,
+              input: expectedOutputWithExternalSuperclassReasonComment,
+              expectedOutput: '''
               $factoryDecl
   
               @Props()
@@ -388,34 +385,30 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
   
               $componentDecl
             ''',
-          );
+            );
 
-          expect(
-              converter.visitedNames,
-              {
-                publicPropsClassName: '${publicPropsClassName}Mixin',
-              },
-              reason:
-                  '$publicPropsClassName should be converted to a mixin since the '
-                  '--convert-classes-with-external-superclasses flag is set');
+            expect(
+                converter.visitedNames,
+                {
+                  publicPropsClassName: '${publicPropsClassName}Mixin',
+                },
+                reason:
+                    '$publicPropsClassName should be converted to a mixin since the '
+                    '--convert-classes-with-external-superclasses flag is set');
+          });
         });
-      });
 
-      test(
-          'unless the --convert-classes-with-external-superclasses flag is set',
-          () {
-        // When it is run the first time, nothing should happen since
-        // we don't know if the custom classes are external or not.
-        testSuggestor()(
-          expectedPatchCount: 0,
-          input: input,
-          expectedOutput: input,
-        );
-        // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
-        // being set - which allows conversion of external superclasses
-        testSuggestor(convertClassesWithExternalSuperclass: true)(
-          expectedPatchCount: 6,
-          input: '''
+        test(
+            'unless the --convert-classes-with-external-superclasses flag is set',
+            () {
+          // When it is run the first time, nothing should happen since
+          // we don't know if the custom classes are external or not.
+          testSuggestor()(expectedPatchCount: 0, input: input);
+          // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
+          // being set - which allows conversion of external superclasses
+          testSuggestor(convertClassesWithExternalSuperclass: true)(
+            expectedPatchCount: 6,
+            input: '''
             $factoryDecl
 
             @Props()
@@ -426,7 +419,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
             $componentDecl
           ''',
-          expectedOutput: '''
+            expectedOutput: '''
               $factoryDecl
   
               @Props()
@@ -450,26 +443,26 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
   
               $componentDecl
             ''',
-        );
+          );
 
-        expect(
-            converter.visitedNames,
-            {
-              publicPropsClassName: '${publicPropsClassName}Mixin',
-            },
-            reason:
-                '$publicPropsClassName should be converted to a mixin since the '
-                '--convert-classes-with-external-superclasses flag is set');
+          expect(
+              converter.visitedNames,
+              {
+                publicPropsClassName: '${publicPropsClassName}Mixin',
+              },
+              reason:
+                  '$publicPropsClassName should be converted to a mixin since the '
+                  '--convert-classes-with-external-superclasses flag is set');
+        });
       });
-    });
 
-    group(
-        'the class mixes in and extends from classes not found within ClassToMixinConverter.visitedClassNames',
-        () {
-      const externalSuperclassName = 'SomeExternalPropsClass';
-      const externalMixinName = 'SomeExternalMixin';
+      group(
+          'the class mixes in and extends from classes not found within ClassToMixinConverter.visitedClassNames',
+          () {
+        const externalSuperclassName = 'SomeExternalPropsClass';
+        const externalMixinName = 'SomeExternalMixin';
 
-      const input = '''
+        const input = '''
             $factoryDecl
             
             @Props()
@@ -481,7 +474,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $componentDecl
             ''';
 
-      const expectedOutputWithExternalSuperclassReasonComment = '''
+        const expectedOutputWithExternalSuperclassReasonComment = '''
             $factoryDecl
             
             @Props()
@@ -520,44 +513,88 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $componentDecl
           ''';
 
-      group('but does add a FIXME comment', () {
-        setUp(() {
-          // When it is run the first time, nothing should happen since
-          // we don't know if the custom classes are external or not.
-          testSuggestor()(
-            expectedPatchCount: 0,
-            input: input,
-            expectedOutput: input,
-          );
-          testSuggestor()(
-            expectedPatchCount: 1,
-            input: input,
-            expectedOutput: expectedOutputWithExternalSuperclassReasonComment,
-          );
-        });
+        group('but does add a FIXME comment', () {
+          setUp(() {
+            // When it is run the first time, nothing should happen since
+            // we don't know if the custom classes are external or not.
+            testSuggestor()(expectedPatchCount: 0, input: input);
+            testSuggestor()(
+              expectedPatchCount: 1,
+              input: input,
+              expectedOutput: expectedOutputWithExternalSuperclassReasonComment,
+            );
+          });
 
-        test('', () {
-          expect(
-              converter.visitedNames,
-              {
-                publicPropsClassName: null,
-              },
-              reason:
-                  '$publicPropsClassName should not be converted since $externalSuperclassName '
-                  'and $externalMixinName are external, and the --convert-classes-with-external-superclasses '
-                  'flag is not set');
+          test('', () {
+            expect(
+                converter.visitedNames,
+                {
+                  publicPropsClassName: null,
+                },
+                reason:
+                    '$publicPropsClassName should not be converted since $externalSuperclassName '
+                    'and $externalMixinName are external, and the --convert-classes-with-external-superclasses '
+                    'flag is not set');
+          });
+
+          test(
+              'which then gets removed from the declaration that is converted to a mixin, and replaced '
+              'with updated instructions on the new concrete class declaration when the script '
+              'is re-ran with the --convert-classes-with-external-superclasses flag set',
+              () {
+            // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
+            // being set - which allows conversion of external superclasses
+            testSuggestor(convertClassesWithExternalSuperclass: true)(
+              expectedPatchCount: 8,
+              input: expectedOutputWithExternalSuperclassReasonComment,
+              expectedOutput: '''
+              $factoryDecl
+  
+              @Props()
+              mixin ${publicPropsClassName}Mixin on UiProps {
+                String foo;
+                int bar;
+              }
+
+              @Props()
+              // FIXME:
+              //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
+              //   2. Fix any analyzer warnings on this class about missing mixins.
+              //   3. You should notice that $externalSuperclassName, $externalMixinName are deprecated.  
+              //      Follow the deprecation instructions to consume the replacement by either updating your usage to
+              //      the new class/mixin name and/or updating to a different entrypoint that exports the versions of 
+              //      $externalSuperclassName, $externalMixinName that are compatible with the new over_react boilerplate.
+              //
+              //      If they are not deprecated, something most likely went wrong during the migration of the 
+              //      library that contains them. 
+              class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
+  
+              $componentDecl
+            ''',
+            );
+
+            expect(
+                converter.visitedNames,
+                {
+                  publicPropsClassName: '${publicPropsClassName}Mixin',
+                },
+                reason:
+                    '$publicPropsClassName should be converted to a mixin since the '
+                    '--convert-classes-with-external-superclasses flag is set');
+          });
         });
 
         test(
-            'which then gets removed from the declaration that is converted to a mixin, and replaced '
-            'with updated instructions on the new concrete class declaration when the script '
-            'is re-ran with the --convert-classes-with-external-superclasses flag set',
+            'unless the --convert-classes-with-external-superclasses flag is set',
             () {
-          // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
+          // When it is run the first time, nothing should happen since
+          // we don't know if the custom classes are external or not.
+          testSuggestor()(expectedPatchCount: 0, input: input);
+          // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
           // being set - which allows conversion of external superclasses
           testSuggestor(convertClassesWithExternalSuperclass: true)(
-            expectedPatchCount: 8,
-            input: expectedOutputWithExternalSuperclassReasonComment,
+            expectedPatchCount: 7,
+            input: input,
             expectedOutput: '''
               $factoryDecl
   
@@ -595,63 +632,11 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
         });
       });
 
-      test(
-          'unless the --convert-classes-with-external-superclasses flag is set',
-          () {
-        // When it is run the first time, nothing should happen since
-        // we don't know if the custom classes are external or not.
-        testSuggestor()(
-          expectedPatchCount: 0,
-          input: input,
-          expectedOutput: input,
-        );
-        // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
-        // being set - which allows conversion of external superclasses
-        testSuggestor(convertClassesWithExternalSuperclass: true)(
-          expectedPatchCount: 7,
-          input: input,
-          expectedOutput: '''
-              $factoryDecl
-  
-              @Props()
-              mixin ${publicPropsClassName}Mixin on UiProps {
-                String foo;
-                int bar;
-              }
-
-              @Props()
-              // FIXME:
-              //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
-              //   2. Fix any analyzer warnings on this class about missing mixins.
-              //   3. You should notice that $externalSuperclassName, $externalMixinName are deprecated.  
-              //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-              //      the new class/mixin name and/or updating to a different entrypoint that exports the versions of 
-              //      $externalSuperclassName, $externalMixinName that are compatible with the new over_react boilerplate.
-              //
-              //      If they are not deprecated, something most likely went wrong during the migration of the 
-              //      library that contains them. 
-              class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
-  
-              $componentDecl
-            ''',
-        );
-
-        expect(
-            converter.visitedNames,
-            {
-              publicPropsClassName: '${publicPropsClassName}Mixin',
-            },
-            reason:
-                '$publicPropsClassName should be converted to a mixin since the '
-                '--convert-classes-with-external-superclasses flag is set');
-      });
-    });
-
-    group(
-        'the class extends from a custom class that has been visited, '
-        'but not yet converted to the new boilerplate after two runs '
-        'but does add a FIXME comment', () {
-      final expectedOutputWithUnMigratedSuperclassReasonComment = '''
+      group(
+          'the class extends from a custom class that has been visited, '
+          'but not yet converted to the new boilerplate after two runs '
+          'but does add a FIXME comment', () {
+        const expectedOutputWithUnMigratedSuperclassReasonComment = '''
             $factoryDecl
             
             @Props()
@@ -671,8 +656,8 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $componentDecl
             ''';
 
-      test('', () {
-        const input = '''
+        test('', () {
+          const input = '''
               $factoryDecl
       
               @Props()
@@ -684,46 +669,42 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               $componentDecl
             ''';
 
-        // When it is run the first time, nothing should happen since
-        // we don't know if the custom classes are "migratable" or not.
-        testSuggestor()(
-          expectedPatchCount: 0,
-          input: input,
-          expectedOutput: input,
-        );
-        testSuggestor(
-          visitedClassNames: {
+          // When it is run the first time, nothing should happen since
+          // we don't know if the custom classes are "migratable" or not.
+          testSuggestor()(expectedPatchCount: 0, input: input);
+          testSuggestor(
+            visitedClassNames: {
+              'ADifferentPropsClass': null,
+            },
+          )(
+            expectedPatchCount: 1,
+            input: input,
+            expectedOutput: expectedOutputWithUnMigratedSuperclassReasonComment,
+          );
+
+          expect(converter.visitedNames, {
             'ADifferentPropsClass': null,
-          },
-        )(
-          expectedPatchCount: 1,
-          input: input,
-          expectedOutput: expectedOutputWithUnMigratedSuperclassReasonComment,
-        );
-
-        expect(converter.visitedNames, {
-          'ADifferentPropsClass': null,
-          publicPropsClassName: null,
+            publicPropsClassName: null,
+          });
         });
-      });
 
-      test(
-          'which then gets removed and replaced with updated instructions '
-          'when the script is re-ran after the consumer makes the class "migratable"',
-          () {
-        // When it is run the first time, nothing should happen since
-        // we don't know if the custom classes are "migratable" or not.
-        testSuggestor()(
-            expectedPatchCount: 0,
-            input: expectedOutputWithUnMigratedSuperclassReasonComment);
-        testSuggestor(
-          visitedClassNames: {
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-          },
-        )(
-          expectedPatchCount: 7,
-          input: expectedOutputWithUnMigratedSuperclassReasonComment,
-          expectedOutput: '''
+        test(
+            'which then gets removed and replaced with updated instructions '
+            'when the script is re-ran after the consumer makes the class "migratable"',
+            () {
+          // When it is run the first time, nothing should happen since
+          // we don't know if the custom classes are "migratable" or not.
+          testSuggestor()(
+              expectedPatchCount: 0,
+              input: expectedOutputWithUnMigratedSuperclassReasonComment);
+          testSuggestor(
+            visitedClassNames: {
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+            },
+          )(
+            expectedPatchCount: 7,
+            input: expectedOutputWithUnMigratedSuperclassReasonComment,
+            expectedOutput: '''
             $factoryDecl
             
             @Props()
@@ -740,22 +721,22 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
     
             $componentDecl
           ''',
-        );
+          );
 
-        expect(converter.visitedNames, {
-          'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-          publicPropsClassName: '${publicPropsClassName}Mixin',
+          expect(converter.visitedNames, {
+            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+          });
         });
       });
-    });
 
-    group(
-        'the class uses one or more mixins not found within ClassToMixinConverter.visitedClassNames:',
-        () {
-      group('single external mixin:', () {
-        const externalMixinName = 'SomeExternalMixin';
+      group(
+          'the class uses one or more mixins not found within ClassToMixinConverter.visitedClassNames:',
+          () {
+        group('single external mixin:', () {
+          const externalMixinName = 'SomeExternalMixin';
 
-        const input = '''
+          const input = '''
               $factoryDecl
     
               @Props()
@@ -767,7 +748,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               $componentDecl
               ''';
 
-        const expectedOutputWithExternalMixinReasonComment = '''
+          const expectedOutputWithExternalMixinReasonComment = '''
               $factoryDecl
 
               @Props()
@@ -792,40 +773,40 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               $componentDecl
             ''';
 
-        group('but does add a FIXME comment', () {
-          setUp(() {
-            // When it is run the first time, nothing should happen since
-            // we don't know if the custom classes are external or not.
-            testSuggestor()(expectedPatchCount: 0, input: input);
-            testSuggestor()(
-              expectedPatchCount: 1,
-              input: input,
-              expectedOutput: expectedOutputWithExternalMixinReasonComment,
-            );
-          });
+          group('but does add a FIXME comment', () {
+            setUp(() {
+              // When it is run the first time, nothing should happen since
+              // we don't know if the custom classes are external or not.
+              testSuggestor()(expectedPatchCount: 0, input: input);
+              testSuggestor()(
+                expectedPatchCount: 1,
+                input: input,
+                expectedOutput: expectedOutputWithExternalMixinReasonComment,
+              );
+            });
 
-          test('', () {
-            expect(
-                converter.visitedNames,
-                {
-                  publicPropsClassName: null,
-                },
-                reason:
-                    '$publicPropsClassName should not be converted since $externalMixinName is external, '
-                    'and the --convert-classes-with-external-superclasses flag is not set');
-          });
+            test('', () {
+              expect(
+                  converter.visitedNames,
+                  {
+                    publicPropsClassName: null,
+                  },
+                  reason:
+                      '$publicPropsClassName should not be converted since $externalMixinName is external, '
+                      'and the --convert-classes-with-external-superclasses flag is not set');
+            });
 
-          test(
-              'which then gets removed from the declaration that is converted to a mixin, and replaced '
-              'with updated instructions on the new concrete class declaration when the script '
-              'is re-ran with the --convert-classes-with-external-superclasses flag set',
-              () {
-            // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
-            // being set - which allows conversion of external mixins
-            testSuggestor(convertClassesWithExternalSuperclass: true)(
-              expectedPatchCount: 7,
-              input: expectedOutputWithExternalMixinReasonComment,
-              expectedOutput: '''
+            test(
+                'which then gets removed from the declaration that is converted to a mixin, and replaced '
+                'with updated instructions on the new concrete class declaration when the script '
+                'is re-ran with the --convert-classes-with-external-superclasses flag set',
+                () {
+              // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
+              // being set - which allows conversion of external mixins
+              testSuggestor(convertClassesWithExternalSuperclass: true)(
+                expectedPatchCount: 7,
+                input: expectedOutputWithExternalMixinReasonComment,
+                expectedOutput: '''
                 $factoryDecl
     
                 @Props()
@@ -847,24 +828,24 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
     
                 $componentDecl
               ''',
-            );
+              );
 
-            expect(
-                converter.visitedNames,
-                {
-                  publicPropsClassName: '${publicPropsClassName}Mixin',
-                },
-                reason:
-                    '$publicPropsClassName should be converted to a mixin since the '
-                    '--convert-classes-with-external-superclasses flag is set');
+              expect(
+                  converter.visitedNames,
+                  {
+                    publicPropsClassName: '${publicPropsClassName}Mixin',
+                  },
+                  reason:
+                      '$publicPropsClassName should be converted to a mixin since the '
+                      '--convert-classes-with-external-superclasses flag is set');
+            });
           });
         });
-      });
 
-      group('multiple external mixins:', () {
-        const externalMixinNames = 'SomeExternalMixin, AnotherExternalMixin';
+        group('multiple external mixins:', () {
+          const externalMixinNames = 'SomeExternalMixin, AnotherExternalMixin';
 
-        const input = '''
+          const input = '''
               $factoryDecl
     
               @Props()
@@ -876,7 +857,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               $componentDecl
               ''';
 
-        const expectedOutputWithExternalMixinReasonComment = '''
+          const expectedOutputWithExternalMixinReasonComment = '''
               $factoryDecl
 
               @Props()
@@ -901,40 +882,40 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               $componentDecl
             ''';
 
-        group('but does add a FIXME comment', () {
-          setUp(() {
-            // When it is run the first time, nothing should happen since
-            // we don't know if the custom classes are external or not.
-            testSuggestor()(expectedPatchCount: 0, input: input);
-            testSuggestor()(
-              expectedPatchCount: 1,
-              input: input,
-              expectedOutput: expectedOutputWithExternalMixinReasonComment,
-            );
-          });
+          group('but does add a FIXME comment', () {
+            setUp(() {
+              // When it is run the first time, nothing should happen since
+              // we don't know if the custom classes are external or not.
+              testSuggestor()(expectedPatchCount: 0, input: input);
+              testSuggestor()(
+                expectedPatchCount: 1,
+                input: input,
+                expectedOutput: expectedOutputWithExternalMixinReasonComment,
+              );
+            });
 
-          test('', () {
-            expect(
-                converter.visitedNames,
-                {
-                  publicPropsClassName: null,
-                },
-                reason:
-                    '$publicPropsClassName should not be converted since $externalMixinNames are external, '
-                    'and the --convert-classes-with-external-superclasses flag is not set');
-          });
+            test('', () {
+              expect(
+                  converter.visitedNames,
+                  {
+                    publicPropsClassName: null,
+                  },
+                  reason:
+                      '$publicPropsClassName should not be converted since $externalMixinNames are external, '
+                      'and the --convert-classes-with-external-superclasses flag is not set');
+            });
 
-          test(
-              'which then gets removed from the declaration that is converted to a mixin, and replaced '
-              'with updated instructions on the new concrete class declaration when the script '
-              'is re-ran with the --convert-classes-with-external-superclasses flag set',
-              () {
-            // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
-            // being set - which allows conversion of external mixins
-            testSuggestor(convertClassesWithExternalSuperclass: true)(
-              expectedPatchCount: 7,
-              input: expectedOutputWithExternalMixinReasonComment,
-              expectedOutput: '''
+            test(
+                'which then gets removed from the declaration that is converted to a mixin, and replaced '
+                'with updated instructions on the new concrete class declaration when the script '
+                'is re-ran with the --convert-classes-with-external-superclasses flag set',
+                () {
+              // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
+              // being set - which allows conversion of external mixins
+              testSuggestor(convertClassesWithExternalSuperclass: true)(
+                expectedPatchCount: 7,
+                input: expectedOutputWithExternalMixinReasonComment,
+                expectedOutput: '''
                 $factoryDecl
     
                 @Props()
@@ -956,27 +937,27 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
     
                 $componentDecl
               ''',
-            );
+              );
 
-            expect(
-                converter.visitedNames,
-                {
-                  publicPropsClassName: '${publicPropsClassName}Mixin',
-                },
-                reason:
-                    '$publicPropsClassName should be converted to a mixin since the '
-                    '--convert-classes-with-external-superclasses flag is set');
+              expect(
+                  converter.visitedNames,
+                  {
+                    publicPropsClassName: '${publicPropsClassName}Mixin',
+                  },
+                  reason:
+                      '$publicPropsClassName should be converted to a mixin since the '
+                      '--convert-classes-with-external-superclasses flag is set');
+            });
           });
         });
       });
     });
-  });
 
-  group('performs a migration when the class(es) are advanced', () {
-    group(
-        'and there are both a props and a state class that extend '
-        'from custom classes that were converted to the new boilerplate', () {
-      const input = '''
+    group('performs a migration when the class(es) are advanced', () {
+      group(
+          'and there are both a props and a state class that extend '
+          'from custom classes that were converted to the new boilerplate', () {
+        const input = '''
             $factoryDecl
     
             @Props()
@@ -994,7 +975,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $statefulComponentDecl
           ''';
 
-      const expectedOutput = '''
+        const expectedOutput = '''
             $factoryDecl
     
             @Props()
@@ -1024,60 +1005,60 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $statefulComponentDecl
           ''';
 
-      test('on the first run', () {
-        // Simulates the case where the superclasses were visited first and successfully converted
-        testSuggestor(
-          visitedClassNames: {
+        test('on the first run', () {
+          // Simulates the case where the superclasses were visited first and successfully converted
+          testSuggestor(
+            visitedClassNames: {
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+              'ADifferentStateClass': 'ADifferentStateClassMixin',
+            },
+          )(
+            expectedPatchCount: 12,
+            input: input,
+            expectedOutput: expectedOutput,
+          );
+
+          expect(converter.visitedNames, {
             'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             'ADifferentStateClass': 'ADifferentStateClassMixin',
-          },
-        )(
-          expectedPatchCount: 12,
-          input: input,
-          expectedOutput: expectedOutput,
-        );
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+            publicStateClassName: '${publicStateClassName}Mixin',
+          });
+        });
 
-        expect(converter.visitedNames, {
-          'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-          'ADifferentStateClass': 'ADifferentStateClassMixin',
-          publicPropsClassName: '${publicPropsClassName}Mixin',
-          publicStateClassName: '${publicStateClassName}Mixin',
+        test('on the second run', () {
+          // When it is run the first time, nothing should happen since
+          // we don't know if the custom classes are external or not.
+          testSuggestor(
+            visitedClassNames: {
+              'ADifferentPropsClass': null,
+              'ADifferentStateClass': null,
+            },
+          )(expectedPatchCount: 0, input: input);
+          testSuggestor(
+            visitedClassNames: {
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+              'ADifferentStateClass': 'ADifferentStateClassMixin',
+            },
+          )(
+            expectedPatchCount: 12,
+            input: input,
+            expectedOutput: expectedOutput,
+          );
+
+          expect(converter.visitedNames, {
+            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+            'ADifferentStateClass': 'ADifferentStateClassMixin',
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+            publicStateClassName: '${publicStateClassName}Mixin',
+          });
         });
       });
 
-      test('on the second run', () {
-        // When it is run the first time, nothing should happen since
-        // we don't know if the custom classes are external or not.
-        testSuggestor(
-          visitedClassNames: {
-            'ADifferentPropsClass': null,
-            'ADifferentStateClass': null,
-          },
-        )(expectedPatchCount: 0, input: input);
-        testSuggestor(
-          visitedClassNames: {
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-            'ADifferentStateClass': 'ADifferentStateClassMixin',
-          },
-        )(
-          expectedPatchCount: 12,
-          input: input,
-          expectedOutput: expectedOutput,
-        );
-
-        expect(converter.visitedNames, {
-          'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-          'ADifferentStateClass': 'ADifferentStateClassMixin',
-          publicPropsClassName: '${publicPropsClassName}Mixin',
-          publicStateClassName: '${publicStateClassName}Mixin',
-        });
-      });
-    });
-
-    group(
-        'and there are both a props and state class that use mixins that were converted to the new boilerplate',
-        () {
-      const input = '''
+      group(
+          'and there are both a props and state class that use mixins that were converted to the new boilerplate',
+          () {
+        const input = '''
             $factoryDecl
     
             @Props()
@@ -1095,7 +1076,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $statefulComponentDecl
             ''';
 
-      const expectedOutput = '''
+        const expectedOutput = '''
             $factoryDecl
     
             @Props()
@@ -1119,63 +1100,63 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $statefulComponentDecl
           ''';
 
-      test('on the first run', () {
-        // Simulates the case where the superclasses were visited first and successfully converted
-        testSuggestor(
-          visitedClassNames: {
+        test('on the first run', () {
+          // Simulates the case where the superclasses were visited first and successfully converted
+          testSuggestor(
+            visitedClassNames: {
+              'AMixin': 'AMixin',
+              'AnotherMixin': 'AnotherMixin',
+              'AStateMixin': 'AStateMixin',
+              'AnotherStateMixin': 'AnotherStateMixin',
+            },
+          )(
+            expectedPatchCount: 12,
+            input: input,
+            expectedOutput: expectedOutput,
+          );
+
+          expect(converter.visitedNames, {
             'AMixin': 'AMixin',
             'AnotherMixin': 'AnotherMixin',
             'AStateMixin': 'AStateMixin',
             'AnotherStateMixin': 'AnotherStateMixin',
-          },
-        )(
-          expectedPatchCount: 12,
-          input: input,
-          expectedOutput: expectedOutput,
-        );
-
-        expect(converter.visitedNames, {
-          'AMixin': 'AMixin',
-          'AnotherMixin': 'AnotherMixin',
-          'AStateMixin': 'AStateMixin',
-          'AnotherStateMixin': 'AnotherStateMixin',
-          publicPropsClassName: '${publicPropsClassName}Mixin',
-          publicStateClassName: '${publicStateClassName}Mixin',
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+            publicStateClassName: '${publicStateClassName}Mixin',
+          });
         });
-      });
 
-      test('on the second run', () {
-        // When it is run the first time, nothing should happen since
-        // we don't know if the custom mixins are external or not.
-        testSuggestor()(expectedPatchCount: 0, input: input);
-        testSuggestor(
-          visitedClassNames: {
+        test('on the second run', () {
+          // When it is run the first time, nothing should happen since
+          // we don't know if the custom mixins are external or not.
+          testSuggestor()(expectedPatchCount: 0, input: input);
+          testSuggestor(
+            visitedClassNames: {
+              'AMixin': 'AMixin',
+              'AnotherMixin': 'AnotherMixin',
+              'AStateMixin': 'AStateMixin',
+              'AnotherStateMixin': 'AnotherStateMixin',
+            },
+          )(
+            expectedPatchCount: 12,
+            input: input,
+            expectedOutput: expectedOutput,
+          );
+
+          expect(converter.visitedNames, {
             'AMixin': 'AMixin',
             'AnotherMixin': 'AnotherMixin',
             'AStateMixin': 'AStateMixin',
             'AnotherStateMixin': 'AnotherStateMixin',
-          },
-        )(
-          expectedPatchCount: 12,
-          input: input,
-          expectedOutput: expectedOutput,
-        );
-
-        expect(converter.visitedNames, {
-          'AMixin': 'AMixin',
-          'AnotherMixin': 'AnotherMixin',
-          'AStateMixin': 'AStateMixin',
-          'AnotherStateMixin': 'AnotherStateMixin',
-          publicPropsClassName: '${publicPropsClassName}Mixin',
-          publicStateClassName: '${publicStateClassName}Mixin',
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+            publicStateClassName: '${publicStateClassName}Mixin',
+          });
         });
       });
-    });
 
-    group('and there is just a props class', () {
-      group('that extends from the reserved FluxUiProps class', () {
-        test('and uses no mixins', () {
-          const input = '''
+      group('and there is just a props class', () {
+        group('that extends from the reserved FluxUiProps class', () {
+          test('and uses no mixins', () {
+            const input = '''
                 $factoryDecl
       
                 @Props()
@@ -1196,10 +1177,10 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 }
                 ''';
 
-          testSuggestor()(
-            expectedPatchCount: 6,
-            input: input,
-            expectedOutput: '''
+            testSuggestor()(
+              expectedPatchCount: 6,
+              input: input,
+              expectedOutput: '''
               $factoryDecl
   
               @Props()
@@ -1223,15 +1204,15 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 }
               }
             ''',
-          );
+            );
 
-          expect(converter.visitedNames, {
-            publicPropsClassName: '${publicPropsClassName}Mixin',
+            expect(converter.visitedNames, {
+              publicPropsClassName: '${publicPropsClassName}Mixin',
+            });
           });
-        });
 
-        group('and uses a mixin', () {
-          const input = '''
+          group('and uses a mixin', () {
+            const input = '''
                 $factoryDecl
       
                 @Props()
@@ -1252,7 +1233,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 }
                 ''';
 
-          const expectedOutput = '''
+            const expectedOutput = '''
                 $factoryDecl
     
                 @Props()
@@ -1280,43 +1261,43 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 }
               ''';
 
-          test('that has already been converted', () {
-            testSuggestor(visitedClassNames: {
-              'SomePropsMixin': 'SomePropsMixin',
-            })(
-              expectedPatchCount: 7,
-              input: input,
-              expectedOutput: expectedOutput,
-            );
+            test('that has already been converted', () {
+              testSuggestor(visitedClassNames: {
+                'SomePropsMixin': 'SomePropsMixin',
+              })(
+                expectedPatchCount: 7,
+                input: input,
+                expectedOutput: expectedOutput,
+              );
 
-            expect(converter.visitedNames, {
-              'SomePropsMixin': 'SomePropsMixin',
-              publicPropsClassName: '${publicPropsClassName}Mixin',
+              expect(converter.visitedNames, {
+                'SomePropsMixin': 'SomePropsMixin',
+                publicPropsClassName: '${publicPropsClassName}Mixin',
+              });
+            });
+
+            test('that has not been converted the first time around', () {
+              // When it is run the first time, nothing should happen since
+              // we don't know if the mixin(s) are external or not.
+              testSuggestor()(expectedPatchCount: 0, input: input);
+              testSuggestor(visitedClassNames: {
+                'SomePropsMixin': 'SomePropsMixin',
+              })(
+                expectedPatchCount: 7,
+                input: input,
+                expectedOutput: expectedOutput,
+              );
+
+              expect(converter.visitedNames, {
+                'SomePropsMixin': 'SomePropsMixin',
+                publicPropsClassName: '${publicPropsClassName}Mixin',
+              });
             });
           });
 
-          test('that has not been converted the first time around', () {
-            // When it is run the first time, nothing should happen since
-            // we don't know if the mixin(s) are external or not.
-            testSuggestor()(expectedPatchCount: 0, input: input);
-            testSuggestor(visitedClassNames: {
-              'SomePropsMixin': 'SomePropsMixin',
-            })(
-              expectedPatchCount: 7,
-              input: input,
-              expectedOutput: expectedOutput,
-            );
-
-            expect(converter.visitedNames, {
-              'SomePropsMixin': 'SomePropsMixin',
-              publicPropsClassName: '${publicPropsClassName}Mixin',
-            });
-          });
-        });
-
-        group('and is abstract', () {
-          test('with members of its own', () {
-            const input = r'''
+          group('and is abstract', () {
+            test('with members of its own', () {
+              const input = r'''
                   @AbstractProps()
                   abstract class _$AbstractFluxProps<A extends SomeActions, S extends SomeStore> 
                       extends FluxUiProps<A, S>
@@ -1329,12 +1310,12 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
                 ''';
 
-            testSuggestor(visitedClassNames: {
-              'SomePropsMixin': 'SomePropsMixin',
-            })(
-              expectedPatchCount: 8,
-              input: input,
-              expectedOutput: r'''
+              testSuggestor(visitedClassNames: {
+                'SomePropsMixin': 'SomePropsMixin',
+              })(
+                expectedPatchCount: 8,
+                input: input,
+                expectedOutput: r'''
                 @AbstractProps()
                 mixin AbstractFluxPropsMixin<A extends SomeActions, S extends SomeStore> on UiProps {
                   String foo;
@@ -1348,16 +1329,16 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 @AbstractComponent2()
                 abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'SomePropsMixin': 'SomePropsMixin',
-              'AbstractFluxProps': 'AbstractFluxPropsMixin',
+              expect(converter.visitedNames, {
+                'SomePropsMixin': 'SomePropsMixin',
+                'AbstractFluxProps': 'AbstractFluxPropsMixin',
+              });
             });
-          });
 
-          test('with no members', () {
-            const input = r'''
+            test('with no members', () {
+              const input = r'''
                   @AbstractProps()
                   abstract class _$AbstractFluxProps<A extends SomeActions, S extends SomeStore> 
                       extends FluxUiProps<A, S>
@@ -1367,12 +1348,12 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
                 ''';
 
-            testSuggestor(visitedClassNames: {
-              'SomePropsMixin': 'SomePropsMixin',
-            })(
-              expectedPatchCount: 2,
-              input: input,
-              expectedOutput: r'''
+              testSuggestor(visitedClassNames: {
+                'SomePropsMixin': 'SomePropsMixin',
+              })(
+                expectedPatchCount: 2,
+                input: input,
+                expectedOutput: r'''
                 @AbstractProps()
                 abstract class AbstractFluxProps<A extends SomeActions, S extends SomeStore>
                     implements FluxUiPropsMixin<A, S>, SomePropsMixin<S> {}
@@ -1380,23 +1361,23 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 @AbstractComponent2()
                 abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'SomePropsMixin': 'SomePropsMixin',
-              'AbstractFluxProps': 'AbstractFluxProps',
+              expect(converter.visitedNames, {
+                'SomePropsMixin': 'SomePropsMixin',
+                'AbstractFluxProps': 'AbstractFluxProps',
+              });
             });
           });
         });
-      });
 
-      group('that extends from an arbitrary custom class', () {
-        test('that is not abstract', () {
-          testSuggestor(visitedClassNames: {
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-          })(
-            expectedPatchCount: 6,
-            input: '''
+        group('that extends from an arbitrary custom class', () {
+          test('that is not abstract', () {
+            testSuggestor(visitedClassNames: {
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+            })(
+              expectedPatchCount: 6,
+              input: '''
               $factoryDecl
 
               @Props()
@@ -1407,7 +1388,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-            expectedOutput: '''
+              expectedOutput: '''
               $factoryDecl
 
               @Props()
@@ -1424,17 +1405,17 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-          );
+            );
 
-          expect(converter.visitedNames, {
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-            publicPropsClassName: '${publicPropsClassName}Mixin',
+            expect(converter.visitedNames, {
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+              publicPropsClassName: '${publicPropsClassName}Mixin',
+            });
           });
-        });
 
-        group('that is abstract', () {
-          test('with members of its own', () {
-            const input = r'''
+          group('that is abstract', () {
+            test('with members of its own', () {
+              const input = r'''
                   @AbstractProps()
                   abstract class _$AbstractBlockProps<A extends Something> extends SomeAbstractPropsClass<A>
                       with
@@ -1455,17 +1436,17 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                       with LayoutMixin<T>, BlockMixin<T> {}
                 ''';
 
-            // When it is run the first time, nothing should happen since
-            // we don't know if the mixin(s) are external or not.
-            testSuggestor()(expectedPatchCount: 0, input: input);
-            testSuggestor(visitedClassNames: {
-              'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
-              'LayoutPropsMixin': 'LayoutPropsMixin',
-              'BlockPropsMixin': null,
-            })(
-              expectedPatchCount: 8,
-              input: input,
-              expectedOutput: r'''
+              // When it is run the first time, nothing should happen since
+              // we don't know if the mixin(s) are external or not.
+              testSuggestor()(expectedPatchCount: 0, input: input);
+              testSuggestor(visitedClassNames: {
+                'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+                'BlockPropsMixin': null,
+              })(
+                expectedPatchCount: 8,
+                input: input,
+                expectedOutput: r'''
                 @AbstractProps()
                 mixin AbstractBlockPropsMixin<A extends Something> on UiProps implements BlockClassHelperMapView {
                   String foo;
@@ -1488,18 +1469,18 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                     with LayoutMixin<T>, BlockMixin<T> {}
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
-              'LayoutPropsMixin': 'LayoutPropsMixin',
-              'BlockPropsMixin': null,
-              'AbstractBlockProps': 'AbstractBlockPropsMixin',
+              expect(converter.visitedNames, {
+                'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+                'BlockPropsMixin': null,
+                'AbstractBlockProps': 'AbstractBlockPropsMixin',
+              });
             });
-          });
 
-          test('with no members', () {
-            const input = r'''
+            test('with no members', () {
+              const input = r'''
                   @AbstractProps()
                   abstract class _$AbstractBlockProps<A extends Something> extends SomeAbstractPropsClass<A>
                       with
@@ -1517,17 +1498,17 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                       with LayoutMixin<T>, BlockMixin<T> {}
                 ''';
 
-            // When it is run the first time, nothing should happen since
-            // we don't know if the mixin(s) are external or not.
-            testSuggestor()(expectedPatchCount: 0, input: input);
-            testSuggestor(visitedClassNames: {
-              'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
-              'LayoutPropsMixin': 'LayoutPropsMixin',
-              'BlockPropsMixin': null,
-            })(
-              expectedPatchCount: 2,
-              input: input,
-              expectedOutput: r'''
+              // When it is run the first time, nothing should happen since
+              // we don't know if the mixin(s) are external or not.
+              testSuggestor()(expectedPatchCount: 0, input: input);
+              testSuggestor(visitedClassNames: {
+                'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+                'BlockPropsMixin': null,
+              })(
+                expectedPatchCount: 2,
+                input: input,
+                expectedOutput: r'''
                 @AbstractProps()
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
@@ -1543,20 +1524,20 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                     with LayoutMixin<T>, BlockMixin<T> {}
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
-              'LayoutPropsMixin': 'LayoutPropsMixin',
-              'BlockPropsMixin': null,
-              'AbstractBlockProps': 'AbstractBlockProps',
+              expect(converter.visitedNames, {
+                'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+                'BlockPropsMixin': null,
+                'AbstractBlockProps': 'AbstractBlockProps',
+              });
             });
           });
-        });
 
-        group('that is abstract based on annotation only (edge case)', () {
-          test('with members of its own', () {
-            const input = r'''
+          group('that is abstract based on annotation only (edge case)', () {
+            test('with members of its own', () {
+              const input = r'''
                   @PropsMixin()
                   abstract class BreadcrumbPathPropsMixin {}
                   
@@ -1575,13 +1556,13 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                       extends UiComponent2<T> {}
                 ''';
 
-            testSuggestor(visitedClassNames: {
-              'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
-              'AbstractGraphFormProps': 'AbstractGraphFormProps',
-            })(
-              expectedPatchCount: 7,
-              input: input,
-              expectedOutput: r'''
+              testSuggestor(visitedClassNames: {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractGraphFormProps': 'AbstractGraphFormProps',
+              })(
+                expectedPatchCount: 7,
+                input: input,
+                expectedOutput: r'''
                 @PropsMixin()
                 abstract class BreadcrumbPathPropsMixin {}
               
@@ -1605,17 +1586,18 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
                     extends UiComponent2<T> {}
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
-              'AbstractGraphFormProps': 'AbstractGraphFormProps',
-              'AbstractBreadcrumbPathProps': 'AbstractBreadcrumbPathPropsMixin',
+              expect(converter.visitedNames, {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractGraphFormProps': 'AbstractGraphFormProps',
+                'AbstractBreadcrumbPathProps':
+                    'AbstractBreadcrumbPathPropsMixin',
+              });
             });
-          });
 
-          test('with no members', () {
-            const input = r'''
+            test('with no members', () {
+              const input = r'''
                   @PropsMixin()
                   abstract class BreadcrumbPathPropsMixin {}
                   
@@ -1631,15 +1613,16 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                       extends UiComponent2<T> {}
                 ''';
 
-            testSuggestor(visitedClassNames: {
-              'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
-              'AbstractGraphFormProps': 'AbstractGraphFormProps',
-            })(
-              expectedPatchCount: 2,
-              input: input,
-              expectedOutput: r'''
+              testSuggestor(visitedClassNames: {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractGraphFormProps': 'AbstractGraphFormProps',
+              })(
+                expectedPatchCount: 2,
+                input: input,
+                expectedOutput: r'''
                 @PropsMixin()
                 abstract class BreadcrumbPathPropsMixin {}
+
                 @AbstractProps()
                 // FIXME:
                 //   1. Ensure that all mixins used by AbstractGraphFormProps are also mixed into this class.
@@ -1653,23 +1636,23 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
                     extends UiComponent2<T> {}
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
-              'AbstractGraphFormProps': 'AbstractGraphFormProps',
-              'AbstractBreadcrumbPathProps': 'AbstractBreadcrumbPathProps',
+              expect(converter.visitedNames, {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractGraphFormProps': 'AbstractGraphFormProps',
+                'AbstractBreadcrumbPathProps': 'AbstractBreadcrumbPathProps',
+              });
             });
           });
-        });
 
-        group('that has an analagous abstract component class', () {
-          test('and members of its own', () {
-            testSuggestor(visitedClassNames: {
-              'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
-            })(
-              expectedPatchCount: 6,
-              input: '''
+          group('that has an analagous abstract component class', () {
+            test('and members of its own', () {
+              testSuggestor(visitedClassNames: {
+                'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
+              })(
+                expectedPatchCount: 6,
+                input: '''
                 $factoryDecl
 
                 @Props()
@@ -1689,7 +1672,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   }
                 }
               ''',
-              expectedOutput: '''
+                expectedOutput: '''
                 $factoryDecl
 
                 @Props()
@@ -1717,20 +1700,20 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   }
                 }
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
-              publicPropsClassName: '${publicPropsClassName}Mixin',
+              expect(converter.visitedNames, {
+                'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
+                publicPropsClassName: '${publicPropsClassName}Mixin',
+              });
             });
-          });
 
-          test('but no members of its own', () {
-            testSuggestor(visitedClassNames: {
-              'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
-            })(
-              expectedPatchCount: 2,
-              input: '''
+            test('but no members of its own', () {
+              testSuggestor(visitedClassNames: {
+                'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
+              })(
+                expectedPatchCount: 2,
+                input: '''
                 $factoryDecl
 
                 @Props()
@@ -1747,7 +1730,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   }
                 }
               ''',
-              expectedOutput: '''
+                expectedOutput: '''
                 $factoryDecl
 
                 @Props()
@@ -1767,18 +1750,18 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   }
                 }
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
-              publicPropsClassName: publicPropsClassName,
+              expect(converter.visitedNames, {
+                'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
+                publicPropsClassName: publicPropsClassName,
+              });
             });
           });
         });
-      });
 
-      test('that extends from UiProps, but uses mixins', () {
-        const input = '''
+        test('that extends from UiProps, but uses mixins', () {
+          const input = '''
               $factoryDecl
     
               @Props()
@@ -1796,16 +1779,16 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               $componentDecl
             ''';
 
-        // When it is run the first time, nothing should happen since
-        // we don't know for sure if UnconvertedMixin can be converted yet.
-        testSuggestor()(expectedPatchCount: 0, input: input);
-        testSuggestor(visitedClassNames: {
-          'ConvertedMixin': 'ConvertedMixin',
-          'UnconvertedMixin': null,
-        })(
-          expectedPatchCount: 6,
-          input: input,
-          expectedOutput: '''
+          // When it is run the first time, nothing should happen since
+          // we don't know for sure if UnconvertedMixin can be converted yet.
+          testSuggestor()(expectedPatchCount: 0, input: input);
+          testSuggestor(visitedClassNames: {
+            'ConvertedMixin': 'ConvertedMixin',
+            'UnconvertedMixin': null,
+          })(
+            expectedPatchCount: 6,
+            input: input,
+            expectedOutput: '''
             $factoryDecl
 
             @Props()
@@ -1821,17 +1804,17 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
             $componentDecl
           ''',
-        );
+          );
 
-        expect(converter.visitedNames, {
-          'ConvertedMixin': 'ConvertedMixin',
-          'UnconvertedMixin': null,
-          publicPropsClassName: '${publicPropsClassName}Mixin',
+          expect(converter.visitedNames, {
+            'ConvertedMixin': 'ConvertedMixin',
+            'UnconvertedMixin': null,
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+          });
         });
-      });
 
-      test('that extends from UiProps, but uses a "reserved" mixin', () {
-        const input = '''
+        test('that extends from UiProps, but uses a "reserved" mixin', () {
+          const input = '''
               $factoryDecl
     
               @Props()
@@ -1846,10 +1829,10 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
               $componentDecl
             ''';
 
-        testSuggestor()(
-          expectedPatchCount: 6,
-          input: input,
-          expectedOutput: '''
+          testSuggestor()(
+            expectedPatchCount: 6,
+            input: input,
+            expectedOutput: '''
             $factoryDecl
 
             @Props()
@@ -1864,21 +1847,21 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
             $componentDecl
           ''',
-        );
+          );
 
-        expect(converter.visitedNames, {
-          publicPropsClassName: '${publicPropsClassName}Mixin',
+          expect(converter.visitedNames, {
+            publicPropsClassName: '${publicPropsClassName}Mixin',
+          });
         });
-      });
 
-      group('that extends from UiProps, uses mixins, implements interfaces',
-          () {
-        test('and is not abstract', () {
-          testSuggestor(visitedClassNames: {
-            'ConvertedMixin': 'ConvertedMixin',
-          })(
-            expectedPatchCount: 6,
-            input: '''
+        group('that extends from UiProps, uses mixins, implements interfaces',
+            () {
+          test('and is not abstract', () {
+            testSuggestor(visitedClassNames: {
+              'ConvertedMixin': 'ConvertedMixin',
+            })(
+              expectedPatchCount: 6,
+              input: '''
               $factoryDecl
 
               @Props()
@@ -1889,7 +1872,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-            expectedOutput: '''
+              expectedOutput: '''
               $factoryDecl
 
               @Props()
@@ -1904,17 +1887,17 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-          );
+            );
 
-          expect(converter.visitedNames, {
-            'ConvertedMixin': 'ConvertedMixin',
-            publicPropsClassName: '${publicPropsClassName}Mixin',
+            expect(converter.visitedNames, {
+              'ConvertedMixin': 'ConvertedMixin',
+              publicPropsClassName: '${publicPropsClassName}Mixin',
+            });
           });
-        });
 
-        group('and is abstract', () {
-          test('with members of its own', () {
-            const input = r'''
+          group('and is abstract', () {
+            test('with members of its own', () {
+              const input = r'''
               @AbstractProps()
               abstract class _$AbstractBlockProps extends UiProps
                   with
@@ -1935,16 +1918,16 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   with LayoutMixin<T>, BlockMixin<T> {}
             ''';
 
-            // When it is run the first time, nothing should happen since
-            // we don't know if the mixin(s) are external or not.
-            testSuggestor()(expectedPatchCount: 0, input: input);
-            testSuggestor(visitedClassNames: {
-              'LayoutPropsMixin': 'LayoutPropsMixin',
-              'BlockPropsMixin': null,
-            })(
-              expectedPatchCount: 7,
-              input: input,
-              expectedOutput: r'''
+              // When it is run the first time, nothing should happen since
+              // we don't know if the mixin(s) are external or not.
+              testSuggestor()(expectedPatchCount: 0, input: input);
+              testSuggestor(visitedClassNames: {
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+                'BlockPropsMixin': null,
+              })(
+                expectedPatchCount: 7,
+                input: input,
+                expectedOutput: r'''
                 @AbstractProps()
                 mixin AbstractBlockPropsMixin on UiProps implements BlockClassHelperMapView {
                   String foo;
@@ -1963,17 +1946,17 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                     with LayoutMixin<T>, BlockMixin<T> {}
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'LayoutPropsMixin': 'LayoutPropsMixin',
-              'BlockPropsMixin': null,
-              'AbstractBlockProps': 'AbstractBlockPropsMixin',
+              expect(converter.visitedNames, {
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+                'BlockPropsMixin': null,
+                'AbstractBlockProps': 'AbstractBlockPropsMixin',
+              });
             });
-          });
 
-          test('with no members', () {
-            const input = r'''
+            test('with no members', () {
+              const input = r'''
               @AbstractProps()
               abstract class _$AbstractBlockProps extends UiProps
                   with
@@ -1991,16 +1974,16 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                   with LayoutMixin<T>, BlockMixin<T> {}
             ''';
 
-            // When it is run the first time, nothing should happen since
-            // we don't know if the mixin(s) are external or not.
-            testSuggestor()(expectedPatchCount: 0, input: input);
-            testSuggestor(visitedClassNames: {
-              'LayoutPropsMixin': 'LayoutPropsMixin',
-              'BlockPropsMixin': null,
-            })(
-              expectedPatchCount: 2,
-              input: input,
-              expectedOutput: r'''
+              // When it is run the first time, nothing should happen since
+              // we don't know if the mixin(s) are external or not.
+              testSuggestor()(expectedPatchCount: 0, input: input);
+              testSuggestor(visitedClassNames: {
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+                'BlockPropsMixin': null,
+              })(
+                expectedPatchCount: 2,
+                input: input,
+                expectedOutput: r'''
                 @AbstractProps()
                 abstract class AbstractBlockProps implements
                         LayoutPropsMixin,
@@ -2012,19 +1995,19 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                     with LayoutMixin<T>, BlockMixin<T> {}
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'LayoutPropsMixin': 'LayoutPropsMixin',
-              'BlockPropsMixin': null,
-              'AbstractBlockProps': 'AbstractBlockProps',
+              expect(converter.visitedNames, {
+                'LayoutPropsMixin': 'LayoutPropsMixin',
+                'BlockPropsMixin': null,
+                'AbstractBlockProps': 'AbstractBlockProps',
+              });
             });
           });
-        });
 
-        group('and is abstract based on annotation only (edge case)', () {
-          test('with members of its own', () {
-            const input = r'''
+          group('and is abstract based on annotation only (edge case)', () {
+            test('with members of its own', () {
+              const input = r'''
                   @PropsMixin()
                   abstract class BreadcrumbPathPropsMixin {}
                   
@@ -2043,12 +2026,12 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                       extends UiComponent2<T> {}
                 ''';
 
-            testSuggestor(visitedClassNames: {
-              'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
-            })(
-              expectedPatchCount: 6,
-              input: input,
-              expectedOutput: r'''
+              testSuggestor(visitedClassNames: {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+              })(
+                expectedPatchCount: 6,
+                input: input,
+                expectedOutput: r'''
                 @PropsMixin()
                 abstract class BreadcrumbPathPropsMixin {}
               
@@ -2068,16 +2051,17 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
                     extends UiComponent2<T> {}
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
-              'AbstractBreadcrumbPathProps': 'AbstractBreadcrumbPathPropsMixin',
+              expect(converter.visitedNames, {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractBreadcrumbPathProps':
+                    'AbstractBreadcrumbPathPropsMixin',
+              });
             });
-          });
 
-          test('with no members', () {
-            const input = r'''
+            test('with no members', () {
+              const input = r'''
                   @PropsMixin()
                   abstract class BreadcrumbPathPropsMixin {}
                   
@@ -2093,12 +2077,12 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                       extends UiComponent2<T> {}
                 ''';
 
-            testSuggestor(visitedClassNames: {
-              'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
-            })(
-              expectedPatchCount: 2,
-              input: input,
-              expectedOutput: r'''
+              testSuggestor(visitedClassNames: {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+              })(
+                expectedPatchCount: 2,
+                input: input,
+                expectedOutput: r'''
                 @PropsMixin()
                 abstract class BreadcrumbPathPropsMixin {}
                   
@@ -2110,25 +2094,25 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
                     extends UiComponent2<T> {}
               ''',
-            );
+              );
 
-            expect(converter.visitedNames, {
-              'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
-              'AbstractBreadcrumbPathProps': 'AbstractBreadcrumbPathProps',
+              expect(converter.visitedNames, {
+                'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
+                'AbstractBreadcrumbPathProps': 'AbstractBreadcrumbPathProps',
+              });
             });
           });
         });
-      });
 
-      group(
-          'and there is already a mixin that matches the name of the class appended with "Mixin"',
-          () {
-        test('and the class has no members of its own', () {
-          testSuggestor(visitedClassNames: {
-            '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-          })(
-            expectedPatchCount: 2,
-            input: '''
+        group(
+            'and there is already a mixin that matches the name of the class appended with "Mixin"',
+            () {
+          test('and the class has no members of its own', () {
+            testSuggestor(visitedClassNames: {
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+            })(
+              expectedPatchCount: 2,
+              input: '''
               $factoryDecl
 
               @PropsMixin()
@@ -2142,7 +2126,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-            expectedOutput: '''
+              expectedOutput: '''
               $factoryDecl
 
               @PropsMixin()
@@ -2156,20 +2140,20 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-          );
+            );
 
-          expect(converter.visitedNames, {
-            '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-            publicPropsClassName: publicPropsClassName,
+            expect(converter.visitedNames, {
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              publicPropsClassName: publicPropsClassName,
+            });
           });
-        });
 
-        test('and the class has members', () {
-          testSuggestor(visitedClassNames: {
-            '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-          })(
-            expectedPatchCount: 3,
-            input: '''
+          test('and the class has members', () {
+            testSuggestor(visitedClassNames: {
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+            })(
+              expectedPatchCount: 3,
+              input: '''
               $factoryDecl
 
               @PropsMixin()
@@ -2185,7 +2169,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-            expectedOutput: '''
+              expectedOutput: '''
               $factoryDecl
 
               @PropsMixin()
@@ -2200,20 +2184,20 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-          );
+            );
 
-          expect(converter.visitedNames, {
-            '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-            publicPropsClassName: publicPropsClassName,
+            expect(converter.visitedNames, {
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              publicPropsClassName: publicPropsClassName,
+            });
           });
         });
       });
-    });
 
-    test(
-        'and there are classes that extend from arbitrary custom classes, along with mixins',
-        () {
-      const input = '''
+      test(
+          'and there are classes that extend from arbitrary custom classes, along with mixins',
+          () {
+        const input = '''
             $factoryDecl
     
             @Props()
@@ -2231,20 +2215,20 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
             $statefulComponentDecl
           ''';
 
-      // When it is run the first time, nothing should happen since
-      // we don't know if the mixin(s) are external or not.
-      testSuggestor()(expectedPatchCount: 0, input: input);
-      testSuggestor(visitedClassNames: {
-        'AMixin': 'AMixin',
-        'AnotherMixin': 'AnotherMixin',
-        'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-        'AStateMixin': 'AStateMixin',
-        'AnotherStateMixin': 'AnotherStateMixin',
-        'ADifferentStateClass': 'ADifferentStateClass',
-      })(
-        expectedPatchCount: 14,
-        input: input,
-        expectedOutput: '''
+        // When it is run the first time, nothing should happen since
+        // we don't know if the mixin(s) are external or not.
+        testSuggestor()(expectedPatchCount: 0, input: input);
+        testSuggestor(visitedClassNames: {
+          'AMixin': 'AMixin',
+          'AnotherMixin': 'AnotherMixin',
+          'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+          'AStateMixin': 'AStateMixin',
+          'AnotherStateMixin': 'AnotherStateMixin',
+          'ADifferentStateClass': 'ADifferentStateClass',
+        })(
+          expectedPatchCount: 14,
+          input: input,
+          expectedOutput: '''
           $factoryDecl
 
           @Props()
@@ -2275,135 +2259,136 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
           $statefulComponentDecl
         ''',
-      );
+        );
 
-      expect(converter.visitedNames, {
-        'AMixin': 'AMixin',
-        'AnotherMixin': 'AnotherMixin',
-        'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-        'AStateMixin': 'AStateMixin',
-        'AnotherStateMixin': 'AnotherStateMixin',
-        'ADifferentStateClass': 'ADifferentStateClass',
-        publicPropsClassName: '${publicPropsClassName}Mixin',
-        publicStateClassName: '${publicStateClassName}Mixin',
-      });
-    });
-
-    group(
-        'and there is a props class that extends from an arbitrary custom class, along with a mixin that has '
-        'a name that matches the name of the class appended with "Mixin"', () {
-      group('and that mixin exists in the same root', () {
-        setUp(() {
-          converter.setVisitedNames({
-            '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-          });
-        });
-
-        test('and the class has no members', () {
-          testSuggestor()(
-            expectedPatchCount: 2,
-            input: '''
-              $factoryDecl
-
-              @PropsMixin()
-              mixin ${publicPropsClassName}Mixin on UiProps {
-                String foo;
-                int bar;
-              }
-
-              @Props()
-              class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {}
-
-              $componentDecl
-            ''',
-            expectedOutput: '''
-              $factoryDecl
-
-              @PropsMixin()
-              mixin ${publicPropsClassName}Mixin on UiProps {
-                String foo;
-                int bar;
-              }
-
-              @Props()
-              // FIXME:
-              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
-              //   2. Fix any analyzer warnings on this class about missing mixins.
-              class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
-
-              $componentDecl
-            ''',
-          );
-
-          expect(converter.visitedNames, {
-            '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-            publicPropsClassName: publicPropsClassName,
-          });
-        });
-
-        test('and the class has members', () {
-          testSuggestor()(
-            expectedPatchCount: 3,
-            input: '''
-              $factoryDecl
-
-              @PropsMixin()
-              mixin ${publicPropsClassName}Mixin on UiProps {
-                String foo;
-                int bar;
-              }
-
-              @Props()
-              class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {
-                String baz;
-              }
-
-              $componentDecl
-            ''',
-            expectedOutput: '''
-              $factoryDecl
-
-              @PropsMixin()
-              mixin ${publicPropsClassName}Mixin on UiProps {
-                String foo;
-                int bar;
-                String baz;
-              }
-
-              @Props()
-              // FIXME:
-              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
-              //   2. Fix any analyzer warnings on this class about missing mixins.
-              class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
-
-              $componentDecl
-            ''',
-          );
-
-          expect(converter.visitedNames, {
-            '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-            publicPropsClassName: publicPropsClassName,
-          });
+        expect(converter.visitedNames, {
+          'AMixin': 'AMixin',
+          'AnotherMixin': 'AnotherMixin',
+          'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+          'AStateMixin': 'AStateMixin',
+          'AnotherStateMixin': 'AnotherStateMixin',
+          'ADifferentStateClass': 'ADifferentStateClass',
+          publicPropsClassName: '${publicPropsClassName}Mixin',
+          publicStateClassName: '${publicStateClassName}Mixin',
         });
       });
 
       group(
-          'and that mixin does not exist in the same root, but has already been converted',
+          'and there is a props class that extends from an arbitrary custom class, along with a mixin that has '
+          'a name that matches the name of the class appended with "Mixin"',
           () {
-        setUp(() {
-          converter.setVisitedNames({
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-            '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+        group('and that mixin exists in the same root', () {
+          setUp(() {
+            converter.setVisitedNames({
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+            });
+          });
+
+          test('and the class has no members', () {
+            testSuggestor()(
+              expectedPatchCount: 2,
+              input: '''
+              $factoryDecl
+
+              @PropsMixin()
+              mixin ${publicPropsClassName}Mixin on UiProps {
+                String foo;
+                int bar;
+              }
+
+              @Props()
+              class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {}
+
+              $componentDecl
+            ''',
+              expectedOutput: '''
+              $factoryDecl
+
+              @PropsMixin()
+              mixin ${publicPropsClassName}Mixin on UiProps {
+                String foo;
+                int bar;
+              }
+
+              @Props()
+              // FIXME:
+              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
+              //   2. Fix any analyzer warnings on this class about missing mixins.
+              class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
+
+              $componentDecl
+            ''',
+            );
+
+            expect(converter.visitedNames, {
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+              publicPropsClassName: publicPropsClassName,
+            });
+          });
+
+          test('and the class has members', () {
+            testSuggestor()(
+              expectedPatchCount: 3,
+              input: '''
+              $factoryDecl
+
+              @PropsMixin()
+              mixin ${publicPropsClassName}Mixin on UiProps {
+                String foo;
+                int bar;
+              }
+
+              @Props()
+              class $propsClassName extends ADifferentPropsClass with ${publicPropsClassName}Mixin {
+                String baz;
+              }
+
+              $componentDecl
+            ''',
+              expectedOutput: '''
+              $factoryDecl
+
+              @PropsMixin()
+              mixin ${publicPropsClassName}Mixin on UiProps {
+                String foo;
+                int bar;
+                String baz;
+              }
+
+              @Props()
+              // FIXME:
+              //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
+              //   2. Fix any analyzer warnings on this class about missing mixins.
+              class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
+
+              $componentDecl
+            ''',
+            );
+
+            expect(converter.visitedNames, {
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+              publicPropsClassName: publicPropsClassName,
+            });
           });
         });
 
-        test('and the class has no members', () {
-          testSuggestor()(
-            expectedPatchCount: 2,
-            input: '''
+        group(
+            'and that mixin does not exist in the same root, but has already been converted',
+            () {
+          setUp(() {
+            converter.setVisitedNames({
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+            });
+          });
+
+          test('and the class has no members', () {
+            testSuggestor()(
+              expectedPatchCount: 2,
+              input: '''
               $factoryDecl
 
               @Props()
@@ -2411,7 +2396,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-            expectedOutput: '''
+              expectedOutput: '''
               $factoryDecl
 
               @Props()
@@ -2422,19 +2407,19 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-          );
+            );
 
-          expect(converter.visitedNames, {
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-            '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-            publicPropsClassName: publicPropsClassName,
+            expect(converter.visitedNames, {
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              publicPropsClassName: publicPropsClassName,
+            });
           });
-        });
 
-        test('and the class has members', () {
-          testSuggestor()(
-            expectedPatchCount: 2,
-            input: '''
+          test('and the class has members', () {
+            testSuggestor()(
+              expectedPatchCount: 2,
+              input: '''
               $factoryDecl
 
               @Props()
@@ -2444,7 +2429,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-            expectedOutput: '''
+              expectedOutput: '''
               $factoryDecl
 
               @Props()
@@ -2459,12 +2444,13 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
 
               $componentDecl
             ''',
-          );
+            );
 
-          expect(converter.visitedNames, {
-            'ADifferentPropsClass': 'ADifferentPropsClassMixin',
-            '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-            publicPropsClassName: publicPropsClassName,
+            expect(converter.visitedNames, {
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              publicPropsClassName: publicPropsClassName,
+            });
           });
         });
       });
