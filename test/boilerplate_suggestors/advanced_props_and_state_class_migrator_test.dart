@@ -310,11 +310,12 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           //   1. Perform a semver report by running the following script:
           //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
           //      pub global run semver_audit generate > semver_report.json
-          //   2. Re-run the migration script:
+          //   2. Remove this FIXME comment.
+          //   3. Re-run the migration script:
           //      pub run over_react_codemod:boilerplate_upgrade
           //
-          // Alternatively, re-run the  migration script with the following flag to assume 
-          // all components are not publicly exported:
+          // Alternatively, remove this FIXME comment and re-run the  migration script 
+          // with the following flag to assume all components are not publicly exported:
           // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private'''}
           class $propsClassName extends ADifferentStateClass {
             String foo;
@@ -330,11 +331,12 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           //   1. Perform a semver report by running the following script:
           //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
           //      pub global run semver_audit generate > semver_report.json
-          //   2. Re-run the migration script:
+          //   2. Remove this FIXME comment.
+          //   3. Re-run the migration script:
           //      pub run over_react_codemod:boilerplate_upgrade
           //
-          // Alternatively, re-run the  migration script with the following flag to assume 
-          // all components are not publicly exported:
+          // Alternatively, remove this FIXME comment and re-run the  migration script 
+          // with the following flag to assume all components are not publicly exported:
           // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private'''}
           class $stateClassName extends ADifferentStateClass {
             String foo;
