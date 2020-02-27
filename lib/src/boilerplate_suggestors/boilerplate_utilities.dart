@@ -26,6 +26,9 @@ import 'package:source_span/source_span.dart';
 typedef YieldPatch = void Function(
     int startingOffset, int endingOffset, String replacement);
 
+const semverReportNotAvailableComment =
+    'Semver report not available; this class is assumed to be public and thus will not be updated.';
+
 /// Returns a [SemverHelper] using the file at [path].
 ///
 /// If the file at [path] does not exist, the returned [SemverHelper] assumes
@@ -86,9 +89,7 @@ class SemverHelper {
 
     if (_exportList == null && _isAlwaysPrivate) return locations;
     if (_exportList == null && !_isAlwaysPrivate) {
-      return [
-        'Semver report not available; this class is assumed to be public and thus will not be updated.'
-      ];
+      return [semverReportNotAvailableComment];
     }
 
     _exportList.forEach((key, value) {
@@ -159,8 +160,10 @@ MigrationDecision shouldMigratePropsAndStateClass(
   if (!isAPropsOrStateClass(node)) {
     return MigrationDecision(false);
   } else if (isPublic(node, semverHelper)) {
+    final publicExportLocations = semverHelper.getPublicExportLocations(node);
     return MigrationDecision(false,
-        reason: getPublicApiReasonComment(publicNodeName));
+        reason:
+            getPublicApiReasonComment(publicNodeName, publicExportLocations));
   } else if (!isAssociatedWithComponent2(node)) {
     if (getComponentNodeInRoot(node)?.name?.name == null) {
       return MigrationDecision(false);

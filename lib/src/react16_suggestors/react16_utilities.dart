@@ -53,6 +53,7 @@ bool hasComment(AstNode node, SourceFile sourceFile, String comment) {
       break;
     }
   }
+
   return commentText?.contains(comment) ?? false;
 }
 

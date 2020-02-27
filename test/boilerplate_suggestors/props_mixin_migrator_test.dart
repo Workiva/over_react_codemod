@@ -20,9 +20,7 @@ import '../util.dart';
 
 void main() {
   group('PropsMixinMigrator', () {
-    group('', () {
-      PropsMixinMigratorTestHelper();
-    });
+    PropsMixinMigratorTestHelper();
 
     group('with --treat-all-components-as-private flag', () {
       PropsMixinMigratorTestHelper(
@@ -44,10 +42,7 @@ void PropsMixinMigratorTestHelper({
   bool shouldTreatAllComponentsAsPrivate = false,
   bool isValidFilePath = true,
 }) {
-  group(
-      shouldTreatAllComponentsAsPrivate
-          ? 'with --treat-all-components-as-private flag'
-          : '', () {
+  group('', () {
     final converter = ClassToMixinConverter();
     final semverHelper = getSemverHelper(path,
         shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);

@@ -21,9 +21,7 @@ import 'boilerplate_test_utils.dart';
 
 void main() {
   group('SimplePropsAndStateClassMigrator', () {
-    group('', () {
-      SimplePropsAndStateClassMigratorTestHelper();
-    });
+    SimplePropsAndStateClassMigratorTestHelper();
 
     group('with --treat-all-components-as-private flag', () {
       SimplePropsAndStateClassMigratorTestHelper(
@@ -45,10 +43,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
   bool shouldTreatAllComponentsAsPrivate = false,
   bool isValidFilePath = true,
 }) {
-  group(
-      shouldTreatAllComponentsAsPrivate
-          ? 'with --treat-all-components-as-private flag'
-          : '', () {
+  group('', () {
     final converter = ClassToMixinConverter();
     final semverHelper = getSemverHelper(path,
         shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);

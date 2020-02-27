@@ -23,9 +23,11 @@ void main() {
   group('AdvancedPropsAndStateClassMigrator', () {
     AdvancedPropsAndStateClassMigratorTestHelper();
 
-    AdvancedPropsAndStateClassMigratorTestHelper(
-      shouldTreatAllComponentsAsPrivate: true,
-    );
+    group('with --treat-all-components-as-private flag', () {
+      AdvancedPropsAndStateClassMigratorTestHelper(
+        shouldTreatAllComponentsAsPrivate: true,
+      );
+    });
   });
 }
 
@@ -51,10 +53,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
       class FooComponent extends UiStatefulComponent2<$publicPropsClassName, $publicStateClassName> {}
       ''';
 
-  group(
-      shouldTreatAllComponentsAsPrivate
-          ? 'with --treat-all-components-as-private flag'
-          : '', () {
+  group('', () {
     var runCount = 0;
     final converter = ClassToMixinConverter();
     SuggestorTester testSuggestor({
