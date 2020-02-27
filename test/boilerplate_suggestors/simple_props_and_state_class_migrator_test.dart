@@ -45,40 +45,44 @@ void SimplePropsAndStateClassMigratorTestHelper({
   bool shouldTreatAllComponentsAsPrivate = false,
   bool isValidFilePath = true,
 }) {
-  final converter = ClassToMixinConverter();
-  final semverHelper = getSemverHelper(path,
-      shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
-  final testSuggestor = getSuggestorTester(
-      SimplePropsAndStateClassMigrator(converter, semverHelper));
+  group(
+      shouldTreatAllComponentsAsPrivate
+          ? 'with --treat-all-components-as-private flag'
+          : '', () {
+    final converter = ClassToMixinConverter();
+    final semverHelper = getSemverHelper(path,
+        shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
+    final testSuggestor = getSuggestorTester(
+        SimplePropsAndStateClassMigrator(converter, semverHelper));
 
-  tearDown(() {
-    converter.setVisitedNames({});
-  });
-
-  group('does not migrate when', () {
-    test('its an empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
-
-      expect(converter.visitedNames, isEmpty);
+    tearDown(() {
+      converter.setVisitedNames({});
     });
 
-    test('there are no matches', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
+    group('does not migrate when', () {
+      test('its an empty file', () {
+        testSuggestor(expectedPatchCount: 0, input: '');
+
+        expect(converter.visitedNames, isEmpty);
+      });
+
+      test('there are no matches', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
         library foo;
         var a = 'b';
         class Foo {}
       ''',
-      );
+        );
 
-      expect(converter.visitedNames, isEmpty);
-    });
+        expect(converter.visitedNames, isEmpty);
+      });
 
-    test('the component is not Component2, but does add a FIXME comment', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: r'''
+      test('the component is not Component2, but does add a FIXME comment', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -101,8 +105,8 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       ''',
-        expectedOutput: isValidFilePath
-            ? r'''
+          expectedOutput: isValidFilePath
+              ? r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -131,7 +135,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       '''
-            : '''
+              : '''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -155,17 +159,17 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       ''',
-      );
+        );
 
-      expect(converter.visitedNames, {
-        'FooProps': null,
+        expect(converter.visitedNames, {
+          'FooProps': null,
+        });
       });
-    });
 
-    test('the class is a PropsMixin', () {
-      testSuggestor(
-        expectedPatchCount: isValidFilePath ? 0 : 1,
-        input: r'''
+      test('the class is a PropsMixin', () {
+        testSuggestor(
+          expectedPatchCount: isValidFilePath ? 0 : 1,
+          input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -194,8 +198,8 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       ''',
-        expectedOutput: isValidFilePath
-            ? r'''
+          expectedOutput: isValidFilePath
+              ? r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -225,7 +229,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       '''
-            : '''
+              : '''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -255,18 +259,18 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       ''',
-      );
+        );
 
-      expect(converter.visitedNames, {
-        'FooPropsMixin': null,
-        'FooProps': null,
+        expect(converter.visitedNames, {
+          'FooPropsMixin': null,
+          'FooProps': null,
+        });
       });
-    });
 
-    test('the class is publicly exported, but does add a FIXME comment', () {
-      testSuggestor(
-        expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 3 : 1,
-        input: r'''
+      test('the class is publicly exported, but does add a FIXME comment', () {
+        testSuggestor(
+          expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 3 : 1,
+          input: r'''
           @Factory()
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
@@ -289,8 +293,8 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
       ''',
-        expectedOutput: shouldTreatAllComponentsAsPrivate
-            ? r'''
+          expectedOutput: shouldTreatAllComponentsAsPrivate
+              ? r'''
           @Factory()
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
@@ -313,7 +317,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
         '''
-            : '''
+              : '''
           @Factory()
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
@@ -336,18 +340,18 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
       ''',
-      );
+        );
 
-      expect(converter.visitedNames, {
-        'BarProps': shouldTreatAllComponentsAsPrivate ? 'BarProps' : null,
+        expect(converter.visitedNames, {
+          'BarProps': shouldTreatAllComponentsAsPrivate ? 'BarProps' : null,
+        });
       });
-    });
 
-    group('the classes are not simple', () {
-      test('and there are both a props and a state class', () {
-        testSuggestor(
-          expectedPatchCount: isValidFilePath ? 0 : 2,
-          input: r'''
+      group('the classes are not simple', () {
+        test('and there are both a props and a state class', () {
+          testSuggestor(
+            expectedPatchCount: isValidFilePath ? 0 : 2,
+            input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -376,8 +380,8 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       ''',
-          expectedOutput: isValidFilePath
-              ? r'''
+            expectedOutput: isValidFilePath
+                ? r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -406,7 +410,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       '''
-              : '''
+                : '''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -437,18 +441,18 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       ''',
-        );
+          );
 
-        expect(converter.visitedNames, {
-          'FooProps': null,
-          'FooState': null,
+          expect(converter.visitedNames, {
+            'FooProps': null,
+            'FooState': null,
+          });
         });
-      });
 
-      test('and there is just a props class', () {
-        testSuggestor(
-          expectedPatchCount: isValidFilePath ? 0 : 1,
-          input: r'''
+        test('and there is just a props class', () {
+          testSuggestor(
+            expectedPatchCount: isValidFilePath ? 0 : 1,
+            input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -471,8 +475,8 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       ''',
-          expectedOutput: isValidFilePath
-              ? r'''
+            expectedOutput: isValidFilePath
+                ? r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -495,7 +499,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       '''
-              : '''
+                : '''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -519,20 +523,20 @@ void SimplePropsAndStateClassMigratorTestHelper({
           }
         }
       ''',
-        );
+          );
 
-        expect(converter.visitedNames, {
-          'FooProps': null,
+          expect(converter.visitedNames, {
+            'FooProps': null,
+          });
         });
       });
     });
-  });
 
-  group('migrates when the classes are simple', () {
-    test('and there are both a props and a state class', () {
-      testSuggestor(
-        expectedPatchCount: isValidFilePath ? 6 : 2,
-        input: r'''
+    group('migrates when the classes are simple', () {
+      test('and there are both a props and a state class', () {
+        testSuggestor(
+          expectedPatchCount: isValidFilePath ? 6 : 2,
+          input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -561,8 +565,8 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
         ''',
-        expectedOutput: isValidFilePath
-            ? r'''
+          expectedOutput: isValidFilePath
+              ? r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -591,7 +595,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
         '''
-            : '''
+              : '''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -622,18 +626,18 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
         ''',
-      );
+        );
 
-      expect(converter.visitedNames, {
-        'FooProps': isValidFilePath ? 'FooProps' : null,
-        'FooState': isValidFilePath ? 'FooState' : null,
+        expect(converter.visitedNames, {
+          'FooProps': isValidFilePath ? 'FooProps' : null,
+          'FooState': isValidFilePath ? 'FooState' : null,
+        });
       });
-    });
 
-    test('and there is only a props class', () {
-      testSuggestor(
-        expectedPatchCount: isValidFilePath ? 3 : 1,
-        input: r'''
+      test('and there is only a props class', () {
+        testSuggestor(
+          expectedPatchCount: isValidFilePath ? 3 : 1,
+          input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -656,8 +660,8 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
         ''',
-        expectedOutput: isValidFilePath
-            ? r'''
+          expectedOutput: isValidFilePath
+              ? r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -680,7 +684,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
         '''
-            : '''
+              : '''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -704,17 +708,17 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
         ''',
-      );
+        );
 
-      expect(converter.visitedNames, {
-        'FooProps': isValidFilePath ? 'FooProps' : null,
+        expect(converter.visitedNames, {
+          'FooProps': isValidFilePath ? 'FooProps' : null,
+        });
       });
-    });
 
-    test('and are abstract', () {
-      testSuggestor(
-        expectedPatchCount: isValidFilePath ? 8 : 2,
-        input: r'''
+      test('and are abstract', () {
+        testSuggestor(
+          expectedPatchCount: isValidFilePath ? 8 : 2,
+          input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -743,8 +747,8 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
         ''',
-        expectedOutput: isValidFilePath
-            ? r'''
+          expectedOutput: isValidFilePath
+              ? r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -773,7 +777,7 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
           '''
-            : '''
+              : '''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -804,11 +808,12 @@ void SimplePropsAndStateClassMigratorTestHelper({
             }
           }
         ''',
-      );
+        );
 
-      expect(converter.visitedNames, {
-        'FooProps': isValidFilePath ? 'FooProps' : null,
-        'FooState': isValidFilePath ? 'FooState' : null,
+        expect(converter.visitedNames, {
+          'FooProps': isValidFilePath ? 'FooProps' : null,
+          'FooState': isValidFilePath ? 'FooState' : null,
+        });
       });
     });
   });

@@ -44,7 +44,10 @@ void PropsMixinMigratorTestHelper({
   bool shouldTreatAllComponentsAsPrivate = false,
   bool isValidFilePath = true,
 }) {
-  group('PropsMixinMigrator', () {
+  group(
+      shouldTreatAllComponentsAsPrivate
+          ? 'with --treat-all-components-as-private flag'
+          : '', () {
     final converter = ClassToMixinConverter();
     final semverHelper = getSemverHelper(path,
         shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);

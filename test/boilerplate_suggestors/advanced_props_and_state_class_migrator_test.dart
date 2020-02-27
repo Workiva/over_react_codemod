@@ -21,15 +21,11 @@ import 'boilerplate_test_utils.dart';
 
 void main() {
   group('AdvancedPropsAndStateClassMigrator', () {
-    group('', () {
-      AdvancedPropsAndStateClassMigratorTestHelper();
-    });
+    AdvancedPropsAndStateClassMigratorTestHelper();
 
-    group('with --treat-all-components-as-private flag', () {
-      AdvancedPropsAndStateClassMigratorTestHelper(
-        shouldTreatAllComponentsAsPrivate: true,
-      );
-    });
+    AdvancedPropsAndStateClassMigratorTestHelper(
+      shouldTreatAllComponentsAsPrivate: true,
+    );
   });
 }
 
@@ -54,7 +50,11 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
       @Component2()
       class FooComponent extends UiStatefulComponent2<$publicPropsClassName, $publicStateClassName> {}
       ''';
-  group('', () {
+
+  group(
+      shouldTreatAllComponentsAsPrivate
+          ? 'with --treat-all-components-as-private flag'
+          : '', () {
     var runCount = 0;
     final converter = ClassToMixinConverter();
     SuggestorTester testSuggestor({
