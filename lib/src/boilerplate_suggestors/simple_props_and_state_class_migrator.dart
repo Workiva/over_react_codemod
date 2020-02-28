@@ -52,7 +52,7 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
 
 MigrationDecision shouldMigrateSimplePropsAndStateClass(ClassDeclaration node) {
   final _shouldMigratePropsAndStateClass =
-      shouldMigratePropsAndStateClass(node);
+      getPropsAndStateClassMigrationDecision(node);
   if (!_shouldMigratePropsAndStateClass.yee) {
     return _shouldMigratePropsAndStateClass;
   }

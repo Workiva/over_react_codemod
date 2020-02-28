@@ -81,7 +81,7 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     if (_nodeHasAnnotationWithName(node, 'Factory') ||
         _nodeHasAnnotationWithName(node, 'Component2') ||
         _nodeHasAnnotationWithName(node, 'AbstractComponent2')) {
-      // Its not a props or state class that would have been converted to the new boilerplate by a previous migrator.
+      // It's not a props or state class that would have been converted to the new boilerplate by a previous migrator.
       // but it is a UiComponent-related class with an annotation.
       final analogousPropsMixinOrClassName =
           _getNameOfPropsClassThatMayHaveBeenConverted(node);
