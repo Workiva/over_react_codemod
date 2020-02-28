@@ -1427,9 +1427,6 @@ void main() {
                 }
 
                 @AbstractProps()
-                // FIXME:
-                //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
-                //   2. Fix any analyzer warnings on this class about missing mixins.
                 abstract class AbstractBlockProps<A extends Something> implements
                         SomeAbstractPropsClass<A>,
                         AbstractBlockPropsMixin<A>,
@@ -1483,9 +1480,6 @@ void main() {
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
-                // FIXME:
-                //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
-                //   2. Fix any analyzer warnings on this class about missing mixins.
                 abstract class AbstractBlockProps<A extends Something> implements
                         SomeAbstractPropsClass<A>,
                         LayoutPropsMixin,
@@ -1546,9 +1540,6 @@ void main() {
                 }
 
                 @AbstractProps()
-                // FIXME:
-                //   1. Ensure that all mixins used by AbstractGraphFormProps are also mixed into this class.
-                //   2. Fix any analyzer warnings on this class about missing mixins.
                 abstract class AbstractBreadcrumbPathProps 
                     implements
                         AbstractGraphFormProps,
@@ -1597,9 +1588,6 @@ void main() {
                 abstract class BreadcrumbPathPropsMixin {}
 
                 @AbstractProps()
-                // FIXME:
-                //   1. Ensure that all mixins used by AbstractGraphFormProps are also mixed into this class.
-                //   2. Fix any analyzer warnings on this class about missing mixins.
                 abstract class AbstractBreadcrumbPathProps 
                     implements 
                         AbstractGraphFormProps, 

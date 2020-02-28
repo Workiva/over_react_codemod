@@ -166,13 +166,23 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       // migrator to work correctly. The vast majority of these will be removed by the
       // `AnnotationsRemover` migrator in a later step of the migration.
       ..write('${node.metadata.join('\n')}\n')
-      ..write(getFixMeCommentForConvertedClassDeclaration(
-        converter: converter,
-        mixinNames: mixinNames,
-        parentClassName: parentClassName,
-        convertClassesWithExternalSuperclass:
-            convertClassesWithExternalSuperclass,
-      ))
+      // NOTE: There is no need for a FIX ME comment when both the subclass and superclass are abstract
+      // because our migrator will convert abstract superclasses into "interface only" instances which
+      // implement all the things it used to only mix in - so by implementing that new
+      // "interface only" version... everything from the superclass will already be implemented,
+      // and there is no need to use those interfaces as mixins on the abstract subclass.
+      //
+      // Unfortunately, we don't have access to the actual AST of the superclass to make a proper determination
+      // of whether it is abstract - so we'll just catch the majority of cases by looking at its name.
+      ..write((isAbstract(node) && parentClassName.contains('Abstract'))
+          ? ''
+          : getFixMeCommentForConvertedClassDeclaration(
+              converter: converter,
+              mixinNames: mixinNames,
+              parentClassName: parentClassName,
+              convertClassesWithExternalSuperclass:
+                  convertClassesWithExternalSuperclass,
+            ))
       // Create the class name
       ..write(isAbstract(node) ? 'abstract class ' : 'class ')
       ..write('$className${getClassTypeArgs()}');
