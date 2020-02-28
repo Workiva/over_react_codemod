@@ -309,7 +309,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           // To complete the migration, you should:
           //   1. Perform a semver report by running the following script:
           //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
-          //      pub global run semver_audit generate > semver_report.json
+          //      pub global run semver_audit generate 2> semver_report.json
           //   2. Remove this FIXME comment.
           //   3. Re-run the migration script:
           //      pub run over_react_codemod:boilerplate_upgrade
@@ -330,7 +330,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           // To complete the migration, you should:
           //   1. Perform a semver report by running the following script:
           //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
-          //      pub global run semver_audit generate > semver_report.json
+          //      pub global run semver_audit generate 2> semver_report.json
           //   2. Remove this FIXME comment.
           //   3. Re-run the migration script:
           //      pub run over_react_codemod:boilerplate_upgrade
