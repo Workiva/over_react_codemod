@@ -14,19 +14,21 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/props_and_state_companion_class_remover.dart';
 
 /// Suggestor that removes every companion class for props and state classes, as
 /// they were only temporarily required for backwards-compatibility with Dart 1.
 class StubbedPropsAndStateClassRemover
     extends PropsAndStateCompanionClassRemover implements Suggestor {
+  final ClassToMixinConverter converter;
+
+  StubbedPropsAndStateClassRemover(this.converter);
+
   @override
   bool shouldRemoveCompanionClassFor(
-      ClassDeclaration candidate, CompilationUnit node) {
+      NamedCompilationUnitMember candidate, CompilationUnit node) {
     return super.shouldRemoveCompanionClassFor(candidate, node) &&
-        (shouldMigrateSimplePropsAndStateClass(candidate) ||
-            shouldMigrateAdvancedPropsAndStateClass(candidate));
+        converter.wasMigrated(candidate.name.name);
   }
 }

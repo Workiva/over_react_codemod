@@ -25,12 +25,15 @@ class PropsAndStateCompanionClassRemover extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   bool shouldRemoveCompanionClassFor(
-          ClassDeclaration candidate, CompilationUnit node) =>
+          NamedCompilationUnitMember candidate, CompilationUnit node) =>
       true;
 
   @override
   visitCompilationUnit(CompilationUnit node) {
-    final classDeclarations = node.declarations.whereType<ClassDeclaration>();
+    final classDeclarations = [
+      ...node.declarations.whereType<ClassOrMixinDeclaration>(),
+      ...node.declarations.whereType<ClassTypeAlias>(),
+    ];
     for (final cd in classDeclarations) {
       final companionClass = _getCompanionClassFor(cd, node);
 
@@ -69,16 +72,20 @@ class PropsAndStateCompanionClassRemover extends RecursiveAstVisitor
     }
   }
 
-  ClassDeclaration _getCompanionClassFor(
-      ClassDeclaration classDeclaration, CompilationUnit node) {
-    final classDeclarations = node.declarations.whereType<ClassDeclaration>();
+  ClassOrMixinDeclaration _getCompanionClassFor(
+      NamedCompilationUnitMember classDeclaration, CompilationUnit node) {
+    final potentialCompanionClassDeclarations =
+        node.declarations.whereType<ClassDeclaration>();
 
     if (classDeclaration.metadata.any((m) =>
         overReactPropsStateNonMixinAnnotationNames.contains(m.name.name))) {
       final className = classDeclaration.name.name;
       final companionClassName = stripPrivateGeneratedPrefix(className);
-      final companionClass = classDeclarations.firstWhere(
-          (cd) => cd.name.name == companionClassName,
+      final companionClass = potentialCompanionClassDeclarations.firstWhere(
+          (cd) =>
+              cd.name.name == companionClassName &&
+              cd.extendsClause?.superclass?.name?.name ==
+                  '$privateGeneratedPrefix${cd.name.name}',
           orElse: () => null);
       return companionClass;
     }

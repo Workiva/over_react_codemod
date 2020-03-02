@@ -24,12 +24,12 @@ main() {
     final testSuggestor = getSuggestorTester(PropsMetaMigrator(converter));
 
     tearDown(() {
-      converter.setConvertedClassNames({});
+      converter.setVisitedNames({});
     });
 
     group('does not perform a migration', () {
       test('when it encounters an empty file', () {
-        converter.setConvertedClassNames({
+        converter.setVisitedNames({
           'FooProps': 'FooProps',
         });
 
@@ -37,7 +37,7 @@ main() {
       });
 
       test('when there are no `PropsClass.meta` identifiers', () {
-        converter.setConvertedClassNames({
+        converter.setVisitedNames({
           'FooProps': 'FooProps',
         });
 
@@ -56,21 +56,29 @@ main() {
         'performs a migration when there are one or more `PropsClass.meta` identifiers',
         () {
       test('', () {
-        converter.setConvertedClassNames({
+        converter.setVisitedNames({
           'FooProps': 'FooProps',
           'BarProps': 'BarPropsMixin',
+          'ConvertedPropsMixin': 'ConvertedPropsMixin',
+          'UnconvertedPropsMixin': null,
         });
 
         testSuggestor(
-          expectedPatchCount: 7,
+          expectedPatchCount: 10,
           input: '''
           /// Some doc comment
           @PropsMixin()
-          abstract class FooPropsMixin implements UiProps {
+          mixin ConvertedPropsMixin on UiProps {
+            String foo;
+          }
+          
+          /// Some doc comment
+          @PropsMixin()
+          abstract class UnconvertedPropsMixin implements UiProps {
             // To ensure the codemod regression checking works properly, please keep this
             // field at the top of the class!
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-            static const PropsMeta meta = _\$metaForFooPropsMixin;
+            static const PropsMeta meta = _\$metaForUnconvertedPropsMixin;
             
             String foo;
           }
@@ -79,9 +87,16 @@ main() {
           class FooComponent extends UiComponent2<FooProps> {
             static const foo = FooProps.meta;
             static const bar = [FooProps.meta];
+            static const con = ConvertedPropsMixin.meta;
+            static const uncon = UnconvertedPropsMixin.meta;
           
             @override
-            get consumedProps => const [FooProps.meta, BarProps.meta];
+            get consumedProps => const [
+              FooProps.meta, 
+              BarProps.meta, 
+              ConvertedPropsMixin.meta, 
+              UnconvertedPropsMixin.meta,
+            ];
         
             @override
             render() {
@@ -95,11 +110,17 @@ main() {
           expectedOutput: '''
         /// Some doc comment
         @PropsMixin()
-        abstract class FooPropsMixin implements UiProps {
+        mixin ConvertedPropsMixin on UiProps {
+          String foo;
+        }
+        
+        /// Some doc comment
+        @PropsMixin()
+        abstract class UnconvertedPropsMixin implements UiProps {
           // To ensure the codemod regression checking works properly, please keep this
           // field at the top of the class!
           // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
-          static const PropsMeta meta = _\$metaForFooPropsMixin;
+          static const PropsMeta meta = _\$metaForUnconvertedPropsMixin;
           
           String foo;
         }
@@ -108,9 +129,16 @@ main() {
         class FooComponent extends UiComponent2<FooProps> {
           static final foo = propsMeta.forMixin(FooProps);
           static final bar = [propsMeta.forMixin(FooProps)];
+          static final con = propsMeta.forMixin(ConvertedPropsMixin);
+          static const uncon = UnconvertedPropsMixin.meta;
         
           @override
-          get consumedProps => [propsMeta.forMixin(FooProps), propsMeta.forMixin(BarPropsMixin)];
+          get consumedProps => [
+            propsMeta.forMixin(FooProps), 
+            propsMeta.forMixin(BarPropsMixin), 
+            propsMeta.forMixin(ConvertedPropsMixin), 
+            UnconvertedPropsMixin.meta,
+          ];
           
           @override
           render() {
@@ -125,9 +153,9 @@ main() {
       });
 
       test(
-          'unless the props class is not found within `propsAndStateClassNamesConvertedToNewBoilerplate`',
+          'unless the props class is not found within `ClassToMixinConverter.visitedNames`',
           () {
-        converter.setConvertedClassNames({
+        converter.setVisitedNames({
           'BarProps': 'BarProps',
         });
 
@@ -156,7 +184,7 @@ main() {
       test(
           'unless component class containing the meta usage is not @Component2()',
           () {
-        converter.setConvertedClassNames({
+        converter.setVisitedNames({
           'FooProps': 'FooProps',
           'BarProps': 'BarPropsMixin',
         });

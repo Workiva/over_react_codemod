@@ -31,6 +31,7 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
   @override
   visitClassDeclaration(ClassDeclaration node) {
     super.visitClassDeclaration(node);
+    converter.recordVisit(node);
 
     if (!shouldMigratePropsAndStateMixin(node)) return;
 

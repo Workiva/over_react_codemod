@@ -24,12 +24,12 @@ main() {
     final testSuggestor = getSuggestorTester(AnnotationsRemover(converter));
 
     tearDown(() {
-      converter.setConvertedClassNames({});
+      converter.setVisitedNames({});
     });
 
     group('does not perform a migration', () {
       test('when it encounters an empty file', () {
-        converter.setConvertedClassNames({
+        converter.setVisitedNames({
           'FooProps': 'FooProps',
         });
 
@@ -37,7 +37,7 @@ main() {
       });
 
       test('when there are no relevant annotations present', () {
-        converter.setConvertedClassNames({
+        converter.setVisitedNames({
           'FooProps': 'FooProps',
         });
 
@@ -55,15 +55,16 @@ main() {
     group('performs a migration when there are relevant annotations present',
         () {
       test('', () {
-        converter.setConvertedClassNames({
-          'AbstractFooProps': 'AbstractFooProps',
-          'FooProps': 'FooProps',
+        converter.setVisitedNames({
+          'AbstractFooProps': 'AbstractFooPropsMixin',
+          'AbstractBarProps': 'AbstractBarProps',
+          'FooProps': 'FooPropsMixin',
           'AbstractFooState': 'AbstractFooState',
           'FooState': 'FooState',
         });
 
         testSuggestor(
-          expectedPatchCount: 6,
+          expectedPatchCount: 9,
           input: '''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -71,15 +72,23 @@ main() {
               \$Foo;
     
           @AbstractProps()
-          mixin AbstractFooProps on UiProps {
+          mixin AbstractFooPropsMixin on UiProps {
+            bool baz;
+          }
+          
+          @AbstractProps()
+          abstract class AbstractBarProps implements UiProps {
             bool baz;
           }
           
           @Props()
-          mixin FooProps on UiProps {
+          mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
+          
+          @Props()
+          class FooProps = UiProps with FooPropsMixin;
           
           @AbstractState()
           mixin AbstractFooState on UiState {
@@ -102,20 +111,29 @@ main() {
               );
             }
           }
+    
+          @AbstractComponent2()
+          abstract class AbstractBarComponent extends UiComponent2<AbstractBarProps> {}
         ''',
           expectedOutput: '''
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               \$Foo;
     
-          mixin AbstractFooProps on UiProps {
+          mixin AbstractFooPropsMixin on UiProps {
             bool baz;
           }
           
-          mixin FooProps on UiProps {
+          abstract class AbstractBarProps implements UiProps {
+            bool baz;
+          }
+          
+          mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
+          
+          class FooProps = UiProps with FooPropsMixin;
           
           mixin AbstractFooState on UiState {
             bool baz;
@@ -135,12 +153,14 @@ main() {
               );
             }
           }
+
+          abstract class AbstractBarComponent extends UiComponent2<AbstractBarProps> {}
       ''',
         );
       });
 
       test('handling class name edge cases', () {
-        converter.setConvertedClassNames({
+        converter.setVisitedNames({
           'GraphFormStateWrapperProps': 'GraphFormStateWrapperProps',
           'GraphFormStateWrapperState': 'GraphFormStateWrapperState',
         });
@@ -205,11 +225,12 @@ main() {
       });
 
       test('leaving annotations with arguments in place', () {
-        converter.setConvertedClassNames({
-          'AbstractFooProps': 'AbstractFooProps',
-          'FooProps': 'FooProps',
+        converter.setVisitedNames({
+          'AbstractFooProps': 'AbstractFooPropsMixin',
+          'AbstractBarProps': 'AbstractBarProps',
+          'FooProps': 'FooPropsMixin',
           'AbstractFooState': 'AbstractFooState',
-          'FooState': 'FooState',
+          'FooState': 'FooStateMixin',
         });
 
         testSuggestor(
@@ -221,15 +242,23 @@ main() {
               \$Foo;
     
           @AbstractProps(keyNamespace: '')
-          mixin AbstractFooProps on UiProps {
+          mixin AbstractFooPropsMixin on UiProps {
+            bool baz;
+          }
+          
+          @AbstractProps(keyNamespace: '')
+          abstract class AbstractBarProps implements UiProps {
             bool baz;
           }
     
           @Props(keyNamespace: '')
-          mixin FooProps on UiProps {
+          mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
+          
+          @Props(keyNamespace: '')
+          class FooProps = UiProps with FooPropsMixin;
           
           @AbstractState(keyNamespace: '')
           mixin AbstractFooState on UiState {
@@ -259,15 +288,23 @@ main() {
               \$Foo;
     
           @AbstractProps(keyNamespace: '')
-          mixin AbstractFooProps on UiProps {
+          mixin AbstractFooPropsMixin on UiProps {
+            bool baz;
+          }
+          
+          @AbstractProps(keyNamespace: '')
+          abstract class AbstractBarProps implements UiProps {
             bool baz;
           }
     
           @Props(keyNamespace: '')
-          mixin FooProps on UiProps {
+          mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
+          
+          @Props(keyNamespace: '')
+          class FooProps = UiProps with FooPropsMixin;
           
           @AbstractState(keyNamespace: '')
           mixin AbstractFooState on UiState {
