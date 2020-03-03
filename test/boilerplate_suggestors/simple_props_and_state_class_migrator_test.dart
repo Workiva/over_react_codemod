@@ -20,16 +20,16 @@ import '../util.dart';
 
 void main() {
   group('SimplePropsAndStateClassMigrator', () {
-    SimplePropsAndStateClassMigratorTestHelper();
+    simplePropsAndStateClassMigratorTestHelper();
 
     group('with --treat-all-components-as-private flag', () {
-      SimplePropsAndStateClassMigratorTestHelper(
+      simplePropsAndStateClassMigratorTestHelper(
         shouldTreatAllComponentsAsPrivate: true,
       );
     });
 
     group('with invalid file path', () {
-      SimplePropsAndStateClassMigratorTestHelper(
+      simplePropsAndStateClassMigratorTestHelper(
         path: 'test/boilerplate_suggestors/does_not_exist.json',
         isValidFilePath: false,
       );
@@ -37,7 +37,7 @@ void main() {
   });
 }
 
-void SimplePropsAndStateClassMigratorTestHelper({
+void simplePropsAndStateClassMigratorTestHelper({
   String path = 'test/boilerplate_suggestors/semver_report.json',
   bool shouldTreatAllComponentsAsPrivate = false,
   bool isValidFilePath = true,

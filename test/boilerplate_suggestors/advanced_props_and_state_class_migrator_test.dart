@@ -20,17 +20,17 @@ import '../util.dart';
 
 void main() {
   group('AdvancedPropsAndStateClassMigrator', () {
-    AdvancedPropsAndStateClassMigratorTestHelper();
+    advancedPropsAndStateClassMigratorTestHelper();
 
     group('with --treat-all-components-as-private flag', () {
-      AdvancedPropsAndStateClassMigratorTestHelper(
+      advancedPropsAndStateClassMigratorTestHelper(
         shouldTreatAllComponentsAsPrivate: true,
       );
     });
   });
 }
 
-void AdvancedPropsAndStateClassMigratorTestHelper({
+void advancedPropsAndStateClassMigratorTestHelper({
   bool shouldTreatAllComponentsAsPrivate = false,
 }) {
   const publicPropsClassName = 'FooProps';
@@ -285,7 +285,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           $factoryDecl
   
           @Props()
-          class $propsClassName extends ADifferentStateClass {
+          class $propsClassName extends ADifferentPropsClass {
             String foo;
             int bar;
           }
@@ -317,7 +317,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           // Alternatively, remove this FIXME comment and re-run the  migration script 
           // with the following flag to assume all components are not publicly exported:
           // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private'''}
-          class $propsClassName extends ADifferentStateClass {
+          class $propsClassName extends ADifferentPropsClass {
             String foo;
             int bar;
           }
