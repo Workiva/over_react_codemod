@@ -54,7 +54,7 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
 MigrationDecision shouldMigrateSimplePropsAndStateClass(
     ClassDeclaration node, SemverHelper semverHelper) {
   final _shouldMigratePropsAndStateClass =
-      shouldMigratePropsAndStateClass(node, semverHelper);
+      getPropsAndStateClassMigrationDecision(node, semverHelper);
   if (!_shouldMigratePropsAndStateClass.yee) {
     return _shouldMigratePropsAndStateClass;
   }

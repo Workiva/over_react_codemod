@@ -147,7 +147,7 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
           /// might get in the way of fix me comment removal
           @Props()
           // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
-          // because `FooComponent` does not extend from `react.Component2`.
+          // because `FooComponent` does not extend from `UiComponent2`.
           // 
           // Once you have upgraded the component, you can remove this FIXME comment and 
           // re-run the boilerplate migration script:
@@ -1519,9 +1519,6 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 }
 
                 @AbstractProps()
-                // FIXME:
-                //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
-                //   2. Fix any analyzer warnings on this class about missing mixins.
                 abstract class AbstractBlockProps<A extends Something> implements
                         SomeAbstractPropsClass<A>,
                         AbstractBlockPropsMixin<A>,
@@ -1575,9 +1572,6 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
-                // FIXME:
-                //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
-                //   2. Fix any analyzer warnings on this class about missing mixins.
                 abstract class AbstractBlockProps<A extends Something> implements
                         SomeAbstractPropsClass<A>,
                         LayoutPropsMixin,
@@ -1638,9 +1632,6 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 }
 
                 @AbstractProps()
-                // FIXME:
-                //   1. Ensure that all mixins used by AbstractGraphFormProps are also mixed into this class.
-                //   2. Fix any analyzer warnings on this class about missing mixins.
                 abstract class AbstractBreadcrumbPathProps 
                     implements
                         AbstractGraphFormProps,
@@ -1689,9 +1680,6 @@ void AdvancedPropsAndStateClassMigratorTestHelper({
                 abstract class BreadcrumbPathPropsMixin {}
 
                 @AbstractProps()
-                // FIXME:
-                //   1. Ensure that all mixins used by AbstractGraphFormProps are also mixed into this class.
-                //   2. Fix any analyzer warnings on this class about missing mixins.
                 abstract class AbstractBreadcrumbPathProps 
                     implements 
                         AbstractGraphFormProps, 

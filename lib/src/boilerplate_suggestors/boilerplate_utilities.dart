@@ -128,7 +128,7 @@ const reservedBaseClassNames = {
   'DomPropsMixin': 'DomPropsMixin',
 };
 
-/// Whether the provided [className] is considered a "reserved" (non-custom) base class name to extend from or implement.
+/// Returns whether the provided [className] is considered a "reserved" (non-custom) base class name to extend from or implement.
 bool isReservedBaseClass(String className) {
   return ['UiProps', 'UiState', ...reservedBaseClassNames.keys]
       .contains(className);
@@ -157,12 +157,12 @@ bool isAPropsMixin(ClassDeclaration classNode) =>
 bool isAStateMixin(ClassDeclaration classNode) =>
     getAnnotationNode(classNode, 'StateMixin') != null;
 
-/// Whether a props or state mixin class [classNode] should be migrated as part of the boilerplate codemod.
+/// Returns whether a props or state mixin class [classNode] should be migrated as part of the boilerplate codemod.
 bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
     isAPropsOrStateMixin(classNode);
 
-/// Whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
-MigrationDecision shouldMigratePropsAndStateClass(
+/// Returns whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
+MigrationDecision getPropsAndStateClassMigrationDecision(
     ClassDeclaration node, SemverHelper semverHelper) {
   final publicNodeName = stripPrivateGeneratedPrefix(node.name.name);
   const reRunMigrationScriptInstructions =
@@ -183,7 +183,7 @@ MigrationDecision shouldMigratePropsAndStateClass(
       false,
       reason: '''
       // FIXME: `$publicNodeName` could not be auto-migrated to the new over_react boilerplate 
-      // because `${getComponentNodeInRoot(node).name.name}` does not extend from `react.Component2`.
+      // because `${getComponentNodeInRoot(node).name.name}` does not extend from `UiComponent2`.
       // 
       // Once you have upgraded the component, you can remove this FIXME comment and 
       // re-run the boilerplate migration script:
@@ -306,11 +306,12 @@ class ClassToMixinConverter {
   ///
   /// > Instead of trying to parse the keys / values for semantic meaning,
   ///   it is strongly recommended that you utilize helper methods like
-  ///   [wasVisited] and [wasMigrated] and [isBoilerplateCompatible] instead.
+  ///   [wasVisited], [wasMigrated] and [isBoilerplateCompatible] instead.
+  @visibleForTesting
   Map<String, String> get visitedNames => _visitedNames;
   Map<String, String> _visitedNames;
 
-  /// Whether the provided [classOrMixinName] was either created or migrated
+  /// Returns whether the provided [classOrMixinName] was either created or migrated
   /// as a result of [migrate] being called.
   ///
   /// A true return value indicates that the [classOrMixinName] is
@@ -319,7 +320,7 @@ class ClassToMixinConverter {
       visitedNames.containsValue(classOrMixinName) ||
       wasMigrated(classOrMixinName);
 
-  /// Whether the provided [classOrMixinName] was migrated as a result of [migrate] being called.
+  /// Returns whether the provided [classOrMixinName] was migrated as a result of [migrate] being called.
   ///
   /// Returns true if:
   ///
@@ -330,7 +331,7 @@ class ClassToMixinConverter {
   bool wasMigrated(String classOrMixinName) =>
       visitedNames[classOrMixinName] != null;
 
-  /// Whether the provided [classOrMixinName] was migrated as a result of [migrate] being called.
+  /// Returns whether the provided [classOrMixinName] was migrated as a result of [migrate] being called.
   bool wasVisited(String classOrMixinName) =>
       visitedNames.containsKey(classOrMixinName);
 
@@ -466,9 +467,8 @@ class ClassToMixinConverter {
     if (node.extendsClause?.extendsKeyword != null) {
       // --- Convert concrete props/state class to a mixin --- //
 
-      if (node.name.name != newMixinName) {
-        yieldPatch(node.name.token.offset, node.name.token.end, newMixinName);
-      }
+      yieldPatch(node.name.token.offset,
+          node.name.token.offset + privateGeneratedPrefix.length, '');
 
       yieldPatch(node.extendsClause.offset,
           node.extendsClause.extendsKeyword.charEnd, 'on');
@@ -562,16 +562,9 @@ String getConvertedClassMixinName(
 }
 
 extension IterableAstUtils on Iterable<NamedType> {
-  /// Utility to join an `Iterable` based on the `name` of the `name` field
-  /// rather than the `toString()` of the object when the named type is:
-  ///
-  /// 1. A non-generated _(no `$` prefix)_ mixin / class
-  /// 2. A generated mixin name that has not been converted by a migrator
-  ///     * The `// ignore` comments will be preserved in this case
-  String joinConvertedClassesByName({
+  List<String> getConvertedClassesByName({
     ClassToMixinConverter converter,
     SourceFile sourceFile,
-    String separator,
     bool includeGenericParameters = true,
     bool includeComments = true,
     bool includePrivateGeneratedClassNames = true,
@@ -614,6 +607,29 @@ extension IterableAstUtils on Iterable<NamedType> {
       }
 
       return '${t.name.name}${_typeArgs(t)}';
-    }).join('${separator ?? ','} ');
+    }).toList();
+  }
+
+  /// Utility to join an `Iterable` based on the `name` of the `name` field
+  /// rather than the `toString()` of the object when the named type is:
+  ///
+  /// 1. A non-generated _(no `$` prefix)_ mixin / class
+  /// 2. A generated mixin name that has not been converted by a migrator
+  ///     * The `// ignore` comments will be preserved in this case
+  String joinConvertedClassesByName({
+    ClassToMixinConverter converter,
+    SourceFile sourceFile,
+    String separator,
+    bool includeGenericParameters = true,
+    bool includeComments = true,
+    bool includePrivateGeneratedClassNames = true,
+  }) {
+    return getConvertedClassesByName(
+      converter: converter,
+      sourceFile: sourceFile,
+      includeGenericParameters: includeGenericParameters,
+      includeComments: includeComments,
+      includePrivateGeneratedClassNames: includePrivateGeneratedClassNames,
+    ).join('${separator ?? ','} ');
   }
 }

@@ -51,18 +51,16 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     converter.recordVisit(node);
 
     final parentClassName = node.extendsClause?.superclass?.name?.name;
-    final mixinNames = node.withClause?.mixinTypes
-            ?.joinConvertedClassesByName(
-              converter: converter,
-              sourceFile: sourceFile,
-              includeGenericParameters: false,
-              includeComments: false,
-              includePrivateGeneratedClassNames: false,
-            )
-            ?.split(', ') ??
+    final mixinNames = node.withClause?.mixinTypes?.getConvertedClassesByName(
+          converter: converter,
+          sourceFile: sourceFile,
+          includeGenericParameters: false,
+          includeComments: false,
+          includePrivateGeneratedClassNames: false,
+        ) ??
         [];
 
-    final shouldMigrate = shouldMigrateAdvancedPropsAndStateClass(
+    final migrationDecision = shouldMigrateAdvancedPropsAndStateClass(
       node,
       converter,
       semverHelper,
@@ -73,11 +71,12 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       convertClassesWithExternalSuperclass:
           convertClassesWithExternalSuperclass,
     );
-    if (!shouldMigrate.yee) {
-      shouldMigrate.patchWithReasonComment(node, yieldPatch);
+    if (!migrationDecision.yee) {
+      migrationDecision.patchWithReasonComment(node, yieldPatch);
       return;
     }
 
+    final declIsAbstract = isAbstract(node);
     final extendsFromCustomClass = !extendsFromUiPropsOrUiState(node);
     final extendsFromReservedClass = isReservedBaseClass(parentClassName) &&
         !extendsFromUiPropsOrUiState(node);
@@ -101,21 +100,17 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         return '';
       }
 
-      if (forUseInImplementsOrWithClause) {
-        if (!isAbstract(node)) {
-          return node.typeParameters.toString();
-        } else {
-          // The node is abstract, and these typeArgs will be used on a mixin/interface for that node
-          // which means they should only have the type identifiers as args - not the
-          // full `<<SimpleIdentifier> extends <TypeName>>` args.
-          final typeIdentifiers = node.typeParameters.childEntities
-              .whereType<TypeParameter>()
-              .map((typeParam) =>
-                  typeParam.childEntities.whereType<SimpleIdentifier>())
-              .expand((i) => i);
-          if (typeIdentifiers.isNotEmpty) {
-            return '<${typeIdentifiers.join(',')}>';
-          }
+      if (forUseInImplementsOrWithClause && declIsAbstract) {
+        // The node is abstract, and these typeArgs will be used on a mixin/interface for that node
+        // which means they should only have the type identifiers as args - not the
+        // full `<<SimpleIdentifier> extends <TypeName>>` args.
+        final typeIdentifiers = node.typeParameters.childEntities
+            .whereType<TypeParameter>()
+            .map((typeParam) =>
+                typeParam.childEntities.whereType<SimpleIdentifier>())
+            .expand((i) => i);
+        if (typeIdentifiers.isNotEmpty) {
+          return '<${typeIdentifiers.join(',')}>';
         }
       }
 
@@ -169,18 +164,28 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       // migrator to work correctly. The vast majority of these will be removed by the
       // `AnnotationsRemover` migrator in a later step of the migration.
       ..write('${node.metadata.join('\n')}\n')
-      ..write(getFixMeCommentForConvertedClassDeclaration(
-        converter: converter,
-        mixinNames: mixinNames,
-        parentClassName: parentClassName,
-        convertClassesWithExternalSuperclass:
-            convertClassesWithExternalSuperclass,
-      ))
+      // NOTE: There is no need for a FIX ME comment when both the subclass and superclass are abstract
+      // because our migrator will convert abstract superclasses into "interface only" instances which
+      // implement all the things it used to only mix in - so by implementing that new
+      // "interface only" version... everything from the superclass will already be implemented,
+      // and there is no need to use those interfaces as mixins on the abstract subclass.
+      //
+      // Unfortunately, we don't have access to the actual AST of the superclass to make a proper determination
+      // of whether it is abstract - so we'll just catch the majority of cases by looking at its name.
+      ..write((declIsAbstract && parentClassName.contains('Abstract'))
+          ? ''
+          : getFixMeCommentForConvertedClassDeclaration(
+              converter: converter,
+              mixinNames: mixinNames,
+              parentClassName: parentClassName,
+              convertClassesWithExternalSuperclass:
+                  convertClassesWithExternalSuperclass,
+            ))
       // Create the class name
-      ..write(isAbstract(node) ? 'abstract class ' : 'class ')
+      ..write(declIsAbstract ? 'abstract class ' : 'class ')
       ..write('$className${getClassTypeArgs()}');
 
-    if (isAbstract(node)) {
+    if (declIsAbstract) {
       mixins = getMixinsForNewDeclaration();
       // Since its abstract, we'll create an interface-only class which can then be implemented by
       // concrete subclasses that have component classes that extend from the analogous abstract component class.
@@ -247,7 +252,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
             dupeClassInSameRoot.rightBracket.offset,
             node.members.map((member) => member.toSource()).join('\n'));
 
-        newDeclarationBuffer.write(isAbstract(node) ? '{}' : ';');
+        newDeclarationBuffer.write(declIsAbstract ? '{}' : ';');
       } else {
         newDeclarationBuffer
           ..write('{\n')
@@ -259,8 +264,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
           ..write('\n}');
       }
     } else {
-      newDeclarationBuffer
-          .write(isAbstract(node) || mixins.isEmpty ? '{}' : ';');
+      newDeclarationBuffer.write(declIsAbstract || mixins.isEmpty ? '{}' : ';');
     }
 
     converter.migrate(node, yieldPatch,
@@ -298,7 +302,7 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
   }
 
   final _shouldMigratePropsAndStateClass =
-      shouldMigratePropsAndStateClass(node, semverHelper);
+      getPropsAndStateClassMigrationDecision(node, semverHelper);
   if (!_shouldMigratePropsAndStateClass.yee) {
     return _shouldMigratePropsAndStateClass;
   } else if (!isAdvancedPropsOrStateClass(node)) {
