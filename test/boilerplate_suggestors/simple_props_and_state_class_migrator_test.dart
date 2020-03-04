@@ -112,7 +112,7 @@ void simplePropsAndStateClassMigratorTestHelper({
         // 
         // Once you have upgraded the component, you can remove this FIXME comment and 
         // re-run the boilerplate migration script:
-        // pub run over_react_codemod:boilerplate_upgrade
+        // pub global run over_react_codemod:boilerplate_upgrade
         class _$FooProps extends UiProps {
           String foo;
           int bar;
@@ -328,7 +328,7 @@ void simplePropsAndStateClassMigratorTestHelper({
           //   2. Make a copy of it, renaming it something like `BarPropsV2`.
           //   3. Replace all your current usage of the deprecated `BarProps` with `BarPropsV2`.
           //   4. Add a `hide BarPropsV2` clause to all places where it is exported, and then run:
-          //        pub run over_react_codemod:boilerplate_upgrade
+          //        pub global run over_react_codemod:boilerplate_upgrade
           //   5a. If `BarProps` had consumers outside this repo, and it was intentionally made public,
           //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarPropsV2`
           //       will be a viable replacement for `BarProps`.
@@ -843,9 +843,9 @@ String semverReportUnavailableComment(String nodeName) {
     //      pub global run semver_audit generate 2> semver_report.json
     //   2. Remove this FIXME comment.
     //   3. Re-run the migration script:
-    //      pub run over_react_codemod:boilerplate_upgrade
+    //      pub global run over_react_codemod:boilerplate_upgrade
     //
     // Alternatively, remove this FIXME comment and re-run the  migration script 
     // with the following flag to assume all components are not publicly exported:
-    // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private''';
+    // pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private''';
 }

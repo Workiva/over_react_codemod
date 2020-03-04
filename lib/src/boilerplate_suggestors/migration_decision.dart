@@ -68,7 +68,7 @@ String getExternalSuperclassOrMixinReasonComment(
   //   2. Once the library has released a version that includes updated boilerplate,
   //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
   //   3. Re-run the migration script with the following flag:
-  //      pub run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
+  //      pub global run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
   //   4. Once the migration is complete, you should notice that ${superclassOrMixinNames.join(', ')} ${superclassOrMixinNames.length == 1 ? 'has' : 'have'} been deprecated. 
   //      Follow the deprecation instructions to consume the ${superclassOrMixinNames.length == 1 ? 'replacement' : 'replacements'} by either updating your usage to
   //      the new ${mixinsAreExternal ? 'mixin' : 'class'} ${superclassOrMixinNames.length == 1 ? 'name' : 'names'} and/or updating to a different entrypoint that exports the version(s) of 
@@ -89,11 +89,11 @@ String getPublicApiReasonComment(String nodeName, List<String> locations) {
     //      pub global run semver_audit generate 2> semver_report.json
     //   2. Remove this FIXME comment.
     //   3. Re-run the migration script:
-    //      pub run over_react_codemod:boilerplate_upgrade
+    //      pub global run over_react_codemod:boilerplate_upgrade
     //
     // Alternatively, remove this FIXME comment and re-run the  migration script 
     // with the following flag to assume all components are not publicly exported:
-    // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
+    // pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
     ''';
   }
   return '''
@@ -107,7 +107,7 @@ String getPublicApiReasonComment(String nodeName, List<String> locations) {
   //   2. Make a copy of it, renaming it something like `${nodeName}V2`.
   //   3. Replace all your current usage of the deprecated `$nodeName` with `${nodeName}V2`.
   //   4. Add a `hide ${nodeName}V2` clause to all places where it is exported, and then run:
-  //        pub run over_react_codemod:boilerplate_upgrade
+  //        pub global run over_react_codemod:boilerplate_upgrade
   //   5a. If `$nodeName` had consumers outside this repo, and it was intentionally made public,
   //       remove the `hide` clause you added in step 4 so that the new mixin created from `${nodeName}V2` 
   //       will be a viable replacement for `$nodeName`.
@@ -128,7 +128,7 @@ String getUnMigratedSuperclassReasonComment(
   //   1. Look at the "FIXME" comment that has been added to `$superclassName` - 
   //      and follow the steps outlined there to complete the migration.
   //   2. Re-run the migration script:
-  //      pub run over_react_codemod:boilerplate_upgrade
+  //      pub global run over_react_codemod:boilerplate_upgrade
   ''';
 }
 

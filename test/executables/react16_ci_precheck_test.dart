@@ -181,7 +181,7 @@ final versionChecksToTest = [
 ];
 
 ProcessResult runCiPrecheck({String onDirectory}) {
-  // This command is equivalent to `pub run over_react_codemod:react16_upgrade`
+  // This command is equivalent to `pub global run over_react_codemod:react16_upgrade`
   // but allows us to not need to run pub get on each of these fake packages because over_react/react.dart have not been
   // released yet these tests will fail a pub get
   var result = Process.runSync(
