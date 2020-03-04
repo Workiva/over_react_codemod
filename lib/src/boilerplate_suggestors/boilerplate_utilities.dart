@@ -166,7 +166,7 @@ MigrationDecision getPropsAndStateClassMigrationDecision(
     ClassDeclaration node, SemverHelper semverHelper) {
   final publicNodeName = stripPrivateGeneratedPrefix(node.name.name);
   const reRunMigrationScriptInstructions =
-      'pub run over_react_codemod:boilerplate_upgrade';
+      'pub global run over_react_codemod:boilerplate_upgrade';
   if (!isAPropsOrStateClass(node)) {
     return MigrationDecision(false);
   } else if (isPublic(node, semverHelper)) {
