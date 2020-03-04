@@ -12,24 +12,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
-
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
-import 'boilerplate_utilities_test.dart';
 
-main() {
+void main() {
   group('SimplePropsAndStateClassMigrator', () {
-    final converter = ClassToMixinConverter();
-    final testSuggestor =
-        getSuggestorTester(SimplePropsAndStateClassMigrator(converter));
+    simplePropsAndStateClassMigratorTestHelper();
 
-    setUpAll(() {
-      semverHelper = SemverHelper(jsonDecode(reportJson));
+    group('with --treat-all-components-as-private flag', () {
+      simplePropsAndStateClassMigratorTestHelper(
+        shouldTreatAllComponentsAsPrivate: true,
+      );
     });
+
+    group('with invalid file path', () {
+      simplePropsAndStateClassMigratorTestHelper(
+        path: 'test/boilerplate_suggestors/does_not_exist.json',
+        isValidFilePath: false,
+      );
+    });
+  });
+}
+
+void simplePropsAndStateClassMigratorTestHelper({
+  String path = 'test/boilerplate_suggestors/semver_report.json',
+  bool shouldTreatAllComponentsAsPrivate = false,
+  bool isValidFilePath = true,
+}) {
+  group('', () {
+    final converter = ClassToMixinConverter();
+    final semverHelper = getSemverHelper(path,
+        shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
+    final testSuggestor = getSuggestorTester(
+        SimplePropsAndStateClassMigrator(converter, semverHelper));
 
     tearDown(() {
       converter.setVisitedNames({});
@@ -81,7 +99,8 @@ main() {
           }
         }
       ''',
-          expectedOutput: r'''
+          expectedOutput: isValidFilePath
+              ? r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
@@ -109,6 +128,30 @@ main() {
             );
           }
         }
+      '''
+              : '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        ${semverReportUnavailableComment('FooProps')}
+        class _\$FooProps extends UiProps {
+          String foo;
+          int bar;
+        }
+
+        @Component()
+        class FooComponent extends UiComponent<FooProps> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
       ''',
         );
 
@@ -119,7 +162,7 @@ main() {
 
       test('the class is a PropsMixin', () {
         testSuggestor(
-          expectedPatchCount: 0,
+          expectedPatchCount: isValidFilePath ? 0 : 1,
           input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
@@ -149,6 +192,67 @@ main() {
           }
         }
       ''',
+          expectedOutput: isValidFilePath
+              ? r'''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+        
+
+        @PropsMixin()
+        class FooPropsMixin {
+          String foo;
+          int bar;
+        }
+
+        @Props()
+        class _$FooProps extends UiProps with FooPropsMixin {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      '''
+              : '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+        
+        @PropsMixin()
+        class FooPropsMixin {
+          String foo;
+          int bar;
+        }
+
+        @Props()
+        ${semverReportUnavailableComment('FooProps')}
+        class _\$FooProps extends UiProps with FooPropsMixin {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
         );
 
         expect(converter.visitedNames, {
@@ -159,7 +263,7 @@ main() {
 
       test('the class is publicly exported, but does add a FIXME comment', () {
         testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 3 : 1,
           input: r'''
           @Factory()
           UiFactory<BarProps> Bar =
@@ -183,16 +287,41 @@ main() {
             }
           }
       ''',
-          expectedOutput: r'''
+          expectedOutput: shouldTreatAllComponentsAsPrivate
+              ? r'''
           @Factory()
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
               $Bar;
 
           @Props()
-          // FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate 
-          // because doing so would be a breaking change since `BarProps` is exported from a 
-          // library in this repo.
+          mixin BarProps on UiProps {
+            String foo;
+            int bar;
+          }
+    
+          @Component2()
+          class BarComponent extends UiComponent2<BarProps> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+        '''
+              : '''
+          @Factory()
+          UiFactory<BarProps> Bar =
+              // ignore: undefined_identifier
+              \$Bar;
+          @Props()
+          ${isValidFilePath ? '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate
+          // because doing so would be a breaking change since `BarProps` is exported from the
+          // following libraries in this repo:
+          // lib/web_skin_dart.dart/BarProps
+          // lib/another_file.dart/BarProps
           //
           // To complete the migration, you should: 
           //   1. Deprecate `BarProps`.
@@ -201,13 +330,13 @@ main() {
           //   4. Add a `hide BarPropsV2` clause to all places where it is exported, and then run:
           //        pub run over_react_codemod:boilerplate_upgrade
           //   5a. If `BarProps` had consumers outside this repo, and it was intentionally made public,
-          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarPropsV2` 
+          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarPropsV2`
           //       will be a viable replacement for `BarProps`.
           //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
-          //   6. Remove this FIXME comment.
-          class _$BarProps extends UiProps {
+          //   6. Remove this FIXME comment.''' : semverReportUnavailableComment('BarProps')}
+          class _\$BarProps extends UiProps {
             String foo;
             int bar;
           }
@@ -226,14 +355,14 @@ main() {
         );
 
         expect(converter.visitedNames, {
-          'BarProps': null,
+          'BarProps': shouldTreatAllComponentsAsPrivate ? 'BarProps' : null,
         });
       });
 
       group('the classes are not simple', () {
         test('and there are both a props and a state class', () {
           testSuggestor(
-            expectedPatchCount: 0,
+            expectedPatchCount: isValidFilePath ? 0 : 2,
             input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
@@ -263,6 +392,67 @@ main() {
           }
         }
       ''',
+            expectedOutput: isValidFilePath
+                ? r'''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+
+        @Props()
+        class _$FooProps extends ADifferentPropsClass {
+          String foo;
+          int bar;
+        }
+
+        @State()
+        class _$FooState extends ADifferentStateClass {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      '''
+                : '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        ${semverReportUnavailableComment('FooProps')}
+        class _\$FooProps extends ADifferentPropsClass {
+          String foo;
+          int bar;
+        }
+
+        @State()
+        ${semverReportUnavailableComment('FooState')}
+        class _\$FooState extends ADifferentStateClass {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
           );
 
           expect(converter.visitedNames, {
@@ -273,7 +463,7 @@ main() {
 
         test('and there is just a props class', () {
           testSuggestor(
-            expectedPatchCount: 0,
+            expectedPatchCount: isValidFilePath ? 0 : 1,
             input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
@@ -282,6 +472,54 @@ main() {
 
         @Props()
         class _$FooProps extends ADifferentPropsClass {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      ''',
+            expectedOutput: isValidFilePath
+                ? r'''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            $Foo;
+
+        @Props()
+        class _$FooProps extends ADifferentPropsClass {
+          String foo;
+          int bar;
+        }
+
+        @Component2()
+        class FooComponent extends UiComponent2<FooProps, FooState> {
+          @override
+          render() {
+            return Dom.ul()(
+              Dom.li()('Foo: ', props.foo),
+              Dom.li()('Bar: ', props.bar),
+            );
+          }
+        }
+      '''
+                : '''
+        @Factory()
+        UiFactory<FooProps> Foo =
+            // ignore: undefined_identifier
+            \$Foo;
+
+        @Props()
+        ${semverReportUnavailableComment('FooProps')}
+        class _\$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
@@ -309,7 +547,7 @@ main() {
     group('migrates when the classes are simple', () {
       test('and there are both a props and a state class', () {
         testSuggestor(
-          expectedPatchCount: 6,
+          expectedPatchCount: isValidFilePath ? 6 : 2,
           input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -339,7 +577,8 @@ main() {
             }
           }
         ''',
-          expectedOutput: r'''
+          expectedOutput: isValidFilePath
+              ? r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -367,18 +606,49 @@ main() {
               );
             }
           }
+        '''
+              : '''
+          @Factory()
+          UiFactory<FooProps> Foo =
+              // ignore: undefined_identifier
+              \$Foo;
+    
+          @Props()
+          ${semverReportUnavailableComment('FooProps')}
+          class _\$FooProps extends UiProps {
+            String foo;
+            int bar;
+          }
+    
+          @State()
+          ${semverReportUnavailableComment('FooState')}
+          class _\$FooState extends UiState {
+            String foo;
+            int bar;
+          }
+    
+          @Component2()
+          class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
         ''',
         );
 
         expect(converter.visitedNames, {
-          'FooProps': 'FooProps',
-          'FooState': 'FooState',
+          'FooProps': isValidFilePath ? 'FooProps' : null,
+          'FooState': isValidFilePath ? 'FooState' : null,
         });
       });
 
       test('and there is only a props class', () {
         testSuggestor(
-          expectedPatchCount: 3,
+          expectedPatchCount: isValidFilePath ? 3 : 1,
           input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -402,7 +672,8 @@ main() {
             }
           }
         ''',
-          expectedOutput: r'''
+          expectedOutput: isValidFilePath
+              ? r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -424,17 +695,41 @@ main() {
               );
             }
           }
+        '''
+              : '''
+          @Factory()
+          UiFactory<FooProps> Foo =
+              // ignore: undefined_identifier
+              \$Foo;
+    
+          @Props()
+          ${semverReportUnavailableComment('FooProps')}
+          class _\$FooProps extends UiProps {
+            String foo;
+            int bar;
+          }
+    
+          @Component2()
+          class FooComponent extends UiComponent2<FooProps> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
         ''',
         );
 
         expect(converter.visitedNames, {
-          'FooProps': 'FooProps',
+          'FooProps': isValidFilePath ? 'FooProps' : null,
         });
       });
 
       test('and are abstract', () {
         testSuggestor(
-          expectedPatchCount: 8,
+          expectedPatchCount: isValidFilePath ? 8 : 2,
           input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -464,7 +759,8 @@ main() {
             }
           }
         ''',
-          expectedOutput: r'''
+          expectedOutput: isValidFilePath
+              ? r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
@@ -492,14 +788,64 @@ main() {
               );
             }
           }
-          ''',
+          '''
+              : '''
+          @Factory()
+          UiFactory<FooProps> Foo =
+              // ignore: undefined_identifier
+              \$Foo;
+    
+          @AbstractProps()
+          ${semverReportUnavailableComment('FooProps')}
+          abstract class _\$FooProps extends UiProps {
+            String foo;
+            int bar;
+          }
+    
+          @AbstractState()
+          ${semverReportUnavailableComment('FooState')}
+          abstract class _\$FooState extends UiState {
+            String foo;
+            int bar;
+          }
+    
+          @AbstractComponent2()
+          abstract class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+            @override
+            render() {
+              return Dom.ul()(
+                Dom.li()('Foo: ', props.foo),
+                Dom.li()('Bar: ', props.bar),
+              );
+            }
+          }
+        ''',
         );
 
         expect(converter.visitedNames, {
-          'FooProps': 'FooProps',
-          'FooState': 'FooState',
+          'FooProps': isValidFilePath ? 'FooProps' : null,
+          'FooState': isValidFilePath ? 'FooState' : null,
         });
       });
     });
   });
+}
+
+String semverReportUnavailableComment(String nodeName) {
+  return '''
+    // FIXME: Semver report was not found. `$nodeName` is assumed to be exported from
+    // a library in this repo and thus was not auto-migrated to the new over_react
+    // boilerplate.
+    //
+    // To complete the migration, you should:
+    //   1. Perform a semver report by running the following script:
+    //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
+    //      pub global run semver_audit generate 2> semver_report.json
+    //   2. Remove this FIXME comment.
+    //   3. Re-run the migration script:
+    //      pub run over_react_codemod:boilerplate_upgrade
+    //
+    // Alternatively, remove this FIXME comment and re-run the  migration script 
+    // with the following flag to assume all components are not publicly exported:
+    // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private''';
 }

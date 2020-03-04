@@ -12,59 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
-
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:test/test.dart';
-
-const reportJson = r'''{
-  "exports": {
-    "lib/web_skin_dart.dart/ButtonProps": {
-      "type": "class",
-      "grammar": {
-        "name": "ButtonProps",
-        "meta": ["@Props()"]
-      }
-    },
-    "lib/web_skin_dart.dart/BarProps": {
-      "type": "class",
-      "grammar": {
-        "name": "BarProps",
-        "meta": ["@Props()"]
-      }
-    },
-    "lib/web_skin_dart.dart/BarState": {
-      "type": "class",
-      "grammar": {
-        "name": "BarState",
-        "meta": ["@State()"]
-      }
-    },
-    "lib/web_skin_dart.dart/BarPropsMixin": {
-      "type": "class",
-      "grammar": {
-        "name": "BarPropsMixin",
-        "meta": ["@Props()"]
-      }
-    },
-    "lib/web_skin_dart.dart/BarStateMixin": {
-      "type": "class",
-      "grammar": {
-        "name": "BarStateMixin",
-        "meta": ["@State()"]
-      }
-    },
-    "lib/another_file.dart/ButtonProps": {
-      "type": "class",
-      "grammar": {
-        "name": "ButtonProps",
-        "meta": ["@Props()"]
-      }
-    }
-  }
-}''';
 
 void main() {
   group('Boilerplate Utilities', () {
@@ -317,49 +268,106 @@ void main() {
       });
     });
 
-    group('isPublic() and getPublicExportLocations()', () {
-      setUpAll(() {
-        semverHelper = SemverHelper(jsonDecode(reportJson));
+    group('getSemverHelper() with isPublic() and getPublicExportLocations()',
+        () {
+      group('with --treat-all-components-as-private flag', () {
+        semverUtilitiesTestHelper(
+          shouldTreatAllComponentsAsPrivate: true,
+        );
       });
 
-      test('if props class is not in export list', () {
-        final input = '''
-          @Props()
-          class _\$FooProps extends UiProps{
-            String foo;
-            int bar;
-          }
-        ''';
+      group('json file does not exist', () {
+        semverUtilitiesTestHelper(
+          path: 'test/boilerplate_suggestors/does_not_exist.json',
+          isValidFilePath: false,
+        );
 
-        CompilationUnit unit = parseString(content: input).unit;
-        expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
-
-        unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-          expect(semverHelper.getPublicExportLocations(classNode), isEmpty);
-          expect(isPublic(classNode), false);
+        group('with --treat-all-components-as-private flag', () {
+          semverUtilitiesTestHelper(
+            path: 'test/boilerplate_suggestors/does_not_exist.json',
+            shouldTreatAllComponentsAsPrivate: true,
+            isValidFilePath: false,
+          );
         });
       });
 
-      test('if props class is in export list', () {
-        final input = '''
+      group('json file does exist', () {
+        semverUtilitiesTestHelper();
+      });
+    });
+  });
+}
+
+void semverUtilitiesTestHelper({
+  String path = 'test/boilerplate_suggestors/semver_report.json',
+  bool shouldTreatAllComponentsAsPrivate = false,
+  bool isValidFilePath = true,
+}) {
+  SemverHelper semverHelper;
+
+  setUpAll(() {
+    semverHelper = getSemverHelper(path,
+        shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
+  });
+
+  test('correct warning', () {
+    expect(
+        semverHelper.warning,
+        isValidFilePath || shouldTreatAllComponentsAsPrivate
+            ? isNull
+            : 'Could not find semver_report.json.');
+  });
+
+  test('if props class is not in export list', () {
+    final input = '''
+      @Props()
+      class _\$FooProps extends UiProps{
+        String foo;
+        int bar;
+      }
+    ''';
+
+    final unit = parseString(content: input).unit;
+    expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
+
+    unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+      expect(
+          semverHelper.getPublicExportLocations(classNode),
+          isValidFilePath || shouldTreatAllComponentsAsPrivate
+              ? isEmpty
+              : [
+                  'Semver report not available; this class is assumed to be public and thus will not be updated.'
+                ]);
+      expect(isPublic(classNode, semverHelper),
+          !isValidFilePath && !shouldTreatAllComponentsAsPrivate);
+    });
+  });
+
+  test('if props class is in export list', () {
+    final input = '''
         @Props()
-        class ButtonProps extends UiProps{
+        class BarProps extends UiProps{
           String foo;
           int bar;
         }
       ''';
+    final expectedOutput = isValidFilePath
+        ? [
+            'lib/web_skin_dart.dart/BarProps',
+            'lib/another_file.dart/BarProps',
+          ]
+        : [
+            'Semver report not available; this class is assumed to be public and thus will not be updated.'
+          ];
 
-        CompilationUnit unit = parseString(content: input).unit;
-        expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
+    final unit = parseString(content: input).unit;
+    expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
-        unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-          expect(semverHelper.getPublicExportLocations(classNode), [
-            'lib/web_skin_dart.dart/ButtonProps',
-            'lib/another_file.dart/ButtonProps'
-          ]);
-          expect(isPublic(classNode), true);
-        });
-      });
+    unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+      expect(semverHelper.getPublicExportLocations(classNode),
+          shouldTreatAllComponentsAsPrivate ? isEmpty : expectedOutput);
+      expect(isPublic(classNode, semverHelper),
+          !shouldTreatAllComponentsAsPrivate);
     });
   });
 }

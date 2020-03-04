@@ -76,11 +76,31 @@ String getExternalSuperclassOrMixinReasonComment(
   ''';
 }
 
-String getPublicApiReasonComment(String nodeName) {
+String getPublicApiReasonComment(String nodeName, List<String> locations) {
+  if (locations.first == semverReportNotAvailable) {
+    return '''
+    // FIXME: Semver report was not found. `$nodeName` is assumed to be exported from
+    // a library in this repo and thus was not auto-migrated to the new over_react
+    // boilerplate.
+    //
+    // To complete the migration, you should:
+    //   1. Perform a semver report by running the following script:
+    //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
+    //      pub global run semver_audit generate 2> semver_report.json
+    //   2. Remove this FIXME comment.
+    //   3. Re-run the migration script:
+    //      pub run over_react_codemod:boilerplate_upgrade
+    //
+    // Alternatively, remove this FIXME comment and re-run the  migration script 
+    // with the following flag to assume all components are not publicly exported:
+    // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
+    ''';
+  }
   return '''
   // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate 
-  // because doing so would be a breaking change since `$nodeName` is exported from a 
-  // library in this repo.
+  // because doing so would be a breaking change since `$nodeName` is exported from the 
+  // following librar${locations.length > 1 ? 'ies' : 'y'} in this repo: 
+  // ${locations.join("\n// ")}
   //
   // To complete the migration, you should: 
   //   1. Deprecate `$nodeName`.

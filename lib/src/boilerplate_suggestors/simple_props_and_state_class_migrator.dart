@@ -30,8 +30,9 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final ClassToMixinConverter converter;
+  final SemverHelper semverHelper;
 
-  SimplePropsAndStateClassMigrator(this.converter);
+  SimplePropsAndStateClassMigrator(this.converter, this.semverHelper);
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
@@ -39,7 +40,7 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
     converter.recordVisit(node);
 
     final _shouldMigrateSimplePropsAndStateClass =
-        shouldMigrateSimplePropsAndStateClass(node);
+        shouldMigrateSimplePropsAndStateClass(node, semverHelper);
     if (!_shouldMigrateSimplePropsAndStateClass.yee) {
       _shouldMigrateSimplePropsAndStateClass.patchWithReasonComment(
           node, yieldPatch);
@@ -50,9 +51,10 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
   }
 }
 
-MigrationDecision shouldMigrateSimplePropsAndStateClass(ClassDeclaration node) {
+MigrationDecision shouldMigrateSimplePropsAndStateClass(
+    ClassDeclaration node, SemverHelper semverHelper) {
   final _shouldMigratePropsAndStateClass =
-      getPropsAndStateClassMigrationDecision(node);
+      getPropsAndStateClassMigrationDecision(node, semverHelper);
   if (!_shouldMigratePropsAndStateClass.yee) {
     return _shouldMigratePropsAndStateClass;
   }

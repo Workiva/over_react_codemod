@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
@@ -23,20 +26,69 @@ import 'package:source_span/source_span.dart';
 typedef YieldPatch = void Function(
     int startingOffset, int endingOffset, String replacement);
 
-SemverHelper semverHelper;
+const semverReportNotAvailable =
+    'Semver report not available; this class is assumed to be public and thus will not be updated.';
+
+/// Returns a [SemverHelper] using the file at [path].
+///
+/// If the file at [path] does not exist, the returned [SemverHelper] assumes
+/// all classes passed to [getPublicExportLocations] are public
+/// (see: [SemverHelper.alwaysPublic] constructor).
+///
+/// If [shouldTreatAllComponentsAsPrivate] is true, the returned [SemverHelper]
+/// assumes all classes passed to [getPublicExportLocations] are private
+/// (see: [SemverHelper.alwaysPrivate] constructor).
+SemverHelper getSemverHelper(String path,
+    {bool shouldTreatAllComponentsAsPrivate = false}) {
+  if (shouldTreatAllComponentsAsPrivate) {
+    return SemverHelper.alwaysPrivate();
+  } else {
+    final file = File(path);
+    String warning;
+
+    if (file.existsSync()) {
+      try {
+        final jsonReport = jsonDecode(file.readAsStringSync());
+        if (jsonReport['exports'] != null) {
+          return SemverHelper(jsonReport['exports']);
+        }
+        warning = 'Could not find exports list in semver_report.json.';
+      } catch (e) {
+        warning = 'Could not parse semver_report.json.';
+      }
+    } else {
+      warning = 'Could not find semver_report.json.';
+    }
+    return SemverHelper.alwaysPublic(warning);
+  }
+}
 
 /// Returns whether or not [node] is publicly exported.
-bool isPublic(ClassDeclaration node) {
+bool isPublic(ClassDeclaration node, SemverHelper semverHelper) {
   assert(semverHelper != null);
   return semverHelper.getPublicExportLocations(node).isNotEmpty;
 }
 
 class SemverHelper {
   final Map _exportList;
+  final bool _isAlwaysPrivate;
 
-  SemverHelper(Map jsonReport)
-      : _exportList = jsonReport['exports'],
-        assert(jsonReport['exports'] != null);
+  /// A warning message if semver report cannot be found.
+  String warning;
+
+  SemverHelper(this._exportList) : _isAlwaysPrivate = false;
+
+  /// Used to ensure [getPublicExportLocations] always returns an empty list,
+  /// treating all components as private.
+  SemverHelper.alwaysPrivate()
+      : _exportList = null,
+        _isAlwaysPrivate = true;
+
+  /// Used to ensure [getPublicExportLocations] always returns a non-empty list,
+  /// treating all components as public.
+  SemverHelper.alwaysPublic(this.warning)
+      : _exportList = null,
+        _isAlwaysPrivate = false;
 
   /// Returns a list of locations where [node] is publicly exported.
   ///
@@ -44,6 +96,11 @@ class SemverHelper {
   List<String> getPublicExportLocations(ClassDeclaration node) {
     final className = stripPrivateGeneratedPrefix(node.name.name);
     final List<String> locations = List();
+
+    if (_exportList == null && _isAlwaysPrivate) return locations;
+    if (_exportList == null && !_isAlwaysPrivate) {
+      return [semverReportNotAvailable];
+    }
 
     _exportList.forEach((key, value) {
       if (value['type'] == 'class' && value['grammar']['name'] == className) {
@@ -106,15 +163,17 @@ bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
 
 /// Returns whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
 MigrationDecision getPropsAndStateClassMigrationDecision(
-    ClassDeclaration node) {
+    ClassDeclaration node, SemverHelper semverHelper) {
   final publicNodeName = stripPrivateGeneratedPrefix(node.name.name);
   const reRunMigrationScriptInstructions =
       'pub run over_react_codemod:boilerplate_upgrade';
   if (!isAPropsOrStateClass(node)) {
     return MigrationDecision(false);
-  } else if (isPublic(node)) {
+  } else if (isPublic(node, semverHelper)) {
+    final publicExportLocations = semverHelper.getPublicExportLocations(node);
     return MigrationDecision(false,
-        reason: getPublicApiReasonComment(publicNodeName));
+        reason:
+            getPublicApiReasonComment(publicNodeName, publicExportLocations));
   } else if (!isAssociatedWithComponent2(node)) {
     if (getComponentNodeInRoot(node)?.name?.name == null) {
       return MigrationDecision(false);

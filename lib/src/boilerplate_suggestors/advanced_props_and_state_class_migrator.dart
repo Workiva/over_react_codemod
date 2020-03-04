@@ -31,11 +31,13 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   final ClassToMixinConverter converter;
+  final SemverHelper semverHelper;
   final bool convertClassesWithExternalSuperclass;
   final bool _treatUnvisitedClassesAsExternal;
 
   AdvancedPropsAndStateClassMigrator(
-    this.converter, {
+    this.converter,
+    this.semverHelper, {
     // NOTE: convertClassesWithExternalSuperclass should only be set
     // to `true` on the second "run" via the `main` of `boilerplate_upgrade.dart`.
     this.convertClassesWithExternalSuperclass = false,
@@ -61,6 +63,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     final migrationDecision = shouldMigrateAdvancedPropsAndStateClass(
       node,
       converter,
+      semverHelper,
       mixinNames: mixinNames,
       parentClassHasBeenVisited: converter.wasVisited(parentClassName),
       parentClassHasBeenConverted: converter.wasMigrated(parentClassName),
@@ -286,7 +289,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
 MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
   ClassDeclaration node,
-  ClassToMixinConverter converter, {
+  ClassToMixinConverter converter,
+  SemverHelper semverHelper, {
   bool convertClassesWithExternalSuperclass = false,
   bool parentClassHasBeenVisited = false,
   bool parentClassHasBeenConverted = false,
@@ -298,7 +302,7 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
   }
 
   final _shouldMigratePropsAndStateClass =
-      getPropsAndStateClassMigrationDecision(node);
+      getPropsAndStateClassMigrationDecision(node, semverHelper);
   if (!_shouldMigratePropsAndStateClass.yee) {
     return _shouldMigratePropsAndStateClass;
   } else if (!isAdvancedPropsOrStateClass(node)) {

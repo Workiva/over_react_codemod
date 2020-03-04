@@ -12,16 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
-
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
-import 'boilerplate_utilities_test.dart';
 
 void main() {
+  group('AdvancedPropsAndStateClassMigrator', () {
+    advancedPropsAndStateClassMigratorTestHelper();
+
+    group('with --treat-all-components-as-private flag', () {
+      advancedPropsAndStateClassMigratorTestHelper(
+        shouldTreatAllComponentsAsPrivate: true,
+      );
+    });
+  });
+}
+
+void advancedPropsAndStateClassMigratorTestHelper({
+  bool shouldTreatAllComponentsAsPrivate = false,
+}) {
   const publicPropsClassName = 'FooProps';
   const propsClassName = '_\$$publicPropsClassName';
   const publicStateClassName = 'FooState';
@@ -41,19 +52,27 @@ void main() {
       class FooComponent extends UiStatefulComponent2<$publicPropsClassName, $publicStateClassName> {}
       ''';
 
-  group('AdvancedPropsAndStateClassMigrator', () {
+  group('', () {
     var runCount = 0;
     final converter = ClassToMixinConverter();
     SuggestorTester testSuggestor({
       bool convertClassesWithExternalSuperclass = false,
       Map<String, String> visitedClassNames = const {},
+      bool isValidSemverReportFilePath = true,
     }) {
       runCount++;
+      final semverHelper = getSemverHelper(
+          isValidSemverReportFilePath
+              ? 'test/boilerplate_suggestors/semver_report.json'
+              : 'test/boilerplate_suggestors/does_not_exist.json',
+          shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
       final tester = getSuggestorTester(AdvancedPropsAndStateClassMigrator(
-          converter,
-          treatUnvisitedClassesAsExternal: runCount > 1,
-          convertClassesWithExternalSuperclass:
-              convertClassesWithExternalSuperclass));
+        converter,
+        semverHelper,
+        treatUnvisitedClassesAsExternal: runCount > 1,
+        convertClassesWithExternalSuperclass:
+            convertClassesWithExternalSuperclass,
+      ));
 
       // If visitedClassNames is set, append the value of `converter.visitedClassNames`.
       // This is done to ensure that those custom classNames are not treated as members of an external library API.
@@ -64,10 +83,6 @@ void main() {
 
       return tester;
     }
-
-    setUpAll(() {
-      semverHelper = SemverHelper(jsonDecode(reportJson));
-    });
 
     tearDown(() {
       runCount = 0;
@@ -160,7 +175,7 @@ void main() {
 
       test('the class is publicly exported, but does add a FIXME comment', () {
         testSuggestor()(
-          expectedPatchCount: 2,
+          expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
           input: r'''
           @Factory()
           UiFactory<BarProps> Bar =
@@ -190,16 +205,18 @@ void main() {
             }
           }
         ''',
-          expectedOutput: r'''
+          expectedOutput: '''
           @Factory()
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
-              $Bar;
+              \$Bar;
   
           @Props()
-          // FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate 
-          // because doing so would be a breaking change since `BarProps` is exported from a 
-          // library in this repo.
+          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate
+          // because doing so would be a breaking change since `BarProps` is exported from the
+          // following libraries in this repo:
+          // lib/web_skin_dart.dart/BarProps
+          // lib/another_file.dart/BarProps
           //
           // To complete the migration, you should: 
           //   1. Deprecate `BarProps`.
@@ -213,16 +230,17 @@ void main() {
           //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
-          //   6. Remove this FIXME comment.
-          class _$BarProps extends ADifferentPropsClass {
+          //   6. Remove this FIXME comment.'''}
+          class _\$BarProps extends ADifferentPropsClass {
             String foo;
             int bar;
           }
 
           @State()
-          // FIXME: `BarState` could not be auto-migrated to the new over_react boilerplate 
-          // because doing so would be a breaking change since `BarState` is exported from a 
-          // library in this repo.
+          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: `BarState` could not be auto-migrated to the new over_react boilerplate
+          // because doing so would be a breaking change since `BarState` is exported from the
+          // following library in this repo:
+          // lib/web_skin_dart.dart/BarState
           //
           // To complete the migration, you should: 
           //   1. Deprecate `BarState`.
@@ -236,8 +254,8 @@ void main() {
           //   5b. If `BarState` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
-          //   6. Remove this FIXME comment.
-          class _$BarState extends ADifferentStateClass {
+          //   6. Remove this FIXME comment.'''}
+          class _\$BarState extends ADifferentStateClass {
             String foo;
             int bar;
           }
@@ -252,6 +270,80 @@ void main() {
               );
             }
           }
+        ''',
+        );
+
+        expect(converter.wasMigrated('BarProps'), isFalse);
+        expect(converter.wasMigrated('BarState'), isFalse);
+      });
+
+      test('the semver report does not exist, but does add a FIXME comment',
+          () {
+        testSuggestor(isValidSemverReportFilePath: false)(
+          expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
+          input: '''
+          $factoryDecl
+  
+          @Props()
+          class $propsClassName extends ADifferentPropsClass {
+            String foo;
+            int bar;
+          }
+  
+          @State()
+          class $stateClassName extends ADifferentStateClass {
+            String foo;
+            int bar;
+          }
+  
+          $componentDecl
+        ''',
+          expectedOutput: '''
+          $factoryDecl
+  
+          @Props()
+          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: Semver report was not found. `$publicPropsClassName` is assumed to be exported from
+          // a library in this repo and thus was not auto-migrated to the new over_react
+          // boilerplate.
+          //
+          // To complete the migration, you should:
+          //   1. Perform a semver report by running the following script:
+          //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
+          //      pub global run semver_audit generate 2> semver_report.json
+          //   2. Remove this FIXME comment.
+          //   3. Re-run the migration script:
+          //      pub run over_react_codemod:boilerplate_upgrade
+          //
+          // Alternatively, remove this FIXME comment and re-run the  migration script 
+          // with the following flag to assume all components are not publicly exported:
+          // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private'''}
+          class $propsClassName extends ADifferentPropsClass {
+            String foo;
+            int bar;
+          }
+  
+          @State()
+          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: Semver report was not found. `$publicStateClassName` is assumed to be exported from
+          // a library in this repo and thus was not auto-migrated to the new over_react
+          // boilerplate.
+          //
+          // To complete the migration, you should:
+          //   1. Perform a semver report by running the following script:
+          //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
+          //      pub global run semver_audit generate 2> semver_report.json
+          //   2. Remove this FIXME comment.
+          //   3. Re-run the migration script:
+          //      pub run over_react_codemod:boilerplate_upgrade
+          //
+          // Alternatively, remove this FIXME comment and re-run the  migration script 
+          // with the following flag to assume all components are not publicly exported:
+          // pub run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private'''}
+          class $stateClassName extends ADifferentStateClass {
+            String foo;
+            int bar;
+          }
+  
+          $componentDecl
         ''',
         );
 
