@@ -79,21 +79,33 @@ String getExternalSuperclassOrMixinReasonComment(
 String getPublicApiReasonComment(String nodeName, List<String> locations) {
   if (locations.first == semverReportNotAvailable) {
     return '''
-    // FIXME: Semver report was not found. `$nodeName` is assumed to be exported from
-    // a library in this repo and thus was not auto-migrated to the new over_react
-    // boilerplate.
+    // FIXME: A Workiva Semver report was not found. `$nodeName` is assumed to be exported from
+    // a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
     //
+    // --------- If you are migrating an OSS library outside of Workiva ---------
+    // You do not have access to Workiva's internal Semver audit tool. 
     // To complete the migration, you should:
-    //   1. Perform a semver report by running the following script:
-    //      pub global activate semver_audit --hosted-url=https://pub.workiva.org
-    //      pub global run semver_audit generate 2> semver_report.json
-    //   2. Remove this FIXME comment.
-    //   3. Re-run the migration script:
-    //      pub global run over_react_codemod:boilerplate_upgrade
     //
-    // Alternatively, remove this FIXME comment and re-run the  migration script 
-    // with the following flag to assume all components are not publicly exported:
-    // pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
+    //   1. Revert all changes to remove this FIXME comment
+    //   2. Re-run the migration script with the following flag:    
+    //
+    //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
+    //
+    //   NOTE: The changes made to props / state classes by the codemod constitute breaking changes
+    //   if you publicly export them from your library. We strongly recommend that you release 
+    //   the subsequent changes in a major version.
+    //
+    // --------- If you are migrating a Workiva library ---------
+    // To complete the migration, you should:
+    //   1. Revert all changes to remove this FIXME comment
+    //   2. Generate a semver report by running the following script:
+    //
+    //        pub global activate semver_audit --hosted-url=https://pub.workiva.org
+    //        pub global run semver_audit generate 2> semver_report.json
+    //
+    //   3. Re-run the migration script:
+    //
+    //        pub global run over_react_codemod:boilerplate_upgrade
     ''';
   }
   return '''
