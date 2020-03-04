@@ -206,7 +206,7 @@ void testSuggestor({
   String modifiedInput;
   {
     final sourceFile = SourceFile.fromString(input, url: inputUrl);
-    final patches = suggestor.generatePatches(sourceFile);
+    final patches = suggestor.generatePatches(sourceFile).toList();
     final emptyPatches = patches.where((p) => p.isNoop);
     expect(emptyPatches, isEmpty,
         reason: 'Suggested ${emptyPatches.length} empty patch(es).');
@@ -231,7 +231,7 @@ void testSuggestor({
   if (testIdempotency) {
     final sourceFile =
         SourceFile.fromString(modifiedInput, url: 'modifiedInput');
-    final patches = suggestor.generatePatches(sourceFile);
+    final patches = suggestor.generatePatches(sourceFile).toList();
     var doubleModifiedInput =
         applyPatches(sourceFile, patches).trimRight() + '\n';
     if (shouldDartfmtOutput) {

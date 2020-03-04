@@ -24,39 +24,72 @@ import '../util.dart';
 class PropsAndStateCompanionClassRemover extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
+  bool shouldRemoveCompanionClassFor(
+          NamedCompilationUnitMember candidate, CompilationUnit node) =>
+      true;
+
   @override
   visitCompilationUnit(CompilationUnit node) {
-    final classDeclarations = node.declarations.whereType<ClassDeclaration>();
+    final classDeclarations = [
+      ...node.declarations.whereType<ClassOrMixinDeclaration>(),
+      ...node.declarations.whereType<ClassTypeAlias>(),
+    ];
     for (final cd in classDeclarations) {
-      if (cd.metadata.any((m) =>
-          overReactPropsStateNonMixinAnnotationNames.contains(m.name.name))) {
-        final className = cd.name.name;
-        final companionClassName = stripPrivateGeneratedPrefix(className);
-        final companionClass = classDeclarations.firstWhere(
-            (cd) => cd.name.name == companionClassName,
-            orElse: () => null);
-        if (companionClass != null) {
-          // The single-line comment about the companion class being temporary
-          // isn't associated with the class declaration node, so we need to
-          // explicitly check for it on the preceding line and remove that line
-          // as well if found.
-          final declLine = sourceFile.getLine(companionClass.offset);
-          final precedingLine = sourceFile.getText(
+      final companionClass = _getCompanionClassFor(cd, node);
+
+      if (companionClass != null && shouldRemoveCompanionClassFor(cd, node)) {
+        // The single-line comment about the companion class being temporary
+        // isn't associated with the class declaration node, so we need to
+        // explicitly check for it on the preceding line and remove that line
+        // as well if found.
+        final declLine = sourceFile.getLine(companionClass.offset);
+        final precedingLines = [
+          sourceFile.getText(
+            sourceFile.getOffset(declLine - 2),
+            sourceFile.getOffset(declLine) - 2,
+          ),
+          sourceFile.getText(
             sourceFile.getOffset(declLine - 1),
             sourceFile.getOffset(declLine) - 1,
-          );
-          var startOffset = companionClass.offset;
-          if (precedingLine.contains(temporaryCompanionClassComment)) {
-            startOffset = sourceFile.getOffset(declLine - 1);
+          ),
+        ];
+        var startOffset = companionClass.offset;
+        for (var i = 0; i < precedingLines.length; i++) {
+          final lineDelta = 2 - i;
+          final line = precedingLines[i];
+          if (line.contains(temporaryCompanionClassComment)) {
+            startOffset = sourceFile.getOffset(declLine - lineDelta);
+            break;
           }
-
-          yieldPatch(
-            startOffset,
-            companionClass.rightBracket.offset + 1,
-            '',
-          );
         }
+
+        yieldPatch(
+          startOffset,
+          companionClass.rightBracket.offset + 1,
+          '',
+        );
       }
     }
+  }
+
+  ClassOrMixinDeclaration _getCompanionClassFor(
+      NamedCompilationUnitMember classDeclaration, CompilationUnit node) {
+    final potentialCompanionClassDeclarations =
+        node.declarations.whereType<ClassDeclaration>();
+
+    if (classDeclaration.metadata.any((m) =>
+        overReactPropsStateNonMixinAnnotationNames.contains(m.name.name))) {
+      final className = classDeclaration.name.name;
+      final companionClassName = stripPrivateGeneratedPrefix(className);
+      final companionClass = potentialCompanionClassDeclarations.firstWhere(
+          (cd) =>
+              cd.name.name == companionClassName &&
+              cd.extendsClause?.superclass?.name?.name ==
+                  '$privateGeneratedPrefix${cd.name.name}',
+          orElse: () => null);
+      return companionClass;
+    }
+
+    return null;
   }
 }

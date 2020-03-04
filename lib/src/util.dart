@@ -17,15 +17,36 @@
 library over_react_codemod.src.util;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 
+import 'component2_suggestors/component2_utilities.dart';
 import 'constants.dart';
 
 typedef String CompanionBuilder(String className,
     {String annotations, String commentPrefix, String docComment});
+
+/// Returns an iterable of all the comments from [beginToken] to the end of the
+/// file.
+///
+/// Comments are part of the normal stream, and need to be accessed via
+/// [Token.precedingComments], so it's difficult to iterate over them without
+/// this method.
+Iterable<Token> allComments(Token beginToken) sync* {
+  var currentToken = beginToken;
+  while (!currentToken.isEof) {
+    var currentComment = currentToken.precedingComments;
+    while (currentComment != null) {
+      yield currentComment;
+      currentComment = currentComment.next;
+    }
+    currentToken = currentToken.next;
+  }
+}
 
 /// Returns a Dart single-line ignore comment that tells the analyzer to ignore
 /// the given set of analysis/lint rules.
@@ -272,6 +293,29 @@ final _usesOverReactRegex = RegExp(
   multiLine: true,
 );
 
+/// Returns whether or not [classNode] extends react.Component (either by having the
+/// `@Component` / `@Component2` annotation or by extending `react.Component`).
+bool extendsReactComponent(ClassDeclaration classNode) {
+  var extendsName = classNode?.extendsClause?.superclass?.name;
+  if (extendsName == null) {
+    return false;
+  }
+
+  final reactImportName =
+      getImportNamespace(classNode, 'package:react/react.dart');
+
+  if ((reactImportName != null &&
+          extendsName.name == '$reactImportName.Component') ||
+      classNode.metadata.any((m) => [
+            ...overReact16ComponentAnnotationNamesToMigrate,
+            ...overReact16Component2AnnotationNames
+          ].contains(m.name.name))) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 /// Method that creates a new dependency range by targeting a higher range.
 ///
 /// This can be used to update dependency ranges without lowering a current
@@ -284,6 +328,33 @@ VersionRange generateNewVersionRange(
     includeMin: true,
     max: targetRange.max,
   );
+}
+
+/// Returns the class in the root of the provided [node] that extends from UiComponent / UiComponent2.
+ClassDeclaration getComponentNodeInRoot(AstNode node) {
+  CompilationUnit unit = node.root;
+
+  final classDeclarationsInRoot =
+      unit.declarations.whereType<ClassDeclaration>();
+
+  for (var decl in classDeclarationsInRoot) {
+    if (extendsReactComponent(decl)) {
+      return decl;
+    }
+  }
+
+  return null;
+}
+
+/// Recursively traverses the [AstNode.parent] of the provided [node] until it finds
+/// a [ClassOrMixinDeclaration], then returns it.
+///
+/// Returns `null` if the provided [node] is not within a [ClassOrMixinDeclaration].
+ClassOrMixinDeclaration getContainingClass(AstNode node) {
+  if (node.parent == node.root) return null; // Not part of a class
+  if (node.parent is ClassOrMixinDeclaration) return node.parent;
+
+  return getContainingClass(node.parent);
 }
 
 /// Returns a string representation of [constraint], converting it to caret
@@ -306,6 +377,38 @@ String friendlyVersionConstraint(VersionConstraint constraint) {
   }
 
   return constraint.toString();
+}
+
+/// Returns whether or not [node] is declared in the same file as a Component2 component.
+bool isAssociatedWithComponent2(AstNode node) {
+  bool containsComponent2 = false;
+  CompilationUnit unit = node.root;
+
+  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+    if (extendsComponent2(classNode)) {
+      containsComponent2 = true;
+    }
+  });
+
+  return containsComponent2;
+}
+
+/// Returns whether or not [node] is declared in the same file as a AbstractComponent2 component.
+bool isAssociatedWithAbstractComponent2(AstNode node) {
+  bool containsAbstractComponent2 = false;
+  CompilationUnit unit = node.root;
+
+  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+    if (!extendsComponent2(classNode)) {
+      containsAbstractComponent2 = false;
+    } else {
+      // TODO: Is there a better way to determine if the superclass is abstract?
+      containsAbstractComponent2 =
+          classNode.extendsClause.superclass.name.name.startsWith('Abstract');
+    }
+  });
+
+  return containsAbstractComponent2;
 }
 
 /// Return whether or not a particular pubspec.yaml dependency value string
@@ -343,6 +446,38 @@ String parseAndRemoveCommentPrefixArg(List<String> args) {
   }
 
   return _commentPrefixParser.parse(commentPrefixArgs)['comment-prefix'];
+}
+
+/// Locates the [commentToRemove] and - if found - removes it from the
+/// [node] using the [yieldPatch] provided.
+void removeCommentFromNode(
+    AstNode node, String commentToRemove, YieldPatch yieldPatch) {
+  final nodeCommentLines = allComments(node.beginToken);
+  final commentLinesToRemove =
+      commentToRemove.split('\n').map((line) => line.trim()).toList();
+  final firstLineOfCommentToRemove = commentLinesToRemove.first;
+  final firstMatchingCommentLineToken = nodeCommentLines.firstWhere(
+      (token) => token.toString().trim() == firstLineOfCommentToRemove,
+      orElse: () => null);
+
+  if (firstMatchingCommentLineToken != null) {
+    if (commentLinesToRemove.length == 1) {
+      // Remove single line comment
+      yieldPatch(firstMatchingCommentLineToken.offset,
+          firstMatchingCommentLineToken.end, '');
+    } else {
+      final lastLineOfCommentToRemove =
+          commentLinesToRemove[commentLinesToRemove.length - 2];
+      final lastMatchingCommentLineToken = nodeCommentLines.lastWhere(
+          (token) => token.toString().trim() == lastLineOfCommentToRemove,
+          orElse: () => null);
+      if (lastMatchingCommentLineToken != null) {
+        // Remove multi line comment
+        yieldPatch(firstMatchingCommentLineToken.offset,
+            lastMatchingCommentLineToken.end, '');
+      }
+    }
+  }
 }
 
 /// Returns the Dart-2-compatible class name for the given props or state
@@ -430,4 +565,8 @@ String stripPrivateGeneratedPrefix(String value) {
   return value.startsWith(privateGeneratedPrefix)
       ? value.substring(privateGeneratedPrefix.length)
       : value;
+}
+
+extension IterableNullHelpers<E> on Iterable<E> {
+  E get firstOrNull => isEmpty ? null : first;
 }
