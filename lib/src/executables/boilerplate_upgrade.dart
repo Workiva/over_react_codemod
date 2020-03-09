@@ -19,16 +19,21 @@ import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/constants.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_meta_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
+import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
+import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 
 const _convertedClassesWithExternalSuperclassFlag =
-    '--convert-classes-with-external-superclasses';
-const _treatAllComponentsAsPrivateFlag = '--treat-all-components-as-private';
+    'convert-classes-with-external-superclasses';
+const _treatAllComponentsAsPrivateFlag = 'treat-all-components-as-private';
 const _changesRequiredOutput = '''
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
@@ -38,13 +43,18 @@ const _changesRequiredOutput = '''
 ''';
 
 void main(List<String> args) {
-  final parser = ArgParser.allowAnything()
+  final parser = ArgParser()
     ..addFlag(_convertedClassesWithExternalSuperclassFlag)
     ..addFlag(_treatAllComponentsAsPrivateFlag);
   final parsedArgs = parser.parse(args);
 
   final logger = Logger('over_react_codemod.boilerplate_upgrade');
 
+  exitCode = upgradeReactVersions(args);
+
+  if (exitCode != 0) {
+    return;
+  }
 
   final convertClassesWithExternalSuperclass =
       parsedArgs[_convertedClassesWithExternalSuperclassFlag] == true;
@@ -107,4 +117,27 @@ void main(List<String> args) {
         '${semverHelper.warning} Assuming all components are public and thus will not be migrated.');
     exitCode = 1;
   }
+}
+
+int upgradeReactVersions(List<String> args) {
+  final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
+  final overReactVersionConstraint =
+      VersionConstraint.parse(overReactVersionRange);
+
+  final pubspecYamlQuery = FileQuery.dir(
+    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
+    recursive: true,
+  );
+
+  return runInteractiveCodemod(
+    pubspecYamlQuery,
+    AggregateSuggestor([
+      PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
+      PubspecOverReactUpgrader(overReactVersionConstraint,
+          shouldAddDependencies: false),
+    ].map((s) => Ignoreable(s))),
+    args: args,
+    defaultYes: true,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
 }
