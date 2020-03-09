@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/constants.dart';
@@ -29,11 +30,14 @@ import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgra
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 import 'package:path/path.dart' as p;
+import 'package:prompts/prompts.dart' as prompts;
 import 'package:pub_semver/pub_semver.dart';
 
 const _convertedClassesWithExternalSuperclassFlag =
     'convert-classes-with-external-superclasses';
 const _treatAllComponentsAsPrivateFlag = 'treat-all-components-as-private';
+const _reactVersionRangeOption = 'react-version-range';
+const _overReactVersionRangeOption = 'over_react-vers-rangeon';
 const _changesRequiredOutput = '''
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
@@ -44,13 +48,22 @@ const _changesRequiredOutput = '''
 
 void main(List<String> args) {
   final parser = ArgParser()
+    ..addSeparator('Boilerplate Upgrade Options:')
     ..addFlag(_convertedClassesWithExternalSuperclassFlag)
-    ..addFlag(_treatAllComponentsAsPrivateFlag);
+    ..addFlag(_treatAllComponentsAsPrivateFlag)
+    ..addSeparator('Dependency Version Updates:')
+    ..addOption(_reactVersionRangeOption, defaultsTo: reactVersionRange)
+    ..addOption(_overReactVersionRangeOption,
+        defaultsTo: overReactVersionRange);
   final parsedArgs = parser.parse(args);
 
   final logger = Logger('over_react_codemod.boilerplate_upgrade');
 
-  exitCode = upgradeReactVersions(args);
+  exitCode = upgradeReactVersions(
+    args: parsedArgs.rest,
+    reactVersionRange: parsedArgs[_reactVersionRangeOption],
+    overReactVersionRange: parsedArgs[_overReactVersionRangeOption],
+  );
 
   if (exitCode != 0) {
     return;
@@ -119,7 +132,21 @@ void main(List<String> args) {
   }
 }
 
-int upgradeReactVersions(List<String> args) {
+int upgradeReactVersions({
+  @required List<String> args,
+  @required String reactVersionRange,
+  @required String overReactVersionRange,
+}) {
+  print(
+      '\n\nAbout to set dependency ranges: \n  react: "$reactVersionRange"\n  over_react: "$overReactVersionRange"');
+  final useDefaultRanges = prompts.getBool('Are these ranges correct?');
+  if (!useDefaultRanges) {
+    reactVersionRange =
+        prompts.get('react version range', defaultsTo: reactVersionRange);
+    overReactVersionRange = prompts.get('over_react version range',
+        defaultsTo: overReactVersionRange);
+  }
+
   final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
   final overReactVersionConstraint =
       VersionConstraint.parse(overReactVersionRange);
