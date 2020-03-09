@@ -14,6 +14,7 @@
 
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
@@ -37,15 +38,18 @@ const _changesRequiredOutput = '''
 ''';
 
 void main(List<String> args) {
+  final parser = ArgParser.allowAnything()
+    ..addFlag(_convertedClassesWithExternalSuperclassFlag)
+    ..addFlag(_treatAllComponentsAsPrivateFlag);
+  final parsedArgs = parser.parse(args);
+
   final logger = Logger('over_react_codemod.boilerplate_upgrade');
 
-  final convertClassesWithExternalSuperclass =
-      args.contains(_convertedClassesWithExternalSuperclassFlag);
-  args.removeWhere((arg) => arg == _convertedClassesWithExternalSuperclassFlag);
 
+  final convertClassesWithExternalSuperclass =
+      parsedArgs[_convertedClassesWithExternalSuperclassFlag] == true;
   final shouldTreatAllComponentsAsPrivate =
-      args.contains(_treatAllComponentsAsPrivateFlag);
-  args.removeWhere((arg) => arg == _treatAllComponentsAsPrivateFlag);
+      parsedArgs[_treatAllComponentsAsPrivateFlag] == true;
 
   final query = FileQuery.dir(
     pathFilter: (path) {
@@ -93,7 +97,7 @@ void main(List<String> args) {
       StubbedPropsAndStateClassRemover(classToMixinConverter),
       AnnotationsRemover(classToMixinConverter),
     ].map((s) => Ignoreable(s)),
-    args: args,
+    args: parsedArgs.rest,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
