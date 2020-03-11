@@ -14,20 +14,30 @@
 
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/constants.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_meta_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
+import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
+import 'package:path/path.dart' as p;
+import 'package:prompts/prompts.dart' as prompts;
+import 'package:pub_semver/pub_semver.dart';
 
 const _convertedClassesWithExternalSuperclassFlag =
-    '--convert-classes-with-external-superclasses';
-const _treatAllComponentsAsPrivateFlag = '--treat-all-components-as-private';
+    'convert-classes-with-external-superclasses';
+const _treatAllComponentsAsPrivateFlag = 'treat-all-components-as-private';
+const _reactVersionRangeOption = 'react-version-range';
+const _overReactVersionRangeOption = 'over_react-vers-rangeon';
 const _changesRequiredOutput = '''
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
@@ -37,15 +47,32 @@ const _changesRequiredOutput = '''
 ''';
 
 void main(List<String> args) {
+  final parser = ArgParser()
+    ..addSeparator('Boilerplate Upgrade Options:')
+    ..addFlag(_convertedClassesWithExternalSuperclassFlag)
+    ..addFlag(_treatAllComponentsAsPrivateFlag)
+    ..addSeparator('Dependency Version Updates:')
+    ..addOption(_reactVersionRangeOption, defaultsTo: reactVersionRange)
+    ..addOption(_overReactVersionRangeOption,
+        defaultsTo: overReactVersionRange);
+  final parsedArgs = parser.parse(args);
+
   final logger = Logger('over_react_codemod.boilerplate_upgrade');
 
-  final convertClassesWithExternalSuperclass =
-      args.contains(_convertedClassesWithExternalSuperclassFlag);
-  args.removeWhere((arg) => arg == _convertedClassesWithExternalSuperclassFlag);
+  exitCode = upgradeReactVersions(
+    args: parsedArgs.rest,
+    reactVersionRange: parsedArgs[_reactVersionRangeOption],
+    overReactVersionRange: parsedArgs[_overReactVersionRangeOption],
+  );
 
+  if (exitCode != 0) {
+    return;
+  }
+
+  final convertClassesWithExternalSuperclass =
+      parsedArgs[_convertedClassesWithExternalSuperclassFlag] == true;
   final shouldTreatAllComponentsAsPrivate =
-      args.contains(_treatAllComponentsAsPrivateFlag);
-  args.removeWhere((arg) => arg == _treatAllComponentsAsPrivateFlag);
+      parsedArgs[_treatAllComponentsAsPrivateFlag] == true;
 
   final query = FileQuery.dir(
     pathFilter: (path) {
@@ -59,42 +86,6 @@ void main(List<String> args) {
   final semverHelper = getSemverHelper('semver_report.json',
       shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
 
-  // General plan:
-  //  - Things that need to be accomplished (very simplified)
-  //    1. Make props / state class a mixin
-  //    2. Remove stub props / state classes
-  //    3. Remove annotations
-  //
-  //  - Before any changes occur (short circuit conditions):
-  //    1. Check that the component is `component2`
-  //    2. Check whether the props class is a public API
-  //      i. If this is unavailable, check the flag
-  //
-  //  - Suggestors:
-  //    1. Handle basic use cases
-  //    2. Handle advanced cases
-  //    3. Remove stubbed meta class
-  //    4. Remove annotations
-  //    5. Transition `PropsMixins`
-  //
-  //  - Common Utilities
-  //    - Detect Component2 (for short circuit condition 1)
-  //      - use `isAssociatedWithComponent2`
-  //    - Detect if the class is "simple".
-  //      - If false, short circuit suggestor 1
-  //      - If true, short circuit suggestor 2
-  //      - use `isSimplePropsOrStateClass`
-  //    - Switch a props / state class to a `mixin`
-  //      - Both the simple and advanced migrators likely need to switch a class
-  //        to a mixin (the advanced case can then just add a new line)
-  //      - use `migrateClassToMixin`
-  //    -? Detect if the file _will_ be updated
-  //      - NOTE: not created yet
-  //      - Can we rely on timing of suggestors? As in, if a suggestor runs after a different one, will its changes be in place?
-  //          - IIRC, no?
-  //      - If this is needed, it can be used for suggestors 3 and 4
-  //
-  //
   exitCode = runInteractiveCodemodSequence(
     query,
     <Suggestor>[
@@ -129,7 +120,7 @@ void main(List<String> args) {
       StubbedPropsAndStateClassRemover(classToMixinConverter),
       AnnotationsRemover(classToMixinConverter),
     ].map((s) => Ignoreable(s)),
-    args: args,
+    args: parsedArgs.rest,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
@@ -139,4 +130,41 @@ void main(List<String> args) {
         '${semverHelper.warning} Assuming all components are public and thus will not be migrated.');
     exitCode = 1;
   }
+}
+
+int upgradeReactVersions({
+  @required List<String> args,
+  @required String reactVersionRange,
+  @required String overReactVersionRange,
+}) {
+  print(
+      '\n\nAbout to set dependency ranges: \n  react: "$reactVersionRange"\n  over_react: "$overReactVersionRange"');
+  final useDefaultRanges = prompts.getBool('Are these ranges correct?');
+  if (!useDefaultRanges) {
+    reactVersionRange =
+        prompts.get('react version range', defaultsTo: reactVersionRange);
+    overReactVersionRange = prompts.get('over_react version range',
+        defaultsTo: overReactVersionRange);
+  }
+
+  final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
+  final overReactVersionConstraint =
+      VersionConstraint.parse(overReactVersionRange);
+
+  final pubspecYamlQuery = FileQuery.dir(
+    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
+    recursive: true,
+  );
+
+  return runInteractiveCodemod(
+    pubspecYamlQuery,
+    AggregateSuggestor([
+      PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
+      PubspecOverReactUpgrader(overReactVersionConstraint,
+          shouldAddDependencies: false),
+    ].map((s) => Ignoreable(s))),
+    args: args,
+    defaultYes: true,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
 }
