@@ -77,7 +77,7 @@ void propsMixinMigratorTestHelper({
         group('when the class implements Ui$typeStr', () {
           test('only', () {
             testSuggestor(
-              expectedPatchCount: 6,
+              expectedPatchCount: 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
@@ -96,12 +96,14 @@ void propsMixinMigratorTestHelper({
               expectedOutput: isValidFilePath
                   ? '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 String foo;
               }
             '''
                   : '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
@@ -121,7 +123,7 @@ void propsMixinMigratorTestHelper({
 
           test('along with other interfaces (Ui$typeStr first)', () {
             testSuggestor(
-              expectedPatchCount: 6,
+              expectedPatchCount: 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
@@ -140,12 +142,14 @@ void propsMixinMigratorTestHelper({
               expectedOutput: isValidFilePath
                   ? '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 String foo;
               }
             '''
                   : '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
@@ -165,7 +169,7 @@ void propsMixinMigratorTestHelper({
 
           test('along with other interfaces (Ui$typeStr last)', () {
             testSuggestor(
-              expectedPatchCount: 6,
+              expectedPatchCount: 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
@@ -184,12 +188,14 @@ void propsMixinMigratorTestHelper({
               expectedOutput: isValidFilePath
                   ? '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 String foo;
               }
             '''
                   : '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
@@ -211,7 +217,7 @@ void propsMixinMigratorTestHelper({
         group('when the class does not implement Ui$typeStr', () {
           test('but it does implement other interface(s)', () {
             testSuggestor(
-              expectedPatchCount: 6,
+              expectedPatchCount: 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
@@ -230,12 +236,14 @@ void propsMixinMigratorTestHelper({
               expectedOutput: isValidFilePath
                   ? '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 String foo;
               }
             '''
                   : '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
@@ -255,7 +263,7 @@ void propsMixinMigratorTestHelper({
 
           test('or any other interface', () {
             testSuggestor(
-              expectedPatchCount: 6,
+              expectedPatchCount: 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
@@ -273,12 +281,14 @@ void propsMixinMigratorTestHelper({
               expectedOutput: isValidFilePath
                   ? '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 String foo;
               }
             '''
                   : '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
@@ -302,7 +312,7 @@ void propsMixinMigratorTestHelper({
         group('is removed if the class is not part of the public API', () {
           test('and the meta field is the first field in the class', () {
             testSuggestor(
-              expectedPatchCount: 5,
+              expectedPatchCount: 4,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
@@ -318,12 +328,14 @@ void propsMixinMigratorTestHelper({
               expectedOutput: isValidFilePath
                   ? '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 String foo;
               }
             '''
                   : '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
@@ -339,7 +351,7 @@ void propsMixinMigratorTestHelper({
 
           test('and the meta field is not the first field in the class', () {
             testSuggestor(
-              expectedPatchCount: 5,
+              expectedPatchCount: 4,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
@@ -358,6 +370,7 @@ void propsMixinMigratorTestHelper({
               expectedOutput: isValidFilePath
                   ? '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
                 final baz = 'bar';
@@ -367,6 +380,7 @@ void propsMixinMigratorTestHelper({
             '''
                   : '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
                 final baz = 'bar';
@@ -387,7 +401,7 @@ void propsMixinMigratorTestHelper({
               'and the meta field is the first field in the class, but not the first member',
               () {
             testSuggestor(
-              expectedPatchCount: 5,
+              expectedPatchCount: 4,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
@@ -406,6 +420,7 @@ void propsMixinMigratorTestHelper({
               expectedOutput: isValidFilePath
                   ? '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
                 baz() => 'bar';
@@ -415,6 +430,7 @@ void propsMixinMigratorTestHelper({
             '''
                   : '''
               /// Some doc comment
+              @${typeStr}Mixin()
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
                 baz() => 'bar';
@@ -434,7 +450,7 @@ void propsMixinMigratorTestHelper({
 
         test('is deprecated if the class is part of the public API', () {
           testSuggestor(
-            expectedPatchCount: 5,
+            expectedPatchCount: 4,
             input: '''
             /// Some doc comment
             @${typeStr}Mixin()
@@ -450,12 +466,14 @@ void propsMixinMigratorTestHelper({
             expectedOutput: shouldTreatAllComponentsAsPrivate
                 ? '''
             /// Some doc comment
+            @${typeStr}Mixin()
             mixin Bar${typeStr}Mixin on Ui${typeStr} {
               String foo;
             }
           '''
                 : '''
             /// Some doc comment
+            @${typeStr}Mixin()
             mixin Bar${typeStr}Mixin on Ui${typeStr} {
               // To ensure the codemod regression checking works properly, please keep this
               // field at the top of the class!

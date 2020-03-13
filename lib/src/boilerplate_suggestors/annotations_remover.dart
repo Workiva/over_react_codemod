@@ -50,8 +50,10 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     'Factory',
     'AbstractProps',
     'Props',
+    'PropsMixin',
     'AbstractState',
     'State',
+    'StateMixin',
     'AbstractComponent2',
     'Component2',
   ];

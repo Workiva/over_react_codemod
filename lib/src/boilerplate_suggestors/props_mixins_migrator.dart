@@ -38,7 +38,6 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
 
     converter.migrate(node, yieldPatch);
     _removePropsOrStateGetter(node);
-    _removePropsOrStateMixinAnnotation(node);
     _migrateMixinMetaField(node);
   }
 
@@ -51,30 +50,6 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
         orElse: () => null);
     if (propsOrStateGetter != null) {
       yieldPatch(propsOrStateGetter.offset, propsOrStateGetter.end, '');
-    }
-  }
-
-  void _removePropsOrStateMixinAnnotation(ClassDeclaration node) {
-    final propsMixinAnnotationNode = getAnnotationNode(node, 'PropsMixin');
-    if (propsMixinAnnotationNode != null) {
-      yieldPatch(
-          propsMixinAnnotationNode.offset,
-          // Use the offset of the next token to ensure that any comments that were on the line
-          // immediately before the annotation we are removing - end up on the line immediately
-          // before the mixin declaration instead of having a newline separating them.
-          propsMixinAnnotationNode.endToken.next.offset,
-          '');
-    }
-
-    final stateMixinAnnotationNode = getAnnotationNode(node, 'StateMixin');
-    if (stateMixinAnnotationNode != null) {
-      yieldPatch(
-          stateMixinAnnotationNode.offset,
-          // Use the offset of the next token to ensure that any comments that were on the line
-          // immediately before the annotation we are removing - end up on the line immediately
-          // before the mixin declaration instead of having a newline separating them.
-          stateMixinAnnotationNode.endToken.next.offset,
-          '');
     }
   }
 
