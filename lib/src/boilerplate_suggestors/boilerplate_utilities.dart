@@ -491,6 +491,9 @@ class ClassToMixinConverter {
     } else {
       // --- Convert props/state mixin to an actual mixin --- //
 
+      yieldPatch(node.name.token.offset,
+          node.name.token.offset + privateGeneratedPrefix.length, '');
+
       if (node.implementsClause?.implementsKeyword != null) {
         final nodeInterfaces = node.implementsClause.interfaces;
         // Implements an interface, and does not extend from another class

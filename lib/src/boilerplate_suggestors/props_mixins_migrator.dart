@@ -15,6 +15,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 import 'boilerplate_utilities.dart';
 
@@ -67,7 +68,7 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
 
     if (isPublic(node, semverHelper)) {
       yieldPatch(metaField.parent.offset, metaField.parent.offset,
-          '@Deprecated(\'Use `propsMeta.forMixin(${node.name.name})` instead.\')\n');
+          '@Deprecated(\'Use `propsMeta.forMixin(${stripPrivateGeneratedPrefix(node.name.name)})` instead.\')\n');
     } else {
       // Remove the meta field, along with any comment lines that preceded it.
       final metaFieldDecl = metaField.parent;

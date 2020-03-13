@@ -77,11 +77,11 @@ void propsMixinMigratorTestHelper({
         group('when the class implements Ui$typeStr', () {
           test('only', () {
             testSuggestor(
-              expectedPatchCount: 5,
+              expectedPatchCount: 6,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class Foo${typeStr}Mixin implements Ui${typeStr} {
+              abstract class _\$Foo${typeStr}Mixin implements Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -123,11 +123,11 @@ void propsMixinMigratorTestHelper({
 
           test('along with other interfaces (Ui$typeStr first)', () {
             testSuggestor(
-              expectedPatchCount: 5,
+              expectedPatchCount: 6,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class Foo${typeStr}Mixin implements Ui${typeStr}, Bar${typeStr}Mixin, Baz${typeStr}Mixin {
+              abstract class _\$Foo${typeStr}Mixin implements Ui${typeStr}, Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -169,11 +169,11 @@ void propsMixinMigratorTestHelper({
 
           test('along with other interfaces (Ui$typeStr last)', () {
             testSuggestor(
-              expectedPatchCount: 5,
+              expectedPatchCount: 6,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class Foo${typeStr}Mixin implements Bar${typeStr}Mixin, Baz${typeStr}Mixin, Ui${typeStr} {
+              abstract class _\$Foo${typeStr}Mixin implements Bar${typeStr}Mixin, Baz${typeStr}Mixin, Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -217,11 +217,11 @@ void propsMixinMigratorTestHelper({
         group('when the class does not implement Ui$typeStr', () {
           test('but it does implement other interface(s)', () {
             testSuggestor(
-              expectedPatchCount: 5,
+              expectedPatchCount: 6,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class Foo${typeStr}Mixin implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
+              abstract class _\$Foo${typeStr}Mixin implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -263,11 +263,11 @@ void propsMixinMigratorTestHelper({
 
           test('or any other interface', () {
             testSuggestor(
-              expectedPatchCount: 5,
+              expectedPatchCount: 6,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class Foo${typeStr}Mixin {
+              abstract class _\$Foo${typeStr}Mixin {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -312,11 +312,11 @@ void propsMixinMigratorTestHelper({
         group('is removed if the class is not part of the public API', () {
           test('and the meta field is the first field in the class', () {
             testSuggestor(
-              expectedPatchCount: 4,
+              expectedPatchCount: 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class Foo${typeStr}Mixin implements Ui${typeStr} {
+              abstract class _\$Foo${typeStr}Mixin implements Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -351,11 +351,11 @@ void propsMixinMigratorTestHelper({
 
           test('and the meta field is not the first field in the class', () {
             testSuggestor(
-              expectedPatchCount: 4,
+              expectedPatchCount: 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class Foo${typeStr}Mixin implements Ui${typeStr} {
+              abstract class _\$Foo${typeStr}Mixin implements Ui${typeStr} {
                 // foooooo
                 final baz = 'bar';
               
@@ -401,11 +401,11 @@ void propsMixinMigratorTestHelper({
               'and the meta field is the first field in the class, but not the first member',
               () {
             testSuggestor(
-              expectedPatchCount: 4,
+              expectedPatchCount: 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class Foo${typeStr}Mixin implements Ui${typeStr} {
+              abstract class _\$Foo${typeStr}Mixin implements Ui${typeStr} {
                 // foooooo
                 baz() => 'bar';
               
@@ -450,11 +450,11 @@ void propsMixinMigratorTestHelper({
 
         test('is deprecated if the class is part of the public API', () {
           testSuggestor(
-            expectedPatchCount: 4,
+            expectedPatchCount: 5,
             input: '''
             /// Some doc comment
             @${typeStr}Mixin()
-            abstract class Bar${typeStr}Mixin implements Ui${typeStr} {
+            abstract class _\$Bar${typeStr}Mixin implements Ui${typeStr} {
               // To ensure the codemod regression checking works properly, please keep this
               // field at the top of the class!
               // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
