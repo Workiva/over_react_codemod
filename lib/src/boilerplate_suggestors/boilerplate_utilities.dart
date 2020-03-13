@@ -126,6 +126,7 @@ AstNode getAnnotationNode(ClassDeclaration classNode, String annotationName) {
 const reservedBaseClassNames = {
   'FluxUiProps': 'FluxUiPropsMixin',
   'DomPropsMixin': 'DomPropsMixin',
+  'ConnectPropsMixin': 'ConnectPropsMixin',
 };
 
 /// Returns whether the provided [className] is considered a "reserved" (non-custom) base class name to extend from or implement.
