@@ -14,6 +14,7 @@
 
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
+import 'package:over_react_codemod/src/constants.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
@@ -70,18 +71,22 @@ void propsMixinMigratorTestHelper({
       });
     });
 
-    void sharedTests(MixinType type) {
+    void sharedTests(MixinType type,
+        {bool withPrivateGeneratedPrefix = false}) {
       final typeStr = mixinStrByType[type];
+      final mixinName = withPrivateGeneratedPrefix
+          ? '_\$Foo${typeStr}Mixin'
+          : 'Foo${typeStr}Mixin';
 
       group('converting the class to a mixin', () {
         group('when the class implements Ui$typeStr', () {
           test('only', () {
             testSuggestor(
-              expectedPatchCount: 6,
+              expectedPatchCount: withPrivateGeneratedPrefix ? 6 : 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class _\$Foo${typeStr}Mixin implements Ui${typeStr} {
+              abstract class $mixinName implements Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -123,11 +128,11 @@ void propsMixinMigratorTestHelper({
 
           test('along with other interfaces (Ui$typeStr first)', () {
             testSuggestor(
-              expectedPatchCount: 6,
+              expectedPatchCount: withPrivateGeneratedPrefix ? 6 : 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class _\$Foo${typeStr}Mixin implements Ui${typeStr}, Bar${typeStr}Mixin, Baz${typeStr}Mixin {
+              abstract class $mixinName implements Ui${typeStr}, Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -169,11 +174,11 @@ void propsMixinMigratorTestHelper({
 
           test('along with other interfaces (Ui$typeStr last)', () {
             testSuggestor(
-              expectedPatchCount: 6,
+              expectedPatchCount: withPrivateGeneratedPrefix ? 6 : 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class _\$Foo${typeStr}Mixin implements Bar${typeStr}Mixin, Baz${typeStr}Mixin, Ui${typeStr} {
+              abstract class $mixinName implements Bar${typeStr}Mixin, Baz${typeStr}Mixin, Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -217,11 +222,11 @@ void propsMixinMigratorTestHelper({
         group('when the class does not implement Ui$typeStr', () {
           test('but it does implement other interface(s)', () {
             testSuggestor(
-              expectedPatchCount: 6,
+              expectedPatchCount: withPrivateGeneratedPrefix ? 6 : 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class _\$Foo${typeStr}Mixin implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
+              abstract class $mixinName implements Bar${typeStr}Mixin, Baz${typeStr}Mixin {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -263,11 +268,11 @@ void propsMixinMigratorTestHelper({
 
           test('or any other interface', () {
             testSuggestor(
-              expectedPatchCount: 6,
+              expectedPatchCount: withPrivateGeneratedPrefix ? 6 : 5,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class _\$Foo${typeStr}Mixin {
+              abstract class $mixinName {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -312,11 +317,11 @@ void propsMixinMigratorTestHelper({
         group('is removed if the class is not part of the public API', () {
           test('and the meta field is the first field in the class', () {
             testSuggestor(
-              expectedPatchCount: 5,
+              expectedPatchCount: withPrivateGeneratedPrefix ? 5 : 4,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class _\$Foo${typeStr}Mixin implements Ui${typeStr} {
+              abstract class $mixinName implements Ui${typeStr} {
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -351,11 +356,11 @@ void propsMixinMigratorTestHelper({
 
           test('and the meta field is not the first field in the class', () {
             testSuggestor(
-              expectedPatchCount: 5,
+              expectedPatchCount: withPrivateGeneratedPrefix ? 5 : 4,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class _\$Foo${typeStr}Mixin implements Ui${typeStr} {
+              abstract class $mixinName implements Ui${typeStr} {
                 // foooooo
                 final baz = 'bar';
               
@@ -401,11 +406,11 @@ void propsMixinMigratorTestHelper({
               'and the meta field is the first field in the class, but not the first member',
               () {
             testSuggestor(
-              expectedPatchCount: 5,
+              expectedPatchCount: withPrivateGeneratedPrefix ? 5 : 4,
               input: '''
               /// Some doc comment
               @${typeStr}Mixin()
-              abstract class _\$Foo${typeStr}Mixin implements Ui${typeStr} {
+              abstract class $mixinName implements Ui${typeStr} {
                 // foooooo
                 baz() => 'bar';
               
@@ -449,12 +454,16 @@ void propsMixinMigratorTestHelper({
         });
 
         test('is deprecated if the class is part of the public API', () {
+          final exportedMixinName = withPrivateGeneratedPrefix
+              ? '_\$Bar${typeStr}Mixin'
+              : 'Bar${typeStr}Mixin';
+
           testSuggestor(
-            expectedPatchCount: 5,
+            expectedPatchCount: withPrivateGeneratedPrefix ? 5 : 4,
             input: '''
             /// Some doc comment
             @${typeStr}Mixin()
-            abstract class _\$Bar${typeStr}Mixin implements Ui${typeStr} {
+            abstract class $exportedMixinName implements Ui${typeStr} {
               // To ensure the codemod regression checking works properly, please keep this
               // field at the top of the class!
               // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
@@ -493,12 +502,20 @@ void propsMixinMigratorTestHelper({
         'performs a migration when there is a `@PropsMixin()` annotation present:',
         () {
       sharedTests(MixinType.props);
+
+      group('and the class begins with the $privateGeneratedPrefix prefix', () {
+        sharedTests(MixinType.props, withPrivateGeneratedPrefix: true);
+      });
     });
 
     group(
         'performs a migration when there is a `@StateMixin()` annotation present:',
         () {
       sharedTests(MixinType.state);
+
+      group('and the class begins with the $privateGeneratedPrefix prefix', () {
+        sharedTests(MixinType.props, withPrivateGeneratedPrefix: true);
+      });
     });
   });
 }
