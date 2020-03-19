@@ -59,6 +59,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
       bool convertClassesWithExternalSuperclass = false,
       Map<String, String> visitedClassNames = const {},
       bool isValidSemverReportFilePath = true,
+      String sourceFileUrl = defaultSuggestorTesterInputUrl,
     }) {
       runCount++;
       final semverHelper = getSemverHelper(
@@ -66,13 +67,15 @@ void advancedPropsAndStateClassMigratorTestHelper({
               ? 'test/boilerplate_suggestors/semver_report.json'
               : 'test/boilerplate_suggestors/does_not_exist.json',
           shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
-      final tester = getSuggestorTester(AdvancedPropsAndStateClassMigrator(
-        converter,
-        semverHelper,
-        treatUnvisitedClassesAsExternal: runCount > 1,
-        convertClassesWithExternalSuperclass:
-            convertClassesWithExternalSuperclass,
-      ));
+      final tester = getSuggestorTester(
+          AdvancedPropsAndStateClassMigrator(
+            converter,
+            semverHelper,
+            treatUnvisitedClassesAsExternal: runCount > 1,
+            convertClassesWithExternalSuperclass:
+                convertClassesWithExternalSuperclass,
+          ),
+          inputUrl: sourceFileUrl);
 
       // If visitedClassNames is set, append the value of `converter.visitedClassNames`.
       // This is done to ensure that those custom classNames are not treated as members of an external library API.
@@ -277,102 +280,148 @@ void advancedPropsAndStateClassMigratorTestHelper({
         expect(converter.wasMigrated('BarState'), isFalse);
       });
 
-      test('the semver report does not exist, but does add a FIXME comment',
+      group('the semver report does not exist, but does add a FIXME comment',
           () {
-        testSuggestor(isValidSemverReportFilePath: false)(
-          expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
-          input: '''
-          $factoryDecl
-  
-          @Props()
-          class $propsClassName extends ADifferentPropsClass {
-            String foo;
-            int bar;
-          }
-  
-          @State()
-          class $stateClassName extends ADifferentStateClass {
-            String foo;
-            int bar;
-          }
-  
-          $componentDecl
-        ''',
-          expectedOutput: '''
-          $factoryDecl
-  
-          @Props()
-          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicPropsClassName` is assumed to be exported from
-          // a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
-          //
-          // --------- If you are migrating an OSS library outside of Workiva ---------
-          // You do not have access to Workiva's internal Semver audit tool. 
-          // To complete the migration, you should:
-          //
-          //   1. Revert all changes to remove this FIXME comment
-          //   2. Re-run the migration script with the following flag:    
-          //
-          //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
-          //
-          //   NOTE: The changes made to props / state classes by the codemod constitute breaking changes
-          //   if you publicly export them from your library. We strongly recommend that you release 
-          //   the subsequent changes in a major version.
-          //
-          // --------- If you are migrating a Workiva library ---------
-          // To complete the migration, you should:
-          //   1. Revert all changes to remove this FIXME comment
-          //   2. Generate a semver report by running the following script:
-          //
-          //        pub global activate semver_audit --hosted-url=https://pub.workiva.org
-          //        pub global run semver_audit generate 2> semver_report.json
-          //
-          //   3. Re-run the migration script:
-          //
-          //        pub global run over_react_codemod:boilerplate_upgrade'''}
-          class $propsClassName extends ADifferentPropsClass {
-            String foo;
-            int bar;
-          }
-  
-          @State()
-          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicStateClassName` is assumed to be exported from
-          // a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
-          //
-          // --------- If you are migrating an OSS library outside of Workiva ---------
-          // You do not have access to Workiva's internal Semver audit tool. 
-          // To complete the migration, you should:
-          //
-          //   1. Revert all changes to remove this FIXME comment
-          //   2. Re-run the migration script with the following flag:    
-          //
-          //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
-          //
-          //   NOTE: The changes made to props / state classes by the codemod constitute breaking changes
-          //   if you publicly export them from your library. We strongly recommend that you release 
-          //   the subsequent changes in a major version.
-          //
-          // --------- If you are migrating a Workiva library ---------
-          // To complete the migration, you should:
-          //   1. Revert all changes to remove this FIXME comment
-          //   2. Generate a semver report by running the following script:
-          //
-          //        pub global activate semver_audit --hosted-url=https://pub.workiva.org
-          //        pub global run semver_audit generate 2> semver_report.json
-          //
-          //   3. Re-run the migration script:
-          //
-          //        pub global run over_react_codemod:boilerplate_upgrade'''}
-          class $stateClassName extends ADifferentStateClass {
-            String foo;
-            int bar;
-          }
-  
-          $componentDecl
-        ''',
-        );
+        test('', () {
+          testSuggestor(isValidSemverReportFilePath: false)(
+            expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
+            input: '''
+            $factoryDecl
+    
+            @Props()
+            class $propsClassName extends ADifferentPropsClass {
+              String foo;
+              int bar;
+            }
+    
+            @State()
+            class $stateClassName extends ADifferentStateClass {
+              String foo;
+              int bar;
+            }
+    
+            $componentDecl
+          ''',
+            expectedOutput: '''
+            $factoryDecl
+    
+            @Props()
+            ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicPropsClassName` is assumed to be exported from
+            // a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
+            //
+            // --------- If you are migrating an OSS library outside of Workiva ---------
+            // You do not have access to Workiva's internal Semver audit tool. 
+            // To complete the migration, you should:
+            //
+            //   1. Revert all changes to remove this FIXME comment
+            //   2. Re-run the migration script with the following flag:    
+            //
+            //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
+            //
+            //   NOTE: The changes made to props / state classes by the codemod constitute breaking changes
+            //   if you publicly export them from your library. We strongly recommend that you release 
+            //   the subsequent changes in a major version.
+            //
+            // --------- If you are migrating a Workiva library ---------
+            // To complete the migration, you should:
+            //   1. Revert all changes to remove this FIXME comment
+            //   2. Generate a semver report by running the following script:
+            //
+            //        pub global activate semver_audit --hosted-url=https://pub.workiva.org
+            //        pub global run semver_audit generate 2> semver_report.json
+            //
+            //   3. Re-run the migration script:
+            //
+            //        pub global run over_react_codemod:boilerplate_upgrade'''}
+            class $propsClassName extends ADifferentPropsClass {
+              String foo;
+              int bar;
+            }
+    
+            @State()
+            ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicStateClassName` is assumed to be exported from
+            // a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
+            //
+            // --------- If you are migrating an OSS library outside of Workiva ---------
+            // You do not have access to Workiva's internal Semver audit tool. 
+            // To complete the migration, you should:
+            //
+            //   1. Revert all changes to remove this FIXME comment
+            //   2. Re-run the migration script with the following flag:    
+            //
+            //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
+            //
+            //   NOTE: The changes made to props / state classes by the codemod constitute breaking changes
+            //   if you publicly export them from your library. We strongly recommend that you release 
+            //   the subsequent changes in a major version.
+            //
+            // --------- If you are migrating a Workiva library ---------
+            // To complete the migration, you should:
+            //   1. Revert all changes to remove this FIXME comment
+            //   2. Generate a semver report by running the following script:
+            //
+            //        pub global activate semver_audit --hosted-url=https://pub.workiva.org
+            //        pub global run semver_audit generate 2> semver_report.json
+            //
+            //   3. Re-run the migration script:
+            //
+            //        pub global run over_react_codemod:boilerplate_upgrade'''}
+            class $stateClassName extends ADifferentStateClass {
+              String foo;
+              int bar;
+            }
+    
+            $componentDecl
+          ''',
+          );
 
-        expect(converter.wasMigrated('BarProps'), isFalse);
-        expect(converter.wasMigrated('BarState'), isFalse);
+          expect(converter.wasMigrated(publicPropsClassName), isFalse);
+          expect(converter.wasMigrated(publicStateClassName), isFalse);
+        });
+
+        test('unless the declaration is in a file outside of lib/', () {
+          testSuggestor(
+            isValidSemverReportFilePath: false,
+            sourceFileUrl: 'web/src/input.dart',
+            visitedClassNames: {
+              'ADifferentPropsClass': 'ADifferentPropsClassMixin',
+            },
+          )(
+            expectedPatchCount: 6,
+            input: '''
+            $factoryDecl
+
+            @Props()
+            class $propsClassName extends ADifferentPropsClass {
+              String foo;
+              int bar;
+            }
+
+            $componentDecl
+          ''',
+            expectedOutput: '''
+            $factoryDecl
+
+            @Props()
+            mixin ${publicPropsClassName}Mixin on UiProps {
+              String foo;
+              int bar;
+            }
+
+            @Props()
+            // FIXME:
+            //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
+            //   2. Fix any analyzer warnings on this class about missing mixins.
+            class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
+
+            $componentDecl
+          ''',
+          );
+
+          expect(converter.wasMigrated(publicPropsClassName), isTrue,
+              reason:
+                  'Declarations outside of lib/ should always be converted - even if no valid semver report is found.');
+        });
       });
 
       group(

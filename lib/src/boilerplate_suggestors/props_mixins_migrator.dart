@@ -15,6 +15,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 import 'boilerplate_utilities.dart';
 
@@ -38,7 +39,6 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
 
     converter.migrate(node, yieldPatch);
     _removePropsOrStateGetter(node);
-    _removePropsOrStateMixinAnnotation(node);
     _migrateMixinMetaField(node);
   }
 
@@ -54,30 +54,6 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
     }
   }
 
-  void _removePropsOrStateMixinAnnotation(ClassDeclaration node) {
-    final propsMixinAnnotationNode = getAnnotationNode(node, 'PropsMixin');
-    if (propsMixinAnnotationNode != null) {
-      yieldPatch(
-          propsMixinAnnotationNode.offset,
-          // Use the offset of the next token to ensure that any comments that were on the line
-          // immediately before the annotation we are removing - end up on the line immediately
-          // before the mixin declaration instead of having a newline separating them.
-          propsMixinAnnotationNode.endToken.next.offset,
-          '');
-    }
-
-    final stateMixinAnnotationNode = getAnnotationNode(node, 'StateMixin');
-    if (stateMixinAnnotationNode != null) {
-      yieldPatch(
-          stateMixinAnnotationNode.offset,
-          // Use the offset of the next token to ensure that any comments that were on the line
-          // immediately before the annotation we are removing - end up on the line immediately
-          // before the mixin declaration instead of having a newline separating them.
-          stateMixinAnnotationNode.endToken.next.offset,
-          '');
-    }
-  }
-
   /// NOTE: Usage of the meta field elsewhere will be migrated via the [PropsMetaMigrator].
   void _migrateMixinMetaField(ClassDeclaration node) {
     final classMembers = node.members;
@@ -90,9 +66,9 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
         orElse: () => null);
     if (metaField == null) return;
 
-    if (isPublic(node, semverHelper)) {
+    if (isPublic(node, semverHelper, sourceFile.url)) {
       yieldPatch(metaField.parent.offset, metaField.parent.offset,
-          '@Deprecated(\'Use `propsMeta.forMixin(${node.name.name})` instead.\')\n');
+          '@Deprecated(\'Use `propsMeta.forMixin(${stripPrivateGeneratedPrefix(node.name.name)})` instead.\')\n');
     } else {
       // Remove the meta field, along with any comment lines that preceded it.
       final metaFieldDecl = metaField.parent;

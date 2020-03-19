@@ -159,8 +159,11 @@ typedef SuggestorTester = void Function({
   void Function(String contents) validateContents,
 });
 
+const defaultSuggestorTesterInputUrl = 'lib/src/input';
+
 /// Returns a version of [testSuggestor] with [suggestor] curried.
-SuggestorTester getSuggestorTester(Suggestor suggestor) {
+SuggestorTester getSuggestorTester(Suggestor suggestor,
+    {String inputUrl = defaultSuggestorTesterInputUrl}) {
   return ({
     @required String input,
     String expectedOutput,
@@ -177,6 +180,7 @@ SuggestorTester getSuggestorTester(Suggestor suggestor) {
         shouldDartfmtOutput: shouldDartfmtOutput,
         testIdempotency: testIdempotency,
         validateContents: validateContents,
+        inputUrl: inputUrl,
       );
 }
 
@@ -188,7 +192,7 @@ void testSuggestor({
   bool shouldDartfmtOutput = true,
   bool testIdempotency = true,
   void Function(String contents) validateContents,
-  String inputUrl = 'input',
+  String inputUrl = defaultSuggestorTesterInputUrl,
 }) {
   if (expectedOutput == null) {
     expectedOutput = input;
@@ -222,7 +226,8 @@ void testSuggestor({
           reason: 'output is invalid');
     }
     if (shouldDartfmtOutput) {
-      modifiedInput = formatter.format(modifiedInput, uri: 'modifiedInput');
+      modifiedInput =
+          formatter.format(modifiedInput, uri: '$inputUrl.modifiedInput');
     }
     expect(modifiedInput, expectedOutput,
         reason: 'Original input:\n---------------\n$input');
@@ -230,13 +235,13 @@ void testSuggestor({
 
   if (testIdempotency) {
     final sourceFile =
-        SourceFile.fromString(modifiedInput, url: 'modifiedInput');
+        SourceFile.fromString(modifiedInput, url: '$inputUrl.modifiedInput');
     final patches = suggestor.generatePatches(sourceFile).toList();
     var doubleModifiedInput =
         applyPatches(sourceFile, patches).trimRight() + '\n';
     if (shouldDartfmtOutput) {
-      doubleModifiedInput =
-          formatter.format(doubleModifiedInput, uri: 'doubleModifiedInput');
+      doubleModifiedInput = formatter.format(doubleModifiedInput,
+          uri: '$inputUrl.doubleModifiedInput');
     }
     expect(doubleModifiedInput, expectedOutput,
         reason: 'Should be idempotent, but changed in the second run.\n\n'

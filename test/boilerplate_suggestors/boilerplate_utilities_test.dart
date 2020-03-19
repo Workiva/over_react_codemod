@@ -318,28 +318,53 @@ void semverUtilitiesTestHelper({
             : 'Could not find semver_report.json.');
   });
 
-  test('if props class is not in export list', () {
-    final input = '''
-      @Props()
-      class _\$FooProps extends UiProps{
-        String foo;
-        int bar;
-      }
-    ''';
+  group('if props class is not in export list', () {
+    test('and is found in a file within lib/', () {
+      final input = '''
+        @Props()
+        class _\$FooProps extends UiProps{
+          String foo;
+          int bar;
+        }
+      ''';
 
-    final unit = parseString(content: input).unit;
-    expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
+      final unit = parseString(content: input).unit;
+      expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
-    unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-      expect(
-          semverHelper.getPublicExportLocations(classNode),
-          isValidFilePath || shouldTreatAllComponentsAsPrivate
-              ? isEmpty
-              : [
-                  'Semver report not available; this class is assumed to be public and thus will not be updated.'
-                ]);
-      expect(isPublic(classNode, semverHelper),
-          !isValidFilePath && !shouldTreatAllComponentsAsPrivate);
+      unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+        expect(
+            semverHelper.getPublicExportLocations(
+                classNode, Uri.parse('lib/src/foo.dart')),
+            isValidFilePath || shouldTreatAllComponentsAsPrivate
+                ? isEmpty
+                : [
+                    'Semver report not available; this class is assumed to be public and thus will not be updated.'
+                  ]);
+        expect(isPublic(classNode, semverHelper, Uri.parse('lib/src/foo.dart')),
+            !isValidFilePath && !shouldTreatAllComponentsAsPrivate);
+      });
+    });
+
+    test('and is found in a file outside of lib/', () {
+      final input = '''
+        @Props()
+        class _\$FooProps extends UiProps{
+          String foo;
+          int bar;
+        }
+      ''';
+
+      final unit = parseString(content: input).unit;
+      expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
+
+      unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
+        expect(
+            semverHelper.getPublicExportLocations(
+                classNode, Uri.parse('web/src/foo.dart')),
+            isEmpty);
+        expect(isPublic(classNode, semverHelper, Uri.parse('web/src/foo.dart')),
+            isFalse);
+      });
     });
   });
 
@@ -364,9 +389,11 @@ void semverUtilitiesTestHelper({
     expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
 
     unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-      expect(semverHelper.getPublicExportLocations(classNode),
+      expect(
+          semverHelper.getPublicExportLocations(
+              classNode, Uri.parse('lib/src/foo.dart')),
           shouldTreatAllComponentsAsPrivate ? isEmpty : expectedOutput);
-      expect(isPublic(classNode, semverHelper),
+      expect(isPublic(classNode, semverHelper, Uri.parse('lib/src/foo.dart')),
           !shouldTreatAllComponentsAsPrivate);
     });
   });

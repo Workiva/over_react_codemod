@@ -16,6 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
+import 'package:source_span/source_span.dart';
 
 import 'boilerplate_utilities.dart';
 
@@ -40,7 +41,7 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
     converter.recordVisit(node);
 
     final _shouldMigrateSimplePropsAndStateClass =
-        shouldMigrateSimplePropsAndStateClass(node, semverHelper);
+        shouldMigrateSimplePropsAndStateClass(node, semverHelper, sourceFile);
     if (!_shouldMigrateSimplePropsAndStateClass.yee) {
       _shouldMigrateSimplePropsAndStateClass.patchWithReasonComment(
           node, yieldPatch);
@@ -52,9 +53,9 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
 }
 
 MigrationDecision shouldMigrateSimplePropsAndStateClass(
-    ClassDeclaration node, SemverHelper semverHelper) {
+    ClassDeclaration node, SemverHelper semverHelper, SourceFile sourceFile) {
   final _shouldMigratePropsAndStateClass =
-      getPropsAndStateClassMigrationDecision(node, semverHelper);
+      getPropsAndStateClassMigrationDecision(node, semverHelper, sourceFile);
   if (!_shouldMigratePropsAndStateClass.yee) {
     return _shouldMigratePropsAndStateClass;
   }

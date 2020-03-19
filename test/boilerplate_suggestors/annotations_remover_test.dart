@@ -61,10 +61,12 @@ main() {
           'FooProps': 'FooPropsMixin',
           'AbstractFooState': 'AbstractFooState',
           'FooState': 'FooState',
+          'BarPropsMixin': 'BarPropsMixin',
+          'BarStateMixin': 'BarStateMixin',
         });
 
         testSuggestor(
-          expectedPatchCount: 9,
+          expectedPatchCount: 11,
           input: '''
           @Factory()
           UiFactory<FooProps> Foo =
@@ -90,6 +92,9 @@ main() {
           @Props()
           class FooProps = UiProps with FooPropsMixin;
           
+          @PropsMixin()
+          mixin BarPropsMixin on UiProps {}
+          
           @AbstractState()
           mixin AbstractFooState on UiState {
             bool baz;
@@ -100,6 +105,9 @@ main() {
             String foo;
             int bar;
           }
+          
+          @StateMixin()
+          mixin BarStateMixin on UiState {}
     
           @Component2()
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
@@ -134,6 +142,8 @@ main() {
           }
           
           class FooProps = UiProps with FooPropsMixin;
+
+          mixin BarPropsMixin on UiProps {}
           
           mixin AbstractFooState on UiState {
             bool baz;
@@ -143,6 +153,8 @@ main() {
             String foo;
             int bar;
           }
+
+          mixin BarStateMixin on UiState {}
     
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
@@ -231,6 +243,8 @@ main() {
           'FooProps': 'FooPropsMixin',
           'AbstractFooState': 'AbstractFooState',
           'FooState': 'FooStateMixin',
+          'BarPropsMixin': 'BarPropsMixin',
+          'BarStateMixin': 'BarStateMixin',
         });
 
         testSuggestor(
@@ -260,6 +274,9 @@ main() {
           @Props(keyNamespace: '')
           class FooProps = UiProps with FooPropsMixin;
           
+          @PropsMixin(keyNamespace: '')
+          mixin BarPropsMixin on UiProps {}
+          
           @AbstractState(keyNamespace: '')
           mixin AbstractFooState on UiState {
             bool baz;
@@ -270,6 +287,9 @@ main() {
             String foo;
             int bar;
           }
+          
+          @StateMixin(keyNamespace: '')
+          mixin BarStateMixin on UiState {}
     
           @Component2(subtypeOf: BarComponent)
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
@@ -306,6 +326,9 @@ main() {
           @Props(keyNamespace: '')
           class FooProps = UiProps with FooPropsMixin;
           
+          @PropsMixin(keyNamespace: '')
+          mixin BarPropsMixin on UiProps {}
+          
           @AbstractState(keyNamespace: '')
           mixin AbstractFooState on UiState {
             bool baz;
@@ -316,6 +339,9 @@ main() {
             String foo;
             int bar;
           }
+          
+          @StateMixin(keyNamespace: '')
+          mixin BarStateMixin on UiState {}
     
           @Component2(subtypeOf: BarComponent)
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
