@@ -66,7 +66,7 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
         orElse: () => null);
     if (metaField == null) return;
 
-    if (isPublic(node, semverHelper)) {
+    if (isPublic(node, semverHelper, sourceFile.url)) {
       yieldPatch(metaField.parent.offset, metaField.parent.offset,
           '@Deprecated(\'Use `propsMeta.forMixin(${stripPrivateGeneratedPrefix(node.name.name)})` instead.\')\n');
     } else {

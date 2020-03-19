@@ -64,9 +64,13 @@ SemverHelper getSemverHelper(String path,
 }
 
 /// Returns whether or not [node] is publicly exported.
-bool isPublic(ClassDeclaration node, SemverHelper semverHelper) {
+bool isPublic(
+  ClassDeclaration node,
+  SemverHelper semverHelper,
+  Uri sourceFileUrl,
+) {
   assert(semverHelper != null);
-  return semverHelper.getPublicExportLocations(node).isNotEmpty;
+  return semverHelper.getPublicExportLocations(node, sourceFileUrl).isNotEmpty;
 }
 
 class SemverHelper {
@@ -93,9 +97,17 @@ class SemverHelper {
   /// Returns a list of locations where [node] is publicly exported.
   ///
   /// If [node] is not publicly exported, returns an empty list.
-  List<String> getPublicExportLocations(ClassDeclaration node) {
+  List<String> getPublicExportLocations(
+    ClassDeclaration node,
+    Uri sourceFileUrl,
+  ) {
     final className = stripPrivateGeneratedPrefix(node.name.name);
-    final List<String> locations = List();
+    final locations = <String>[];
+
+    if (!sourceFileUrl.toString().startsWith('lib/')) {
+      // The member is not inside of lib/ - so its inherently private.
+      return locations;
+    }
 
     if (_exportList == null && _isAlwaysPrivate) return locations;
     if (_exportList == null && !_isAlwaysPrivate) {
@@ -164,14 +176,15 @@ bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
 
 /// Returns whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
 MigrationDecision getPropsAndStateClassMigrationDecision(
-    ClassDeclaration node, SemverHelper semverHelper) {
+    ClassDeclaration node, SemverHelper semverHelper, SourceFile sourceFile) {
   final publicNodeName = stripPrivateGeneratedPrefix(node.name.name);
   const reRunMigrationScriptInstructions =
       'pub global run over_react_codemod:boilerplate_upgrade';
   if (!isAPropsOrStateClass(node)) {
     return MigrationDecision(false);
-  } else if (isPublic(node, semverHelper)) {
-    final publicExportLocations = semverHelper.getPublicExportLocations(node);
+  } else if (isPublic(node, semverHelper, sourceFile.url)) {
+    final publicExportLocations =
+        semverHelper.getPublicExportLocations(node, sourceFile.url);
     return MigrationDecision(false,
         reason:
             getPublicApiReasonComment(publicNodeName, publicExportLocations));

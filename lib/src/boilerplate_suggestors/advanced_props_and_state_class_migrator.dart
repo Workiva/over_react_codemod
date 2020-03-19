@@ -16,6 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
+import 'package:source_span/source_span.dart';
 
 import '../util.dart';
 import 'boilerplate_utilities.dart';
@@ -64,6 +65,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       node,
       converter,
       semverHelper,
+      sourceFile,
       mixinNames: mixinNames,
       parentClassHasBeenVisited: converter.wasVisited(parentClassName),
       parentClassHasBeenConverted: converter.wasMigrated(parentClassName),
@@ -290,7 +292,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
   ClassDeclaration node,
   ClassToMixinConverter converter,
-  SemverHelper semverHelper, {
+  SemverHelper semverHelper,
+  SourceFile sourceFile, {
   bool convertClassesWithExternalSuperclass = false,
   bool parentClassHasBeenVisited = false,
   bool parentClassHasBeenConverted = false,
@@ -302,7 +305,7 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
   }
 
   final _shouldMigratePropsAndStateClass =
-      getPropsAndStateClassMigrationDecision(node, semverHelper);
+      getPropsAndStateClassMigrationDecision(node, semverHelper, sourceFile);
   if (!_shouldMigratePropsAndStateClass.yee) {
     return _shouldMigratePropsAndStateClass;
   } else if (!isAdvancedPropsOrStateClass(node)) {
