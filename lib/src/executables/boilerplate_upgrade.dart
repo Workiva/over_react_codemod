@@ -26,6 +26,7 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_s
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/generated_part_directive_ignore_remover.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
@@ -119,6 +120,7 @@ void main(List<String> args) {
       // migrators have finished, but before the annotations are removed.
       StubbedPropsAndStateClassRemover(classToMixinConverter),
       AnnotationsRemover(classToMixinConverter),
+      GeneratedPartDirectiveIgnoreRemover(),
     ].map((s) => Ignoreable(s)),
     args: parsedArgs.rest,
     defaultYes: true,
