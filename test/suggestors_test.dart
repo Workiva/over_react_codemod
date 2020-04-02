@@ -14,6 +14,7 @@
 
 @TestOn('vm')
 import 'package:mockito/mockito.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/factory_ignore_comment_mover.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -102,5 +103,14 @@ void main() {
       ),
     };
     testSuggestorsDir(suggestorMap, 'test/dart2_suggestors');
+  });
+
+  group('Boilerplate suggestors', () {
+    final suggestorMap = {
+      'FactoryIgnoreCommentMover': Ignoreable(
+        FactoryIgnoreCommentMover(),
+      ),
+    };
+    testSuggestorsDir(suggestorMap, 'test/boilerplate_suggestors');
   });
 }

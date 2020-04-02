@@ -21,6 +21,7 @@ import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/constants.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/factory_ignore_comment_mover.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_meta_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/simple_props_and_state_class_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and_state_class_migrator.dart';
@@ -121,6 +122,7 @@ void main(List<String> args) {
       StubbedPropsAndStateClassRemover(classToMixinConverter),
       AnnotationsRemover(classToMixinConverter),
       GeneratedPartDirectiveIgnoreRemover(),
+      FactoryIgnoreCommentMover(),
     ].map((s) => Ignoreable(s)),
     args: parsedArgs.rest,
     defaultYes: true,
