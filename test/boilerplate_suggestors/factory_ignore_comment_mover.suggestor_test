@@ -1,0 +1,41 @@
+FactoryIgnoreCommentMover @dartfmt_output
+>>> empty file (patches 0)
+<<<
+
+
+>>> no matches (patches 0)
+library foo;
+var a = 'b';
+class Foo {}
+<<<
+library foo;
+var a = 'b';
+class Foo {}
+
+
+>>> factory with no initializer (patches 0)
+UiFactory<FooProps> Foo;
+<<<
+UiFactory<FooProps> Foo;
+
+
+>>> factory with no ignore comment (patches 0)
+UiFactory<FooProps> Foo = _$Foo;
+<<<
+UiFactory<FooProps> Foo = _$Foo;
+
+
+>>> factory (patches 2)
+UiFactory<FooProps> Foo =
+    // ignore: undefined_identifier
+    _$Foo;
+<<<
+UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier
+
+
+>>> factory with no type params (patches 2)
+UiFactory Foo =
+    // ignore: undefined_identifier
+    _$Foo;
+<<<
+UiFactory Foo = _$Foo; // ignore: undefined_identifier
