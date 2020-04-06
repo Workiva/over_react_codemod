@@ -339,28 +339,25 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         ''');
       } else {
         final consumedPropsDeclaration = consumedPropsDeclarations.single;
+
         ListLiteral currentConsumedProps;
-        final consumedPropsExpressionFunctionBody = consumedPropsDeclaration
-            .childEntities
-            .whereType<ExpressionFunctionBody>();
-        final consumedPropsBlockBody = consumedPropsDeclaration.childEntities
-            .whereType<BlockFunctionBody>();
-        if (consumedPropsExpressionFunctionBody.isNotEmpty) {
-          currentConsumedProps = consumedPropsExpressionFunctionBody
-              .single.childEntities
-              .whereType<ListLiteral>()
-              .single;
-        } else if (consumedPropsBlockBody.isNotEmpty) {
-          currentConsumedProps = consumedPropsBlockBody
-              .single.block.childEntities
+        final body = consumedPropsDeclaration.body;
+        if (body is ExpressionFunctionBody) {
+          final expression = body.expression;
+          if (expression is ListLiteral) {
+            currentConsumedProps = expression;
+          }
+        } else if (body is BlockFunctionBody) {
+          body.block.statements
               .whereType<ReturnStatement>()
-              .single
-              .childEntities
+              .map((r) => r.expression)
               .whereType<ListLiteral>()
-              .single;
+              .take(1)
+              .forEach((list) => currentConsumedProps = list);
         }
 
-        if (currentConsumedProps.elements.isNotEmpty) {
+        if (currentConsumedProps != null &&
+            currentConsumedProps.elements.isNotEmpty) {
           if (node.members.isNotEmpty) {
             yieldPatch(consumedPropsDeclaration.offset,
                 consumedPropsDeclaration.offset, '''
