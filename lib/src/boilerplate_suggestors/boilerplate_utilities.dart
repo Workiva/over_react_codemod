@@ -472,7 +472,7 @@ class ClassToMixinConverter {
         // since the "shorthand" / "mixin only" boilerplate will suffice.
         if (!shouldSwapParentClass &&
             dupeClassName != null &&
-            node.withClause.mixinTypes.length == 1 &&
+            node.withClause?.mixinTypes?.length == 1 &&
             node.implementsClause == null) {
           _visitedNames[originalPublicClassName] =
               '${originalPublicClassName}Mixin';
