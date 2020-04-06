@@ -291,23 +291,19 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       // declaration to utilize the mixin instead of the old concrete class.
       final componentNode = getComponentNodeInRoot(node);
 
-      final classNameAsSuperclassTypeArgument = componentNode
-          .extendsClause.superclass.typeArguments.arguments
-          .where((arg) => arg.toSource() == className);
-      final classNameAsMixinTypeArgument = componentNode.withClause?.mixinTypes
-          ?.map((type) => type.typeArguments.arguments
-              .where((arg) => arg.toSource() == className))
-          ?.expand((arg) => arg);
-      final classNameAsInterfaceTypeArgument = componentNode
-          .implementsClause?.interfaces
-          ?.map((type) => type.typeArguments.arguments
-              .where((arg) => arg.toSource() == className))
-          ?.expand((arg) => arg);
-      final allClassNameAsTypeArguments = [
-        ...classNameAsSuperclassTypeArgument,
-        ...?classNameAsMixinTypeArgument,
-        ...?classNameAsInterfaceTypeArgument,
+      final allSupertypes = <TypeName>[
+        componentNode.extendsClause.superclass,
+        ...?componentNode.withClause?.mixinTypes,
+        ...?componentNode.implementsClause?.interfaces,
       ];
+
+      final allClassNameAsTypeArguments = allSupertypes
+          .map((type) =>
+              type.typeArguments?.arguments
+                  ?.whereType<NamedType>()
+                  ?.where((arg) => arg.name.name == className) ??
+              [])
+          .expand((args) => args);
 
       for (var classNameAsTypeArg in allClassNameAsTypeArguments) {
         yieldPatch(
