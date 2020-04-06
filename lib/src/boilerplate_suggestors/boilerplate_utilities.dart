@@ -465,7 +465,20 @@ class ClassToMixinConverter {
         // Delete the class since a mixin with the same name already exists,
         // or the class has no members of its own.
         yieldPatch(node.offset, node.end, '');
-        _visitedNames[originalPublicClassName] = originalPublicClassName;
+
+        // If a class extends from UiProps/UiState and uses a single mixin that has a name
+        // that matches the concrete class name appended with `Mixin`,
+        // the advanced props/state migrator will not create a new concrete class declaration
+        // since the "shorthand" / "mixin only" boilerplate will suffice.
+        if (!shouldSwapParentClass &&
+            dupeClassName != null &&
+            node.withClause?.mixinTypes?.length == 1 &&
+            node.implementsClause == null) {
+          _visitedNames[originalPublicClassName] =
+              '${originalPublicClassName}Mixin';
+        } else {
+          _visitedNames[originalPublicClassName] = originalPublicClassName;
+        }
         return;
       }
     }

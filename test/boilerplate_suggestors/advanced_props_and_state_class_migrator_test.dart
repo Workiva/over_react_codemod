@@ -2233,88 +2233,705 @@ void advancedPropsAndStateClassMigratorTestHelper({
         group(
             'and there is already a mixin that matches the name of the class appended with "Mixin"',
             () {
-          test('and the class has no members of its own', () {
-            testSuggestor(visitedClassNames: {
-              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-            })(
-              expectedPatchCount: 2,
-              input: '''
-              $factoryDecl
+          group('and the class has no members of its own', () {
+            test(
+                'and an accompanying component class that does not override `consumedProps`',
+                () {
+              testSuggestor(visitedClassNames: {
+                '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              })(
+                expectedPatchCount: 3,
+                input: '''
+                $factoryDecl
+  
+                @PropsMixin()
+                mixin ${publicPropsClassName}Mixin on UiProps {
+                  String foo;
+                  int bar;
+                }
+  
+                @Props()
+                class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
+  
+                @Component2()
+                class FooComponent extends UiComponent2<$publicPropsClassName> {
+                  @override
+                  render() {}
+                }
+              ''',
+                expectedOutput: '''
+                $factoryDecl
+  
+                @PropsMixin()
+                mixin ${publicPropsClassName}Mixin on UiProps {
+                  String foo;
+                  int bar;
+                }
+  
+                @Component2()
+                class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                  // Override consumedProps to an empty list so that props within 
+                  // ${publicPropsClassName}Mixin are forwarded when `addUnconsumedProps` is used.
+                  @override
+                  get consumedProps => [];
+                
+                  @override
+                  render() {} 
+                }
+              ''',
+              );
 
-              @PropsMixin()
-              mixin ${publicPropsClassName}Mixin on UiProps {
-                String foo;
-                int bar;
-              }
+              expect(converter.visitedNames, {
+                '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+                publicPropsClassName: '${publicPropsClassName}Mixin',
+              });
+            });
 
-              @Props()
-              class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
+            group(
+                'and an accompanying component class that already overrides `consumedProps`',
+                () {
+              test('to an empty list', () {
+                testSuggestor(visitedClassNames: {
+                  '${publicPropsClassName}Mixin':
+                      '${publicPropsClassName}Mixin',
+                })(
+                  expectedPatchCount: 2,
+                  input: '''
+                  $factoryDecl
+    
+                  @PropsMixin()
+                  mixin ${publicPropsClassName}Mixin on UiProps {
+                    String foo;
+                    int bar;
+                  }
+    
+                  @Props()
+                  class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
+    
+                  @Component2()
+                  class FooComponent extends UiComponent2<$publicPropsClassName> {
+                    @override
+                    get consumedProps => [];
+                  
+                    @override
+                    render() {}
+                  }
+                ''',
+                  expectedOutput: '''
+                  $factoryDecl
+    
+                  @PropsMixin()
+                  mixin ${publicPropsClassName}Mixin on UiProps {
+                    String foo;
+                    int bar;
+                  }
+    
+                  @Component2()
+                  class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                    @override
+                    get consumedProps => [];
+                  
+                    @override
+                    render() {} 
+                  }
+                ''',
+                );
+              });
 
-              $componentDecl
-            ''',
-              expectedOutput: '''
-              $factoryDecl
+              group('to a non-empty empty list using an ExpressionFunctionBody',
+                  () {
+                test('that contains `${publicPropsClassName}.meta`', () {
+                  testSuggestor(visitedClassNames: {
+                    '${publicPropsClassName}Mixin':
+                        '${publicPropsClassName}Mixin',
+                  })(
+                    expectedPatchCount: 4,
+                    input: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Props()
+                    class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<$publicPropsClassName> {
+                      @override
+                      get consumedProps => [
+                        $publicPropsClassName.meta,
+                      ];
+                    
+                      @override
+                      render() {}
+                    }
+                  ''',
+                    expectedOutput: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // and replaced by ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
+                      // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
+                      @override
+                      get consumedProps => [
+                        propsMeta.forMixin(${publicPropsClassName}Mixin),
+                      ];
+                    
+                      @override
+                      render() {} 
+                    }
+                  ''',
+                  );
+                });
 
-              @PropsMixin()
-              mixin ${publicPropsClassName}Mixin on UiProps {
-                String foo;
-                int bar;
-              }
+                test('that does not contain `${publicPropsClassName}.meta`',
+                    () {
+                  testSuggestor(visitedClassNames: {
+                    '${publicPropsClassName}Mixin':
+                        '${publicPropsClassName}Mixin',
+                  })(
+                    expectedPatchCount: 3,
+                    input: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Props()
+                    class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<$publicPropsClassName> {
+                      @override
+                      get consumedProps => [
+                        propsMeta.forMixin(${publicPropsClassName}Mixin),
+                      ];
+                    
+                      @override
+                      render() {}
+                    }
+                  ''',
+                    expectedOutput: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // and replaced by ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
+                      // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
+                      @override
+                      get consumedProps => [
+                        propsMeta.forMixin(${publicPropsClassName}Mixin),
+                      ];
+                    
+                      @override
+                      render() {} 
+                    }
+                  ''',
+                  );
+                });
+              });
 
-              @Props()
-              class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin;
+              group('to a non-empty empty list using an BlockFunctionBody', () {
+                test('that contains `${publicPropsClassName}.meta`', () {
+                  testSuggestor(visitedClassNames: {
+                    '${publicPropsClassName}Mixin':
+                        '${publicPropsClassName}Mixin',
+                  })(
+                    expectedPatchCount: 4,
+                    input: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Props()
+                    class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<$publicPropsClassName> {
+                      @override
+                      get consumedProps {
+                        return [
+                          $publicPropsClassName.meta,
+                        ];
+                      }
+                    
+                      @override
+                      render() {}
+                    }
+                  ''',
+                    expectedOutput: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // and replaced by ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
+                      // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
+                      @override
+                      get consumedProps { 
+                        return [
+                          propsMeta.forMixin(${publicPropsClassName}Mixin),
+                        ];
+                      }
+                    
+                      @override
+                      render() {} 
+                    }
+                  ''',
+                  );
+                });
 
-              $componentDecl
-            ''',
-            );
-
-            expect(converter.visitedNames, {
-              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-              publicPropsClassName: publicPropsClassName,
+                test('that does not contain `${publicPropsClassName}.meta`',
+                    () {
+                  testSuggestor(visitedClassNames: {
+                    '${publicPropsClassName}Mixin':
+                        '${publicPropsClassName}Mixin',
+                  })(
+                    expectedPatchCount: 3,
+                    input: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Props()
+                    class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<$publicPropsClassName> {
+                      @override
+                      get consumedProps { 
+                        return [
+                          propsMeta.forMixin(${publicPropsClassName}Mixin),
+                        ];
+                      }
+                    
+                      @override
+                      render() {}
+                    }
+                  ''',
+                    expectedOutput: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // and replaced by ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
+                      // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
+                      @override
+                      get consumedProps { 
+                        return [
+                          propsMeta.forMixin(${publicPropsClassName}Mixin),
+                        ];
+                      }
+                    
+                      @override
+                      render() {} 
+                    }
+                  ''',
+                  );
+                });
+              });
             });
           });
 
-          test('and the class has members', () {
-            testSuggestor(visitedClassNames: {
-              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-            })(
-              expectedPatchCount: 3,
-              input: '''
-              $factoryDecl
+          group('and the class has members', () {
+            test(
+                'and an accompanying component class that does not override `consumedProps`',
+                () {
+              testSuggestor(visitedClassNames: {
+                '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+              })(
+                expectedPatchCount: 4,
+                input: '''
+                $factoryDecl
 
-              @PropsMixin()
-              mixin ${publicPropsClassName}Mixin on UiProps {
-                String foo;
-                int bar;
-              }
+                @PropsMixin()
+                mixin ${publicPropsClassName}Mixin on UiProps {
+                  String foo;
+                  int bar;
+                }
+  
+                @Props()
+                class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
+                  String baz;
+                }
+  
+                @Component2()
+                class FooComponent extends UiComponent2<$publicPropsClassName> {
+                  @override
+                  render() {}
+                }
+              ''',
+                expectedOutput: '''
+                $factoryDecl
+  
+                @PropsMixin()
+                mixin ${publicPropsClassName}Mixin on UiProps {
+                  String foo;
+                  int bar;
+                  String baz;
+                }
+  
+                @Component2()
+                class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                  // Override consumedProps to an empty list so that props within 
+                  // ${publicPropsClassName}Mixin are forwarded when `addUnconsumedProps` is used.
+                  @override
+                  get consumedProps => [];
+                
+                  @override
+                  render() {} 
+                }
+              ''',
+              );
 
-              @Props()
-              class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
-                String baz;
-              }
+              expect(converter.visitedNames, {
+                '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
+                publicPropsClassName: '${publicPropsClassName}Mixin',
+              });
+            });
 
-              $componentDecl
-            ''',
-              expectedOutput: '''
-              $factoryDecl
+            group(
+                'and an accompanying component class that already overrides `consumedProps`',
+                () {
+              test('to an empty list', () {
+                testSuggestor(visitedClassNames: {
+                  '${publicPropsClassName}Mixin':
+                      '${publicPropsClassName}Mixin',
+                })(
+                  expectedPatchCount: 3,
+                  input: '''
+                  $factoryDecl
+    
+                  @PropsMixin()
+                  mixin ${publicPropsClassName}Mixin on UiProps {
+                    String foo;
+                    int bar;
+                  }
+    
+                  @Props()
+                  class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
+                    String baz;
+                  }
+    
+                  @Component2()
+                  class FooComponent extends UiComponent2<$publicPropsClassName> {
+                    @override
+                    get consumedProps => [];
+                  
+                    @override
+                    render() {}
+                  }
+                ''',
+                  expectedOutput: '''
+                  $factoryDecl
+    
+                  @PropsMixin()
+                  mixin ${publicPropsClassName}Mixin on UiProps {
+                    String foo;
+                    int bar;
+                    String baz;
+                  }
+    
+                  @Component2()
+                  class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                    @override
+                    get consumedProps => [];
+                  
+                    @override
+                    render() {} 
+                  }
+                ''',
+                );
+              });
 
-              @PropsMixin()
-              mixin ${publicPropsClassName}Mixin on UiProps {
-                String foo;
-                int bar;
-                String baz;
-              }
+              group('to a non-empty empty list using an ExpressionFunctionBody',
+                  () {
+                test('that contains `${publicPropsClassName}.meta`', () {
+                  testSuggestor(visitedClassNames: {
+                    '${publicPropsClassName}Mixin':
+                        '${publicPropsClassName}Mixin',
+                  })(
+                    expectedPatchCount: 5,
+                    input: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Props()
+                    class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
+                      String baz;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<$publicPropsClassName> {
+                      @override
+                      get consumedProps => [
+                        $publicPropsClassName.meta,
+                      ];
+                    
+                      @override
+                      render() {}
+                    }
+                  ''',
+                    expectedOutput: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                      String baz;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // and all of its props were moved to ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
+                      // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
+                      @override
+                      get consumedProps => [
+                        propsMeta.forMixin(${publicPropsClassName}Mixin),
+                      ];
+                    
+                      @override
+                      render() {} 
+                    }
+                  ''',
+                  );
+                });
 
-              @Props()
-              class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin;
+                test('that does not contain `${publicPropsClassName}.meta`',
+                    () {
+                  testSuggestor(visitedClassNames: {
+                    '${publicPropsClassName}Mixin':
+                        '${publicPropsClassName}Mixin',
+                  })(
+                    expectedPatchCount: 4,
+                    input: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Props()
+                    class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
+                      String baz;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<$publicPropsClassName> {
+                      @override
+                      get consumedProps => [
+                        propsMeta.forMixin(${publicPropsClassName}Mixin),
+                      ];
+                    
+                      @override
+                      render() {}
+                    }
+                  ''',
+                    expectedOutput: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                      String baz;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // and all of its props were moved to ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
+                      // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
+                      @override
+                      get consumedProps => [
+                        propsMeta.forMixin(${publicPropsClassName}Mixin),
+                      ];
+                    
+                      @override
+                      render() {} 
+                    }
+                  ''',
+                  );
+                });
+              });
 
-              $componentDecl
-            ''',
-            );
+              group('to a non-empty empty list using an BlockFunctionBody', () {
+                test('that contains `${publicPropsClassName}.meta`', () {
+                  testSuggestor(visitedClassNames: {
+                    '${publicPropsClassName}Mixin':
+                        '${publicPropsClassName}Mixin',
+                  })(
+                    expectedPatchCount: 5,
+                    input: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Props()
+                    class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
+                      String baz;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<$publicPropsClassName> {
+                      @override
+                      get consumedProps {
+                        return [
+                          $publicPropsClassName.meta,
+                        ];
+                      }
+                    
+                      @override
+                      render() {}
+                    }
+                  ''',
+                    expectedOutput: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                      String baz;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // and all of its props were moved to ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
+                      // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
+                      @override
+                      get consumedProps { 
+                        return [
+                          propsMeta.forMixin(${publicPropsClassName}Mixin),
+                        ];
+                      }
+                    
+                      @override
+                      render() {} 
+                    }
+                  ''',
+                  );
+                });
 
-            expect(converter.visitedNames, {
-              '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
-              publicPropsClassName: publicPropsClassName,
+                test('that does not contain `${publicPropsClassName}.meta`',
+                    () {
+                  testSuggestor(visitedClassNames: {
+                    '${publicPropsClassName}Mixin':
+                        '${publicPropsClassName}Mixin',
+                  })(
+                    expectedPatchCount: 4,
+                    input: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                    }
+      
+                    @Props()
+                    class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
+                      String baz;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<$publicPropsClassName> {
+                      @override
+                      get consumedProps { 
+                        return [
+                          propsMeta.forMixin(${publicPropsClassName}Mixin),
+                        ];
+                      }
+                    
+                      @override
+                      render() {}
+                    }
+                  ''',
+                    expectedOutput: '''
+                    $factoryDecl
+      
+                    @PropsMixin()
+                    mixin ${publicPropsClassName}Mixin on UiProps {
+                      String foo;
+                      int bar;
+                      String baz;
+                    }
+      
+                    @Component2()
+                    class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // and all of its props were moved to ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
+                      // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
+                      @override
+                      get consumedProps { 
+                        return [
+                          propsMeta.forMixin(${publicPropsClassName}Mixin),
+                        ];
+                      }
+                    
+                      @override
+                      render() {} 
+                    }
+                  ''',
+                  );
+                });
+              });
             });
           });
         });

@@ -88,8 +88,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         node.extendsClause.superclass.typeArguments ?? '';
 
     final className = stripPrivateGeneratedPrefix(node.name.name);
-    final dupeMixinExists =
-        getNameOfDupeClass(className, node.root, converter) != null;
+    final nameOfDupeMixin = getNameOfDupeClass(className, node.root, converter);
+    final dupeMixinExists = nameOfDupeMixin != null;
     final mixinWillBeCreatedFromClass =
         !dupeMixinExists && node.members.isNotEmpty;
     final dupeClassInSameRoot = getDupeClassInSameRoot(className, node.root);
@@ -276,7 +276,123 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         convertClassesWithExternalSuperclass:
             convertClassesWithExternalSuperclass,
         sourceFile: sourceFile);
-    yieldPatch(node.end, node.end, newDeclarationBuffer.toString());
+
+    // If a class extends from UiProps/UiState and uses a single mixin that has a name
+    // that matches the concrete class name appended with `Mixin`, the call to
+    // `converter.migrate` will result in the old concrete class being deleted.
+    //
+    // In this case, we should also not create a new concrete class declaration
+    // since the "shorthand" / "mixin only" boilerplate will suffice.
+    if (!extendsFromCustomClass &&
+        dupeMixinExists &&
+        node.withClause.mixinTypes.length == 1 &&
+        node.implementsClause == null) {
+      // Do not patch with a new concrete class. Instead, update the component
+      // declaration to utilize the mixin instead of the old concrete class.
+      final componentNode = getComponentNodeInRoot(node);
+
+      final allSupertypes = <TypeName>[
+        componentNode.extendsClause.superclass,
+        ...?componentNode.withClause?.mixinTypes,
+        ...?componentNode.implementsClause?.interfaces,
+      ];
+
+      final allClassNameAsTypeArguments = allSupertypes
+          .map((type) =>
+              type.typeArguments?.arguments
+                  ?.whereType<NamedType>()
+                  ?.where((arg) => arg.name.name == className) ??
+              [])
+          .expand((args) => args);
+
+      for (var classNameAsTypeArg in allClassNameAsTypeArguments) {
+        yieldPatch(
+            classNameAsTypeArg.offset, classNameAsTypeArg.end, nameOfDupeMixin);
+      }
+
+      // Consumed props changes don't apply to state classes
+      if (isAPropsClass(node)) {
+        // By deleting the dupe class and using the migrated (existing) mixin,
+        // we are converting the declaration into a "shorthand" version of the boilerplate
+        // in which the mixin now doubles as the props class for the component instance.
+        //
+        // This means that the default `consumedProps` for the component will be all the
+        // props within the mixin. With the old boilerplate, if `consumedProps` was not
+        // overridden in the component - the props within the mixin would get forwarded to
+        // children via `addUnconsumedProps` since the default `consumedProps` were the props
+        // in the separate concrete class.  But in the new "shorthand" boilerplate, since there
+        // is no separate concrete class, those mixin props will get consumed by
+        // default - which is a breaking change.
+        //
+        // To counteract this, we need to override `consumedProps` to be an empty list if
+        // the component isn't already overriding it so that the mixin props continue to
+        // get forwarded to child components the same way they did before the migration.
+        final consumedPropsDeclarations = componentNode.members
+            .whereType<MethodDeclaration>()
+            .where((method) => method.name.name == 'consumedProps');
+        if (consumedPropsDeclarations.isEmpty) {
+          yieldPatch(
+              componentNode.leftBracket.end, componentNode.leftBracket.end, '''
+            // Override consumedProps to an empty list so that props within 
+            // $nameOfDupeMixin are forwarded when `addUnconsumedProps` is used.
+            @override
+            get consumedProps => [];
+            
+          ''');
+        } else {
+          final consumedPropsDeclaration = consumedPropsDeclarations.single;
+
+          ListLiteral currentConsumedProps;
+          final body = consumedPropsDeclaration.body;
+          if (body is ExpressionFunctionBody) {
+            final expression = body.expression;
+            if (expression is ListLiteral) {
+              currentConsumedProps = expression;
+            }
+          } else if (body is BlockFunctionBody) {
+            body.block.statements
+                .whereType<ReturnStatement>()
+                .map((r) => r.expression)
+                .whereType<ListLiteral>()
+                .take(1)
+                .forEach((list) => currentConsumedProps = list);
+          }
+
+          if (currentConsumedProps != null &&
+              currentConsumedProps.elements.isNotEmpty) {
+            if (node.members.isNotEmpty) {
+              yieldPatch(consumedPropsDeclaration.offset,
+                  consumedPropsDeclaration.offset, '''
+                // FIXME: As part of the over_react boilerplate migration, $className was removed, 
+                // and all of its props were moved to $nameOfDupeMixin. Double check the `consumedProps` values below,
+                // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
+              ''');
+            } else {
+              yieldPatch(consumedPropsDeclaration.offset,
+                  consumedPropsDeclaration.offset, '''
+                // FIXME: As part of the over_react boilerplate migration, $className was removed, 
+                // and replaced by $nameOfDupeMixin. Double check the `consumedProps` values below,
+                // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
+              ''');
+            }
+
+            final metaForConcreteClassThatWillBeRemoved = currentConsumedProps
+                .elements
+                .singleWhere((el) => el.toSource() == '$className.meta',
+                    orElse: () => null);
+            if (metaForConcreteClassThatWillBeRemoved != null) {
+              yieldPatch(
+                  metaForConcreteClassThatWillBeRemoved.offset,
+                  metaForConcreteClassThatWillBeRemoved.end,
+                  'propsMeta.forMixin($nameOfDupeMixin)');
+            }
+          }
+        }
+      }
+    } else {
+      // Patch with our newly generated concrete class
+      yieldPatch(node.end, node.end, newDeclarationBuffer.toString());
+    }
 
     // If a class did not get migrated previously because it extended from a custom superclass that
     // did not get migrated, the FIX ME comment that was added may now need to be removed if the
