@@ -329,8 +329,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
           .whereType<MethodDeclaration>()
           .where((method) => method.name.name == 'consumedProps');
       if (consumedPropsDeclarations.isEmpty) {
-        yieldPatch(componentNode.leftBracket.offset + 1,
-            componentNode.leftBracket.offset + 1, '''
+        yieldPatch(componentNode.leftBracket.end,
+            componentNode.leftBracket.end, '''
         // Override consumedProps to an empty list so that props within 
         // $nameOfDupeMixin are forwarded when `addUnconsumedProps` is used.
         @override
