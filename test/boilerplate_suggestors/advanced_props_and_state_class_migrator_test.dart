@@ -414,7 +414,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             },
           )(
-            expectedPatchCount: 6,
             input: '''
             $factoryDecl
 
@@ -524,7 +523,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
             // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
             // being set - which allows conversion of external superclasses
             testSuggestor(convertClassesWithExternalSuperclass: true)(
-              expectedPatchCount: 7,
               input: expectedOutputWithExternalSuperclassReasonComment,
               expectedOutput: '''
               $factoryDecl
@@ -574,7 +572,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
           // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
           // being set - which allows conversion of external superclasses
           testSuggestor(convertClassesWithExternalSuperclass: true)(
-            expectedPatchCount: 6,
             input: '''
             $factoryDecl
 
@@ -688,7 +685,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
             // we don't know if the custom classes are external or not.
             testSuggestor()(expectedPatchCount: 0, input: input);
             testSuggestor()(
-              expectedPatchCount: 1,
               input: input,
               expectedOutput: expectedOutputWithExternalSuperclassReasonComment,
             );
@@ -714,7 +710,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
             // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
             // being set - which allows conversion of external superclasses
             testSuggestor(convertClassesWithExternalSuperclass: true)(
-              expectedPatchCount: 8,
               input: expectedOutputWithExternalSuperclassReasonComment,
               expectedOutput: '''
               $factoryDecl
@@ -764,7 +759,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
           // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
           // being set - which allows conversion of external superclasses
           testSuggestor(convertClassesWithExternalSuperclass: true)(
-            expectedPatchCount: 7,
             input: input,
             expectedOutput: '''
               $factoryDecl
@@ -850,7 +844,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               'ADifferentPropsClass': null,
             },
           )(
-            expectedPatchCount: 1,
             input: input,
             expectedOutput: expectedOutputWithUnMigratedSuperclassReasonComment,
           );
@@ -875,7 +868,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             },
           )(
-            expectedPatchCount: 7,
             input: expectedOutputWithUnMigratedSuperclassReasonComment,
             expectedOutput: '''
             $factoryDecl
@@ -952,7 +944,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               // we don't know if the custom classes are external or not.
               testSuggestor()(expectedPatchCount: 0, input: input);
               testSuggestor()(
-                expectedPatchCount: 1,
                 input: input,
                 expectedOutput: expectedOutputWithExternalMixinReasonComment,
               );
@@ -977,7 +968,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
               // being set - which allows conversion of external mixins
               testSuggestor(convertClassesWithExternalSuperclass: true)(
-                expectedPatchCount: 7,
                 input: expectedOutputWithExternalMixinReasonComment,
                 expectedOutput: '''
                 $factoryDecl
@@ -1063,7 +1053,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               // we don't know if the custom classes are external or not.
               testSuggestor()(expectedPatchCount: 0, input: input);
               testSuggestor()(
-                expectedPatchCount: 1,
                 input: input,
                 expectedOutput: expectedOutputWithExternalMixinReasonComment,
               );
@@ -1088,7 +1077,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
               // being set - which allows conversion of external mixins
               testSuggestor(convertClassesWithExternalSuperclass: true)(
-                expectedPatchCount: 7,
                 input: expectedOutputWithExternalMixinReasonComment,
                 expectedOutput: '''
                 $factoryDecl
@@ -1192,7 +1180,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               'ADifferentStateClass': 'ADifferentStateClassMixin',
             },
           )(
-            expectedPatchCount: 12,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -1220,7 +1207,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               'ADifferentStateClass': 'ADifferentStateClassMixin',
             },
           )(
-            expectedPatchCount: 12,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -1291,7 +1277,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               'AnotherStateMixin': 'AnotherStateMixin',
             },
           )(
-            expectedPatchCount: 12,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -1318,7 +1303,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               'AnotherStateMixin': 'AnotherStateMixin',
             },
           )(
-            expectedPatchCount: 12,
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -1359,7 +1343,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 ''';
 
             testSuggestor()(
-              expectedPatchCount: 6,
               input: input,
               expectedOutput: '''
               $factoryDecl
@@ -1450,7 +1433,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               testSuggestor(visitedClassNames: {
                 'SomePropsMixin': 'SomePropsMixin',
               })(
-                expectedPatchCount: 7,
                 input: input,
                 expectedOutput: expectedOutput,
               );
@@ -1468,7 +1450,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               testSuggestor(visitedClassNames: {
                 'SomePropsMixin': 'SomePropsMixin',
               })(
-                expectedPatchCount: 7,
                 input: input,
                 expectedOutput: expectedOutput,
               );
@@ -1498,7 +1479,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               testSuggestor(visitedClassNames: {
                 'SomePropsMixin': 'SomePropsMixin',
               })(
-                expectedPatchCount: 8,
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
@@ -1536,7 +1516,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               testSuggestor(visitedClassNames: {
                 'SomePropsMixin': 'SomePropsMixin',
               })(
-                expectedPatchCount: 2,
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
@@ -1561,7 +1540,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
             testSuggestor(visitedClassNames: {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             })(
-              expectedPatchCount: 6,
               input: '''
               $factoryDecl
 
@@ -1631,7 +1609,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
               })(
-                expectedPatchCount: 8,
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
@@ -1690,7 +1667,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
               })(
-                expectedPatchCount: 2,
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
@@ -1741,7 +1717,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
                 'AbstractGraphFormProps': 'AbstractGraphFormProps',
               })(
-                expectedPatchCount: 7,
                 input: input,
                 expectedOutput: r'''
                 @PropsMixin()
@@ -1795,7 +1770,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
                 'AbstractGraphFormProps': 'AbstractGraphFormProps',
               })(
-                expectedPatchCount: 2,
                 input: input,
                 expectedOutput: r'''
                 @PropsMixin()
@@ -1826,7 +1800,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               testSuggestor(visitedClassNames: {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
               })(
-                expectedPatchCount: 6,
                 input: '''
                 $factoryDecl
 
@@ -1889,7 +1862,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               testSuggestor(visitedClassNames: {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
               })(
-                expectedPatchCount: 2,
                 input: '''
                 $factoryDecl
 
@@ -1965,7 +1937,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
             'ConvertedMixin': 'ConvertedMixin',
             'UnconvertedMixin': null,
           })(
-            expectedPatchCount: 6,
             input: input,
             expectedOutput: '''
             $factoryDecl
@@ -2009,7 +1980,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
             ''';
 
           testSuggestor()(
-            expectedPatchCount: 6,
             input: input,
             expectedOutput: '''
             $factoryDecl
@@ -2039,7 +2009,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
             testSuggestor(visitedClassNames: {
               'ConvertedMixin': 'ConvertedMixin',
             })(
-              expectedPatchCount: 6,
               input: '''
               $factoryDecl
 
@@ -2106,7 +2075,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
               })(
-                expectedPatchCount: 7,
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
@@ -2162,7 +2130,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
               })(
-                expectedPatchCount: 2,
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
@@ -2210,7 +2177,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               testSuggestor(visitedClassNames: {
                 'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
               })(
-                expectedPatchCount: 6,
                 input: input,
                 expectedOutput: r'''
                 @PropsMixin()
@@ -2261,7 +2227,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               testSuggestor(visitedClassNames: {
                 'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
               })(
-                expectedPatchCount: 2,
                 input: input,
                 expectedOutput: r'''
                 @PropsMixin()
@@ -2295,7 +2260,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               testSuggestor(visitedClassNames: {
                 '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               })(
-                expectedPatchCount: 3,
                 input: '''
                 $factoryDecl
   
@@ -2350,7 +2314,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                   '${publicPropsClassName}Mixin':
                       '${publicPropsClassName}Mixin',
                 })(
-                  expectedPatchCount: 2,
                   input: '''
                   $factoryDecl
     
@@ -2400,7 +2363,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
-                    expectedPatchCount: 4,
                     input: '''
                     $factoryDecl
       
@@ -2456,7 +2418,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
-                    expectedPatchCount: 3,
                     input: '''
                     $factoryDecl
       
@@ -2513,7 +2474,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
-                    expectedPatchCount: 4,
                     input: '''
                     $factoryDecl
       
@@ -2573,7 +2533,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
-                    expectedPatchCount: 3,
                     input: '''
                     $factoryDecl
       
@@ -2637,7 +2596,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               testSuggestor(visitedClassNames: {
                 '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               })(
-                expectedPatchCount: 4,
                 input: '''
                 $factoryDecl
 
@@ -2695,7 +2653,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                   '${publicPropsClassName}Mixin':
                       '${publicPropsClassName}Mixin',
                 })(
-                  expectedPatchCount: 3,
                   input: '''
                   $factoryDecl
     
@@ -2748,7 +2705,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
-                    expectedPatchCount: 5,
                     input: '''
                     $factoryDecl
       
@@ -2807,7 +2763,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
-                    expectedPatchCount: 4,
                     input: '''
                     $factoryDecl
       
@@ -2867,7 +2822,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
-                    expectedPatchCount: 5,
                     input: '''
                     $factoryDecl
       
@@ -2930,7 +2884,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
-                    expectedPatchCount: 4,
                     input: '''
                     $factoryDecl
       
@@ -3024,7 +2977,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
           'AnotherStateMixin': 'AnotherStateMixin',
           'ADifferentStateClass': 'ADifferentStateClass',
         })(
-          expectedPatchCount: 14,
           input: input,
           expectedOutput: '''
           $factoryDecl
@@ -3087,7 +3039,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
           test('and the class has no members', () {
             testSuggestor()(
-              expectedPatchCount: 2,
               input: '''
               $factoryDecl
 
@@ -3130,7 +3081,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
           test('and the class has members', () {
             testSuggestor()(
-              expectedPatchCount: 3,
               input: '''
               $factoryDecl
 
@@ -3191,7 +3141,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
           test('and the class has no members', () {
             testSuggestor()(
-              expectedPatchCount: 2,
               input: '''
               $factoryDecl
 
@@ -3222,7 +3171,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
           test('and the class has members', () {
             testSuggestor()(
-              expectedPatchCount: 2,
               input: '''
               $factoryDecl
 
