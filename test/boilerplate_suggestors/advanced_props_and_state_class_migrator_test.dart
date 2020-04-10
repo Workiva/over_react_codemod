@@ -47,9 +47,36 @@ void advancedPropsAndStateClassMigratorTestHelper({
       @Component2()
       class FooComponent extends UiComponent2<$publicPropsClassName> {}
       ''';
+
   const statefulComponentDecl = '''
       @Component2()
       class FooComponent extends UiStatefulComponent2<$publicPropsClassName, $publicStateClassName> {}
+      ''';
+
+  String consumedPropsOverride(Iterable<String> mixinNames,
+          {String fixmeComment = ''}) =>
+      '''
+      $fixmeComment
+      @override
+      get consumedProps => ${mixinNames.isEmpty ? '[]' : 'propsMeta.forMixins({${mixinNames.join(',')}})'};
+      ''';
+
+  String componentDeclWithConsumedProps(Iterable<String> mixinNames,
+          {String fixmeComment = ''}) =>
+      '''
+      @Component2()
+      class FooComponent extends UiComponent2<$publicPropsClassName> {
+        ${consumedPropsOverride(mixinNames, fixmeComment: fixmeComment)}
+      }
+      ''';
+
+  String statefulComponentDeclWithConsumedProps(Iterable<String> mixinNames,
+          {String fixmeComment = ''}) =>
+      '''
+      @Component2()
+      class FooComponent extends UiStatefulComponent2<$publicPropsClassName, $publicStateClassName> {
+        ${consumedPropsOverride(mixinNames, fixmeComment: fixmeComment)}
+      }
       ''';
 
   group('', () {
@@ -414,7 +441,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             //   2. Fix any analyzer warnings on this class about missing mixins.
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
-            $componentDecl
+            ${componentDeclWithConsumedProps(['${publicPropsClassName}Mixin'])}
           ''',
           );
 
@@ -521,7 +548,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
               //      library that contains it. 
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
-              $componentDecl
+              ${componentDeclWithConsumedProps([
+                '${publicPropsClassName}Mixin'
+              ])}
             ''',
             );
 
@@ -579,7 +608,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
               //      library that contains it.
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
-              $componentDecl
+              ${componentDeclWithConsumedProps([
+              '${publicPropsClassName}Mixin'
+            ])}
             ''',
           );
 
@@ -707,7 +738,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
               //      library that contains them. 
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
-              $componentDecl
+              ${componentDeclWithConsumedProps([
+                '${publicPropsClassName}Mixin'
+              ])}
             ''',
             );
 
@@ -755,7 +788,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
               //      library that contains them. 
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
   
-              $componentDecl
+              ${componentDeclWithConsumedProps([
+              '${publicPropsClassName}Mixin'
+            ])}
             ''',
           );
 
@@ -857,7 +892,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             //   2. Fix any analyzer warnings on this class about missing mixins.
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
     
-            $componentDecl
+            ${componentDeclWithConsumedProps(['${publicPropsClassName}Mixin'])}
           ''',
           );
 
@@ -964,7 +999,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 //      library that contains it. 
                 class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, $externalMixinName;
     
-                $componentDecl
+                ${componentDeclWithConsumedProps([
+                  '${publicPropsClassName}Mixin'
+                ])}
               ''',
               );
 
@@ -1073,7 +1110,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 //      library that contains them. 
                 class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, $externalMixinNames;
     
-                $componentDecl
+                ${componentDeclWithConsumedProps([
+                  '${publicPropsClassName}Mixin'
+                ])}
               ''',
               );
 
@@ -1113,7 +1152,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             $statefulComponentDecl
           ''';
 
-        const expectedOutput = '''
+        final expectedOutput = '''
             $factoryDecl
     
             @Props()
@@ -1140,7 +1179,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
             //   2. Fix any analyzer warnings on this class about missing mixins.
             class $publicStateClassName = UiState with ADifferentStateClassMixin, ${publicStateClassName}Mixin;
     
-            $statefulComponentDecl
+            ${statefulComponentDeclWithConsumedProps([
+          '${publicPropsClassName}Mixin'
+        ])}
           ''';
 
         test('on the first run', () {
@@ -1214,7 +1255,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             $statefulComponentDecl
             ''';
 
-        const expectedOutput = '''
+        final expectedOutput = '''
             $factoryDecl
     
             @Props()
@@ -1235,7 +1276,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
             @State()
             class $publicStateClassName = UiState with ${publicStateClassName}Mixin, AStateMixin, AnotherStateMixin;
     
-            $statefulComponentDecl
+            ${statefulComponentDeclWithConsumedProps([
+          '${publicPropsClassName}Mixin'
+        ])}
           ''';
 
         test('on the first run', () {
@@ -1333,6 +1376,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
   
               @Component2()
               class FooComponent extends FluxUiComponent2<$publicPropsClassName> {
+                ${consumedPropsOverride(['${publicPropsClassName}Mixin'])}
+                  
                 @override
                 render() {
                   return Dom.ul()(
@@ -1371,7 +1416,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 }
                 ''';
 
-            const expectedOutput = '''
+            final expectedOutput = '''
                 $factoryDecl
     
                 @Props()
@@ -1389,6 +1434,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
     
                 @Component2()
                 class FooComponent extends FluxUiComponent2<$publicPropsClassName> {
+                  ${consumedPropsOverride(['${publicPropsClassName}Mixin'])}
+                
                   @override
                   render() {
                     return Dom.ul()(
@@ -1541,7 +1588,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
               //   2. Fix any analyzer warnings on this class about missing mixins.
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
-              $componentDecl
+              ${componentDeclWithConsumedProps([
+                '${publicPropsClassName}Mixin'
+              ])}
             ''',
             );
 
@@ -1817,6 +1866,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
                 @Component2()
                 class FooComponent extends AbstractComponentClass<$publicPropsClassName> {
+                  ${consumedPropsOverride(['${publicPropsClassName}Mixin'])}
+                
                   @override
                   render() {
                     return Dom.ul()(
@@ -1867,6 +1918,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
                 @Component2()
                 class FooComponent extends AbstractComponentClass<$publicPropsClassName> {
+                  ${consumedPropsOverride([])}
+                
                   @override
                   render() {
                     return Dom.ul()(
@@ -1928,7 +1981,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 with ${publicPropsClassName}Mixin, ConvertedMixin, UnconvertedMixin, // ignore: mixin_of_non_class, undefined_class
                 \$UnconvertedMixin;
 
-            $componentDecl
+            ${componentDeclWithConsumedProps(['${publicPropsClassName}Mixin'])}
           ''',
           );
 
@@ -1971,7 +2024,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             class $publicPropsClassName = UiProps
                 with ${publicPropsClassName}Mixin, DomPropsMixin;
 
-            $componentDecl
+            ${componentDeclWithConsumedProps(['${publicPropsClassName}Mixin'])}
           ''',
           );
 
@@ -2011,7 +2064,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
               class $publicPropsClassName = UiProps 
                   with ${publicPropsClassName}Mixin, ConvertedMixin implements SomeInterface, SomeOtherInterface;
 
-              $componentDecl
+              ${componentDeclWithConsumedProps([
+                '${publicPropsClassName}Mixin'
+              ])}
             ''',
             );
 
@@ -3000,7 +3055,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
           class $publicStateClassName = UiState 
               with ADifferentStateClass, ${publicStateClassName}Mixin, AStateMixin, AnotherStateMixin;
 
-          $statefulComponentDecl
+          ${statefulComponentDeclWithConsumedProps([
+            '${publicPropsClassName}Mixin'
+          ])}
         ''',
         );
 
@@ -3060,7 +3117,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
               //   2. Fix any analyzer warnings on this class about missing mixins.
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
-              $componentDecl
+              ${componentDeclWithConsumedProps([])}
             ''',
             );
 
@@ -3106,7 +3163,11 @@ void advancedPropsAndStateClassMigratorTestHelper({
               //   2. Fix any analyzer warnings on this class about missing mixins.
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
-              $componentDecl
+              ${componentDeclWithConsumedProps(
+                ['${publicPropsClassName}Mixin'],
+                fixmeComment:
+                    '// FIXME ensure that these consumed props are correct, since fields were moved from $publicPropsClassName to ${publicPropsClassName}Mixin, but ${publicPropsClassName}Mixin was not consumed before.',
+              )}
             ''',
             );
 
@@ -3148,7 +3209,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
               //   2. Fix any analyzer warnings on this class about missing mixins.
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
-              $componentDecl
+              ${componentDeclWithConsumedProps([])}
             ''',
             );
 
@@ -3183,9 +3244,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 // FIXME: Everything in this body needs to be moved to the body of ${publicPropsClassName}Mixin.
                 // Once that is done, the body can be removed, and `extends` can be replaced with `=`.
                 String baz;
-              }
-
-              $componentDecl
+              }              
+              ${componentDeclWithConsumedProps([])}
             ''',
             );
 

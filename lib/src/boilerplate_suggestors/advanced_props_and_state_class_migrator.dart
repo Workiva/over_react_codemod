@@ -242,6 +242,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       }
     }
 
+    var didMoveMembersToDupeMixin = false;
     if (dupeMixinExists && node.members.isNotEmpty) {
       // If no mixin will be created from the class in the `converter.migrate` step below
       // as a result of a mixin with a name that matches the current node's name appended with "Mixin",
@@ -253,6 +254,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
             dupeClassInSameRoot.rightBracket.offset,
             dupeClassInSameRoot.rightBracket.offset,
             node.members.map((member) => member.toSource()).join('\n'));
+        didMoveMembersToDupeMixin = true;
 
         newDeclarationBuffer.write(declIsAbstract ? '{}' : ';');
       } else {
@@ -392,6 +394,45 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     } else {
       // Patch with our newly generated concrete class
       yieldPatch(node.end, node.end, newDeclarationBuffer.toString());
+
+      // Consumed props changes don't apply to state classes
+      if (isAPropsClass(node)) {
+        final componentNode = getComponentNodeInRoot(node);
+        final consumedPropsDeclarations = componentNode.members
+            .whereType<MethodDeclaration>()
+            .where((method) => method.name.name == 'consumedProps');
+
+        if (!isAbstract(componentNode) && consumedPropsDeclarations.isEmpty) {
+          final originalPublicClassName =
+              stripPrivateGeneratedPrefix(node.name.name);
+
+          String consumedPropsImpl;
+          if (didMoveMembersToDupeMixin) {
+            final newMixinName =
+                nameOfDupeMixin ?? '${originalPublicClassName}Mixin';
+            consumedPropsImpl = '''
+              // FIXME ensure that these consumed props are correct, since fields were moved from $originalPublicClassName to $newMixinName, but $newMixinName was not consumed before. 
+              @override
+              get consumedProps => propsMeta.forMixins({$newMixinName});
+            ''';
+          } else if (mixinWillBeCreatedFromClass) {
+            final newMixinName =
+                converter.visitedNames[originalPublicClassName];
+            consumedPropsImpl = '''
+              @override
+              get consumedProps => propsMeta.forMixins({$newMixinName});
+            ''';
+          } else {
+            consumedPropsImpl = '''
+              @override
+              get consumedProps => [];
+            ''';
+          }
+
+          yieldPatch(componentNode.leftBracket.end,
+              componentNode.leftBracket.end, consumedPropsImpl);
+        }
+      }
     }
 
     // If a class did not get migrated previously because it extended from a custom superclass that
