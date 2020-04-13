@@ -204,7 +204,6 @@ void testSuggestor({
   }
 
   if (shouldDartfmtOutput) {
-    input = formatter.format(input, uri: 'input');
     expectedOutput = formatter.format(expectedOutput, uri: 'expectedOutput');
   }
 
