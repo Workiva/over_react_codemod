@@ -18,6 +18,7 @@ import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
 import 'package:source_span/source_span.dart';
 
+import '../constants.dart';
 import '../util.dart';
 import 'boilerplate_utilities.dart';
 
@@ -397,7 +398,6 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
       // Consumed props changes don't apply to state classes
       if (isAPropsClass(node)) {
-
         // Update consumedProps to preserve behavior between legacy boilerplate
         // (only props in the main props class are consumed by default)
         // and the new boilerplate (all mixins are consumed by default).
@@ -429,27 +429,51 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
         // [1], [2]
         if (!isAbstract(componentNode) && consumedPropsDeclarations.isEmpty) {
+          // [2]
+          var parentClassFixmeComment = '';
+          {
+            final unprefixedSuperclassName = componentNode
+                .extendsClause?.superclass?.name?.name
+                ?.split('.')
+                ?.last;
+            final extendsFromOverReactComponentBaseClass =
+                overReactBaseComponentClasses
+                    .contains(unprefixedSuperclassName);
+
+            if (!extendsFromOverReactComponentBaseClass) {
+              parentClassFixmeComment =
+                  '// FIXME Ensure that consumedProps shouldn\'t be inherited from'
+                  ' $unprefixedSuperclassName instead of overridden here.';
+            }
+          }
+
           final originalPublicClassName =
               stripPrivateGeneratedPrefix(node.name.name);
 
           String consumedPropsImpl;
-          if (didMoveMembersToDupeMixin) { // [3]
+          if (didMoveMembersToDupeMixin) {
+            // [3]
             final newMixinName =
                 nameOfDupeMixin ?? '${originalPublicClassName}Mixin';
             consumedPropsImpl = '''
-              // FIXME ensure that these consumed props are correct, since fields were moved from $originalPublicClassName to $newMixinName, but $newMixinName was not consumed before. 
+              $parentClassFixmeComment
+              // FIXME ensure that these consumed props are correct, since fields were moved from $originalPublicClassName to $newMixinName, but $newMixinName was not consumed before.
               @override
               get consumedProps => propsMeta.forMixins({$newMixinName});
             ''';
-          } else if (mixinWillBeCreatedFromClass) { // [4]
+          } else if (mixinWillBeCreatedFromClass) {
+            // [4]
             final newMixinName =
                 converter.visitedNames[originalPublicClassName];
             consumedPropsImpl = '''
+              $parentClassFixmeComment
               @override
               get consumedProps => propsMeta.forMixins({$newMixinName});
             ''';
-          } else { // [5]
+          } else {
+            // [5]
             consumedPropsImpl = '''
+              $parentClassFixmeComment
               @override
               get consumedProps => [];
             ''';

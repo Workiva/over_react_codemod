@@ -1839,7 +1839,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
                 @Component2()
                 class FooComponent extends AbstractComponentClass<$publicPropsClassName> {
-                  ${consumedPropsOverride(['${publicPropsClassName}Mixin'])}
+                  ${consumedPropsOverride([
+                  '${publicPropsClassName}Mixin'
+                ], fixmeComment: '// FIXME Ensure that consumedProps shouldn\'t be inherited from AbstractComponentClass instead of overridden here.')}
                 
                   @override
                   render() {
@@ -1890,7 +1892,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
                 @Component2()
                 class FooComponent extends AbstractComponentClass<$publicPropsClassName> {
-                  ${consumedPropsOverride([])}
+                  ${consumedPropsOverride([], fixmeComment: '// FIXME Ensure that consumedProps shouldn\'t be inherited from AbstractComponentClass instead of overridden here.')}
                 
                   @override
                   render() {
