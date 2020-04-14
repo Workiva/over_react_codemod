@@ -80,6 +80,17 @@ const List<String> upgradableV1ComponentClassNames = [
   'FluxUiStatefulComponent',
 ];
 
+const overReactBaseComponentClasses = {
+  'UiComponent',
+  'UiComponent2',
+  'UiStatefulComponent',
+  'UiStatefulComponent2',
+  'FluxUiComponent',
+  'FluxUiComponent2',
+  'FluxUiStatefulComponent',
+  'FluxUiStatefulComponent2',
+};
+
 /// Dart type for the static meta field on props classes.
 const String propsMetaType = 'PropsMeta';
 
