@@ -28,9 +28,8 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/advanced_props_and
 import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migrator.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/generated_part_directive_ignore_remover.dart';
-import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
-import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
+import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 import 'package:path/path.dart' as p;
 import 'package:prompts/prompts.dart' as prompts;
 import 'package:pub_semver/pub_semver.dart';
@@ -38,8 +37,8 @@ import 'package:pub_semver/pub_semver.dart';
 const _convertedClassesWithExternalSuperclassFlag =
     'convert-classes-with-external-superclasses';
 const _treatAllComponentsAsPrivateFlag = 'treat-all-components-as-private';
-const _reactVersionRangeOption = 'react-version-range';
-const _overReactVersionRangeOption = 'over_react-vers-rangeon';
+const _overReactVersionRangeOption = 'over_react-version-range';
+const _overReactTestVersionRangeOption = 'over_react_test-version-range';
 const _changesRequiredOutput = '''
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
@@ -54,17 +53,17 @@ void main(List<String> args) {
     ..addFlag(_convertedClassesWithExternalSuperclassFlag)
     ..addFlag(_treatAllComponentsAsPrivateFlag)
     ..addSeparator('Dependency Version Updates:')
-    ..addOption(_reactVersionRangeOption, defaultsTo: reactVersionRange)
-    ..addOption(_overReactVersionRangeOption,
-        defaultsTo: overReactVersionRange);
+    ..addOption(_overReactVersionRangeOption, defaultsTo: overReactVersionRange)
+    ..addOption(_overReactTestVersionRangeOption,
+        defaultsTo: overReactTestVersionRange);
   final parsedArgs = parser.parse(args);
 
   final logger = Logger('over_react_codemod.boilerplate_upgrade');
 
   exitCode = upgradeReactVersions(
     args: parsedArgs.rest,
-    reactVersionRange: parsedArgs[_reactVersionRangeOption],
     overReactVersionRange: parsedArgs[_overReactVersionRangeOption],
+    overReactTestVersionRange: parsedArgs[_overReactTestVersionRangeOption],
   );
 
   if (exitCode != 0) {
@@ -138,22 +137,24 @@ void main(List<String> args) {
 
 int upgradeReactVersions({
   @required List<String> args,
-  @required String reactVersionRange,
   @required String overReactVersionRange,
+  @required String overReactTestVersionRange,
 }) {
-  print(
-      '\n\nAbout to set dependency ranges: \n  react: "$reactVersionRange"\n  over_react: "$overReactVersionRange"');
+  print('\n\nAbout to set dependency ranges:\n'
+      '  over_react: "$overReactVersionRange"\n'
+      '  over_react_test: "$overReactTestVersionRange"');
   final useDefaultRanges = prompts.getBool('Are these ranges correct?');
   if (!useDefaultRanges) {
-    reactVersionRange =
-        prompts.get('react version range', defaultsTo: reactVersionRange);
     overReactVersionRange = prompts.get('over_react version range',
         defaultsTo: overReactVersionRange);
+    overReactTestVersionRange = prompts.get('over_react_test version range',
+        defaultsTo: overReactTestVersionRange);
   }
 
-  final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
   final overReactVersionConstraint =
       VersionConstraint.parse(overReactVersionRange);
+  final overReactTestVersionConstraint =
+      VersionConstraint.parse(overReactTestVersionRange);
 
   final pubspecYamlQuery = FileQuery.dir(
     pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
@@ -163,9 +164,17 @@ int upgradeReactVersions({
   return runInteractiveCodemod(
     pubspecYamlQuery,
     AggregateSuggestor([
-      PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
-      PubspecOverReactUpgrader(overReactVersionConstraint,
-          shouldAddDependencies: false),
+      PubspecUpgrader(
+        'over_react',
+        overReactVersionConstraint,
+        shouldAddDependencies: false,
+      ),
+      PubspecUpgrader(
+        'over_react_test',
+        overReactTestVersionConstraint,
+        shouldAddDependencies: false,
+        isDevDependency: true,
+      ),
     ].map((s) => Ignoreable(s))),
     args: args,
     defaultYes: true,

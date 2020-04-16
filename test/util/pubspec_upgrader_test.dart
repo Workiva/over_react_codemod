@@ -65,13 +65,19 @@ void main() {
 
         /// Suggestor used to test the default configurations.
         final testSuggestor = getSuggestorTester(PubspecUpgrader(
-            'react', VersionConstraint.parse(reactVersionRange)));
+          'react',
+          VersionConstraint.parse(reactVersionRange),
+          isDevDependency: isDevDependency,
+        ));
 
         /// Suggestor to test when the codemod should not add the dependency if
         /// it does not encounter it.
         final doNotAddDependencies = getSuggestorTester(PubspecUpgrader(
-            'react', VersionConstraint.parse(reactVersionRange),
-            shouldAddDependencies: false));
+          'react',
+          VersionConstraint.parse(reactVersionRange),
+          shouldAddDependencies: false,
+          isDevDependency: isDevDependency,
+        ));
 
         group('when there are no special cases', () {
           sharedPubspecTest(
@@ -84,8 +90,11 @@ void main() {
 
           group('and the new version is a pre-release version', () {
             sharedPubspecTest(
-                testSuggestor: getSuggestorTester(PubspecUpgrader('react',
-                    VersionConstraint.parse(reactVersionRangeForTesting))),
+                testSuggestor: getSuggestorTester(PubspecUpgrader(
+                  'react',
+                  VersionConstraint.parse(reactVersionRangeForTesting),
+                  isDevDependency: isDevDependency,
+                )),
                 getExpectedOutput: getExpectedPreReleaseOutput,
                 startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
                 isDevDependency: isDevDependency,
