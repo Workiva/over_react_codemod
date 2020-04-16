@@ -46,16 +46,20 @@ import 'util.dart';
 /// `midVersionRange` is a version range between the expected range max and
 /// min. Used in conjunction with `shouldUpdateMidRange`.
 void sharedPubspecTest({
-  @required Function({bool useMidVersionMin}) getExpectedOutput,
+  @required
+      Function({bool useMidVersionMin})
+          getExpectedOutput,
   @required SuggestorTester testSuggestor,
   @required String dependency,
   @required VersionRange startingRange,
+  @required bool isDevDependency,
   bool shouldAddDependencies = true,
   bool shouldUpdate = true,
   bool shouldUpdateMidRange = true,
   String midVersionRange,
 }) {
   final patchCount = shouldUpdate ? 1 : 0;
+  final key = isDevDependency ? 'dev_dependencies' : 'dependencies';
 
   test('does nothing if there is no dependency key', () {
     testSuggestor(
@@ -99,13 +103,13 @@ void sharedPubspecTest({
       input: ''
           'name: nothing\n'
           'version: 0.0.0\n'
-          'dependencies:\n'
+          '$key:\n'
           '  $dependency: any\n'
           '',
       expectedOutput: ''
           'name: nothing\n'
           'version: 0.0.0\n'
-          'dependencies:\n'
+          '$key:\n'
           '  $dependency: any\n'
           '',
     );
@@ -119,12 +123,12 @@ void sharedPubspecTest({
       shouldDartfmtOutput: false,
       validateContents: validatePubspecYaml,
       input: ''
-          'dependencies:\n'
+          '$key:\n'
           '  test: 1.5.1\n'
           '',
       expectedOutput: ''
           '${shouldAddDependencies ? getExpectedOutput() : ''
-              'dependencies:\n'
+              '$key:\n'
               '  test: 1.5.1\n'}'
           '',
     );
@@ -137,14 +141,14 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            'dependencies:\n'
+            '$key:\n'
             '  $dependency: ^${startingRange.min}\n'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                'dependencies:\n'
+                '$key:\n'
                 '  $dependency: ^${startingRange.min}\n'
                 '  test: 1.5.1\n'
                 '',
@@ -159,14 +163,14 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            'dependencies:\n'
+            '$key:\n'
             '  $dependency: $midVersionRange\n'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdateMidRange
             ? getExpectedOutput(useMidVersionMin: true)
             : ''
-                'dependencies:\n'
+                '$key:\n'
                 '  $dependency: $midVersionRange\n'
                 '  test: 1.5.1\n'
                 '',
@@ -179,14 +183,14 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            'dependencies:\n'
+            '$key:\n'
             '  $dependency: \'^${startingRange.min}\'\n'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                'dependencies:\n'
+                '$key:\n'
                 '  $dependency: \'^${startingRange.min}\'\n'
                 '  test: 1.5.1\n'
                 '',
@@ -199,14 +203,14 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            'dependencies:\n'
+            '$key:\n'
             '  $dependency: "^${startingRange.min}"\n'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                'dependencies:\n'
+                '$key:\n'
                 '  $dependency: "^${startingRange.min}"\n'
                 '  test: 1.5.1\n'
                 '',
@@ -221,14 +225,14 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            'dependencies:\n'
+            '$key:\n'
             '  $dependency: \'$startingRange\'\n'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                'dependencies:\n'
+                '$key:\n'
                 '  $dependency: \'$startingRange\'\n'
                 '  test: 1.5.1\n'
                 '',
@@ -241,14 +245,14 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            'dependencies:\n'
+            '$key:\n'
             '  $dependency: "$startingRange"\n'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                'dependencies:\n'
+                '$key:\n'
                 '  $dependency: "$startingRange"\n'
                 '  test: 1.5.1\n'
                 '',
@@ -263,14 +267,14 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            'dependencies:\n'
+            '$key:\n'
             '  $dependency: ">=${startingRange.min}"\n'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                'dependencies:\n'
+                '$key:\n'
                 '  $dependency: ">=${startingRange.min}"\n'
                 '  test: 1.5.1\n'
                 '',
@@ -283,14 +287,14 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            'dependencies:\n'
+            '$key:\n'
             '  $dependency: \'>=${startingRange.min}\'\n'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                'dependencies:\n'
+                '$key:\n'
                 '  $dependency: \'>=${startingRange.min}\'\n'
                 '  test: 1.5.1\n'
                 '',
@@ -303,14 +307,14 @@ void sharedPubspecTest({
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
         input: ''
-            'dependencies:\n'
+            '$key:\n'
             '  $dependency: ">=${startingRange.min}"\n'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
             ? getExpectedOutput()
             : ''
-                'dependencies:\n'
+                '$key:\n'
                 '  $dependency: ">=${startingRange.min}"\n'
                 '  test: 1.5.1\n'
                 '',

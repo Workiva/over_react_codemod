@@ -45,6 +45,7 @@ main() {
           testSuggestor: testSuggestor,
           getExpectedOutput: getExpectedOutput,
           startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
+          isDevDependency: false,
           dependency: 'react',
           midVersionRange: '^$midVersionMin');
 
@@ -54,6 +55,7 @@ main() {
                 VersionConstraint.parse(reactVersionRangeForTesting))),
             getExpectedOutput: getExpectedPreReleaseOutput,
             startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
+            isDevDependency: false,
             midVersionRange: '^5.5.3',
             shouldUpdateMidRange: false,
             dependency: 'react');
@@ -65,6 +67,7 @@ main() {
           testSuggestor: doNotAddDependencies,
           getExpectedOutput: getExpectedOutput,
           startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
+          isDevDependency: false,
           dependency: 'react',
           midVersionRange: '^$midVersionMin',
           shouldAddDependencies: false);
@@ -77,6 +80,7 @@ main() {
           testSuggestor: testSuggestor,
           getExpectedOutput: getExpectedOutput,
           startingRange: VersionConstraint.parse('^5.0.0'),
+          isDevDependency: false,
           dependency: 'react',
           shouldUpdate: false,
           shouldUpdateMidRange: false,

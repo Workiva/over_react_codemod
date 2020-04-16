@@ -101,17 +101,17 @@ const String stateMetaType = 'StateMeta';
 const String temporaryCompanionClassComment =
     'This will be removed once the transition to Dart 2 is complete.';
 
-/// Regex to find a react dependency.
-final RegExp reactDependencyRegExp = RegExp(
-  r'''^\s*react:\s*(["']?)(.+)\1\s*$''',
+
+RegExp getDependencyRegExp(String packageName) => RegExp(
+  r'''^\s*''' + packageName + r''':\s*(["']?)(.+)\1\s*$''',
   multiLine: true,
 );
 
+/// Regex to find a react dependency.
+final RegExp reactDependencyRegExp = getDependencyRegExp('react');
+
 /// Regex to find an over_react dependency.
-final RegExp overReactDependencyRegExp = RegExp(
-  r'''^\s*over_react:\s*(["']?)(.+)\1\s*$''',
-  multiLine: true,
-);
+final RegExp overReactDependencyRegExp = getDependencyRegExp('over_react');
 
 /// Regex to find the dependency pubspec.yaml key.
 final RegExp dependencyRegExp = RegExp(

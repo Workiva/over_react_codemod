@@ -45,6 +45,7 @@ main() {
         testSuggestor: defaultTestSuggestor,
         getExpectedOutput: getExpectedOutput,
         startingRange: startingTestRange,
+        isDevDependency: false,
         dependency: dependency,
         midVersionRange: midRangeMark,
       );
@@ -53,6 +54,7 @@ main() {
         testSuggestor: doNotAddDependencies,
         getExpectedOutput: getExpectedOutput,
         startingRange: startingTestRange,
+        isDevDependency: false,
         dependency: dependency,
         midVersionRange: midRangeMark,
         shouldAddDependencies: false,
@@ -118,6 +120,7 @@ main() {
         testSuggestor: defaultTestSuggestor,
         getExpectedOutput: getExpectedOutput,
         startingRange: startingTestRange,
+        isDevDependency: false,
         dependency: dependency,
         midVersionRange: midRangeMark,
       );
