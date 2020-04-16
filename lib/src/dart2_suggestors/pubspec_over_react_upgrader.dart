@@ -12,12 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:source_span/source_span.dart';
-
-import '../constants.dart';
-import '../util.dart';
 
 /// Suggestor that attempts to update `pubspec.yaml` files to ensure a safe
 /// minimum bound on the `over_react` dependency.
@@ -25,7 +21,7 @@ import '../util.dart';
 /// If `over_react` is already listed, but the minimum bound is not high enough,
 /// the version constraint will be updated. If `over_react` is missing from
 /// the file, it will be added.
-class PubspecOverReactUpgrader implements Suggestor {
+class PubspecOverReactUpgrader extends PubspecUpgrader {
   /// Version constraint that ensures a version of over_react compatible with
   /// the new forwards- and backwards-compatible component boilerplate.
   static final VersionRange dart1And2Constraint =
@@ -37,20 +33,14 @@ class PubspecOverReactUpgrader implements Suggestor {
   static final VersionRange dart2Constraint =
       VersionConstraint.parse('>=1.30.2 <3.0.0');
 
-  /// Constraint to update over_react to.
-  final VersionRange targetConstraint;
-
-  /// Whether or not the codemod should ignore the constraint minimum when
-  /// considering whether to write a patch.
-  final bool shouldIgnoreMin;
-
-  /// Whether or not the codemod should add `over_react` if it is not already
-  /// found.
-  final bool shouldAddDependencies;
-
-  PubspecOverReactUpgrader(this.targetConstraint,
-      {this.shouldAddDependencies = true})
-      : shouldIgnoreMin = false;
+  PubspecOverReactUpgrader(
+    VersionRange targetConstraint, {
+    bool shouldAddDependencies = true,
+  }) : super(
+          'over_react',
+          targetConstraint,
+          shouldAddDependencies: shouldAddDependencies,
+        );
 
   /// Constructor used to ignore checks and ensure that the codemod always
   /// tries to update the constraint.
@@ -59,70 +49,12 @@ class PubspecOverReactUpgrader implements Suggestor {
   /// range, rather than a target upper or lower bound. The only time this
   /// will not update the pubspec is if the target version range is equal to
   /// the version that is already there (avoiding an empty patch error).
-  PubspecOverReactUpgrader.alwaysUpdate(this.targetConstraint,
-      {this.shouldAddDependencies = true})
-      : shouldIgnoreMin = true;
-
-  @override
-  Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
-    final contents = sourceFile.getText(0);
-    final overReactMatch = overReactDependencyRegExp.firstMatch(contents);
-
-    if (overReactMatch != null) {
-      // over_react is already in pubspec.yaml
-      final constraintValue = overReactMatch.group(2);
-      try {
-        final constraint = VersionConstraint.parse(constraintValue);
-
-        if (shouldUpdateVersionRange(
-            targetConstraint: targetConstraint,
-            constraint: constraint,
-            shouldIgnoreMin: shouldIgnoreMin)) {
-          final newConstraint =
-              targetConstraint.toString().contains('-alpha') ||
-                      targetConstraint.toString().contains('-dev')
-                  ? targetConstraint
-                  : generateNewVersionRange(constraint, targetConstraint);
-
-          var newValue = friendlyVersionConstraint(newConstraint);
-          // Wrap the new constraint in quotes if required.
-          if (mightNeedYamlEscaping(newValue)) {
-            newValue = '"$newValue"';
-          }
-
-          // Update the version constraint to ensure a safe minimum bound.
-          yield Patch(
-              sourceFile,
-              sourceFile.span(overReactMatch.start, overReactMatch.end),
-              '  over_react: $newValue');
-        }
-      } catch (e) {
-        // We can skip these. They are versions we don't want to mess with in this codemod.
-        if (e.toString().contains('git:') || e.toString().contains('path:')) {
-          return;
-        }
-
-        rethrow;
-      }
-    } else if (shouldAddDependencies) {
-      // over_react is missing in pubspec.yaml, so add it.
-      final dependeniesKeyMatch = dependencyRegExp.firstMatch(contents);
-      if (dependeniesKeyMatch != null) {
-        // Wrap the new constraint in quotes if required.
-        var newValue = targetConstraint.toString();
-        if (newValue.contains(' ')) {
-          newValue = '"$newValue"';
-        }
-
-        yield Patch(
-          sourceFile,
-          sourceFile.span(dependeniesKeyMatch.end, dependeniesKeyMatch.end),
-          '\n  over_react: $newValue',
+  PubspecOverReactUpgrader.alwaysUpdate(
+    VersionRange targetConstraint, {
+    bool shouldAddDependencies = true,
+  }) : super.alwaysUpdate(
+          'over_react',
+          targetConstraint,
+          shouldAddDependencies: shouldAddDependencies,
         );
-      }
-    }
-  }
-
-  @override
-  bool shouldSkip(_) => false;
 }

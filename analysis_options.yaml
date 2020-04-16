@@ -1,1 +1,6 @@
-include: package:pedantic/analysis_options.yaml
+include: package:workiva_analysis_options/v1.yaml
+
+analyzer:
+  errors:
+    missing_required_param: error
+    must_call_super: error

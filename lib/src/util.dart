@@ -27,7 +27,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'component2_suggestors/component2_utilities.dart';
 import 'constants.dart';
 
-typedef String CompanionBuilder(String className,
+typedef CompanionBuilder = String Function(String className,
     {String annotations, String commentPrefix, String docComment});
 
 /// Returns an iterable of all the comments from [beginToken] to the end of the
@@ -415,8 +415,8 @@ bool isAssociatedWithAbstractComponent2(AstNode node) {
 /// should be wrapped in quotations.
 bool mightNeedYamlEscaping(String scalarValue) =>
     // Values starting with `>` need escaping.
-    // Whitelist a non-exhaustive list of allowable characters,
-    // flagging that the value should be escaped when we're not sure.
+// Whitelist a non-exhaustive list of allowable characters,
+// flagging that the value should be escaped when we're not sure.
     !RegExp(r'^[^>][-+.<>=^ \w]*$').hasMatch(scalarValue);
 
 /// Parses a `--comment-prefix=<value>` command-line option from [args] if

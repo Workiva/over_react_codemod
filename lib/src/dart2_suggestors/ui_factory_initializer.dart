@@ -52,13 +52,12 @@ class UiFactoryInitializer extends RecursiveAstVisitor
 
     final targetInitializer =
         '${privateGeneratedPrefix}${factoryNode.name.name}';
-    final targetInitializerWithIgnore = [
-      // Insert a line break to avoid the situation where a dartfmt run may
-      // separate the ignore comment from the initializer value.
-      '\n',
-      '    ${buildIgnoreComment(undefinedIdentifier: true)}\n'
-          '    $targetInitializer',
-    ].join();
+    final targetInitializerWithIgnore =
+        // Insert a line break to avoid the situation where a dartfmt run may
+        // separate the ignore comment from the initializer value.
+        '\n'
+        '    ${buildIgnoreComment(undefinedIdentifier: true)}\n'
+        '    $targetInitializer';
 
     final currentInitializer = factoryNode.initializer?.toSource()?.trim();
     if (currentInitializer == targetInitializer) {
