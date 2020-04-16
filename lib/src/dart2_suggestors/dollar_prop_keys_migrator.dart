@@ -49,5 +49,6 @@ class DollarPropKeysMigrator implements Suggestor {
     }
   }
 
+  @override
   bool shouldSkip(_) => false;
 }

@@ -179,7 +179,7 @@ String getFixMeCommentForConvertedClassDeclaration({
         : [...externalMixins];
 
     if (externalApis.isNotEmpty) {
-      fixMeBuffer..write('''
+      fixMeBuffer.write('''
         //   ${extendsFromCustomNonReservedClass ? '3' : '1'}. You should notice that ${externalApis.join(', ')} ${externalApis.length == 1 ? 'is' : 'are'} deprecated.  
         //      Follow the deprecation instructions to consume the replacement by either updating your usage to
         //      the new class/mixin name and/or updating to a different entrypoint that exports the ${externalApis.length == 1 ? 'version' : 'versions'} of 

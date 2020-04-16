@@ -614,7 +614,6 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
                     false,
                     reason: getExternalSuperclassOrMixinReasonComment(
                         publicNodeName, [superclassName]));
-            ;
           }
         }
       }
