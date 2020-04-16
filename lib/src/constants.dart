@@ -101,11 +101,10 @@ const String stateMetaType = 'StateMeta';
 const String temporaryCompanionClassComment =
     'This will be removed once the transition to Dart 2 is complete.';
 
-
 RegExp getDependencyRegExp(String packageName) => RegExp(
-  r'''^\s*''' + packageName + r''':\s*(["']?)(.+)\1\s*$''',
-  multiLine: true,
-);
+      r'''^\s*''' + packageName + r''':\s*(["']?)(.+)\1\s*$''',
+      multiLine: true,
+    );
 
 /// Regex to find a react dependency.
 final RegExp reactDependencyRegExp = getDependencyRegExp('react');

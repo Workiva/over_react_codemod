@@ -46,9 +46,7 @@ import 'util.dart';
 /// `midVersionRange` is a version range between the expected range max and
 /// min. Used in conjunction with `shouldUpdateMidRange`.
 void sharedPubspecTest({
-  @required
-      Function({bool useMidVersionMin})
-          getExpectedOutput,
+  @required Function({bool useMidVersionMin}) getExpectedOutput,
   @required SuggestorTester testSuggestor,
   @required String dependency,
   @required VersionRange startingRange,

@@ -74,10 +74,10 @@ class PubspecUpgrader implements Suggestor {
             constraint: constraint,
             shouldIgnoreMin: shouldIgnoreMin)) {
           final newConstraint =
-          targetConstraint.toString().contains('-alpha') ||
-              targetConstraint.toString().contains('-dev')
-              ? targetConstraint
-              : generateNewVersionRange(constraint, targetConstraint);
+              targetConstraint.toString().contains('-alpha') ||
+                      targetConstraint.toString().contains('-dev')
+                  ? targetConstraint
+                  : generateNewVersionRange(constraint, targetConstraint);
 
           var newValue = friendlyVersionConstraint(newConstraint);
           // Wrap the new constraint in quotes if required.
@@ -101,7 +101,9 @@ class PubspecUpgrader implements Suggestor {
       }
     } else if (shouldAddDependencies) {
       // Package is missing in pubspec.yaml, so add it.
-      final keyMatch = (isDevDependency ? devDependencyRegExp : dependencyRegExp).firstMatch(contents);
+      final keyMatch =
+          (isDevDependency ? devDependencyRegExp : dependencyRegExp)
+              .firstMatch(contents);
       if (keyMatch != null) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
