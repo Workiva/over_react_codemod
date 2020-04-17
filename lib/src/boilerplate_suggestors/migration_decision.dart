@@ -60,8 +60,7 @@ String getExternalSuperclassOrMixinReasonComment(
       mixinsAreExternal ? 'mixes in' : 'extends from';
 
   return '''
-  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate 
-  // because it $inheritanceReasonPortion: ${superclassOrMixinNames.join(', ')} - which ${superclassOrMixinNames.length == 1 ? 'comes' : 'come'} from an external library.
+  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it $inheritanceReasonPortion: ${superclassOrMixinNames.join(', ')} - which ${superclassOrMixinNames.length == 1 ? 'comes' : 'come'} from an external library.
   //
   // To complete the migration, you should:
   //   1. Check on the boilerplate migration status of the library ${superclassOrMixinNames.length == 1 ? 'it comes' : 'they come'} from.
@@ -79,14 +78,13 @@ String getExternalSuperclassOrMixinReasonComment(
 String getPublicApiReasonComment(String nodeName, List<String> locations) {
   if (locations.first == semverReportNotAvailable) {
     return '''
-    // FIXME: A Workiva Semver report was not found. `$nodeName` is assumed to be exported from
-    // a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
+    // FIXME: A Workiva Semver report was not found. `$nodeName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
     //
     // --------- If you are migrating an OSS library outside of Workiva ---------
     // You do not have access to Workiva's internal Semver audit tool. 
     // To complete the migration, you should:
     //
-    //   1. Revert all changes to remove this FIXME comment
+    //   1. Revert all changes to remove this FIX-ME comment
     //   2. Re-run the migration script with the following flag:    
     //
     //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
@@ -97,7 +95,7 @@ String getPublicApiReasonComment(String nodeName, List<String> locations) {
     //
     // --------- If you are migrating a Workiva library ---------
     // To complete the migration, you should:
-    //   1. Revert all changes to remove this FIXME comment
+    //   1. Revert all changes to remove this FIX-ME comment
     //   2. Generate a semver report by running the following script:
     //
     //        pub global activate semver_audit --hosted-url=https://pub.workiva.org
@@ -109,10 +107,9 @@ String getPublicApiReasonComment(String nodeName, List<String> locations) {
     ''';
   }
   return '''
-  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate 
-  // because doing so would be a breaking change since `$nodeName` is exported from the 
-  // following librar${locations.length > 1 ? 'ies' : 'y'} in this repo: 
-  // ${locations.join("\n// ")}
+  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it is exported from the following librar${locations.length > 1 ? 'ies' : 'y'} in this repo:${locations.join("\n// ")}
+  //
+  // Upgrading it would be considered a breaking change since.
   //
   // To complete the migration, you should: 
   //   1. Deprecate `$nodeName`.
@@ -126,18 +123,17 @@ String getPublicApiReasonComment(String nodeName, List<String> locations) {
   //   5b. If `$nodeName` had no consumers outside this repo, and you have no reason to make the new
   //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
   //       concrete class and the newly created mixin.
-  //   6. Remove this FIXME comment.
+  //   6. Remove this FIX-ME comment.
   ''';
 }
 
 String getUnMigratedSuperclassReasonComment(
     String nodeName, String superclassName) {
   return '''
-  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate 
-  // because it extends from `$superclassName`, which was not able to be migrated.
+  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it extends from `$superclassName`, which was not able to be migrated.
   //
   // To complete the migration, you should:
-  //   1. Look at the "FIXME" comment that has been added to `$superclassName` - 
+  //   1. Look at the FIX-ME comment that has been added to `$superclassName` - 
   //      and follow the steps outlined there to complete the migration.
   //   2. Re-run the migration script:
   //      pub global run over_react_codemod:boilerplate_upgrade
