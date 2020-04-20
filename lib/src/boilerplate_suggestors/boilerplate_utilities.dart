@@ -200,7 +200,7 @@ MigrationDecision getPropsAndStateClassMigrationDecision(
       // FIXME: `$publicNodeName` could not be auto-migrated to the new over_react boilerplate 
       // because `${getComponentNodeInRoot(node).name.name}` does not extend from `UiComponent2`.
       // 
-      // Once you have upgraded the component, you can remove this FIXME comment and 
+      // Once you have upgraded the component, you can remove this FIX-ME comment and 
       // re-run the boilerplate migration script:
       // $reRunMigrationScriptInstructions
       ''',
