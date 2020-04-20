@@ -16,6 +16,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
@@ -140,21 +141,32 @@ int upgradeReactVersions({
   @required String overReactVersionRange,
   @required String overReactTestVersionRange,
 }) {
-  print('\n\nAbout to set dependency ranges:\n'
-      '  over_react: "$overReactVersionRange"\n'
-      '  over_react_test: "$overReactTestVersionRange"');
-  final useDefaultRanges = prompts.getBool('Are these ranges correct?');
-  if (!useDefaultRanges) {
-    overReactVersionRange = prompts.get('over_react version range',
-        defaultsTo: overReactVersionRange);
-    overReactTestVersionRange = prompts.get('over_react_test version range',
-        defaultsTo: overReactTestVersionRange);
-  }
+  var ranges = {
+    'over_react': overReactVersionRange,
+    'over_react_test': overReactTestVersionRange,
+    'workiva_analysis_options': '^1.1.0',
+  };
+  final isDev = {
+    'over_react': false,
+    'over_react_test': true,
+    'workiva_analysis_options': true,
+  };
+  assert(UnorderedIterableEquality().equals(ranges.keys, isDev.keys));
 
-  final overReactVersionConstraint =
-      VersionConstraint.parse(overReactVersionRange);
-  final overReactTestVersionConstraint =
-      VersionConstraint.parse(overReactTestVersionRange);
+  print('\n\nAbout to set dependency ranges:');
+  print(ranges.entries
+      .map((entry) => '- ${entry.key}: ${entry.value}')
+      .join('\n'));
+
+  final useDefaultRanges =
+      prompts.getBool('Are these ranges correct?', defaultsTo: true);
+  if (!useDefaultRanges) {
+    ranges = ranges.map((name, range) {
+      final newRange = prompts.get('$name version range',
+          defaultsTo: range);
+      return MapEntry(name, newRange);
+    });
+  }
 
   final pubspecYamlQuery = FileQuery.dir(
     pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
@@ -163,19 +175,14 @@ int upgradeReactVersions({
 
   return runInteractiveCodemod(
     pubspecYamlQuery,
-    AggregateSuggestor([
-      PubspecUpgrader(
-        'over_react',
-        overReactVersionConstraint,
-        shouldAddDependencies: false,
-      ),
-      PubspecUpgrader(
-        'over_react_test',
-        overReactTestVersionConstraint,
-        shouldAddDependencies: false,
-        isDevDependency: true,
-      ),
-    ].map((s) => Ignoreable(s))),
+    AggregateSuggestor(ranges.entries
+        .map((entry) => PubspecUpgrader(
+              entry.key,
+              VersionConstraint.parse(entry.value),
+              shouldAddDependencies: false,
+              isDevDependency: isDev[entry.key],
+            ))
+        .map((s) => Ignoreable(s))),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
