@@ -14,6 +14,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
+import 'package:over_react_codemod/src/error_codes.dart';
 
 import 'boilerplate_utilities.dart';
 
@@ -56,23 +57,12 @@ String getExternalSuperclassOrMixinReasonComment(
   List<String> superclassOrMixinNames, {
   bool mixinsAreExternal = false,
 }) {
-  final inheritanceReasonPortion =
-      mixinsAreExternal ? 'mixes in' : 'extends from';
-
-  return '''
-  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it $inheritanceReasonPortion: ${superclassOrMixinNames.join(', ')} - which ${superclassOrMixinNames.length == 1 ? 'comes' : 'come'} from an external library.
-  //
-  // To complete the migration, you should:
-  //   1. Check on the boilerplate migration status of the library ${superclassOrMixinNames.length == 1 ? 'it comes' : 'they come'} from.
-  //   2. Once the library has released a version that includes updated boilerplate,
-  //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
-  //   3. Re-run the migration script with the following flag:
-  //      pub global run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-  //   4. Once the migration is complete, you should notice that ${superclassOrMixinNames.join(', ')} ${superclassOrMixinNames.length == 1 ? 'has' : 'have'} been deprecated. 
-  //      Follow the deprecation instructions to consume the ${superclassOrMixinNames.length == 1 ? 'replacement' : 'replacements'} by either updating your usage to
-  //      the new ${mixinsAreExternal ? 'mixin' : 'class'} ${superclassOrMixinNames.length == 1 ? 'name' : 'names'} and/or updating to a different entrypoint that exports the version(s) of 
-  //      ${superclassOrMixinNames.join(', ')} that ${superclassOrMixinNames.length == 1 ? 'is' : 'are'} compatible with the new over_react boilerplate.
-  ''';
+  return code_boilerplateExternalSuperclassOrMixin.summaryWithDetailsLink({
+    'nodeName': nodeName,
+    'inheritanceReasonPortion': mixinsAreExternal ? 'mixes in' : 'extends from',
+    'superclassOrMixinNames': superclassOrMixinNames,
+    'mixinOrClass': mixinsAreExternal ? 'mixin' : 'class',
+  }).asFixmeComment();
 }
 
 String getPublicApiReasonComment(String nodeName, List<String> locations) {
@@ -106,38 +96,19 @@ String getPublicApiReasonComment(String nodeName, List<String> locations) {
     //        pub global run over_react_codemod:boilerplate_upgrade
     ''';
   }
-  return '''
-  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it is exported from the following librar${locations.length > 1 ? 'ies' : 'y'} in this repo:${locations.join("\n// ")}
-  //
-  // Upgrading it would be considered a breaking change since.
-  //
-  // To complete the migration, you should: 
-  //   1. Deprecate `$nodeName`.
-  //   2. Make a copy of it, renaming it something like `${nodeName}V2`.
-  //   3. Replace all your current usage of the deprecated `$nodeName` with `${nodeName}V2`.
-  //   4. Add a `hide ${nodeName}V2` clause to all places where it is exported, and then run:
-  //        pub global run over_react_codemod:boilerplate_upgrade
-  //   5a. If `$nodeName` had consumers outside this repo, and it was intentionally made public,
-  //       remove the `hide` clause you added in step 4 so that the new mixin created from `${nodeName}V2` 
-  //       will be a viable replacement for `$nodeName`.
-  //   5b. If `$nodeName` had no consumers outside this repo, and you have no reason to make the new
-  //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
-  //       concrete class and the newly created mixin.
-  //   6. Remove this FIX-ME comment.
-  ''';
+
+  return code_boilerplatePublicApi.summaryWithDetailsLink({
+    'nodeName': nodeName,
+    'locations': locations,
+  }).asFixmeComment();
 }
 
 String getUnMigratedSuperclassReasonComment(
     String nodeName, String superclassName) {
-  return '''
-  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it extends from `$superclassName`, which was not able to be migrated.
-  //
-  // To complete the migration, you should:
-  //   1. Look at the FIX-ME comment that has been added to `$superclassName` - 
-  //      and follow the steps outlined there to complete the migration.
-  //   2. Re-run the migration script:
-  //      pub global run over_react_codemod:boilerplate_upgrade
-  ''';
+  return code_boilerplateUnmigratedSuperclass.summaryWithDetailsLink({
+    'nodeName': nodeName,
+    'superclassName': superclassName,
+  }).asFixmeComment();
 }
 
 String getFixMeCommentForConvertedClassDeclaration({
