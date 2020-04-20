@@ -109,7 +109,7 @@ String getPublicApiReasonComment(String nodeName, List<String> locations) {
   return '''
   // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it is exported from the following librar${locations.length > 1 ? 'ies' : 'y'} in this repo:${locations.join("\n// ")}
   //
-  // Upgrading it would be considered a breaking change since.
+  // Upgrading it would be considered a breaking change since consumer components can no longer extend from it.
   //
   // To complete the migration, you should: 
   //   1. Deprecate `$nodeName`.
