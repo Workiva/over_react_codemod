@@ -162,8 +162,7 @@ int upgradeReactVersions({
       prompts.getBool('Are these ranges correct?', defaultsTo: true);
   if (!useDefaultRanges) {
     ranges = ranges.map((name, range) {
-      final newRange = prompts.get('$name version range',
-          defaultsTo: range);
+      final newRange = prompts.get('$name version range', defaultsTo: range);
       return MapEntry(name, newRange);
     });
   }
