@@ -112,7 +112,7 @@ String getPublicApiReasonComment(String nodeName, List<String> locations) {
   //
   // Upgrading it would be considered a breaking change since consumer components can no longer extend from it.
   //
-  // To complete the migration, you should: 
+  // To complete the migration, you can: 
   //   1. Deprecate `$nodeName`.
   //   2. Make a copy of it, renaming it something like `${nodeName}V2`.
   //   3. Replace all your current usage of the deprecated `$nodeName` with `${nodeName}V2`.
@@ -125,6 +125,9 @@ String getPublicApiReasonComment(String nodeName, List<String> locations) {
   //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
   //       concrete class and the newly created mixin.
   //   6. Remove this FIX-ME comment.
+  //
+  // If are migrating a Workiva library and have questions, or want to discuss alternative solutions, 
+  // please reach out in the #support-ui-platform Slack room. 
   ''';
 }
 

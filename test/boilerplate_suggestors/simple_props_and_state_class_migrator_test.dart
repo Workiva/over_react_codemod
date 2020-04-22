@@ -322,7 +322,7 @@ void simplePropsAndStateClassMigratorTestHelper({
           //
           // Upgrading it would be considered a breaking change since consumer components can no longer extend from it.
           //
-          // To complete the migration, you should: 
+          // To complete the migration, you can: 
           //   1. Deprecate `BarProps`.
           //   2. Make a copy of it, renaming it something like `BarPropsV2`.
           //   3. Replace all your current usage of the deprecated `BarProps` with `BarPropsV2`.
@@ -334,7 +334,10 @@ void simplePropsAndStateClassMigratorTestHelper({
           //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
-          //   6. Remove this FIX-ME comment.''' : semverReportUnavailableComment('BarProps')}
+          //   6. Remove this FIX-ME comment.
+          //
+          // If are migrating a Workiva library and have questions, or want to discuss alternative solutions, 
+          // please reach out in the #support-ui-platform Slack room.''' : semverReportUnavailableComment('BarProps')}
           class _\$BarProps extends UiProps {
             String foo;
             int bar;
