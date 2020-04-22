@@ -176,10 +176,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
           /// Some documentation comment 
           /// might get in the way of fix me comment removal
           @Props()
-          // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
-          // because `FooComponent` does not extend from `UiComponent2`.
+          // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because `FooComponent` does not extend from `UiComponent2`.
           // 
-          // Once you have upgraded the component, you can remove this FIXME comment and 
+          // Once you have upgraded the component, you can remove this FIX-ME comment and 
           // re-run the boilerplate migration script:
           // pub global run over_react_codemod:boilerplate_upgrade
           class $propsClassName extends UiProps with SomePropsMixin {
@@ -242,11 +241,11 @@ void advancedPropsAndStateClassMigratorTestHelper({
               \$Bar;
   
           @Props()
-          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate
-          // because doing so would be a breaking change since `BarProps` is exported from the
-          // following libraries in this repo:
+          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate because it is exported from the following libraries in this repo:
           // lib/web_skin_dart.dart/BarProps
           // lib/another_file.dart/BarProps
+          //
+          // Upgrading it would be considered a breaking change since consumer components can no longer extend from it.
           //
           // To complete the migration, you should: 
           //   1. Deprecate `BarProps`.
@@ -260,17 +259,17 @@ void advancedPropsAndStateClassMigratorTestHelper({
           //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
-          //   6. Remove this FIXME comment.'''}
+          //   6. Remove this FIX-ME comment.'''}
           class _\$BarProps extends ADifferentPropsClass {
             String foo;
             int bar;
           }
 
           @State()
-          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: `BarState` could not be auto-migrated to the new over_react boilerplate
-          // because doing so would be a breaking change since `BarState` is exported from the
-          // following library in this repo:
+          ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: `BarState` could not be auto-migrated to the new over_react boilerplate because it is exported from the following library in this repo:
           // lib/web_skin_dart.dart/BarState
+          //
+          // Upgrading it would be considered a breaking change since consumer components can no longer extend from it.
           //
           // To complete the migration, you should: 
           //   1. Deprecate `BarState`.
@@ -284,7 +283,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
           //   5b. If `BarState` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
-          //   6. Remove this FIXME comment.'''}
+          //   6. Remove this FIX-ME comment.'''}
           class _\$BarState extends ADifferentStateClass {
             String foo;
             int bar;
@@ -333,14 +332,13 @@ void advancedPropsAndStateClassMigratorTestHelper({
             $factoryDecl
     
             @Props()
-            ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicPropsClassName` is assumed to be exported from
-            // a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
+            ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicPropsClassName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
             //
             // --------- If you are migrating an OSS library outside of Workiva ---------
             // You do not have access to Workiva's internal Semver audit tool. 
             // To complete the migration, you should:
             //
-            //   1. Revert all changes to remove this FIXME comment
+            //   1. Revert all changes to remove this FIX-ME comment
             //   2. Re-run the migration script with the following flag:    
             //
             //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
@@ -351,7 +349,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             //
             // --------- If you are migrating a Workiva library ---------
             // To complete the migration, you should:
-            //   1. Revert all changes to remove this FIXME comment
+            //   1. Revert all changes to remove this FIX-ME comment
             //   2. Generate a semver report by running the following script:
             //
             //        pub global activate semver_audit --hosted-url=https://pub.workiva.org
@@ -366,14 +364,13 @@ void advancedPropsAndStateClassMigratorTestHelper({
             }
     
             @State()
-            ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicStateClassName` is assumed to be exported from
-            // a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
+            ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicStateClassName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
             //
             // --------- If you are migrating an OSS library outside of Workiva ---------
             // You do not have access to Workiva's internal Semver audit tool. 
             // To complete the migration, you should:
             //
-            //   1. Revert all changes to remove this FIXME comment
+            //   1. Revert all changes to remove this FIX-ME comment
             //   2. Re-run the migration script with the following flag:    
             //
             //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
@@ -384,7 +381,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             //
             // --------- If you are migrating a Workiva library ---------
             // To complete the migration, you should:
-            //   1. Revert all changes to remove this FIXME comment
+            //   1. Revert all changes to remove this FIX-ME comment
             //   2. Generate a semver report by running the following script:
             //
             //        pub global activate semver_audit --hosted-url=https://pub.workiva.org
@@ -471,8 +468,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             $factoryDecl
             
             @Props()
-            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
-            // because it extends from: $externalSuperclassName - which comes from an external library.
+            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it extends from: $externalSuperclassName - which comes from an external library.
             //
             // To complete the migration, you should:
             //   1. Check on the boilerplate migration status of the library it comes from.
@@ -644,8 +640,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             $factoryDecl
             
             @Props()
-            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
-            // because it mixes in: $externalMixinName - which comes from an external library.
+            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it mixes in: $externalMixinName - which comes from an external library.
             //
             // To complete the migration, you should:
             //   1. Check on the boilerplate migration status of the library it comes from.
@@ -658,8 +653,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             //      the new mixin name and/or updating to a different entrypoint that exports the version(s) of 
             //      $externalMixinName that is compatible with the new over_react boilerplate.
             //
-            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
-            // because it extends from: $externalSuperclassName - which comes from an external library.
+            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it extends from: $externalSuperclassName - which comes from an external library.
             //
             // To complete the migration, you should:
             //   1. Check on the boilerplate migration status of the library it comes from.
@@ -807,11 +801,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
             $factoryDecl
             
             @Props()
-            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
-            // because it extends from `ADifferentPropsClass`, which was not able to be migrated.
+            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it extends from `ADifferentPropsClass`, which was not able to be migrated.
             //
             // To complete the migration, you should:
-            //   1. Look at the "FIXME" comment that has been added to `ADifferentPropsClass` - 
+            //   1. Look at the FIX-ME comment that has been added to `ADifferentPropsClass` - 
             //      and follow the steps outlined there to complete the migration.
             //   2. Re-run the migration script:
             //      pub global run over_react_codemod:boilerplate_upgrade
@@ -917,8 +910,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
               $factoryDecl
 
               @Props()
-              // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
-              // because it mixes in: $externalMixinName - which comes from an external library.
+              // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it mixes in: $externalMixinName - which comes from an external library.
               //
               // To complete the migration, you should:
               //   1. Check on the boilerplate migration status of the library it comes from.
@@ -1026,8 +1018,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
               $factoryDecl
 
               @Props()
-              // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate 
-              // because it mixes in: $externalMixinNames - which come from an external library.
+              // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it mixes in: $externalMixinNames - which come from an external library.
               //
               // To complete the migration, you should:
               //   1. Check on the boilerplate migration status of the library they come from.

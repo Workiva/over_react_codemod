@@ -107,10 +107,9 @@ void simplePropsAndStateClassMigratorTestHelper({
             $Foo;
 
         @Props()
-        // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
-        // because `FooComponent` does not extend from `UiComponent2`.
+        // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate because `FooComponent` does not extend from `UiComponent2`.
         // 
-        // Once you have upgraded the component, you can remove this FIXME comment and 
+        // Once you have upgraded the component, you can remove this FIX-ME comment and 
         // re-run the boilerplate migration script:
         // pub global run over_react_codemod:boilerplate_upgrade
         class _$FooProps extends UiProps {
@@ -317,11 +316,11 @@ void simplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Bar;
           @Props()
-          ${isValidFilePath ? '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate
-          // because doing so would be a breaking change since `BarProps` is exported from the
-          // following libraries in this repo:
+          ${isValidFilePath ? '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate because it is exported from the following libraries in this repo:
           // lib/web_skin_dart.dart/BarProps
           // lib/another_file.dart/BarProps
+          //
+          // Upgrading it would be considered a breaking change since consumer components can no longer extend from it.
           //
           // To complete the migration, you should: 
           //   1. Deprecate `BarProps`.
@@ -335,7 +334,7 @@ void simplePropsAndStateClassMigratorTestHelper({
           //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
           //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
           //       concrete class and the newly created mixin.
-          //   6. Remove this FIXME comment.''' : semverReportUnavailableComment('BarProps')}
+          //   6. Remove this FIX-ME comment.''' : semverReportUnavailableComment('BarProps')}
           class _\$BarProps extends UiProps {
             String foo;
             int bar;
@@ -833,14 +832,13 @@ void simplePropsAndStateClassMigratorTestHelper({
 
 String semverReportUnavailableComment(String nodeName) {
   return '''
-    // FIXME: A Workiva Semver report was not found. `$nodeName` is assumed to be exported from
-    // a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
+    // FIXME: A Workiva Semver report was not found. `$nodeName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
     //
     // --------- If you are migrating an OSS library outside of Workiva ---------
     // You do not have access to Workiva's internal Semver audit tool. 
     // To complete the migration, you should:
     //
-    //   1. Revert all changes to remove this FIXME comment
+    //   1. Revert all changes to remove this FIX-ME comment
     //   2. Re-run the migration script with the following flag:    
     //
     //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
@@ -851,7 +849,7 @@ String semverReportUnavailableComment(String nodeName) {
     //
     // --------- If you are migrating a Workiva library ---------
     // To complete the migration, you should:
-    //   1. Revert all changes to remove this FIXME comment
+    //   1. Revert all changes to remove this FIX-ME comment
     //   2. Generate a semver report by running the following script:
     //
     //        pub global activate semver_audit --hosted-url=https://pub.workiva.org
