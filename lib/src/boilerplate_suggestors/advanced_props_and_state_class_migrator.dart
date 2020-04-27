@@ -179,7 +179,6 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
           ? ''
           : getFixMeCommentForConvertedClassDeclaration(
               converter: converter,
-              mixinNames: mixinNames,
               parentClassName: parentClassName,
               convertClassesWithExternalSuperclass:
                   convertClassesWithExternalSuperclass,
@@ -530,43 +529,8 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
       return MigrationDecision(true);
     }
 
-    final migrationDecisionsBasedOnMixins = <String, MigrationDecision>{};
-    if (mixinNames.isNotEmpty) {
-      final mixinNamesThatAreExternal = <String>[];
-
-      // Has one or more mixins
-      for (var mixinName in mixinNames) {
-        if (!isReservedBaseClass(mixinName) &&
-            !converter.wasVisited(mixinName)) {
-          if (isFirstTimeVisitingClasses) {
-            // An advanced class with a mixin that has not been visited yet.
-            // However, this is the first run through the script since `treatUnvisitedClassesAsExternal` is false,
-            // so just short-circuit and do nothing since we'll circle back on the second run.
-            migrationDecisionsBasedOnMixins[mixinName] =
-                MigrationDecision(false);
-          } else {
-            // An advanced class with a mixin that has not been visited after two runs,
-            // indicating that the mixin does not exist in the current repo / lib.
-            if (convertClassesWithExternalSuperclass) {
-              migrationDecisionsBasedOnMixins[mixinName] =
-                  MigrationDecision(true);
-            } else {
-              mixinNamesThatAreExternal.add(mixinName);
-            }
-          }
-        } else {
-          migrationDecisionsBasedOnMixins[mixinName] = MigrationDecision(true);
-        }
-      }
-
-      if (mixinNamesThatAreExternal.isNotEmpty) {
-        migrationDecisionsBasedOnMixins[mixinNamesThatAreExternal.join(', ')] =
-            MigrationDecision(false,
-                reason: getExternalSuperclassOrMixinReasonComment(
-                    publicNodeName, mixinNamesThatAreExternal,
-                    mixinsAreExternal: true));
-      }
-    }
+    // No need to check mixins, since legacy mixins are forward-compatible with
+    // new boilerplate.
 
     final migrationDecisionsBasedOnSuperclass = <String, MigrationDecision>{};
     if (!isReservedBaseClass(superclassName)) {
@@ -619,10 +583,7 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
       }
     }
 
-    final migrationDecisions = {
-      ...migrationDecisionsBasedOnMixins,
-      ...migrationDecisionsBasedOnSuperclass
-    };
+    final migrationDecisions = {...migrationDecisionsBasedOnSuperclass};
 
     if (migrationDecisions.values.every((decision) => decision.yee)) {
       return MigrationDecision(true);

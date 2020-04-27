@@ -625,181 +625,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
       });
 
       group(
-          'the class mixes in and extends from classes not found within ClassToMixinConverter.visitedClassNames',
-          () {
-        const externalSuperclassName = 'SomeExternalPropsClass';
-        const externalMixinName = 'SomeExternalMixin';
-
-        const input = '''
-            $factoryDecl
-            
-            @Props()
-            class $propsClassName extends $externalSuperclassName with $externalMixinName {
-              String foo;
-              int bar;
-            }
-            
-            $componentDecl
-            ''';
-
-        const expectedOutputWithExternalSuperclassReasonComment = '''
-            $factoryDecl
-            
-            @Props()
-            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it mixes in: $externalMixinName - which comes from an external library.
-            //
-            // To complete the migration, you should:
-            //   1. Check on the boilerplate migration status of the library it comes from.
-            //   2. Once the library has released a version that includes updated boilerplate,
-            //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
-            //   3. Re-run the migration script with the following flag:
-            //      pub global run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-            //   4. Once the migration is complete, you should notice that $externalMixinName has been deprecated. 
-            //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-            //      the new mixin name and/or updating to a different entrypoint that exports the version(s) of 
-            //      $externalMixinName that is compatible with the new over_react boilerplate.
-            //
-            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it extends from: $externalSuperclassName - which comes from an external library.
-            //
-            // To complete the migration, you should:
-            //   1. Check on the boilerplate migration status of the library it comes from.
-            //   2. Once the library has released a version that includes updated boilerplate,
-            //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
-            //   3. Re-run the migration script with the following flag:
-            //      pub global run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-            //   4. Once the migration is complete, you should notice that $externalSuperclassName has been deprecated. 
-            //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-            //      the new class name and/or updating to a different entrypoint that exports the version(s) of 
-            //      $externalSuperclassName that is compatible with the new over_react boilerplate.
-            class $propsClassName extends $externalSuperclassName with $externalMixinName {
-              String foo;
-              int bar;
-            }
-            
-            $componentDecl
-          ''';
-
-        group('but does add a FIXME comment', () {
-          setUp(() {
-            // When it is run the first time, nothing should happen since
-            // we don't know if the custom classes are external or not.
-            testSuggestor()(expectedPatchCount: 0, input: input);
-            testSuggestor()(
-              input: input,
-              expectedOutput: expectedOutputWithExternalSuperclassReasonComment,
-            );
-          });
-
-          test('', () {
-            expect(
-                converter.visitedNames,
-                {
-                  publicPropsClassName: null,
-                },
-                reason:
-                    '$publicPropsClassName should not be converted since $externalSuperclassName '
-                    'and $externalMixinName are external, and the --convert-classes-with-external-superclasses '
-                    'flag is not set');
-          });
-
-          test(
-              'which then gets removed from the declaration that is converted to a mixin, and replaced '
-              'with updated instructions on the new concrete class declaration when the script '
-              'is re-ran with the --convert-classes-with-external-superclasses flag set',
-              () {
-            // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
-            // being set - which allows conversion of external superclasses
-            testSuggestor(convertClassesWithExternalSuperclass: true)(
-              input: expectedOutputWithExternalSuperclassReasonComment,
-              expectedOutput: '''
-              $factoryDecl
-  
-              @Props()
-              mixin ${publicPropsClassName}Mixin on UiProps {
-                String foo;
-                int bar;
-              }
-
-              @Props()
-              // FIXME:
-              //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
-              //   2. Fix any analyzer warnings on this class about missing mixins.
-              //   3. You should notice that $externalSuperclassName, $externalMixinName are deprecated.  
-              //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-              //      the new class/mixin name and/or updating to a different entrypoint that exports the versions of 
-              //      $externalSuperclassName, $externalMixinName that are compatible with the new over_react boilerplate.
-              //
-              //      If they are not deprecated, something most likely went wrong during the migration of the 
-              //      library that contains them. 
-              class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
-  
-              ${componentDeclWithConsumedProps([
-                '${publicPropsClassName}Mixin'
-              ])}
-            ''',
-            );
-
-            expect(
-                converter.visitedNames,
-                {
-                  publicPropsClassName: '${publicPropsClassName}Mixin',
-                },
-                reason:
-                    '$publicPropsClassName should be converted to a mixin since the '
-                    '--convert-classes-with-external-superclasses flag is set');
-          });
-        });
-
-        test(
-            'unless the --convert-classes-with-external-superclasses flag is set',
-            () {
-          // When it is run the first time, nothing should happen since
-          // we don't know if the custom classes are external or not.
-          testSuggestor()(expectedPatchCount: 0, input: input);
-          // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
-          // being set - which allows conversion of external superclasses
-          testSuggestor(convertClassesWithExternalSuperclass: true)(
-            input: input,
-            expectedOutput: '''
-              $factoryDecl
-  
-              @Props()
-              mixin ${publicPropsClassName}Mixin on UiProps {
-                String foo;
-                int bar;
-              }
-
-              @Props()
-              // FIXME:
-              //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
-              //   2. Fix any analyzer warnings on this class about missing mixins.
-              //   3. You should notice that $externalSuperclassName, $externalMixinName are deprecated.  
-              //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-              //      the new class/mixin name and/or updating to a different entrypoint that exports the versions of 
-              //      $externalSuperclassName, $externalMixinName that are compatible with the new over_react boilerplate.
-              //
-              //      If they are not deprecated, something most likely went wrong during the migration of the 
-              //      library that contains them. 
-              class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin, $externalMixinName;
-  
-              ${componentDeclWithConsumedProps([
-              '${publicPropsClassName}Mixin'
-            ])}
-            ''',
-          );
-
-          expect(
-              converter.visitedNames,
-              {
-                publicPropsClassName: '${publicPropsClassName}Mixin',
-              },
-              reason:
-                  '$publicPropsClassName should be converted to a mixin since the '
-                  '--convert-classes-with-external-superclasses flag is set');
-        });
-      });
-
-      group(
           'the class extends from a custom class that has been visited, '
           'but not yet converted to the new boilerplate after two runs '
           'but does add a FIXME comment', () {
@@ -894,224 +719,37 @@ void advancedPropsAndStateClassMigratorTestHelper({
         });
       });
 
-      group(
+      test(
           'the class uses one or more mixins not found within ClassToMixinConverter.visitedClassNames:',
           () {
-        group('single external mixin:', () {
-          const externalMixinName = 'SomeExternalMixin';
+        const externalMixinName = 'SomeExternalMixin';
+        testSuggestor()(
+          input: '''
+          $factoryDecl
 
-          const input = '''
-              $factoryDecl
-    
-              @Props()
-              class $propsClassName extends UiProps with $externalMixinName {
-                String foo;
-                int bar;
-              }
-    
-              $componentDecl
-              ''';
+          @Props()
+          class $propsClassName extends UiProps with $externalMixinName {
+            String foo;
+            int bar;
+          }
 
-          const expectedOutputWithExternalMixinReasonComment = '''
-              $factoryDecl
+          $componentDecl
+          ''',
+          expectedOutput: '''
+          $factoryDecl
+          
+          @Props()
+          mixin ${publicPropsClassName}Mixin on UiProps {
+            String foo;
+            int bar;
+          }
 
-              @Props()
-              // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it mixes in: $externalMixinName - which comes from an external library.
-              //
-              // To complete the migration, you should:
-              //   1. Check on the boilerplate migration status of the library it comes from.
-              //   2. Once the library has released a version that includes updated boilerplate,
-              //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
-              //   3. Re-run the migration script with the following flag:
-              //      pub global run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-              //   4. Once the migration is complete, you should notice that $externalMixinName has been deprecated. 
-              //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-              //      the new mixin name and/or updating to a different entrypoint that exports the version(s) of 
-              //      $externalMixinName that is compatible with the new over_react boilerplate.
-              class $propsClassName extends UiProps with $externalMixinName {
-                String foo;
-                int bar;
-              }
-    
-              $componentDecl
-            ''';
+          @Props()
+          class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, $externalMixinName;
 
-          group('but does add a FIXME comment', () {
-            setUp(() {
-              // When it is run the first time, nothing should happen since
-              // we don't know if the custom classes are external or not.
-              testSuggestor()(expectedPatchCount: 0, input: input);
-              testSuggestor()(
-                input: input,
-                expectedOutput: expectedOutputWithExternalMixinReasonComment,
-              );
-            });
-
-            test('', () {
-              expect(
-                  converter.visitedNames,
-                  {
-                    publicPropsClassName: null,
-                  },
-                  reason:
-                      '$publicPropsClassName should not be converted since $externalMixinName is external, '
-                      'and the --convert-classes-with-external-superclasses flag is not set');
-            });
-
-            test(
-                'which then gets removed from the declaration that is converted to a mixin, and replaced '
-                'with updated instructions on the new concrete class declaration when the script '
-                'is re-ran with the --convert-classes-with-external-superclasses flag set',
-                () {
-              // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
-              // being set - which allows conversion of external mixins
-              testSuggestor(convertClassesWithExternalSuperclass: true)(
-                input: expectedOutputWithExternalMixinReasonComment,
-                expectedOutput: '''
-                $factoryDecl
-    
-                @Props()
-                mixin ${publicPropsClassName}Mixin on UiProps {
-                  String foo;
-                  int bar;
-                }
-
-                @Props()
-                // FIXME:
-                //   1. You should notice that $externalMixinName is deprecated.  
-                //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-                //      the new class/mixin name and/or updating to a different entrypoint that exports the version of 
-                //      $externalMixinName that is compatible with the new over_react boilerplate.
-                //
-                //      If it is not deprecated, something most likely went wrong during the migration of the 
-                //      library that contains it. 
-                class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, $externalMixinName;
-    
-                ${componentDeclWithConsumedProps([
-                  '${publicPropsClassName}Mixin'
-                ])}
-              ''',
-              );
-
-              expect(
-                  converter.visitedNames,
-                  {
-                    publicPropsClassName: '${publicPropsClassName}Mixin',
-                  },
-                  reason:
-                      '$publicPropsClassName should be converted to a mixin since the '
-                      '--convert-classes-with-external-superclasses flag is set');
-            });
-          });
-        });
-
-        group('multiple external mixins:', () {
-          const externalMixinNames = 'SomeExternalMixin, AnotherExternalMixin';
-
-          const input = '''
-              $factoryDecl
-    
-              @Props()
-              class $propsClassName extends UiProps with $externalMixinNames {
-                String foo;
-                int bar;
-              }
-    
-              $componentDecl
-              ''';
-
-          const expectedOutputWithExternalMixinReasonComment = '''
-              $factoryDecl
-
-              @Props()
-              // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it mixes in: $externalMixinNames - which come from an external library.
-              //
-              // To complete the migration, you should:
-              //   1. Check on the boilerplate migration status of the library they come from.
-              //   2. Once the library has released a version that includes updated boilerplate,
-              //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
-              //   3. Re-run the migration script with the following flag:
-              //      pub global run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-              //   4. Once the migration is complete, you should notice that $externalMixinNames have been deprecated. 
-              //      Follow the deprecation instructions to consume the replacements by either updating your usage to
-              //      the new mixin names and/or updating to a different entrypoint that exports the version(s) of 
-              //      $externalMixinNames that are compatible with the new over_react boilerplate.
-              class $propsClassName extends UiProps with $externalMixinNames {
-                String foo;
-                int bar;
-              }
-    
-              $componentDecl
-            ''';
-
-          group('but does add a FIXME comment', () {
-            setUp(() {
-              // When it is run the first time, nothing should happen since
-              // we don't know if the custom classes are external or not.
-              testSuggestor()(expectedPatchCount: 0, input: input);
-              testSuggestor()(
-                input: input,
-                expectedOutput: expectedOutputWithExternalMixinReasonComment,
-              );
-            });
-
-            test('', () {
-              expect(
-                  converter.visitedNames,
-                  {
-                    publicPropsClassName: null,
-                  },
-                  reason:
-                      '$publicPropsClassName should not be converted since $externalMixinNames are external, '
-                      'and the --convert-classes-with-external-superclasses flag is not set');
-            });
-
-            test(
-                'which then gets removed from the declaration that is converted to a mixin, and replaced '
-                'with updated instructions on the new concrete class declaration when the script '
-                'is re-ran with the --convert-classes-with-external-superclasses flag set',
-                () {
-              // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
-              // being set - which allows conversion of external mixins
-              testSuggestor(convertClassesWithExternalSuperclass: true)(
-                input: expectedOutputWithExternalMixinReasonComment,
-                expectedOutput: '''
-                $factoryDecl
-    
-                @Props()
-                mixin ${publicPropsClassName}Mixin on UiProps {
-                  String foo;
-                  int bar;
-                }
-
-                @Props()
-                // FIXME:
-                //   1. You should notice that $externalMixinNames are deprecated.  
-                //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-                //      the new class/mixin name and/or updating to a different entrypoint that exports the versions of 
-                //      $externalMixinNames that are compatible with the new over_react boilerplate.
-                //
-                //      If they are not deprecated, something most likely went wrong during the migration of the 
-                //      library that contains them. 
-                class $publicPropsClassName = UiProps with ${publicPropsClassName}Mixin, $externalMixinNames;
-    
-                ${componentDeclWithConsumedProps([
-                  '${publicPropsClassName}Mixin'
-                ])}
-              ''',
-              );
-
-              expect(
-                  converter.visitedNames,
-                  {
-                    publicPropsClassName: '${publicPropsClassName}Mixin',
-                  },
-                  reason:
-                      '$publicPropsClassName should be converted to a mixin since the '
-                      '--convert-classes-with-external-superclasses flag is set');
-            });
-          });
-        });
+          ${componentDeclWithConsumedProps(['${publicPropsClassName}Mixin'])}
+        ''',
+        );
       });
     });
 
@@ -1264,51 +902,14 @@ void advancedPropsAndStateClassMigratorTestHelper({
         ])}
           ''';
 
-        test('on the first run', () {
+        test('', () {
           // Simulates the case where the superclasses were visited first and successfully converted
-          testSuggestor(
-            visitedClassNames: {
-              'AMixin': 'AMixin',
-              'AnotherMixin': 'AnotherMixin',
-              'AStateMixin': 'AStateMixin',
-              'AnotherStateMixin': 'AnotherStateMixin',
-            },
-          )(
+          testSuggestor()(
             input: input,
             expectedOutput: expectedOutput,
           );
 
           expect(converter.visitedNames, {
-            'AMixin': 'AMixin',
-            'AnotherMixin': 'AnotherMixin',
-            'AStateMixin': 'AStateMixin',
-            'AnotherStateMixin': 'AnotherStateMixin',
-            publicPropsClassName: '${publicPropsClassName}Mixin',
-            publicStateClassName: '${publicStateClassName}Mixin',
-          });
-        });
-
-        test('on the second run', () {
-          // When it is run the first time, nothing should happen since
-          // we don't know if the custom mixins are external or not.
-          testSuggestor()(expectedPatchCount: 0, input: input);
-          testSuggestor(
-            visitedClassNames: {
-              'AMixin': 'AMixin',
-              'AnotherMixin': 'AnotherMixin',
-              'AStateMixin': 'AStateMixin',
-              'AnotherStateMixin': 'AnotherStateMixin',
-            },
-          )(
-            input: input,
-            expectedOutput: expectedOutput,
-          );
-
-          expect(converter.visitedNames, {
-            'AMixin': 'AMixin',
-            'AnotherMixin': 'AnotherMixin',
-            'AStateMixin': 'AStateMixin',
-            'AnotherStateMixin': 'AnotherStateMixin',
             publicPropsClassName: '${publicPropsClassName}Mixin',
             publicStateClassName: '${publicStateClassName}Mixin',
           });
@@ -1426,33 +1027,13 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 }
               ''';
 
-            test('that has already been converted', () {
-              testSuggestor(visitedClassNames: {
-                'SomePropsMixin': 'SomePropsMixin',
-              })(
+            test('', () {
+              testSuggestor()(
                 input: input,
                 expectedOutput: expectedOutput,
               );
 
               expect(converter.visitedNames, {
-                'SomePropsMixin': 'SomePropsMixin',
-                publicPropsClassName: '${publicPropsClassName}Mixin',
-              });
-            });
-
-            test('that has not been converted the first time around', () {
-              // When it is run the first time, nothing should happen since
-              // we don't know if the mixin(s) are external or not.
-              testSuggestor()(expectedPatchCount: 0, input: input);
-              testSuggestor(visitedClassNames: {
-                'SomePropsMixin': 'SomePropsMixin',
-              })(
-                input: input,
-                expectedOutput: expectedOutput,
-              );
-
-              expect(converter.visitedNames, {
-                'SomePropsMixin': 'SomePropsMixin',
                 publicPropsClassName: '${publicPropsClassName}Mixin',
               });
             });
@@ -1619,8 +1200,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                         SomeAbstractPropsClass<A>,
                         AbstractBlockPropsMixin<A>,
                         LayoutPropsMixin,
-                        BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
-                        $BlockPropsMixin,
+                        BlockPropsMixin,
                         BlockClassHelperMapView {}
 
                 @AbstractComponent2()
@@ -1670,8 +1250,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 abstract class AbstractBlockProps<A extends Something> implements
                         SomeAbstractPropsClass<A>,
                         LayoutPropsMixin,
-                        BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
-                        $BlockPropsMixin,
+                        BlockPropsMixin,
                         BlockClassHelperMapView {}
 
                 @AbstractComponent2()
@@ -1929,13 +1508,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
               $componentDecl
             ''';
 
-          // When it is run the first time, nothing should happen since
-          // we don't know for sure if UnconvertedMixin can be converted yet.
-          testSuggestor()(expectedPatchCount: 0, input: input);
-          testSuggestor(visitedClassNames: {
-            'ConvertedMixin': 'ConvertedMixin',
-            'UnconvertedMixin': null,
-          })(
+          testSuggestor()(
             input: input,
             expectedOutput: '''
             $factoryDecl
@@ -1948,16 +1521,13 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
             @Props()
             class $publicPropsClassName = UiProps
-                with ${publicPropsClassName}Mixin, ConvertedMixin, UnconvertedMixin, // ignore: mixin_of_non_class, undefined_class
-                \$UnconvertedMixin;
+                with ${publicPropsClassName}Mixin, ConvertedMixin, UnconvertedMixin;
 
             ${componentDeclWithConsumedProps(['${publicPropsClassName}Mixin'])}
           ''',
           );
 
           expect(converter.visitedNames, {
-            'ConvertedMixin': 'ConvertedMixin',
-            'UnconvertedMixin': null,
             publicPropsClassName: '${publicPropsClassName}Mixin',
           });
         });
@@ -2067,13 +1637,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                   with LayoutMixin<T>, BlockMixin<T> {}
             ''';
 
-              // When it is run the first time, nothing should happen since
-              // we don't know if the mixin(s) are external or not.
-              testSuggestor()(expectedPatchCount: 0, input: input);
-              testSuggestor(visitedClassNames: {
-                'LayoutPropsMixin': 'LayoutPropsMixin',
-                'BlockPropsMixin': null,
-              })(
+              testSuggestor()(
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
@@ -2086,8 +1650,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 abstract class AbstractBlockProps implements
                         AbstractBlockPropsMixin,
                         LayoutPropsMixin,
-                        BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
-                        $BlockPropsMixin,
+                        BlockPropsMixin,
                         BlockClassHelperMapView {}
 
                 @AbstractComponent2()
@@ -2097,8 +1660,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               );
 
               expect(converter.visitedNames, {
-                'LayoutPropsMixin': 'LayoutPropsMixin',
-                'BlockPropsMixin': null,
                 'AbstractBlockProps': 'AbstractBlockPropsMixin',
               });
             });
@@ -2122,20 +1683,13 @@ void advancedPropsAndStateClassMigratorTestHelper({
                   with LayoutMixin<T>, BlockMixin<T> {}
             ''';
 
-              // When it is run the first time, nothing should happen since
-              // we don't know if the mixin(s) are external or not.
-              testSuggestor()(expectedPatchCount: 0, input: input);
-              testSuggestor(visitedClassNames: {
-                'LayoutPropsMixin': 'LayoutPropsMixin',
-                'BlockPropsMixin': null,
-              })(
+              testSuggestor()(
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
                 abstract class AbstractBlockProps implements
                         LayoutPropsMixin,
-                        BlockPropsMixin, // ignore: mixin_of_non_class, undefined_class
-                        $BlockPropsMixin,
+                        BlockPropsMixin,
                         BlockClassHelperMapView {}
 
                 @AbstractComponent2()
@@ -2145,8 +1699,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
               );
 
               expect(converter.visitedNames, {
-                'LayoutPropsMixin': 'LayoutPropsMixin',
-                'BlockPropsMixin': null,
                 'AbstractBlockProps': 'AbstractBlockProps',
               });
             });

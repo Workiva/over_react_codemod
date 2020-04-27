@@ -19,7 +19,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
 import 'package:over_react_codemod/src/constants.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:source_span/source_span.dart';
 
@@ -601,12 +600,6 @@ extension IterableAstUtils on Iterable<NamedType> {
     bool includeComments = true,
     bool includePrivateGeneratedClassNames = true,
   }) {
-    bool _mixinBoilerplateIsCompatible(NamedType t) {
-      final publicName = t.name.name.replaceFirst('\$', '');
-      return converter.isBoilerplateCompatible(publicName) ||
-          isReservedBaseClass(publicName);
-    }
-
     bool _mixinNameIsOldGeneratedBoilerplate(NamedType t) =>
         t.name.name.startsWith('\$');
 
@@ -616,24 +609,11 @@ extension IterableAstUtils on Iterable<NamedType> {
     return where((t) {
       if (converter == null) return true;
       if (includePrivateGeneratedClassNames) {
-        return !_mixinNameIsOldGeneratedBoilerplate(t) ||
-            !_mixinBoilerplateIsCompatible(t);
+        return !_mixinNameIsOldGeneratedBoilerplate(t);
       } else {
         return !_mixinNameIsOldGeneratedBoilerplate(t);
       }
     }).map((t) {
-      if (converter != null &&
-          sourceFile != null &&
-          _mixinNameIsOldGeneratedBoilerplate(t) &&
-          !_mixinBoilerplateIsCompatible(t)) {
-        // Preserve ignore comments for generated, unconverted props mixins
-        if (includeComments &&
-            hasComment(
-                t, sourceFile, 'ignore: mixin_of_non_class, undefined_class')) {
-          return '// ignore: mixin_of_non_class, undefined_class\n${getConvertedClassMixinName(t.name.name, converter)}${_typeArgs(t)}';
-        }
-      }
-
       if (converter != null) {
         return '${getConvertedClassMixinName(t.name.name, converter)}${_typeArgs(t)}';
       }

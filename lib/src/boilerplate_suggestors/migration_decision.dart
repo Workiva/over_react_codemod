@@ -148,14 +148,10 @@ String getFixMeCommentForConvertedClassDeclaration({
   @required ClassToMixinConverter converter,
   @required String parentClassName,
   @required bool convertClassesWithExternalSuperclass,
-  List<String> mixinNames = const [],
 }) {
   final extendsFromCustomNonReservedClass =
       !isReservedBaseClass(parentClassName);
-  final usesExternalMixins = !mixinNames
-      .where((name) => !isReservedBaseClass(name))
-      .every(converter.wasVisited);
-  if (!extendsFromCustomNonReservedClass && !usesExternalMixins) return '';
+  if (!extendsFromCustomNonReservedClass) return '';
 
   final fixMeBuffer = StringBuffer()..writeln('// FIXME:');
 
@@ -170,13 +166,7 @@ String getFixMeCommentForConvertedClassDeclaration({
   // Consumer is forcing classes that extend from / mix in external APIs to be converted.
   // Add more context about what they need to do next after they force the initial migration.
   if (convertClassesWithExternalSuperclass) {
-    final extendsFromExternalCustomClass = extendsFromCustomNonReservedClass &&
-        !converter.wasVisited(parentClassName);
-    final externalMixins =
-        mixinNames.where((name) => !converter.wasVisited(name));
-    var externalApis = extendsFromExternalCustomClass
-        ? [parentClassName, ...externalMixins]
-        : [...externalMixins];
+    var externalApis = [parentClassName];
 
     if (externalApis.isNotEmpty) {
       fixMeBuffer.write('''
