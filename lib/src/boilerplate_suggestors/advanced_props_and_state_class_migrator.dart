@@ -103,18 +103,13 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         return '';
       }
 
-      if (forUseInImplementsOrWithClause && declIsAbstract) {
+      if (forUseInImplementsOrWithClause) {
         // The node is abstract, and these typeArgs will be used on a mixin/interface for that node
         // which means they should only have the type identifiers as args - not the
         // full `<<SimpleIdentifier> extends <TypeName>>` args.
-        final typeIdentifiers = node.typeParameters.childEntities
-            .whereType<TypeParameter>()
-            .map((typeParam) =>
-                typeParam.childEntities.whereType<SimpleIdentifier>())
-            .expand((i) => i);
-        if (typeIdentifiers.isNotEmpty) {
-          return '<${typeIdentifiers.join(',')}>';
-        }
+        final typeParameterNames = node.typeParameters.typeParameters
+            .map((typeParam) => typeParam.name);
+        return '<${typeParameterNames.join(', ')}>';
       }
 
       return node.typeParameters.toString();
