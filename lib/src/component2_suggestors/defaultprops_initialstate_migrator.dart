@@ -41,7 +41,8 @@ abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
   visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
 
-    var containingClass = node.parent;
+    final containingClass = node.thisOrAncestorOfType<ClassDeclaration>();
+    if (containingClass == null) return;
 
     if ((!allowPartialUpgrades &&
             !fullyUpgradableToComponent2(containingClass)) ||
