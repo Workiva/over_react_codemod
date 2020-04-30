@@ -65,7 +65,7 @@ const _docsPage = 'https://github.com/Workiva/over_react_codemod/tree/master'
 /// > 1. If a header with the same ID has already been generated, a unique incrementing number is appended, starting at 1.
 String _markdownHeaderToId(String headerName) => headerName
     .toLowerCase()
-    .replaceAll(RegExp(r'[\w\s]'), '')
+    .replaceAll(RegExp(r'^[\w\s]'), '')
     .replaceAll(RegExp(r'\s'), '-')
     .replaceAll(RegExp(r'-{2,}'), '-');
 
