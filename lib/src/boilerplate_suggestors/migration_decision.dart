@@ -74,64 +74,64 @@ String boilerplateDocLink(String headerName) => '$_docsPage#${_markdownHeaderToI
 String getExternalSuperclassReasonComment(
     String nodeName, String superclassName) {
   return '''
-  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it extends from $superclassName, which comes from from an external library.
-  // Once that component has been upgraded to the new boilerplate, see instructions here: ${boilerplateDocLink('External Superclass')}
-  ''';
+// FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it extends from $superclassName, which comes from from an external library.
+// Once that component has been upgraded to the new boilerplate, see instructions here: ${boilerplateDocLink('External Superclass')}
+''';
 }
 
 String getPublicApiReasonComment(String nodeName, List<String> locations) {
   if (locations.first == semverReportNotAvailable) {
     return '''
-    // FIXME: A Workiva Semver report was not found. `$nodeName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
-    //
-    // --------- If you are migrating an OSS library outside of Workiva ---------
-    // You do not have access to Workiva's internal Semver audit tool. 
-    // To complete the migration, you should:
-    //
-    //   1. Revert all changes to remove this FIX-ME comment
-    //   2. Re-run the migration script with the following flag:    
-    //
-    //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
-    //
-    //   NOTE: The changes made to props / state classes by the codemod constitute breaking changes
-    //   if you publicly export them from your library. We strongly recommend that you release 
-    //   the subsequent changes in a major version.
-    //
-    // --------- If you are migrating a Workiva library ---------
-    // To complete the migration, you should:
-    //   1. Revert all changes to remove this FIX-ME comment
-    //   2. Generate a semver report by running the following script:
-    //
-    //        pub global activate semver_audit --hosted-url=https://pub.workiva.org
-    //        pub global run semver_audit generate 2> semver_report.json
-    //
-    //   3. Re-run the migration script:
-    //
-    //        pub global run over_react_codemod:boilerplate_upgrade
-    ''';
+// FIXME: A Workiva Semver report was not found. `$nodeName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
+//
+// --------- If you are migrating an OSS library outside of Workiva ---------
+// You do not have access to Workiva's internal Semver audit tool. 
+// To complete the migration, you should:
+//
+//   1. Revert all changes to remove this FIX-ME comment
+//   2. Re-run the migration script with the following flag:    
+//
+//        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
+//
+//   NOTE: The changes made to props / state classes by the codemod constitute breaking changes
+//   if you publicly export them from your library. We strongly recommend that you release 
+//   the subsequent changes in a major version.
+//
+// --------- If you are migrating a Workiva library ---------
+// To complete the migration, you should:
+//   1. Revert all changes to remove this FIX-ME comment
+//   2. Generate a semver report by running the following script:
+//
+//        pub global activate semver_audit --hosted-url=https://pub.workiva.org
+//        pub global run semver_audit generate 2> semver_report.json
+//
+//   3. Re-run the migration script:
+//
+//        pub global run over_react_codemod:boilerplate_upgrade
+''';
   }
   return '''
-  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it is exported from the following librar${locations.length > 1 ? 'ies' : 'y'} in this repo:
-  // ${locations.join("\n// ")} 
-  // Upgrading it would be considered a breaking change since consumer components can no longer extend from it. 
-  // For instructions on how to proceed, see: ${boilerplateDocLink('Public API')}
-  ''';
+// FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it is exported from the following librar${locations.length > 1 ? 'ies' : 'y'} in this repo:
+// ${locations.join("\n// ")} 
+// Upgrading it would be considered a breaking change since consumer components can no longer extend from it. 
+// For instructions on how to proceed, see: ${boilerplateDocLink('Public API')}
+''';
 }
 
 String getUnMigratedSuperclassReasonComment(
     String nodeName, String superclassName) {
   return '''
-  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it extends from `$superclassName`, which was not able to be migrated.
-  // Address comments on that component and then see instructions here: ${boilerplateDocLink('Unmigrated Superclass')}
-  ''';
+// FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it extends from `$superclassName`, which was not able to be migrated.
+// Address comments on that component and then see instructions here: ${boilerplateDocLink('Unmigrated Superclass')}
+''';
 }
 
 String getNonComponent2ReasonComment(
     String publicNodeName, String componentName) {
   return '''
-  // FIXME: `$publicNodeName` could not be auto-migrated to the new over_react boilerplate because `$componentName` does not extend from `UiComponent2`.
-  // For instructions on how to proceed, see: ${boilerplateDocLink('Non-Component2')}
-  ''';
+// FIXME: `$publicNodeName` could not be auto-migrated to the new over_react boilerplate because `$componentName` does not extend from `UiComponent2`.
+// For instructions on how to proceed, see: ${boilerplateDocLink('Non-Component2')}
+''';
 }
 
 String getFixMeCommentForConvertedClassDeclaration({
@@ -160,14 +160,14 @@ String getFixMeCommentForConvertedClassDeclaration({
 
     if (externalApis.isNotEmpty) {
       fixMeBuffer.write('''
-        //   ${extendsFromCustomNonReservedClass ? '3' : '1'}. You should notice that ${externalApis.join(', ')} ${externalApis.length == 1 ? 'is' : 'are'} deprecated.  
-        //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-        //      the new class/mixin name and/or updating to a different entrypoint that exports the ${externalApis.length == 1 ? 'version' : 'versions'} of 
-        //      ${externalApis.join(', ')} that ${externalApis.length == 1 ? 'is' : 'are'} compatible with the new over_react boilerplate.
-        //
-        //      If ${externalApis.length == 1 ? 'it is' : 'they are'} not deprecated, something most likely went wrong during the migration of the 
-        //      library that contains ${externalApis.length == 1 ? 'it' : 'them'}.        
-        ''');
+//   ${extendsFromCustomNonReservedClass ? '3' : '1'}. You should notice that ${externalApis.join(', ')} ${externalApis.length == 1 ? 'is' : 'are'} deprecated.  
+//      Follow the deprecation instructions to consume the replacement by either updating your usage to
+//      the new class/mixin name and/or updating to a different entrypoint that exports the ${externalApis.length == 1 ? 'version' : 'versions'} of 
+//      ${externalApis.join(', ')} that ${externalApis.length == 1 ? 'is' : 'are'} compatible with the new over_react boilerplate.
+//
+//      If ${externalApis.length == 1 ? 'it is' : 'they are'} not deprecated, something most likely went wrong during the migration of the 
+//      library that contains ${externalApis.length == 1 ? 'it' : 'them'}.        
+''');
     }
   }
 
