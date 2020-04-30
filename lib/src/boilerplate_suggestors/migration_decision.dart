@@ -35,7 +35,7 @@ class MigrationDecision {
     if (reason != null) {
       final firstLineOfReasonComment = reason.split('\n').first.trim();
       final firstLineOfNodeComment = node
-          .firstTokenAfterCommentAndMetadata.precedingComments
+          .beginToken.precedingComments
           .toString()
           .trim();
       fixmeCommentAlreadyAdded =
@@ -46,8 +46,8 @@ class MigrationDecision {
       return;
     }
 
-    yieldPatch(node.firstTokenAfterCommentAndMetadata.offset,
-        node.firstTokenAfterCommentAndMetadata.offset, reason);
+    yieldPatch(node.offset,
+        node.offset, reason);
   }
 }
 
