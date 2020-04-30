@@ -122,7 +122,15 @@ String getUnMigratedSuperclassReasonComment(
     String nodeName, String superclassName) {
   return '''
   // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it extends from `$superclassName`, which was not able to be migrated.
-  // Complete the migration on that component and then see instructions here: 
+  // Address comments on that component and then see instructions here: ${boilerplateDocLink('Unmigrated Superclass')}
+  ''';
+}
+
+String getNonComponent2ReasonComment(
+    String publicNodeName, String componentName) {
+  return '''
+  // FIXME: `$publicNodeName` could not be auto-migrated to the new over_react boilerplate because `$componentName` does not extend from `UiComponent2`.
+  // For instructions on how to proceed, see: ${boilerplateDocLink('Non-Component2')}
   ''';
 }
 

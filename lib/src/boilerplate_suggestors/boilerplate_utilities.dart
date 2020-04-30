@@ -178,8 +178,6 @@ bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
 MigrationDecision getPropsAndStateClassMigrationDecision(
     ClassDeclaration node, SemverHelper semverHelper, SourceFile sourceFile) {
   final publicNodeName = stripPrivateGeneratedPrefix(node.name.name);
-  const reRunMigrationScriptInstructions =
-      'pub global run over_react_codemod:boilerplate_upgrade';
   if (!isAPropsOrStateClass(node)) {
     return MigrationDecision(false);
   } else if (isPublic(node, semverHelper, sourceFile.url)) {
@@ -193,16 +191,9 @@ MigrationDecision getPropsAndStateClassMigrationDecision(
       return MigrationDecision(false);
     }
 
-    return MigrationDecision(
-      false,
-      reason: '''
-      // FIXME: `$publicNodeName` could not be auto-migrated to the new over_react boilerplate because `${getComponentNodeInRoot(node).name.name}` does not extend from `UiComponent2`.
-      // 
-      // Once you have upgraded the component, you can remove this FIX-ME comment and 
-      // re-run the boilerplate migration script:
-      // $reRunMigrationScriptInstructions
-      ''',
-    );
+    return MigrationDecision(false,
+        reason: getNonComponent2ReasonComment(
+            publicNodeName, getComponentNodeInRoot(node).name.name));
   }
 
   return MigrationDecision(true);
