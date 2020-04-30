@@ -571,8 +571,8 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
             migrationDecisionsBasedOnSuperclass[superclassName] =
                 MigrationDecision(
                     false,
-                    reason: getExternalSuperclassOrMixinReasonComment(
-                        publicNodeName, [superclassName]));
+                    reason: getExternalSuperclassReasonComment(
+                        publicNodeName, superclassName));
           }
         }
       }

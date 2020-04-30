@@ -51,27 +51,21 @@ class MigrationDecision {
   }
 }
 
-String getExternalSuperclassOrMixinReasonComment(
-  String nodeName,
-  List<String> superclassOrMixinNames, {
-  bool mixinsAreExternal = false,
-}) {
-  final inheritanceReasonPortion =
-      mixinsAreExternal ? 'mixes in' : 'extends from';
-
+String getExternalSuperclassReasonComment(
+    String nodeName, String superclassName) {
   return '''
-  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it $inheritanceReasonPortion: ${superclassOrMixinNames.join(', ')} - which ${superclassOrMixinNames.length == 1 ? 'comes' : 'come'} from an external library.
+  // FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it extends from $superclassName, which comes from from an external library.
   //
   // To complete the migration, you should:
-  //   1. Check on the boilerplate migration status of the library ${superclassOrMixinNames.length == 1 ? 'it comes' : 'they come'} from.
+  //   1. Check on the boilerplate migration status of the library it comes from.
   //   2. Once the library has released a version that includes updated boilerplate,
   //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
   //   3. Re-run the migration script with the following flag:
   //      pub global run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-  //   4. Once the migration is complete, you should notice that ${superclassOrMixinNames.join(', ')} ${superclassOrMixinNames.length == 1 ? 'has' : 'have'} been deprecated. 
-  //      Follow the deprecation instructions to consume the ${superclassOrMixinNames.length == 1 ? 'replacement' : 'replacements'} by either updating your usage to
-  //      the new ${mixinsAreExternal ? 'mixin' : 'class'} ${superclassOrMixinNames.length == 1 ? 'name' : 'names'} and/or updating to a different entrypoint that exports the version(s) of 
-  //      ${superclassOrMixinNames.join(', ')} that ${superclassOrMixinNames.length == 1 ? 'is' : 'are'} compatible with the new over_react boilerplate.
+  //   4. Once the migration is complete, you should notice that $superclassName has been deprecated. 
+  //      Follow the deprecation instructions to consume the replacement by either updating your usage to
+  //      the new class name and/or updating to a different entrypoint that exports the version(s) of 
+  //      $superclassName that is compatible with the new over_react boilerplate.
   ''';
 }
 

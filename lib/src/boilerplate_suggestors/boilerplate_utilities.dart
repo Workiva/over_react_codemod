@@ -430,26 +430,12 @@ class ClassToMixinConverter {
     final originalPublicClassName = stripPrivateGeneratedPrefix(node.name.name);
     final commentsToRemove = <String>[];
 
-    final mixinNames = node.withClause?.mixinTypes
-            ?.joinConvertedClassesByName(
-                converter: this, sourceFile: sourceFile)
-            ?.split(', ') ??
-        [];
-    final migratingAdvancedClassWithExternalMixins =
-        convertClassesWithExternalSuperclass && !mixinNames.every(wasVisited);
-    if (migratingAdvancedClassWithExternalMixins) {
-      // ----- [1] ----- //
-      commentsToRemove.add(getExternalSuperclassOrMixinReasonComment(
-          originalPublicClassName, mixinNames,
-          mixinsAreExternal: true));
-    }
-
     final migratingAdvancedClassWithExternalSuperclass =
         shouldSwapParentClass && convertClassesWithExternalSuperclass;
     if (migratingAdvancedClassWithExternalSuperclass) {
       // ----- [1] ----- //
-      commentsToRemove.add(getExternalSuperclassOrMixinReasonComment(
-          originalPublicClassName, [node.extendsClause.superclass.name.name]));
+      commentsToRemove.add(getExternalSuperclassReasonComment(
+          originalPublicClassName, node.extendsClause.superclass.name.name));
     }
 
     if (commentsToRemove.isNotEmpty) {
