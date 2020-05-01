@@ -14,6 +14,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 import 'boilerplate_utilities.dart';
 
@@ -33,13 +34,13 @@ class MigrationDecision {
       ClassOrMixinDeclaration node, YieldPatch yieldPatch) {
     var fixmeCommentAlreadyAdded = false;
     if (reason != null) {
-      final firstLineOfReasonComment = reason.split('\n').first.trim();
-      final firstLineOfNodeComment = node
-          .beginToken.precedingComments
-          .toString()
-          .trim();
-      fixmeCommentAlreadyAdded =
-          firstLineOfReasonComment == firstLineOfNodeComment;
+      final firstLineOfReasonComment = reason.trim().split('\n').first.trim();
+
+      // Use allComments instead of the first one since comments on previous lines
+      // separated by whitespace (e.g., the ignore comment on a factory when node is a props class)
+      // are picked up.
+      fixmeCommentAlreadyAdded = allComments(node.beginToken).any(
+          (comment) => comment.toString().trim() == firstLineOfReasonComment);
     }
 
     if (reason == null || fixmeCommentAlreadyAdded) {
