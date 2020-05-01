@@ -55,20 +55,17 @@ class MigrationDecision {
 const _docsPage = 'https://github.com/Workiva/over_react_codemod/tree/master'
     '/docs/boilerplate_upgrade.md';
 
-/// https://docs.gitlab.com/ee/user/markdown.html#header-ids-and-links
+/// Converts a header name to its ID the same way GitHub does it.
 ///
-/// > The IDs are generated from the content of the header according to the following rules:
-/// >
-/// > 1. All text is converted to lowercase.
-/// > 1. All non-word text (such as punctuation or HTML) is removed.
-/// > 1. All spaces are converted to hyphens.
-/// > 1. Two or more hyphens in a row are converted to one.
-/// > 1. If a header with the same ID has already been generated, a unique incrementing number is appended, starting at 1.
+/// _I couldn't find a definitive source on how it works, so this is a best guess based on what I've seen._
+///
+/// - Convert to lowercase
+/// - Convert spaces to dashes
+/// - Remove all punctuation besides underscores and dashes
 String _markdownHeaderToId(String headerName) => headerName
     .toLowerCase()
-    .replaceAll(RegExp(r'[^\w\s]'), '')
     .replaceAll(RegExp(r'\s'), '-')
-    .replaceAll(RegExp(r'-{2,}'), '-');
+    .replaceAll(RegExp(r'[^\w-]'), '');
 
 String boilerplateDocLink(String headerName) => '$_docsPage#${_markdownHeaderToId(headerName)}';
 
