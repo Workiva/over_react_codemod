@@ -39,7 +39,7 @@ class MigrationDecision {
       // Use allComments instead of the first one since comments on previous lines
       // separated by whitespace (e.g., the ignore comment on a factory when node is a props class)
       // are picked up.
-      fixmeCommentAlreadyAdded = allComments(node.beginToken).any(
+      fixmeCommentAlreadyAdded = allCommentsForNode(node).any(
           (comment) => comment.toString().trim() == firstLineOfReasonComment);
     }
 
