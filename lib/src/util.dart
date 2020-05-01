@@ -49,7 +49,8 @@ Iterable<Token> allComments(Token beginToken) sync* {
 }
 
 bool _isCommentToken(Token token) {
-  return const {TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT}.contains(token.type);
+  return const {TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT}
+      .contains(token.type);
 }
 
 /// Returns all the comments before a given [node], including doc comments.
@@ -75,7 +76,6 @@ Iterable<Token> allCommentsForNode(AstNode node) sync* {
     currentComment = currentComment.next;
   }
 }
-
 
 /// Returns a Dart single-line ignore comment that tells the analyzer to ignore
 /// the given set of analysis/lint rules.

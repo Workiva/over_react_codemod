@@ -47,8 +47,7 @@ class MigrationDecision {
       return;
     }
 
-    yieldPatch(node.offset,
-        node.offset, reason);
+    yieldPatch(node.offset, node.offset, reason);
   }
 }
 
@@ -67,7 +66,8 @@ String _markdownHeaderToId(String headerName) => headerName
     .replaceAll(RegExp(r'\s'), '-')
     .replaceAll(RegExp(r'[^\w-]'), '');
 
-String boilerplateDocLink(String headerName) => '$_docsPage#${_markdownHeaderToId(headerName)}';
+String boilerplateDocLink(String headerName) =>
+    '$_docsPage#${_markdownHeaderToId(headerName)}';
 
 String getExternalSuperclassReasonComment(
     String nodeName, String superclassName) {
