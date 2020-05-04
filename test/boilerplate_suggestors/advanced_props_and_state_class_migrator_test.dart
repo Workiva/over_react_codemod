@@ -173,14 +173,11 @@ void advancedPropsAndStateClassMigratorTestHelper({
           expectedOutput: '''
           $factoryDecl
   
+          // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because `FooComponent` does not extend from `UiComponent2`.
+          // For instructions on how to proceed, see: https://github.com/Workiva/over_react_codemod/tree/master/docs/boilerplate_upgrade.md#non-component2
           /// Some documentation comment 
           /// might get in the way of fix me comment removal
           @Props()
-          // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because `FooComponent` does not extend from `UiComponent2`.
-          // 
-          // Once you have upgraded the component, you can remove this FIX-ME comment and 
-          // re-run the boilerplate migration script:
-          // pub global run over_react_codemod:boilerplate_upgrade
           class $propsClassName extends UiProps with SomePropsMixin {
             String foo;
             int bar;
@@ -240,56 +237,22 @@ void advancedPropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Bar;
   
-          @Props()
           ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate because it is exported from the following libraries in this repo:
           // lib/web_skin_dart.dart/BarProps
           // lib/another_file.dart/BarProps
-          //
           // Upgrading it would be considered a breaking change since consumer components can no longer extend from it.
-          //
-          // To complete the migration, you can: 
-          //   1. Deprecate `BarProps`.
-          //   2. Make a copy of it, renaming it something like `BarPropsV2`.
-          //   3. Replace all your current usage of the deprecated `BarProps` with `BarPropsV2`.
-          //   4. Add a `hide BarPropsV2` clause to all places where it is exported, and then run:
-          //        pub global run over_react_codemod:boilerplate_upgrade
-          //   5a. If `BarProps` had consumers outside this repo, and it was intentionally made public,
-          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarPropsV2` 
-          //       will be a viable replacement for `BarProps`.
-          //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
-          //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
-          //       concrete class and the newly created mixin.
-          //   6. Remove this FIX-ME comment.
-          //
-          // If are migrating a Workiva library and have questions, or want to discuss alternative solutions, 
-          // please reach out in the #support-ui-platform Slack room.'''}
+          // For instructions on how to proceed, see: https://github.com/Workiva/over_react_codemod/tree/master/docs/boilerplate_upgrade.md#public-api'''}
+          @Props()
           class _\$BarProps extends ADifferentPropsClass {
             String foo;
             int bar;
           }
 
-          @State()
           ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: `BarState` could not be auto-migrated to the new over_react boilerplate because it is exported from the following library in this repo:
           // lib/web_skin_dart.dart/BarState
-          //
           // Upgrading it would be considered a breaking change since consumer components can no longer extend from it.
-          //
-          // To complete the migration, you can: 
-          //   1. Deprecate `BarState`.
-          //   2. Make a copy of it, renaming it something like `BarStateV2`.
-          //   3. Replace all your current usage of the deprecated `BarState` with `BarStateV2`.
-          //   4. Add a `hide BarStateV2` clause to all places where it is exported, and then run:
-          //        pub global run over_react_codemod:boilerplate_upgrade
-          //   5a. If `BarState` had consumers outside this repo, and it was intentionally made public,
-          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarStateV2` 
-          //       will be a viable replacement for `BarState`.
-          //   5b. If `BarState` had no consumers outside this repo, and you have no reason to make the new
-          //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
-          //       concrete class and the newly created mixin.
-          //   6. Remove this FIX-ME comment.
-          //
-          // If are migrating a Workiva library and have questions, or want to discuss alternative solutions, 
-          // please reach out in the #support-ui-platform Slack room.'''}
+          // For instructions on how to proceed, see: https://github.com/Workiva/over_react_codemod/tree/master/docs/boilerplate_upgrade.md#public-api'''}
+          @State()
           class _\$BarState extends ADifferentStateClass {
             String foo;
             int bar;
@@ -337,7 +300,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
             expectedOutput: '''
             $factoryDecl
     
-            @Props()
             ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicPropsClassName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
             //
             // --------- If you are migrating an OSS library outside of Workiva ---------
@@ -364,12 +326,12 @@ void advancedPropsAndStateClassMigratorTestHelper({
             //   3. Re-run the migration script:
             //
             //        pub global run over_react_codemod:boilerplate_upgrade'''}
+            @Props()
             class $propsClassName extends ADifferentPropsClass {
               String foo;
               int bar;
             }
     
-            @State()
             ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicStateClassName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
             //
             // --------- If you are migrating an OSS library outside of Workiva ---------
@@ -396,6 +358,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             //   3. Re-run the migration script:
             //
             //        pub global run over_react_codemod:boilerplate_upgrade'''}
+            @State()
             class $stateClassName extends ADifferentStateClass {
               String foo;
               int bar;
@@ -437,10 +400,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
               int bar;
             }
 
-            @Props()
             // FIXME:
             //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins.
+            @Props()
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
             ${componentDeclWithConsumedProps(['${publicPropsClassName}Mixin'])}
@@ -473,19 +436,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
         const expectedOutputWithExternalSuperclassReasonComment = '''
             $factoryDecl
             
+            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it extends from $externalSuperclassName, which comes from an external library.
+            // Once that component has been upgraded to the new boilerplate, see instructions here: https://github.com/Workiva/over_react_codemod/tree/master/docs/boilerplate_upgrade.md#external-superclass
             @Props()
-            // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it extends from: $externalSuperclassName - which comes from an external library.
-            //
-            // To complete the migration, you should:
-            //   1. Check on the boilerplate migration status of the library it comes from.
-            //   2. Once the library has released a version that includes updated boilerplate,
-            //      bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
-            //   3. Re-run the migration script with the following flag:
-            //      pub global run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
-            //   4. Once the migration is complete, you should notice that $externalSuperclassName has been deprecated. 
-            //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-            //      the new class name and/or updating to a different entrypoint that exports the version(s) of 
-            //      $externalSuperclassName that is compatible with the new over_react boilerplate.
             class $propsClassName extends $externalSuperclassName {
               String foo;
               int bar;
@@ -535,7 +488,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
   
-              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
@@ -545,7 +497,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
               //      $externalSuperclassName that is compatible with the new over_react boilerplate.
               //
               //      If it is not deprecated, something most likely went wrong during the migration of the 
-              //      library that contains it. 
+              //      library that contains it.
+              @Props() 
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
               ${componentDeclWithConsumedProps([
@@ -594,7 +547,6 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
   
-              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
@@ -605,6 +557,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
               //
               //      If it is not deprecated, something most likely went wrong during the migration of the 
               //      library that contains it.
+              @Props()
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
   
               ${componentDeclWithConsumedProps([
@@ -631,14 +584,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
         const expectedOutputWithUnMigratedSuperclassReasonComment = '''
             $factoryDecl
             
-            @Props()
             // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it extends from `ADifferentPropsClass`, which was not able to be migrated.
-            //
-            // To complete the migration, you should:
-            //   1. Look at the FIX-ME comment that has been added to `ADifferentPropsClass` - 
-            //      and follow the steps outlined there to complete the migration.
-            //   2. Re-run the migration script:
-            //      pub global run over_react_codemod:boilerplate_upgrade
+            // Address comments on that component and then see instructions here: https://github.com/Workiva/over_react_codemod/tree/master/docs/boilerplate_upgrade.md#unmigrated-superclass
+            @Props()
             class $propsClassName extends ADifferentPropsClass {
               String foo;
               int bar;
@@ -702,10 +650,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
               int bar;
             }
 
-            @Props()
             // FIXME:
             //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins.
+            @Props()
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
     
             ${componentDeclWithConsumedProps(['${publicPropsClassName}Mixin'])}
@@ -784,10 +732,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
               int bar;
             }
 
-            @Props()
             // FIXME:
             //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins.
+            @Props()
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
     
             @State()
@@ -796,10 +744,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
               int bar;
             }
 
-            @State()
             // FIXME:
             //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
             //   2. Fix any analyzer warnings on this class about missing mixins.
+            @State()
             class $publicStateClassName = UiState with ADifferentStateClassMixin, ${publicStateClassName}Mixin;
     
             ${statefulComponentDeclWithConsumedProps([
@@ -1138,10 +1086,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
 
-              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
+              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               ${componentDeclWithConsumedProps([
@@ -1405,10 +1353,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
                   int bar;
                 }
 
-                @Props()
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
+                @Props()
                 class $publicPropsClassName = UiProps 
                     with SomeAbstractPropsClassMixin, ${publicPropsClassName}Mixin
                     implements SomeAbstractPropsClass, SomeInterface;
@@ -1460,10 +1408,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 expectedOutput: '''
                 $factoryDecl
 
-                @Props()
                 // FIXME:
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
+                @Props()
                 class $publicPropsClassName extends UiProps implements SomeAbstractPropsClass, SomeInterface {}
 
                 @Component2()
@@ -2538,10 +2486,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
             int bar;
           }
 
-          @Props()
           // FIXME:
           //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins.
+          @Props()
           class $publicPropsClassName = UiProps 
               with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin, AMixin, AnotherMixin;
 
@@ -2551,10 +2499,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
             int bar;
           }
 
-          @State()
           // FIXME:
           //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins.
+          @State()
           class $publicStateClassName = UiState 
               with ADifferentStateClass, ${publicStateClassName}Mixin, AStateMixin, AnotherStateMixin;
 
@@ -2613,10 +2561,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 int bar;
               }
 
-              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
+              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               ${componentDeclWithConsumedProps([])}
@@ -2658,10 +2606,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 String baz;
               }
 
-              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
+              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               ${componentDeclWithConsumedProps(
@@ -2703,10 +2651,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
               expectedOutput: '''
               $factoryDecl
 
-              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
+              @Props()
               class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
 
               ${componentDeclWithConsumedProps([])}
@@ -2735,10 +2683,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
               expectedOutput: '''
               $factoryDecl
 
-              @Props()
               // FIXME:
               //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
+              @Props()
               class $publicPropsClassName extends UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin {
                 // FIXME: Everything in this body needs to be moved to the body of ${publicPropsClassName}Mixin.
                 // Once that is done, the body can be removed, and `extends` can be replaced with `=`.

@@ -72,7 +72,7 @@ String boilerplateDocLink(String headerName) =>
 String getExternalSuperclassReasonComment(
     String nodeName, String superclassName) {
   return '''
-// FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it extends from $superclassName, which comes from from an external library.
+// FIXME: `$nodeName` could not be auto-migrated to the new over_react boilerplate because it extends from $superclassName, which comes from an external library.
 // Once that component has been upgraded to the new boilerplate, see instructions here: ${boilerplateDocLink('External Superclass')}
 ''';
 }
