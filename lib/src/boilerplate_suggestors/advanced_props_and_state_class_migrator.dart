@@ -103,18 +103,13 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         return '';
       }
 
-      if (forUseInImplementsOrWithClause && declIsAbstract) {
+      if (forUseInImplementsOrWithClause) {
         // The node is abstract, and these typeArgs will be used on a mixin/interface for that node
         // which means they should only have the type identifiers as args - not the
         // full `<<SimpleIdentifier> extends <TypeName>>` args.
-        final typeIdentifiers = node.typeParameters.childEntities
-            .whereType<TypeParameter>()
-            .map((typeParam) =>
-                typeParam.childEntities.whereType<SimpleIdentifier>())
-            .expand((i) => i);
-        if (typeIdentifiers.isNotEmpty) {
-          return '<${typeIdentifiers.join(',')}>';
-        }
+        final typeParameterNames = node.typeParameters.typeParameters
+            .map((typeParam) => typeParam.name);
+        return '<${typeParameterNames.join(', ')}>';
       }
 
       return node.typeParameters.toString();
@@ -162,11 +157,6 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
     final newDeclarationBuffer = StringBuffer()
       ..write('\n\n')
-      // The metadata (e.g. `@Props()` / `@State()` annotations) must remain
-      // on the concrete class in order for the `StubbedPropsAndStateClassRemover`
-      // migrator to work correctly. The vast majority of these will be removed by the
-      // `AnnotationsRemover` migrator in a later step of the migration.
-      ..write('${node.metadata.join('\n')}\n')
       // NOTE: There is no need for a FIX ME comment when both the subclass and superclass are abstract
       // because our migrator will convert abstract superclasses into "interface only" instances which
       // implement all the things it used to only mix in - so by implementing that new
@@ -179,11 +169,15 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
           ? ''
           : getFixMeCommentForConvertedClassDeclaration(
               converter: converter,
-              mixinNames: mixinNames,
               parentClassName: parentClassName,
               convertClassesWithExternalSuperclass:
                   convertClassesWithExternalSuperclass,
             ))
+      // The metadata (e.g. `@Props()` / `@State()` annotations) must remain
+      // on the concrete class in order for the `StubbedPropsAndStateClassRemover`
+      // migrator to work correctly. The vast majority of these will be removed by the
+      // `AnnotationsRemover` migrator in a later step of the migration.
+      ..write('${node.metadata.join('\n')}\n')
       // Create the class name
       ..write(declIsAbstract ? 'abstract class ' : 'class ')
       ..write('$className${getClassTypeArgs()}');
@@ -530,43 +524,8 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
       return MigrationDecision(true);
     }
 
-    final migrationDecisionsBasedOnMixins = <String, MigrationDecision>{};
-    if (mixinNames.isNotEmpty) {
-      final mixinNamesThatAreExternal = <String>[];
-
-      // Has one or more mixins
-      for (var mixinName in mixinNames) {
-        if (!isReservedBaseClass(mixinName) &&
-            !converter.wasVisited(mixinName)) {
-          if (isFirstTimeVisitingClasses) {
-            // An advanced class with a mixin that has not been visited yet.
-            // However, this is the first run through the script since `treatUnvisitedClassesAsExternal` is false,
-            // so just short-circuit and do nothing since we'll circle back on the second run.
-            migrationDecisionsBasedOnMixins[mixinName] =
-                MigrationDecision(false);
-          } else {
-            // An advanced class with a mixin that has not been visited after two runs,
-            // indicating that the mixin does not exist in the current repo / lib.
-            if (convertClassesWithExternalSuperclass) {
-              migrationDecisionsBasedOnMixins[mixinName] =
-                  MigrationDecision(true);
-            } else {
-              mixinNamesThatAreExternal.add(mixinName);
-            }
-          }
-        } else {
-          migrationDecisionsBasedOnMixins[mixinName] = MigrationDecision(true);
-        }
-      }
-
-      if (mixinNamesThatAreExternal.isNotEmpty) {
-        migrationDecisionsBasedOnMixins[mixinNamesThatAreExternal.join(', ')] =
-            MigrationDecision(false,
-                reason: getExternalSuperclassOrMixinReasonComment(
-                    publicNodeName, mixinNamesThatAreExternal,
-                    mixinsAreExternal: true));
-      }
-    }
+    // No need to check mixins, since legacy mixins are forward-compatible with
+    // new boilerplate.
 
     final migrationDecisionsBasedOnSuperclass = <String, MigrationDecision>{};
     if (!isReservedBaseClass(superclassName)) {
@@ -612,17 +571,14 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
             migrationDecisionsBasedOnSuperclass[superclassName] =
                 MigrationDecision(
                     false,
-                    reason: getExternalSuperclassOrMixinReasonComment(
-                        publicNodeName, [superclassName]));
+                    reason: getExternalSuperclassReasonComment(
+                        publicNodeName, superclassName));
           }
         }
       }
     }
 
-    final migrationDecisions = {
-      ...migrationDecisionsBasedOnMixins,
-      ...migrationDecisionsBasedOnSuperclass
-    };
+    final migrationDecisions = {...migrationDecisionsBasedOnSuperclass};
 
     if (migrationDecisions.values.every((decision) => decision.yee)) {
       return MigrationDecision(true);

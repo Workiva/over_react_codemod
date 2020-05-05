@@ -19,7 +19,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
 import 'package:over_react_codemod/src/constants.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:source_span/source_span.dart';
 
@@ -179,8 +178,6 @@ bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
 MigrationDecision getPropsAndStateClassMigrationDecision(
     ClassDeclaration node, SemverHelper semverHelper, SourceFile sourceFile) {
   final publicNodeName = stripPrivateGeneratedPrefix(node.name.name);
-  const reRunMigrationScriptInstructions =
-      'pub global run over_react_codemod:boilerplate_upgrade';
   if (!isAPropsOrStateClass(node)) {
     return MigrationDecision(false);
   } else if (isPublic(node, semverHelper, sourceFile.url)) {
@@ -194,17 +191,9 @@ MigrationDecision getPropsAndStateClassMigrationDecision(
       return MigrationDecision(false);
     }
 
-    return MigrationDecision(
-      false,
-      reason: '''
-      // FIXME: `$publicNodeName` could not be auto-migrated to the new over_react boilerplate 
-      // because `${getComponentNodeInRoot(node).name.name}` does not extend from `UiComponent2`.
-      // 
-      // Once you have upgraded the component, you can remove this FIXME comment and 
-      // re-run the boilerplate migration script:
-      // $reRunMigrationScriptInstructions
-      ''',
-    );
+    return MigrationDecision(false,
+        reason: getNonComponent2ReasonComment(
+            publicNodeName, getComponentNodeInRoot(node).name.name));
   }
 
   return MigrationDecision(true);
@@ -432,26 +421,12 @@ class ClassToMixinConverter {
     final originalPublicClassName = stripPrivateGeneratedPrefix(node.name.name);
     final commentsToRemove = <String>[];
 
-    final mixinNames = node.withClause?.mixinTypes
-            ?.joinConvertedClassesByName(
-                converter: this, sourceFile: sourceFile)
-            ?.split(', ') ??
-        [];
-    final migratingAdvancedClassWithExternalMixins =
-        convertClassesWithExternalSuperclass && !mixinNames.every(wasVisited);
-    if (migratingAdvancedClassWithExternalMixins) {
-      // ----- [1] ----- //
-      commentsToRemove.add(getExternalSuperclassOrMixinReasonComment(
-          originalPublicClassName, mixinNames,
-          mixinsAreExternal: true));
-    }
-
     final migratingAdvancedClassWithExternalSuperclass =
         shouldSwapParentClass && convertClassesWithExternalSuperclass;
     if (migratingAdvancedClassWithExternalSuperclass) {
       // ----- [1] ----- //
-      commentsToRemove.add(getExternalSuperclassOrMixinReasonComment(
-          originalPublicClassName, [node.extendsClause.superclass.name.name]));
+      commentsToRemove.add(getExternalSuperclassReasonComment(
+          originalPublicClassName, node.extendsClause.superclass.name.name));
     }
 
     if (commentsToRemove.isNotEmpty) {
@@ -602,12 +577,6 @@ extension IterableAstUtils on Iterable<NamedType> {
     bool includeComments = true,
     bool includePrivateGeneratedClassNames = true,
   }) {
-    bool _mixinBoilerplateIsCompatible(NamedType t) {
-      final publicName = t.name.name.replaceFirst('\$', '');
-      return converter.isBoilerplateCompatible(publicName) ||
-          isReservedBaseClass(publicName);
-    }
-
     bool _mixinNameIsOldGeneratedBoilerplate(NamedType t) =>
         t.name.name.startsWith('\$');
 
@@ -617,24 +586,11 @@ extension IterableAstUtils on Iterable<NamedType> {
     return where((t) {
       if (converter == null) return true;
       if (includePrivateGeneratedClassNames) {
-        return !_mixinNameIsOldGeneratedBoilerplate(t) ||
-            !_mixinBoilerplateIsCompatible(t);
+        return !_mixinNameIsOldGeneratedBoilerplate(t);
       } else {
         return !_mixinNameIsOldGeneratedBoilerplate(t);
       }
     }).map((t) {
-      if (converter != null &&
-          sourceFile != null &&
-          _mixinNameIsOldGeneratedBoilerplate(t) &&
-          !_mixinBoilerplateIsCompatible(t)) {
-        // Preserve ignore comments for generated, unconverted props mixins
-        if (includeComments &&
-            hasComment(
-                t, sourceFile, 'ignore: mixin_of_non_class, undefined_class')) {
-          return '// ignore: mixin_of_non_class, undefined_class\n${getConvertedClassMixinName(t.name.name, converter)}${_typeArgs(t)}';
-        }
-      }
-
       if (converter != null) {
         return '${getConvertedClassMixinName(t.name.name, converter)}${_typeArgs(t)}';
       }

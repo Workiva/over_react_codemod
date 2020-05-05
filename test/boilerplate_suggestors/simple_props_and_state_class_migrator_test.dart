@@ -106,13 +106,9 @@ void simplePropsAndStateClassMigratorTestHelper({
             // ignore: undefined_identifier
             $Foo;
 
+        // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate because `FooComponent` does not extend from `UiComponent2`.
+        // For instructions on how to proceed, see: https://github.com/Workiva/over_react_codemod/tree/master/docs/boilerplate_upgrade.md#non-component2
         @Props()
-        // FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate 
-        // because `FooComponent` does not extend from `UiComponent2`.
-        // 
-        // Once you have upgraded the component, you can remove this FIXME comment and 
-        // re-run the boilerplate migration script:
-        // pub global run over_react_codemod:boilerplate_upgrade
         class _$FooProps extends UiProps {
           String foo;
           int bar;
@@ -135,8 +131,8 @@ void simplePropsAndStateClassMigratorTestHelper({
             // ignore: undefined_identifier
             \$Foo;
 
-        @Props()
         ${semverReportUnavailableComment('FooProps')}
+        @Props()
         class _\$FooProps extends UiProps {
           String foo;
           int bar;
@@ -235,8 +231,8 @@ void simplePropsAndStateClassMigratorTestHelper({
           int bar;
         }
 
-        @Props()
         ${semverReportUnavailableComment('FooProps')}
+        @Props()
         class _\$FooProps extends UiProps with FooPropsMixin {
           String foo;
           int bar;
@@ -316,26 +312,12 @@ void simplePropsAndStateClassMigratorTestHelper({
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
               \$Bar;
-          @Props()
-          ${isValidFilePath ? '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate
-          // because doing so would be a breaking change since `BarProps` is exported from the
-          // following libraries in this repo:
+          ${isValidFilePath ? '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate because it is exported from the following libraries in this repo:
           // lib/web_skin_dart.dart/BarProps
           // lib/another_file.dart/BarProps
-          //
-          // To complete the migration, you should: 
-          //   1. Deprecate `BarProps`.
-          //   2. Make a copy of it, renaming it something like `BarPropsV2`.
-          //   3. Replace all your current usage of the deprecated `BarProps` with `BarPropsV2`.
-          //   4. Add a `hide BarPropsV2` clause to all places where it is exported, and then run:
-          //        pub global run over_react_codemod:boilerplate_upgrade
-          //   5a. If `BarProps` had consumers outside this repo, and it was intentionally made public,
-          //       remove the `hide` clause you added in step 4 so that the new mixin created from `BarPropsV2`
-          //       will be a viable replacement for `BarProps`.
-          //   5b. If `BarProps` had no consumers outside this repo, and you have no reason to make the new
-          //       "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
-          //       concrete class and the newly created mixin.
-          //   6. Remove this FIXME comment.''' : semverReportUnavailableComment('BarProps')}
+          // Upgrading it would be considered a breaking change since consumer components can no longer extend from it.
+          // For instructions on how to proceed, see: https://github.com/Workiva/over_react_codemod/tree/master/docs/boilerplate_upgrade.md#public-api''' : semverReportUnavailableComment('BarProps')}
+          @Props()
           class _\$BarProps extends UiProps {
             String foo;
             int bar;
@@ -428,15 +410,15 @@ void simplePropsAndStateClassMigratorTestHelper({
             // ignore: undefined_identifier
             \$Foo;
 
-        @Props()
         ${semverReportUnavailableComment('FooProps')}
+        @Props()
         class _\$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
         }
 
-        @State()
         ${semverReportUnavailableComment('FooState')}
+        @State()
         class _\$FooState extends ADifferentStateClass {
           String foo;
           int bar;
@@ -517,8 +499,8 @@ void simplePropsAndStateClassMigratorTestHelper({
             // ignore: undefined_identifier
             \$Foo;
 
-        @Props()
         ${semverReportUnavailableComment('FooProps')}
+        @Props()
         class _\$FooProps extends ADifferentPropsClass {
           String foo;
           int bar;
@@ -613,15 +595,15 @@ void simplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
     
-          @Props()
           ${semverReportUnavailableComment('FooProps')}
+          @Props()
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
     
-          @State()
           ${semverReportUnavailableComment('FooState')}
+          @State()
           class _\$FooState extends UiState {
             String foo;
             int bar;
@@ -702,8 +684,8 @@ void simplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
     
-          @Props()
           ${semverReportUnavailableComment('FooProps')}
+          @Props()
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
@@ -795,15 +777,15 @@ void simplePropsAndStateClassMigratorTestHelper({
               // ignore: undefined_identifier
               \$Foo;
     
-          @AbstractProps()
           ${semverReportUnavailableComment('FooProps')}
+          @AbstractProps()
           abstract class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
     
-          @AbstractState()
           ${semverReportUnavailableComment('FooState')}
+          @AbstractState()
           abstract class _\$FooState extends UiState {
             String foo;
             int bar;
@@ -833,14 +815,13 @@ void simplePropsAndStateClassMigratorTestHelper({
 
 String semverReportUnavailableComment(String nodeName) {
   return '''
-    // FIXME: A Workiva Semver report was not found. `$nodeName` is assumed to be exported from
-    // a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
+    // FIXME: A Workiva Semver report was not found. `$nodeName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
     //
     // --------- If you are migrating an OSS library outside of Workiva ---------
     // You do not have access to Workiva's internal Semver audit tool. 
     // To complete the migration, you should:
     //
-    //   1. Revert all changes to remove this FIXME comment
+    //   1. Revert all changes to remove this FIX-ME comment
     //   2. Re-run the migration script with the following flag:    
     //
     //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
@@ -851,7 +832,7 @@ String semverReportUnavailableComment(String nodeName) {
     //
     // --------- If you are migrating a Workiva library ---------
     // To complete the migration, you should:
-    //   1. Revert all changes to remove this FIXME comment
+    //   1. Revert all changes to remove this FIX-ME comment
     //   2. Generate a semver report by running the following script:
     //
     //        pub global activate semver_audit --hosted-url=https://pub.workiva.org

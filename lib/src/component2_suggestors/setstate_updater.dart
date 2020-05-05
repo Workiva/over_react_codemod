@@ -35,9 +35,8 @@ class SetStateUpdater extends GeneralizingAstVisitor
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    ClassDeclaration containingClass = node.thisOrAncestorMatching((ancestor) {
-      return ancestor is ClassDeclaration;
-    });
+    final containingClass = node.thisOrAncestorOfType<ClassDeclaration>();
+    if (containingClass == null) return;
 
     if ((!allowPartialUpgrades &&
             !fullyUpgradableToComponent2(containingClass)) ||

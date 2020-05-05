@@ -571,6 +571,63 @@ void overReactExample() {}''';
         expect(commentCount, 1);
       });
     });
+
+    group('allCommentsForNode()', () {
+      CompilationUnitMember parseAndGetSingle(String source) =>
+          parseString(content: source).unit.declarations.single;
+
+      test('returns all comments for a node', () {
+        expect(allCommentsForNode(parseAndGetSingle('''
+          // Some comment
+          int node;
+        ''')).map((comment) => comment.toString()).toList(), [
+          '// Some comment',
+        ]);
+      });
+
+      test('handles nodes with doc comments properly', () {
+        // It's important to test both orders due to the way
+        // doc comments are included in the node.
+
+        expect(allCommentsForNode(parseAndGetSingle('''
+          /// Doc comment
+          // other comment
+          int node;
+        ''')).map((comment) => comment.toString()).toList(), [
+          '/// Doc comment',
+          '// other comment',
+        ]);
+
+        expect(allCommentsForNode(parseAndGetSingle('''
+          // other comment
+          /// Doc comment
+          int node;
+        ''')).map((comment) => comment.toString()).toList(), [
+          '// other comment',
+          '/// Doc comment',
+        ]);
+      });
+
+      test('handles mixed comment types properly', () {
+        expect(allCommentsForNode(parseAndGetSingle('''
+          // single line comment
+          /* multiline comment */
+          int node;
+        ''')).map((comment) => comment.toString()).toList(), [
+          '// single line comment',
+          '/* multiline comment */',
+        ]);
+
+        expect(allCommentsForNode(parseAndGetSingle('''
+          /* multiline comment */
+          // single line comment
+          int node;
+        ''')).map((comment) => comment.toString()).toList(), [
+          '/* multiline comment */',
+          '// single line comment',
+        ]);
+      });
+    });
   });
 }
 
