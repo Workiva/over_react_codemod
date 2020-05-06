@@ -35,7 +35,17 @@ class GeneratedPartDirectiveIgnoreRemover extends RecursiveAstVisitor
     final prevLineStart = sourceFile.getOffset(sourceFile.getLine(prevLineEnd));
     final prevLine = sourceFile.getText(prevLineStart, prevLineEnd);
     if (_ignoreComment.hasMatch(prevLine)) {
-      yieldPatch(prevLineStart, prevLineEnd + 1, '');
+      final lineBeforeCommentEnd = prevLineStart - 1;
+      final lineBeforeCommentStart =
+          sourceFile.getOffset(sourceFile.getLine(lineBeforeCommentEnd));
+      final lineBeforeComment =
+          sourceFile.getText(lineBeforeCommentStart, lineBeforeCommentEnd);
+
+      // Only replace with a newline unless it'd result in double spaces or spaces between parts
+      final shouldRemoveNewline =
+          lineBeforeComment.isEmpty || lineBeforeComment.startsWith('part');
+      yieldPatch(
+          prevLineStart, prevLineEnd + (shouldRemoveNewline ? 1 : 0), '');
     }
   }
 }
