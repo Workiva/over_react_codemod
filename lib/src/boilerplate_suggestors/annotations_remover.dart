@@ -43,7 +43,12 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     if (!_propsOrStateClassBoilerplateIsCompatible(node)) return;
 
     // --- Migrate --- //
-    yieldPatch(annotationToRemove.offset, annotationToRemove.end, '');
+    // Take out the whole line if we can
+    var end = annotationToRemove.end;
+    if (sourceFile.getText(end, end + 1) == '\n') {
+      end = end + 1;
+    }
+    yieldPatch(annotationToRemove.offset, end, '');
   }
 
   static const _relevantAnnotationNames = [

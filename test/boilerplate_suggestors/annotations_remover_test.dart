@@ -73,6 +73,7 @@ main() {
               // ignore: undefined_identifier
               \$Foo;
     
+          /// Doc comment that should not have a blank space after it after annotation removal
           @AbstractProps()
           mixin AbstractFooPropsMixin on UiProps {
             bool baz;
@@ -128,6 +129,7 @@ main() {
               // ignore: undefined_identifier
               \$Foo;
     
+          /// Doc comment that should not have a blank space after it after annotation removal
           mixin AbstractFooPropsMixin on UiProps {
             bool baz;
           }
