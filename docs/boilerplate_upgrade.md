@@ -3,7 +3,7 @@
 This page contains detailed follow-up instructions for FIXMEs added by the `boilerplate_upgrade` executable.
 
 
-### External Superclass
+## External Superclass
 
 > FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate because it extends from `BarProps`, which comes from from an external library.
 
@@ -21,7 +21,7 @@ To address:
    `BarProps` that is compatible with the new over_react boilerplate.
 
 
-### Public API
+## Public API
 
 > FIXME: `FooProps could not be auto-migrated to the new over_react boilerplate because it is exported from the following library in this repo:
 > lib/foo.dart
@@ -29,6 +29,10 @@ To address:
 
 If are migrating a Workiva library and have questions, or want to discuss alternative solutions, 
 please reach out in the #support-ui-platform Slack room. 
+
+There are a couple different options for this:
+
+#### Option 1: create a versioned API
 
 To complete the migration (for instance, for a class named `FooProps`), you can: 
 1. Deprecate `FooProps`.
@@ -38,16 +42,77 @@ To complete the migration (for instance, for a class named `FooProps`), you can:
      
        pub global run over_react_codemod:boilerplate_upgrade
      
-5a. If `FooProps` had consumers outside this repo, and it was intentionally made public,
-    remove the `hide` clause you added in step 4 so that the new mixin created from `FooPropsV2` 
-    will be a viable replacement for `FooProps`.
-5b. If `FooProps` had no consumers outside this repo, and you have no reason to make the new
-    "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the 
-    concrete class and the newly created mixin.
+5.
+    1. If `FooProps` had consumers outside this repo, and it was intentionally made public, remove the `hide` clause you added in step 4 so that the new mixin created from `FooPropsV2` will be a viable replacement for `FooProps`.
+    2. If `FooProps` had no consumers outside this repo, and you have no reason to make the new "V2" class / mixin public, update the `hide` clause you added in step 4 to include both the concrete class and the newly created mixin.
 6. Remove this FIXME comment.
 
 
-### Unmigrated Superclass
+#### Option 2: retain and deprecate a backwards-compatible concrete props clas
+This will allow the public copy to still be extended by external legacy boilerplate components and otherwise used by external libraries without breaking changes, while still allowing the component to be upgraded.
+ 
+However, it has the drawback of having to keep deprecated code up to date.
+
+To complete the migration (for instance, for a class named `FooProps`), you can: 
+1. Remove the fixme comment and perform the migration as if the component were private:     
+
+    pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
+
+1. Make the concrete props class (`FooProps`) private, and make a public copy of it. In the public copy, mix in all generated classes, and expose the meta constant.
+
+    ```dart
+    // Before migration
+    @Factory
+    UiFactory<FooProps> Foo = ...;
+    
+    @Props()
+    class _$FooProps extends UiProps with BarPropsMixin {
+       ...
+    }
+    ```
+
+    ```dart
+    // After migration 
+    
+    // Ensure all mixins used by FooProps exist in superclass constraints 
+    // or implements clauses if `FooProps` is used to type variables externally
+    // since FooPropsMixin will be its replacement.
+    //
+    // Alternatively, a separate interface could be created and used for typing.
+    mixin FooPropsMixin on UiProps, BarPropsMixin { ... }
+    
+    UiFactory<FooProps> Foo = ...;
+    
+    class FooProps = UiProps with FooPropsMixin, BarPropsMixin;
+    ```
+
+    ```dart
+    // Make concrete class private
+    UiFactory<_FooProps> Foo = ...;
+    
+    class _FooProps = UiProps with FooPropsMixin, BarPropsMixin;
+    ```
+    
+    ```dart
+    // Make a copy and implement the public class
+    UiFactory<_FooProps> Foo = ...;
+    
+    class _FooProps = UiProps with FooPropsMixin, BarPropsMixin implements FooProps;
+    
+    @Deprecated('Use FooPropsMixin instead')
+    class FooProps = UiProps with FooPropsMixin, $FooPropsMixin, BarPropsMixin, $BarPropsMixin {
+      static const PropsMeta = _$metaForFooPropsMixin;
+    }
+    ```
+    
+#### Option 3?
+If you have a special case, unique constraints, or have other ideas, please let us know!
+
+Like we said above:
+> If are migrating a Workiva library and have questions, or want to discuss alternative solutions, 
+please reach out in the #support-ui-platform Slack room. 
+    
+## Unmigrated Superclass
 > FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate because it extends from `BarProps`, which was not able to be migrated.
 
 To complete the migration, you should:
@@ -58,7 +123,7 @@ To complete the migration, you should:
        pub global run over_react_codemod:boilerplate_upgrade
 
 
-### Non-Component2
+## Non-Component2
 > FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate because `FooComponent` does not extend from `UiComponent2`.
 
 To complete the migration, you should:
