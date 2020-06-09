@@ -291,7 +291,7 @@ void main() {
         testUtilityFunction(
           input: input,
           expectedValue: true,
-          functionToTest: hasOneOrMoreMixins,
+          functionToTest: hasOneOrMoreMixinWithPotentialLifecycleOverrides,
         );
       });
 
@@ -305,7 +305,7 @@ void main() {
         testUtilityFunction(
           input: input,
           expectedValue: true,
-          functionToTest: hasOneOrMoreMixins,
+          functionToTest: hasOneOrMoreMixinWithPotentialLifecycleOverrides,
         );
       });
 
@@ -319,7 +319,7 @@ void main() {
         testUtilityFunction(
           input: input,
           expectedValue: false,
-          functionToTest: hasOneOrMoreMixins,
+          functionToTest: hasOneOrMoreMixinWithPotentialLifecycleOverrides,
         );
       });
     });
