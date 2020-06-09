@@ -37,11 +37,6 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     final annotationToRemove =
         node.metadata.firstWhere(_annotationIsRelevant, orElse: () => null);
 
-    if (node is TopLevelVariableDeclaration &&
-        node.variables.variables.first.name.name == 'FilterControl') {
-      debugger();
-    }
-
     // --- Short Circuit Conditions --- //
     if (annotationToRemove == null) return;
     if (annotationToRemove.arguments.arguments.isNotEmpty) return;
