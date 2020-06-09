@@ -37,6 +37,11 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     final annotationToRemove =
         node.metadata.firstWhere(_annotationIsRelevant, orElse: () => null);
 
+    if (node is TopLevelVariableDeclaration &&
+        node.variables.variables.first.name.name == 'FilterControl') {
+      debugger();
+    }
+
     // --- Short Circuit Conditions --- //
     if (annotationToRemove == null) return;
     if (annotationToRemove.arguments.arguments.isNotEmpty) return;
@@ -73,12 +78,17 @@ class AnnotationsRemover extends GeneralizingAstVisitor
           CompilationUnitMember node, String annotationName) =>
       node.metadata.any((annotation) => annotation.name.name == annotationName);
 
-  String _getNameOfPropsClassThatMayHaveBeenConverted(
+  List<String> _getNamesOfPropsClassThatMayHaveBeenConverted(
       CompilationUnitMember node) {
     if (node is TopLevelVariableDeclaration) {
-      return getPropsClassNameFromFactoryDeclaration(node);
+      return [getPropsClassNameFromFactoryDeclaration(node)];
     } else if (node is ClassDeclaration) {
-      return node.name.name.replaceFirst(RegExp(r'Component$'), 'Props');
+      final rootName = node.name.name.replaceFirst(RegExp(r'Component$'), '');
+      // Some props classes have an extra "Component" in their name
+      return [
+        '${rootName}Props',
+        '${rootName}ComponentProps',
+      ];
     }
 
     return null;
@@ -90,9 +100,9 @@ class AnnotationsRemover extends GeneralizingAstVisitor
         _nodeHasAnnotationWithName(node, 'AbstractComponent2')) {
       // It's not a props or state class that would have been converted to the new boilerplate by a previous migrator.
       // but it is a UiComponent-related class with an annotation.
-      final analogousPropsMixinOrClassName =
-          _getNameOfPropsClassThatMayHaveBeenConverted(node);
-      return converter.isBoilerplateCompatible(analogousPropsMixinOrClassName);
+      return
+        _getNamesOfPropsClassThatMayHaveBeenConverted(node).any(
+            converter.isBoilerplateCompatible);
     } else if (_nodeHasRelevantAnnotation(node) &&
         node is NamedCompilationUnitMember) {
       return converter.isBoilerplateCompatible(node.name.name);
