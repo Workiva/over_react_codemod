@@ -1,2 +1,2 @@
-const overReactVersionRange = '^3.5.0';
-const overReactTestVersionRange = '^2.9.0';
+const overReactVersionRange = '^3.5.3';
+const overReactTestVersionRange = '^2.9.5';
