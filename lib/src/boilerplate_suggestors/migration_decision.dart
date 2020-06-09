@@ -29,18 +29,23 @@ class MigrationDecision {
 
   MigrationDecision(this.yee, {this.reason});
 
+  static String _normalizeComment(String commentLine) =>
+      commentLine.replaceFirst(RegExp(r'^//\s*(FIXME|TODO):?'), '').trim();
+
   /// Patch the provided [node] with a "FIX ME" comment giving the [reason] that the migration was short-circuited.
   void patchWithReasonComment(
       ClassOrMixinDeclaration node, YieldPatch yieldPatch) {
     var fixmeCommentAlreadyAdded = false;
     if (reason != null) {
-      final firstLineOfReasonComment = reason.trim().split('\n').first.trim();
+      final normalizedFirstLineOfReasonComment =
+          _normalizeComment(reason.trim().split('\n').first);
 
       // Use allComments instead of the first one since comments on previous lines
       // separated by whitespace (e.g., the ignore comment on a factory when node is a props class)
       // are picked up.
-      fixmeCommentAlreadyAdded = allCommentsForNode(node).any(
-          (comment) => comment.toString().trim() == firstLineOfReasonComment);
+      fixmeCommentAlreadyAdded = allCommentsForNode(node).any((comment) =>
+          _normalizeComment(comment.toString()) ==
+          normalizedFirstLineOfReasonComment);
     }
 
     if (reason == null || fixmeCommentAlreadyAdded) {
