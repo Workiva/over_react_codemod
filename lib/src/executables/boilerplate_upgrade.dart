@@ -46,9 +46,9 @@ const _changesRequiredOutput = '''
   pub global activate over_react_codemod
   pub global run over_react_codemod:boilerplate_upgrade
 
-  Or you can use the -p flag to specify a path or glob to run the codemod on only some files:
-  pub global run over_react_codemod:boilerplate_upgrade -p "path/to/your/file.dart"
-  pub global run over_react_codemod:boilerplate_upgrade -p "lib/**.dart"
+  Or you can specify one or more paths or globs to run the codemod on only some files:
+  pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart
+  pub global run over_react_codemod:boilerplate_upgrade lib/**.dart
   
   pub run dart_dev format (if you format this repository).
   Then, review the the changes, address any FIXMEs, and commit.
@@ -58,10 +58,6 @@ void main(List<String> args) {
   final parser = ArgParser()
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Prints this help output')
-    ..addOption('path',
-        abbr: 'p',
-        help:
-            'Specify a path or glob to run codemod on just Dart files specified')
     ..addSeparator('Boilerplate Upgrade Options:')
     ..addFlag(_convertedClassesWithExternalSuperclassFlag,
         help: 'Converts classes with external superclasses')
@@ -85,7 +81,6 @@ void main(List<String> args) {
   }
 
   exitCode = upgradeReactVersions(
-    args: parsedArgs.rest,
     overReactVersionRange: parsedArgs[_overReactVersionRangeOption],
     overReactTestVersionRange: parsedArgs[_overReactTestVersionRangeOption],
   );
@@ -99,14 +94,17 @@ void main(List<String> args) {
   final shouldTreatAllComponentsAsPrivate =
       parsedArgs[_treatAllComponentsAsPrivateFlag] == true;
 
-  final path = parsedArgs['path'];
-  // If a path or glob is provided as an arg, get file paths for just that path or glob.
-  Iterable<String> fileQuery = path != null
-      ? filePathsFromGlob(Glob(path, recursive: true))
-      : allDartPathsExceptHiddenAndGenerated();
-  if (path != null) {
-    logger?.info("Codemod will run on these files: ${fileQuery.toList()}");
+  final pathArgs = parsedArgs.rest.isNotEmpty ? parsedArgs.rest : null;
+  // If a path or multiple paths are provided as a basic arg, get file paths for them.
+  Iterable<String> filePaths = [];
+  if (pathArgs != null) {
+    Set<String> pathSet = {};
+    pathArgs.forEach((path) =>
+        pathSet.addAll(filePathsFromGlob(Glob(path, recursive: true))));
+    filePaths = pathSet;
+    logger?.info("Codemod will run on these files: ${filePaths}");
   } else {
+    filePaths = allDartPathsExceptHiddenAndGenerated();
     logger?.info(
         "Codemod will run on all Dart files except hidden and generated ones");
   }
@@ -117,7 +115,7 @@ void main(List<String> args) {
       shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
 
   exitCode = runInteractiveCodemodSequence(
-    fileQuery,
+    filePaths,
     <Suggestor>[
       // We need this to run first so that the AdvancedPropsAndStateClassMigrator
       // can check for duplicate mixin names before creating one.
@@ -152,8 +150,8 @@ void main(List<String> args) {
       GeneratedPartDirectiveIgnoreRemover(),
       FactoryIgnoreCommentMover(),
     ].map((s) => Ignoreable(s)),
-    args: parsedArgs.rest,
     defaultYes: true,
+    args: [],
     changesRequiredOutput: _changesRequiredOutput,
   );
 
@@ -165,7 +163,6 @@ void main(List<String> args) {
 }
 
 int upgradeReactVersions({
-  @required List<String> args,
   @required String overReactVersionRange,
   @required String overReactTestVersionRange,
 }) {
@@ -205,7 +202,7 @@ int upgradeReactVersions({
               isDevDependency: isDev[entry.key],
             ))
         .map((s) => Ignoreable(s))),
-    args: args,
+    args: [],
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
