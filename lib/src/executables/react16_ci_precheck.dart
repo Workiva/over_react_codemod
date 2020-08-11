@@ -14,11 +14,11 @@
 
 import 'dart:io';
 
-import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
+
+import '../util.dart';
 
 final ciLogger = Logger('over_react_codemod.react16_ci_preheck');
 
@@ -68,25 +68,13 @@ void main(List<String> args) {
   });
   ciLogger.info('Checking if project needs to run React 16 codemod...');
 
-  final pubspecYamlQuery = FileQuery.dir(
-    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
-    recursive: true,
-  );
-
-  List<String> paths;
-  try {
-    paths = pubspecYamlQuery.generateFilePaths().toList();
-  } catch (e, st) {
-    ciLogger.severe('Error listing pubspec.yaml files.', e, st);
-    return;
-  }
-
-  if (paths.isEmpty) {
+  final pubspecYamlQuery = pubspecYamlPaths();
+  if (pubspecYamlQuery == null || pubspecYamlQuery.isEmpty) {
     ciLogger.warning('No pubspec.yaml files found.'
         '\nThe React 16 codemod should not be run.');
   } else {
-    ciLogger.info('Found pubspec.yaml files: $paths');
-    if (paths.any(isInTransition)) {
+    ciLogger.info('Found pubspec.yaml files: ${pubspecYamlQuery.toList()}');
+    if (pubspecYamlQuery.any(isInTransition)) {
       // If there is any pubspec in transition, set the exit code.
       // We want anyone attempting to be in transition to ensure all of their
       // pubspec.yaml files are also in transition.

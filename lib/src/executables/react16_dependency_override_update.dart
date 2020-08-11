@@ -19,7 +19,7 @@ import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgra
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
-import 'package:path/path.dart' as p;
+import 'package:over_react_codemod/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../react16_suggestors/constants.dart';
@@ -37,13 +37,8 @@ void main(List<String> args) {
   final overReactVersionConstraint =
       VersionConstraint.parse(overReactVersionRangeForTesting);
 
-  final pubspecYamlQuery = FileQuery.dir(
-    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
-    recursive: true,
-  );
-
   exitCode = runInteractiveCodemod(
-    pubspecYamlQuery,
+    pubspecYamlPaths(),
     AggregateSuggestor([
       PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
       PubspecOverReactUpgrader(overReactVersionConstraint,

@@ -16,7 +16,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
-import 'package:path/path.dart' as p;
 
 import '../dart2_suggestors/component_default_props_migrator.dart';
 import '../dart2_suggestors/dollar_prop_keys_migrator.dart';
@@ -60,11 +59,8 @@ void main(List<String> args) {
   final commentPrefix = parseAndRemoveCommentPrefixArg(args);
 
   // Phase 1: Upgrade the over_react dependency in any `pubspec.yaml` files.
-  final pubspecYamlQuery = FileQuery.dir(
-    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
-  );
   exitCode = runInteractiveCodemod(
-    pubspecYamlQuery,
+    pubspecYamlPaths(),
     PubspecOverReactUpgrader(
       backwardsCompat
           ? PubspecOverReactUpgrader.dart1And2Constraint
@@ -132,10 +128,7 @@ void main(List<String> args) {
   }
 
   exitCode = runInteractiveCodemodSequence(
-    FileQuery.dir(
-      pathFilter: isDartFile,
-      recursive: true,
-    ),
+    allDartPathsExceptHidden(),
     suggestorSequence,
     args: args,
     defaultYes: true,

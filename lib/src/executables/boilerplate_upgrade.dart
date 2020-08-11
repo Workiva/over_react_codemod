@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
+import 'package:glob/glob.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
@@ -30,8 +31,8 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migra
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/generated_part_directive_ignore_remover.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
-import 'package:path/path.dart' as p;
 import 'package:prompts/prompts.dart' as prompts;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -44,22 +45,44 @@ const _changesRequiredOutput = '''
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
   pub global run over_react_codemod:boilerplate_upgrade
+
+  Or you can use the -p flag to specify a path or glob to run the codemod on only some files:
+  pub global run over_react_codemod:boilerplate_upgrade -p "path/to/your/file.dart"
+  pub global run over_react_codemod:boilerplate_upgrade -p "lib/**.dart"
+  
   pub run dart_dev format (if you format this repository).
   Then, review the the changes, address any FIXMEs, and commit.
 ''';
 
 void main(List<String> args) {
   final parser = ArgParser()
+    ..addFlag('help',
+        abbr: 'h', negatable: false, help: 'Prints this help output')
+    ..addOption('path',
+        abbr: 'p',
+        help:
+            'Specify a path or glob to run codemod on just Dart files specified')
     ..addSeparator('Boilerplate Upgrade Options:')
-    ..addFlag(_convertedClassesWithExternalSuperclassFlag)
-    ..addFlag(_treatAllComponentsAsPrivateFlag)
+    ..addFlag(_convertedClassesWithExternalSuperclassFlag,
+        help: 'Converts classes with external superclasses')
+    ..addFlag(_treatAllComponentsAsPrivateFlag,
+        help: 'Treats all components as private')
     ..addSeparator('Dependency Version Updates:')
-    ..addOption(_overReactVersionRangeOption, defaultsTo: overReactVersionRange)
+    ..addOption(_overReactVersionRangeOption,
+        defaultsTo: overReactVersionRange,
+        help: 'Sets over_react version range')
     ..addOption(_overReactTestVersionRangeOption,
-        defaultsTo: overReactTestVersionRange);
+        defaultsTo: overReactTestVersionRange,
+        help: 'Sets over_react_test version range');
+
   final parsedArgs = parser.parse(args);
 
   final logger = Logger('over_react_codemod.boilerplate_upgrade');
+
+  if (parsedArgs['help'] == true) {
+    stderr.writeln(parser.usage);
+    return;
+  }
 
   exitCode = upgradeReactVersions(
     args: parsedArgs.rest,
@@ -76,12 +99,17 @@ void main(List<String> args) {
   final shouldTreatAllComponentsAsPrivate =
       parsedArgs[_treatAllComponentsAsPrivateFlag] == true;
 
-  final query = FileQuery.dir(
-    pathFilter: (path) {
-      return isDartFile(path) && !isGeneratedDartFile(path);
-    },
-    recursive: true,
-  );
+  final path = parsedArgs['path'];
+  // If a path or glob is provided as an arg, get file paths for just that path or glob.
+  Iterable<String> fileQuery = path != null
+      ? filePathsFromGlob(Glob(path, recursive: true))
+      : allDartPathsExceptHiddenAndGenerated();
+  if (path != null) {
+    logger?.info("Codemod will run on these files: ${fileQuery.toList()}");
+  } else {
+    logger?.info(
+        "Codemod will run on all Dart files except hidden and generated ones");
+  }
 
   final classToMixinConverter = ClassToMixinConverter();
 
@@ -89,7 +117,7 @@ void main(List<String> args) {
       shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
 
   exitCode = runInteractiveCodemodSequence(
-    query,
+    fileQuery,
     <Suggestor>[
       // We need this to run first so that the AdvancedPropsAndStateClassMigrator
       // can check for duplicate mixin names before creating one.
@@ -167,13 +195,8 @@ int upgradeReactVersions({
     });
   }
 
-  final pubspecYamlQuery = FileQuery.dir(
-    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
-    recursive: true,
-  );
-
   return runInteractiveCodemod(
-    pubspecYamlQuery,
+    pubspecYamlPaths(),
     AggregateSuggestor(ranges.entries
         .map((entry) => PubspecUpgrader(
               entry.key,

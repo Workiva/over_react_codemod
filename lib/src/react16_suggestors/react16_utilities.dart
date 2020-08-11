@@ -15,7 +15,6 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:codemod/codemod.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:source_span/source_span.dart';
@@ -99,10 +98,10 @@ SourceSpan nodeCommentSpan(AnnotatedNode node, SourceFile sourceFile) {
 
 /// Returns whether or not there is a React 16 upgrade comment within a
 /// project that is unaddressed.
-bool hasUnaddressedReact16Comment(FileQuery query, {Logger logger}) {
+bool hasUnaddressedReact16Comment(Iterable<String> paths, {Logger logger}) {
   bool hasUnaddressedComment = false;
 
-  for (var dartFile in query.generateFilePaths()) {
+  for (final dartFile in paths) {
     final dartSource = File(dartFile).readAsStringSync();
     if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
       logger?.severe(

@@ -143,7 +143,7 @@ class DependencyCreator {
 class DartProjectCreatorTestConfig {
   String _testName;
 
-  /// Wether or not the codemod is expected to run based on the dependencies provided.
+  /// Whether or not the codemod is expected to run based on the dependencies provided.
   ///
   /// default: `false`
   bool shouldRunCodemod = false;
