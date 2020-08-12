@@ -98,10 +98,7 @@ void main(List<String> args) {
   // If a path or multiple paths are provided as a basic arg, get file paths for them.
   Iterable<String> filePaths = [];
   if (pathArgs != null) {
-    Set<String> pathSet = {};
-    pathArgs.forEach((path) =>
-        pathSet.addAll(filePathsFromGlob(Glob(path, recursive: true))));
-    filePaths = pathSet;
+    filePaths = pathArgs.toSet();
     logger?.info("Codemod will run on these files: ${filePaths}");
   } else {
     filePaths = allDartPathsExceptHiddenAndGenerated();
