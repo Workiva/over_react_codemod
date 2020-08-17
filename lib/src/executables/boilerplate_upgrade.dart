@@ -17,7 +17,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
-import 'package:glob/glob.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/annotations_remover.dart';
