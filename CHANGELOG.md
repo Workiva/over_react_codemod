@@ -1,3 +1,42 @@
+## [1.7.0](https://github.com/Workiva/over_react_codemod/compare/1.7.0...1.6.0)
+
+- Update boilerplate version updater.
+- Fix issues discovered during initial boilerplate rollout.
+- Add upgrade instructions.
+- Improve handling of newlines in boilerplate upgrades.
+- Add additional paths forward for components requiring breaking changes before upgrading.
+- Add ability to pass paths or globs to boilerplate_upgrade as basic args to only run the codemod on
+the specified files.
+
+## [1.6.0](https://github.com/Workiva/over_react_codemod/compare/1.6.0...1.5.1)
+
+- Add codemod for new boilerplate.
+- Create simple props / state boilerplate migrator.
+- Add codemod utility to tell if something is public API.
+- Remove props/state “companion” classes as part of the boilerplate update.
+- Add advanced props migrator.
+- Add standalone `PropsMixin` / `StateMixin` migrator.
+- Add annotation remover.
+- Use utility class to contain map of converted classNames.
+- Consume `SemverHelper`.
+- Address edge cases for boilerplate codemods.
+- Improve class migration short-circuit logic and consumer communication.
+- Do final cleanup for new boilerplate codemod.
+- Update react and over_react versions for boilerplate migration.
+- Address some boilerplate codemod edge cases.
+- Preserve `consumedProps` behavior when shorthand used.
+- Add `GeneratedPartDirectiveIgnoreRemover` to boilerplate codemod.
+- Add suggestor to move factory ignore comments.
+- Preserve consumed props behavior defaults.
+
+## [1.5.1](https://github.com/Workiva/over_react_codemod/compare/1.5.1...1.5.0)
+
+- Change the over_react version for the react16_post_rollout_cleanup codemod from ^3.1.0 to ^3.1.3.
+
+## [1.5.0](https://github.com/Workiva/over_react_codemod/compare/1.5.0...1.4.3)
+
+- Use caret deps when possible in version range updates.
+
 ## [1.4.3](https://github.com/Workiva/over_react_codemod/compare/1.4.3...1.4.2)
 
 - Revert react16_upgrade change in 1.4.0 that forced over_react to be added whenever just react was listed as a dependency
