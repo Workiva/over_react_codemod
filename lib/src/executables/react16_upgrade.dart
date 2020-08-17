@@ -23,7 +23,7 @@ import 'package:over_react_codemod/src/react16_suggestors/react_dom_render_migra
 import 'package:over_react_codemod/src/react16_suggestors/react_style_maps_updater.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
-import 'package:path/path.dart' as p;
+import 'package:over_react_codemod/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../react16_suggestors/constants.dart';
@@ -42,13 +42,8 @@ void main(List<String> args) {
   final overReactVersionConstraint =
       VersionConstraint.parse(overReactVersionRange);
 
-  final pubspecYamlQuery = FileQuery.dir(
-    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
-    recursive: true,
-  );
-
   exitCode = runInteractiveCodemod(
-    pubspecYamlQuery,
+    pubspecYamlPaths(),
     AggregateSuggestor([
       PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
       PubspecOverReactUpgrader(overReactVersionConstraint,
@@ -67,15 +62,11 @@ void main(List<String> args) {
     return;
   }
 
+  final dartPaths = allDartPathsExceptHiddenAndGenerated();
+
   // Update Componentry
-  final query = FileQuery.dir(
-    pathFilter: (path) {
-      return isDartFile(path) && !isGeneratedDartFile(path);
-    },
-    recursive: true,
-  );
   exitCode = runInteractiveCodemodSequence(
-    query,
+    dartPaths,
     <Suggestor>[
       ReactDomRenderMigrator(),
       ReactStyleMapsUpdater(),
@@ -87,7 +78,7 @@ void main(List<String> args) {
 
   final logger = Logger('over_react_codemod.fixmes');
 
-  if (hasUnaddressedReact16Comment(query, logger: logger)) {
+  if (hasUnaddressedReact16Comment(dartPaths, logger: logger)) {
     exitCode = 1;
   }
 }

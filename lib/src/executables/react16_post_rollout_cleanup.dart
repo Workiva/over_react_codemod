@@ -15,13 +15,12 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:glob/glob.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
-import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/react16_suggestors/comment_remover.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
-import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 
 const _changesRequiredOutput = """
@@ -43,12 +42,7 @@ void main(List<String> args) {
   const startingString = 'Check this box';
   const endingString = 'complete';
 
-  final query = FileQuery.dir(
-    pathFilter: (path) {
-      return isDartFile(path) && !isGeneratedDartFile(path);
-    },
-    recursive: true,
-  );
+  final query = filePathsFromGlob(Glob('**.dart', recursive: true));
 
   if (hasUnaddressedReact16Comment(query, logger: logger)) {
     logger.severe(
@@ -58,10 +52,8 @@ void main(List<String> args) {
     return;
   }
 
-  final pubspecYamlQuery = FileQuery.dir(
-    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
-    recursive: true,
-  );
+  final pubspecYamlQuery =
+      filePathsFromGlob(Glob('**pubspec.yaml', recursive: true));
 
   exitCode = runInteractiveCodemod(
     pubspecYamlQuery,

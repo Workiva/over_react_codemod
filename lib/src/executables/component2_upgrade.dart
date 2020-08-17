@@ -23,6 +23,7 @@ import 'package:over_react_codemod/src/component2_suggestors/deprecated_lifecycl
 import 'package:over_react_codemod/src/component2_suggestors/setstate_updater.dart';
 import 'package:over_react_codemod/src/component2_suggestors/copyunconsumeddomprops_migrator.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 const _noPartialUpgradesFlag = '--no-partial-upgrades';
 const _upgradeAbstractComponentsFlag = '--upgrade-abstract-components';
@@ -42,14 +43,8 @@ void main(List<String> args) {
       args.contains(_upgradeAbstractComponentsFlag);
   args.removeWhere((arg) => arg == _upgradeAbstractComponentsFlag);
 
-  final query = FileQuery.dir(
-    pathFilter: (path) {
-      return isDartFile(path) && !isGeneratedDartFile(path);
-    },
-    recursive: true,
-  );
   exitCode = runInteractiveCodemodSequence(
-    query,
+    allDartPathsExceptHiddenAndGenerated(),
     <Suggestor>[
       // This suggestor needs to be run first in order for subsequent suggestors
       // to run when converting Component to Component2 for the first time.

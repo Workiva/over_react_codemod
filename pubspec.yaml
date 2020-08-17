@@ -23,8 +23,9 @@ environment:
 dependencies:
   analyzer: '>=0.37.0 <0.39.0'
   args: ^1.5.1
-  codemod: ^0.1.5
+  codemod: ^0.2.0
   collection: ^1.14.7
+  glob: ^1.2.0
   logging: ^0.11.3+2
   meta: ^1.1.7
   path: ^1.6.2

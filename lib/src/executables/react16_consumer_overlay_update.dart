@@ -16,6 +16,7 @@ import 'dart:io';
 
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/react16_suggestors/consumer_overlay_migrator.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
@@ -26,13 +27,8 @@ Then, review the the changes, address any FIXMEs, and commit.
 """;
 
 void main(List<String> args) {
-  final query = FileQuery.dir(
-    pathFilter: isDartFile,
-    recursive: true,
-  );
-
   exitCode = runInteractiveCodemodSequence(
-    query,
+    allDartPathsExceptHidden(),
     [
       ConsumerOverlayMigrator(),
     ],

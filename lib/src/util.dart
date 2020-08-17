@@ -19,6 +19,8 @@ library over_react_codemod.src.util;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:args/args.dart';
+import 'package:codemod/codemod.dart';
+import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:path/path.dart' as p;
@@ -599,3 +601,13 @@ String stripPrivateGeneratedPrefix(String value) {
 extension IterableNullHelpers<E> on Iterable<E> {
   E get firstOrNull => isEmpty ? null : first;
 }
+
+Iterable<String> pubspecYamlPaths() =>
+    filePathsFromGlob(Glob('**pubspec.yaml', recursive: true));
+
+Iterable<String> allDartPathsExceptHidden() =>
+    filePathsFromGlob(Glob('**.dart', recursive: true));
+
+Iterable<String> allDartPathsExceptHiddenAndGenerated() =>
+    filePathsFromGlob(Glob('**.dart', recursive: true))
+        .where((path) => !path.endsWith('.g.dart'));

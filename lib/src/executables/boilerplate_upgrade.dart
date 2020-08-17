@@ -30,8 +30,8 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/props_mixins_migra
 import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_state_class_remover.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/generated_part_directive_ignore_remover.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
-import 'package:path/path.dart' as p;
 import 'package:prompts/prompts.dart' as prompts;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -44,25 +44,42 @@ const _changesRequiredOutput = '''
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
   pub global run over_react_codemod:boilerplate_upgrade
+
+  Or you can specify one or more paths or globs to run the codemod on only some files:
+  pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart
+  pub global run over_react_codemod:boilerplate_upgrade lib/**.dart
+  
   pub run dart_dev format (if you format this repository).
   Then, review the the changes, address any FIXMEs, and commit.
 ''';
 
 void main(List<String> args) {
   final parser = ArgParser()
+    ..addFlag('help',
+        abbr: 'h', negatable: false, help: 'Prints this help output')
     ..addSeparator('Boilerplate Upgrade Options:')
-    ..addFlag(_convertedClassesWithExternalSuperclassFlag)
-    ..addFlag(_treatAllComponentsAsPrivateFlag)
+    ..addFlag(_convertedClassesWithExternalSuperclassFlag,
+        help: 'Converts classes with external superclasses')
+    ..addFlag(_treatAllComponentsAsPrivateFlag,
+        help: 'Treats all components as private')
     ..addSeparator('Dependency Version Updates:')
-    ..addOption(_overReactVersionRangeOption, defaultsTo: overReactVersionRange)
+    ..addOption(_overReactVersionRangeOption,
+        defaultsTo: overReactVersionRange,
+        help: 'Sets over_react version range')
     ..addOption(_overReactTestVersionRangeOption,
-        defaultsTo: overReactTestVersionRange);
+        defaultsTo: overReactTestVersionRange,
+        help: 'Sets over_react_test version range');
+
   final parsedArgs = parser.parse(args);
 
   final logger = Logger('over_react_codemod.boilerplate_upgrade');
 
+  if (parsedArgs['help'] == true) {
+    stderr.writeln(parser.usage);
+    return;
+  }
+
   exitCode = upgradeReactVersions(
-    args: parsedArgs.rest,
     overReactVersionRange: parsedArgs[_overReactVersionRangeOption],
     overReactTestVersionRange: parsedArgs[_overReactTestVersionRangeOption],
   );
@@ -76,12 +93,17 @@ void main(List<String> args) {
   final shouldTreatAllComponentsAsPrivate =
       parsedArgs[_treatAllComponentsAsPrivateFlag] == true;
 
-  final query = FileQuery.dir(
-    pathFilter: (path) {
-      return isDartFile(path) && !isGeneratedDartFile(path);
-    },
-    recursive: true,
-  );
+  final pathArgs = parsedArgs.rest.isNotEmpty ? parsedArgs.rest : null;
+  // If a path or multiple paths are provided as a basic arg, get file paths for them.
+  Iterable<String> filePaths = [];
+  if (pathArgs != null) {
+    filePaths = pathArgs.toSet();
+    logger?.info("Codemod will run on these files: ${filePaths}");
+  } else {
+    filePaths = allDartPathsExceptHiddenAndGenerated();
+    logger?.info(
+        "Codemod will run on all Dart files except hidden and generated ones");
+  }
 
   final classToMixinConverter = ClassToMixinConverter();
 
@@ -89,7 +111,7 @@ void main(List<String> args) {
       shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
 
   exitCode = runInteractiveCodemodSequence(
-    query,
+    filePaths,
     <Suggestor>[
       // We need this to run first so that the AdvancedPropsAndStateClassMigrator
       // can check for duplicate mixin names before creating one.
@@ -124,8 +146,8 @@ void main(List<String> args) {
       GeneratedPartDirectiveIgnoreRemover(),
       FactoryIgnoreCommentMover(),
     ].map((s) => Ignoreable(s)),
-    args: parsedArgs.rest,
     defaultYes: true,
+    args: [],
     changesRequiredOutput: _changesRequiredOutput,
   );
 
@@ -137,7 +159,6 @@ void main(List<String> args) {
 }
 
 int upgradeReactVersions({
-  @required List<String> args,
   @required String overReactVersionRange,
   @required String overReactTestVersionRange,
 }) {
@@ -167,13 +188,8 @@ int upgradeReactVersions({
     });
   }
 
-  final pubspecYamlQuery = FileQuery.dir(
-    pathFilter: (path) => p.basename(path) == 'pubspec.yaml',
-    recursive: true,
-  );
-
   return runInteractiveCodemod(
-    pubspecYamlQuery,
+    pubspecYamlPaths(),
     AggregateSuggestor(ranges.entries
         .map((entry) => PubspecUpgrader(
               entry.key,
@@ -182,7 +198,7 @@ int upgradeReactVersions({
               isDevDependency: isDev[entry.key],
             ))
         .map((s) => Ignoreable(s))),
-    args: args,
+    args: [],
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
   );
