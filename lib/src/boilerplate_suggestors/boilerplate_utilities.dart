@@ -16,6 +16,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
 import 'package:over_react_codemod/src/constants.dart';
@@ -27,6 +28,8 @@ typedef YieldPatch = void Function(
 
 const semverReportNotAvailable =
     'Semver report not available; this class is assumed to be public and thus will not be updated.';
+
+final logger = Logger('over_react_codemod.boilerplate_upgrade.semver_helper');
 
 /// Returns a [SemverHelper] using the file at [path].
 ///
@@ -43,21 +46,34 @@ SemverHelper getSemverHelper(String path,
     return SemverHelper.alwaysPrivate();
   } else {
     final file = File(path);
-    String warning;
-
     if (file.existsSync()) {
       try {
         final jsonReport = jsonDecode(file.readAsStringSync());
         if (jsonReport['exports'] != null) {
-          return SemverHelper(jsonReport['exports']);
+          final helper = SemverHelper(jsonReport['exports']);
+          logger.info('Successfully loaded semver report');
+          return helper;
         }
-        warning = 'Could not find exports list in semver_report.json.';
-      } catch (e) {
-        warning = 'Could not parse semver_report.json.';
+        // If the map doesn't have exports, duck-type it to see if it's
+        // the exports map itself, which can be the case when semver_audit
+        // output is piped directly to the console.
+        if (jsonReport is Map && jsonReport.values.isNotEmpty) {
+          final firstValue = jsonReport.values.first;
+          if (firstValue is Map &&
+              ['key', 'parent_key'].every(firstValue.containsKey)) {
+            final helper = SemverHelper(jsonReport);
+            logger.info('Successfully loaded semver report as exports map');
+            return helper;
+          }
+        }
+        throw Exception('Could not find exports list in semver_report.json.');
+      } catch (e, st) {
+        throw Exception('Could not parse semver_report.json.\n$e\n$st');
       }
-    } else {
-      warning = 'Could not find semver_report.json.';
     }
+
+    const warning = 'Could not find semver_report.json.';
+    logger.warning(warning);
     return SemverHelper.alwaysPublic(warning);
   }
 }

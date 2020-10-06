@@ -51,9 +51,19 @@ bool extendsComponent2(ClassDeclaration classNode) {
   }
 }
 
+const _safeMixinNames = {
+  'FocusRestorer',
+  'FormControlApi',
+  'FormControlApiV2',
+  'TypedSnapshot',
+};
+
 /// Returns whether or not [classNode] has one or more mixins.
-bool hasOneOrMoreMixins(ClassDeclaration classNode) =>
-    classNode?.withClause != null;
+bool hasOneOrMoreMixinWithPotentialLifecycleOverrides(
+        ClassDeclaration classNode) =>
+    classNode?.withClause != null &&
+    classNode.withClause.mixinTypes
+        .any((t) => !_safeMixinNames.contains(t.name.name));
 
 /// Returns whether or not [classNode] can be fully upgraded to Component2.
 ///
@@ -72,7 +82,7 @@ bool fullyUpgradableToComponent2(ClassDeclaration classNode) {
     return false;
   }
 
-  if (hasOneOrMoreMixins(classNode)) {
+  if (hasOneOrMoreMixinWithPotentialLifecycleOverrides(classNode)) {
     return false;
   }
 

@@ -109,7 +109,8 @@ String getComponentName(Expression builder) {
       return builder.methodName.name;
     }
     if (typeName.endsWith('Props')) {
-      return typeName.substring(0, typeName.length - 'Props'.length);
+      // Some props classes have an extra "Component" part in their name.
+      return typeName.replaceFirst(r'(Component)?Props$', '');
     }
     return null;
   } else if (builder is MethodInvocation) {

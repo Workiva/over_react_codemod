@@ -163,7 +163,9 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
             : 'a class that now extends from `UiComponent2`';
 
     [
-      _FixMeCommentPatch(hasOneOrMoreMixins, () => node,
+      _FixMeCommentPatch(
+          hasOneOrMoreMixinWithPotentialLifecycleOverrides,
+          () => node,
           'FIXME: Before upgrading this component to $classToUpgradeTo, verify that none of the mixin(s) contain implementations of any React lifecycle methods that are not supported in $classToUpgradeTo.'),
       _FixMeCommentPatch(
           (node) => shouldUpgradeAbstractComponents && canBeExtendedFrom(node),
