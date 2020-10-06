@@ -4,7 +4,7 @@ Boilerplate codemod fixes and improvements:
 - Fix locally-generated semver reports not being readable due to not being nested inside an `{"exports": ...}` object
 - Treat FIXMEs converted to TODOs the same as FIXMEs (and don't add new FIXMEs on top of them)
 - Account for edge cases when Props were named `${componentName}ComponentProps`
-- Ignore common mixins that are known to not implement lifecycle methods and thus shouldn't require necessitate migration:
+- Ignore common mixins that are known to not implement lifecycle methods and thus shouldn't necessitate migration:
     - TypedSnapshot
     - FocusRestorer (Workiva-specific)
     - FormControlApi/FormControlApiV2 (Workiva-specific)
