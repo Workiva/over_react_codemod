@@ -95,9 +95,8 @@ class AnnotationsRemover extends GeneralizingAstVisitor
         _nodeHasAnnotationWithName(node, 'AbstractComponent2')) {
       // It's not a props or state class that would have been converted to the new boilerplate by a previous migrator.
       // but it is a UiComponent-related class with an annotation.
-      return
-        _getNamesOfPropsClassThatMayHaveBeenConverted(node).any(
-            converter.isBoilerplateCompatible);
+      return _getNamesOfPropsClassThatMayHaveBeenConverted(node)
+          .any(converter.isBoilerplateCompatible);
     } else if (_nodeHasRelevantAnnotation(node) &&
         node is NamedCompilationUnitMember) {
       return converter.isBoilerplateCompatible(node.name.name);

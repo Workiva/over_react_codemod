@@ -59,7 +59,8 @@ const _safeMixinNames = {
 };
 
 /// Returns whether or not [classNode] has one or more mixins.
-bool hasOneOrMoreMixinWithPotentialLifecycleOverrides(ClassDeclaration classNode) =>
+bool hasOneOrMoreMixinWithPotentialLifecycleOverrides(
+        ClassDeclaration classNode) =>
     classNode?.withClause != null &&
     classNode.withClause.mixinTypes
         .any((t) => !_safeMixinNames.contains(t.name.name));
