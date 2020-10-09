@@ -40,7 +40,7 @@ typedef CompanionBuilder = String Function(String className,
 /// this method.
 Iterable<Token> allComments(Token beginToken) sync* {
   var currentToken = beginToken;
-  while (!currentToken.isEof) {
+  while (currentToken != null && !currentToken.isEof) {
     var currentComment = currentToken.precedingComments;
     while (currentComment != null) {
       yield currentComment;
