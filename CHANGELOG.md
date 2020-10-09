@@ -1,3 +1,7 @@
+## [1.9.0](https://github.com/Workiva/over_react_codemod/compare/1.9.0...1.8.0)
+
+- Fix issue with accessing `isEof` getter on a null token
+
 ## [1.8.0](https://github.com/Workiva/over_react_codemod/compare/1.8.0...1.7.0)
 
 Boilerplate codemod fixes and improvements:
