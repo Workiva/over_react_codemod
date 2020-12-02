@@ -39,7 +39,8 @@ void main(List<String> args) {
     pubspecYamlPaths(),
     AggregateSuggestor([
       PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
-      PubspecOverReactUpgrader(overReactVersionConstraint, shouldAddDependencies: false),
+      PubspecOverReactUpgrader(overReactVersionConstraint,
+          shouldAddDependencies: false),
     ].map((s) => Ignoreable(s))),
     args: args,
     defaultYes: true,
