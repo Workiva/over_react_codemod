@@ -27,8 +27,8 @@ const _changesRequiredOutput = """
   pub global run over_react_codemod:react17_upgrade
 """;
 
-const reactVersionRange = '>=5.0.0 <7.0.0';
-const overReactVersionRange = '>=3.0.0 <5.0.0';
+const reactVersionRange = '>=5.7.0 <7.0.0';
+const overReactVersionRange = '>=3.12.0 <5.0.0';
 
 void main(List<String> args) {
   final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
