@@ -1,3 +1,11 @@
+## [1.10.0](https://github.com/Workiva/over_react_codemod/compare/1.10.0...1.9.0)
+
+- Add `react17_upgrade` codemod
+  - Updates version upper bound of react and over_react in pubspec.yaml to
+    allow for incoming React 17 updates.
+- Add`react17_dependency_override_update` codemod
+  - Adds dependency overrides to pubspec.yaml for testing wip branches of React 17.
+
 ## [1.9.0](https://github.com/Workiva/over_react_codemod/compare/1.9.0...1.8.0)
 
 - Fix issue with accessing `isEof` getter on a null token
