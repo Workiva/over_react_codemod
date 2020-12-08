@@ -29,9 +29,6 @@ const _changesRequiredOutput = """
 Then, review the the changes and commit.
 """;
 
-const reactVersionRangeForTesting = '^6.0.0-alpha';
-const overReactVersionRangeForTesting = '^4.0.0-alpha';
-
 void main(List<String> args) {
   final reactConfig = GitOverrideConfig(
     name: 'react',
