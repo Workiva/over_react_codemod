@@ -19,7 +19,14 @@ import '../util.dart';
 
 main() {
   group('DependencyOverrideUpdater', () {
-    final testSuggestor = getSuggestorTester(DependencyOverrideUpdater());
+    final defaultReactConfig =
+        SimpleOverrideConfig(name: 'react', version: '^5.0.0-alpha');
+    final defaultOverReactConfig =
+        SimpleOverrideConfig(name: 'over_react', version: '^3.0.0-alpha');
+
+    final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
+        reactOverrideConfig: defaultReactConfig,
+        overReactOverrideConfig: defaultOverReactConfig));
 
     const defaultDependencies = '  test: 1.5.1\n'
         '  react: ^4.6.0\n'

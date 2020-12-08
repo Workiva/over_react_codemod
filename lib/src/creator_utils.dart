@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:over_react_codemod/src/react16_suggestors/dependency_override_updater.dart';
 import 'package:path/path.dart' as p;
 
 /// Creates a temporary package with a `pubspec.yaml` and `main.dart` file
@@ -114,11 +115,35 @@ class DependencyCreator {
       throw ArgumentError(
           'Cannot provide both git and path overrides on single dep.');
     }
-    // Check if the version string is wrapped with quotes or not and if not add them.
+    this.version = _versionWithQuotes(version);
+  }
+
+  DependencyCreator.fromOverrideConfig(DependencyOverrideConfig config) {
+    this.name = config.name;
+
+    switch (config.type) {
+      case ConfigType.simple:
+        this.version =
+            _versionWithQuotes((config as SimpleOverrideConfig).version);
+        this.asNonGitOrPathOverride = true;
+        break;
+      case ConfigType.git:
+        final tConfig = config as GitOverrideConfig;
+        this.asNonGitOrPathOverride = false;
+        this.gitOverride = tConfig.url;
+        this.ref = tConfig.ref;
+        break;
+    }
+  }
+
+  /// Checks if the version string should have quotes ands adds them if necessary.
+  String _versionWithQuotes(String version) {
     if (version.contains(RegExp('[\>\<\=\ ]')) &&
         !version.startsWith(RegExp('[\'\"]'))) {
-      this.version = '"' + version + '"';
+      return '"' + version + '"';
     }
+
+    return version;
   }
 
   bool get asOverride =>

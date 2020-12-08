@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
+import 'package:over_react_codemod/src/react16_suggestors/dependency_override_updater.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -32,18 +33,23 @@ const reactVersionRangeForTesting = '^6.0.0-alpha';
 const overReactVersionRangeForTesting = '^4.0.0-alpha';
 
 void main(List<String> args) {
-  final reactVersionConstraint =
-      VersionConstraint.parse(reactVersionRangeForTesting);
-  final overReactVersionConstraint =
-      VersionConstraint.parse(overReactVersionRangeForTesting);
+  final reactConfig = GitOverrideConfig(
+    name: 'react',
+    url: 'https://github.com/cleandart/react-dart.git',
+    ref: '6.0.0-wip',
+  );
+
+  final overReactConfig = GitOverrideConfig(
+    name: 'over_react',
+    url: 'https://github.com/Workiva/over_react.git',
+    ref: 'release_over_react_4.0.0',
+  );
 
   exitCode = runInteractiveCodemod(
     pubspecYamlPaths(),
-    AggregateSuggestor([
-      PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
-      PubspecOverReactUpgrader(overReactVersionConstraint,
-          shouldAddDependencies: true)
-    ].map((s) => Ignoreable(s))),
+    DependencyOverrideUpdater(
+        reactOverrideConfig: reactConfig,
+        overReactOverrideConfig: overReactConfig),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
