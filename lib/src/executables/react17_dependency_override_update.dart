@@ -15,12 +15,8 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
-import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/react16_suggestors/dependency_override_updater.dart';
-import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
 import 'package:over_react_codemod/src/util.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 const _changesRequiredOutput = """
   To update your pubspec, run the following commands:
