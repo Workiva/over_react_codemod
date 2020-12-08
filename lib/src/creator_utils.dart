@@ -155,8 +155,10 @@ class DependencyCreator {
   String toString() {
     if (asOverride && !asNonGitOrPathOverride) {
       var temp = '  $name:\n';
-      if (gitOverride.isNotEmpty) temp += '    git:\n      url: $gitOverride\n';
-      if (pathOverride.isNotEmpty) temp += '    path: $pathOverride\n';
+      if ((gitOverride?.isNotEmpty) ?? false)
+        temp += '    git:\n      url: $gitOverride\n';
+      if ((pathOverride?.isNotEmpty) ?? false)
+        temp += '    path: $pathOverride\n';
       if (ref != null) temp += '      ref: $ref\n';
       return temp;
     }

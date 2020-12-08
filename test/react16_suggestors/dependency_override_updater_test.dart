@@ -19,47 +19,19 @@ import '../util.dart';
 
 main() {
   group('DependencyOverrideUpdater', () {
-    final defaultReactConfig =
-        SimpleOverrideConfig(name: 'react', version: '^5.0.0-alpha');
-    final defaultOverReactConfig =
-        SimpleOverrideConfig(name: 'over_react', version: '^3.0.0-alpha');
-
-    final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
-        reactOverrideConfig: defaultReactConfig,
-        overReactOverrideConfig: defaultOverReactConfig));
-
     const defaultDependencies = '  test: 1.5.1\n'
         '  react: ^4.6.0\n'
         '  over_react: ^2.0.0\n';
     const defaultDevDependencies = '  dart_dev: ^2.0.1\n';
-    const expectedOverrides = '  react: ^5.0.0-alpha\n'
-        '  over_react: ^3.0.0-alpha\n';
-
-    const expectedGitOverrides = '''  react:
-    git:
-      url: https://github.com/cleandart/react-dart.git
-      ref: 6.0.0-wip
-  over_react:
-    git:
-      url: https://github.com/Workiva/over_react.git
-      ref: release_over_react_4.0.0  
-''';
 
     const expectedOutputSections = {
       'dependencies': defaultDependencies,
       'dev_dependencies': defaultDevDependencies,
-      'dependency_overrides': expectedOverrides,
-    };
-
-    const expectedGitOutputSections = {
-      'dependencies': defaultDependencies,
-      'dev_dependencies': defaultDevDependencies,
-      'dependency_overrides': expectedGitOverrides,
     };
 
     void testDependencyOverridesSectionByPosition(SuggestorTester tester,
         Map inputSections, String expectedOverrideContent,
-        {String additionalOverrides}) {
+        {String additionalOverrides, bool testIdempotency = true}) {
       if (additionalOverrides != null) {
         expectedOverrideContent += additionalOverrides;
       }
@@ -68,6 +40,7 @@ main() {
         tester(
           expectedPatchCount: 2,
           shouldDartfmtOutput: false,
+          testIdempotency: testIdempotency,
           input: ''
                   'dependencies:\n' +
               inputSections['dependencies'] +
@@ -100,6 +73,7 @@ main() {
         tester(
           expectedPatchCount: 2,
           shouldDartfmtOutput: false,
+          testIdempotency: testIdempotency,
           input: ''
                   'dependency_overrides:\n' +
               inputSections['dependency_overrides'] +
@@ -132,6 +106,7 @@ main() {
         tester(
           expectedPatchCount: 2,
           shouldDartfmtOutput: false,
+          testIdempotency: testIdempotency,
           input: ''
                   'dependencies:\n' +
               inputSections['dependencies'] +
@@ -157,7 +132,8 @@ main() {
     }
 
     void commonOverrideUpdaterTests(
-        SuggestorTester tester, String expectedOverrideOutput) {
+        SuggestorTester tester, String expectedOverrideOutput,
+        {bool testIdempotency = true}) {
       group('- common override updater tests -', () {
         group('adds the dependencies if', () {
           test('the pubspec is empty', () {
@@ -213,7 +189,8 @@ main() {
               };
 
               testDependencyOverridesSectionByPosition(
-                  tester, inputSections, expectedOverrideOutput);
+                  tester, inputSections, expectedOverrideOutput,
+                  testIdempotency: testIdempotency);
             });
 
             group('git (HTTPS)', () {
@@ -231,7 +208,8 @@ main() {
               };
 
               testDependencyOverridesSectionByPosition(
-                  tester, inputSections, expectedOverrideOutput);
+                  tester, inputSections, expectedOverrideOutput,
+                  testIdempotency: testIdempotency);
             });
 
             group('path', () {
@@ -245,7 +223,8 @@ main() {
               };
 
               testDependencyOverridesSectionByPosition(
-                  tester, inputSections, expectedOverrideOutput);
+                  tester, inputSections, expectedOverrideOutput,
+                  testIdempotency: testIdempotency);
             });
           });
 
@@ -286,7 +265,8 @@ main() {
 
             testDependencyOverridesSectionByPosition(
                 tester, inputSections, expectedOverrideOutput,
-                additionalOverrides: unrelatedOverride);
+                additionalOverrides: unrelatedOverride,
+                testIdempotency: testIdempotency);
           });
 
           test('does not override sections after dependency_overrides', () {
@@ -314,26 +294,25 @@ main() {
                   '  react_16_upgrade:\n'
                   '',
               expectedOutput: ''
-                  'dependencies:\n'
-                  '  test: 1.5.1\n'
-                  '  react: ^4.6.0\n'
-                  '  over_react: ^2.0.0\n'
-                  '\n'
-                  'dev_dependencies:\n'
-                  '  dart_dev: ^2.0.1\n'
-                  '\n'
-                  'dependency_overrides:\n'
-                  '  react: ^5.0.0-alpha\n'
-                  '  over_react: ^3.0.0-alpha\n'
+                      'dependencies:\n'
+                      '  test: 1.5.1\n'
+                      '  react: ^4.6.0\n'
+                      '  over_react: ^2.0.0\n'
+                      '\n'
+                      'dev_dependencies:\n'
+                      '  dart_dev: ^2.0.1\n'
+                      '\n'
+                      'dependency_overrides:\n' +
+                  expectedOverrideOutput +
                   '  foo:\n'
-                  '    git:\n'
-                  '      url: git@github.com:Workiva/foo.git\n'
-                  '      ref: 100.0.0\n'
-                  '\n'
-                  'executables:\n'
-                  '  dart2_upgrade:\n'
-                  '  react_16_upgrade:\n'
-                  '',
+                      '    git:\n'
+                      '      url: git@github.com:Workiva/foo.git\n'
+                      '      ref: 100.0.0\n'
+                      '\n'
+                      'executables:\n'
+                      '  dart2_upgrade:\n'
+                      '  react_16_upgrade:\n'
+                      '',
             );
           });
 
@@ -351,17 +330,16 @@ main() {
                   'dev_dependencies:\n'
                   '  dart_dev: ^2.0.1\n',
               expectedOutput: ''
-                  'dependencies:\n'
-                  '  test: 1.5.1\n'
-                  '  react: ^4.6.0\n'
-                  '  over_react: ^2.0.0\n'
-                  '\n'
-                  'dev_dependencies:\n'
-                  '  dart_dev: ^2.0.1\n'
-                  '\n'
-                  'dependency_overrides:\n'
-                  '  react: ^5.0.0-alpha\n'
-                  '  over_react: ^3.0.0-alpha\n'
+                      'dependencies:\n'
+                      '  test: 1.5.1\n'
+                      '  react: ^4.6.0\n'
+                      '  over_react: ^2.0.0\n'
+                      '\n'
+                      'dev_dependencies:\n'
+                      '  dart_dev: ^2.0.1\n'
+                      '\n'
+                      'dependency_overrides:\n' +
+                  expectedOverrideOutput +
                   '',
             );
           });
@@ -370,7 +348,76 @@ main() {
     }
 
     group('with a SimpleOverrideConfig', () {
+      final defaultReactConfig =
+          SimpleOverrideConfig(name: 'react', version: '^5.0.0-alpha');
+      final defaultOverReactConfig =
+          SimpleOverrideConfig(name: 'over_react', version: '^3.0.0-alpha');
+
+      const expectedOverrides = '  react: ^5.0.0-alpha\n'
+          '  over_react: ^3.0.0-alpha\n';
+
+      final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
+          reactOverrideConfig: defaultReactConfig,
+          overReactOverrideConfig: defaultOverReactConfig));
+
       commonOverrideUpdaterTests(testSuggestor, expectedOverrides);
+    });
+
+    group('with a GitOverrideConfig', () {
+      group('', () {
+        const expectedOverrides = '''  react:
+    git:
+      url: https://github.com/cleandart/react-dart.git
+      ref: 6.0.0-wip
+  over_react:
+    git:
+      url: https://github.com/Workiva/over_react.git
+      ref: release_over_react_4.0.0
+''';
+
+        final defaultReactConfig = GitOverrideConfig(
+            name: 'react',
+            url: 'https://github.com/cleandart/react-dart.git',
+            ref: '6.0.0-wip');
+        final defaultOverReactConfig = GitOverrideConfig(
+            name: 'over_react',
+            url: 'https://github.com/Workiva/over_react.git',
+            ref: 'release_over_react_4.0.0');
+
+        final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
+            reactOverrideConfig: defaultReactConfig,
+            overReactOverrideConfig: defaultOverReactConfig));
+
+        // turning idempotency tests off for this because it would just add a new line the second run,
+        // which caused failures for insignificant white space
+        commonOverrideUpdaterTests(testSuggestor, expectedOverrides,
+            testIdempotency: false);
+      });
+
+      group('with no ref', () {
+        const expectedOverrides = '''  react:
+    git:
+      url: https://github.com/cleandart/react-dart.git
+  over_react:
+    git:
+      url: https://github.com/Workiva/over_react.git
+''';
+
+        final defaultReactConfig = GitOverrideConfig(
+            name: 'react', url: 'https://github.com/cleandart/react-dart.git');
+        final defaultOverReactConfig = GitOverrideConfig(
+            name: 'over_react',
+            url: 'https://github.com/Workiva/over_react.git');
+
+        final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
+            reactOverrideConfig: defaultReactConfig,
+            overReactOverrideConfig: defaultOverReactConfig));
+
+        // turning idempotency tests off for this because it would just add a new line the second run,
+        // which caused failures for insignificant white space
+        commonOverrideUpdaterTests(testSuggestor, expectedOverrides,
+            testIdempotency: false);
+      });
     });
   });
 }

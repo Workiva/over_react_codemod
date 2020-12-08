@@ -42,8 +42,7 @@ class GitOverrideConfig extends DependencyOverrideConfig {
   final String ref;
   final String url;
 
-  GitOverrideConfig(
-      {@required String name, @required this.url, @required this.ref})
+  GitOverrideConfig({@required String name, @required this.url, this.ref})
       : super(name, ConfigType.git);
 }
 
