@@ -22,14 +22,60 @@ import 'package:yaml/yaml.dart';
 import '../constants.dart';
 import '../creator_utils.dart';
 
+/// A reference to all the known override types.
+enum ConfigType {
+  simple,
+  git,
+}
+
+/// A config representing an override to a git ref.
+///
+/// For example, when adding the following override:
+/// ```yaml
+/// dependency_overrides:
+///   react:
+///     git:
+///       url: https://github.com/cleandart/react-dart.git
+///       ref: a-specific-branch
+/// ```
+class GitOverrideConfig extends DependencyOverrideConfig {
+  final String ref;
+  final String url;
+
+  GitOverrideConfig({@required String name, @required this.url, this.ref})
+      : super(name, ConfigType.git);
+}
+
+/// A config representing an override to a simple version.
+///
+/// For example, adding the following override:
+/// ```yaml
+/// dependency_overrides:
+///   react: ^5.0.0
+/// ```
+class SimpleOverrideConfig extends DependencyOverrideConfig {
+  final String version;
+
+  SimpleOverrideConfig({@required String name, @required this.version})
+      : super(name, ConfigType.simple);
+}
+
+/// The base class for all dependency override configs.
+abstract class DependencyOverrideConfig {
+  final String name;
+  final ConfigType type;
+
+  DependencyOverrideConfig(this.name, this.type);
+}
+
 /// Suggestor that adds overrides for over_react and react in the pubspec.
 class DependencyOverrideUpdater implements Suggestor {
-  final String reactOverrideVersion;
-  final String overReactOverrideVersion;
+  final DependencyOverrideConfig reactOverrideConfig;
+  final DependencyOverrideConfig overReactOverrideConfig;
 
   DependencyOverrideUpdater({
-    this.reactOverrideVersion = '^5.0.0-alpha',
-    this.overReactOverrideVersion = '^3.0.0-alpha',
+    this.reactOverrideConfig,
+    this.overReactOverrideConfig,
   });
 
   @override
@@ -83,11 +129,10 @@ class DependencyOverrideUpdater implements Suggestor {
 
     // Each override has its own object to keep track of what the dependency
     // override is and what it needs to be overridden with.
-    var reactDependencyOverride = DependencyCreator('react',
-        version: reactOverrideVersion, asNonGitOrPathOverride: true);
-
-    var overReactDependencyOverride = DependencyCreator('over_react',
-        version: overReactOverrideVersion, asNonGitOrPathOverride: true);
+    var reactDependencyOverride =
+        DependencyCreator.fromOverrideConfig(reactOverrideConfig);
+    var overReactDependencyOverride =
+        DependencyCreator.fromOverrideConfig(overReactOverrideConfig);
 
     final dependenciesToUpdate = [
       reactDependencyOverride,
