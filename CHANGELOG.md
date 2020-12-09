@@ -1,3 +1,7 @@
+## [1.11.0](https://github.com/Workiva/over_react_codemod/compare/1.11.0...1.10.0)
+
+- Update the `react17_dependency_override_update` codemod to add overrides that point to the release branches for React 17 instead of alpha versions.
+
 ## [1.10.0](https://github.com/Workiva/over_react_codemod/compare/1.10.0...1.9.0)
 
 - Add `react17_upgrade` codemod
