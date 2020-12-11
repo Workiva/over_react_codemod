@@ -57,3 +57,4 @@ executables:
   react16_upgrade:
   react17_dependency_override_update:
   react17_upgrade:
+  dart2_9_upgrade:
