@@ -15,6 +15,7 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/dart2_9_suggestors/undefined_identifier_ignore_comment_remover.dart';
 import 'package:over_react_codemod/src/util.dart';
 
 const _changesRequiredOutput = """
@@ -27,7 +28,9 @@ const _changesRequiredOutput = """
 void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
-    [],
+    [
+      UndefinedIdentifierIgnoreCommentRemover(),
+    ],
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,

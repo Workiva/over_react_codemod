@@ -611,3 +611,58 @@ Iterable<String> allDartPathsExceptHidden() =>
 Iterable<String> allDartPathsExceptHiddenAndGenerated() =>
     filePathsFromGlob(Glob('**.dart', recursive: true))
         .where((path) => !path.endsWith('.g.dart'));
+
+/// Iterates through the [comment] token stream and removes all ignore
+/// comments containing [ignoreToRemove] using the [yieldPatch] provided.
+///
+/// The entire ignore comment will only be removed if [ignoreToRemove] is the only
+/// item in the list to ignore. Otherwise, [ignoreToRemove] will just be
+/// removed from the list.
+///
+/// Example:
+///
+/// Calling:
+/// ```
+/// removeIgnoreComment(
+///   node.beginToken.precedingComments,
+///   'undefined_identifier',
+///   yieldPatch,
+/// );
+/// ```
+/// Will yield the following changes depending on the value of [comment]:
+///
+/// `// ignore: undefined_identifier` => entire comment will be removed
+///
+/// `// ignore: invalid_assignment, undefined_identifier` => `// ignore: invalid_assignment`
+///
+/// `// ignore: invalid_assignment` => `// ignore: invalid_assignment`
+void removeIgnoreComment(
+    Token comment, String ignoreToRemove, YieldPatch yieldPatch) {
+  if (comment == null) return;
+
+  final lexeme = comment.lexeme.replaceAll(' ', '').toLowerCase();
+  if (lexeme.startsWith('//ignore:')) {
+    final ignoreList =
+        lexeme.replaceFirst(RegExp('\/\/ignore\:'), '').split(',');
+    if (ignoreToRemove == null ||
+        (ignoreList.contains(ignoreToRemove) && ignoreList.length == 1)) {
+      yieldPatch(comment.previous?.end ?? comment.offset, comment.end, '');
+    } else if (ignoreList.contains(ignoreToRemove)) {
+      ignoreList.removeWhere((i) => i == ignoreToRemove);
+      final newIgnoreComment = '// ignore: ${ignoreList.join(', ')}';
+      yieldPatch(comment.offset, comment.end, newIgnoreComment);
+    }
+  }
+
+  removeIgnoreComment(comment.next, ignoreToRemove, yieldPatch);
+}
+
+/// Returns whether or not [node] is a class component factory declaration.
+bool isClassComponentFactory(TopLevelVariableDeclaration node) {
+  final type = node.variables.type;
+  final initializer = node.variables?.variables?.first?.initializer;
+  return type is NamedType &&
+      type.name.name == 'UiFactory' &&
+      initializer != null &&
+      initializer.toSource().startsWith('_\$');
+}
