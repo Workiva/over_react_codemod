@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
+import 'package:over_react_codemod/src/pubspec_suggestors/pubspec_upgrader.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Suggestor that attempts to update `pubspec.yaml` files to ensure a safe

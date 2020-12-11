@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
-import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
+import 'package:over_react_codemod/src/pubspec_suggestors/pubspec_upgrader.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 

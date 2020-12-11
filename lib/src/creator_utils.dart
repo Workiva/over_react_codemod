@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:over_react_codemod/src/react16_suggestors/dependency_override_updater.dart';
+import 'package:over_react_codemod/src/pubspec_suggestors/dependency_override_updater.dart';
 import 'package:path/path.dart' as p;
 
 /// Creates a temporary package with a `pubspec.yaml` and `main.dart` file

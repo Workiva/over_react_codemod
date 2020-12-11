@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/react16_suggestors/dependency_override_updater.dart';
+import 'package:over_react_codemod/src/pubspec_suggestors/dependency_override_updater.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
