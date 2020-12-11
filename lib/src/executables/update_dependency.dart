@@ -71,7 +71,7 @@ void main(List<String> args) {
   final isOverriding = parsedArgs[_shouldOverride];
 
   if (isOverriding) {
-    finalSuggestorToRun = DependencyOverrideUpdater();
+    finalSuggestorToRun = DependencyOverrideUpdater([]);
   }
 
 

@@ -102,6 +102,8 @@ class DependencyCreator {
   bool asDev;
   bool asNonGitOrPathOverride;
 
+  static createDependencyCreator(DependencyOverrideConfig config) => DependencyCreator.fromOverrideConfig(config);
+
   DependencyCreator(
     this.name, {
     this.version = 'any',

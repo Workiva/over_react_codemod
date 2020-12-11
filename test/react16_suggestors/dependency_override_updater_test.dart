@@ -356,9 +356,7 @@ main() {
       const expectedOverrides = '  react: ^5.0.0-alpha\n'
           '  over_react: ^3.0.0-alpha\n';
 
-      final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
-          reactOverrideConfig: defaultReactConfig,
-          overReactOverrideConfig: defaultOverReactConfig));
+      final testSuggestor = getSuggestorTester(DependencyOverrideUpdater([defaultReactConfig, defaultOverReactConfig]));
 
       commonOverrideUpdaterTests(testSuggestor, expectedOverrides);
     });
@@ -384,9 +382,7 @@ main() {
             url: 'https://github.com/Workiva/over_react.git',
             ref: 'release_over_react_4.0.0');
 
-        final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
-            reactOverrideConfig: defaultReactConfig,
-            overReactOverrideConfig: defaultOverReactConfig));
+        final testSuggestor = getSuggestorTester(DependencyOverrideUpdater([defaultReactConfig, defaultOverReactConfig]));
 
         // turning idempotency tests off for this because it would just add a new line the second run,
         // which caused failures for insignificant white space
@@ -409,9 +405,7 @@ main() {
             name: 'over_react',
             url: 'https://github.com/Workiva/over_react.git');
 
-        final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
-            reactOverrideConfig: defaultReactConfig,
-            overReactOverrideConfig: defaultOverReactConfig));
+        final testSuggestor = getSuggestorTester(DependencyOverrideUpdater([defaultReactConfig, defaultOverReactConfig]));
 
         // turning idempotency tests off for this because it would just add a new line the second run,
         // which caused failures for insignificant white space

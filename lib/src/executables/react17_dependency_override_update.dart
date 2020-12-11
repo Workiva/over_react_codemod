@@ -40,9 +40,7 @@ void main(List<String> args) {
 
   exitCode = runInteractiveCodemod(
     pubspecYamlPaths(),
-    DependencyOverrideUpdater(
-        reactOverrideConfig: reactConfig,
-        overReactOverrideConfig: overReactConfig),
+    DependencyOverrideUpdater([reactConfig, overReactConfig]),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
