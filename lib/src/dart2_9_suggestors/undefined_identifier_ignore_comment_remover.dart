@@ -1,4 +1,4 @@
-// Copyright 2020 Workiva Inc.
+// Copyright 2021 Workiva Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_utilities.dart';
 
 import '../util.dart';
 
@@ -28,12 +29,9 @@ class UndefinedIdentifierIgnoreCommentRemover extends RecursiveAstVisitor
   @override
   visitArgumentList(ArgumentList node) {
     super.visitArgumentList(node);
-    final args = node.arguments;
-    if (args.length != 2) return;
 
-    final configArg = args[1];
-    if (configArg is SimpleIdentifier &&
-        (configArg.name.startsWith(RegExp(r'_\$[A-Za-z]*Config$')))) {
+    final generatedArg = getGeneratedArg(node);
+    if (generatedArg != null) {
       // ```
       // Check comments before the config.
       // Example:
@@ -45,7 +43,7 @@ class UndefinedIdentifierIgnoreCommentRemover extends RecursiveAstVisitor
       // );
       // ```
       removeIgnoreComment(
-        configArg.token.precedingComments,
+        generatedArg.token.precedingComments,
         _undefinedIdentifierComment,
         yieldPatch,
       );
@@ -58,9 +56,9 @@ class UndefinedIdentifierIgnoreCommentRemover extends RecursiveAstVisitor
       //   _$FooConfig, // ignore: undefined_identifier
       // );
       // ```
-      if (configArg.token.next.lexeme == ',') {
+      if (generatedArg.token.next.lexeme == ',') {
         removeIgnoreComment(
-          configArg.token.next?.next?.precedingComments,
+          generatedArg.token.next?.next?.precedingComments,
           _undefinedIdentifierComment,
           yieldPatch,
         );

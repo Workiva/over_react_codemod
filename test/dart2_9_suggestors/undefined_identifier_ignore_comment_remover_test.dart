@@ -1,4 +1,4 @@
-// Copyright 2020 Workiva Inc.
+// Copyright 2021 Workiva Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,10 +30,10 @@ main() {
       testSuggestor(
         expectedPatchCount: 0,
         input: '''
-        library foo;
-        var a = 'b';
-        class Foo {}
-      ''',
+          library foo;
+          var a = 'b';
+          class Foo {}
+        ''',
       );
     });
 
@@ -190,6 +190,28 @@ main() {
       });
     });
 
+    test('for connected components', () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: r'''
+          UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+            mapStateToProps: (state) => (Foo()
+              ..foo = state.foo
+              ..bar = state.bar
+            ),
+          )(_$Foo); // ignore: undefined_identifier, argument_type_not_assignable
+        ''',
+        expectedOutput: r'''
+          UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+            mapStateToProps: (state) => (Foo()
+              ..foo = state.foo
+              ..bar = state.bar
+            ),
+          )(_$Foo); // ignore: argument_type_not_assignable
+        ''',
+      );
+    });
+
     group('on Factory Configs:', () {
       group('does not remove', () {
         test('other ignore comments', () {
@@ -199,19 +221,7 @@ main() {
               final Foo = uiFunction<FooProps>(
                 (props) {}, 
                 // ignore: invalid_assignment
-                _$FooConfig, // ignore: unused_element
-              );
-            ''',
-          );
-        });
-
-        test('when the config is public', () {
-          testSuggestor(
-            expectedPatchCount: 0,
-            input: r'''
-              final Foo = uiForwardRef<FooProps>(
-                (props, ref) {},
-                $TopLevelForwardUiRefFunctionConfig, // ignore: undefined_identifier
+                $FooConfig, // ignore: unused_element
               );
             ''',
           );
@@ -226,13 +236,13 @@ main() {
               input: r'''
                 final Foo = uiForwardRef<FooProps>(
                   (props, ref) {},
-                  _$TopLevelForwardUiRefFunctionConfig, // ignore: undefined_identifier
+                  $TopLevelForwardUiRefFunctionConfig, // ignore: undefined_identifier
                 );
               ''',
               expectedOutput: r'''
                 final Foo = uiForwardRef<FooProps>(
                   (props, ref) {},
-                  _$TopLevelForwardUiRefFunctionConfig,
+                  $TopLevelForwardUiRefFunctionConfig,
                 );
               ''',
             );
@@ -244,12 +254,12 @@ main() {
               input: r'''
                 UiFactory<FooProps> Foo = uiFunction(
                   (props) {},
-                  _$FooConfig); // ignore: undefined_identifier
+                  $FooConfig); // ignore: undefined_identifier
               ''',
               expectedOutput: r'''
                 UiFactory<FooProps> Foo = uiFunction(
                   (props) {}, 
-                  _$FooConfig);
+                  $FooConfig);
               ''',
             );
           });
@@ -262,13 +272,13 @@ main() {
               UiFactory<FooProps> Foo = uiFunction(
                 (props) {}, 
                 // ignore: undefined_identifier
-                _$FooConfig, 
+                $FooConfig, 
               );
             ''',
             expectedOutput: r'''
               UiFactory<FooProps> Foo = uiFunction(
                 (props) {}, 
-                _$FooConfig, 
+                $FooConfig, 
               );
             ''',
           );
@@ -280,24 +290,24 @@ main() {
             input: r'''
               final Foo = uiForwardRef<FooProps>(
                 (props, ref) {},
-                _$FooConfig, // ignore: undefined_identifier
+                $FooConfig, // ignore: undefined_identifier
               );
               
               UiFactory<BarProps> Bar = uiFunction(
                 (props) {}, 
                 // ignore: undefined_identifier
-                _$BarConfig, 
+                $BarConfig, 
               );
             ''',
             expectedOutput: r'''
               final Foo = uiForwardRef<FooProps>(
                 (props, ref) {},
-                _$FooConfig,
+                $FooConfig,
               );
               
               UiFactory<BarProps> Bar = uiFunction(
                 (props) {}, 
-                _$BarConfig, 
+                $BarConfig, 
               );
             ''',
           );
@@ -308,17 +318,17 @@ main() {
             testSuggestor(
               expectedPatchCount: 1,
               input: r'''
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {}, 
-                _$FooConfig, // ignore: invalid_assignment, undefined_identifier, unused_element
-              );
-            ''',
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {}, 
+                  $FooConfig, // ignore: invalid_assignment, undefined_identifier, unused_element
+                );
+              ''',
               expectedOutput: r'''
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {}, 
-                _$FooConfig, // ignore: invalid_assignment, unused_element
-              );
-            ''',
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {}, 
+                  $FooConfig, // ignore: invalid_assignment, unused_element
+                );
+              ''',
             );
           });
 
@@ -329,14 +339,14 @@ main() {
                 final Foo = uiFunction<FooProps>(
                   (props) {}, 
                   // ignore: undefined_identifier
-                  _$FooConfig, // ignore: undefined_identifier, unused_element
+                  $FooConfig, // ignore: undefined_identifier, unused_element
                 );
               ''',
               expectedOutput: r'''
                 final Foo = uiFunction<FooProps>(
                   (props) {}, 
                   
-                  _$FooConfig, // ignore: unused_element
+                  $FooConfig, // ignore: unused_element
                 );
               ''',
             );
@@ -357,6 +367,42 @@ main() {
                 (props) {}, 
                 _$FooConfig,
               ));
+            ''',
+          );
+        });
+
+        test('when the config is private', () {
+          testSuggestor(
+            expectedPatchCount: 1,
+            input: r'''
+              final Foo = uiForwardRef<FooProps>(
+                (props, ref) {},
+                _$TopLevelForwardUiRefFunctionConfig, // ignore: undefined_identifier
+              );
+            ''',
+            expectedOutput: r'''
+              final Foo = uiForwardRef<FooProps>(
+                (props, ref) {},
+                _$TopLevelForwardUiRefFunctionConfig,
+              );
+            ''',
+          );
+        });
+
+        test('when the config is already updated', () {
+          testSuggestor(
+            expectedPatchCount: 1,
+            input: r'''
+              final Foo = uiForwardRef<FooProps>(
+                (props, ref) {},
+                _$TopLevelForwardUiRefFunctionConfig as UiFactory<FooProps>, // ignore: undefined_identifier
+              );
+            ''',
+            expectedOutput: r'''
+              final Foo = uiForwardRef<FooProps>(
+                (props, ref) {},
+                _$TopLevelForwardUiRefFunctionConfig as UiFactory<FooProps>,
+              );
             ''',
           );
         });

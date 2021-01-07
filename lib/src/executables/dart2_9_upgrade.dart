@@ -1,4 +1,4 @@
-// Copyright 2020 Workiva Inc.
+// Copyright 2021 Workiva Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/dart2_9_suggestors/generated_factory_migrator.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/undefined_identifier_ignore_comment_remover.dart';
 import 'package:over_react_codemod/src/util.dart';
 
@@ -30,6 +31,7 @@ void main(List<String> args) {
     allDartPathsExceptHidden(),
     [
       UndefinedIdentifierIgnoreCommentRemover(),
+      GeneratedFactoryMigrator(),
     ],
     args: args,
     defaultYes: true,
