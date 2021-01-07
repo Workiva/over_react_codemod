@@ -23,32 +23,33 @@ import 'dart2_9_utilities.dart';
 class GeneratedFactoryMigrator extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-
   @override
   visitArgumentList(ArgumentList node) {
     super.visitArgumentList(node);
 
     final generatedArg = getGeneratedArg(node);
-    if(generatedArg == null) return;
+    if (generatedArg == null) return;
 
     String typeName;
 
-    final variableList = generatedArg.thisOrAncestorOfType<VariableDeclarationList>();
+    final variableList =
+        generatedArg.thisOrAncestorOfType<VariableDeclarationList>();
     final type = variableList?.type;
-    if(type is TypeName && type.name.name == 'UiFactory') {
+    if (type is TypeName && type.name.name == 'UiFactory') {
       typeName = type.toSource();
     }
 
     final method = generatedArg.thisOrAncestorOfType<MethodInvocation>();
-    final propsType = method?.typeArguments?.arguments?.firstWhere((type) => type is TypeName && type.name.name.endsWith('Props'));
-    if(propsType != null && method.typeArguments.arguments.length == 1) {
+    final propsType = method?.typeArguments?.arguments?.firstWhere(
+        (type) => type is TypeName && type.name.name.endsWith('Props'));
+    if (propsType != null && method.typeArguments.arguments.length == 1) {
       typeName = 'UiFactory<$propsType>';
     }
 
-    if(!generatedArg.name.startsWith('_')) {
+    if (!generatedArg.name.startsWith('_')) {
       yieldPatch(generatedArg.offset, generatedArg.offset, '_');
     }
-    if(typeName != null) {
+    if (typeName != null) {
       yieldPatch(generatedArg.end, generatedArg.end, ' as $typeName');
     }
   }

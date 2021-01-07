@@ -16,16 +16,22 @@ import 'package:analyzer/dart/ast/ast.dart';
 
 SimpleIdentifier getGeneratedArg(ArgumentList argList) {
   final args = argList.arguments;
-  if(args.length == 1) {
-    final method = argList.thisOrAncestorOfType<FunctionExpressionInvocation>()?.function;
+  if (args.length == 1) {
+    final method =
+        argList.thisOrAncestorOfType<FunctionExpressionInvocation>()?.function;
     if (method is MethodInvocation && method.methodName.name == 'connect') {
       final generatedArg = args.first;
-      return generatedArg is SimpleIdentifier && generatedArg.name.startsWith('_\$') ? generatedArg : null;
+      return generatedArg is SimpleIdentifier &&
+              generatedArg.name.startsWith('_\$')
+          ? generatedArg
+          : null;
     }
-  } else if(args.length == 2) {
+  } else if (args.length == 2) {
     final configArg = args[1];
-    if(configArg is SimpleIdentifier) {
-      return configArg.name.startsWith(RegExp(r'_?\$[A-Za-z]*Config$')) ? configArg : null;
+    if (configArg is SimpleIdentifier) {
+      return configArg.name.startsWith(RegExp(r'_?\$[A-Za-z]*Config$'))
+          ? configArg
+          : null;
     }
     // else if(configArg is AsExpression) {
     //   final expression = configArg.expression;
