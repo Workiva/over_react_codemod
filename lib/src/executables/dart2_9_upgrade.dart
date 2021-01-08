@@ -30,7 +30,8 @@ void main(List<String> args) {
   exitCode = runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
     [
-      UndefinedIdentifierIgnoreCommentRemover(),
+      FactoryAndConfigIgnoreCommentRemover('invalid_assignment'),
+      FactoryAndConfigIgnoreCommentRemover('argument_type_not_assignable'),
       GeneratedFactoryMigrator(),
     ],
     args: args,

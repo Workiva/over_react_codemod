@@ -19,12 +19,19 @@ import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_utilities.dart
 
 import '../util.dart';
 
-/// Suggestor that removes `// ignore: undefined_identifier` comments from
-/// component factory declarations and factory config arguments.
-class UndefinedIdentifierIgnoreCommentRemover extends RecursiveAstVisitor
+/// Suggestor that removes ignore comments from component factory declarations
+/// and factory config arguments.
+class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
-  static const String _undefinedIdentifierComment = 'undefined_identifier';
+  /// The name of the error that should be removed from ignore comments.
+  ///
+  /// Example: 'undefined_identifier'
+  final String ignoreToRemove;
+
+  /// Removes [ignoreToRemove] from ignore comments on component factory
+  /// declarations and factory config arguments.
+  FactoryAndConfigIgnoreCommentRemover(this.ignoreToRemove);
 
   @override
   visitArgumentList(ArgumentList node) {
@@ -39,12 +46,12 @@ class UndefinedIdentifierIgnoreCommentRemover extends RecursiveAstVisitor
       // final Foo = uiFunction<FooProps>(
       //   (props) {},
       //   // ignore: undefined_identifier
-      //   _$FooConfig,
+      //   $FooConfig,
       // );
       // ```
       removeIgnoreComment(
         generatedArg.token.precedingComments,
-        _undefinedIdentifierComment,
+        ignoreToRemove,
         yieldPatch,
       );
 
@@ -53,13 +60,30 @@ class UndefinedIdentifierIgnoreCommentRemover extends RecursiveAstVisitor
       // ```
       // final Foo = uiFunction<FooProps>(
       //   (props) {},
-      //   _$FooConfig, // ignore: undefined_identifier
+      //   $FooConfig, // ignore: undefined_identifier
       // );
       // ```
       if (generatedArg.token.next.lexeme == ',') {
         removeIgnoreComment(
           generatedArg.token.next?.next?.precedingComments,
-          _undefinedIdentifierComment,
+          ignoreToRemove,
+          yieldPatch,
+        );
+      }
+
+      // Check comments after the type casted config.
+      // Example:
+      // ```
+      // final Foo = uiFunction<FooProps>(
+      //   (props) {},
+      //   _$FooConfig as UiFactoryConfig<FooProps>, // ignore: undefined_identifier
+      // );
+      // ```
+      if (generatedArg.parent is AsExpression &&
+          generatedArg.parent.endToken.next?.lexeme == ',') {
+        removeIgnoreComment(
+          generatedArg.parent?.endToken?.next?.next?.precedingComments,
+          ignoreToRemove,
           yieldPatch,
         );
       }
@@ -69,12 +93,12 @@ class UndefinedIdentifierIgnoreCommentRemover extends RecursiveAstVisitor
       // ```
       // final Foo = uiFunction<FooProps>(
       //   (props) {},
-      //   _$FooConfig); // ignore: undefined_identifier
+      //   $FooConfig); // ignore: undefined_identifier
       // ```
       if (node.rightParenthesis.next?.lexeme == ';') {
         removeIgnoreComment(
           node.rightParenthesis.next.next?.precedingComments,
-          _undefinedIdentifierComment,
+          ignoreToRemove,
           yieldPatch,
         );
       }
@@ -94,7 +118,7 @@ class UndefinedIdentifierIgnoreCommentRemover extends RecursiveAstVisitor
       // `UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier`
       removeIgnoreComment(
         node.semicolon?.next?.precedingComments,
-        _undefinedIdentifierComment,
+        ignoreToRemove,
         yieldPatch,
       );
 
@@ -108,7 +132,7 @@ class UndefinedIdentifierIgnoreCommentRemover extends RecursiveAstVisitor
       removeIgnoreComment(
         node.variables?.variables?.first?.initializer?.beginToken
             ?.precedingComments,
-        _undefinedIdentifierComment,
+        ignoreToRemove,
         yieldPatch,
       );
 
@@ -120,7 +144,7 @@ class UndefinedIdentifierIgnoreCommentRemover extends RecursiveAstVisitor
       // ```
       removeIgnoreComment(
         node.beginToken.precedingComments,
-        _undefinedIdentifierComment,
+        ignoreToRemove,
         yieldPatch,
       );
 
@@ -133,7 +157,7 @@ class UndefinedIdentifierIgnoreCommentRemover extends RecursiveAstVisitor
       // ```
       removeIgnoreComment(
         node.documentationComment?.beginToken,
-        _undefinedIdentifierComment,
+        ignoreToRemove,
         yieldPatch,
       );
     }

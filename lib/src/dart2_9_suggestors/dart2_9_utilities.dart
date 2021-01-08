@@ -21,10 +21,15 @@ SimpleIdentifier getGeneratedArg(ArgumentList argList) {
         argList.thisOrAncestorOfType<FunctionExpressionInvocation>()?.function;
     if (method is MethodInvocation && method.methodName.name == 'connect') {
       final generatedArg = args.first;
-      return generatedArg is SimpleIdentifier &&
-              generatedArg.name.startsWith('_\$')
-          ? generatedArg
-          : null;
+      if (generatedArg is SimpleIdentifier) {
+        return generatedArg.name.startsWith('_\$') ? generatedArg : null;
+      } else if (generatedArg is AsExpression) {
+        final expression = generatedArg.expression;
+        return expression is SimpleIdentifier &&
+                expression.name.startsWith('_\$')
+            ? expression
+            : null;
+      }
     }
   } else if (args.length == 2) {
     final configArg = args[1];
@@ -32,12 +37,12 @@ SimpleIdentifier getGeneratedArg(ArgumentList argList) {
       return configArg.name.startsWith(RegExp(r'_?\$[A-Za-z]*Config$'))
           ? configArg
           : null;
+    } else if (configArg is AsExpression) {
+      final expression = configArg.expression;
+      return expression is SimpleIdentifier && expression.name.startsWith('_\$')
+          ? expression
+          : null;
     }
-    // else if(configArg is AsExpression) {
-    //   final expression = configArg.expression;
-    //   final type = configArg.type;
-    //   return expression is SimpleIdentifier && expression.name.startsWith('_\$') && type is TypeName && type.name.name == 'UiFactory' ? expression : null;
-    // }
   }
   return null;
 }

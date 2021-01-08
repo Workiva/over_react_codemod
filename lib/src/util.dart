@@ -659,8 +659,9 @@ void removeIgnoreComment(
 
 /// Returns whether or not [node] is a class component factory declaration.
 bool isClassComponentFactory(TopLevelVariableDeclaration node) {
-  final type = node.variables?.type;
   final initializer = node.variables?.variables?.first?.initializer;
+  final type = node.variables?.type ??
+      (initializer is AsExpression ? initializer?.type : null);
   return type is NamedType &&
       type?.name?.name == 'UiFactory' &&
       initializer != null &&

@@ -18,394 +18,537 @@ import 'package:test/test.dart';
 import '../util.dart';
 
 main() {
-  group('UndefinedIdentifierIgnoreCommentRemover', () {
-    final testSuggestor =
-        getSuggestorTester(UndefinedIdentifierIgnoreCommentRemover());
-
-    test('empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
+  group('FactoryAndConfigIgnoreCommentRemover', () {
+    group('removing `undefined_identifier` ignore comments', () {
+      ignoreRemoverTestHelper('undefined_identifier');
     });
 
-    test('no matches', () {
-      testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          library foo;
-          var a = 'b';
-          class Foo {}
-        ''',
-      );
+    group('removing `argument_type_not_assignable` ignore comments', () {
+      ignoreRemoverTestHelper('argument_type_not_assignable');
     });
+  });
+}
 
-    group('on Component Factory Declarations:', () {
-      group('does not remove', () {
-        test('ignore comments from legacy boilerplate', () {
-          testSuggestor(
-            expectedPatchCount: 0,
-            input: r'''
+void ignoreRemoverTestHelper(String ignoreToRemove) {
+  final testSuggestor =
+      getSuggestorTester(FactoryAndConfigIgnoreCommentRemover(ignoreToRemove));
+
+  test('empty file', () {
+    testSuggestor(expectedPatchCount: 0, input: '');
+  });
+
+  test('no matches', () {
+    testSuggestor(
+      expectedPatchCount: 0,
+      input: '''
+        library foo;
+        var a = 'b';
+        class Foo {}
+      ''',
+    );
+  });
+
+  group('on Component Factory Declarations:', () {
+    group('does not remove', () {
+      test('ignore comments from legacy boilerplate', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
               @Factory()
-              // ignore: undefined_identifier
+              // ignore: $ignoreToRemove
               UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                _$Foo; // ignore: undefined_identifier
+                // ignore: $ignoreToRemove
+                _\$Foo; // ignore: $ignoreToRemove
             ''',
-          );
-        });
+        );
+      });
 
-        test('other ignore comments', () {
-          testSuggestor(
-            expectedPatchCount: 0,
-            input: r'''
+      test('other ignore comments', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
               // ignore: invalid_assignment
               UiFactory<FooProps> Foo =
                 // ignore: unused_element
-                _$Foo; // ignore: unused_element
+                _\$Foo; // ignore: unused_element
             ''',
-          );
-        });
+        );
+      });
+    });
+
+    group('correctly removes $ignoreToRemove ignore comments', () {
+      test('when the comment is on the same line', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+              UiFactory<FooProps> Foo = _\$Foo; // ignore: $ignoreToRemove
+            ''',
+          expectedOutput: '''
+              UiFactory<FooProps> Foo = _\$Foo;
+            ''',
+        );
       });
 
-      group('correctly removes undefined_identifier ignore comments', () {
-        test('when the comment is on the same line', () {
-          testSuggestor(
-            expectedPatchCount: 1,
-            input: r'''
-              UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier
-            ''',
-            expectedOutput: r'''
-              UiFactory<FooProps> Foo = _$Foo;
-            ''',
-          );
-        });
-
-        test('when the comment is on the initializer', () {
-          testSuggestor(
-            expectedPatchCount: 1,
-            input: r'''
+      test('when the comment is on the initializer', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
               UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                _$Foo;
+                // ignore: $ignoreToRemove
+                _\$Foo;
             ''',
-            expectedOutput: r'''
-              UiFactory<FooProps> Foo = _$Foo;
+          expectedOutput: '''
+              UiFactory<FooProps> Foo = _\$Foo;
             ''',
-          );
-        });
+        );
+      });
 
-        test('when the comment is on the preceding line', () {
-          testSuggestor(
-            expectedPatchCount: 1,
-            input: r'''
-              // ignore: undefined_identifier
-              UiFactory<FooProps> Foo = _$Foo;
+      test('when the comment is on the preceding line', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+              // ignore: $ignoreToRemove
+              UiFactory<FooProps> Foo = _\$Foo;
             ''',
-            expectedOutput: r'''
-              UiFactory<FooProps> Foo = _$Foo;
+          expectedOutput: '''
+              UiFactory<FooProps> Foo = _\$Foo;
             ''',
-          );
-        });
+        );
+      });
 
-        test('when there is another comment above it', () {
-          testSuggestor(
-            expectedPatchCount: 1,
-            input: r'''
+      test('when there is another comment above it', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
               // this is another comment
-              // ignore: undefined_identifier
-              UiFactory<FooProps> Foo = _$Foo; 
+              // ignore: $ignoreToRemove
+              UiFactory<FooProps> Foo = _\$Foo; 
             ''',
-            expectedOutput: r'''
+          expectedOutput: '''
               // this is another comment
-              UiFactory<FooProps> Foo = _$Foo; 
+              UiFactory<FooProps> Foo = _\$Foo; 
             ''',
-          );
-        });
+        );
+      });
 
-        test('when there is a doc comment above it', () {
-          testSuggestor(
-            expectedPatchCount: 1,
-            input: r'''
+      test('when there is a doc comment above it', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
               /// this is a doc comment
-              // ignore: undefined_identifier
-              UiFactory<FooProps> Foo = _$Foo; 
+              // ignore: $ignoreToRemove
+              UiFactory<FooProps> Foo = _\$Foo; 
             ''',
-            expectedOutput: r'''
+          expectedOutput: '''
               /// this is a doc comment
-              UiFactory<FooProps> Foo = _$Foo; 
+              UiFactory<FooProps> Foo = _\$Foo; 
             ''',
-          );
-        });
+        );
+      });
 
-        test('when there are multiple factories', () {
-          testSuggestor(
-            expectedPatchCount: 3,
-            input: r'''
-              UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier
+      test('when there are multiple factories', () {
+        testSuggestor(
+          expectedPatchCount: 3,
+          input: '''
+              UiFactory<FooProps> Foo = _\$Foo; // ignore: $ignoreToRemove
               
               UiFactory<BarProps> Bar = 
-                // ignore: undefined_identifier
-                _$Bar; 
+                // ignore: $ignoreToRemove
+                _\$Bar; 
               
-              // ignore: undefined_identifier
-              UiFactory<BazProps> Baz = _$Baz;
+              // ignore: $ignoreToRemove
+              UiFactory<BazProps> Baz = _\$Baz;
             ''',
-            expectedOutput: r'''
-              UiFactory<FooProps> Foo = _$Foo;
+          expectedOutput: '''
+              UiFactory<FooProps> Foo = _\$Foo;
               
-              UiFactory<BarProps> Bar = _$Bar;
+              UiFactory<BarProps> Bar = _\$Bar;
               
-              UiFactory<BazProps> Baz = _$Baz;
+              UiFactory<BazProps> Baz = _\$Baz;
             ''',
-          );
-        });
-
-        group('when there are multiple ignores', () {
-          test('in the same comment', () {
-            testSuggestor(
-              expectedPatchCount: 1,
-              input: r'''
-                UiFactory<FooProps> Foo = _$Foo; // ignore: invalid_assignment, undefined_identifier, unused_element
-              ''',
-              expectedOutput: r'''
-                UiFactory<FooProps> Foo = _$Foo; // ignore: invalid_assignment, unused_element
-              ''',
-            );
-          });
-
-          test('in different comments', () {
-            testSuggestor(
-              expectedPatchCount: 3,
-              input: r'''
-                // ignore: undefined_identifier, unused_element
-                UiFactory<FooProps> Foo = 
-                  // ignore: undefined_identifier
-                  _$Foo; // ignore: invalid_assignment, undefined_identifier 
-              ''',
-              expectedOutput: r'''
-                // ignore: unused_element
-                UiFactory<FooProps> Foo = _$Foo; // ignore: invalid_assignment
-              ''',
-            );
-          });
-        });
-      });
-    });
-
-    test('for connected components', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: r'''
-          UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-            mapStateToProps: (state) => (Foo()
-              ..foo = state.foo
-              ..bar = state.bar
-            ),
-          )(_$Foo); // ignore: undefined_identifier, argument_type_not_assignable
-        ''',
-        expectedOutput: r'''
-          UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-            mapStateToProps: (state) => (Foo()
-              ..foo = state.foo
-              ..bar = state.bar
-            ),
-          )(_$Foo); // ignore: argument_type_not_assignable
-        ''',
-      );
-    });
-
-    group('on Factory Configs:', () {
-      group('does not remove', () {
-        test('other ignore comments', () {
-          testSuggestor(
-            expectedPatchCount: 0,
-            input: r'''
-              final Foo = uiFunction<FooProps>(
-                (props) {}, 
-                // ignore: invalid_assignment
-                $FooConfig, // ignore: unused_element
-              );
-            ''',
-          );
-        });
+        );
       });
 
-      group('correctly removes undefined_identifier ignore comments', () {
-        group('when the comment is on the same line', () {
-          test('after the comma', () {
-            testSuggestor(
-              expectedPatchCount: 1,
-              input: r'''
-                final Foo = uiForwardRef<FooProps>(
-                  (props, ref) {},
-                  $TopLevelForwardUiRefFunctionConfig, // ignore: undefined_identifier
-                );
-              ''',
-              expectedOutput: r'''
-                final Foo = uiForwardRef<FooProps>(
-                  (props, ref) {},
-                  $TopLevelForwardUiRefFunctionConfig,
-                );
-              ''',
-            );
-          });
-
-          test('after the semicolon', () {
-            testSuggestor(
-              expectedPatchCount: 1,
-              input: r'''
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) {},
-                  $FooConfig); // ignore: undefined_identifier
-              ''',
-              expectedOutput: r'''
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) {}, 
-                  $FooConfig);
-              ''',
-            );
-          });
-        });
-
-        test('when the comment is on the preceding line', () {
+      group('when there are multiple ignores', () {
+        test('in the same comment', () {
           testSuggestor(
             expectedPatchCount: 1,
-            input: r'''
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {}, 
-                // ignore: undefined_identifier
-                $FooConfig, 
+            input: '''
+                UiFactory<FooProps> Foo = _\$Foo; // ignore: invalid_assignment, $ignoreToRemove, unused_element
+              ''',
+            expectedOutput: '''
+                UiFactory<FooProps> Foo = _\$Foo; // ignore: invalid_assignment, unused_element
+              ''',
+          );
+        });
+
+        test('in different comments', () {
+          testSuggestor(
+            expectedPatchCount: 3,
+            input: '''
+                // ignore: $ignoreToRemove, unused_element
+                UiFactory<FooProps> Foo = 
+                  // ignore: $ignoreToRemove
+                  _\$Foo; // ignore: invalid_assignment, $ignoreToRemove 
+              ''',
+            expectedOutput: '''
+                // ignore: unused_element
+                UiFactory<FooProps> Foo = _\$Foo; // ignore: invalid_assignment
+              ''',
+          );
+        });
+      });
+
+      test('when the factory is already updated', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+              final Foo = _\$Foo as UiFactory<FooProps>; // ignore: $ignoreToRemove
+            ''',
+          expectedOutput: '''
+              final Foo = _\$Foo as UiFactory<FooProps>; 
+            ''',
+        );
+      });
+    });
+  });
+
+  group('on Connected Components:', () {
+    void _testCommentLocations(String generatedArg) {
+      group('and the comment is on the same line', () {
+        test('after the comma', () {
+          testSuggestor(
+            expectedPatchCount: 1,
+            input: '''
+              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+                mapStateToProps: (state) => (Foo()
+                  ..foo = state.foo
+                  ..bar = state.bar
+                ),
+              )(
+                $generatedArg, // ignore: $ignoreToRemove
               );
             ''',
-            expectedOutput: r'''
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {}, 
-                $FooConfig, 
+            expectedOutput: '''
+              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+                mapStateToProps: (state) => (Foo()
+                  ..foo = state.foo
+                  ..bar = state.bar
+                ),
+              )(
+                $generatedArg,
               );
             ''',
           );
         });
 
-        test('when there are multiple factories', () {
+        test('after the semicolon', () {
+          testSuggestor(
+            expectedPatchCount: 1,
+            input: '''
+              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+                mapStateToProps: (state) => (Foo()
+                  ..foo = state.foo
+                  ..bar = state.bar
+                ),
+              )($generatedArg); // ignore: $ignoreToRemove
+            ''',
+            expectedOutput: '''
+              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+                mapStateToProps: (state) => (Foo()
+                  ..foo = state.foo
+                  ..bar = state.bar
+                ),
+              )($generatedArg);
+            ''',
+          );
+        });
+      });
+
+      test('and the comment is on the preceding line', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(
+              // ignore: $ignoreToRemove
+              $generatedArg,
+            );
+          ''',
+          expectedOutput: '''
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(
+              $generatedArg,
+            );
+          ''',
+        );
+      });
+    }
+
+    group('does not remove', () {
+      test('other ignore comments', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_\$Foo); // ignore: something_else
+          ''',
+        );
+      });
+    });
+
+    group('correctly removes $ignoreToRemove ignore comments', () {
+      group('when the generated factory is not type casted', () {
+        _testCommentLocations('_\$Foo');
+      });
+
+      group('when the generated factory is type casted', () {
+        _testCommentLocations('_\$Foo as UiFactory<FooProps>');
+      });
+
+      test('when there are multiple factories', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_\$Foo); // ignore: $ignoreToRemove
+            
+            UiFactory<BarProps> Bar = connect<SomeState, BarProps>(
+              mapStateToProps: (state) => (Bar()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_\$Bar); // ignore: $ignoreToRemove
+          ''',
+          expectedOutput: '''
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_\$Foo);
+            
+            UiFactory<BarProps> Bar = connect<SomeState, BarProps>(
+              mapStateToProps: (state) => (Bar()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_\$Bar);
+          ''',
+        );
+      });
+
+      test('when there are multiple ignores', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+                mapStateToProps: (state) => (Foo()
+                  ..foo = state.foo
+                  ..bar = state.bar
+                ),
+              )(_\$Foo); // ignore: $ignoreToRemove, another_ignore
+            ''',
+          expectedOutput: '''
+              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+                mapStateToProps: (state) => (Foo()
+                  ..foo = state.foo
+                  ..bar = state.bar
+                ),
+              )(_\$Foo); // ignore: another_ignore
+            ''',
+        );
+      });
+    });
+  });
+
+  group('on Factory Configs:', () {
+    void _testCommentLocations(String configArg) {
+      group('and the comment is on the same line', () {
+        test('after the comma', () {
+          testSuggestor(
+            expectedPatchCount: 1,
+            input: '''
+                final Foo = uiForwardRef<FooProps>(
+                  (props, ref) {},
+                  $configArg, // ignore: $ignoreToRemove
+                );
+              ''',
+            expectedOutput: '''
+                final Foo = uiForwardRef<FooProps>(
+                  (props, ref) {},
+                  $configArg,
+                );
+              ''',
+          );
+        });
+
+        test('after the semicolon', () {
+          testSuggestor(
+            expectedPatchCount: 1,
+            input: '''
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {},
+                  $configArg); // ignore: $ignoreToRemove
+              ''',
+            expectedOutput: '''
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {}, 
+                  $configArg);
+              ''',
+          );
+        });
+      });
+
+      test('and the comment is on the preceding line', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {}, 
+                // ignore: $ignoreToRemove
+                $configArg, 
+              );
+            ''',
+          expectedOutput: '''
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {}, 
+                $configArg, 
+              );
+            ''',
+        );
+      });
+    }
+
+    group('does not remove', () {
+      test('other ignore comments', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            final Foo = uiFunction<FooProps>(
+              (props) {}, 
+              // ignore: invalid_assignment
+              \$FooConfig, // ignore: unused_element
+            );
+          ''',
+        );
+      });
+    });
+
+    group('correctly removes $ignoreToRemove ignore comments', () {
+      group('when the generated config is public', () {
+        _testCommentLocations('\$FooConfig');
+      });
+
+      group('when the generated config is private', () {
+        _testCommentLocations('_\$FooConfig');
+      });
+
+      group('when the generated config is type casted', () {
+        _testCommentLocations('_\$FooConfig as UiFactoryConfig<FooProps>');
+      });
+
+      test('when there are multiple factories', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+              final Foo = uiForwardRef<FooProps>(
+                (props, ref) {},
+                \$FooConfig, // ignore: $ignoreToRemove
+              );
+              
+              UiFactory<BarProps> Bar = uiFunction(
+                (props) {}, 
+                // ignore: $ignoreToRemove
+                \$BarConfig, 
+              );
+            ''',
+          expectedOutput: '''
+              final Foo = uiForwardRef<FooProps>(
+                (props, ref) {},
+                \$FooConfig,
+              );
+              
+              UiFactory<BarProps> Bar = uiFunction(
+                (props) {}, 
+                \$BarConfig, 
+              );
+            ''',
+        );
+      });
+
+      group('when there are multiple ignores', () {
+        test('in the same comment', () {
+          testSuggestor(
+            expectedPatchCount: 1,
+            input: '''
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {}, 
+                  \$FooConfig, // ignore: invalid_assignment, $ignoreToRemove, unused_element
+                );
+              ''',
+            expectedOutput: '''
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {}, 
+                  \$FooConfig, // ignore: invalid_assignment, unused_element
+                );
+              ''',
+          );
+        });
+
+        test('in different comments', () {
           testSuggestor(
             expectedPatchCount: 2,
-            input: r'''
-              final Foo = uiForwardRef<FooProps>(
-                (props, ref) {},
-                $FooConfig, // ignore: undefined_identifier
-              );
-              
-              UiFactory<BarProps> Bar = uiFunction(
-                (props) {}, 
-                // ignore: undefined_identifier
-                $BarConfig, 
-              );
-            ''',
-            expectedOutput: r'''
-              final Foo = uiForwardRef<FooProps>(
-                (props, ref) {},
-                $FooConfig,
-              );
-              
-              UiFactory<BarProps> Bar = uiFunction(
-                (props) {}, 
-                $BarConfig, 
-              );
-            ''',
-          );
-        });
-
-        group('when there are multiple ignores', () {
-          test('in the same comment', () {
-            testSuggestor(
-              expectedPatchCount: 1,
-              input: r'''
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) {}, 
-                  $FooConfig, // ignore: invalid_assignment, undefined_identifier, unused_element
-                );
-              ''',
-              expectedOutput: r'''
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) {}, 
-                  $FooConfig, // ignore: invalid_assignment, unused_element
-                );
-              ''',
-            );
-          });
-
-          test('in different comments', () {
-            testSuggestor(
-              expectedPatchCount: 2,
-              input: r'''
+            input: '''
                 final Foo = uiFunction<FooProps>(
                   (props) {}, 
-                  // ignore: undefined_identifier
-                  $FooConfig, // ignore: undefined_identifier, unused_element
+                  // ignore: $ignoreToRemove
+                  \$FooConfig, // ignore: $ignoreToRemove, unused_element
                 );
               ''',
-              expectedOutput: r'''
+            expectedOutput: '''
                 final Foo = uiFunction<FooProps>(
                   (props) {}, 
                   
-                  $FooConfig, // ignore: unused_element
+                  \$FooConfig, // ignore: unused_element
                 );
               ''',
-            );
-          });
-        });
-
-        test('when wrapped in an hoc', () {
-          testSuggestor(
-            expectedPatchCount: 1,
-            input: r'''
-              UiFactory<FooProps> Foo = someHOC(uiFunction(
-                (props) {}, 
-                _$FooConfig, // ignore: undefined_identifier
-              ));
-            ''',
-            expectedOutput: r'''
-              UiFactory<FooProps> Foo = someHOC(uiFunction(
-                (props) {}, 
-                _$FooConfig,
-              ));
-            ''',
           );
         });
+      });
 
-        test('when the config is private', () {
-          testSuggestor(
-            expectedPatchCount: 1,
-            input: r'''
-              final Foo = uiForwardRef<FooProps>(
-                (props, ref) {},
-                _$TopLevelForwardUiRefFunctionConfig, // ignore: undefined_identifier
-              );
-            ''',
-            expectedOutput: r'''
-              final Foo = uiForwardRef<FooProps>(
-                (props, ref) {},
-                _$TopLevelForwardUiRefFunctionConfig,
-              );
-            ''',
-          );
-        });
-
-        test('when the config is already updated', () {
-          testSuggestor(
-            expectedPatchCount: 1,
-            input: r'''
-              final Foo = uiForwardRef<FooProps>(
-                (props, ref) {},
-                _$TopLevelForwardUiRefFunctionConfig as UiFactory<FooProps>, // ignore: undefined_identifier
-              );
-            ''',
-            expectedOutput: r'''
-              final Foo = uiForwardRef<FooProps>(
-                (props, ref) {},
-                _$TopLevelForwardUiRefFunctionConfig as UiFactory<FooProps>,
-              );
-            ''',
-          );
-        });
+      test('when wrapped in an hoc', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            UiFactory<FooProps> Foo = someHOC(uiFunction(
+              (props) {}, 
+              \$FooConfig, // ignore: $ignoreToRemove
+            ));
+          ''',
+          expectedOutput: '''
+            UiFactory<FooProps> Foo = someHOC(uiFunction(
+              (props) {}, 
+              \$FooConfig,
+            ));
+          ''',
+        );
       });
     });
   });
