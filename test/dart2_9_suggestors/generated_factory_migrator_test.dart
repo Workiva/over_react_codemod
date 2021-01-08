@@ -36,20 +36,69 @@ main() {
       );
     });
 
-    group('does not update', () {
-      test('if already updated', () {
+    group('on Component Factory Declarations:', () {
+      group('does not update', () {
+        test('legacy boilerplate', () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: r'''
+              @Factory()
+              UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier
+            ''',
+          );
+        });
+
+        test('if already updated', () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: r'''
+              final Foo = _$Foo as UiFactory<FooProps>; // ignore: undefined_identifier
+            ''',
+          );
+        });
+      });
+
+      test('correctly updates declaration', () {
         testSuggestor(
-          expectedPatchCount: 0,
+          expectedPatchCount: 2,
           input: r'''
-            final Foo = uiFunction<FooProps>(
-              (props) {}, 
-              _$FooConfig as UiFactory<FooProps>, 
-            );
+            UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier
+          ''',
+          expectedOutput: r'''
+            final Foo = _$Foo as UiFactory<FooProps>; // ignore: undefined_identifier
           ''',
         );
       });
 
-      test('if already updated connected component', () {
+      test('when there are multiple factories', () {
+        testSuggestor(
+          expectedPatchCount: 6,
+          input: r'''
+            UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier
+            
+            UiFactory<BarProps> Bar = 
+              // ignore: undefined_identifier
+              _$Bar; 
+            
+            // ignore: undefined_identifier
+            UiFactory<BazProps> Baz = _$Baz;
+          ''',
+          expectedOutput: r'''
+            final Foo = _$Foo as UiFactory<FooProps>; // ignore: undefined_identifier
+            
+            final Bar = 
+              // ignore: undefined_identifier
+              _$Bar as UiFactory<BarProps>; 
+            
+            // ignore: undefined_identifier
+            final Baz = _$Baz as UiFactory<BazProps>;
+          ''',
+        );
+      });
+    });
+
+    group('on Connected Components:', () {
+      test('does not update if already updated', () {
         testSuggestor(
           expectedPatchCount: 0,
           input: r'''
@@ -58,132 +107,220 @@ main() {
                 ..foo = state.foo
                 ..bar = state.bar
               ),
-            )(_$Foo as UiFactory<FooProps>); 
+            )(_$Foo as UiFactoryConfig<FooProps>); // ignore: undefined_identifier
+          ''',
+        );
+      });
+
+      test('without trailing comma', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: r'''
+          UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+            mapStateToProps: (state) => (Foo()
+              ..foo = state.foo
+              ..bar = state.bar
+            ),
+          )(_$Foo); // ignore: undefined_identifier
+        ''',
+          expectedOutput: r'''
+          UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+            mapStateToProps: (state) => (Foo()
+              ..foo = state.foo
+              ..bar = state.bar
+            ),
+          )(_$Foo as UiFactory<FooProps>); // ignore: undefined_identifier
+        ''',
+        );
+      });
+
+      test('with trailing comma', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: r'''
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(
+              _$Foo, // ignore: undefined_identifier
+            );
+          ''',
+          expectedOutput: r'''
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(
+              _$Foo as UiFactory<FooProps>, // ignore: undefined_identifier
+            );
+          ''',
+        );
+      });
+
+      test('when there are multiple components', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: r'''
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_$Foo); // ignore: undefined_identifier
+            
+            UiFactory<BarProps> Bar = connect<SomeState, BarProps>(
+              mapStateToProps: (state) => (Bar()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_$Bar); // ignore: undefined_identifier
+          ''',
+          expectedOutput: r'''
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_$Foo as UiFactory<FooProps>); // ignore: undefined_identifier
+            
+            UiFactory<BarProps> Bar = connect<SomeState, BarProps>(
+              mapStateToProps: (state) => (Bar()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_$Bar as UiFactory<BarProps>); // ignore: undefined_identifier
           ''',
         );
       });
     });
 
-    test('with left hand typing', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: r'''
-          UiFactory<BarProps> Bar = uiFunction(
-            (props) {}, 
-            $BarConfig,
-          );
-        ''',
-        expectedOutput: r'''
-          UiFactory<BarProps> Bar = uiFunction(
-            (props) {}, 
-            _$BarConfig as UiFactory<BarProps>,
-          );
-        ''',
-      );
-    });
+    group('on Factory Configs:', () {
+      test('does not update if already updated', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: r'''
+            final Foo = uiFunction<FooProps>(
+              (props) {}, 
+              _$FooConfig as UiFactoryConfig<FooProps>, // ignore: undefined_identifier
+            );
+          ''',
+        );
+      });
 
-    test('without left hand typing', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: r'''
-          final Foo = uiForwardRef<FooProps>(
-            (props, ref) {},
-            $FooConfig,
+      test('with left hand typing', () {
+        testSuggestor(
+          expectedPatchCount: 4,
+          input: r'''
+          UiFactory<BarProps> Bar = uiFunction(
+            (props) {}, 
+            $BarConfig, // ignore: undefined_identifier
           );
         ''',
-        expectedOutput: r'''
-          final Foo = uiForwardRef<FooProps>(
-            (props, ref) {},
-            _$FooConfig as UiFactory<FooProps>,
+          expectedOutput: r'''
+          final Bar = uiFunction<BarProps>(
+            (props) {}, 
+            _$BarConfig as UiFactoryConfig<BarProps>, // ignore: undefined_identifier
           );
         ''',
-      );
-    });
+        );
+      });
 
-    test('when the config is already private', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: r'''
-          UiFactory<BarProps> Bar = uiFunction(
-            (props) {}, 
-            _$BarConfig,
-          );
-        ''',
-        expectedOutput: r'''
-          UiFactory<BarProps> Bar = uiFunction(
-            (props) {}, 
-            _$BarConfig as UiFactory<BarProps>,
-          );
-        ''',
-      );
-    });
+      test('without left hand typing', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: r'''
+            final Foo = uiForwardRef<FooProps>(
+              (props, ref) {},
+              $FooConfig, // ignore: undefined_identifier
+            );
+          ''',
+          expectedOutput: r'''
+            final Foo = uiForwardRef<FooProps>(
+              (props, ref) {},
+              _$FooConfig as UiFactoryConfig<FooProps>, // ignore: undefined_identifier
+            );
+          ''',
+        );
+      });
 
-    test('when there are multiple factories', () {
-      testSuggestor(
-        expectedPatchCount: 4,
-        input: r'''
-          final Foo = uiForwardRef<FooProps>(
-            (props, ref) {},
-            $FooConfig,
-          );
-          
-          UiFactory<BarProps> Bar = uiFunction(
-            (props) {}, 
-            $BarConfig,
-          );
-        ''',
-        expectedOutput: r'''
-          final Foo = uiForwardRef<FooProps>(
-            (props, ref) {},
-            _$FooConfig as UiFactory<FooProps>,
-          );
-          
-          UiFactory<BarProps> Bar = uiFunction(
-            (props) {}, 
-            _$BarConfig as UiFactory<BarProps>,
-          );
-        ''',
-      );
-    });
+      test('when the config is already private', () {
+        testSuggestor(
+          expectedPatchCount: 3,
+          input: r'''
+            UiFactory<BarProps> Bar = uiFunction(
+              (props) {}, 
+              _$BarConfig, // ignore: undefined_identifier
+            );
+          ''',
+          expectedOutput: r'''
+            final Bar = uiFunction<BarProps>(
+              (props) {}, 
+              _$BarConfig as UiFactoryConfig<BarProps>, // ignore: undefined_identifier
+            );
+          ''',
+        );
+      });
 
-    test('when wrapped in an hoc', () {
-      testSuggestor(
-        expectedPatchCount: 2,
-        input: r'''
+      test('without trailing comma', () {
+        testSuggestor(
+          expectedPatchCount: 4,
+          input: r'''
+            UiFactory<BarProps> Bar = uiFunction((props) {}, $BarConfig); // ignore: undefined_identifier
+          ''',
+          expectedOutput: r'''
+            final Bar = uiFunction<BarProps>((props) {}, _$BarConfig as UiFactoryConfig<BarProps>); // ignore: undefined_identifier
+          ''',
+        );
+      });
+
+      test('when there are multiple factories', () {
+        testSuggestor(
+          expectedPatchCount: 6,
+          input: r'''
+            final Foo = uiForwardRef<FooProps>(
+              (props, ref) {},
+              $FooConfig, // ignore: undefined_identifier
+            );
+            
+            UiFactory<BarProps> Bar = uiFunction(
+              (props) {}, 
+              $BarConfig, // ignore: undefined_identifier
+            );
+          ''',
+          expectedOutput: r'''
+            final Foo = uiForwardRef<FooProps>(
+              (props, ref) {},
+              _$FooConfig as UiFactoryConfig<FooProps>, // ignore: undefined_identifier
+            );
+            
+            final Bar = uiFunction<BarProps>(
+              (props) {}, 
+              _$BarConfig as UiFactoryConfig<BarProps>, // ignore: undefined_identifier
+            );
+          ''',
+        );
+      });
+
+      test('when wrapped in an hoc', () {
+        testSuggestor(
+          expectedPatchCount: 4,
+          input: r'''
           UiFactory<FooProps> Foo = someHOC(uiFunction(
             (props) {}, 
-            $FooConfig, 
+            $FooConfig, // ignore: undefined_identifier
           ));
         ''',
-        expectedOutput: r'''
-          UiFactory<FooProps> Foo = someHOC(uiFunction(
+          expectedOutput: r'''
+          final Foo = someHOC(uiFunction<FooProps>(
             (props) {}, 
-            _$FooConfig as UiFactory<FooProps>, 
+            _$FooConfig as UiFactoryConfig<FooProps>, // ignore: undefined_identifier
           ));
         ''',
-      );
-    });
-
-    test('for connected components', () {
-      testSuggestor(
-        expectedPatchCount: 1,
-        input: r'''
-          UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-            mapStateToProps: (state) => (Foo()
-              ..foo = state.foo
-              ..bar = state.bar
-            ),
-          )(_$Foo); 
-        ''',
-        expectedOutput: r'''
-          UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-            mapStateToProps: (state) => (Foo()
-              ..foo = state.foo
-              ..bar = state.bar
-            ),
-          )(_$Foo as UiFactory<FooProps>); 
-        ''',
-      );
+        );
+      });
     });
   });
 }

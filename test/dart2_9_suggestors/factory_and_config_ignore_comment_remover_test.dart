@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/dart2_9_suggestors/undefined_identifier_ignore_comment_remover.dart';
+import 'package:over_react_codemod/src/dart2_9_suggestors/factory_and_config_ignore_comment_remover.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
@@ -54,12 +54,12 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 0,
           input: '''
-              @Factory()
+            @Factory()
+            // ignore: $ignoreToRemove
+            UiFactory<FooProps> Foo =
               // ignore: $ignoreToRemove
-              UiFactory<FooProps> Foo =
-                // ignore: $ignoreToRemove
-                _\$Foo; // ignore: $ignoreToRemove
-            ''',
+              _\$Foo; // ignore: $ignoreToRemove
+          ''',
         );
       });
 
@@ -67,11 +67,11 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 0,
           input: '''
-              // ignore: invalid_assignment
-              UiFactory<FooProps> Foo =
-                // ignore: unused_element
-                _\$Foo; // ignore: unused_element
-            ''',
+            // ignore: invalid_assignment
+            UiFactory<FooProps> Foo =
+              // ignore: unused_element
+              _\$Foo; // ignore: unused_element
+          ''',
         );
       });
     });
@@ -81,11 +81,11 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
-              UiFactory<FooProps> Foo = _\$Foo; // ignore: $ignoreToRemove
-            ''',
+            UiFactory<FooProps> Foo = _\$Foo; // ignore: $ignoreToRemove
+          ''',
           expectedOutput: '''
-              UiFactory<FooProps> Foo = _\$Foo;
-            ''',
+            UiFactory<FooProps> Foo = _\$Foo;
+          ''',
         );
       });
 
@@ -93,13 +93,13 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
-              UiFactory<FooProps> Foo =
-                // ignore: $ignoreToRemove
-                _\$Foo;
-            ''',
+            UiFactory<FooProps> Foo =
+              // ignore: $ignoreToRemove
+              _\$Foo;
+          ''',
           expectedOutput: '''
-              UiFactory<FooProps> Foo = _\$Foo;
-            ''',
+            UiFactory<FooProps> Foo = _\$Foo;
+          ''',
         );
       });
 
@@ -107,12 +107,12 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
-              // ignore: $ignoreToRemove
-              UiFactory<FooProps> Foo = _\$Foo;
-            ''',
+            // ignore: $ignoreToRemove
+            UiFactory<FooProps> Foo = _\$Foo;
+          ''',
           expectedOutput: '''
-              UiFactory<FooProps> Foo = _\$Foo;
-            ''',
+            UiFactory<FooProps> Foo = _\$Foo;
+          ''',
         );
       });
 
@@ -120,14 +120,14 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
-              // this is another comment
-              // ignore: $ignoreToRemove
-              UiFactory<FooProps> Foo = _\$Foo; 
-            ''',
+            // this is another comment
+            // ignore: $ignoreToRemove
+            UiFactory<FooProps> Foo = _\$Foo; 
+          ''',
           expectedOutput: '''
-              // this is another comment
-              UiFactory<FooProps> Foo = _\$Foo; 
-            ''',
+            // this is another comment
+            UiFactory<FooProps> Foo = _\$Foo; 
+          ''',
         );
       });
 
@@ -135,14 +135,14 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
-              /// this is a doc comment
-              // ignore: $ignoreToRemove
-              UiFactory<FooProps> Foo = _\$Foo; 
-            ''',
+            /// this is a doc comment
+            // ignore: $ignoreToRemove
+            UiFactory<FooProps> Foo = _\$Foo; 
+          ''',
           expectedOutput: '''
-              /// this is a doc comment
-              UiFactory<FooProps> Foo = _\$Foo; 
-            ''',
+            /// this is a doc comment
+            UiFactory<FooProps> Foo = _\$Foo; 
+          ''',
         );
       });
 
@@ -150,22 +150,22 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 3,
           input: '''
-              UiFactory<FooProps> Foo = _\$Foo; // ignore: $ignoreToRemove
-              
-              UiFactory<BarProps> Bar = 
-                // ignore: $ignoreToRemove
-                _\$Bar; 
-              
+            UiFactory<FooProps> Foo = _\$Foo; // ignore: $ignoreToRemove
+            
+            UiFactory<BarProps> Bar = 
               // ignore: $ignoreToRemove
-              UiFactory<BazProps> Baz = _\$Baz;
-            ''',
+              _\$Bar; 
+            
+            // ignore: $ignoreToRemove
+            UiFactory<BazProps> Baz = _\$Baz;
+          ''',
           expectedOutput: '''
-              UiFactory<FooProps> Foo = _\$Foo;
-              
-              UiFactory<BarProps> Bar = _\$Bar;
-              
-              UiFactory<BazProps> Baz = _\$Baz;
-            ''',
+            UiFactory<FooProps> Foo = _\$Foo;
+            
+            UiFactory<BarProps> Bar = _\$Bar;
+            
+            UiFactory<BazProps> Baz = _\$Baz;
+          ''',
         );
       });
 
@@ -174,11 +174,11 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
           testSuggestor(
             expectedPatchCount: 1,
             input: '''
-                UiFactory<FooProps> Foo = _\$Foo; // ignore: invalid_assignment, $ignoreToRemove, unused_element
-              ''',
+              UiFactory<FooProps> Foo = _\$Foo; // ignore: invalid_assignment, $ignoreToRemove, unused_element
+            ''',
             expectedOutput: '''
-                UiFactory<FooProps> Foo = _\$Foo; // ignore: invalid_assignment, unused_element
-              ''',
+              UiFactory<FooProps> Foo = _\$Foo; // ignore: invalid_assignment, unused_element
+            ''',
           );
         });
 
@@ -186,15 +186,15 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
           testSuggestor(
             expectedPatchCount: 3,
             input: '''
-                // ignore: $ignoreToRemove, unused_element
-                UiFactory<FooProps> Foo = 
-                  // ignore: $ignoreToRemove
-                  _\$Foo; // ignore: invalid_assignment, $ignoreToRemove 
-              ''',
+              // ignore: $ignoreToRemove, unused_element
+              UiFactory<FooProps> Foo = 
+                // ignore: $ignoreToRemove
+                _\$Foo; // ignore: invalid_assignment, $ignoreToRemove 
+            ''',
             expectedOutput: '''
-                // ignore: unused_element
-                UiFactory<FooProps> Foo = _\$Foo; // ignore: invalid_assignment
-              ''',
+              // ignore: unused_element
+              UiFactory<FooProps> Foo = _\$Foo; // ignore: invalid_assignment
+            ''',
           );
         });
       });
@@ -203,11 +203,11 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
-              final Foo = _\$Foo as UiFactory<FooProps>; // ignore: $ignoreToRemove
-            ''',
+            final Foo = _\$Foo as UiFactory<FooProps>; // ignore: $ignoreToRemove
+          ''',
           expectedOutput: '''
-              final Foo = _\$Foo as UiFactory<FooProps>; 
-            ''',
+            final Foo = _\$Foo as UiFactory<FooProps>; 
+          ''',
         );
       });
     });
@@ -358,21 +358,21 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
-              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-                mapStateToProps: (state) => (Foo()
-                  ..foo = state.foo
-                  ..bar = state.bar
-                ),
-              )(_\$Foo); // ignore: $ignoreToRemove, another_ignore
-            ''',
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_\$Foo); // ignore: $ignoreToRemove, another_ignore
+          ''',
           expectedOutput: '''
-              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-                mapStateToProps: (state) => (Foo()
-                  ..foo = state.foo
-                  ..bar = state.bar
-                ),
-              )(_\$Foo); // ignore: another_ignore
-            ''',
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_\$Foo); // ignore: another_ignore
+          ''',
         );
       });
     });
@@ -385,17 +385,17 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
           testSuggestor(
             expectedPatchCount: 1,
             input: '''
-                final Foo = uiForwardRef<FooProps>(
-                  (props, ref) {},
-                  $configArg, // ignore: $ignoreToRemove
-                );
-              ''',
+              final Foo = uiForwardRef<FooProps>(
+                (props, ref) {},
+                $configArg, // ignore: $ignoreToRemove
+              );
+            ''',
             expectedOutput: '''
-                final Foo = uiForwardRef<FooProps>(
-                  (props, ref) {},
-                  $configArg,
-                );
-              ''',
+              final Foo = uiForwardRef<FooProps>(
+                (props, ref) {},
+                $configArg,
+              );
+            ''',
           );
         });
 
@@ -403,15 +403,15 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
           testSuggestor(
             expectedPatchCount: 1,
             input: '''
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) {},
-                  $configArg); // ignore: $ignoreToRemove
-              ''',
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {},
+                $configArg); // ignore: $ignoreToRemove
+            ''',
             expectedOutput: '''
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) {}, 
-                  $configArg);
-              ''',
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {}, 
+                $configArg);
+            ''',
           );
         });
       });
@@ -420,18 +420,18 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {}, 
-                // ignore: $ignoreToRemove
-                $configArg, 
-              );
-            ''',
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {}, 
+              // ignore: $ignoreToRemove
+              $configArg, 
+            );
+          ''',
           expectedOutput: '''
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {}, 
-                $configArg, 
-              );
-            ''',
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {}, 
+              $configArg, 
+            );
+          ''',
         );
       });
     }
@@ -468,28 +468,28 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 2,
           input: '''
-              final Foo = uiForwardRef<FooProps>(
-                (props, ref) {},
-                \$FooConfig, // ignore: $ignoreToRemove
-              );
-              
-              UiFactory<BarProps> Bar = uiFunction(
-                (props) {}, 
-                // ignore: $ignoreToRemove
-                \$BarConfig, 
-              );
-            ''',
+            final Foo = uiForwardRef<FooProps>(
+              (props, ref) {},
+              \$FooConfig, // ignore: $ignoreToRemove
+            );
+            
+            UiFactory<BarProps> Bar = uiFunction(
+              (props) {}, 
+              // ignore: $ignoreToRemove
+              \$BarConfig, 
+            );
+          ''',
           expectedOutput: '''
-              final Foo = uiForwardRef<FooProps>(
-                (props, ref) {},
-                \$FooConfig,
-              );
-              
-              UiFactory<BarProps> Bar = uiFunction(
-                (props) {}, 
-                \$BarConfig, 
-              );
-            ''',
+            final Foo = uiForwardRef<FooProps>(
+              (props, ref) {},
+              \$FooConfig,
+            );
+            
+            UiFactory<BarProps> Bar = uiFunction(
+              (props) {}, 
+              \$BarConfig, 
+            );
+          ''',
         );
       });
 
@@ -498,17 +498,17 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
           testSuggestor(
             expectedPatchCount: 1,
             input: '''
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) {}, 
-                  \$FooConfig, // ignore: invalid_assignment, $ignoreToRemove, unused_element
-                );
-              ''',
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {}, 
+                \$FooConfig, // ignore: invalid_assignment, $ignoreToRemove, unused_element
+              );
+            ''',
             expectedOutput: '''
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) {}, 
-                  \$FooConfig, // ignore: invalid_assignment, unused_element
-                );
-              ''',
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {}, 
+                \$FooConfig, // ignore: invalid_assignment, unused_element
+              );
+            ''',
           );
         });
 
@@ -516,19 +516,19 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
           testSuggestor(
             expectedPatchCount: 2,
             input: '''
-                final Foo = uiFunction<FooProps>(
-                  (props) {}, 
-                  // ignore: $ignoreToRemove
-                  \$FooConfig, // ignore: $ignoreToRemove, unused_element
-                );
-              ''',
+              final Foo = uiFunction<FooProps>(
+                (props) {}, 
+                // ignore: $ignoreToRemove
+                \$FooConfig, // ignore: $ignoreToRemove, unused_element
+              );
+            ''',
             expectedOutput: '''
-                final Foo = uiFunction<FooProps>(
-                  (props) {}, 
-                  
-                  \$FooConfig, // ignore: unused_element
-                );
-              ''',
+              final Foo = uiFunction<FooProps>(
+                (props) {}, 
+                
+                \$FooConfig, // ignore: unused_element
+              );
+            ''',
           );
         });
       });

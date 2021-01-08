@@ -15,6 +15,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 import 'dart2_9_utilities.dart';
 
@@ -30,27 +31,55 @@ class GeneratedFactoryMigrator extends RecursiveAstVisitor
     final generatedArg = getGeneratedArg(node);
     if (generatedArg == null) return;
 
-    String typeName;
+    if (!generatedArg.name.startsWith('_')) {
+      yieldPatch(generatedArg.offset, generatedArg.offset, '_');
+    }
+
+    if (generatedArg.parent is AsExpression) return;
+
+    String propsName;
 
     final variableList =
         generatedArg.thisOrAncestorOfType<VariableDeclarationList>();
     final type = variableList?.type;
     if (type is TypeName && type.name.name == 'UiFactory') {
-      typeName = type.toSource();
+      propsName = (type.typeArguments.arguments.first as TypeName).name.name;
+      if (generatedArg.name.endsWith('Config')) {
+        yieldPatch(type.offset, type.end, 'final');
+      }
     }
-
     final method = generatedArg.thisOrAncestorOfType<MethodInvocation>();
-    final propsType = method?.typeArguments?.arguments?.firstWhere(
-        (type) => type is TypeName && type.name.name.endsWith('Props'));
-    if (propsType != null && method.typeArguments.arguments.length == 1) {
-      typeName = 'UiFactory<$propsType>';
+    if (propsName != null && method != null && method.typeArguments == null) {
+      yieldPatch(method.methodName.end, method.methodName.end, '<$propsName>');
     }
+    propsName ??= method?.typeArguments?.arguments
+        ?.firstWhere(
+            (type) => type is TypeName && type.name.name.endsWith('Props'))
+        ?.toSource();
 
-    if (!generatedArg.name.startsWith('_')) {
-      yieldPatch(generatedArg.offset, generatedArg.offset, '_');
+    if (propsName != null) {
+      yieldPatch(
+        generatedArg.end,
+        generatedArg.end,
+        ' as ${generatedArg.name.endsWith('Config') ? 'UiFactoryConfig' : 'UiFactory'}<$propsName>',
+      );
     }
-    if (typeName != null) {
-      yieldPatch(generatedArg.end, generatedArg.end, ' as $typeName');
+  }
+
+  @override
+  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    super.visitTopLevelVariableDeclaration(node);
+
+    final annotation = node.metadata?.firstWhere(
+        (m) => m.toSource().startsWith('@Factory'),
+        orElse: () => null);
+    if (isClassComponentFactory(node) && annotation == null) {
+      final initializer = node.variables?.variables?.first?.initializer;
+      final type = node.variables?.type;
+      if (initializer is SimpleIdentifier && type is NamedType) {
+        yieldPatch(type.offset, type.end, 'final');
+        yieldPatch(initializer.end, initializer.end, ' as $type');
+      }
     }
   }
 }
