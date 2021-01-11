@@ -668,6 +668,7 @@ bool isClassComponentFactory(TopLevelVariableDeclaration node) {
       initializer.toSource().startsWith('_\$');
 }
 
+/// Returns whether or not [node] is in the legacy boilerplate syntax.
 bool isLegacyFactoryDecl(TopLevelVariableDeclaration node) {
   final annotation = node.metadata?.firstWhere(
       (m) => m.toSource().startsWith('@Factory'),

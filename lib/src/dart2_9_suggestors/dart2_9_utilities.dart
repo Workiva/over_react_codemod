@@ -14,7 +14,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 
-/// Get the generated argument from [argList].
+/// Returns the generated argument from [argList].
 ///
 /// Used specifically to find the generated factory config in `uiFunction` /
 /// `uiForwardRef` usages or the generated factory argument in `connect` usages.
