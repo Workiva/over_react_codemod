@@ -667,3 +667,10 @@ bool isClassComponentFactory(TopLevelVariableDeclaration node) {
       initializer != null &&
       initializer.toSource().startsWith('_\$');
 }
+
+bool isLegacyFactoryDecl(TopLevelVariableDeclaration node) {
+  final annotation = node.metadata?.firstWhere(
+      (m) => m.toSource().startsWith('@Factory'),
+      orElse: () => null);
+  return isClassComponentFactory(node) && annotation != null;
+}

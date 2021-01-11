@@ -74,6 +74,15 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
           ''',
         );
       });
+
+      test('from a non-component factory declaration', () {
+        testSuggestor(
+          expectedPatchCount: 0,
+          input: r'''
+            DriverFactory driverFactory = createDriver; // ignore: undefined_identifier
+          ''',
+        );
+      });
     });
 
     group('correctly removes $ignoreToRemove ignore comments', () {

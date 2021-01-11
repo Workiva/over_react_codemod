@@ -17,7 +17,11 @@ import 'dart:io';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/factory_and_config_ignore_comment_remover.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/generated_factory_migrator.dart';
+import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/util.dart';
+import 'package:pub_semver/pub_semver.dart';
+
+import '../ignoreable.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
@@ -26,7 +30,25 @@ const _changesRequiredOutput = """
   pub run dart_dev format (If you format this repository).
 """;
 
+const overReactVersionRange = '^4.1.0';
+
 void main(List<String> args) {
+  final overReactVersionConstraint =
+      VersionConstraint.parse(overReactVersionRange);
+
+  exitCode = runInteractiveCodemod(
+    pubspecYamlPaths(),
+    AggregateSuggestor([
+      PubspecOverReactUpgrader(overReactVersionConstraint,
+          shouldAddDependencies: false),
+    ].map((s) => Ignoreable(s))),
+    args: args,
+    defaultYes: true,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
+
+  if (exitCode != 0) return;
+
   exitCode = runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
     [

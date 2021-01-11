@@ -70,10 +70,7 @@ class GeneratedFactoryMigrator extends RecursiveAstVisitor
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     super.visitTopLevelVariableDeclaration(node);
 
-    final annotation = node.metadata?.firstWhere(
-        (m) => m.toSource().startsWith('@Factory'),
-        orElse: () => null);
-    if (isClassComponentFactory(node) && annotation == null) {
+    if (isClassComponentFactory(node) && !isLegacyFactoryDecl(node)) {
       final initializer = node.variables?.variables?.first?.initializer;
       final type = node.variables?.type;
       if (initializer is SimpleIdentifier && type is NamedType) {

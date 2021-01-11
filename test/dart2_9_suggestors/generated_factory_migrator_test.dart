@@ -48,6 +48,15 @@ main() {
           );
         });
 
+        test('a non-component factory declaration', () {
+          testSuggestor(
+            expectedPatchCount: 0,
+            input: r'''
+              DriverFactory driverFactory = createDriver;
+            ''',
+          );
+        });
+
         test('if already updated', () {
           testSuggestor(
             expectedPatchCount: 0,
@@ -116,21 +125,21 @@ main() {
         testSuggestor(
           expectedPatchCount: 1,
           input: r'''
-          UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-            mapStateToProps: (state) => (Foo()
-              ..foo = state.foo
-              ..bar = state.bar
-            ),
-          )(_$Foo); // ignore: undefined_identifier
-        ''',
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_$Foo); // ignore: undefined_identifier
+          ''',
           expectedOutput: r'''
-          UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-            mapStateToProps: (state) => (Foo()
-              ..foo = state.foo
-              ..bar = state.bar
-            ),
-          )(_$Foo as UiFactory<FooProps>); // ignore: undefined_identifier
-        ''',
+            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_$Foo as UiFactory<FooProps>); // ignore: undefined_identifier
+          ''',
         );
       });
 
@@ -264,6 +273,24 @@ main() {
         );
       });
 
+      test('already updated, but the config is public', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: r'''
+            final Foo = uiFunction<FooProps>(
+              (props) {}, 
+              $FooConfig as UiFactoryConfig<FooProps>, // ignore: undefined_identifier
+            );
+          ''',
+          expectedOutput: r'''
+            final Foo = uiFunction<FooProps>(
+              (props) {}, 
+              _$FooConfig as UiFactoryConfig<FooProps>, // ignore: undefined_identifier
+            );
+          ''',
+        );
+      });
+
       test('without trailing comma', () {
         testSuggestor(
           expectedPatchCount: 4,
@@ -308,17 +335,17 @@ main() {
         testSuggestor(
           expectedPatchCount: 4,
           input: r'''
-          UiFactory<FooProps> Foo = someHOC(uiFunction(
-            (props) {}, 
-            $FooConfig, // ignore: undefined_identifier
-          ));
-        ''',
+            UiFactory<FooProps> Foo = someHOC(uiFunction(
+              (props) {}, 
+              $FooConfig, // ignore: undefined_identifier
+            ));
+          ''',
           expectedOutput: r'''
-          final Foo = someHOC(uiFunction<FooProps>(
-            (props) {}, 
-            _$FooConfig as UiFactoryConfig<FooProps>, // ignore: undefined_identifier
-          ));
-        ''',
+            final Foo = someHOC(uiFunction<FooProps>(
+              (props) {}, 
+              _$FooConfig as UiFactoryConfig<FooProps>, // ignore: undefined_identifier
+            ));
+          ''',
         );
       });
     });
