@@ -169,38 +169,30 @@ main() {
         );
       });
 
-      test('when there are multiple components', () {
+      test('when there are two factories', () {
         testSuggestor(
           expectedPatchCount: 2,
-          input: r'''
-            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-              mapStateToProps: (state) => (Foo()
-                ..foo = state.foo
-                ..bar = state.bar
-              ),
-            )(_$Foo); // ignore: undefined_identifier
+          input: '''
+            UiFactory<FooProps> UnconnectedFoo = _\$UnconnectedFoo; // ignore: undefined_identifier
             
-            UiFactory<BarProps> Bar = connect<SomeState, BarProps>(
-              mapStateToProps: (state) => (Bar()
+            UiFactory<FooProps> Foo =
+                connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (UnconnectedFoo()
                 ..foo = state.foo
                 ..bar = state.bar
               ),
-            )(_$Bar); // ignore: undefined_identifier
+            )(UnconnectedFoo);
           ''',
-          expectedOutput: r'''
-            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-              mapStateToProps: (state) => (Foo()
-                ..foo = state.foo
-                ..bar = state.bar
-              ),
-            )(_$Foo as UiFactory<FooProps>); // ignore: undefined_identifier
+          expectedOutput: '''
+            final UnconnectedFoo = _\$UnconnectedFoo as UiFactory<FooProps>; // ignore: undefined_identifier
             
-            UiFactory<BarProps> Bar = connect<SomeState, BarProps>(
-              mapStateToProps: (state) => (Bar()
+            UiFactory<FooProps> Foo =
+                connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (UnconnectedFoo()
                 ..foo = state.foo
                 ..bar = state.bar
               ),
-            )(_$Bar as UiFactory<BarProps>); // ignore: undefined_identifier
+            )(UnconnectedFoo);
           ''',
         );
       });

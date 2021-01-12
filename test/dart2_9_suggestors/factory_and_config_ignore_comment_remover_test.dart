@@ -17,6 +17,8 @@ import 'package:test/test.dart';
 
 import '../util.dart';
 
+
+// ADD TWO FACTORY CONNECTED COMPONENT TESTCASES
 main() {
   group('FactoryAndConfigIgnoreCommentRemover', () {
     group('removing `undefined_identifier` ignore comments', () {
@@ -327,38 +329,30 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         _testCommentLocations('_\$Foo as UiFactory<FooProps>');
       });
 
-      test('when there are multiple factories', () {
+      test('when there are two factories', () {
         testSuggestor(
-          expectedPatchCount: 2,
+          expectedPatchCount: 1,
           input: '''
-            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-              mapStateToProps: (state) => (Foo()
-                ..foo = state.foo
-                ..bar = state.bar
-              ),
-            )(_\$Foo); // ignore: $ignoreToRemove
+            UiFactory<FooProps> UnconnectedFoo = _\$UnconnectedFoo; // ignore: $ignoreToRemove
             
-            UiFactory<BarProps> Bar = connect<SomeState, BarProps>(
-              mapStateToProps: (state) => (Bar()
+            UiFactory<FooProps> Foo =
+                connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (UnconnectedFoo()
                 ..foo = state.foo
                 ..bar = state.bar
               ),
-            )(_\$Bar); // ignore: $ignoreToRemove
+            )(UnconnectedFoo);
           ''',
           expectedOutput: '''
-            UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-              mapStateToProps: (state) => (Foo()
-                ..foo = state.foo
-                ..bar = state.bar
-              ),
-            )(_\$Foo);
+            UiFactory<FooProps> UnconnectedFoo = _\$UnconnectedFoo;
             
-            UiFactory<BarProps> Bar = connect<SomeState, BarProps>(
-              mapStateToProps: (state) => (Bar()
+            UiFactory<FooProps> Foo =
+                connect<SomeState, FooProps>(
+              mapStateToProps: (state) => (UnconnectedFoo()
                 ..foo = state.foo
                 ..bar = state.bar
               ),
-            )(_\$Bar);
+            )(UnconnectedFoo);
           ''',
         );
       });
