@@ -108,7 +108,9 @@ class GeneratedFactoryMigrator extends RecursiveAstVisitor
       propsName = (type.typeArguments.arguments.first as TypeName).name.name;
 
       if (generatedArg.name.endsWith('Config')) {
-        // Remove left hand typing.
+        // Remove left hand typing only from factory config usages because
+        // connected components still need left hand typing.
+        // See issue: <https://github.com/dart-lang/sdk/issues/44236>.
         yieldPatch(type.offset, type.end, 'final');
       }
     }
