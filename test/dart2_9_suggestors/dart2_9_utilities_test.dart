@@ -37,22 +37,18 @@ void main() {
         }
 
         test('when there are too many arguments', () {
-          _expectNullReturnValue(
-            '''
-              UiFactory<FooProps> Foo = connect()(
-                _\$Foo,
-                'another arg',
-              );
-            ''',
-          );
+          _expectNullReturnValue('''
+            UiFactory<FooProps> Foo = connect()(
+              _\$Foo,
+              'another arg',
+            );
+          ''');
         });
 
         test('when when the method call is not connect', () {
-          _expectNullReturnValue(
-            '''
-              UiFactory<FooProps> Foo = someOtherMethod()(_\$Foo);
-            ''',
-          );
+          _expectNullReturnValue('''
+            UiFactory<FooProps> Foo = someOtherMethod()(_\$Foo);
+          ''');
         });
       });
 
@@ -121,37 +117,31 @@ void main() {
         }
 
         test('when the config is not generated', () {
-          _expectNullReturnValue(
-            '''
-              UiFactory<FooProps> Foo = uiForwardRef(
-                (props) {},
-                UiFactoryConfig(), // ignore: undefined_identifier
-              );
-            ''',
-          );
+          _expectNullReturnValue('''
+            UiFactory<FooProps> Foo = uiForwardRef(
+              (props) {},
+              UiFactoryConfig(), // ignore: undefined_identifier
+            );
+          ''');
         });
 
         test('when the second argument does not end with `Config`', () {
-          _expectNullReturnValue(
-            '''
-              UiFactory<FooProps> Foo = uiForwardRef(
-                (props) {},
-                _\$Foo, // ignore: undefined_identifier
-              );
-            ''',
-          );
+          _expectNullReturnValue('''
+            UiFactory<FooProps> Foo = uiForwardRef(
+              (props) {},
+              _\$Foo, // ignore: undefined_identifier
+            );
+          ''');
         });
 
         test('when there are too many arguments', () {
-          _expectNullReturnValue(
-            '''
-              UiFactory<FooProps> Foo = uiForwardRef(
-                (props) {},
-                _\$FooConfig, // ignore: undefined_identifier
-                'another arg',
-              );
-            ''',
-          );
+          _expectNullReturnValue('''
+            UiFactory<FooProps> Foo = uiForwardRef(
+              (props) {},
+              _\$FooConfig, // ignore: undefined_identifier
+              'another arg',
+            );
+          ''');
         });
       });
 
@@ -175,11 +165,11 @@ void main() {
         test('when the config is public', () {
           _expectConfigName(
             input: '''
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) {},
-                  \$FooConfig, // ignore: undefined_identifier
-                );
-              ''',
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {},
+                \$FooConfig, // ignore: undefined_identifier
+              );
+            ''',
             expectedName: '\$FooConfig',
           );
         });
@@ -187,11 +177,11 @@ void main() {
         test('when the config is private', () {
           _expectConfigName(
             input: '''
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) {},
-                  _\$FooConfig, // ignore: undefined_identifier
-                );
-              ''',
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {},
+                _\$FooConfig, // ignore: undefined_identifier
+              );
+            ''',
             expectedName: '_\$FooConfig',
           );
         });
@@ -361,6 +351,35 @@ void main() {
               _\$Foo;
           ''');
         });
+      });
+    });
+
+    group('ListHelper.addIfNotNull()', () {
+      test('adds object correctly to non-empty list', () {
+        final testList = ['one', 'two'];
+        testList.addIfNotNull('three');
+        expect(testList, hasLength(3));
+        expect(testList, equals(['one', 'two', 'three']));
+      });
+
+      test('adds object correctly to empty list', () {
+        final testList = List<String>();
+        testList.addIfNotNull('three');
+        expect(testList, hasLength(1));
+        expect(testList, equals(['three']));
+      });
+
+      test('does not add if input is null to non-empty list', () {
+        final testList = ['one', 'two'];
+        testList.addIfNotNull(null);
+        expect(testList, hasLength(2));
+        expect(testList, ['one', 'two']);
+      });
+
+      test('does not add if input is null to empty list', () {
+        final testList = List<String>();
+        testList.addIfNotNull(null);
+        expect(testList, hasLength(0));
       });
     });
   });
