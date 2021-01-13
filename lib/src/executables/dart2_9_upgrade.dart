@@ -15,7 +15,9 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/boilerplate_suggestors/constants.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/factory_and_config_ignore_comment_remover.dart';
+import 'package:over_react_codemod/src/dart2_9_suggestors/factory_config_migrator.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/generated_factory_migrator.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
 import 'package:over_react_codemod/src/util.dart';
@@ -29,8 +31,6 @@ const _changesRequiredOutput = """
   pub global run over_react_codemod:dart2_9_upgrade
   pub run dart_dev format (If you format this repository).
 """;
-
-const overReactVersionRange = '^4.1.0';
 
 void main(List<String> args) {
   final overReactVersionConstraint =
@@ -55,6 +55,7 @@ void main(List<String> args) {
       FactoryAndConfigIgnoreCommentRemover('invalid_assignment'),
       FactoryAndConfigIgnoreCommentRemover('argument_type_not_assignable'),
       GeneratedFactoryMigrator(),
+      FactoryConfigMigrator(),
     ],
     args: args,
     defaultYes: true,

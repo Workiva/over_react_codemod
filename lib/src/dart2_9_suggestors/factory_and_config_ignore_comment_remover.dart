@@ -13,13 +13,13 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_constants.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_utilities.dart';
 
-import '../util.dart';
-
-/// Suggestor that removes ignore comments from component factory declarations
+/// Suggestor that removes ignore comments from generated factory initializers
 /// and factory config arguments.
 class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
@@ -37,10 +37,12 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
   visitArgumentList(ArgumentList node) {
     super.visitArgumentList(node);
 
-    final generatedArg = getGeneratedArg(node);
+    final generatedArg =
+        getGeneratedFactoryConfigArg(node) ?? getGeneratedFactoryArg(node);
     if (generatedArg != null) {
-      // ```
-      // Check comments before the config.
+      final commentList = List<Token>();
+
+      // Check comments before the generated argument.
       // Example:
       // ```
       // final Foo = uiFunction<FooProps>(
@@ -49,13 +51,9 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
       //   $FooConfig,
       // );
       // ```
-      removeIgnoreComment(
-        generatedArg.token.precedingComments,
-        ignoreToRemove,
-        yieldPatch,
-      );
+      commentList.addIfNotNull(generatedArg.token.precedingComments);
 
-      // Check comments after the config.
+      // Check comments after the comma.
       // Example:
       // ```
       // final Foo = uiFunction<FooProps>(
@@ -64,28 +62,8 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
       // );
       // ```
       if (generatedArg.token.next.lexeme == ',') {
-        removeIgnoreComment(
-          generatedArg.token.next?.next?.precedingComments,
-          ignoreToRemove,
-          yieldPatch,
-        );
-      }
-
-      // Check comments after the type casted config.
-      // Example:
-      // ```
-      // final Foo = uiFunction<FooProps>(
-      //   (props) {},
-      //   _$FooConfig as UiFactoryConfig<FooProps>, // ignore: undefined_identifier
-      // );
-      // ```
-      if (generatedArg.parent is AsExpression &&
-          generatedArg.parent.endToken.next?.lexeme == ',') {
-        removeIgnoreComment(
-          generatedArg.parent?.endToken?.next?.next?.precedingComments,
-          ignoreToRemove,
-          yieldPatch,
-        );
+        commentList
+            .addIfNotNull(generatedArg.token.next?.next?.precedingComments);
       }
 
       // Check comments after the semicolon.
@@ -96,11 +74,38 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
       //   $FooConfig); // ignore: undefined_identifier
       // ```
       if (node.rightParenthesis.next?.lexeme == ';') {
-        removeIgnoreComment(
-          node.rightParenthesis.next.next?.precedingComments,
-          ignoreToRemove,
-          yieldPatch,
-        );
+        commentList
+            .addIfNotNull(node.rightParenthesis.next.next?.precedingComments);
+      }
+
+      final method = generatedArg.thisOrAncestorOfType<MethodInvocation>();
+      if (method?.methodName?.name == castFunctionName &&
+          !generatedArg.name.endsWith('Config')) {
+        // Check comments before the type cast function call.
+        // Example:
+        // ```
+        // UiFactory<FooProps> Foo = connect<SomeState, FooProps>()(
+        //   // ignore: undefined_identifier
+        //   castUiFactory(_$Foo),
+        // );
+        // ```
+        commentList.addIfNotNull(method.methodName.token.precedingComments);
+
+        // Check comments after the type cast function call.
+        // Example:
+        // ```
+        // UiFactory<FooProps> Foo = connect<SomeState, FooProps>()(
+        //   castUiFactory(_$Foo), // ignore: undefined_identifier
+        // );
+        // ```
+        if (method.endToken.next?.lexeme == ',') {
+          commentList
+              .addIfNotNull(method.endToken.next?.next?.precedingComments);
+        }
+      }
+
+      for (final comment in commentList) {
+        removeIgnoreComment(comment, ignoreToRemove, yieldPatch);
       }
     }
   }
@@ -109,18 +114,13 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     super.visitTopLevelVariableDeclaration(node);
 
-    final annotation = node.metadata?.firstWhere(
-        (m) => m.toSource().startsWith('@Factory'),
-        orElse: () => null);
-    if (isClassComponentFactory(node) && annotation == null) {
+    if (isClassComponentFactory(node) && !isLegacyFactoryDecl(node)) {
+      final commentList = List<Token>();
+
       // Check comments after semicolon.
       // Example:
       // `UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier`
-      removeIgnoreComment(
-        node.semicolon?.next?.precedingComments,
-        ignoreToRemove,
-        yieldPatch,
-      );
+      commentList.addIfNotNull(node.semicolon?.next?.precedingComments);
 
       // Check comments before generated initializer.
       // Example:
@@ -129,12 +129,8 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
       //    // ignore: undefined_identifier
       //    _$Foo;
       // ```
-      removeIgnoreComment(
-        node.variables?.variables?.first?.initializer?.beginToken
-            ?.precedingComments,
-        ignoreToRemove,
-        yieldPatch,
-      );
+      commentList.addIfNotNull(node.variables?.variables?.first?.initializer
+          ?.beginToken?.precedingComments);
 
       // Check comments on previous line.
       // Example:
@@ -142,11 +138,7 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
       // // ignore: undefined_identifier
       // UiFactory<FooProps> Foo = _$Foo;
       // ```
-      removeIgnoreComment(
-        node.beginToken.precedingComments,
-        ignoreToRemove,
-        yieldPatch,
-      );
+      commentList.addIfNotNull(node.beginToken.precedingComments);
 
       // Check comments after doc comments.
       // Example:
@@ -155,11 +147,11 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
       // // ignore: undefined_identifier
       // UiFactory<FooProps> Foo = _$Foo;
       // ```
-      removeIgnoreComment(
-        node.documentationComment?.beginToken,
-        ignoreToRemove,
-        yieldPatch,
-      );
+      commentList.addIfNotNull(node.documentationComment?.beginToken);
+
+      for (final comment in commentList) {
+        removeIgnoreComment(comment, ignoreToRemove, yieldPatch);
+      }
     }
   }
 }

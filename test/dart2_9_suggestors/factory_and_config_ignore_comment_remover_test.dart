@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_constants.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/factory_and_config_ignore_comment_remover.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
 
-
-// ADD TWO FACTORY CONNECTED COMPONENT TESTCASES
 main() {
   group('FactoryAndConfigIgnoreCommentRemover', () {
     group('removing `undefined_identifier` ignore comments', () {
@@ -200,7 +199,7 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
               // ignore: $ignoreToRemove, unused_element
               UiFactory<FooProps> Foo = 
                 // ignore: $ignoreToRemove
-                _\$Foo; // ignore: invalid_assignment, $ignoreToRemove 
+                _\$Foo; // ignore: invalid_assignment, $ignoreToRemove
             ''',
             expectedOutput: '''
               // ignore: unused_element
@@ -214,10 +213,10 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         testSuggestor(
           expectedPatchCount: 1,
           input: '''
-            final Foo = _\$Foo as UiFactory<FooProps>; // ignore: $ignoreToRemove
+            UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); // ignore: $ignoreToRemove
           ''',
           expectedOutput: '''
-            final Foo = _\$Foo as UiFactory<FooProps>; 
+            UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); 
           ''',
         );
       });
@@ -326,7 +325,7 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
       });
 
       group('when the generated factory is type casted', () {
-        _testCommentLocations('_\$Foo as UiFactory<FooProps>');
+        _testCommentLocations('$castFunctionName(_\$Foo)');
       });
 
       test('when there are two factories', () {
@@ -461,10 +460,6 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
 
       group('when the generated config is private', () {
         _testCommentLocations('_\$FooConfig');
-      });
-
-      group('when the generated config is type casted', () {
-        _testCommentLocations('_\$FooConfig as UiFactoryConfig<FooProps>');
       });
 
       test('when there are multiple factories', () {
