@@ -16,6 +16,7 @@
 /// codemod or suggestor.
 library over_react_codemod.src.util;
 
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:args/args.dart';
@@ -611,3 +612,13 @@ Iterable<String> allDartPathsExceptHidden() =>
 Iterable<String> allDartPathsExceptHiddenAndGenerated() =>
     filePathsFromGlob(Glob('**.dart', recursive: true))
         .where((path) => !path.endsWith('.g.dart'));
+
+/// Returns whether or not [sourceText] contains invalid code and, therefore,
+/// should be skipped when generating patches.
+///
+/// Used to override [Suggestor.shouldSkip] when parsing errors should be
+/// skipped instead of thrown when [Suggestor.generatePatches] is called.
+bool shouldSkipParsingErrors(String sourceText) {
+  final parsed = parseString(content: sourceText, throwIfDiagnostics: false);
+  return parsed.errors.isNotEmpty;
+}

@@ -15,7 +15,7 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/boilerplate_suggestors/constants.dart';
+import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_constants.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/factory_and_config_ignore_comment_remover.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/factory_config_migrator.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/generated_factory_migrator.dart';

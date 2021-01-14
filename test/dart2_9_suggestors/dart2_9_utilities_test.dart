@@ -186,6 +186,30 @@ void main() {
           );
         });
 
+        test('when the config has a number in the name', () {
+          _expectConfigName(
+            input: '''
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {},
+                \$Foo2Config, // ignore: undefined_identifier
+              );
+            ''',
+            expectedName: '\$Foo2Config',
+          );
+        });
+
+        test('when the config has an underscore in the name', () {
+          _expectConfigName(
+            input: '''
+              UiFactory<FooProps> _Foo = uiFunction(
+                (props) {},
+                \$_FooConfig, // ignore: undefined_identifier
+              );
+            ''',
+            expectedName: '\$_FooConfig',
+          );
+        });
+
         test('when the config is used in uiForwardRef', () {
           _expectConfigName(
             input: '''

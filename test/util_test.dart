@@ -628,6 +628,22 @@ void overReactExample() {}''';
         ]);
       });
     });
+
+    group('shouldSkipParsingErrors()', () {
+      test('when sourceText contains invalid code', () {
+        expect(
+          shouldSkipParsingErrors('a = 1;'),
+          isTrue,
+        );
+      });
+
+      test('when sourceText contains valid code', () {
+        expect(
+          shouldSkipParsingErrors('final a = 1;'),
+          isFalse,
+        );
+      });
+    });
   });
 }
 

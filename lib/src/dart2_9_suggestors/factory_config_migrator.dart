@@ -15,6 +15,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 import 'dart2_9_utilities.dart';
 
@@ -35,4 +36,7 @@ class FactoryConfigMigrator extends RecursiveAstVisitor
       yieldPatch(generatedArg.offset, generatedArg.offset, '_');
     }
   }
+
+  @override
+  bool shouldSkip(String sourceText) => shouldSkipParsingErrors(sourceText);
 }

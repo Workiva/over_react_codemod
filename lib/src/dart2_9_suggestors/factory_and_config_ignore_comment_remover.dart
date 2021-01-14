@@ -18,6 +18,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_constants.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_utilities.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 /// Suggestor that removes ignore comments from generated factory initializers
 /// and factory config arguments.
@@ -154,4 +155,7 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
       }
     }
   }
+
+  @override
+  bool shouldSkip(String sourceText) => shouldSkipParsingErrors(sourceText);
 }

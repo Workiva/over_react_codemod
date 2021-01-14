@@ -75,7 +75,7 @@ SimpleIdentifier getGeneratedFactoryConfigArg(ArgumentList argList) {
   final args = argList.arguments;
   if (args.length != 2) return null;
 
-  final configPattern = RegExp(r'_?\$[A-Za-z]*Config$');
+  final configPattern = RegExp(r'_?\$\S*Config$');
 
   final generatedArg = args[1];
   return generatedArg is SimpleIdentifier &&

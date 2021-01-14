@@ -16,6 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_constants.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 import 'dart2_9_utilities.dart';
 
@@ -54,4 +55,7 @@ class GeneratedFactoryMigrator extends RecursiveAstVisitor
       }
     }
   }
+
+  @override
+  bool shouldSkip(String sourceText) => shouldSkipParsingErrors(sourceText);
 }

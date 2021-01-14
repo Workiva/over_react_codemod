@@ -95,6 +95,24 @@ main() {
       );
     });
 
+    test('when the factory is private', () {
+      testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+          UiFactory<FooProps> _Foo = uiFunction(
+            (props) {}, 
+            \$_FooConfig, // ignore: undefined_identifier
+          );
+        ''',
+        expectedOutput: '''
+          UiFactory<FooProps> _Foo = uiFunction(
+            (props) {}, 
+            _\$_FooConfig, // ignore: undefined_identifier
+          );
+        ''',
+      );
+    });
+
     test('without trailing comma', () {
       testSuggestor(
         expectedPatchCount: 1,
