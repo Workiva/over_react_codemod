@@ -17,12 +17,18 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_constants.dart';
 
-/// Returns the generated argument from [argList].
+/// Returns the generated factory argument from [argList] in `connect` usages.
 ///
-/// Used specifically to find the generated factory argument in `connect`
-/// usages.
+/// This utility verifies that [argList] is being passed to a `connect` function
+/// in the following format:
+/// ```
+/// UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+///   // ...
+/// )(_$Foo); // [argList]
+/// ```
 ///
-/// Returns `null` if no generated argument found.
+/// Returns `null` if no generated argument is found or if [argList] is not used
+/// with `connect`.
 ///
 /// Example:
 ///
@@ -31,7 +37,7 @@ import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_constants.dart
 /// | (_$Foo)                        | _$Foo  |
 /// | (castUiFactory(_$Foo))         | _$Foo  |
 /// | (Foo)                          | null   |
-SimpleIdentifier getGeneratedFactoryArg(ArgumentList argList) {
+SimpleIdentifier getConnectGeneratedFactoryArg(ArgumentList argList) {
   final args = argList.arguments;
   if (args.length != 1) return null;
 
@@ -119,21 +125,21 @@ bool isLegacyFactoryDecl(TopLevelVariableDeclaration node) {
 ///
 /// Example:
 ///
-/// Calling:
-/// ```
-/// removeIgnoreComment(
-///   node.beginToken.precedingComments,
-///   'undefined_identifier',
-///   yieldPatch,
-/// );
-/// ```
-/// Will yield the following changes depending on the value of [comment]:
+///   Calling the utility like this:
+///   ```
+///   removeIgnoreComment(
+///     node.beginToken.precedingComments,
+///     'undefined_identifier',
+///     yieldPatch,
+///   );
+///   ```
+///   Will yield the following changes depending on the value of [comment]:
 ///
-/// `// ignore: undefined_identifier` => entire comment will be removed
+///   `// ignore: undefined_identifier` => entire comment will be removed
 ///
-/// `// ignore: invalid_assignment, undefined_identifier` => `// ignore: invalid_assignment`
+///   `// ignore: invalid_assignment, undefined_identifier` => `// ignore: invalid_assignment`
 ///
-/// `// ignore: invalid_assignment` => `// ignore: invalid_assignment`
+///   `// ignore: invalid_assignment` => `// ignore: invalid_assignment`
 void removeIgnoreComment(
     Token comment, String ignoreToRemove, YieldPatch yieldPatch) {
   if (comment == null) return;

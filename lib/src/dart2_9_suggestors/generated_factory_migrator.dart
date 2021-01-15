@@ -29,7 +29,7 @@ class GeneratedFactoryMigrator extends RecursiveAstVisitor
   visitArgumentList(ArgumentList node) {
     super.visitArgumentList(node);
 
-    final generatedArg = getGeneratedFactoryArg(node);
+    final generatedArg = getConnectGeneratedFactoryArg(node);
     if (generatedArg == null) return;
 
     final method = generatedArg.thisOrAncestorOfType<MethodInvocation>();

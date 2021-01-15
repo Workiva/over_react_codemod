@@ -38,8 +38,8 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
   visitArgumentList(ArgumentList node) {
     super.visitArgumentList(node);
 
-    final generatedArg =
-        getGeneratedFactoryConfigArg(node) ?? getGeneratedFactoryArg(node);
+    final generatedArg = getGeneratedFactoryConfigArg(node) ??
+        getConnectGeneratedFactoryArg(node);
     if (generatedArg != null) {
       final commentList = List<Token>();
 

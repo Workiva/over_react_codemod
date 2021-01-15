@@ -20,7 +20,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('Dart 2.9 Utilities:', () {
-    group('getGeneratedFactoryArg()', () {
+    group('getConnectGeneratedFactoryArg()', () {
       group('returns null', () {
         void _expectNullReturnValue(String input) {
           final unit = parseString(content: input).unit;
@@ -33,7 +33,7 @@ void main() {
                   .initializer as FunctionExpressionInvocation)
               .argumentList;
 
-          expect(getGeneratedFactoryArg(argList), isNull);
+          expect(getConnectGeneratedFactoryArg(argList), isNull);
         }
 
         test('when there are too many arguments', () {
@@ -65,7 +65,7 @@ void main() {
                   .initializer as FunctionExpressionInvocation)
               .argumentList;
 
-          final returnValue = getGeneratedFactoryArg(argList);
+          final returnValue = getConnectGeneratedFactoryArg(argList);
           expect(returnValue, isA<SimpleIdentifier>());
           expect(returnValue.name, expectedName);
         }
@@ -220,6 +220,32 @@ void main() {
             ''',
             expectedName: '_\$FooConfig',
           );
+        });
+
+        test('when the function component is wrapped in memo', () {
+          final input = '''
+            UiFactory<FooProps> Foo = memo<FooProps>(uiFunction(
+              (props) {},
+              _\$FooConfig, // ignore: undefined_identifier
+            ));
+          ''';
+          final unit = parseString(content: input).unit;
+          final memoArgList = (unit.declarations
+                  .whereType<TopLevelVariableDeclaration>()
+                  .first
+                  .variables
+                  .variables
+                  .first
+                  .initializer as MethodInvocation)
+              .argumentList;
+          final uiFunctionArgList = memoArgList.arguments
+              .whereType<MethodInvocation>()
+              .first
+              .argumentList;
+
+          final returnValue = getGeneratedFactoryConfigArg(uiFunctionArgList);
+          expect(returnValue, isA<SimpleIdentifier>());
+          expect(returnValue.name, '_\$FooConfig');
         });
       });
     });
