@@ -568,7 +568,7 @@ void overReactExample() {}''';
 
         commentCount = allComments(firstVar).length;
 
-        expect(commentCount, 1);
+        expect(commentCount, 2);
       });
     });
 
