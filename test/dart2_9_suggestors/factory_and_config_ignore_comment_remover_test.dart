@@ -328,6 +328,62 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         _testCommentLocations('$castFunctionName(_\$Foo)');
       });
 
+      test('for `connectFlux` function', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+              UiFactory<FooProps> Foo = connectFlux<SomeState, FooProps>(
+                mapStateToProps: (state) => (Foo()
+                  ..foo = state.foo
+                  ..bar = state.bar
+                ),
+              )(_\$Foo); // ignore: $ignoreToRemove
+            ''',
+          expectedOutput: '''
+              UiFactory<FooProps> Foo = connectFlux<SomeState, FooProps>(
+                mapStateToProps: (state) => (Foo()
+                  ..foo = state.foo
+                  ..bar = state.bar
+                ),
+              )(_\$Foo);
+            ''',
+        );
+      });
+
+      test('for `composeHocs` function', () {
+        testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            UiFactory<FooProps> Foo = composeHocs([
+              connect<RandomColorStore, FooProps>(
+                context: randomColorStoreContext,
+                mapStateToProps: (_) => {},
+                pure: false,
+              ),
+              connect<LowLevelStore, FooProps>(
+                context: lowLevelStoreContext,
+                mapStateToProps: (_) => {},
+                pure: false,
+              ),
+            ])(_\$Foo); // ignore: undefined_identifier
+          ''',
+          expectedOutput: '''
+            UiFactory<FooProps> Foo = composeHocs([
+              connect<RandomColorStore, FooProps>(
+                context: randomColorStoreContext,
+                mapStateToProps: (_) => {},
+                pure: false,
+              ),
+              connect<LowLevelStore, FooProps>(
+                context: lowLevelStoreContext,
+                mapStateToProps: (_) => {},
+                pure: false,
+              ),
+            ])(_\$Foo);
+          ''',
+        );
+      });
+
       test('when there are two factories', () {
         testSuggestor(
           expectedPatchCount: 1,

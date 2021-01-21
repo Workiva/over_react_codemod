@@ -145,6 +145,62 @@ main() {
         });
       });
 
+      test('with `connectFlux` function', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            UiFactory<FooProps> Foo = connectFlux<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )(_\$Foo); // ignore: undefined_identifier
+          ''',
+          expectedOutput: '''
+            UiFactory<FooProps> Foo = connectFlux<SomeState, FooProps>(
+              mapStateToProps: (state) => (Foo()
+                ..foo = state.foo
+                ..bar = state.bar
+              ),
+            )($castFunctionName(_\$Foo)); // ignore: undefined_identifier
+          ''',
+        );
+      });
+
+      test('with `composeHocs` function', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            UiFactory<FooProps> Foo = composeHocs([
+              connect<RandomColorStore, FooProps>(
+                context: randomColorStoreContext,
+                mapStateToProps: (_) => {},
+                pure: false,
+              ),
+              connect<LowLevelStore, FooProps>(
+                context: lowLevelStoreContext,
+                mapStateToProps: (_) => {},
+                pure: false,
+              ),
+            ])(_\$Foo); // ignore: undefined_identifier
+          ''',
+          expectedOutput: '''
+            UiFactory<FooProps> Foo = composeHocs([
+              connect<RandomColorStore, FooProps>(
+                context: randomColorStoreContext,
+                mapStateToProps: (_) => {},
+                pure: false,
+              ),
+              connect<LowLevelStore, FooProps>(
+                context: lowLevelStoreContext,
+                mapStateToProps: (_) => {},
+                pure: false,
+              ),
+            ])(castUiFactory(_\$Foo)); // ignore: undefined_identifier
+          ''',
+        );
+      });
+
       test('without trailing comma', () {
         testSuggestor(
           expectedPatchCount: 2,

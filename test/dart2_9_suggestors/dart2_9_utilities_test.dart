@@ -70,7 +70,7 @@ void main() {
           expect(returnValue.name, expectedName);
         }
 
-        test('', () {
+        test('for `connect`', () {
           _expectGeneratedFactoryName(
             input: '''
               UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
@@ -79,6 +79,40 @@ void main() {
                   ..bar = state.bar
                 ),
               )(_\$Foo); // ignore: undefined_identifier
+            ''',
+            expectedName: '_\$Foo',
+          );
+        });
+
+        test('for `connectFlux`', () {
+          _expectGeneratedFactoryName(
+            input: '''
+              UiFactory<FooProps> Foo = connectFlux<SomeState, FooProps>(
+                mapStateToProps: (state) => (Foo()
+                  ..foo = state.foo
+                  ..bar = state.bar
+                ),
+              )(_\$Foo); // ignore: undefined_identifier
+            ''',
+            expectedName: '_\$Foo',
+          );
+        });
+
+        test('for `composeHocs`', () {
+          _expectGeneratedFactoryName(
+            input: '''
+              UiFactory<FooProps> Foo = composeHocs([
+                connect<RandomColorStore, FooProps>(
+                  context: randomColorStoreContext,
+                  mapStateToProps: (_) => {},
+                  pure: false,
+                ),
+                connect<LowLevelStore, FooProps>(
+                  context: lowLevelStoreContext,
+                  mapStateToProps: (_) => {},
+                  pure: false,
+                ),
+              ])(_\$Foo); // ignore: undefined_identifier
             ''',
             expectedName: '_\$Foo',
           );

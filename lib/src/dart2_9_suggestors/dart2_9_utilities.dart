@@ -19,8 +19,8 @@ import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_constants.dart
 
 /// Returns the generated factory argument from [argList] in `connect` usages.
 ///
-/// This utility verifies that [argList] is being passed to a `connect` function
-/// in the following format:
+/// This utility verifies that [argList] is being passed to a `connect` or
+/// `connectFlux` function in the following format:
 /// ```
 /// UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
 ///   // ...
@@ -45,7 +45,7 @@ SimpleIdentifier getConnectGeneratedFactoryArg(ArgumentList argList) {
 
   final method =
       argList.thisOrAncestorOfType<FunctionExpressionInvocation>()?.function;
-  if (method is MethodInvocation && method.methodName.name == 'connect') {
+  if (method is MethodInvocation && connectFunctionNames.contains(method.methodName.name)) {
     final generatedArg = args.first;
     if (generatedArg is SimpleIdentifier) {
       return generatedArg.name.startsWith(generatedPrefix)
