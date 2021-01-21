@@ -437,34 +437,5 @@ void main() {
         });
       });
     });
-
-    group('ListHelper.addIfNotNull()', () {
-      test('adds object correctly to non-empty list', () {
-        final testList = ['one', 'two'];
-        testList.addIfNotNull('three');
-        expect(testList, hasLength(3));
-        expect(testList, equals(['one', 'two', 'three']));
-      });
-
-      test('adds object correctly to empty list', () {
-        final testList = List<String>();
-        testList.addIfNotNull('three');
-        expect(testList, hasLength(1));
-        expect(testList, equals(['three']));
-      });
-
-      test('does not add if input is null to non-empty list', () {
-        final testList = ['one', 'two'];
-        testList.addIfNotNull(null);
-        expect(testList, hasLength(2));
-        expect(testList, ['one', 'two']);
-      });
-
-      test('does not add if input is null to empty list', () {
-        final testList = List<String>();
-        testList.addIfNotNull(null);
-        expect(testList, hasLength(0));
-      });
-    });
   });
 }

@@ -541,7 +541,7 @@ void overReactExample() {}''';
             var two;
 
             // Comment3
-          }
+          } // Comment4
         ''';
 
       final astNode = parseString(content: content).unit;
@@ -554,7 +554,7 @@ void overReactExample() {}''';
       test('correctly iterates over all comments', () {
         commentCount = allComments(astNode.beginToken).length;
 
-        expect(commentCount, 3);
+        expect(commentCount, 4);
       });
 
       test('only finds comments after the provided starting node', () {
@@ -632,14 +632,14 @@ void overReactExample() {}''';
     group('shouldSkipParsingErrors()', () {
       test('when sourceText contains invalid code', () {
         expect(
-          shouldSkipParsingErrors('a = 1;'),
+          hasParseErrors('a = 1;'),
           isTrue,
         );
       });
 
       test('when sourceText contains valid code', () {
         expect(
-          shouldSkipParsingErrors('final a = 1;'),
+          hasParseErrors('final a = 1;'),
           isFalse,
         );
       });

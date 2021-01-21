@@ -45,7 +45,8 @@ SimpleIdentifier getConnectGeneratedFactoryArg(ArgumentList argList) {
 
   final method =
       argList.thisOrAncestorOfType<FunctionExpressionInvocation>()?.function;
-  if (method is MethodInvocation && connectFunctionNames.contains(method.methodName.name)) {
+  if (method is MethodInvocation &&
+      connectFunctionNames.contains(method.methodName.name)) {
     final generatedArg = args.first;
     if (generatedArg is SimpleIdentifier) {
       return generatedArg.name.startsWith(generatedPrefix)
@@ -142,29 +143,19 @@ bool isLegacyFactoryDecl(TopLevelVariableDeclaration node) {
 ///   `// ignore: invalid_assignment` => `// ignore: invalid_assignment`
 void removeIgnoreComment(
     Token comment, String ignoreToRemove, YieldPatch yieldPatch) {
+  ArgumentError.checkNotNull(ignoreToRemove, 'ignoreToRemove');
   if (comment == null) return;
 
   final lexeme = comment.lexeme.replaceAll(' ', '').toLowerCase();
   if (lexeme.startsWith('//ignore:')) {
     final ignoreList =
         lexeme.replaceFirst(RegExp('\/\/ignore\:'), '').split(',');
-    if (ignoreToRemove == null ||
-        (ignoreList.contains(ignoreToRemove) && ignoreList.length == 1)) {
+    if (ignoreList.contains(ignoreToRemove) && ignoreList.length == 1) {
       yieldPatch(comment.previous?.end ?? comment.offset, comment.end, '');
     } else if (ignoreList.contains(ignoreToRemove)) {
       ignoreList.removeWhere((i) => i == ignoreToRemove);
       final newIgnoreComment = '// ignore: ${ignoreList.join(', ')}';
       yieldPatch(comment.offset, comment.end, newIgnoreComment);
-    }
-  }
-
-  removeIgnoreComment(comment.next, ignoreToRemove, yieldPatch);
-}
-
-extension ListHelper<T> on List {
-  void addIfNotNull(T object) {
-    if (object != null) {
-      this.add(object);
     }
   }
 }

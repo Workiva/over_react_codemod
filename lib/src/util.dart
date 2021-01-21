@@ -26,6 +26,7 @@ import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
+import 'package:source_span/source_span.dart';
 
 import 'component2_suggestors/component2_utilities.dart';
 import 'constants.dart';
@@ -48,6 +49,12 @@ Iterable<Token> allComments(Token beginToken) sync* {
       currentComment = currentComment.next;
     }
     currentToken = currentToken.next;
+  }
+  // Also check comments preceding EOF.
+  var currentComment = currentToken.precedingComments;
+  while (currentComment != null) {
+    yield currentComment;
+    currentComment = currentComment.next;
   }
 }
 
@@ -77,6 +84,24 @@ Iterable<Token> allCommentsForNode(AstNode node) sync* {
   while (currentComment != null) {
     yield currentComment;
     currentComment = currentComment.next;
+  }
+}
+
+/// Returns all the comments before and on the same line as a given [node],
+/// including doc comments.
+Iterable<Token> allSurroundingComments(
+    AstNode node, SourceFile sourceFile) sync* {
+  final lineNumber = sourceFile.getLine(node.offset);
+  for (final comment in allComments(node.root.beginToken)) {
+    final commentLineNumber = sourceFile.getLine(comment.offset);
+    final commentAppliesToGeneratedArg =
+        // EOL comments
+        commentLineNumber == lineNumber ||
+            // Comments on the previous line
+            commentLineNumber == lineNumber - 1;
+    if (commentAppliesToGeneratedArg) {
+      yield comment;
+    }
   }
 }
 
@@ -613,12 +638,11 @@ Iterable<String> allDartPathsExceptHiddenAndGenerated() =>
     filePathsFromGlob(Glob('**.dart', recursive: true))
         .where((path) => !path.endsWith('.g.dart'));
 
-/// Returns whether or not [sourceText] contains invalid code and, therefore,
-/// should be skipped when generating patches.
+/// Returns whether or not [sourceText] contains invalid code.
 ///
 /// Used to override [Suggestor.shouldSkip] when parsing errors should be
 /// skipped instead of thrown when [Suggestor.generatePatches] is called.
-bool shouldSkipParsingErrors(String sourceText) {
+bool hasParseErrors(String sourceText) {
   final parsed = parseString(content: sourceText, throwIfDiagnostics: false);
   return parsed.errors.isNotEmpty;
 }

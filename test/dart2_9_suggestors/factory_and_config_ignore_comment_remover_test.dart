@@ -365,7 +365,7 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
                 mapStateToProps: (_) => {},
                 pure: false,
               ),
-            ])(_\$Foo); // ignore: undefined_identifier
+            ])(_\$Foo); // ignore: $ignoreToRemove
           ''',
           expectedOutput: '''
             UiFactory<FooProps> Foo = composeHocs([

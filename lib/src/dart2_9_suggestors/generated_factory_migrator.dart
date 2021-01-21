@@ -57,5 +57,5 @@ class GeneratedFactoryMigrator extends RecursiveAstVisitor
   }
 
   @override
-  bool shouldSkip(String sourceText) => shouldSkipParsingErrors(sourceText);
+  bool shouldSkip(String sourceText) => hasParseErrors(sourceText);
 }
