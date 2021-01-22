@@ -80,6 +80,18 @@ main() {
         );
       });
 
+      test('with a wrapper function', () {
+        testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
+            UiFactory<FooProps> Foo = someMethod(_\$Foo); // ignore: undefined_identifier
+          ''',
+          expectedOutput: '''
+            UiFactory<FooProps> Foo = someMethod(castUiFactory(_\$Foo)); // ignore: undefined_identifier
+          ''',
+        );
+      });
+
       test('when there are multiple factories', () {
         testSuggestor(
           expectedPatchCount: 6,
@@ -131,15 +143,6 @@ main() {
                 (props) {},
                 _\$FooConfig, // ignore: undefined_identifier
               );
-            ''',
-          );
-        });
-
-        test('generated arguments in non-connect method calls', () {
-          testSuggestor(
-            expectedPatchCount: 0,
-            input: '''
-              UiFactory<FooProps> Foo = someMethod(_\$Foo);
             ''',
           );
         });

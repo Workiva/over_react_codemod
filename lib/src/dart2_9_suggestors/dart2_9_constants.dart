@@ -15,5 +15,3 @@
 const overReactVersionRange = '^4.1.0';
 
 const castFunctionName = 'castUiFactory';
-
-const connectFunctionNames = ['connect', 'connectFlux', 'composeHocs'];

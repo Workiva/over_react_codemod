@@ -26,33 +26,22 @@ class GeneratedFactoryMigrator extends RecursiveAstVisitor
     with AstVisitingSuggestorMixin
     implements Suggestor {
   @override
-  visitArgumentList(ArgumentList node) {
-    super.visitArgumentList(node);
-
-    final generatedArg = getConnectGeneratedFactoryArg(node);
-    if (generatedArg == null) return;
-
-    final method = generatedArg.thisOrAncestorOfType<MethodInvocation>();
-    if (method != null && method.methodName.name == castFunctionName) {
-      return;
-    }
-
-    yieldPatch(generatedArg.offset, generatedArg.offset, '$castFunctionName(');
-    yieldPatch(generatedArg.end, generatedArg.end, ')');
-  }
-
-  @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     super.visitTopLevelVariableDeclaration(node);
 
     // Update only if the factory declaration is in the new boilerplate syntax.
-    if (isClassComponentFactory(node) && !isLegacyFactoryDecl(node)) {
-      final initializer = node.variables?.variables?.first?.initializer;
-      if (initializer is SimpleIdentifier) {
-        yieldPatch(
-            initializer.offset, initializer.offset, '$castFunctionName(');
-        yieldPatch(initializer.end, initializer.end, ')');
-      }
+    if (isClassOrConnectedComponentFactory(node) &&
+        !isLegacyFactoryDecl(node)) {
+      final generatedFactory = getGeneratedFactory(node);
+      if (generatedFactory
+              .thisOrAncestorOfType<MethodInvocation>()
+              ?.methodName
+              ?.name ==
+          castFunctionName) return;
+
+      yieldPatch(generatedFactory.offset, generatedFactory.offset,
+          '$castFunctionName(');
+      yieldPatch(generatedFactory.end, generatedFactory.end, ')');
     }
   }
 

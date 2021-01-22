@@ -16,6 +16,8 @@
 /// codemod or suggestor.
 library over_react_codemod.src.util;
 
+import 'dart:collection';
+
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -84,24 +86,6 @@ Iterable<Token> allCommentsForNode(AstNode node) sync* {
   while (currentComment != null) {
     yield currentComment;
     currentComment = currentComment.next;
-  }
-}
-
-/// Returns all the comments before and on the same line as a given [node],
-/// including doc comments.
-Iterable<Token> allSurroundingComments(
-    AstNode node, SourceFile sourceFile) sync* {
-  final lineNumber = sourceFile.getLine(node.offset);
-  for (final comment in allComments(node.root.beginToken)) {
-    final commentLineNumber = sourceFile.getLine(comment.offset);
-    final commentAppliesToGeneratedArg =
-        // EOL comments
-        commentLineNumber == lineNumber ||
-            // Comments on the previous line
-            commentLineNumber == lineNumber - 1;
-    if (commentAppliesToGeneratedArg) {
-      yield comment;
-    }
   }
 }
 
@@ -646,3 +630,23 @@ bool hasParseErrors(String sourceText) {
   final parsed = parseString(content: sourceText, throwIfDiagnostics: false);
   return parsed.errors.isNotEmpty;
 }
+
+/// Returns a lazy iterable of all descendants of [node], in breadth-first order.
+Iterable<AstNode> allDescendants(AstNode node) sync* {
+  final nodesQueue = Queue<AstNode>()..add(node);
+  while (nodesQueue.isNotEmpty) {
+    final current = nodesQueue.removeFirst();
+    if (current == null) return;
+
+    for (final child in current.childEntities) {
+      if (child is AstNode) {
+        yield child;
+        nodesQueue.add(child);
+      }
+    }
+  }
+}
+
+/// Returns a lazy iterable of all descendants of [node] of type [T], in breadth-first order.
+Iterable<T> allDescendantsOfType<T extends AstNode>(AstNode node) =>
+    allDescendants(node).whereType<T>();

@@ -20,6 +20,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
+import 'package:react/react.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 
@@ -629,7 +630,7 @@ void overReactExample() {}''';
       });
     });
 
-    group('shouldSkipParsingErrors()', () {
+    group('hasParseErrors()', () {
       test('when sourceText contains invalid code', () {
         expect(
           hasParseErrors('a = 1;'),
@@ -642,6 +643,132 @@ void overReactExample() {}''';
           hasParseErrors('final a = 1;'),
           isFalse,
         );
+      });
+    });
+
+    group('allDescendants()', () {
+      TopLevelVariableDeclaration parseAndGetSingle(String source) =>
+          parseString(content: source)
+              .unit
+              .declarations
+              .whereType<TopLevelVariableDeclaration>()
+              .single;
+
+      test('returns all descendants for a node', () {
+        final node = parseAndGetSingle('''
+          UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
+        ''');
+
+        expect(
+            allDescendants(node).toList(),
+            unorderedEquals([
+              isA<VariableDeclarationList>().having(
+                (node) => node.toSource(),
+                'string value',
+                'UiFactory<FooProps> Foo = castUiFactory(_\$Foo)',
+              ),
+              isA<VariableDeclaration>().having(
+                (node) => node.toSource(),
+                'string value',
+                'Foo = castUiFactory(_\$Foo)',
+              ),
+              isA<TypeName>()
+                  .having((node) => node.name.name, 'name', 'UiFactory'),
+              isA<TypeName>()
+                  .having((node) => node.name.name, 'name', 'FooProps'),
+              isA<MethodInvocation>().having((node) => node.methodName.name,
+                  'methodName', 'castUiFactory'),
+              isA<TypeArgumentList>().having(
+                  (node) => node.arguments.toList(), 'arguments', [
+                isA<TypeName>()
+                    .having((node) => node.name.name, 'name', 'FooProps')
+              ]),
+              isA<ArgumentList>().having(
+                  (node) => node.arguments.toList(), 'arguments', [
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', '_\$Foo')
+              ]),
+              isA<SimpleIdentifier>()
+                  .having((node) => node.name, 'name', 'Foo'),
+              isA<SimpleIdentifier>()
+                  .having((node) => node.name, 'name', 'UiFactory'),
+              isA<SimpleIdentifier>()
+                  .having((node) => node.name, 'name', 'FooProps'),
+              isA<SimpleIdentifier>()
+                  .having((node) => node.name, 'name', '_\$Foo'),
+              isA<SimpleIdentifier>()
+                  .having((node) => node.name, 'name', 'castUiFactory'),
+            ]));
+      });
+
+      test('returns empty list when input is null', () {
+        expect(allDescendants(null).toList(), isEmpty);
+      });
+
+      test('returns empty list when input has no descendants', () {
+        final node = parseAndGetSingle('''
+          UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
+        ''').variables.variables.first.name;
+
+        expect(allDescendants(node).toList(), isEmpty);
+      });
+    });
+
+    group('allDescendantsOfType()', () {
+      TopLevelVariableDeclaration parseAndGetSingle(String source) =>
+          parseString(content: source)
+              .unit
+              .declarations
+              .whereType<TopLevelVariableDeclaration>()
+              .single;
+
+      group('returns all descendants of the specified type for a node', () {
+        final node = parseAndGetSingle('''
+          UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
+        ''');
+
+        test('when there are many descendants of a type', () {
+          expect(
+              allDescendantsOfType<SimpleIdentifier>(node).toList(),
+              unorderedEquals([
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'Foo'),
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'UiFactory'),
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'FooProps'),
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', '_\$Foo'),
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'castUiFactory'),
+              ]));
+        });
+
+        test('when there is one descendant of a type', () {
+          expect(
+              allDescendantsOfType<MethodInvocation>(node).toList(),
+              unorderedEquals([
+                isA<MethodInvocation>().having((node) => node.methodName.name,
+                    'methodName', 'castUiFactory'),
+              ]));
+        });
+
+        test('when there are no descendants of a type', () {
+          expect(
+              allDescendantsOfType<MethodDeclaration>(node).toList(), isEmpty);
+        });
+      });
+
+      test('when input is null', () {
+        expect(allDescendantsOfType<SimpleIdentifier>(null).toList(), isEmpty);
+      });
+
+      test('when input has no descendants', () {
+        final node = parseAndGetSingle('''
+          UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
+        ''').variables.variables.first.name;
+
+        expect(allDescendantsOfType<SimpleIdentifier>(node).toList(), isEmpty);
       });
     });
   });

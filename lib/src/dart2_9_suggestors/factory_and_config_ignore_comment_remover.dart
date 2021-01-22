@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_utilities.dart';
@@ -36,10 +37,9 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
   visitArgumentList(ArgumentList node) {
     super.visitArgumentList(node);
 
-    final generatedArg = getGeneratedFactoryConfigArg(node) ??
-        getConnectGeneratedFactoryArg(node);
+    final generatedArg = getGeneratedFactoryConfigArg(node);
     if (generatedArg != null) {
-      for (final comment in allSurroundingComments(generatedArg, sourceFile)) {
+      for (final comment in _findPossibleIgnoreComments(generatedArg)) {
         removeIgnoreComment(comment, ignoreToRemove, yieldPatch);
       }
     }
@@ -49,9 +49,10 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     super.visitTopLevelVariableDeclaration(node);
 
-    if (isClassComponentFactory(node) && !isLegacyFactoryDecl(node)) {
-      for (final comment in allSurroundingComments(
-          node.variables?.variables?.first?.initializer, sourceFile)) {
+    if (isClassOrConnectedComponentFactory(node) &&
+        !isLegacyFactoryDecl(node)) {
+      final generatedFactory = getGeneratedFactory(node);
+      for (final comment in _findPossibleIgnoreComments(generatedFactory)) {
         removeIgnoreComment(comment, ignoreToRemove, yieldPatch);
       }
 
@@ -62,4 +63,20 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
 
   @override
   bool shouldSkip(String sourceText) => hasParseErrors(sourceText);
+
+  Iterable<Token> _findPossibleIgnoreComments(
+      SimpleIdentifier generatedFactoryNode) sync* {
+    final lineNumber = sourceFile.getLine(generatedFactoryNode.offset);
+    for (var comment in allComments(generatedFactoryNode.root.beginToken)) {
+      final commentLineNumber = sourceFile.getLine(comment.offset);
+      final commentAppliesToNode =
+          // EOL comments
+          commentLineNumber == lineNumber ||
+              // Comments on the previous line
+              commentLineNumber == lineNumber - 1;
+      if (commentAppliesToNode) {
+        yield comment;
+      }
+    }
+  }
 }

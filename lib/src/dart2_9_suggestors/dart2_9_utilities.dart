@@ -15,54 +15,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
-import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_constants.dart';
 
-/// Returns the generated factory argument from [argList] in `connect` usages.
-///
-/// This utility verifies that [argList] is being passed to a `connect` or
-/// `connectFlux` function in the following format:
-/// ```
-/// UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-///   // ...
-/// )(_$Foo); // [argList]
-/// ```
-///
-/// Returns `null` if no generated argument is found or if [argList] is not used
-/// with `connect`.
-///
-/// Example:
-///
-/// | input                          | output |
-/// |--------------------------------|--------|
-/// | (_$Foo)                        | _$Foo  |
-/// | (castUiFactory(_$Foo))         | _$Foo  |
-/// | (Foo)                          | null   |
-SimpleIdentifier getConnectGeneratedFactoryArg(ArgumentList argList) {
-  final args = argList.arguments;
-  if (args.length != 1) return null;
-
-  final generatedPrefix = '_\$';
-
-  final method =
-      argList.thisOrAncestorOfType<FunctionExpressionInvocation>()?.function;
-  if (method is MethodInvocation &&
-      connectFunctionNames.contains(method.methodName.name)) {
-    final generatedArg = args.first;
-    if (generatedArg is SimpleIdentifier) {
-      return generatedArg.name.startsWith(generatedPrefix)
-          ? generatedArg
-          : null;
-    } else if (generatedArg is MethodInvocation &&
-        generatedArg.methodName.name == castFunctionName) {
-      final arg = generatedArg.argumentList.arguments.first;
-      return arg is SimpleIdentifier && arg.name.startsWith(generatedPrefix)
-          ? arg
-          : null;
-    }
-  }
-
-  return null;
-}
+import '../util.dart';
 
 /// Returns the generated factory config argument from [argList].
 ///
@@ -91,30 +45,45 @@ SimpleIdentifier getGeneratedFactoryConfigArg(ArgumentList argList) {
       : null;
 }
 
-/// Returns whether or not [node] is a class component factory declaration.
-bool isClassComponentFactory(TopLevelVariableDeclaration node) {
+/// Returns the generated factory in the initializer of [node].
+///
+/// Returns null if a generated factory is not found.
+///
+/// Example:
+///
+/// | input                                                                | output |
+/// |----------------------------------------------------------------------|--------|
+/// | UiFactory<FooProps> Foo = _$Foo;                                     | _$Foo  |
+/// | UiFactory<FooProps> Foo = connect<SomeState, FooProps>(...)(_$Foo);  | _$Foo  |
+/// | UiFactory<FooProps> Foo = uiFunction((props) {}, _$FooConfig);       | null   |
+SimpleIdentifier getGeneratedFactory(TopLevelVariableDeclaration node) {
   final type = node.variables?.type;
   if (type != null && type is NamedType && type?.name?.name == 'UiFactory') {
-    final initializer = node.variables?.variables?.first?.initializer;
-    if (initializer is SimpleIdentifier) {
-      return initializer.name.startsWith('_\$');
-    } else if (initializer is MethodInvocation &&
-        initializer.methodName.name == castFunctionName) {
-      return initializer.argumentList.arguments.first
-          .toSource()
-          .startsWith('_\$');
+    final initializer = node.variables.variables.first.initializer;
+    if (initializer != null) {
+      final name = node.variables.variables.first.name.name;
+      final generatedName = r'_$' + name;
+      if (initializer is SimpleIdentifier && initializer.name == generatedName)
+        return initializer;
+      return allDescendantsOfType<SimpleIdentifier>(initializer).firstWhere(
+          (identifier) => identifier.name == generatedName,
+          orElse: () => null);
     }
   }
 
-  return false;
+  return null;
 }
+
+/// Returns whether or not [node] is a class or connected component factory declaration.
+bool isClassOrConnectedComponentFactory(TopLevelVariableDeclaration node) =>
+    getGeneratedFactory(node) != null;
 
 /// Returns whether or not [node] is in the legacy boilerplate syntax.
 bool isLegacyFactoryDecl(TopLevelVariableDeclaration node) {
   final annotation = node.metadata?.firstWhere(
       (m) => m.toSource().startsWith('@Factory'),
       orElse: () => null);
-  return isClassComponentFactory(node) && annotation != null;
+  return isClassOrConnectedComponentFactory(node) && annotation != null;
 }
 
 /// Iterates through the [comment] token stream and removes all ignore

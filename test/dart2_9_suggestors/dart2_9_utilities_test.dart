@@ -20,120 +20,6 @@ import 'package:test/test.dart';
 
 void main() {
   group('Dart 2.9 Utilities:', () {
-    group('getConnectGeneratedFactoryArg()', () {
-      group('returns null', () {
-        void _expectNullReturnValue(String input) {
-          final unit = parseString(content: input).unit;
-          final argList = (unit.declarations
-                  .whereType<TopLevelVariableDeclaration>()
-                  .first
-                  .variables
-                  .variables
-                  .first
-                  .initializer as FunctionExpressionInvocation)
-              .argumentList;
-
-          expect(getConnectGeneratedFactoryArg(argList), isNull);
-        }
-
-        test('when there are too many arguments', () {
-          _expectNullReturnValue('''
-            UiFactory<FooProps> Foo = connect()(
-              _\$Foo,
-              'another arg',
-            );
-          ''');
-        });
-
-        test('when when the method call is not connect', () {
-          _expectNullReturnValue('''
-            UiFactory<FooProps> Foo = someOtherMethod()(_\$Foo);
-          ''');
-        });
-      });
-
-      group('returns the generated factory argument for connected components',
-          () {
-        void _expectGeneratedFactoryName({String input, String expectedName}) {
-          final unit = parseString(content: input).unit;
-          final argList = (unit.declarations
-                  .whereType<TopLevelVariableDeclaration>()
-                  .first
-                  .variables
-                  .variables
-                  .first
-                  .initializer as FunctionExpressionInvocation)
-              .argumentList;
-
-          final returnValue = getConnectGeneratedFactoryArg(argList);
-          expect(returnValue, isA<SimpleIdentifier>());
-          expect(returnValue.name, expectedName);
-        }
-
-        test('for `connect`', () {
-          _expectGeneratedFactoryName(
-            input: '''
-              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-                mapStateToProps: (state) => (Foo()
-                  ..foo = state.foo
-                  ..bar = state.bar
-                ),
-              )(_\$Foo); // ignore: undefined_identifier
-            ''',
-            expectedName: '_\$Foo',
-          );
-        });
-
-        test('for `connectFlux`', () {
-          _expectGeneratedFactoryName(
-            input: '''
-              UiFactory<FooProps> Foo = connectFlux<SomeState, FooProps>(
-                mapStateToProps: (state) => (Foo()
-                  ..foo = state.foo
-                  ..bar = state.bar
-                ),
-              )(_\$Foo); // ignore: undefined_identifier
-            ''',
-            expectedName: '_\$Foo',
-          );
-        });
-
-        test('for `composeHocs`', () {
-          _expectGeneratedFactoryName(
-            input: '''
-              UiFactory<FooProps> Foo = composeHocs([
-                connect<RandomColorStore, FooProps>(
-                  context: randomColorStoreContext,
-                  mapStateToProps: (_) => {},
-                  pure: false,
-                ),
-                connect<LowLevelStore, FooProps>(
-                  context: lowLevelStoreContext,
-                  mapStateToProps: (_) => {},
-                  pure: false,
-                ),
-              ])(_\$Foo); // ignore: undefined_identifier
-            ''',
-            expectedName: '_\$Foo',
-          );
-        });
-
-        test('when the argument is type casted', () {
-          _expectGeneratedFactoryName(
-            input: '''
-              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
-                mapStateToProps: (state) => (Foo()
-                  ..foo = state.foo
-                  ..bar = state.bar
-                ),
-              )($castFunctionName(_\$Foo)); // ignore: undefined_identifier
-            ''',
-            expectedName: '_\$Foo',
-          );
-        });
-      });
-    });
-
     group('getGeneratedFactoryConfigArg()', () {
       group('returns null', () {
         void _expectNullReturnValue(String input) {
@@ -284,87 +170,167 @@ void main() {
       });
     });
 
-    group('isClassComponentFactory()', () {
-      group('returns false', () {
-        void _expectFalse({String input}) {
+    group('getGeneratedFactory() and isClassOrConnectedComponentFactory()', () {
+      group('returns null and false, respectively', () {
+        void _expectNullReturnValue(String input) {
           final unit = parseString(content: input).unit;
           final decl =
-              unit.declarations.whereType<TopLevelVariableDeclaration>()?.first;
+              unit.declarations.whereType<TopLevelVariableDeclaration>().first;
 
-          expect(isClassComponentFactory(decl), isFalse);
+          expect(getGeneratedFactory(decl), isNull);
+          expect(isClassOrConnectedComponentFactory(decl), isFalse);
         }
 
-        test('when there is explicit type casting and no left hand typing', () {
-          _expectFalse(input: '''
-            final Foo = _\$Foo as UiFactory<FooProps>; // ignore: undefined_identifier
-          ''');
-        });
-
-        test('when there is explicit type casting', () {
-          _expectFalse(input: '''
-            UiFactory<FooProps> Foo = _\$Foo as UiFactory<FooProps>; // ignore: undefined_identifier
-          ''');
-        });
-
-        test('when the initializer is a non-cast method call', () {
-          _expectFalse(input: '''
-            UiFactory<FooProps> Foo = someMethod(_\$Foo);
-          ''');
-        });
-
         test('when the initializer is not generated', () {
-          _expectFalse(input: '''
+          _expectNullReturnValue('''
             UiFactory<FooProps> Foo = someFactory;
           ''');
         });
 
         test('when the input is not a component factory', () {
-          _expectFalse(input: '''
-            DriverFactory driverFactory = createDriver;
+          _expectNullReturnValue('''
+            DriverFactory driverFactory = _\$Foo;
+          ''');
+        });
+
+        test('when the generated name does not match the factory name', () {
+          _expectNullReturnValue('''
+            UiFactory<BarProps> Bar = _\$Foo;
+          ''');
+        });
+
+        test('for function components', () {
+          _expectNullReturnValue('''
+            UiFactory<FooProps> Foo = uiFunction((props) {}, _\$FooConfig);
           ''');
         });
       });
 
-      group('returns true', () {
-        void _expectTrue({String input}) {
+      group('returns the generated factory and true, respectively', () {
+        void _expectGeneratedFactoryName({String input, String expectedName}) {
           final unit = parseString(content: input).unit;
           final decl =
-              unit.declarations.whereType<TopLevelVariableDeclaration>()?.first;
+              unit.declarations.whereType<TopLevelVariableDeclaration>().first;
 
-          expect(isClassComponentFactory(decl), isTrue);
+          final returnValue = getGeneratedFactory(decl);
+          expect(returnValue, isA<SimpleIdentifier>());
+          expect(returnValue.name, expectedName);
+
+          expect(isClassOrConnectedComponentFactory(decl), isTrue);
         }
 
         test('when the factory is annotated', () {
-          _expectTrue(input: '''
+          _expectGeneratedFactoryName(
+            input: '''
             @Factory()
             UiFactory<FooProps> Foo = _\$Foo; // ignore: undefined_identifier
-          ''');
+          ''',
+            expectedName: '_\$Foo',
+          );
         });
 
         test('when the factory is not annotated', () {
-          _expectTrue(input: '''
+          _expectGeneratedFactoryName(
+            input: '''
             UiFactory<FooProps> Foo = _\$Foo; // ignore: undefined_identifier
-          ''');
+          ''',
+            expectedName: '_\$Foo',
+          );
         });
 
         test('without ignore comment', () {
-          _expectTrue(input: '''
+          _expectGeneratedFactoryName(
+            input: '''
             UiFactory<FooProps> Foo = _\$Foo;
-          ''');
+          ''',
+            expectedName: '_\$Foo',
+          );
+        });
+
+        test('when the initializer is wrapped in some function', () {
+          _expectGeneratedFactoryName(
+            input: '''
+            UiFactory<FooProps> Foo = wrapper(_\$Foo);
+          ''',
+            expectedName: '_\$Foo',
+          );
         });
 
         test('when the ignore comment is before the initializer', () {
-          _expectTrue(input: '''
+          _expectGeneratedFactoryName(
+            input: '''
             UiFactory<FooProps> Foo = 
               // ignore: undefined_identifier
               _\$Foo;
-          ''');
+          ''',
+            expectedName: '_\$Foo',
+          );
         });
 
         test('with type casting function', () {
-          _expectTrue(input: '''
+          _expectGeneratedFactoryName(
+            input: '''
             UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); // ignore: undefined_identifier
-          ''');
+          ''',
+            expectedName: '_\$Foo',
+          );
+        });
+
+        test('when the generated factory is nested in wrapper functions', () {
+          _expectGeneratedFactoryName(
+            input: '''
+              UiFactory<FooProps> Foo = wrapper(anotherFunction(someFunction(_\$Foo))); // ignore: undefined_identifier
+            ''',
+            expectedName: '_\$Foo',
+          );
+        });
+
+        test('for connected components', () {
+          _expectGeneratedFactoryName(
+            input: '''
+              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+                mapStateToProps: (state) => (Foo()
+                  ..foo = state.foo
+                  ..bar = state.bar
+                ),
+              )(_\$Foo); // ignore: undefined_identifier
+            ''',
+            expectedName: '_\$Foo',
+          );
+        });
+
+        test('for connected components with type casting', () {
+          _expectGeneratedFactoryName(
+            input: '''
+              UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
+                mapStateToProps: (state) => (Foo()
+                  ..foo = state.foo
+                  ..bar = state.bar
+                ),
+              )($castFunctionName(_\$Foo)); // ignore: undefined_identifier
+            ''',
+            expectedName: '_\$Foo',
+          );
+        });
+
+        test('for `composeHocs`', () {
+          _expectGeneratedFactoryName(
+            input: '''
+              UiFactory<FooProps> Foo = composeHocs([
+                connect<RandomColorStore, FooProps>(
+                  context: randomColorStoreContext,
+                  mapStateToProps: (_) => {},
+                  pure: false,
+                ),
+                connect<LowLevelStore, FooProps>(
+                  context: lowLevelStoreContext,
+                  mapStateToProps: (_) => {},
+                  pure: false,
+                ),
+              ])(_\$Foo); // ignore: undefined_identifier
+            ''',
+            expectedName: '_\$Foo',
+          );
         });
       });
     });
