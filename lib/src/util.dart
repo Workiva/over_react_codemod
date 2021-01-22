@@ -28,7 +28,6 @@ import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
-import 'package:source_span/source_span.dart';
 
 import 'component2_suggestors/component2_utilities.dart';
 import 'constants.dart';

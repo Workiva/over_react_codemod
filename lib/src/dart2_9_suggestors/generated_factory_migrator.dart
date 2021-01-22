@@ -33,11 +33,11 @@ class GeneratedFactoryMigrator extends RecursiveAstVisitor
     if (isClassOrConnectedComponentFactory(node) &&
         !isLegacyFactoryDecl(node)) {
       final generatedFactory = getGeneratedFactory(node);
-      if (generatedFactory
-              .thisOrAncestorOfType<MethodInvocation>()
-              ?.methodName
-              ?.name ==
-          castFunctionName) return;
+      final parentMethod = generatedFactory?.parent?.parent;
+      if (parentMethod is MethodInvocation &&
+          parentMethod.methodName?.name == castFunctionName) {
+        return;
+      }
 
       yieldPatch(generatedFactory.offset, generatedFactory.offset,
           '$castFunctionName(');
