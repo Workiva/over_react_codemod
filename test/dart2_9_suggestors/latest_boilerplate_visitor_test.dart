@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:over_react_codemod/src/dart2_9_suggestors/latest_boilerplate_suggestor.dart';
+import 'package:over_react_codemod/src/dart2_9_suggestors/latest_boilerplate_visitor.dart';
 import 'package:test/test.dart';
 
 void main() {
