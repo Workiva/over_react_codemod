@@ -16,6 +16,9 @@
 /// codemod or suggestor.
 library over_react_codemod.src.util;
 
+import 'dart:collection';
+
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:args/args.dart';
@@ -47,6 +50,12 @@ Iterable<Token> allComments(Token beginToken) sync* {
       currentComment = currentComment.next;
     }
     currentToken = currentToken.next;
+  }
+  // Also check comments preceding EOF.
+  var currentComment = currentToken.precedingComments;
+  while (currentComment != null) {
+    yield currentComment;
+    currentComment = currentComment.next;
   }
 }
 
@@ -611,3 +620,32 @@ Iterable<String> allDartPathsExceptHidden() =>
 Iterable<String> allDartPathsExceptHiddenAndGenerated() =>
     filePathsFromGlob(Glob('**.dart', recursive: true))
         .where((path) => !path.endsWith('.g.dart'));
+
+/// Returns whether or not [sourceText] contains invalid code.
+///
+/// Used to override [Suggestor.shouldSkip] when parsing errors should be
+/// skipped instead of thrown when [Suggestor.generatePatches] is called.
+bool hasParseErrors(String sourceText) {
+  final parsed = parseString(content: sourceText, throwIfDiagnostics: false);
+  return parsed.errors.isNotEmpty;
+}
+
+/// Returns a lazy iterable of all descendants of [node], in breadth-first order.
+Iterable<AstNode> allDescendants(AstNode node) sync* {
+  final nodesQueue = Queue<AstNode>()..add(node);
+  while (nodesQueue.isNotEmpty) {
+    final current = nodesQueue.removeFirst();
+    if (current == null) return;
+
+    for (final child in current.childEntities) {
+      if (child is AstNode) {
+        yield child;
+        nodesQueue.add(child);
+      }
+    }
+  }
+}
+
+/// Returns a lazy iterable of all descendants of [node] of type [T], in breadth-first order.
+Iterable<T> allDescendantsOfType<T extends AstNode>(AstNode node) =>
+    allDescendants(node).whereType<T>();

@@ -541,7 +541,7 @@ void overReactExample() {}''';
             var two;
 
             // Comment3
-          }
+          } // Comment4
         ''';
 
       final astNode = parseString(content: content).unit;
@@ -554,7 +554,7 @@ void overReactExample() {}''';
       test('correctly iterates over all comments', () {
         commentCount = allComments(astNode.beginToken).length;
 
-        expect(commentCount, 3);
+        expect(commentCount, 4);
       });
 
       test('only finds comments after the provided starting node', () {
@@ -568,7 +568,7 @@ void overReactExample() {}''';
 
         commentCount = allComments(firstVar).length;
 
-        expect(commentCount, 1);
+        expect(commentCount, 2);
       });
     });
 
@@ -626,6 +626,148 @@ void overReactExample() {}''';
           '/* multiline comment */',
           '// single line comment',
         ]);
+      });
+    });
+
+    group('hasParseErrors()', () {
+      test('when sourceText contains invalid code', () {
+        expect(
+          hasParseErrors('a = 1;'),
+          isTrue,
+        );
+      });
+
+      test('when sourceText contains valid code', () {
+        expect(
+          hasParseErrors('final a = 1;'),
+          isFalse,
+        );
+      });
+    });
+
+    group('allDescendants()', () {
+      TopLevelVariableDeclaration parseAndGetSingle(String source) =>
+          parseString(content: source)
+              .unit
+              .declarations
+              .whereType<TopLevelVariableDeclaration>()
+              .single;
+
+      test('returns all descendants for a node', () {
+        final node = parseAndGetSingle('''
+          UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
+        ''');
+
+        expect(
+            allDescendants(node).toList(),
+            unorderedEquals([
+              isA<VariableDeclarationList>().having(
+                (node) => node.toSource(),
+                'string value',
+                'UiFactory<FooProps> Foo = castUiFactory(_\$Foo)',
+              ),
+              isA<VariableDeclaration>().having(
+                (node) => node.toSource(),
+                'string value',
+                'Foo = castUiFactory(_\$Foo)',
+              ),
+              isA<TypeName>()
+                  .having((node) => node.name.name, 'name', 'UiFactory'),
+              isA<TypeName>()
+                  .having((node) => node.name.name, 'name', 'FooProps'),
+              isA<MethodInvocation>().having((node) => node.methodName.name,
+                  'methodName', 'castUiFactory'),
+              isA<TypeArgumentList>().having(
+                  (node) => node.arguments.toList(), 'arguments', [
+                isA<TypeName>()
+                    .having((node) => node.name.name, 'name', 'FooProps')
+              ]),
+              isA<ArgumentList>().having(
+                  (node) => node.arguments.toList(), 'arguments', [
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', '_\$Foo')
+              ]),
+              isA<SimpleIdentifier>()
+                  .having((node) => node.name, 'name', 'Foo'),
+              isA<SimpleIdentifier>()
+                  .having((node) => node.name, 'name', 'UiFactory'),
+              isA<SimpleIdentifier>()
+                  .having((node) => node.name, 'name', 'FooProps'),
+              isA<SimpleIdentifier>()
+                  .having((node) => node.name, 'name', '_\$Foo'),
+              isA<SimpleIdentifier>()
+                  .having((node) => node.name, 'name', 'castUiFactory'),
+            ]));
+      });
+
+      test('returns empty list when input is null', () {
+        expect(allDescendants(null).toList(), isEmpty);
+      });
+
+      test('returns empty list when input has no descendants', () {
+        final node = parseAndGetSingle('''
+          UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
+        ''').variables.variables.first.name;
+
+        expect(allDescendants(node).toList(), isEmpty);
+      });
+    });
+
+    group('allDescendantsOfType()', () {
+      TopLevelVariableDeclaration parseAndGetSingle(String source) =>
+          parseString(content: source)
+              .unit
+              .declarations
+              .whereType<TopLevelVariableDeclaration>()
+              .single;
+
+      group('returns all descendants of the specified type for a node', () {
+        final node = parseAndGetSingle('''
+          UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
+        ''');
+
+        test('when there are many descendants of a type', () {
+          expect(
+              allDescendantsOfType<SimpleIdentifier>(node).toList(),
+              unorderedEquals([
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'Foo'),
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'UiFactory'),
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'FooProps'),
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', '_\$Foo'),
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'castUiFactory'),
+              ]));
+        });
+
+        test('when there is one descendant of a type', () {
+          expect(
+              allDescendantsOfType<MethodInvocation>(node).toList(),
+              unorderedEquals([
+                isA<MethodInvocation>().having((node) => node.methodName.name,
+                    'methodName', 'castUiFactory'),
+              ]));
+        });
+
+        test('when there are no descendants of a type', () {
+          expect(
+              allDescendantsOfType<MethodDeclaration>(node).toList(), isEmpty);
+        });
+      });
+
+      test('when input is null', () {
+        expect(allDescendantsOfType<SimpleIdentifier>(null).toList(), isEmpty);
+      });
+
+      test('when input has no descendants', () {
+        final node = parseAndGetSingle('''
+          UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
+        ''').variables.variables.first.name;
+
+        expect(allDescendantsOfType<SimpleIdentifier>(node).toList(), isEmpty);
       });
     });
   });
