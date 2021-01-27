@@ -222,6 +222,24 @@ void main() {
             expect(boilerplateVisitor.detectedLatestBoilerplate, true);
           });
 
+          test('with multiple factories (with one non-legacy)', () {
+            const src = r'''
+            UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier
+            
+            UiFactory<BarProps> Bar = 
+              // ignore: undefined_identifier
+              castUiFactory(_$Bar); 
+            
+            // ignore: undefined_identifier
+            UiFactory<BazProps> Baz = _$Baz;
+            ''';
+
+            final boilerplateVisitor = LatestBoilerplateVisitor();
+            parseString(content: src).unit.accept(boilerplateVisitor);
+
+            expect(boilerplateVisitor.detectedLatestBoilerplate, true);
+          });
+
           group('that is connected', () {
             test('(simple)', () {
               const src = r'''
@@ -338,6 +356,25 @@ void main() {
             final Foo = uiForwardRef<FooProps>(
                 (props, ref) {},
                 _$FooConfig, // ignore: undefined_identifier
+              );
+              
+              UiFactory<BarProps> Bar = uiFunction(
+                (props) {}, 
+                _$BarConfig, // ignore: undefined_identifier
+              );
+              ''';
+
+            final boilerplateVisitor = LatestBoilerplateVisitor();
+            parseString(content: src).unit.accept(boilerplateVisitor);
+
+            expect(boilerplateVisitor.detectedLatestBoilerplate, true);
+          });
+
+          test('with multiple factories (with one non-legacy)', () {
+            const src = r'''
+            final Foo = uiForwardRef<FooProps>(
+                (props, ref) {},
+                $FooConfig, // ignore: undefined_identifier
               );
               
               UiFactory<BarProps> Bar = uiFunction(
