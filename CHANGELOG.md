@@ -1,3 +1,9 @@
+## [1.12.0](https://github.com/Workiva/over_react_codemod/compare/1.12.0...1.11.0)
+
+- Add `dart2_9_upgrade` executable that can either:
+  - Upgrade a repo from the mixin based boilerplate to the new factory syntax.
+  - Perform a dry run (using the `--check-for-transitioning` flag) to check if the repo has migrated but also contains the now deprecated mixin based factories.
+
 ## [1.11.0](https://github.com/Workiva/over_react_codemod/compare/1.11.0...1.10.0)
 
 - Update the `react17_dependency_override_update` codemod to add overrides that point to the release branches for React 17 instead of alpha versions.
