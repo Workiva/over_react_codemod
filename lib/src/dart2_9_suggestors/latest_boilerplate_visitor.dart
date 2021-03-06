@@ -26,8 +26,7 @@ import 'dart2_9_utilities.dart';
 /// This makes no suggested patches, but will change [detectedLatestBoilerplate]
 /// to `true` if new boilerplate is found.
 class LatestBoilerplateVisitor extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   bool detectedLatestBoilerplate = false;
 
   @override
@@ -64,5 +63,5 @@ class LatestBoilerplateVisitor extends RecursiveAstVisitor
   }
 
   @override
-  bool shouldSkip(String sourceText) => hasParseErrors(sourceText);
+  bool shouldSkip(FileContext context) => hasParseErrors(context.sourceText);
 }

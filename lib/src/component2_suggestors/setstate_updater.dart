@@ -20,9 +20,7 @@ import 'component2_utilities.dart';
 
 /// Suggestor that updates a [setState] call to [setStateWithUpdater] in the
 /// case that the first argument is a function.
-class SetStateUpdater extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+class SetStateUpdater extends GeneralizingAstVisitor with AstVisitingSuggestor {
   final bool allowPartialUpgrades;
   final bool shouldUpgradeAbstractComponents;
 
@@ -53,9 +51,9 @@ class SetStateUpdater extends GeneralizingAstVisitor
       if (node.methodName.name == 'setState') {
         if (firstArg is FunctionExpression) {
           yieldPatch(
+            'setStateWithUpdater',
             node.methodName.offset,
             node.methodName.end,
-            'setStateWithUpdater',
           );
         }
       }

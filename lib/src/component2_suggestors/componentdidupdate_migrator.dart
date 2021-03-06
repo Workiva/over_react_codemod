@@ -19,8 +19,7 @@ import 'package:over_react_codemod/src/component2_suggestors/component2_utilitie
 
 /// Suggestor that adds an optional `snapshot` argument to `componentDidUpdate`.
 class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final bool allowPartialUpgrades;
   final bool shouldUpgradeAbstractComponents;
 
@@ -46,8 +45,8 @@ class ComponentDidUpdateMigrator extends GeneralizingAstVisitor
     if (extendsComponent2(containingClass)) {
       if (node.name.name == 'componentDidUpdate') {
         if (node.parameters.parameters.length == 2) {
-          yieldPatch(node.parameters.rightParenthesis.offset,
-              node.parameters.rightParenthesis.offset, ', [snapshot]');
+          yieldPatch(', [snapshot]', node.parameters.rightParenthesis.offset,
+              node.parameters.rightParenthesis.offset);
         }
       }
     }

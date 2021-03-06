@@ -59,8 +59,8 @@ void sharedPubspecTest({
   final patchCount = shouldUpdate ? 1 : 0;
   final key = isDevDependency ? 'dev_dependencies' : 'dependencies';
 
-  test('does nothing if there is no dependency key', () {
-    testSuggestor(
+  test('does nothing if there is no dependency key', () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       shouldDartfmtOutput: false,
       validateContents: validatePubspecYaml,
@@ -75,8 +75,8 @@ void sharedPubspecTest({
     );
   });
 
-  test('does nothing if the dependency matches the target already', () {
-    testSuggestor(
+  test('does nothing if the dependency matches the target already', () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       shouldDartfmtOutput: false,
       validateContents: validatePubspecYaml,
@@ -93,8 +93,8 @@ void sharedPubspecTest({
     );
   });
 
-  test('does nothing if the dependency is set to `any`', () {
-    testSuggestor(
+  test('does nothing if the dependency is set to `any`', () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       shouldDartfmtOutput: false,
       validateContents: validatePubspecYaml,
@@ -115,8 +115,8 @@ void sharedPubspecTest({
 
   test(
       '${shouldAddDependencies ? 'adds the' : 'does not add the'} dependency '
-      'if missing', () {
-    testSuggestor(
+      'if missing', () async {
+    await testSuggestor(
       expectedPatchCount: shouldAddDependencies ? 1 : 0,
       shouldDartfmtOutput: false,
       validateContents: validatePubspecYaml,
@@ -133,8 +133,8 @@ void sharedPubspecTest({
   });
 
   group('updates the caret syntax', () {
-    test('', () {
-      testSuggestor(
+    test('', () async {
+      await testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
@@ -155,8 +155,8 @@ void sharedPubspecTest({
 
     test(
         '${shouldUpdateMidRange ? '' : 'except'} when the version is within the expected range',
-        () {
-      testSuggestor(
+        () async {
+      await testSuggestor(
         expectedPatchCount: shouldUpdateMidRange ? 1 : 0,
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
@@ -175,8 +175,8 @@ void sharedPubspecTest({
       );
     });
 
-    test('with single quotes', () {
-      testSuggestor(
+    test('with single quotes', () async {
+      await testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
@@ -195,8 +195,8 @@ void sharedPubspecTest({
       );
     });
 
-    test('with double quotes', () {
-      testSuggestor(
+    test('with double quotes', () async {
+      await testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
@@ -217,8 +217,8 @@ void sharedPubspecTest({
   });
 
   group('updates the range syntax', () {
-    test('with single quotes', () {
-      testSuggestor(
+    test('with single quotes', () async {
+      await testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
@@ -237,8 +237,8 @@ void sharedPubspecTest({
       );
     });
 
-    test('with double quotes', () {
-      testSuggestor(
+    test('with double quotes', () async {
+      await testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
@@ -259,8 +259,8 @@ void sharedPubspecTest({
   });
 
   group('updates mid-only range', () {
-    test('', () {
-      testSuggestor(
+    test('', () async {
+      await testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
@@ -279,8 +279,8 @@ void sharedPubspecTest({
       );
     });
 
-    test('with single quotes', () {
-      testSuggestor(
+    test('with single quotes', () async {
+      await testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
@@ -299,8 +299,8 @@ void sharedPubspecTest({
       );
     });
 
-    test('with double quotes', () {
-      testSuggestor(
+    test('with double quotes', () async {
+      await testSuggestor(
         expectedPatchCount: patchCount,
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,

@@ -31,19 +31,19 @@ const _changesRequiredOutput = """
 Then, review the the changes and commit.
 """;
 
-void main(List<String> args) {
+void main(List<String> args) async {
   final reactVersionConstraint =
       VersionConstraint.parse(reactVersionRangeForTesting);
   final overReactVersionConstraint =
       VersionConstraint.parse(overReactVersionRangeForTesting);
 
-  exitCode = runInteractiveCodemod(
+  exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
-    AggregateSuggestor([
+    aggregate([
       PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
       PubspecOverReactUpgrader(overReactVersionConstraint,
           shouldAddDependencies: true)
-    ].map((s) => Ignoreable(s))),
+    ].map((s) => ignoreable(s))),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,

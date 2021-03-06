@@ -22,12 +22,12 @@ main() {
   group('GeneratedFactoryMigrator', () {
     final testSuggestor = getSuggestorTester(GeneratedFactoryMigrator());
 
-    test('empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
+    test('empty file', () async {
+      await testSuggestor(expectedPatchCount: 0, input: '');
     });
 
-    test('no matches', () {
-      testSuggestor(
+    test('no matches', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           library foo;
@@ -39,8 +39,8 @@ main() {
 
     group('on Component Factory Declarations:', () {
       group('does not update', () {
-        test('legacy boilerplate', () {
-          testSuggestor(
+        test('legacy boilerplate', () async {
+          await testSuggestor(
             expectedPatchCount: 0,
             input: '''
               @Factory()
@@ -49,8 +49,8 @@ main() {
           );
         });
 
-        test('a non-component factory declaration', () {
-          testSuggestor(
+        test('a non-component factory declaration', () async {
+          await testSuggestor(
             expectedPatchCount: 0,
             input: '''
               DriverFactory driverFactory = createDriver;
@@ -58,8 +58,8 @@ main() {
           );
         });
 
-        test('if already updated', () {
-          testSuggestor(
+        test('if already updated', () async {
+          await testSuggestor(
             expectedPatchCount: 0,
             input: '''
               UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); // ignore: undefined_identifier
@@ -68,8 +68,8 @@ main() {
         });
       });
 
-      test('correctly updates declaration', () {
-        testSuggestor(
+      test('correctly updates declaration', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             UiFactory<FooProps> Foo = _\$Foo; // ignore: undefined_identifier
@@ -80,8 +80,8 @@ main() {
         );
       });
 
-      test('with a wrapper function', () {
-        testSuggestor(
+      test('with a wrapper function', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             UiFactory<FooProps> Foo = someMethod(_\$Foo); // ignore: undefined_identifier
@@ -92,26 +92,26 @@ main() {
         );
       });
 
-      test('when there are multiple factories', () {
-        testSuggestor(
+      test('when there are multiple factories', () async {
+        await testSuggestor(
           expectedPatchCount: 6,
           input: '''
             UiFactory<FooProps> Foo = _\$Foo; // ignore: undefined_identifier
-            
-            UiFactory<BarProps> Bar = 
+
+            UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
-              _\$Bar; 
-            
+              _\$Bar;
+
             // ignore: undefined_identifier
             UiFactory<BazProps> Baz = _\$Baz;
           ''',
           expectedOutput: '''
             UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); // ignore: undefined_identifier
-            
-            UiFactory<BarProps> Bar = 
+
+            UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
-              $castFunctionName(_\$Bar); 
-            
+              $castFunctionName(_\$Bar);
+
             // ignore: undefined_identifier
             UiFactory<BazProps> Baz = $castFunctionName(_\$Baz);
           ''',
@@ -121,8 +121,8 @@ main() {
 
     group('on Connected Components:', () {
       group('does not update', () {
-        test('if already updated', () {
-          testSuggestor(
+        test('if already updated', () async {
+          await testSuggestor(
             expectedPatchCount: 0,
             input: '''
               UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
@@ -135,8 +135,8 @@ main() {
           );
         });
 
-        test('factory config arguments', () {
-          testSuggestor(
+        test('factory config arguments', () async {
+          await testSuggestor(
             expectedPatchCount: 0,
             input: '''
               UiFactory<FooProps> Foo = uiFunction(
@@ -148,8 +148,8 @@ main() {
         });
       });
 
-      test('with `connectFlux` function', () {
-        testSuggestor(
+      test('with `connectFlux` function', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             UiFactory<FooProps> Foo = connectFlux<SomeState, FooProps>(
@@ -170,8 +170,8 @@ main() {
         );
       });
 
-      test('with `composeHocs` function', () {
-        testSuggestor(
+      test('with `composeHocs` function', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             UiFactory<FooProps> Foo = composeHocs([
@@ -204,8 +204,8 @@ main() {
         );
       });
 
-      test('without trailing comma', () {
-        testSuggestor(
+      test('without trailing comma', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
@@ -226,8 +226,8 @@ main() {
         );
       });
 
-      test('with trailing comma', () {
-        testSuggestor(
+      test('with trailing comma', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
@@ -252,12 +252,12 @@ main() {
         );
       });
 
-      test('when there are two factories', () {
-        testSuggestor(
+      test('when there are two factories', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             UiFactory<FooProps> UnconnectedFoo = _\$UnconnectedFoo; // ignore: undefined_identifier
-            
+
             UiFactory<FooProps> Foo =
                 connect<SomeState, FooProps>(
               mapStateToProps: (state) => (UnconnectedFoo()
@@ -268,7 +268,7 @@ main() {
           ''',
           expectedOutput: '''
             UiFactory<FooProps> UnconnectedFoo = $castFunctionName(_\$UnconnectedFoo); // ignore: undefined_identifier
-            
+
             UiFactory<FooProps> Foo =
                 connect<SomeState, FooProps>(
               mapStateToProps: (state) => (UnconnectedFoo()

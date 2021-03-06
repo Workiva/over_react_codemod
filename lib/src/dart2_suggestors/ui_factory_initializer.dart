@@ -22,8 +22,7 @@ import '../util.dart';
 /// Suggestor that inserts the expected initializer value for all `UiFactory`
 /// declarations.
 class UiFactoryInitializer extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   static final RegExp factoryAnnotationPattern =
       RegExp(r'^@Factory\(', multiLine: true);
 
@@ -32,8 +31,8 @@ class UiFactoryInitializer extends RecursiveAstVisitor
   UiFactoryInitializer({this.includeIgnore = false});
 
   @override
-  bool shouldSkip(String sourceFileContents) =>
-      !factoryAnnotationPattern.hasMatch(sourceFileContents);
+  bool shouldSkip(FileContext context) =>
+      !factoryAnnotationPattern.hasMatch(context.sourceText);
 
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
@@ -68,19 +67,19 @@ class UiFactoryInitializer extends RecursiveAstVisitor
     if (factoryNode.initializer != null) {
       // Initializer exits, but does not match the expected value.
       yieldPatch(
+        includeIgnore ? targetInitializerWithIgnore : ' ' + targetInitializer,
         factoryNode.equals.end,
         factoryNode.initializer.end,
-        includeIgnore ? targetInitializerWithIgnore : ' ' + targetInitializer,
       );
     } else {
       // Initializer does not yet exist.
       yieldPatch(
-        factoryNode.name.end,
-        factoryNode.end,
         ' =' +
             (includeIgnore
                 ? targetInitializerWithIgnore
                 : ' ' + targetInitializer),
+        factoryNode.name.end,
+        factoryNode.end,
       );
     }
   }

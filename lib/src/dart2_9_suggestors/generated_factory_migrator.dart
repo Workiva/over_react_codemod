@@ -23,8 +23,7 @@ import 'dart2_9_utilities.dart';
 /// Suggestor that wraps generated factories (both in factory declarations and
 /// connected components) with the `castUiFactory` function.
 class GeneratedFactoryMigrator extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     super.visitTopLevelVariableDeclaration(node);
@@ -39,12 +38,12 @@ class GeneratedFactoryMigrator extends RecursiveAstVisitor
         return;
       }
 
-      yieldPatch(generatedFactory.offset, generatedFactory.offset,
-          '$castFunctionName(');
-      yieldPatch(generatedFactory.end, generatedFactory.end, ')');
+      yieldPatch('$castFunctionName(', generatedFactory.offset,
+          generatedFactory.offset);
+      yieldPatch(')', generatedFactory.end, generatedFactory.end);
     }
   }
 
   @override
-  bool shouldSkip(String sourceText) => hasParseErrors(sourceText);
+  bool shouldSkip(FileContext context) => hasParseErrors(context.sourceText);
 }

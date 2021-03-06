@@ -22,12 +22,12 @@ main() {
   group('ReactDomRenderMigrator', () {
     final testSuggestor = getSuggestorTester(ReactDomRenderMigrator());
 
-    test('empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
+    test('empty file', () async {
+      await testSuggestor(expectedPatchCount: 0, input: '');
     });
 
-    test('no matches', () {
-      testSuggestor(
+    test('no matches', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           library foo;
@@ -37,8 +37,8 @@ main() {
       );
     });
 
-    test('render without usage of return value', () {
-      testSuggestor(
+    test('render without usage of return value', () async {
+      await testSuggestor(
         expectedPatchCount: 3,
         input: '''
           import 'package:react/react_dom.dart' as react_dom;
@@ -58,8 +58,8 @@ main() {
       );
     });
 
-    test('simple usage', () {
-      testSuggestor(
+    test('simple usage', () async {
+      await testSuggestor(
         expectedPatchCount: 7,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -84,8 +84,9 @@ main() {
       );
     });
 
-    test('simple usage already wrapped with ErrorBoundary that has props', () {
-      testSuggestor(
+    test('simple usage already wrapped with ErrorBoundary that has props',
+        () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -99,8 +100,8 @@ main() {
       );
     });
 
-    test('simple usage assignment to existing variable', () {
-      testSuggestor(
+    test('simple usage assignment to existing variable', () async {
+      await testSuggestor(
         expectedPatchCount: 7,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -126,8 +127,8 @@ main() {
       );
     });
 
-    test('simple usage as an argument', () {
-      testSuggestor(
+    test('simple usage as an argument', () async {
+      await testSuggestor(
         expectedPatchCount: 3,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -149,8 +150,8 @@ main() {
       );
     });
 
-    test('simple usage as a return value', () {
-      testSuggestor(
+    test('simple usage as a return value', () async {
+      await testSuggestor(
         expectedPatchCount: 3,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -172,8 +173,8 @@ main() {
       );
     });
 
-    test('simple usage with existing other props', () {
-      testSuggestor(
+    test('simple usage with existing other props', () async {
+      await testSuggestor(
         expectedPatchCount: 5,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -201,8 +202,8 @@ main() {
       );
     });
 
-    test('simple usage with existing ref', () {
-      testSuggestor(
+    test('simple usage with existing ref', () async {
+      await testSuggestor(
         expectedPatchCount: 3,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -230,8 +231,8 @@ main() {
       );
     });
 
-    test('simple usage with existing ref in a void arrow function', () {
-      testSuggestor(
+    test('simple usage with existing ref in a void arrow function', () async {
+      await testSuggestor(
         expectedPatchCount: 3,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -253,8 +254,8 @@ main() {
       );
     });
 
-    test('simple usage with existing ref in an arrow function', () {
-      testSuggestor(
+    test('simple usage with existing ref in an arrow function', () async {
+      await testSuggestor(
         expectedPatchCount: 3,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -276,8 +277,8 @@ main() {
       );
     });
 
-    test('existing ref and assignment', () {
-      testSuggestor(
+    test('existing ref and assignment', () async {
+      await testSuggestor(
         expectedPatchCount: 4,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -304,8 +305,8 @@ main() {
       );
     });
 
-    test('simple usage with non-component usage', () {
-      testSuggestor(
+    test('simple usage with non-component usage', () async {
+      await testSuggestor(
         expectedPatchCount: 16,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -344,8 +345,8 @@ main() {
       );
     });
 
-    test('simple usage with validated ref', () {
-      testSuggestor(
+    test('simple usage with validated ref', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -362,8 +363,8 @@ main() {
       );
     });
 
-    test('simple usage with unvalidated ref', () {
-      testSuggestor(
+    test('simple usage with unvalidated ref', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -380,8 +381,8 @@ main() {
       );
     });
 
-    test('simple usage in a test', () {
-      testSuggestor(
+    test('simple usage in a test', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -396,8 +397,8 @@ main() {
       );
     });
 
-    test('import with double quotes', () {
-      testSuggestor(
+    test('import with double quotes', () async {
+      await testSuggestor(
         expectedPatchCount: 2,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -418,8 +419,8 @@ main() {
       );
     });
 
-    test('imported from `over_react` with namespace', () {
-      testSuggestor(
+    test('imported from `over_react` with namespace', () async {
+      await testSuggestor(
         expectedPatchCount: 2,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -440,8 +441,8 @@ main() {
       );
     });
 
-    test('imported from `over_react` without namespace', () {
-      testSuggestor(
+    test('imported from `over_react` without namespace', () async {
+      await testSuggestor(
         expectedPatchCount: 2,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -462,8 +463,8 @@ main() {
       );
     });
 
-    test('different import namespace', () {
-      testSuggestor(
+    test('different import namespace', () async {
+      await testSuggestor(
         expectedPatchCount: 2,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -484,8 +485,8 @@ main() {
       );
     });
 
-    test('no import namespace', () {
-      testSuggestor(
+    test('no import namespace', () async {
+      await testSuggestor(
         expectedPatchCount: 2,
         input: '''
           import 'package:over_react/over_react.dart';
@@ -506,8 +507,8 @@ main() {
       );
     });
 
-    test('no react_dom.dart import', () {
-      testSuggestor(
+    test('no react_dom.dart import', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           main() {
@@ -518,8 +519,8 @@ main() {
     });
 
     test('no react_dom.dart import but usage has namespace in a `part of` file',
-        () {
-      testSuggestor(expectedPatchCount: 2, input: '''
+        () async {
+      await testSuggestor(expectedPatchCount: 2, input: '''
           part of 'a_file.dart';
 
           main() {
@@ -534,8 +535,8 @@ main() {
         ''');
     });
 
-    test('no react_dom.dart import but usage has namespace', () {
-      testSuggestor(expectedPatchCount: 3, input: '''
+    test('no react_dom.dart import but usage has namespace', () async {
+      await testSuggestor(expectedPatchCount: 3, input: '''
           main() {
             react_dom.render(Foo()(), mountNode);
           }
@@ -548,8 +549,8 @@ main() {
         ''');
     });
 
-    test('no import of over_react but is wrapped with ErrorBoundary', () {
-      testSuggestor(
+    test('no import of over_react but is wrapped with ErrorBoundary', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
           import 'package:react/react_dom.dart';
@@ -571,8 +572,8 @@ main() {
 
     // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
     test('doesnt add over_react if it imports web_skin_dart/ui_core instead',
-        () {
-      testSuggestor(
+        () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           import 'package:'''

@@ -87,8 +87,8 @@ main() {
           midVersionRange: '^5.5.3');
     });
 
-    test('does not lower the lower bound', () {
-      testSuggestor(
+    test('does not lower the lower bound', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
@@ -110,8 +110,8 @@ main() {
     });
 
     group('does not attempt to update dependency_overrides', () {
-      test('git', () {
-        testSuggestor(
+      test('git', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           shouldDartfmtOutput: false,
           validateContents: validatePubspecYaml,
@@ -124,8 +124,8 @@ main() {
         );
       });
 
-      test('path', () {
-        testSuggestor(
+      test('path', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           shouldDartfmtOutput: false,
           validateContents: validatePubspecYaml,

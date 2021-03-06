@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:codemod/test.dart';
 @TestOn('vm')
 import 'package:test/test.dart';
 
@@ -20,30 +21,31 @@ import 'package:over_react_codemod/src/dart2_suggestors/ui_factory_initializer.d
 void main() {
   group('UiFactoryInitializer', () {
     group('shouldSkip()', () {
-      test('returns false when @Factory() annotation found', () {
-        final sourceFileContents = '''library foo;
+      test('returns false when @Factory() annotation found', () async {
+        final context = await fileContextForTest('foo.dart', '''library foo;
 import 'package:over_react/over_react.dart';
 @Factory()
 UiFactory<FooProps> Foo;
-class FooProps {}''';
-        expect(UiFactoryInitializer().shouldSkip(sourceFileContents), isFalse);
+class FooProps {}''');
+        expect(UiFactoryInitializer().shouldSkip(context), isFalse);
       });
 
-      test('returns true when no @Factory() annotation found', () {
-        final sourceFileContents = '''library foo;
+      test('returns true when no @Factory() annotation found', () async {
+        final context = await fileContextForTest('foo.dart', '''library foo;
 import 'package:over_react/over_react.dart';
 UiFactory<FooProps> Foo;
-class FooProps {}''';
-        expect(UiFactoryInitializer().shouldSkip(sourceFileContents), isTrue);
+class FooProps {}''');
+        expect(UiFactoryInitializer().shouldSkip(context), isTrue);
       });
 
-      test('returns true when @Factory() annotation is commented out', () {
-        final sourceFileContents = '''library foo;
+      test('returns true when @Factory() annotation is commented out',
+          () async {
+        final context = await fileContextForTest('foo.dart', '''library foo;
 import 'package:over_react/over_react.dart';
 // @Factory()
 UiFactory<FooProps> Foo;
-class FooProps {}''';
-        expect(UiFactoryInitializer().shouldSkip(sourceFileContents), isTrue);
+class FooProps {}''');
+        expect(UiFactoryInitializer().shouldSkip(context), isTrue);
       });
     });
   });

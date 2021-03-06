@@ -15,7 +15,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
-import 'package:path/path.dart' as p;
 
 import '../util.dart';
 import 'generated_part_directive_adder.dart';
@@ -28,8 +27,7 @@ import 'generated_part_directive_adder.dart';
 /// across the entire set of Dart files in a project and then the directive
 /// adder should run second (using [runInteractiveCodemodSequence]).
 class NeedsOverReactLibraryCollector extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   /// Libraries (by name) that need the over_react generated part directive.
   Iterable<String> get byName => List.unmodifiable(_byName);
   final Set<String> _byName = Set<String>();
@@ -46,7 +44,7 @@ class NeedsOverReactLibraryCollector extends RecursiveAstVisitor
     _hasPartOfDirective = false;
 
     // Only collect libraries that need the over_react generated part.
-    if (doesNotUseOverReact(sourceFile.getText(0))) {
+    if (doesNotUseOverReact(context.sourceText)) {
       return;
     }
 
@@ -56,7 +54,7 @@ class NeedsOverReactLibraryCollector extends RecursiveAstVisitor
 
     // If no `part of` directive was visited, then this file is its own library.
     if (!_hasPartOfDirective) {
-      _byPath.add(p.canonicalize(sourceFile.url.path));
+      _byPath.add(context.path);
     }
   }
 
@@ -72,7 +70,7 @@ class NeedsOverReactLibraryCollector extends RecursiveAstVisitor
       _byName.add(node.libraryName.name);
     } else if (node.uri != null) {
       _byPath.add(convertPartOfUriToRelativePath(
-          sourceFile.url.path, Uri.parse(node.uri.stringValue)));
+          context.path, Uri.parse(node.uri.stringValue)));
     }
   }
 }

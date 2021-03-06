@@ -47,7 +47,7 @@ To update your code, switch to Dart 2.1.0 and run the following commands:
 Then, review and commit the changes.
 """;
 
-void main(List<String> args) {
+void main(List<String> args) async {
   // Whether or not backwards-compatibility (with Dart 1) is desired will
   // determine the set of suggestors that are run and how they are configured.
   final backwardsCompat = args.contains(_backwardsCompatFlag);
@@ -59,7 +59,7 @@ void main(List<String> args) {
   final commentPrefix = parseAndRemoveCommentPrefixArg(args);
 
   // Phase 1: Upgrade the over_react dependency in any `pubspec.yaml` files.
-  exitCode = runInteractiveCodemod(
+  exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
     PubspecOverReactUpgrader(
       backwardsCompat
@@ -81,15 +81,15 @@ void main(List<String> args) {
   final needsOverReactLibraryCollector = NeedsOverReactLibraryCollector();
 
   final suggestorSequence = <Suggestor>[
-    AggregateSuggestor(
+    aggregate(
       <Suggestor>[
         needsOverReactLibraryCollector,
         UiFactoryInitializer(includeIgnore: backwardsCompat),
-        ComponentDefaultPropsMigrator(),
-        DollarPropsMigrator(),
-        DollarPropKeysMigrator(),
+        componentDefaultPropsMigrator,
+        dollarPropsMigrator,
+        dollarPropKeysMigrator,
         PropsAndStateClassesRenamer(renameMixins: !backwardsCompat),
-      ].map((s) => Ignoreable(s)),
+      ].map((s) => ignoreable(s)),
     ),
     GeneratedPartDirectiveAdder(
       needsOverReactLibraryCollector,
@@ -98,17 +98,17 @@ void main(List<String> args) {
 
   if (backwardsCompat) {
     suggestorSequence.add(
-      AggregateSuggestor(
+      aggregate(
         <Suggestor>[
           PropsAndStateCompanionClassAdder(commentPrefix: commentPrefix),
           PropsAndStateMixinMetaAdder(),
           PropsAndStateMixinUsageDoubler(),
-        ].map((s) => Ignoreable(s)),
+        ].map((s) => ignoreable(s)),
       ),
     );
   } else {
     suggestorSequence.addAll([
-      AggregateSuggestor(
+      aggregate(
         // These suggestors mainly clean up the transitional boilerplate
         // introduced by the backwards-compat suggestors. As such, they do not
         // need to be ignoreable.
@@ -123,11 +123,11 @@ void main(List<String> args) {
       // The orcm_ignore comments could be anywhere in the source, which makes
       // them a high-risk for producing overlapping patches with other
       // suggestors. For that reason, we run it by itself and not in aggregate.
-      OrcmIgnoreRemover(),
+      orcmIgnoreRemover,
     ]);
   }
 
-  exitCode = runInteractiveCodemodSequence(
+  exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
     suggestorSequence,
     args: args,

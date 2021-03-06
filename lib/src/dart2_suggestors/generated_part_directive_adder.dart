@@ -25,8 +25,7 @@ import 'needs_over_react_library_collector.dart';
 /// part directive (collected via [NeedsOverReactLibraryCollector]) and adds the
 /// directive to every library that needs it and does not already have it.
 class GeneratedPartDirectiveAdder extends SimpleAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final NeedsOverReactLibraryCollector _libraryCollector;
 
   GeneratedPartDirectiveAdder(this._libraryCollector);
@@ -35,8 +34,7 @@ class GeneratedPartDirectiveAdder extends SimpleAstVisitor
   visitCompilationUnit(CompilationUnit node) {
     bool needsGeneratedPartDirective = false;
 
-    final canonicalizedPath = p.canonicalize(sourceFile.url.path);
-    if (_libraryCollector.byPath.contains(canonicalizedPath)) {
+    if (_libraryCollector.byPath.contains(context.path)) {
       needsGeneratedPartDirective = true;
     }
 
@@ -55,7 +53,7 @@ class GeneratedPartDirectiveAdder extends SimpleAstVisitor
     }
 
     final generatedPartUri = p.setExtension(
-      p.basename(sourceFile.url.path),
+      p.basename(context.path),
       overReactGeneratedExtension,
     );
     Directive lastDirective;
@@ -72,9 +70,9 @@ class GeneratedPartDirectiveAdder extends SimpleAstVisitor
 
     final ignoreComment = buildIgnoreComment(uriHasNotBeenGenerated: true);
     yieldPatch(
-      lastDirective.end,
-      lastDirective.end,
       "\n$ignoreComment\npart '$generatedPartUri';",
+      lastDirective.end,
+      lastDirective.end,
     );
   }
 }

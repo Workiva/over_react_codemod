@@ -20,6 +20,12 @@ authors:
 environment:
   sdk: ">=2.7.0 <3.0.0"
 
+dependency_overrides:
+  codemod:
+    git:
+      url: https://github.com/Workiva/dart_codemod.git
+      ref: 4d0e0628cdf09ab362aecf7d914283aba0d0f85a # refactors_for_async
+
 dependencies:
   analyzer: '>=0.37.0 <0.39.0'
   args: ^1.5.1
@@ -44,6 +50,7 @@ dev_dependencies:
   mockito: ^4.0.0
   react: ^4.6.1
   test: ^1.5.1
+  test_descriptor: ^1.2.0
   workiva_analysis_options: ^1.1.0
 
 executables:

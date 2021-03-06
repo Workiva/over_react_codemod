@@ -22,14 +22,14 @@ import '../util.dart';
 /// Suggestor that removes every companion class for props and state classes, as
 /// they were only temporarily required for backwards-compatibility with Dart 1.
 class PropsAndStateCompanionClassRemover extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   bool shouldRemoveCompanionClassFor(
           NamedCompilationUnitMember candidate, CompilationUnit node) =>
       true;
 
   @override
   visitCompilationUnit(CompilationUnit node) {
+    final sourceFile = context.sourceFile;
     final classDeclarations = [
       ...node.declarations.whereType<ClassOrMixinDeclaration>(),
       ...node.declarations.whereType<ClassTypeAlias>(),
@@ -64,9 +64,9 @@ class PropsAndStateCompanionClassRemover extends RecursiveAstVisitor
         }
 
         yieldPatch(
+          '',
           startOffset,
           companionClass.rightBracket.offset + 1,
-          '',
         );
       }
     }

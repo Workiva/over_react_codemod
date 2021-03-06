@@ -16,7 +16,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
-import 'package:source_span/source_span.dart';
 
 import 'boilerplate_utilities.dart';
 
@@ -28,8 +27,7 @@ import 'boilerplate_utilities.dart';
 /// Note: This should not operate on a class that uses mixins or does not extend
 /// from `UiProps` or `UiState`.
 class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final ClassToMixinConverter converter;
   final SemverHelper semverHelper;
 
@@ -41,21 +39,22 @@ class SimplePropsAndStateClassMigrator extends GeneralizingAstVisitor
     converter.recordVisit(node);
 
     final _shouldMigrateSimplePropsAndStateClass =
-        shouldMigrateSimplePropsAndStateClass(node, semverHelper, sourceFile);
+        shouldMigrateSimplePropsAndStateClass(
+            node, semverHelper, context.relativePath);
     if (!_shouldMigrateSimplePropsAndStateClass.yee) {
       _shouldMigrateSimplePropsAndStateClass.patchWithReasonComment(
           node, yieldPatch);
       return;
     }
 
-    converter.migrate(node, yieldPatch, sourceFile: sourceFile);
+    converter.migrate(node, yieldPatch);
   }
 }
 
 MigrationDecision shouldMigrateSimplePropsAndStateClass(
-    ClassDeclaration node, SemverHelper semverHelper, SourceFile sourceFile) {
+    ClassDeclaration node, SemverHelper semverHelper, String path) {
   final _shouldMigratePropsAndStateClass =
-      getPropsAndStateClassMigrationDecision(node, semverHelper, sourceFile);
+      getPropsAndStateClassMigrationDecision(node, semverHelper, path);
   if (!_shouldMigratePropsAndStateClass.yee) {
     return _shouldMigratePropsAndStateClass;
   }

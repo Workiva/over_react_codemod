@@ -13,23 +13,16 @@
 // limitations under the License.
 
 import 'package:codemod/codemod.dart';
-import 'package:source_span/source_span.dart';
+
+final _orcmIgnore = RegExp(r'[\n]?[ ]*//[ ]*orcm_ignore[ ]*');
 
 /// Suggestor that removes every instance of a `// orcm_ignore` comment.
-class OrcmIgnoreRemover implements Suggestor {
-  final _orcmIgnore = RegExp(r'[\n]?[ ]*//[ ]*orcm_ignore[ ]*');
-
-  @override
-  Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
-    for (final match in _orcmIgnore.allMatches(sourceFile.getText(0))) {
-      yield Patch(
-        sourceFile,
-        sourceFile.span(match.start, match.end),
-        '',
-      );
-    }
+Stream<Patch> orcmIgnoreRemover(FileContext context) async* {
+  for (final match in _orcmIgnore.allMatches(context.sourceText)) {
+    yield Patch(
+      '',
+      match.start,
+      match.end,
+    );
   }
-
-  @override
-  bool shouldSkip(_) => false;
 }

@@ -21,12 +21,12 @@ main() {
   group('ConsumerOverlayMigrator', () {
     final testSuggestor = getSuggestorTester(ConsumerOverlayMigrator());
 
-    test('empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
+    test('empty file', () async {
+      await testSuggestor(expectedPatchCount: 0, input: '');
     });
 
-    test('no matches', () {
-      testSuggestor(
+    test('no matches', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           library foo;
@@ -36,8 +36,8 @@ main() {
       );
     });
 
-    test('`overlay` prop', () {
-      testSuggestor(
+    test('`overlay` prop', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
           @Component()
@@ -64,12 +64,12 @@ main() {
       );
     });
 
-    test('`isOverlay` prop', () {
-      testSuggestor(
+    test('`isOverlay` prop', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
           import 'package:react/react.dart' as react;
-          
+
           class FooComponent extends react.Component<FooProps> {
             @override
             Map getDefaultProps() => (newProps()
@@ -81,7 +81,7 @@ main() {
         ''',
         expectedOutput: '''
           import 'package:react/react.dart' as react;
-          
+
           class FooComponent extends react.Component<FooProps> {
             @override
             Map getDefaultProps() => (newProps()
@@ -94,12 +94,12 @@ main() {
       );
     });
 
-    test('`useLegacyPositioning` prop', () {
-      testSuggestor(
+    test('`useLegacyPositioning` prop', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
           import 'package:react/react.dart' as react;
-          
+
           class FooComponent extends react.Component2<FooProps> {
             @override
             render() {
@@ -113,7 +113,7 @@ main() {
         ''',
         expectedOutput: '''
           import 'package:react/react.dart' as react;
-          
+
           class FooComponent extends react.Component2<FooProps> {
             @override
             render() {
@@ -127,8 +127,8 @@ main() {
       );
     });
 
-    test('`overlay`, `isOverlay`, and `useLegacyPositioning` props', () {
-      testSuggestor(
+    test('`overlay`, `isOverlay`, and `useLegacyPositioning` props', () async {
+      await testSuggestor(
         expectedPatchCount: 3,
         input: '''
           @Component2()
@@ -139,7 +139,7 @@ main() {
               ..isOverlay = false
               ..initiallyOpen = false
             );
-            
+
             @override
             render() {
               return (OverlayTrigger()
@@ -162,7 +162,7 @@ main() {
               ..isOverlay2 = false
               ..initiallyOpen = false
             );
-            
+
             @override
             render() {
               return (OverlayTrigger()
@@ -178,8 +178,8 @@ main() {
       );
     });
 
-    test('already updated props', () {
-      testSuggestor(
+    test('already updated props', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           @Component2()
@@ -190,7 +190,7 @@ main() {
               ..isOverlay2 = false
               ..initiallyOpen = false
             );
-            
+
             @override
             render() {
               return (OverlayTrigger()
@@ -206,8 +206,8 @@ main() {
       );
     });
 
-    test('not in component class', () {
-      testSuggestor(
+    test('not in component class', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           class FooClass extends SomeOtherClass {
@@ -217,7 +217,7 @@ main() {
               ..isOverlay = false
               ..initiallyOpen = false
             );
-            
+
             @override
             render() {
               return (OverlayTrigger()

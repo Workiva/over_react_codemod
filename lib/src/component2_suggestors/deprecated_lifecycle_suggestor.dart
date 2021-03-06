@@ -24,8 +24,7 @@ import 'component2_utilities.dart';
 /// [componentWillReceiveProps] and [componentWillUpdate] to their respective
 /// React 16 versions.
 class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final bool allowPartialUpgrades;
   final bool shouldUpgradeAbstractComponents;
 
@@ -55,12 +54,12 @@ class DeprecatedLifecycleSuggestor extends GeneralizingAstVisitor
       ];
 
       if (deprecatedLifecycleMethods.contains(node.name.name)) {
-        if (!hasComment(node, sourceFile,
+        if (!hasComment(node, context.sourceFile,
             'FIXME: [${node.name.name}] has been deprecated')) {
           yieldPatch(
-            node.offset,
-            node.offset,
             '${getDeperecationMessage(node.name.name)}\n',
+            node.offset,
+            node.offset,
           );
         }
       }

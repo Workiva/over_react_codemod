@@ -36,15 +36,15 @@ const _changesRequiredOutput = """
   Then, review the the changes, address any FIXMEs, and commit.
 """;
 
-void main(List<String> args) {
+void main(List<String> args) async {
   // Update Pubspec
   final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
   final overReactVersionConstraint =
       VersionConstraint.parse(overReactVersionRange);
 
-  exitCode = runInteractiveCodemod(
+  exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
-    AggregateSuggestor([
+    aggregate([
       PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
       PubspecOverReactUpgrader(overReactVersionConstraint,
           // Don't always add this dependency.
@@ -52,7 +52,7 @@ void main(List<String> args) {
           // we don't want to force over_react to be added regardless.
           // We can just add in the dependency when the codemod imports over_react.
           shouldAddDependencies: false),
-    ].map((s) => Ignoreable(s))),
+    ].map((s) => ignoreable(s))),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,
@@ -65,12 +65,12 @@ void main(List<String> args) {
   final dartPaths = allDartPathsExceptHiddenAndGenerated();
 
   // Update Componentry
-  exitCode = runInteractiveCodemodSequence(
+  exitCode = await runInteractiveCodemodSequence(
     dartPaths,
     <Suggestor>[
       ReactDomRenderMigrator(),
       ReactStyleMapsUpdater(),
-    ].map((s) => Ignoreable(s)),
+    ].map((s) => ignoreable(s)),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,

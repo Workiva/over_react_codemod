@@ -28,20 +28,20 @@ main() {
     });
 
     group('does not perform a migration', () {
-      test('when it encounters an empty file', () {
+      test('when it encounters an empty file', () async {
         converter.setVisitedNames({
           'FooProps': 'FooProps',
         });
 
-        testSuggestor(expectedPatchCount: 0, input: '');
+        await testSuggestor(expectedPatchCount: 0, input: '');
       });
 
-      test('when there are no `PropsClass.meta` identifiers', () {
+      test('when there are no `PropsClass.meta` identifiers', () async {
         converter.setVisitedNames({
           'FooProps': 'FooProps',
         });
 
-        testSuggestor(
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
           library foo;
@@ -55,7 +55,7 @@ main() {
     group(
         'performs a migration when there are one or more `PropsClass.meta` identifiers',
         () {
-      test('', () {
+      test('', () async {
         converter.setVisitedNames({
           'FooProps': 'FooProps',
           'BarProps': 'BarPropsMixin',
@@ -63,7 +63,7 @@ main() {
           'UnconvertedPropsMixin': null,
         });
 
-        testSuggestor(
+        await testSuggestor(
           expectedPatchCount: 10,
           input: '''
           /// Some doc comment
@@ -71,7 +71,7 @@ main() {
           mixin ConvertedPropsMixin on UiProps {
             String foo;
           }
-          
+
           /// Some doc comment
           @PropsMixin()
           abstract class UnconvertedPropsMixin implements UiProps {
@@ -79,25 +79,25 @@ main() {
             // field at the top of the class!
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
             static const PropsMeta meta = _\$metaForUnconvertedPropsMixin;
-            
+
             String foo;
           }
-              
+
           @Component2()
           class FooComponent extends UiComponent2<FooProps> {
             static const foo = FooProps.meta;
             static const bar = [FooProps.meta];
             static const con = ConvertedPropsMixin.meta;
             static const uncon = UnconvertedPropsMixin.meta;
-          
+
             @override
             get consumedProps => const [
-              FooProps.meta, 
-              BarProps.meta, 
-              ConvertedPropsMixin.meta, 
+              FooProps.meta,
+              BarProps.meta,
+              ConvertedPropsMixin.meta,
               UnconvertedPropsMixin.meta,
             ];
-        
+
             @override
             render() {
               return Dom.ul()(
@@ -113,7 +113,7 @@ main() {
         mixin ConvertedPropsMixin on UiProps {
           String foo;
         }
-        
+
         /// Some doc comment
         @PropsMixin()
         abstract class UnconvertedPropsMixin implements UiProps {
@@ -121,25 +121,25 @@ main() {
           // field at the top of the class!
           // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
           static const PropsMeta meta = _\$metaForUnconvertedPropsMixin;
-          
+
           String foo;
         }
-            
+
         @Component2()
         class FooComponent extends UiComponent2<FooProps> {
           static final foo = propsMeta.forMixin(FooProps);
           static final bar = [propsMeta.forMixin(FooProps)];
           static final con = propsMeta.forMixin(ConvertedPropsMixin);
           static const uncon = UnconvertedPropsMixin.meta;
-        
+
           @override
           get consumedProps => [
-            propsMeta.forMixin(FooProps), 
-            propsMeta.forMixin(BarPropsMixin), 
-            propsMeta.forMixin(ConvertedPropsMixin), 
+            propsMeta.forMixin(FooProps),
+            propsMeta.forMixin(BarPropsMixin),
+            propsMeta.forMixin(ConvertedPropsMixin),
             UnconvertedPropsMixin.meta,
           ];
-          
+
           @override
           render() {
             return Dom.ul()(
@@ -154,12 +154,12 @@ main() {
 
       test(
           'unless the props class is not found within `ClassToMixinConverter.visitedNames`',
-          () {
+          () async {
         converter.setVisitedNames({
           'BarProps': 'BarProps',
         });
 
-        testSuggestor(
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
           @Component2()
@@ -168,7 +168,7 @@ main() {
             get consumedProps => const [
               FooProps.meta,
             ];
-        
+
             @override
             render() {
               return Dom.ul()(
@@ -183,13 +183,13 @@ main() {
 
       test(
           'unless component class containing the meta usage is not @Component2()',
-          () {
+          () async {
         converter.setVisitedNames({
           'FooProps': 'FooProps',
           'BarProps': 'BarPropsMixin',
         });
 
-        testSuggestor(
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
           /// Some doc comment
@@ -199,18 +199,18 @@ main() {
             // field at the top of the class!
             // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
             static const PropsMeta meta = _\$metaForFooPropsMixin;
-            
+
             String foo;
           }
-              
+
           @Component()
           class FooComponent extends UiComponent<FooProps> {
             static const foo = FooProps.meta;
             static const bar = [FooProps.meta];
-          
+
             @override
             get consumedProps => const [FooProps.meta, BarProps.meta];
-        
+
             @override
             render() {
               return Dom.ul()(
@@ -228,18 +228,18 @@ main() {
           // field at the top of the class!
           // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
           static const PropsMeta meta = _\$metaForFooPropsMixin;
-          
+
           String foo;
         }
-            
+
         @Component()
         class FooComponent extends UiComponent<FooProps> {
           static const foo = FooProps.meta;
           static const bar = [FooProps.meta];
-        
+
           @override
           get consumedProps => const [FooProps.meta, BarProps.meta];
-      
+
           @override
           render() {
             return Dom.ul()(

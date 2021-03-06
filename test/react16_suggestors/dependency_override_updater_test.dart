@@ -36,8 +36,8 @@ main() {
         expectedOverrideContent += additionalOverrides;
       }
 
-      test('and the dependency_overrides section is last', () {
-        tester(
+      test('and the dependency_overrides section is last', () async {
+        await tester(
           expectedPatchCount: 2,
           shouldDartfmtOutput: false,
           testIdempotency: testIdempotency,
@@ -64,13 +64,13 @@ main() {
         );
       });
 
-      test('and the dependency_overrides section is first', () {
+      test('and the dependency_overrides section is first', () async {
         // The extra line-break is not ideal, but the effort to make it be a
         // single break no matter the order of the sections is not worth it, IMO.
         final lineBreaksAfterDepOverridesSection =
             additionalOverrides == null ? '\n\n' : '\n';
 
-        tester(
+        await tester(
           expectedPatchCount: 2,
           shouldDartfmtOutput: false,
           testIdempotency: testIdempotency,
@@ -97,13 +97,13 @@ main() {
         );
       });
 
-      test('and the dependency_overrides section is in the middle', () {
+      test('and the dependency_overrides section is in the middle', () async {
         // The extra line-break is not ideal, but the effort to make it be a
         // single break no matter the order of the sections is not worth it, IMO.
         final lineBreaksAfterDepOverridesSection =
             additionalOverrides == null ? '\n\n' : '\n';
 
-        tester(
+        await tester(
           expectedPatchCount: 2,
           shouldDartfmtOutput: false,
           testIdempotency: testIdempotency,
@@ -136,9 +136,9 @@ main() {
         {bool testIdempotency = true}) {
       group('- common override updater tests -', () {
         group('adds the dependencies if', () {
-          test('the pubspec is empty', () {
+          test('the pubspec is empty', () async {
             // The output has a new line because the testSuggester appends one.
-            tester(
+            await tester(
               expectedPatchCount: 2,
               shouldDartfmtOutput: false,
               input: '',
@@ -149,8 +149,8 @@ main() {
             );
           });
 
-          test('react and over_react are not dependencies', () {
-            tester(
+          test('react and over_react are not dependencies', () async {
+            await tester(
               expectedPatchCount: 2,
               shouldDartfmtOutput: false,
               input: ''
@@ -228,8 +228,8 @@ main() {
             });
           });
 
-          test('adds dependency if missing', () {
-            tester(
+          test('adds dependency if missing', () async {
+            await tester(
               expectedPatchCount: 2,
               shouldDartfmtOutput: false,
               input: ''
@@ -269,8 +269,9 @@ main() {
                 testIdempotency: testIdempotency);
           });
 
-          test('does not override sections after dependency_overrides', () {
-            tester(
+          test('does not override sections after dependency_overrides',
+              () async {
+            await tester(
               expectedPatchCount: 2,
               shouldDartfmtOutput: false,
               testIdempotency: false,
@@ -316,8 +317,8 @@ main() {
             );
           });
 
-          test('does not fail if there is no trailing new line.', () {
-            tester(
+          test('does not fail if there is no trailing new line.', () async {
+            await tester(
               expectedPatchCount: 2,
               shouldDartfmtOutput: false,
               testIdempotency: false,
