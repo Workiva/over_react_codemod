@@ -30,18 +30,18 @@ const _changesRequiredOutput = """
 const reactVersionRange = '>=5.7.0 <7.0.0';
 const overReactVersionRange = '>=3.12.0 <5.0.0';
 
-void main(List<String> args) {
+void main(List<String> args) async {
   final reactVersionConstraint = VersionConstraint.parse(reactVersionRange);
   final overReactVersionConstraint =
       VersionConstraint.parse(overReactVersionRange);
 
-  exitCode = runInteractiveCodemod(
+  exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
-    AggregateSuggestor([
+    aggregate([
       PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
       PubspecOverReactUpgrader(overReactVersionConstraint,
           shouldAddDependencies: false),
-    ].map((s) => Ignoreable(s))),
+    ].map((s) => ignoreable(s))),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,

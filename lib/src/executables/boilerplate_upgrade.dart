@@ -48,12 +48,12 @@ const _changesRequiredOutput = '''
   Or you can specify one or more paths or globs to run the codemod on only some files:
   pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart
   pub global run over_react_codemod:boilerplate_upgrade lib/**.dart
-  
+
   pub run dart_dev format (if you format this repository).
   Then, review the the changes, address any FIXMEs, and commit.
 ''';
 
-void main(List<String> args) {
+void main(List<String> args) async {
   final parser = ArgParser()
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Prints this help output')
@@ -79,7 +79,7 @@ void main(List<String> args) {
     return;
   }
 
-  exitCode = upgradeReactVersions(
+  exitCode = await upgradeReactVersions(
     overReactVersionRange: parsedArgs[_overReactVersionRangeOption],
     overReactTestVersionRange: parsedArgs[_overReactTestVersionRangeOption],
   );
@@ -110,7 +110,7 @@ void main(List<String> args) {
   final semverHelper = getSemverHelper('semver_report.json',
       shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
 
-  exitCode = runInteractiveCodemodSequence(
+  exitCode = await runInteractiveCodemodSequence(
     filePaths,
     <Suggestor>[
       // We need this to run first so that the AdvancedPropsAndStateClassMigrator
@@ -145,7 +145,7 @@ void main(List<String> args) {
       AnnotationsRemover(classToMixinConverter),
       GeneratedPartDirectiveIgnoreRemover(),
       FactoryIgnoreCommentMover(),
-    ].map((s) => Ignoreable(s)),
+    ].map((s) => ignoreable(s)),
     defaultYes: true,
     args: [],
     changesRequiredOutput: _changesRequiredOutput,
@@ -158,7 +158,7 @@ void main(List<String> args) {
   }
 }
 
-int upgradeReactVersions({
+Future<int> upgradeReactVersions({
   @required String overReactVersionRange,
   @required String overReactTestVersionRange,
 }) {
@@ -190,14 +190,14 @@ int upgradeReactVersions({
 
   return runInteractiveCodemod(
     pubspecYamlPaths(),
-    AggregateSuggestor(ranges.entries
+    aggregate(ranges.entries
         .map((entry) => PubspecUpgrader(
               entry.key,
               VersionConstraint.parse(entry.value),
               shouldAddDependencies: false,
               isDevDependency: isDev[entry.key],
             ))
-        .map((s) => Ignoreable(s))),
+        .map((s) => ignoreable(s))),
     args: [],
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,

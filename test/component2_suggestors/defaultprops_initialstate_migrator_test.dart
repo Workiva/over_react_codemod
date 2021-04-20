@@ -86,12 +86,12 @@ void defaultPropsInitialStateTests({
     subMethod = 'newState';
   }
 
-  test('empty file', () {
-    testSuggestor(expectedPatchCount: 0, input: '');
+  test('empty file', () async {
+    await testSuggestor(expectedPatchCount: 0, input: '');
   });
 
-  test('no matches', () {
-    testSuggestor(
+  test('no matches', () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         library foo;
@@ -101,8 +101,8 @@ void defaultPropsInitialStateTests({
     );
   });
 
-  test('$methodToMigrate method', () {
-    testSuggestor(
+  test('$methodToMigrate method', () async {
+    await testSuggestor(
       expectedPatchCount: 4,
       input: '''
         @Component2()
@@ -121,8 +121,8 @@ void defaultPropsInitialStateTests({
     );
   });
 
-  test('$methodToMigrate method without return type', () {
-    testSuggestor(
+  test('$methodToMigrate method without return type', () async {
+    await testSuggestor(
       expectedPatchCount: 3,
       input: '''
         @Component2()
@@ -141,8 +141,8 @@ void defaultPropsInitialStateTests({
     );
   });
 
-  test('$methodToMigrate method with super call', () {
-    testSuggestor(
+  test('$methodToMigrate method with super call', () async {
+    await testSuggestor(
       expectedPatchCount: 5,
       input: '''
         @Component2()
@@ -161,8 +161,8 @@ void defaultPropsInitialStateTests({
     );
   });
 
-  test('$methodToMigrate method with block body', () {
-    testSuggestor(
+  test('$methodToMigrate method with block body', () async {
+    await testSuggestor(
       expectedPatchCount: 2,
       input: '''
         @Component2()
@@ -191,8 +191,9 @@ void defaultPropsInitialStateTests({
     );
   });
 
-  test('$methodToMigrate method with just return statement method body', () {
-    testSuggestor(
+  test('$methodToMigrate method with just return statement method body',
+      () async {
+    await testSuggestor(
       expectedPatchCount: 6,
       input: '''
         @Component2()
@@ -220,8 +221,8 @@ void defaultPropsInitialStateTests({
     );
   });
 
-  test('$methodToMigrate with existing parenthesis', () {
-    testSuggestor(
+  test('$methodToMigrate with existing parenthesis', () async {
+    await testSuggestor(
       expectedPatchCount: 3,
       input: '''
         @Component2()
@@ -243,8 +244,8 @@ void defaultPropsInitialStateTests({
   group(
       '$methodToMigrate method ${allowPartialUpgrades ? 'updates' : 'does not update'} if '
       'containing class is not fully upgradable', () {
-    test('-- extends from non-Component class', () {
-      testSuggestor(
+    test('-- extends from non-Component class', () async {
+      await testSuggestor(
         expectedPatchCount: allowPartialUpgrades ? 4 : 0,
         input: '''
           @Component2()
@@ -263,15 +264,15 @@ void defaultPropsInitialStateTests({
       );
     });
 
-    test('-- has lifecycle methods without codemods', () {
-      testSuggestor(
+    test('-- has lifecycle methods without codemods', () async {
+      await testSuggestor(
         expectedPatchCount: allowPartialUpgrades ? 5 : 0,
         input: '''
           @Component2()
           class FooComponent extends UiStatefulComponent2 {
             @override
             Map $methodToMigrate() => $subMethod()..addProps(super.$methodToMigrate());
-            
+
             @override
             componentWillUpdate() {}
           }
@@ -281,7 +282,7 @@ void defaultPropsInitialStateTests({
           class FooComponent extends UiStatefulComponent2 {
             @override
             ${allowPartialUpgrades ? 'get $migrateTo => ($subMethod()..addProps(super.$migrateTo));' : 'Map $methodToMigrate() => $subMethod()..addProps(super.$methodToMigrate());'}
-            
+
             @override
             componentWillUpdate() {}
           }
@@ -291,8 +292,8 @@ void defaultPropsInitialStateTests({
   });
 
   group('$methodToMigrate method in an abstract class', () {
-    test('that is fully upgradable', () {
-      testSuggestor(
+    test('that is fully upgradable', () async {
+      await testSuggestor(
         expectedPatchCount: shouldUpgradeAbstractComponents ? 4 : 0,
         input: '''
           @AbstractComponent2()
@@ -305,15 +306,15 @@ void defaultPropsInitialStateTests({
           @AbstractComponent2()
           abstract class FooComponent extends UiStatefulComponent2 {
             @override
-            ${shouldUpgradeAbstractComponents ? 'get $migrateTo => ($subMethod()..value = true);' : 'Map $methodToMigrate() => $subMethod()..value = true;'} 
+            ${shouldUpgradeAbstractComponents ? 'get $migrateTo => ($subMethod()..value = true);' : 'Map $methodToMigrate() => $subMethod()..value = true;'}
           }
         ''',
       );
     });
 
     group('that is not fully upgradable', () {
-      test('--extends from a non-Component class', () {
-        testSuggestor(
+      test('--extends from a non-Component class', () async {
+        await testSuggestor(
           expectedPatchCount:
               allowPartialUpgrades && shouldUpgradeAbstractComponents ? 5 : 0,
           input: '''
@@ -353,19 +354,19 @@ void defaultPropsInitialStateTests({
         );
       });
 
-      test('-- has lifecycle methods without codemods', () {
-        testSuggestor(
+      test('-- has lifecycle methods without codemods', () async {
+        await testSuggestor(
           expectedPatchCount:
               allowPartialUpgrades && shouldUpgradeAbstractComponents ? 4 : 0,
           input: '''
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
-            
+
             @AbstractComponent2()
             class FooComponent extends UiStatefulComponent2 {
               @override
               Map $methodToMigrate() => $subMethod()..value = true;
-              
+
               @override
               componentWillUpdate() {}
             }
@@ -373,12 +374,12 @@ void defaultPropsInitialStateTests({
           expectedOutput: '''
             @AbstractProps()
             class AbstractFooProps extends UiProps {}
-            
+
             @AbstractComponent2()
             class FooComponent extends UiStatefulComponent2 {
               @override
-              ${shouldUpgradeAbstractComponents && allowPartialUpgrades ? 'get $migrateTo => ($subMethod()..value = true);' : 'Map $methodToMigrate() => $subMethod()..value = true;'} 
-                
+              ${shouldUpgradeAbstractComponents && allowPartialUpgrades ? 'get $migrateTo => ($subMethod()..value = true);' : 'Map $methodToMigrate() => $subMethod()..value = true;'}
+
               @override
               componentWillUpdate() {}
             }
@@ -388,8 +389,8 @@ void defaultPropsInitialStateTests({
     });
   });
 
-  test('$methodToMigrate method that does not use $subMethod', () {
-    testSuggestor(
+  test('$methodToMigrate method that does not use $subMethod', () async {
+    await testSuggestor(
       expectedPatchCount: 2,
       input: '''
         @Component2()
@@ -409,8 +410,8 @@ void defaultPropsInitialStateTests({
   });
 
   test('does not change $methodToMigrate method for non-component2 classes',
-      () {
-    testSuggestor(
+      () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         @Component()

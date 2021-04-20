@@ -25,7 +25,7 @@ const _changesRequiredOutput = """
 Then, review the the changes and commit.
 """;
 
-void main(List<String> args) {
+void main(List<String> args) async {
   final reactConfig = GitOverrideConfig(
     name: 'react',
     url: 'https://github.com/cleandart/react-dart.git',
@@ -38,7 +38,7 @@ void main(List<String> args) {
     ref: 'release_over_react_4.0.0',
   );
 
-  exitCode = runInteractiveCodemod(
+  exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
     DependencyOverrideUpdater(
         reactOverrideConfig: reactConfig,

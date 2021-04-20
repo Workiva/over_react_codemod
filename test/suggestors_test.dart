@@ -13,10 +13,12 @@
 // limitations under the License.
 
 @TestOn('vm')
+import 'package:codemod/codemod.dart';
 import 'package:mockito/mockito.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/factory_ignore_comment_mover.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:test_descriptor/test_descriptor.dart' as d;
 
 import 'package:over_react_codemod/src/dart2_suggestors/component_default_props_migrator.dart';
 import 'package:over_react_codemod/src/dart2_suggestors/dollar_prop_keys_migrator.dart';
@@ -47,58 +49,59 @@ void main() {
     // `match.dart` needs the part directive, and this setup is why that works.
     final mockCollector = MockCollector();
     when(mockCollector.byName).thenReturn(['match']);
-    when(mockCollector.byPath).thenReturn([p.canonicalize('match.dart')]);
+    when(mockCollector.byPath)
+        .thenAnswer((_) => [p.canonicalize(p.join(d.sandbox, 'match.dart'))]);
     final generatedPartDirectiveAdder =
-        Ignoreable(GeneratedPartDirectiveAdder(mockCollector));
+        ignoreable(GeneratedPartDirectiveAdder(mockCollector));
 
-    final suggestorMap = {
-      'ComponentDefaultPropsMigrator': Ignoreable(
-        ComponentDefaultPropsMigrator(),
+    final suggestorMap = <String, Suggestor>{
+      'ComponentDefaultPropsMigrator': ignoreable(
+        componentDefaultPropsMigrator,
       ),
-      'DollarPropKeysMigrator': Ignoreable(
-        DollarPropKeysMigrator(),
+      'DollarPropKeysMigrator': ignoreable(
+        dollarPropKeysMigrator,
       ),
-      'DollarPropsMigrator': Ignoreable(
-        DollarPropsMigrator(),
+      'DollarPropsMigrator': ignoreable(
+        dollarPropsMigrator,
       ),
       'GeneratedPartDirectiveAdder': generatedPartDirectiveAdder,
       'GeneratedPartDirectiveIgnoreRemover':
           GeneratedPartDirectiveIgnoreRemover(),
-      'OrcmIgnoreRemover': OrcmIgnoreRemover(),
-      'PropsAndStateClassesRenamer': Ignoreable(
+      'OrcmIgnoreRemover': orcmIgnoreRemover,
+      'PropsAndStateClassesRenamer': ignoreable(
         PropsAndStateClassesRenamer(renameMixins: true),
       ),
-      'PropsAndStateClassesRenamerNoMixins': Ignoreable(
+      'PropsAndStateClassesRenamerNoMixins': ignoreable(
         PropsAndStateClassesRenamer(renameMixins: false),
       ),
-      'PropsAndStateCompanionClassAdder': Ignoreable(
+      'PropsAndStateCompanionClassAdder': ignoreable(
         PropsAndStateCompanionClassAdder(),
       ),
-      'PropsAndStateCompanionClassAdderWithCommentPrefix': Ignoreable(
+      'PropsAndStateCompanionClassAdderWithCommentPrefix': ignoreable(
         PropsAndStateCompanionClassAdder(commentPrefix: 'PREFIX: '),
       ),
-      'PropsAndStateCompanionClassRemover': Ignoreable(
+      'PropsAndStateCompanionClassRemover': ignoreable(
         PropsAndStateCompanionClassRemover(),
       ),
-      'PropsAndStateMixinMetaAdder': Ignoreable(
+      'PropsAndStateMixinMetaAdder': ignoreable(
         PropsAndStateMixinMetaAdder(),
       ),
-      'PropsAndStateMixinMetaRemover': Ignoreable(
+      'PropsAndStateMixinMetaRemover': ignoreable(
         PropsAndStateMixinMetaRemover(),
       ),
-      'PropsAndStateMixinUsageConsolidator': Ignoreable(
+      'PropsAndStateMixinUsageConsolidator': ignoreable(
         PropsAndStateMixinUsageConsolidator(),
       ),
-      'PropsAndStateMixinUsageDoubler': Ignoreable(
+      'PropsAndStateMixinUsageDoubler': ignoreable(
         PropsAndStateMixinUsageDoubler(),
       ),
-      'UiFactoryIgnoreCommentRemover': Ignoreable(
+      'UiFactoryIgnoreCommentRemover': ignoreable(
         UiFactoryIgnoreCommentRemover(),
       ),
-      'UiFactoryInitializer': Ignoreable(
+      'UiFactoryInitializer': ignoreable(
         UiFactoryInitializer(includeIgnore: false),
       ),
-      'UiFactoryInitializerIncludeIgnore': Ignoreable(
+      'UiFactoryInitializerIncludeIgnore': ignoreable(
         UiFactoryInitializer(includeIgnore: true),
       ),
     };
@@ -107,7 +110,7 @@ void main() {
 
   group('Boilerplate suggestors', () {
     final suggestorMap = {
-      'FactoryIgnoreCommentMover': Ignoreable(
+      'FactoryIgnoreCommentMover': ignoreable(
         FactoryIgnoreCommentMover(),
       ),
     };

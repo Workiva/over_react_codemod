@@ -16,7 +16,6 @@ import 'dart:math';
 
 import 'package:codemod/codemod.dart';
 import 'package:meta/meta.dart';
-import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 import '../constants.dart';
@@ -69,7 +68,7 @@ abstract class DependencyOverrideConfig {
 }
 
 /// Suggestor that adds overrides for over_react and react in the pubspec.
-class DependencyOverrideUpdater implements Suggestor {
+class DependencyOverrideUpdater {
   final DependencyOverrideConfig reactOverrideConfig;
   final DependencyOverrideConfig overReactOverrideConfig;
 
@@ -78,17 +77,15 @@ class DependencyOverrideUpdater implements Suggestor {
     this.overReactOverrideConfig,
   });
 
-  @override
-  Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
-    final contents = sourceFile.getText(0);
+  Stream<Patch> call(FileContext context) async* {
     final dependencyOverrideSectionKey =
-        dependencyOverrideRegExp.firstMatch(contents);
+        dependencyOverrideRegExp.firstMatch(context.sourceText);
     final dependencyOverrideSectionStart =
         dependencyOverrideSectionKey?.start ?? -1;
     final dependenciesSectionStart =
-        dependencyRegExp.firstMatch(contents)?.start ?? -1;
+        dependencyRegExp.firstMatch(context.sourceText)?.start ?? -1;
     final devDependenciesSectionStart =
-        devDependencyRegExp.firstMatch(contents)?.start ?? -1;
+        devDependencyRegExp.firstMatch(context.sourceText)?.start ?? -1;
 
     bool _isDependencyMatchWithinDependencyOverridesSection(
         RegExpMatch dependencyMatch) {
@@ -142,7 +139,7 @@ class DependencyOverrideUpdater implements Suggestor {
     YamlMap parsedYamlMap;
 
     try {
-      parsedYamlMap = loadYaml(contents);
+      parsedYamlMap = loadYaml(context.sourceText);
     } catch (e, stackTrace) {
       if (e is YamlException) {
         throw Exception('Could not parse pubspec.yaml.$e\n$stackTrace');
@@ -166,7 +163,7 @@ class DependencyOverrideUpdater implements Suggestor {
         final dependencyRegex = getDependencyRegEx(
             dependency: dependencyName, yamlContent: parsedYamlMap);
         final dependencyMatch = dependencyRegex
-            .allMatches(contents)
+            .allMatches(context.sourceText)
             .singleWhere(
                 (match) =>
                     _isDependencyMatchWithinDependencyOverridesSection(match),
@@ -178,13 +175,12 @@ class DependencyOverrideUpdater implements Suggestor {
           // starting line up one or keep it the default.
           int startPoint = dependencyMatch.start;
 
-          if (sourceFile.getLine(dependencyOverrideSectionKey.end) !=
-              sourceFile.getLine(dependencyMatch.start - 1)) {
+          if (context.sourceFile.getLine(dependencyOverrideSectionKey.end) !=
+              context.sourceFile.getLine(dependencyMatch.start - 1)) {
             startPoint = dependencyMatch.start - 1;
           }
 
-          yield Patch(sourceFile,
-              sourceFile.span(startPoint, dependencyMatch.end), overrideString);
+          yield Patch(overrideString, startPoint, dependencyMatch.end);
         }
       } else {
         int insertionOffset;
@@ -194,34 +190,33 @@ class DependencyOverrideUpdater implements Suggestor {
         // below the key. If not, insert at the end of the file.
         if (dependencyOverrideSectionKey != null) {
           insertionLine =
-              sourceFile.getLine(dependencyOverrideSectionKey.end) + 1;
+              context.sourceFile.getLine(dependencyOverrideSectionKey.end) + 1;
         } else {
-          insertionLine = sourceFile.lines - 1;
+          insertionLine = context.sourceFile.lines - 1;
         }
 
-        insertionOffset = sourceFile.getOffset(insertionLine);
+        insertionOffset = context.sourceFile.getOffset(insertionLine);
 
         if (!shouldAddDependencyOverrideKey) {
           yield Patch(
-              sourceFile,
-              sourceFile.span(insertionOffset, insertionOffset),
-              '$overrideString');
+            '$overrideString',
+            insertionOffset,
+            insertionOffset,
+          );
         } else {
           yield Patch(
-              sourceFile,
-              sourceFile.span(insertionOffset, insertionOffset),
-              '\n'
-              'dependency_overrides:\n'
-              '$overrideString');
+            '\n'
+            'dependency_overrides:\n'
+            '$overrideString',
+            insertionOffset,
+            insertionOffset,
+          );
 
           shouldAddDependencyOverrideKey = false;
         }
       }
     }
   }
-
-  @override
-  bool shouldSkip(_) => false;
 }
 
 bool fileAlreadyContainsOverrideForDependency(

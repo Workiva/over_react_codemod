@@ -23,8 +23,7 @@ import 'package:over_react_codemod/src/component2_suggestors/component2_utilitie
 ///
 /// Use [GetDefaultPropsMigrator] or [GetInitialStateMigrator].
 abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final bool allowPartialUpgrades;
   final bool shouldUpgradeAbstractComponents;
   final String methodToMigrate;
@@ -56,17 +55,17 @@ abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
       // Remove return type.
       if (node.returnType != null) {
         yieldPatch(
+          '',
           node.returnType.offset,
           node.returnType.end,
-          '',
         );
       }
 
       // Replace with getter.
       yieldPatch(
+        'get $migrateTo',
         node.name.offset,
         node.parameters.end,
-        'get $migrateTo',
       );
 
       if (node.body is BlockFunctionBody) {
@@ -81,19 +80,19 @@ abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
 
           // Convert to arrow function if method body is a single return.
           yieldPatch(
+            '=> (',
             methodBody.leftBracket.offset,
             returnStatement.returnKeyword.end,
-            '=> (',
           );
           yieldPatch(
-            returnStatement.semicolon.offset,
-            returnStatement.semicolon.offset,
             '\n)',
+            returnStatement.semicolon.offset,
+            returnStatement.semicolon.offset,
           );
           yieldPatch(
+            '',
             methodBody.rightBracket.offset,
             methodBody.rightBracket.end,
-            '',
           );
         } else {
           updateSuperCalls(
@@ -118,14 +117,14 @@ abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
             (expression.target as MethodInvocation).methodName.name ==
                 subMethod) {
           yieldPatch(
-            expression.offset,
-            expression.offset,
             '(',
+            expression.offset,
+            expression.offset,
           );
           yieldPatch(
-            expression.end,
-            expression.end,
             '\n)',
+            expression.end,
+            expression.end,
           );
         }
       }
@@ -134,20 +133,19 @@ abstract class DefaultPropsInitialStateMigrator extends GeneralizingAstVisitor
 
   /// Updates all super calls to [methodToMigrate] from [start] to [end].
   void updateSuperCalls(int start, int end) {
-    var methodBodyString = sourceFile.getText(start, end);
+    var methodBodyString = context.sourceFile.getText(start, end);
     if (methodBodyString.contains('super.$methodToMigrate()')) {
       methodBodyString = methodBodyString.replaceAll(
         'super.$methodToMigrate()',
         'super.$migrateTo',
       );
-      yieldPatch(start, end, methodBodyString);
+      yieldPatch(methodBodyString, start, end);
     }
   }
 }
 
 /// Suggestor that replaces `getDefaultProps` method with getter `defaultProps`.
-class GetDefaultPropsMigrator extends DefaultPropsInitialStateMigrator
-    implements Suggestor {
+class GetDefaultPropsMigrator extends DefaultPropsInitialStateMigrator {
   GetDefaultPropsMigrator({
     bool allowPartialUpgrades = true,
     bool shouldUpgradeAbstractComponents = false,
@@ -160,8 +158,7 @@ class GetDefaultPropsMigrator extends DefaultPropsInitialStateMigrator
 }
 
 /// Suggestor that replaces `getInitialState` method with getter `initialState`.
-class GetInitialStateMigrator extends DefaultPropsInitialStateMigrator
-    implements Suggestor {
+class GetInitialStateMigrator extends DefaultPropsInitialStateMigrator {
   GetInitialStateMigrator({
     bool allowPartialUpgrades = true,
     bool shouldUpgradeAbstractComponents = false,

@@ -24,8 +24,7 @@ import '../util.dart';
 ///
 /// If [includeMixins] is true, props and state mixins will also be renamed.
 class PropsAndStateClassesRenamer extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final bool renameMixins;
 
   PropsAndStateClassesRenamer({this.renameMixins = true});
@@ -47,9 +46,9 @@ class PropsAndStateClassesRenamer extends RecursiveAstVisitor
     final expectedName = renamePropsOrStateClass(className);
     if (className != expectedName) {
       yieldPatch(
+        expectedName,
         node.name.offset,
         node.name.end,
-        expectedName,
       );
     }
   }

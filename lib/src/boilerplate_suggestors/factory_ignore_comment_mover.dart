@@ -20,8 +20,7 @@ import 'package:codemod/codemod.dart';
 /// over_react factory from the line before the initializer
 /// to after the semicolon.
 class FactoryIgnoreCommentMover extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     final type = node.variables.type;
@@ -35,10 +34,10 @@ class FactoryIgnoreCommentMover extends RecursiveAstVisitor
     final comment = initializer.beginToken.precedingComments;
     if (comment == null) return;
 
-    final commentText = sourceFile.getText(comment.offset, comment.end);
+    final commentText = context.sourceFile.getText(comment.offset, comment.end);
     if (commentText.contains('ignore: undefined_identifier')) {
-      yieldPatch(comment.offset, comment.end, '');
-      yieldPatch(node.end, node.end, ' // ignore: undefined_identifier');
+      yieldPatch('', comment.offset, comment.end);
+      yieldPatch(' // ignore: undefined_identifier', node.end, node.end);
     }
   }
 }

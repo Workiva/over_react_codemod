@@ -24,8 +24,7 @@ import '../util.dart';
 ///
 /// The companion class will include a static `meta` mixin field.
 class PropsAndStateCompanionClassAdder extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final String commentPrefix;
 
   Iterable<String> _classNames;
@@ -70,15 +69,13 @@ class PropsAndStateCompanionClassAdder extends RecursiveAstVisitor
         .join('\n');
     String docComment;
     if (node.documentationComment != null) {
-      docComment = sourceFile.getText(
+      docComment = context.sourceFile.getText(
         node.documentationComment.offset,
         node.documentationComment.end,
       );
     }
 
     yieldPatch(
-      node.root.end,
-      node.root.end,
       annotation.name.name.contains('Props')
           ? buildPropsCompanionClass(node.name.name,
               annotations: annotations,
@@ -90,6 +87,8 @@ class PropsAndStateCompanionClassAdder extends RecursiveAstVisitor
               commentPrefix: commentPrefix,
               docComment: docComment,
               typeParameters: node.typeParameters),
+      node.root.end,
+      node.root.end,
     );
   }
 }

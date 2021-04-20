@@ -23,8 +23,7 @@ import 'boilerplate_utilities.dart';
 ///
 /// > Related: [PropsMetaMigrator]
 class PropsMixinMigrator extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final ClassToMixinConverter converter;
   final SemverHelper semverHelper;
 
@@ -50,7 +49,7 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
         (getter) => getter.name.name == 'props' || getter.name.name == 'state',
         orElse: () => null);
     if (propsOrStateGetter != null) {
-      yieldPatch(propsOrStateGetter.offset, propsOrStateGetter.end, '');
+      yieldPatch('', propsOrStateGetter.offset, propsOrStateGetter.end);
     }
   }
 
@@ -66,16 +65,18 @@ class PropsMixinMigrator extends GeneralizingAstVisitor
         orElse: () => null);
     if (metaField == null) return;
 
-    if (isPublic(node, semverHelper, sourceFile.url)) {
-      yieldPatch(metaField.parent.offset, metaField.parent.offset,
-          '@Deprecated(\'Use `propsMeta.forMixin(${stripPrivateGeneratedPrefix(node.name.name)})` instead.\')\n');
+    if (isPublic(node, semverHelper, context.relativePath)) {
+      yieldPatch(
+          '@Deprecated(\'Use `propsMeta.forMixin(${stripPrivateGeneratedPrefix(node.name.name)})` instead.\')\n',
+          metaField.parent.offset,
+          metaField.parent.offset);
     } else {
       // Remove the meta field, along with any comment lines that preceded it.
       final metaFieldDecl = metaField.parent;
       final begin = metaFieldDecl.beginToken.precedingComments?.offset ??
           metaField.offset;
 
-      yieldPatch(begin, metaFieldDecl.end, '');
+      yieldPatch('', begin, metaFieldDecl.end);
     }
   }
 }

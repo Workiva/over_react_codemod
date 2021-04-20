@@ -23,8 +23,7 @@ import '../util.dart';
 /// class so that consumers who may be using `$Props()` or `$PropKeys()` on the
 /// mixin will be able to use the new Dart 2-compatible alternative.
 class PropsAndStateMixinMetaAdder extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   @override
   visitClassDeclaration(ClassDeclaration node) {
     // Only looking for @PropsMixin() and @StateMixin() classes.
@@ -53,23 +52,23 @@ class PropsAndStateMixinMetaAdder extends RecursiveAstVisitor
         undefinedIdentifier: true,
       );
       yieldPatch(
-        node.leftBracket.end,
-        node.leftBracket.end,
         [
           '',
           '  $ignoreComment',
           '  static const $metaType meta = $targetMetaInitializer;',
           '',
         ].join('\n'),
+        node.leftBracket.end,
+        node.leftBracket.end,
       );
     } else {
       // Meta field already exists.
       if (existingMetaField.initializer.toSource() != targetMetaInitializer) {
         // But, it isn't initialized correctly, so update it.
         yieldPatch(
+          targetMetaInitializer,
           existingMetaField.initializer.offset,
           existingMetaField.initializer.end,
-          targetMetaInitializer,
         );
       }
     }

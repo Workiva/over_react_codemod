@@ -26,8 +26,8 @@ const _changesRequiredOutput = """
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
-void main(List<String> args) {
-  exitCode = runInteractiveCodemodSequence(
+void main(List<String> args) async {
+  exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
     [
       ConsumerOverlayMigrator(),

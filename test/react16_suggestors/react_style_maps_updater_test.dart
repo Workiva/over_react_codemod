@@ -23,12 +23,12 @@ main() {
     final testSuggestor = getSuggestorTester(ReactStyleMapsUpdater());
 
     group('updates correctly when there', () {
-      test('is an empty file', () {
-        testSuggestor(expectedPatchCount: 0, input: '');
+      test('is an empty file', () async {
+        await testSuggestor(expectedPatchCount: 0, input: '');
       });
 
-      test('are no matches', () {
-        testSuggestor(
+      test('are no matches', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             main() {
@@ -42,8 +42,8 @@ main() {
         );
       });
 
-      test('is a single value within a style map', () {
-        testSuggestor(
+      test('is a single value within a style map', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             main() {
@@ -66,8 +66,9 @@ main() {
         );
       });
 
-      test('is a single value within a style map using double quotes', () {
-        testSuggestor(
+      test('is a single value within a style map using double quotes',
+          () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             main() {
@@ -90,8 +91,8 @@ main() {
         );
       });
 
-      test('is a single value within an inline style map', () {
-        testSuggestor(
+      test('is a single value within an inline style map', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             main() {
@@ -107,8 +108,8 @@ main() {
         );
       });
 
-      test('are multiple values within a style map', () {
-        testSuggestor(
+      test('are multiple values within a style map', () async {
+        await testSuggestor(
           expectedPatchCount: 3,
           input: '''
             main() {
@@ -137,8 +138,8 @@ main() {
         );
       });
 
-      test('is a ternary expression', () {
-        testSuggestor(
+      test('is a ternary expression', () async {
+        await testSuggestor(
           expectedPatchCount: 4,
           input: '''
             main() {
@@ -165,8 +166,8 @@ main() {
         );
       });
 
-      test('is a null check', () {
-        testSuggestor(
+      test('is a null check', () async {
+        await testSuggestor(
           expectedPatchCount: 4,
           input: '''
             main() {
@@ -194,8 +195,8 @@ main() {
         );
       });
 
-      test('is a null check with two variables', () {
-        testSuggestor(
+      test('is a null check with two variables', () async {
+        await testSuggestor(
           expectedPatchCount: 3,
           input: '''
             main() {
@@ -225,8 +226,8 @@ main() {
         );
       });
 
-      test('is a mathmatical expression', () {
-        testSuggestor(
+      test('is a mathmatical expression', () async {
+        await testSuggestor(
           expectedPatchCount: 3,
           input: '''
             main() {
@@ -256,8 +257,8 @@ main() {
         );
       });
 
-      test('is on a unitless or non-number property', () {
-        testSuggestor(
+      test('is on a unitless or non-number property', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             main() {
@@ -271,8 +272,8 @@ main() {
         );
       });
 
-      test('is on a custom property', () {
-        testSuggestor(
+      test('is on a custom property', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             main() {
@@ -293,8 +294,8 @@ main() {
         );
       });
 
-      test('is a toRem/toPx call', () {
-        testSuggestor(
+      test('is a toRem/toPx call', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             main() {
@@ -308,8 +309,8 @@ main() {
         );
       });
 
-      test('is a toRem/toPx call with a toString at the end', () {
-        testSuggestor(
+      test('is a toRem/toPx call with a toString at the end', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             main() {
@@ -323,8 +324,8 @@ main() {
         );
       });
 
-      test('is an interpolated string ending in a known CSS unit', () {
-        testSuggestor(
+      test('is an interpolated string ending in a known CSS unit', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: r'''
             main() {
@@ -338,8 +339,9 @@ main() {
         );
       });
 
-      test('is an interpolated string not ending in a known CSS unit', () {
-        testSuggestor(
+      test('is an interpolated string not ending in a known CSS unit',
+          () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             main() {
@@ -359,8 +361,8 @@ main() {
         );
       });
 
-      test('is on an instance creation expression', () {
-        testSuggestor(
+      test('is on an instance creation expression', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             main() {
@@ -375,8 +377,8 @@ main() {
         );
       });
 
-      test('is an expression that has already been updated', () {
-        testSuggestor(
+      test('is an expression that has already been updated', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             main() {
@@ -413,8 +415,8 @@ main() {
         );
       });
 
-      test('is a function call', () {
-        testSuggestor(
+      test('is a function call', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             main() {
@@ -423,7 +425,7 @@ main() {
                   'width': '40px',
                 };
               }
-            
+
               Foo()
               ..style = getStyleMap();
             }
@@ -435,7 +437,7 @@ main() {
                   'width': '40px',
                 };
               }
-            
+
               Foo()
               ${getFunctionComment()}
               ..style = getStyleMap();
@@ -444,8 +446,8 @@ main() {
         );
       });
 
-      test('is a component as prop value', () {
-        testSuggestor(
+      test('is a component as prop value', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             main() {
@@ -474,8 +476,8 @@ main() {
         );
       });
 
-      test('are variadic children', () {
-        testSuggestor(
+      test('are variadic children', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             main() {
@@ -504,8 +506,8 @@ main() {
         );
       });
 
-      test('is an unexpected property value', () {
-        testSuggestor(
+      test('is an unexpected property value', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             main() {
@@ -527,8 +529,8 @@ main() {
         );
       });
 
-      test('is an unexpected style prop value', () {
-        testSuggestor(
+      test('is an unexpected style prop value', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             main() {
@@ -548,8 +550,8 @@ main() {
     });
 
     test('adds a validate variable comment when the map value is a variable',
-        () {
-      testSuggestor(
+        () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
             main() {
@@ -570,8 +572,8 @@ main() {
     });
 
     test('adds a validate variable comment when the key value is a variable',
-        () {
-      testSuggestor(
+        () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
             main() {
@@ -593,8 +595,8 @@ main() {
       );
     });
 
-    test('does not add a second validate comment when unchecked', () {
-      testSuggestor(
+    test('does not add a second validate comment when unchecked', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
             main() {
@@ -608,8 +610,8 @@ main() {
       );
     });
 
-    test('does not add a second validate comment when checked', () {
-      testSuggestor(
+    test('does not add a second validate comment when checked', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
             main() {
@@ -625,8 +627,8 @@ main() {
       );
     });
 
-    test('does not override comments', () {
-      testSuggestor(
+    test('does not override comments', () async {
+      await testSuggestor(
         expectedPatchCount: 3,
         input: '''
             main() {
@@ -655,8 +657,8 @@ main() {
       );
     });
 
-    test('does not run on DOM style setProperty', () {
-      testSuggestor(
+    test('does not run on DOM style setProperty', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
             main() {
@@ -666,8 +668,9 @@ main() {
       );
     });
 
-    test('does not run on DOM style property assignments in various forms', () {
-      testSuggestor(
+    test('does not run on DOM style property assignments in various forms',
+        () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
             main() {
@@ -681,8 +684,8 @@ main() {
       );
     });
 
-    test('works for custom props maps containing styles', () {
-      testSuggestor(
+    test('works for custom props maps containing styles', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
             main() {
@@ -707,8 +710,8 @@ main() {
       );
     });
 
-    test('does not run twice', () {
-      testSuggestor(
+    test('does not run twice', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
             main() {
@@ -748,12 +751,12 @@ String getCheckboxComment({
   List<String> keysOfModdedValues = const [],
 }) =>
     '''// ${checked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map uses a valid value ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are numbers.'}
-    $styleMapComment   
+    $styleMapComment
     //$willBeRemovedCommentSuffix''';
 
 String manualVariableCheckComment(
         {List<String> keysOfModdedValues = const [], isChecked = false}) =>
-    '''// ${isChecked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are simple string variables.'} 
+    '''// ${isChecked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are simple string variables.'}
     $styleMapComment
     //$willBeRemovedCommentSuffix''';
 

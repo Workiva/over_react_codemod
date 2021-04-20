@@ -49,12 +49,12 @@ componentWillMountTests({
     shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
   ));
 
-  test('empty file', () {
-    testSuggestor(expectedPatchCount: 0, input: '');
+  test('empty file', () async {
+    await testSuggestor(expectedPatchCount: 0, input: '');
   });
 
-  test('no matches', () {
-    testSuggestor(
+  test('no matches', () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         library foo;
@@ -66,8 +66,8 @@ componentWillMountTests({
 
   group('when componentDidMount does not exist in containing class', () {
     group('componentWillMount method', () {
-      test('updates if containing class is fully upgradable', () {
-        testSuggestor(
+      test('updates if containing class is fully upgradable', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             @Component2()
@@ -92,8 +92,8 @@ componentWillMountTests({
       group(
           '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
           'containing class is not fully upgradable', () {
-        test('-- extends from non-Component class', () {
-          testSuggestor(
+        test('-- extends from non-Component class', () async {
+          await testSuggestor(
             expectedPatchCount: allowPartialUpgrades ? 2 : 0,
             input: '''
               @Component2()
@@ -114,8 +114,8 @@ componentWillMountTests({
           );
         });
 
-        test('-- has deprecated lifecycle methods without codemods', () {
-          testSuggestor(
+        test('-- has deprecated lifecycle methods without codemods', () async {
+          await testSuggestor(
             expectedPatchCount: allowPartialUpgrades ? 2 : 0,
             input: '''
             @Component2()
@@ -123,7 +123,7 @@ componentWillMountTests({
               componentWillMount(){
                 // method body
               }
-              
+
               @override
               componentWillReceiveProps() {}
             }
@@ -134,7 +134,7 @@ componentWillMountTests({
               ${allowPartialUpgrades ? '$componentWillMountMessage\ncomponentDidMount' : 'componentWillMount'}(){
                 // method body
               }
-              
+
               @override
               componentWillReceiveProps() {}
             }
@@ -143,12 +143,12 @@ componentWillMountTests({
         });
       });
 
-      test('componentWillMount method with return type', () {
-        testSuggestor(
+      test('componentWillMount method with return type', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
           import 'package:react/react.dart' as react;
-  
+
           @Component2()
           class FooComponent extends react.Component2 {
             void componentWillMount(){
@@ -158,7 +158,7 @@ componentWillMountTests({
         ''',
           expectedOutput: '''
           import 'package:react/react.dart' as react;
-  
+
           @Component2()
           class FooComponent extends react.Component2 {
             $componentWillMountMessage
@@ -170,8 +170,8 @@ componentWillMountTests({
         );
       });
 
-      test('update super calls', () {
-        testSuggestor(
+      test('update super calls', () async {
+        await testSuggestor(
           expectedPatchCount: 3,
           input: '''
           @Component2()
@@ -199,8 +199,8 @@ componentWillMountTests({
 
   group('when componentDidMount exists in containing class', () {
     group('componentWillMount method', () {
-      test('updates if containing class is fully upgradable', () {
-        testSuggestor(
+      test('updates if containing class is fully upgradable', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             @Component2()
@@ -210,7 +210,7 @@ componentWillMountTests({
                 var a = 1;
                 var b = 2;
               }
-              
+
               @override
               componentDidMount() {
                 var c = 3;
@@ -225,7 +225,7 @@ componentWillMountTests({
               componentDidMount() {
                 var a = 1;
                 var b = 2;
-                
+
                 var c = 3;
                 var d = 4;
               }
@@ -237,8 +237,8 @@ componentWillMountTests({
       group(
           '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
           'containing class is not fully upgradable', () {
-        test('-- extends from non-Component class', () {
-          testSuggestor(
+        test('-- extends from non-Component class', () async {
+          await testSuggestor(
             expectedPatchCount: allowPartialUpgrades ? 2 : 0,
             input: '''
               @Component2()
@@ -248,7 +248,7 @@ componentWillMountTests({
                   var a = 1;
                   var b = 2;
                 }
-                
+
                 @override
                 componentDidMount() {
                   var c = 3;
@@ -264,7 +264,7 @@ componentWillMountTests({
                 componentDidMount() {
                   var a = 1;
                   var b = 2;
-                  
+
                   var c = 3;
                   var d = 4;
                 }
@@ -278,7 +278,7 @@ componentWillMountTests({
                   var a = 1;
                   var b = 2;
                 }
-                
+
                 @override
                 componentDidMount() {
                   var c = 3;
@@ -289,8 +289,8 @@ componentWillMountTests({
           );
         });
 
-        test('-- has deprecated lifecycle methods without codemods', () {
-          testSuggestor(
+        test('-- has deprecated lifecycle methods without codemods', () async {
+          await testSuggestor(
             expectedPatchCount: allowPartialUpgrades ? 2 : 0,
             input: '''
               @Component2()
@@ -300,13 +300,13 @@ componentWillMountTests({
                   var a = 1;
                   var b = 2;
                 }
-                
+
                 @override
                 componentDidMount() {
                   var c = 3;
                   var d = 4;
                 }
-                
+
                 @override
                 componentWillUpdate() {}
               }
@@ -319,11 +319,11 @@ componentWillMountTests({
                 componentDidMount() {
                   var a = 1;
                   var b = 2;
-                  
+
                   var c = 3;
                   var d = 4;
                 }
-                
+
                 @override
                 componentWillUpdate() {}
               }
@@ -336,13 +336,13 @@ componentWillMountTests({
                   var a = 1;
                   var b = 2;
                 }
-                
+
                 @override
                 componentDidMount() {
                   var c = 3;
                   var d = 4;
                 }
-                
+
                 @override
                 componentWillUpdate() {}
               }
@@ -352,8 +352,8 @@ componentWillMountTests({
       });
 
       test('update super call to componentWillMount if not already existing',
-          () {
-        testSuggestor(
+          () async {
+        await testSuggestor(
           expectedPatchCount: 3,
           input: '''
             @Component2()
@@ -363,7 +363,7 @@ componentWillMountTests({
                 var c = 3;
                 var d = 4;
               }
-              
+
               @override
               void componentWillMount() {
                 super.componentWillMount();
@@ -381,7 +381,7 @@ componentWillMountTests({
                 super.componentDidMount();
                 var a = 1;
                 var b = 2;
-                
+
                 var c = 3;
                 var d = 4;
               }
@@ -390,8 +390,9 @@ componentWillMountTests({
         );
       });
 
-      test('remove super call if it already exists in componentDidMount', () {
-        testSuggestor(
+      test('remove super call if it already exists in componentDidMount',
+          () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             @Component2()
@@ -403,7 +404,7 @@ componentWillMountTests({
                 var c = 3;
                 var d = 4;
               }
-              
+
               @override
               componentWillMount() {
                 super.componentWillMount();
@@ -420,7 +421,7 @@ componentWillMountTests({
               componentDidMount() {
                 var a = 1;
                 var b = 2;
-                
+
                 super.componentDidMount();
                 var c = 3;
                 var d = 4;
@@ -430,8 +431,9 @@ componentWillMountTests({
         );
       });
 
-      test('copy any annotations not already present to componentDidMount', () {
-        testSuggestor(
+      test('copy any annotations not already present to componentDidMount',
+          () async {
+        await testSuggestor(
           expectedPatchCount: 3,
           input: '''
             @Component2()
@@ -440,7 +442,7 @@ componentWillMountTests({
               componentDidMount() {
                 // `componentDidMount` method body
               }
-              
+
               @override
               @mustCallSuper
               componentWillMount() {
@@ -455,7 +457,7 @@ componentWillMountTests({
               @override
               componentDidMount() {
                 // `componentWillMount` method body
-                
+
                 // `componentDidMount` method body
               }
             }
@@ -463,8 +465,9 @@ componentWillMountTests({
         );
       });
 
-      test('copy any annotations to annotationless componentDidMount', () {
-        testSuggestor(
+      test('copy any annotations to annotationless componentDidMount',
+          () async {
+        await testSuggestor(
           expectedPatchCount: 3,
           input: '''
             @Component2()
@@ -472,7 +475,7 @@ componentWillMountTests({
               componentDidMount() {
                 var c = 3;
               }
-              
+
               @override
               @mustCallSuper
               componentWillMount() {
@@ -487,7 +490,7 @@ componentWillMountTests({
               @mustCallSuper
               componentDidMount() {
                 var a = 1;
-                
+
                 var c = 3;
               }
             }
@@ -500,8 +503,8 @@ componentWillMountTests({
   group('componentWillMount method in an abstract class', () {
     test(
         'that is fully upgradable ${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
-        () {
-      testSuggestor(
+        () async {
+      await testSuggestor(
         expectedPatchCount:
             allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
         input: '''
@@ -512,7 +515,7 @@ componentWillMountTests({
               var a = 1;
               var b = 2;
             }
-            
+
             @override
             componentDidMount() {
               var c = 3;
@@ -528,7 +531,7 @@ componentWillMountTests({
             componentDidMount() {
               var a = 1;
               var b = 2;
-              
+
               var c = 3;
               var d = 4;
             }
@@ -542,7 +545,7 @@ componentWillMountTests({
               var a = 1;
               var b = 2;
             }
-            
+
             @override
             componentDidMount() {
               var c = 3;
@@ -556,8 +559,8 @@ componentWillMountTests({
     group(
         'that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
         () {
-      test('-- extends from non-Component class', () {
-        testSuggestor(
+      test('-- extends from non-Component class', () async {
+        await testSuggestor(
           expectedPatchCount:
               allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
           input: '''
@@ -579,8 +582,8 @@ componentWillMountTests({
         );
       });
 
-      test('-- has lifecycle methods without codemods', () {
-        testSuggestor(
+      test('-- has lifecycle methods without codemods', () async {
+        await testSuggestor(
           expectedPatchCount:
               allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
           input: '''
@@ -589,7 +592,7 @@ componentWillMountTests({
               componentWillMount(){
                 // method body
               }
-              
+
               @override
               componentWillReceiveProps() {}
             }
@@ -600,7 +603,7 @@ componentWillMountTests({
               ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? '$componentWillMountMessage\ncomponentDidMount' : 'componentWillMount'}(){
                 // method body
               }
-              
+
               @override
               componentWillReceiveProps() {}
             }
@@ -610,8 +613,9 @@ componentWillMountTests({
     });
   });
 
-  test('does not change componentWillMount for non-component2 classes', () {
-    testSuggestor(
+  test('does not change componentWillMount for non-component2 classes',
+      () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         @Component()
@@ -622,7 +626,7 @@ componentWillMountTests({
               var c = 3;
               var d = 4;
             }
-            
+
             @override
             componentWillMount() {
               super.componentWillMount();

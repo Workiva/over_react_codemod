@@ -34,8 +34,7 @@ import 'package:over_react_codemod/src/util.dart';
 ///
 /// > Related: [PropsMixinMigrator]
 class PropsMetaMigrator extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final ClassToMixinConverter converter;
 
   PropsMetaMigrator(this.converter);
@@ -61,9 +60,9 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
       if (propsClassWithMetaWasConverted &&
           componentWithMetaUsageIsComponent2) {
         yieldPatch(
+          'propsMeta.forMixin(${converter.visitedNames[node.prefix.name]})',
           node.prefix.offset,
           node.identifier.end,
-          'propsMeta.forMixin(${converter.visitedNames[node.prefix.name]})',
         );
 
         if (node.parent is TypedLiteral) {
@@ -76,7 +75,7 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
               _constRemovedFlag[parent] = true;
               // The `const` keyword exists as part of the literal expression
               yieldPatch(
-                  parent.constKeyword.offset, parent.constKeyword.end, '');
+                  '', parent.constKeyword.offset, parent.constKeyword.end);
             }
 
             // Check for the const keyword in the variable declaration as well
@@ -98,6 +97,6 @@ class PropsMetaMigrator extends GeneralizingAstVisitor
       VariableDeclarationList decl,
       {String replaceWith = 'final'}) {
     if (!decl.isConst) return;
-    yieldPatch(decl.keyword.offset, decl.keyword.end, replaceWith);
+    yieldPatch(replaceWith, decl.keyword.offset, decl.keyword.end);
   }
 }

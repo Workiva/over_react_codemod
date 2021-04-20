@@ -49,12 +49,12 @@ copyUnconsumedDomPropsTests({
     shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
   ));
 
-  test('empty file', () {
-    testSuggestor(expectedPatchCount: 0, input: '');
+  test('empty file', () async {
+    await testSuggestor(expectedPatchCount: 0, input: '');
   });
 
-  test('no matches', () {
-    testSuggestor(
+  test('no matches', () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         library foo;
@@ -65,8 +65,8 @@ copyUnconsumedDomPropsTests({
   });
 
   group('copyUnconsumedDomProps', () {
-    test('updates if containing class is fully upgradable', () {
-      testSuggestor(
+    test('updates if containing class is fully upgradable', () async {
+      await testSuggestor(
         expectedPatchCount: 2,
         input: '''
           @Component2()
@@ -96,8 +96,8 @@ copyUnconsumedDomPropsTests({
     group(
         '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
         'containing class is not fully upgradable', () {
-      test('-- extends from non-Component class', () {
-        testSuggestor(
+      test('-- extends from non-Component class', () async {
+        await testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
             @Component2()
@@ -124,8 +124,8 @@ copyUnconsumedDomPropsTests({
         );
       });
 
-      test('-- has deprecated lifecycle methods without codemods', () {
-        testSuggestor(
+      test('-- has deprecated lifecycle methods without codemods', () async {
+        await testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
             @Component2()
@@ -136,7 +136,7 @@ copyUnconsumedDomPropsTests({
                   ..addProps(copyUnconsumedDomProps())
                 )(props.children);
               }
-              
+
               @override
               componentWillUpdate() {}
             }
@@ -150,7 +150,7 @@ copyUnconsumedDomPropsTests({
                   ..${allowPartialUpgrades ? 'modifyProps(addUnconsumedDomProps)' : 'addProps(copyUnconsumedDomProps())'}
                 )(props.children);
               }
-              
+
               @override
               componentWillUpdate() {}
             }
@@ -162,8 +162,8 @@ copyUnconsumedDomPropsTests({
     group('in an abstract class', () {
       test(
           'that is fully upgradable ${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
-          () {
-        testSuggestor(
+          () async {
+        await testSuggestor(
           expectedPatchCount: shouldUpgradeAbstractComponents ? 2 : 0,
           input: '''
             @Component2
@@ -193,8 +193,8 @@ copyUnconsumedDomPropsTests({
       group(
           'that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
           () {
-        test('-- extends from non-Component class', () {
-          testSuggestor(
+        test('-- extends from non-Component class', () async {
+          await testSuggestor(
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
             input: '''
@@ -222,14 +222,14 @@ copyUnconsumedDomPropsTests({
           );
         });
 
-        test('-- has deprecated lifecycle methods without codemods', () {
-          testSuggestor(
+        test('-- has deprecated lifecycle methods without codemods', () async {
+          await testSuggestor(
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 2 : 0,
             input: '''
               @AbstractProps()
               class AbstractFooProps extends UiProps {}
-              
+
               @AbstractComponent2()
               class FooComponent extends UiComponent2 {
                 @override
@@ -238,7 +238,7 @@ copyUnconsumedDomPropsTests({
                     ..addProps(copyUnconsumedDomProps())
                   )(props.children);
                 }
-                
+
                 @override
                 componentWillUpdate() {}
               }
@@ -246,7 +246,7 @@ copyUnconsumedDomPropsTests({
             expectedOutput: '''
               @AbstractProps()
               class AbstractFooProps extends UiProps {}
-              
+
               @AbstractComponent2()
               class FooComponent extends UiComponent2 {
                 @override
@@ -255,7 +255,7 @@ copyUnconsumedDomPropsTests({
                     ..${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'modifyProps(addUnconsumedDomProps)' : 'addProps(copyUnconsumedDomProps())'}
                   )(props.children);
                 }
-                
+
                 @override
                 componentWillUpdate() {}
               }
@@ -267,12 +267,12 @@ copyUnconsumedDomPropsTests({
   });
 
   group('copyUnconsumedProps', () {
-    test('updates if containing class is fully upgradable', () {
-      testSuggestor(
+    test('updates if containing class is fully upgradable', () async {
+      await testSuggestor(
         expectedPatchCount: 2,
         input: '''
           import 'package:react/react.dart' as react;
-          
+
           class FooComponent extends react.Component2 {
             @override
             render() {
@@ -284,7 +284,7 @@ copyUnconsumedDomPropsTests({
         ''',
         expectedOutput: '''
           import 'package:react/react.dart' as react;
-        
+
           class FooComponent extends react.Component2 {
             @override
             render() {
@@ -300,8 +300,8 @@ copyUnconsumedDomPropsTests({
     group(
         '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
         'containing class is not fully upgradable', () {
-      test('-- extends from non-Component class', () {
-        testSuggestor(
+      test('-- extends from non-Component class', () async {
+        await testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
             @Component2()
@@ -328,12 +328,12 @@ copyUnconsumedDomPropsTests({
         );
       });
 
-      test('-- has deprecated lifecycle methods without codemods', () {
-        testSuggestor(
+      test('-- has deprecated lifecycle methods without codemods', () async {
+        await testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 2 : 0,
           input: '''
             import 'package:react/react.dart' as react;
-  
+
             @Component2()
             class FooComponent extends react.Component2 {
               @override
@@ -342,14 +342,14 @@ copyUnconsumedDomPropsTests({
                   ..addProps(copyUnconsumedProps())
                 )(props.children);
               }
-              
+
               @override
               componentWillReceiveProps() {}
             }
           ''',
           expectedOutput: '''
             import 'package:react/react.dart' as react;
-  
+
             @Component2()
             class FooComponent extends react.Component2 {
               @override
@@ -358,7 +358,7 @@ copyUnconsumedDomPropsTests({
                   ..${allowPartialUpgrades ? 'modifyProps(addUnconsumedProps)' : 'addProps(copyUnconsumedProps())'}
                 )(props.children);
               }
-              
+
               @override
               componentWillReceiveProps() {}
             }
@@ -368,8 +368,9 @@ copyUnconsumedDomPropsTests({
     });
   });
 
-  test('does not change copyUnconsumedProps for non-component2 classes', () {
-    testSuggestor(
+  test('does not change copyUnconsumedProps for non-component2 classes',
+      () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         @Component()

@@ -20,8 +20,7 @@ import 'component2_utilities.dart';
 
 /// Suggestor that updates `copyUnconsumedDomProps` and `copyUnconsumedProps` usages.
 class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final bool allowPartialUpgrades;
   final bool shouldUpgradeAbstractComponents;
 
@@ -51,12 +50,14 @@ class CopyUnconsumedDomPropsMigrator extends GeneralizingAstVisitor
         if (firstArg.toSource() == 'copyUnconsumedDomProps()' ||
             firstArg.toSource() == 'copyUnconsumedProps()') {
           // Update argument.
-          yieldPatch(firstArg.offset, firstArg.end,
-              'addUnconsumed${firstArg.toSource().contains('Dom') ? 'Dom' : ''}Props');
+          yieldPatch(
+              'addUnconsumed${firstArg.toSource().contains('Dom') ? 'Dom' : ''}Props',
+              firstArg.offset,
+              firstArg.end);
 
           // Rename `addProps` to `modifyProps`.
           yieldPatch(
-              node.methodName.offset, node.methodName.end, 'modifyProps');
+              'modifyProps', node.methodName.offset, node.methodName.end);
         }
       }
     }

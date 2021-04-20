@@ -21,8 +21,7 @@ import '../constants.dart';
 
 /// Suggestor that migrates consumer overlay prop names in component usages.
 class ConsumerOverlayMigrator extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   @override
   visitCascadeExpression(CascadeExpression node) {
     super.visitCascadeExpression(node);
@@ -54,9 +53,9 @@ class ConsumerOverlayMigrator extends GeneralizingAstVisitor
 
       if (leftHandSide.toSource() == '..overlay' ||
           leftHandSide.toSource() == '..isOverlay') {
-        yieldPatch(leftHandSide.end, leftHandSide.end, '2');
+        yieldPatch('2', leftHandSide.end, leftHandSide.end);
       } else if (leftHandSide.toSource() == '..useLegacyPositioning') {
-        yieldPatch(expression.offset, expression.end, '');
+        yieldPatch('', expression.offset, expression.end);
       }
     }
   }

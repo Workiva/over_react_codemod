@@ -26,10 +26,10 @@ import '../constants.dart';
 /// state mixin classes are prefixed with `_$`, the builder will generate the
 /// prefix-stripped version that will contain this static meta field.
 class PropsAndStateMixinMetaRemover extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   @override
   visitClassDeclaration(ClassDeclaration node) {
+    final sourceFile = context.sourceFile;
     // Only looking for @PropsMixin() and @StateMixin() classes.
     final isOverReactMixin = node.metadata.any((annotation) {
       return overReactMixinAnnotationNames.contains(annotation.name.name);
@@ -71,6 +71,6 @@ class PropsAndStateMixinMetaRemover extends RecursiveAstVisitor
       endOffset++;
     }
 
-    yieldPatch(startOffset, endOffset, '');
+    yieldPatch('', startOffset, endOffset);
   }
 }

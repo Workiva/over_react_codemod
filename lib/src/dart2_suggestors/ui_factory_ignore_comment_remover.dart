@@ -19,8 +19,7 @@ import 'package:codemod/codemod.dart';
 /// Suggestor that inserts the expected initializer value for all `UiFactory`
 /// declarations.
 class UiFactoryIgnoreCommentRemover extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   static final RegExp factoryAnnotationPattern =
       RegExp(r'^@Factory\(', multiLine: true);
 
@@ -31,8 +30,8 @@ class UiFactoryIgnoreCommentRemover extends RecursiveAstVisitor
   List<int> _ignoreLines = [];
 
   @override
-  bool shouldSkip(String sourceFileContents) =>
-      !factoryAnnotationPattern.hasMatch(sourceFileContents);
+  bool shouldSkip(FileContext context) =>
+      !factoryAnnotationPattern.hasMatch(context.sourceText);
 
   @override
   visitCompilationUnit(CompilationUnit node) {
@@ -40,8 +39,8 @@ class UiFactoryIgnoreCommentRemover extends RecursiveAstVisitor
     // looking to remove. Also adding one to each of these line numbers since
     // it should always be targeting the next line.
     _ignoreLines = ignorePattern
-        .allMatches(sourceFile.getText(0))
-        .map((match) => sourceFile.getLine(match.end) + 1)
+        .allMatches(context.sourceText)
+        .map((match) => context.sourceFile.getLine(match.end) + 1)
         .toList();
 
     super.visitCompilationUnit(node);
@@ -71,9 +70,9 @@ class UiFactoryIgnoreCommentRemover extends RecursiveAstVisitor
     // need to remove it. To do this, we just replace the entire initializer
     // with the same value, but without the comment.
     final initializerLineNum =
-        sourceFile.getLine(factoryNode.initializer.offset);
+        context.sourceFile.getLine(factoryNode.initializer.offset);
     if (_ignoreLines.contains(initializerLineNum)) {
-      final currentFactory = sourceFile
+      final currentFactory = context.sourceFile
           .span(
             node.metadata.beginToken.offset,
             node.end,
@@ -81,9 +80,9 @@ class UiFactoryIgnoreCommentRemover extends RecursiveAstVisitor
           .text;
       final updatedFactory = currentFactory.replaceFirst(ignorePattern, '');
       yieldPatch(
+        updatedFactory,
         node.metadata.beginToken.offset,
         node.end,
-        updatedFactory,
       );
     }
   }

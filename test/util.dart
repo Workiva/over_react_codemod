@@ -15,10 +15,10 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
+import 'package:codemod/test.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
-import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -135,8 +135,8 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       input = input.trimRight() + '\n';
       expectedOutput = expectedOutput.trimRight() + '\n';
 
-      test(description, () {
-        testSuggestor(
+      test(description, () async {
+        await testSuggestor(
           suggestor: suggestor,
           input: input,
           expectedOutput: expectedOutput,
@@ -150,7 +150,7 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
   });
 }
 
-typedef SuggestorTester = void Function({
+typedef SuggestorTester = Future<void> Function({
   @required String input,
   String expectedOutput,
   int expectedPatchCount,
@@ -184,7 +184,7 @@ SuggestorTester getSuggestorTester(Suggestor suggestor,
       );
 }
 
-void testSuggestor({
+Future<void> testSuggestor({
   @required Suggestor suggestor,
   @required String input,
   String expectedOutput,
@@ -192,11 +192,10 @@ void testSuggestor({
   bool shouldDartfmtOutput = true,
   bool testIdempotency = true,
   void Function(String contents) validateContents,
-  String inputUrl = defaultSuggestorTesterInputUrl,
-}) {
-  if (expectedOutput == null) {
-    expectedOutput = input;
-  }
+  String inputUrl,
+}) async {
+  inputUrl ??= defaultSuggestorTesterInputUrl;
+  expectedOutput ??= input;
 
   if (validateContents != null) {
     expect(() => validateContents(input), returnsNormally,
@@ -209,18 +208,15 @@ void testSuggestor({
 
   String modifiedInput;
   {
-    final sourceFile = SourceFile.fromString(input, url: inputUrl);
-    final patches = suggestor.generatePatches(sourceFile).toList();
-    final emptyPatches = patches.where((p) => p.isNoop);
-    expect(emptyPatches, isEmpty,
-        reason: 'Suggested ${emptyPatches.length} empty patch(es).');
-
+    final context = await fileContextForTest(inputUrl, input);
+    final patches = await suggestor(context).toList();
     if (expectedPatchCount != null && patches.length != expectedPatchCount) {
       fail('Incorrect number of patches generated '
           '(expected: $expectedPatchCount, actual: ${patches.length})\n'
           'Patches:\n$patches');
     }
-    modifiedInput = applyPatches(sourceFile, patches).trimRight() + '\n';
+    modifiedInput =
+        applyPatches(context.sourceFile, patches).trimRight() + '\n';
     if (validateContents != null) {
       expect(() => validateContents(modifiedInput), returnsNormally,
           reason: 'output is invalid');
@@ -234,11 +230,10 @@ void testSuggestor({
   }
 
   if (testIdempotency) {
-    final sourceFile =
-        SourceFile.fromString(modifiedInput, url: '$inputUrl.modifiedInput');
-    final patches = suggestor.generatePatches(sourceFile).toList();
+    final context = await fileContextForTest('$inputUrl.modifiedInput', input);
+    final patches = await suggestor(context).toList();
     var doubleModifiedInput =
-        applyPatches(sourceFile, patches).trimRight() + '\n';
+        applyPatches(context.sourceFile, patches).trimRight() + '\n';
     if (shouldDartfmtOutput) {
       doubleModifiedInput = formatter.format(doubleModifiedInput,
           uri: '$inputUrl.doubleModifiedInput');

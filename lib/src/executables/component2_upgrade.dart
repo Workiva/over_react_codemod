@@ -35,7 +35,7 @@ To update your code, switch to Dart 2.1.0 and run the following commands:
 Then, review the the changes, address any FIXMEs, and commit.
 """;
 
-void main(List<String> args) {
+void main(List<String> args) async {
   final allowPartialUpgrades = !args.contains(_noPartialUpgradesFlag);
   args.removeWhere((arg) => arg == _noPartialUpgradesFlag);
 
@@ -43,7 +43,7 @@ void main(List<String> args) {
       args.contains(_upgradeAbstractComponentsFlag);
   args.removeWhere((arg) => arg == _upgradeAbstractComponentsFlag);
 
-  exitCode = runInteractiveCodemodSequence(
+  exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHiddenAndGenerated(),
     <Suggestor>[
       // This suggestor needs to be run first in order for subsequent suggestors
@@ -80,7 +80,7 @@ void main(List<String> args) {
         allowPartialUpgrades: allowPartialUpgrades,
         shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
       ),
-    ].map((s) => Ignoreable(s)),
+    ].map((s) => ignoreable(s)),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,

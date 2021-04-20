@@ -49,12 +49,12 @@ deprecatedLifecycleTests({
     shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
   ));
 
-  test('empty file', () {
-    testSuggestor(expectedPatchCount: 0, input: '');
+  test('empty file', () async {
+    await testSuggestor(expectedPatchCount: 0, input: '');
   });
 
-  test('no matches', () {
-    testSuggestor(
+  test('no matches', () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         library foo;
@@ -66,8 +66,8 @@ deprecatedLifecycleTests({
 
   group('${allowPartialUpgrades ? 'adds' : 'does not add'} a FIXME comment',
       () {
-    test('for componentWillUpdate with override', () {
-      testSuggestor(
+    test('for componentWillUpdate with override', () async {
+      await testSuggestor(
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
@@ -87,8 +87,8 @@ deprecatedLifecycleTests({
       );
     });
 
-    test('componentWillUpdate without override', () {
-      testSuggestor(
+    test('componentWillUpdate without override', () async {
+      await testSuggestor(
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
@@ -106,8 +106,8 @@ deprecatedLifecycleTests({
       );
     });
 
-    test('componentWillUpdate in an abstract class', () {
-      testSuggestor(
+    test('componentWillUpdate in an abstract class', () async {
+      await testSuggestor(
         expectedPatchCount:
             allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
         input: '''
@@ -128,8 +128,8 @@ deprecatedLifecycleTests({
       );
     });
 
-    test('componentWillReceiveProps with override', () {
-      testSuggestor(
+    test('componentWillReceiveProps with override', () async {
+      await testSuggestor(
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
@@ -149,8 +149,8 @@ deprecatedLifecycleTests({
       );
     });
 
-    test('componentWillReceiveProps without override', () {
-      testSuggestor(
+    test('componentWillReceiveProps without override', () async {
+      await testSuggestor(
         expectedPatchCount: allowPartialUpgrades ? 1 : 0,
         input: '''
           @Component2()
@@ -168,8 +168,8 @@ deprecatedLifecycleTests({
       );
     });
 
-    test('componentWillReceiveProps in an abstract class', () {
-      testSuggestor(
+    test('componentWillReceiveProps in an abstract class', () async {
+      await testSuggestor(
         expectedPatchCount:
             allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
         input: '''
@@ -192,15 +192,15 @@ deprecatedLifecycleTests({
 
     test(
         'when both componentWillUpdate and componentWillReceiveProps is present',
-        () {
-      testSuggestor(
+        () async {
+      await testSuggestor(
         expectedPatchCount: allowPartialUpgrades ? 2 : 0,
         input: '''
           @Component2()
           class FooComponent extends UiComponent2 {
             @override
             componentWillUpdate(){}
-            
+
             @override
             componentWillReceiveProps(){}
           }
@@ -211,7 +211,7 @@ deprecatedLifecycleTests({
             ${allowPartialUpgrades ? getDeperecationMessage('componentWillUpdate') : ''}
             @override
             componentWillUpdate(){}
-        
+
             ${allowPartialUpgrades ? getDeperecationMessage('componentWillReceiveProps') : ''}
             @override
             componentWillReceiveProps(){}

@@ -55,12 +55,12 @@ void propsMixinMigratorTestHelper({
     });
 
     group('does not perform a migration', () {
-      test('when it encounters an empty file', () {
-        testSuggestor(expectedPatchCount: 0, input: '');
+      test('when it encounters an empty file', () async {
+        await testSuggestor(expectedPatchCount: 0, input: '');
       });
 
-      test('when there are no `PropsMixin()` annotations found', () {
-        testSuggestor(
+      test('when there are no `PropsMixin()` annotations found', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
           abstract class FooPropsMixin implements UiProps {
@@ -80,8 +80,8 @@ void propsMixinMigratorTestHelper({
 
       group('converting the class to a mixin', () {
         group('when the class implements Ui$typeStr', () {
-          test('only', () {
-            testSuggestor(
+          test('only', () async {
+            await testSuggestor(
               expectedPatchCount: withPrivateGeneratedPrefix ? 6 : 5,
               input: '''
               /// Some doc comment
@@ -91,10 +91,10 @@ void propsMixinMigratorTestHelper({
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 @override
                 Map get ${typeStr.toLowerCase()};
-                
+
                 String foo;
               }
             ''',
@@ -115,7 +115,7 @@ void propsMixinMigratorTestHelper({
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 String foo;
               }
             ''',
@@ -126,8 +126,8 @@ void propsMixinMigratorTestHelper({
             });
           });
 
-          test('along with other interfaces (Ui$typeStr first)', () {
-            testSuggestor(
+          test('along with other interfaces (Ui$typeStr first)', () async {
+            await testSuggestor(
               expectedPatchCount: withPrivateGeneratedPrefix ? 6 : 5,
               input: '''
               /// Some doc comment
@@ -137,10 +137,10 @@ void propsMixinMigratorTestHelper({
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 @override
                 Map get ${typeStr.toLowerCase()};
-                
+
                 String foo;
               }
             ''',
@@ -161,7 +161,7 @@ void propsMixinMigratorTestHelper({
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 String foo;
               }
             ''',
@@ -172,8 +172,8 @@ void propsMixinMigratorTestHelper({
             });
           });
 
-          test('along with other interfaces (Ui$typeStr last)', () {
-            testSuggestor(
+          test('along with other interfaces (Ui$typeStr last)', () async {
+            await testSuggestor(
               expectedPatchCount: withPrivateGeneratedPrefix ? 6 : 5,
               input: '''
               /// Some doc comment
@@ -183,10 +183,10 @@ void propsMixinMigratorTestHelper({
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 @override
                 Map get ${typeStr.toLowerCase()};
-                
+
                 String foo;
               }
             ''',
@@ -207,7 +207,7 @@ void propsMixinMigratorTestHelper({
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 String foo;
               }
             ''',
@@ -220,8 +220,8 @@ void propsMixinMigratorTestHelper({
         });
 
         group('when the class does not implement Ui$typeStr', () {
-          test('but it does implement other interface(s)', () {
-            testSuggestor(
+          test('but it does implement other interface(s)', () async {
+            await testSuggestor(
               expectedPatchCount: withPrivateGeneratedPrefix ? 6 : 5,
               input: '''
               /// Some doc comment
@@ -231,10 +231,10 @@ void propsMixinMigratorTestHelper({
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 @override
                 Map get ${typeStr.toLowerCase()};
-                
+
                 String foo;
               }
             ''',
@@ -255,7 +255,7 @@ void propsMixinMigratorTestHelper({
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 String foo;
               }
             ''',
@@ -266,8 +266,8 @@ void propsMixinMigratorTestHelper({
             });
           });
 
-          test('or any other interface', () {
-            testSuggestor(
+          test('or any other interface', () async {
+            await testSuggestor(
               expectedPatchCount: withPrivateGeneratedPrefix ? 6 : 5,
               input: '''
               /// Some doc comment
@@ -277,9 +277,9 @@ void propsMixinMigratorTestHelper({
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 Map get ${typeStr.toLowerCase()};
-                
+
                 String foo;
               }
             ''',
@@ -300,7 +300,7 @@ void propsMixinMigratorTestHelper({
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 String foo;
               }
             ''',
@@ -315,8 +315,8 @@ void propsMixinMigratorTestHelper({
 
       group('meta field', () {
         group('is removed if the class is not part of the public API', () {
-          test('and the meta field is the first field in the class', () {
-            testSuggestor(
+          test('and the meta field is the first field in the class', () async {
+            await testSuggestor(
               expectedPatchCount: withPrivateGeneratedPrefix ? 5 : 4,
               input: '''
               /// Some doc comment
@@ -326,7 +326,7 @@ void propsMixinMigratorTestHelper({
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 String foo;
               }
             ''',
@@ -347,15 +347,16 @@ void propsMixinMigratorTestHelper({
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 String foo;
               }
             ''',
             );
           });
 
-          test('and the meta field is not the first field in the class', () {
-            testSuggestor(
+          test('and the meta field is not the first field in the class',
+              () async {
+            await testSuggestor(
               expectedPatchCount: withPrivateGeneratedPrefix ? 5 : 4,
               input: '''
               /// Some doc comment
@@ -363,12 +364,12 @@ void propsMixinMigratorTestHelper({
               abstract class $mixinName implements Ui${typeStr} {
                 // foooooo
                 final baz = 'bar';
-              
+
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 String foo;
               }
             ''',
@@ -379,7 +380,7 @@ void propsMixinMigratorTestHelper({
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
                 final baz = 'bar';
-                
+
                 String foo;
               }
             '''
@@ -389,13 +390,13 @@ void propsMixinMigratorTestHelper({
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
                 final baz = 'bar';
-                
+
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 String foo;
               }
             ''',
@@ -404,8 +405,8 @@ void propsMixinMigratorTestHelper({
 
           test(
               'and the meta field is the first field in the class, but not the first member',
-              () {
-            testSuggestor(
+              () async {
+            await testSuggestor(
               expectedPatchCount: withPrivateGeneratedPrefix ? 5 : 4,
               input: '''
               /// Some doc comment
@@ -413,12 +414,12 @@ void propsMixinMigratorTestHelper({
               abstract class $mixinName implements Ui${typeStr} {
                 // foooooo
                 baz() => 'bar';
-              
+
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 String foo;
               }
             ''',
@@ -429,7 +430,7 @@ void propsMixinMigratorTestHelper({
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
                 baz() => 'bar';
-                
+
                 String foo;
               }
             '''
@@ -439,13 +440,13 @@ void propsMixinMigratorTestHelper({
               mixin Foo${typeStr}Mixin on Ui${typeStr} {
                 // foooooo
                 baz() => 'bar';
-                
+
                 // To ensure the codemod regression checking works properly, please keep this
                 // field at the top of the class!
                 // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
                 @Deprecated('Use `propsMeta.forMixin(Foo${typeStr}Mixin)` instead.')
                 static const ${typeStr}Meta meta = _\$metaForFoo${typeStr}Mixin;
-                
+
                 String foo;
               }
             ''',
@@ -453,12 +454,12 @@ void propsMixinMigratorTestHelper({
           });
         });
 
-        test('is deprecated if the class is part of the public API', () {
+        test('is deprecated if the class is part of the public API', () async {
           final exportedMixinName = withPrivateGeneratedPrefix
               ? '_\$Bar${typeStr}Mixin'
               : 'Bar${typeStr}Mixin';
 
-          testSuggestor(
+          await testSuggestor(
             expectedPatchCount: withPrivateGeneratedPrefix ? 5 : 4,
             input: '''
             /// Some doc comment
@@ -468,7 +469,7 @@ void propsMixinMigratorTestHelper({
               // field at the top of the class!
               // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
               static const ${typeStr}Meta meta = _\$metaForBar${typeStr}Mixin;
-              
+
               String foo;
             }
           ''',
@@ -489,7 +490,7 @@ void propsMixinMigratorTestHelper({
               // ignore: undefined_identifier, undefined_class, const_initialized_with_non_constant_value
               @Deprecated('Use `propsMeta.forMixin(Bar${typeStr}Mixin)` instead.')
               static const ${typeStr}Meta meta = _\$metaForBar${typeStr}Mixin;
-              
+
               String foo;
             }
           ''',

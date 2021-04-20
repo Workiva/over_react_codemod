@@ -23,8 +23,7 @@ import 'component2_utilities.dart';
 /// Suggestor that transitions `componentWillMount` to `componentDidMount` to
 /// be compatible with UiComponent2.
 class ComponentWillMountMigrator extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final bool allowPartialUpgrades;
   final bool shouldUpgradeAbstractComponents;
 
@@ -60,18 +59,19 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
               .toSource()
               .contains('super.componentDidMount();');
           final block = (node.body as BlockFunctionBody).block;
-          var methodBody = sourceFile.getText(
-              block.leftBracket.end, block.rightBracket.offset);
+          var methodBody = context.sourceFile
+              .getText(block.leftBracket.end, block.rightBracket.offset);
 
           // Add comment to check super calls if new super call will be added
           // to `componentDidMount` method.
           if (methodBody.contains('super.componentWillMount();\n') &&
               !hasSuperCall &&
-              !hasComment(node, sourceFile, componentWillMountMessage)) {
+              !hasComment(
+                  node, context.sourceFile, componentWillMountMessage)) {
             yieldPatch(
-              componentDidMountMethodDecl.offset,
-              componentDidMountMethodDecl.offset,
               '$componentWillMountMessage\n',
+              componentDidMountMethodDecl.offset,
+              componentDidMountMethodDecl.offset,
             );
           }
 
@@ -85,9 +85,9 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
           final componentDidMountBody =
               (componentDidMountMethodDecl.body as BlockFunctionBody).block;
           yieldPatch(
-            componentDidMountBody.leftBracket.end,
-            componentDidMountBody.leftBracket.end,
             methodBody,
+            componentDidMountBody.leftBracket.end,
+            componentDidMountBody.leftBracket.end,
           );
         }
 
@@ -103,32 +103,32 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
 
         if (annotationsToAdd.isNotEmpty) {
           yieldPatch(
-            componentDidMountMethodDecl.offset,
-            componentDidMountMethodDecl.offset,
             annotationsToAdd,
+            componentDidMountMethodDecl.offset,
+            componentDidMountMethodDecl.offset,
           );
         }
 
         // Remove `componentWillMount` method.
         yieldPatch(
+          '',
           node.offset,
           node.end,
-          '',
         );
       } else {
         // Rename `componentWillMount` to `componentDidMount` and add comment
         // to check super calls.
-        if (!hasComment(node, sourceFile, componentWillMountMessage)) {
+        if (!hasComment(node, context.sourceFile, componentWillMountMessage)) {
           yieldPatch(
-            node.offset,
-            node.offset,
             '$componentWillMountMessage\n',
+            node.offset,
+            node.offset,
           );
         }
         yieldPatch(
+          'componentDidMount',
           node.name.offset,
           node.name.end,
-          'componentDidMount',
         );
 
         if (node.body is BlockFunctionBody) {
@@ -139,9 +139,9 @@ class ComponentWillMountMigrator extends GeneralizingAstVisitor
                 .toSource()
                 .startsWith('super.componentWillMount();')) {
               yieldPatch(
+                'super.componentDidMount();',
                 statement.offset,
                 statement.end,
-                'super.componentDidMount();',
               );
             }
           }

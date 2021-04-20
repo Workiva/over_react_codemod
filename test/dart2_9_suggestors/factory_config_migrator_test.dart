@@ -21,12 +21,12 @@ main() {
   group('FactoryConfigMigrator', () {
     final testSuggestor = getSuggestorTester(FactoryConfigMigrator());
 
-    test('empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
+    test('empty file', () async {
+      await testSuggestor(expectedPatchCount: 0, input: '');
     });
 
-    test('no matches', () {
-      testSuggestor(
+    test('no matches', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           library foo;
@@ -37,8 +37,8 @@ main() {
     });
 
     group('does not update', () {
-      test('generated arguments in single argument list', () {
-        testSuggestor(
+      test('generated arguments in single argument list', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             UiFactory<FooProps> Foo = someMethod(\$Foo);
@@ -46,12 +46,12 @@ main() {
         );
       });
 
-      test('if already updated', () {
-        testSuggestor(
+      test('if already updated', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             UiFactory<FooProps> Foo = uiFunction(
-              (props) {}, 
+              (props) {},
               _\$FooConfig, // ignore: undefined_identifier
             );
           ''',
@@ -59,26 +59,26 @@ main() {
       });
     });
 
-    test('with left hand typing', () {
-      testSuggestor(
+    test('with left hand typing', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
           UiFactory<BarProps> Bar = uiFunction(
-            (props) {}, 
+            (props) {},
             \$BarConfig, // ignore: undefined_identifier
           );
         ''',
         expectedOutput: '''
           UiFactory<BarProps> Bar = uiFunction(
-            (props) {}, 
+            (props) {},
             _\$BarConfig, // ignore: undefined_identifier
           );
         ''',
       );
     });
 
-    test('without left hand typing', () {
-      testSuggestor(
+    test('without left hand typing', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
           final Foo = uiForwardRef<FooProps>(
@@ -95,26 +95,26 @@ main() {
       );
     });
 
-    test('when the factory is private', () {
-      testSuggestor(
+    test('when the factory is private', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
           UiFactory<FooProps> _Foo = uiFunction(
-            (props) {}, 
+            (props) {},
             \$_FooConfig, // ignore: undefined_identifier
           );
         ''',
         expectedOutput: '''
           UiFactory<FooProps> _Foo = uiFunction(
-            (props) {}, 
+            (props) {},
             _\$_FooConfig, // ignore: undefined_identifier
           );
         ''',
       );
     });
 
-    test('without trailing comma', () {
-      testSuggestor(
+    test('without trailing comma', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
           UiFactory<BarProps> Bar = uiFunction((props) {}, \$BarConfig); // ignore: undefined_identifier
@@ -125,17 +125,17 @@ main() {
       );
     });
 
-    test('when there are multiple factories', () {
-      testSuggestor(
+    test('when there are multiple factories', () async {
+      await testSuggestor(
         expectedPatchCount: 2,
         input: '''
           final Foo = uiForwardRef<FooProps>(
             (props, ref) {},
             \$FooConfig, // ignore: undefined_identifier
           );
-          
+
           UiFactory<BarProps> Bar = uiFunction(
-            (props) {}, 
+            (props) {},
             \$BarConfig, // ignore: undefined_identifier
           );
         ''',
@@ -144,27 +144,27 @@ main() {
             (props, ref) {},
             _\$FooConfig, // ignore: undefined_identifier
           );
-          
+
           UiFactory<BarProps> Bar = uiFunction(
-            (props) {}, 
+            (props) {},
             _\$BarConfig, // ignore: undefined_identifier
           );
         ''',
       );
     });
 
-    test('when wrapped in an hoc', () {
-      testSuggestor(
+    test('when wrapped in an hoc', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
           UiFactory<FooProps> Foo = someHOC(uiFunction(
-            (props) {}, 
+            (props) {},
             \$FooConfig, // ignore: undefined_identifier
           ));
         ''',
         expectedOutput: '''
           UiFactory<FooProps> Foo = someHOC(uiFunction(
-            (props) {}, 
+            (props) {},
             _\$FooConfig, // ignore: undefined_identifier
           ));
         ''',

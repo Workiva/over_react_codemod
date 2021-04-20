@@ -21,8 +21,7 @@ import '../constants.dart';
 /// Suggestor that rewrites every usage pair of a props or state mixin to remove
 /// the `$`-prefixed generated version and consolidate to the original.
 class PropsAndStateMixinUsageConsolidator extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   @override
   visitWithClause(WithClause node) {
     final allMixins = node.mixinTypes.map((n) => n.name.name);
@@ -42,12 +41,12 @@ class PropsAndStateMixinUsageConsolidator extends RecursiveAstVisitor
       final mixinType = node.mixinTypes[i];
       if (targetMixins.contains(mixinType.name.name)) {
         yieldPatch(
+          '',
           // The mixin type needs to be removed, but the ignore comment on the
           // line before and the comma after the previous mixin type both need
           // to be removed as well.
           node.mixinTypes[i - 1].end,
           mixinType.end,
-          '',
         );
       }
     }
