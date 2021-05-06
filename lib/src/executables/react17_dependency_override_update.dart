@@ -15,7 +15,7 @@
 import 'dart:io';
 
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/react16_suggestors/dependency_override_updater.dart';
+import 'package:over_react_codemod/src/pubspec_suggestors/dependency_override_updater.dart';
 import 'package:over_react_codemod/src/util.dart';
 
 const _changesRequiredOutput = """
@@ -40,9 +40,7 @@ void main(List<String> args) {
 
   exitCode = runInteractiveCodemod(
     pubspecYamlPaths(),
-    DependencyOverrideUpdater(
-        reactOverrideConfig: reactConfig,
-        overReactOverrideConfig: overReactConfig),
+    DependencyOverrideUpdater([reactConfig, overReactConfig]),
     args: args,
     defaultYes: true,
     changesRequiredOutput: _changesRequiredOutput,

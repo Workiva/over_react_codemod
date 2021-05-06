@@ -70,13 +70,9 @@ abstract class DependencyOverrideConfig {
 
 /// Suggestor that adds overrides for over_react and react in the pubspec.
 class DependencyOverrideUpdater implements Suggestor {
-  final DependencyOverrideConfig reactOverrideConfig;
-  final DependencyOverrideConfig overReactOverrideConfig;
+  final List<DependencyOverrideConfig> overridesToMake;
 
-  DependencyOverrideUpdater({
-    this.reactOverrideConfig,
-    this.overReactOverrideConfig,
-  });
+  DependencyOverrideUpdater(this.overridesToMake);
 
   @override
   Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
@@ -129,15 +125,7 @@ class DependencyOverrideUpdater implements Suggestor {
 
     // Each override has its own object to keep track of what the dependency
     // override is and what it needs to be overridden with.
-    var reactDependencyOverride =
-        DependencyCreator.fromOverrideConfig(reactOverrideConfig);
-    var overReactDependencyOverride =
-        DependencyCreator.fromOverrideConfig(overReactOverrideConfig);
-
-    final dependenciesToUpdate = [
-      reactDependencyOverride,
-      overReactDependencyOverride,
-    ];
+    final dependenciesToUpdate = overridesToMake.map(DependencyCreator.createDependencyCreator);
 
     YamlMap parsedYamlMap;
 

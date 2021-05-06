@@ -31,7 +31,7 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/stubbed_props_and_
 import 'package:over_react_codemod/src/dart2_suggestors/generated_part_directive_ignore_remover.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/util.dart';
-import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
+import 'package:over_react_codemod/src/pubspec_suggestors/pubspec_upgrader.dart';
 import 'package:prompts/prompts.dart' as prompts;
 import 'package:pub_semver/pub_semver.dart';
 
