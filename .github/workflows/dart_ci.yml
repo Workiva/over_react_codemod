@@ -1,0 +1,79 @@
+name: Dart CI
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'test_consume_*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [ 2.7.2, stable ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v0.2
+        with:
+          sdk: ${{ matrix.sdk }}
+
+      - name: Print Dart SDK version
+        run: dart --version
+
+      - id: install
+        name: Install dependencies
+        run: pub get --no-precompile
+
+      - name: Validate dependencies
+        run: pub run dependency_validator -i dart_style,meta,over_react,pedantic
+        if: always() && steps.install.outcome == 'success'
+
+      - name: Validate formatting
+        run: pub run dart_dev format --check
+        if: always() && steps.install.outcome == 'success'
+
+      - name: Analyze project source
+        run: if [ ${{ matrix.sdk }} = '2.7.2' ]; then pub global activate tuneup && tuneup check --ignore-infos; else dart analyze; fi
+        if: always() && steps.install.outcome == 'success'
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [ 2.7.2, stable ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v0.2
+        with:
+          sdk: ${{ matrix.sdk }}
+
+      - name: Print Dart SDK version
+        run: dart --version
+
+      - id: install
+        name: Install dependencies
+        run: pub get --no-precompile
+
+      - name: Run tests
+        run: pub run test --file-reporter json:reports/${{ matrix.sdk }}/test-results.json
+
+      - name: Upload Unit Test Results
+        uses: actions/upload-artifact@v2
+        if: ${{ steps.install.outcome == 'success' && (success() || failure()) }} # run this step even if previous step failed, but not if it was skipped
+        with:
+          name: test-results@${{ matrix.sdk }}
+          path: reports/${{ matrix.sdk }}/test-results.json
+
+      - name: Report Unit Test Results
+        uses: dorny/test-reporter@v1
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        with:
+          name: Unit Test Results (${{ matrix.sdk }})
+          path: 'reports/${{ matrix.sdk }}/test-results.json'
+          reporter: dart-json

@@ -1,7 +1,7 @@
 # Over React Codemods
 
 [![Pub](https://img.shields.io/pub/v/over_react_codemod.svg)](https://pub.dartlang.org/packages/over_react_codemod)
-[![Build Status](https://travis-ci.org/Workiva/over_react_codemod.svg?branch=master)](https://travis-ci.org/Workiva/over_react_codemod)
+[![Build Status](https://github.com/Workiva/over_react_codemod/workflows/Dart%20CI/badge.svg?branch=master)](https://github.com/Workiva/over_react_codemod/actions?query=workflow%3A%22Dart+CI%22+branch%3Amaster)
 
 > **Built with [dart_codemod][dart_codemod].**
 
