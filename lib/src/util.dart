@@ -29,7 +29,6 @@ import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilit
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 
-import 'component2_suggestors/component2_utilities.dart';
 import 'constants.dart';
 
 typedef CompanionBuilder = String Function(String className,
@@ -126,143 +125,6 @@ String buildIgnoreComment({
   return '// ignore: ${ignores.join(', ')}';
 }
 
-/// Returns the source code for a companion `@Props()` or `@AbstractProps()`
-/// class named [className].
-///
-/// Callers do not need to worry about the format/state of the given
-/// [className] (i.e. whether or not it has already been renamed for Dart 2
-/// compatibility); it will be normalized.
-///
-/// If the [docComment] string is non-null and non-empty, it will be included
-/// before the class.
-///
-/// If the [annotations] string is non-null and non-empty, it will be included
-/// before the class.
-///
-/// If given, [commentPrefix] will be inserted at the beginning of the
-/// double-slash comment on the companion class declaration. Use this as a way
-/// to reference a cleanup ticket or issue number.
-String buildPropsCompanionClass(
-  String className, {
-  String annotations,
-  String commentPrefix,
-  String docComment,
-  TypeParameterList typeParameters,
-}) =>
-    _buildPropsOrStateCompanionClass(className, propsMetaType,
-        annotations: annotations,
-        commentPrefix: commentPrefix,
-        docComment: docComment,
-        typeParameters: typeParameters);
-
-/// Returns the source code for a companion `@State()` or `@AbstractState()`
-/// class named [className].
-///
-/// Callers do not need to worry about the format/state of the given
-/// [className] (i.e. whether or not it has already been renamed for Dart 2
-/// compatibility); it will be normalized.
-///
-/// If the [docComment] string is non-null and non-empty, it will be included
-/// before the class.
-///
-/// If the [annotations] string is non-null and non-empty, it will be included
-/// before the class.
-///
-/// If given, [commentPrefix] will be inserted at the beginning of the
-/// double-slash comment on the companion class declaration. Use this as a way
-/// to reference a cleanup ticket or issue number.
-String buildStateCompanionClass(
-  String className, {
-  String annotations,
-  String commentPrefix,
-  String docComment,
-  TypeParameterList typeParameters,
-}) =>
-    _buildPropsOrStateCompanionClass(className, stateMetaType,
-        annotations: annotations,
-        commentPrefix: commentPrefix,
-        docComment: docComment,
-        typeParameters: typeParameters);
-
-/// Returns the source code for a companion class based on the given
-/// [className] and [metaType].
-///
-/// The returned class will have the following attributes:
-/// - Name: the result of calling [stripPrivateGeneratedPrefix] on [className].
-/// - Super class: the class name with the private generated prefix.
-///   [className]
-/// - Mixin: same as super class but with a `AccessorsMixin` suffix.
-/// - A static meta field typed as [metaType] (should be either `PropsMeta` or
-///   `StateMeta`) and with an initialized value of `$metaFor<name>` where name
-///   is the same as the class name.
-/// - Annotations if [annotations] is non-null and non-empty.
-/// - A doc comment if [docComment] is non-null and non-empty.
-/// - A single-line comment indicating that this class is temporary and will be
-///   removed when Dart 1 support is no longer needed. If a [commentPrefix] is
-///   given, it will be inserted at the beginning of this single-line comment.
-///
-/// Callers do not need to worry about the format/state of the given
-/// [className] (i.e. whether or not it has already been renamed for Dart 2
-/// compatibility); it will be normalized.
-String _buildPropsOrStateCompanionClass(
-  String className,
-  String metaType, {
-  String annotations,
-  String commentPrefix,
-  String docComment,
-  TypeParameterList typeParameters,
-}) {
-  annotations ??= '';
-  commentPrefix ??= '';
-  docComment ??= '';
-
-  final classCommentsAndAnnotations = <String>[];
-  if (docComment.isNotEmpty) {
-    classCommentsAndAnnotations.add(docComment);
-  }
-  if (annotations.isNotEmpty) {
-    classCommentsAndAnnotations.add(annotations);
-  }
-  classCommentsAndAnnotations.add(
-      '// ${commentPrefix}This will be removed once the transition to Dart 2 is complete.');
-
-  var typeParamsOnClass = '';
-  var typeParamsOnSuper = '';
-  if (typeParameters != null) {
-    typeParamsOnClass = typeParameters.toSource();
-    typeParamsOnSuper = (StringBuffer()
-          ..write('<')
-          ..write(
-              typeParameters.typeParameters.map((t) => t.name.name).join(', '))
-          ..write('>'))
-        .toString();
-  }
-
-  final strippedClassName = stripPrivateGeneratedPrefix(className);
-  final mixinIgnoreComment = buildIgnoreComment(
-    mixinOfNonClass: true,
-    undefinedClass: true,
-  );
-  final metaIgnoreComment = buildIgnoreComment(
-    constInitializedWithNonConstantValue: true,
-    undefinedClass: true,
-    undefinedIdentifier: true,
-  );
-  // With triple-quote strings, the first newline is ignored if the first line
-  // is empty, so this string purposely includes an extra blank line.
-  return '''
-
-${classCommentsAndAnnotations.join('\n')}
-class $strippedClassName$typeParamsOnClass extends ${privateGeneratedPrefix}$strippedClassName$typeParamsOnSuper
-    with
-        $mixinIgnoreComment
-        ${privateGeneratedPrefix}${strippedClassName}AccessorsMixin$typeParamsOnSuper {
-  $metaIgnoreComment
-  static const $metaType meta = ${privateGeneratedPrefix}metaFor$strippedClassName;
-}
-''';
-}
-
 /// Returns the canonicalized relative path for the given [partOfUri].
 ///
 /// If [partOfUri] is a `package:` URI, the returned path will be relative to
@@ -333,29 +195,6 @@ final _usesOverReactRegex = RegExp(
   multiLine: true,
 );
 
-/// Returns whether or not [classNode] extends react.Component (either by having the
-/// `@Component` / `@Component2` annotation or by extending `react.Component`).
-bool extendsReactComponent(ClassDeclaration classNode) {
-  var extendsName = classNode?.extendsClause?.superclass?.name;
-  if (extendsName == null) {
-    return false;
-  }
-
-  final reactImportName =
-      getImportNamespace(classNode, 'package:react/react.dart');
-
-  if ((reactImportName != null &&
-          extendsName.name == '$reactImportName.Component') ||
-      classNode.metadata.any((m) => [
-            ...overReact16ComponentAnnotationNamesToMigrate,
-            ...overReact16Component2AnnotationNames
-          ].contains(m.name.name))) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
 /// Method that creates a new dependency range by targeting a higher range.
 ///
 /// This can be used to update dependency ranges without lowering a current
@@ -370,21 +209,6 @@ VersionRange generateNewVersionRange(
   );
 }
 
-/// Returns the class in the root of the provided [node] that extends from UiComponent / UiComponent2.
-ClassDeclaration getComponentNodeInRoot(AstNode node) {
-  CompilationUnit unit = node.root;
-
-  final classDeclarationsInRoot =
-      unit.declarations.whereType<ClassDeclaration>();
-
-  for (var decl in classDeclarationsInRoot) {
-    if (extendsReactComponent(decl)) {
-      return decl;
-    }
-  }
-
-  return null;
-}
 
 /// Recursively traverses the [AstNode.parent] of the provided [node] until it finds
 /// a [ClassOrMixinDeclaration], then returns it.
@@ -417,38 +241,6 @@ String friendlyVersionConstraint(VersionConstraint constraint) {
   }
 
   return constraint.toString();
-}
-
-/// Returns whether or not [node] is declared in the same file as a Component2 component.
-bool isAssociatedWithComponent2(AstNode node) {
-  bool containsComponent2 = false;
-  CompilationUnit unit = node.root;
-
-  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-    if (extendsComponent2(classNode)) {
-      containsComponent2 = true;
-    }
-  });
-
-  return containsComponent2;
-}
-
-/// Returns whether or not [node] is declared in the same file as a AbstractComponent2 component.
-bool isAssociatedWithAbstractComponent2(AstNode node) {
-  bool containsAbstractComponent2 = false;
-  CompilationUnit unit = node.root;
-
-  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-    if (!extendsComponent2(classNode)) {
-      containsAbstractComponent2 = false;
-    } else {
-      // TODO: Is there a better way to determine if the superclass is abstract?
-      containsAbstractComponent2 =
-          classNode.extendsClause.superclass.name.name.startsWith('Abstract');
-    }
-  });
-
-  return containsAbstractComponent2;
 }
 
 /// Return whether or not a particular pubspec.yaml dependency value string
