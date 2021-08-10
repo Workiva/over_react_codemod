@@ -116,9 +116,9 @@ void main(List<String> args) async {
     exitCode = await runInteractiveCodemod(
       pubspecYamlPaths(),
       aggregate([
-        PubspecOverReactUpgrader(overReactVersionConstraint,
+        PubspecOverReactUpgrader(overReactVersionConstraint as VersionRange,
             shouldAddDependencies: false),
-      ].map((s) => ignoreable(s))),
+      ].map((s) => ignoreable(s as Stream<Patch> Function(FileContext)))),
       // Only pass valid low level codemod flags
       args: args.where((a) => !a.contains(_checkForTransitioning)),
       defaultYes: true,
@@ -131,10 +131,10 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
     [
-      FactoryAndConfigIgnoreCommentRemover('invalid_assignment'),
-      FactoryAndConfigIgnoreCommentRemover('argument_type_not_assignable'),
-      GeneratedFactoryMigrator(),
-      FactoryConfigMigrator(),
+      FactoryAndConfigIgnoreCommentRemover('invalid_assignment') as Stream<Patch> Function(FileContext),
+      FactoryAndConfigIgnoreCommentRemover('argument_type_not_assignable') as Stream<Patch> Function(FileContext),
+      GeneratedFactoryMigrator() as Stream<Patch> Function(FileContext),
+      FactoryConfigMigrator() as Stream<Patch> Function(FileContext),
     ],
     // Only pass valid low level codemod flags
     args: args.where((a) => !a.contains(_checkForTransitioning)),
@@ -151,7 +151,7 @@ void main(List<String> args) async {
 extension on RecursiveAstVisitor {
   /// Iterates over all the files provided and inspects them.
   void inspectAllPaths(Iterable<String> files,
-      {bool Function() shortCircuitTest, Logger/*!*/ logger}) {
+      {bool Function()? shortCircuitTest, required Logger logger}) {
     for (final filePath in files) {
       if (shortCircuitTest?.call() ?? false) continue;
 

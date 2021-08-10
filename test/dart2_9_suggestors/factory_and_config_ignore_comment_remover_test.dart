@@ -31,8 +31,8 @@ main() {
 }
 
 void ignoreRemoverTestHelper(String ignoreToRemove) {
-  final testSuggestor =
-      getSuggestorTester(FactoryAndConfigIgnoreCommentRemover(ignoreToRemove));
+  final Future<void> Function({String expectedOutput, int expectedPatchCount, String input, bool shouldDartfmtOutput, bool testIdempotency, void Function(String) validateContents}) testSuggestor =
+      getSuggestorTester(FactoryAndConfigIgnoreCommentRemover(ignoreToRemove) as Stream<Patch> Function(FileContext));
 
   test('empty file', () async {
     await testSuggestor(expectedPatchCount: 0, input: '');

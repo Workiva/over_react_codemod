@@ -53,7 +53,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
       }
 
       /// A style map, method invocation, or a variable
-      Expression stylesObject;
+      Expression? stylesObject;
       if (cascade is AssignmentExpression) {
         final lhs = cascade.leftHandSide;
         if (lhs is PropertyAccess && lhs.propertyName.name == 'style') {
@@ -98,14 +98,14 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           // property. To do this, the script needs to override the
           // already existing comma (one character after the row end)
           // without overriding the closing bracket (cascade.end).
-          final nextToken = cssPropertyRow.endToken.next;
+          final nextToken = cssPropertyRow.endToken.next!;
           if (nextToken.type == TokenType.COMMA) {
             end = nextToken.end;
           }
 
           if (cssPropertyValue is ConditionalExpression ||
               cssPropertyValue is BinaryExpression) {
-            List<Expression> ternaryExpressions;
+            late List<Expression> ternaryExpressions;
 
             if (cssPropertyValue is ConditionalExpression) {
               ternaryExpressions = [
@@ -153,7 +153,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                 : cssPropertyValue.elements.last;
             if (lastElement is! InterpolationString ||
                 !_cssValueSuffixPattern
-                    .hasMatch((lastElement as InterpolationString).value)) {
+                    .hasMatch(lastElement.value)) {
               flagAsPotentiallyInvalid();
             }
           } else if (cssPropertyValue is MethodInvocation) {
@@ -161,7 +161,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
             // Handle `toRem(1).toString()`
             if (invocation.methodName.name == 'toString' &&
                 invocation.target is MethodInvocation) {
-              invocation = invocation.target;
+              invocation = invocation.target as MethodInvocation;
             }
 
             if (!const ['toPx', 'toRem'].contains(invocation.methodName.name)) {
@@ -196,7 +196,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
               isAFunction: isAFunction,
               affectedValues: potentiallyInvalidProperties,
               addExtraLine: context.sourceFile.getLine(cascade.offset) ==
-                  context.sourceFile.getLine(cascade.parent.offset),
+                  context.sourceFile.getLine(cascade.parent!.offset),
               isOther: isOther),
           cascade.offset,
           cascade.offset,
@@ -207,7 +207,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 }
 
 String getString({
-  String styleMap,
+  String? styleMap,
   Iterable<String> affectedValues = const [],
   bool isAVariable = false,
   bool hasPotentiallyInvalidValue = false,

@@ -29,8 +29,8 @@ class CommentRemover extends GeneralizingAstVisitor with AstVisitingSuggestor {
   visitCompilationUnit(CompilationUnit node) {
     super.visitCompilationUnit(node);
 
-    int startingOffset;
-    int endingOffset;
+    int? startingOffset;
+    int? endingOffset;
 
     for (var comment in allComments(node.root.beginToken)) {
       final commentText =

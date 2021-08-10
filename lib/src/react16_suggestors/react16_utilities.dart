@@ -40,7 +40,7 @@ bool hasComment(AstNode node, SourceFile sourceFile, String comment) {
   final line = sourceFile.getLine(node.offset);
 
   // Find the comment associated with this line.
-  String commentText;
+  String? commentText;
   for (var comment in allComments(node.root.beginToken)) {
     final commentLine = sourceFile.getLine(comment.end);
     if (commentLine == line ||

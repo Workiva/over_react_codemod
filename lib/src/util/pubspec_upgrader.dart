@@ -63,7 +63,7 @@ class PubspecUpgrader {
 
     if (packageMatch != null) {
       // this package is already in pubspec.yaml
-      final constraintValue = packageMatch.group(2);
+      final constraintValue = packageMatch.group(2)!;
       try {
         final constraint = VersionConstraint.parse(constraintValue);
 
@@ -75,7 +75,7 @@ class PubspecUpgrader {
               targetConstraint.toString().contains('-alpha') ||
                       targetConstraint.toString().contains('-dev')
                   ? targetConstraint
-                  : generateNewVersionRange(constraint, targetConstraint);
+                  : generateNewVersionRange(constraint as VersionRange, targetConstraint);
 
           var newValue = friendlyVersionConstraint(newConstraint);
           // Wrap the new constraint in quotes if required.

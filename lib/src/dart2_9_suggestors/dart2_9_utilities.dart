@@ -14,6 +14,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 
 import '../util.dart';
@@ -32,7 +33,7 @@ import '../util.dart';
 /// | ((props) {}, $FooConfig)                               | $FooConfig  |
 /// | ((props) {}, _$FooConfig)                              | _$FooConfig |
 /// | ((props) {}, UiFactoryConfig())                        | null        |
-SimpleIdentifier getGeneratedFactoryConfigArg(ArgumentList argList) {
+SimpleIdentifier? getGeneratedFactoryConfigArg(ArgumentList argList) {
   final args = argList.arguments;
   if (args.length != 2) return null;
 
@@ -56,7 +57,7 @@ SimpleIdentifier getGeneratedFactoryConfigArg(ArgumentList argList) {
 /// | UiFactory<FooProps> Foo = _$Foo;                                     | _$Foo  |
 /// | UiFactory<FooProps> Foo = connect<SomeState, FooProps>(...)(_$Foo);  | _$Foo  |
 /// | UiFactory<FooProps> Foo = uiFunction((props) {}, _$FooConfig);       | null   |
-SimpleIdentifier getGeneratedFactory(TopLevelVariableDeclaration node) {
+SimpleIdentifier? getGeneratedFactory(TopLevelVariableDeclaration node) {
   final type = node.variables?.type;
   if (type != null && type is NamedType && type?.name?.name == 'UiFactory') {
     final initializer = node.variables.variables.first.initializer;
@@ -65,9 +66,8 @@ SimpleIdentifier getGeneratedFactory(TopLevelVariableDeclaration node) {
       final generatedName = r'_$' + name;
       if (initializer is SimpleIdentifier && initializer.name == generatedName)
         return initializer;
-      return allDescendantsOfType<SimpleIdentifier>(initializer).firstWhere(
-          (identifier) => identifier.name == generatedName,
-          orElse: () => null);
+      return allDescendantsOfType<SimpleIdentifier>(initializer).firstWhereOrNull(
+          (identifier) => identifier.name == generatedName);
     }
   }
 
@@ -80,9 +80,8 @@ bool isClassOrConnectedComponentFactory(TopLevelVariableDeclaration node) =>
 
 /// Returns whether or not [node] is in the legacy boilerplate syntax.
 bool isLegacyFactoryDecl(TopLevelVariableDeclaration node) {
-  final annotation = node.metadata?.firstWhere(
-      (m) => m.toSource().startsWith('@Factory'),
-      orElse: () => null);
+  final annotation = node.metadata?.firstWhereOrNull(
+      (m) => m.toSource().startsWith('@Factory'));
   return isClassOrConnectedComponentFactory(node) && annotation != null;
 }
 
@@ -111,7 +110,7 @@ bool isLegacyFactoryDecl(TopLevelVariableDeclaration node) {
 ///
 ///   `// ignore: invalid_assignment` => `// ignore: invalid_assignment`
 void removeIgnoreComment(
-    Token comment, String ignoreToRemove, YieldPatch yieldPatch) {
+    Token? comment, String ignoreToRemove, YieldPatch yieldPatch) {
   ArgumentError.checkNotNull(ignoreToRemove, 'ignoreToRemove');
   if (comment == null) return;
 

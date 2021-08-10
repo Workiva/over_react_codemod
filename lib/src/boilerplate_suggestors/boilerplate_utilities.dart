@@ -85,11 +85,11 @@ bool isPublic(
 }
 
 class SemverHelper {
-  final Map _exportList;
+  final Map? _exportList;
   final bool _isAlwaysPrivate;
 
   /// A warning message if semver report cannot be found.
-  String warning;
+  String? warning;
 
   SemverHelper(this._exportList) : _isAlwaysPrivate = false;
 
@@ -126,7 +126,7 @@ class SemverHelper {
       return [semverReportNotAvailable];
     }
 
-    _exportList.forEach((key, value) {
+    _exportList!.forEach((key, value) {
       if (value['type'] == 'class' && value['grammar']['name'] == className) {
         locations.add(key);
       }

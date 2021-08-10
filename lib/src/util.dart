@@ -23,6 +23,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
@@ -32,7 +33,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'constants.dart';
 
 typedef CompanionBuilder = String Function(String className,
-    {String annotations, String commentPrefix, String docComment});
+    {String? annotations, String? commentPrefix, String? docComment});
 
 /// Returns an iterable of all the comments from [beginToken] to the end of the
 /// file.
@@ -41,20 +42,20 @@ typedef CompanionBuilder = String Function(String className,
 /// [Token.precedingComments], so it's difficult to iterate over them without
 /// this method.
 Iterable<Token> allComments(Token beginToken) sync* {
-  var currentToken = beginToken;
+  Token? currentToken = beginToken;
   while (currentToken != null && !currentToken.isEof) {
     var currentComment = currentToken.precedingComments;
     while (currentComment != null) {
       yield currentComment;
-      currentComment = currentComment.next;
+      currentComment = currentComment.next as CommentToken?;
     }
     currentToken = currentToken.next;
   }
   // Also check comments preceding EOF.
-  var currentComment = currentToken.precedingComments;
+  var currentComment = currentToken!.precedingComments;
   while (currentComment != null) {
     yield currentComment;
-    currentComment = currentComment.next;
+    currentComment = currentComment.next as CommentToken?;
   }
 }
 
@@ -65,12 +66,12 @@ bool _isCommentToken(Token token) {
 
 /// Returns all the comments before a given [node], including doc comments.
 Iterable<Token> allCommentsForNode(AstNode node) sync* {
-  Token firstCommentToken;
+  Token? firstCommentToken;
 
   final beginToken = node.beginToken;
   if (_isCommentToken(beginToken)) {
     firstCommentToken = beginToken;
-    while (firstCommentToken.previous != null) {
+    while (firstCommentToken!.previous != null) {
       firstCommentToken = firstCommentToken.previous;
     }
   } else {
@@ -80,7 +81,7 @@ Iterable<Token> allCommentsForNode(AstNode node) sync* {
   // No comments on this node.
   if (firstCommentToken == null) return;
 
-  var currentComment = firstCommentToken;
+  Token? currentComment = firstCommentToken;
   while (currentComment != null) {
     yield currentComment;
     currentComment = currentComment.next;
@@ -132,7 +133,7 @@ String buildIgnoreComment({
 ///
 /// Otherwise, [partOfUri] must be a relative URI. The returned path will be
 /// this relative path joined with the containing directory of [libraryPath].
-String convertPartOfUriToRelativePath(String/*!*/ libraryPath, Uri partOfUri) {
+String convertPartOfUriToRelativePath(String libraryPath, Uri partOfUri) {
   if (partOfUri.scheme == 'package') {
     // Canonicalize to ensure that if we find different relative paths to
     // the same file, they will still match.
@@ -203,7 +204,7 @@ VersionRange generateNewVersionRange(
     VersionRange currentRange, VersionRange targetRange) {
   return VersionRange(
     min:
-        currentRange.min > targetRange.min ? currentRange.min : targetRange.min,
+        currentRange.min! > targetRange.min! ? currentRange.min : targetRange.min,
     includeMin: true,
     max: targetRange.max,
   );
@@ -214,11 +215,11 @@ VersionRange generateNewVersionRange(
 /// a [ClassOrMixinDeclaration], then returns it.
 ///
 /// Returns `null` if the provided [node] is not within a [ClassOrMixinDeclaration].
-ClassOrMixinDeclaration getContainingClass(AstNode node) {
+ClassOrMixinDeclaration? getContainingClass(AstNode node) {
   if (node.parent == node.root) return null; // Not part of a class
-  if (node.parent is ClassOrMixinDeclaration) return node.parent;
+  if (node.parent is ClassOrMixinDeclaration) return node.parent as ClassOrMixinDeclaration?;
 
-  return getContainingClass(node.parent);
+  return getContainingClass(node.parent!);
 }
 
 /// Returns a string representation of [constraint], converting it to caret
@@ -234,7 +235,7 @@ ClassOrMixinDeclaration getContainingClass(AstNode node) {
 /// ```
 String friendlyVersionConstraint(VersionConstraint constraint) {
   if (constraint is VersionRange && constraint.min != null) {
-    final caretConstraint = VersionConstraint.compatibleWith(constraint.min);
+    final caretConstraint = VersionConstraint.compatibleWith(constraint.min!);
     if (caretConstraint == constraint) {
       return caretConstraint.toString();
     }
@@ -256,7 +257,7 @@ bool mightNeedYamlEscaping(String scalarValue) =>
 /// removes the relevant items from the [args] list.**
 ///
 /// **[args] may be modified in place.**
-String parseAndRemoveCommentPrefixArg(List<String> args) {
+String? parseAndRemoveCommentPrefixArg(List<String> args) {
   final _commentPrefixParser = ArgParser()..addOption('comment-prefix');
 
   final commentPrefixArgs = <String>[];
@@ -288,9 +289,8 @@ void removeCommentFromNode(
   final commentLinesToRemove =
       commentToRemove.split('\n').map((line) => line.trim()).toList();
   final firstLineOfCommentToRemove = commentLinesToRemove.first;
-  final firstMatchingCommentLineToken = nodeCommentLines.firstWhere(
-      (token) => token.toString().trim() == firstLineOfCommentToRemove,
-      orElse: () => null);
+  final firstMatchingCommentLineToken = nodeCommentLines.firstWhereOrNull(
+      (token) => token.toString().trim() == firstLineOfCommentToRemove);
 
   if (firstMatchingCommentLineToken != null) {
     if (commentLinesToRemove.length == 1) {
@@ -300,9 +300,8 @@ void removeCommentFromNode(
     } else {
       final lastLineOfCommentToRemove =
           commentLinesToRemove[commentLinesToRemove.length - 2];
-      final lastMatchingCommentLineToken = nodeCommentLines.lastWhere(
-          (token) => token.toString().trim() == lastLineOfCommentToRemove,
-          orElse: () => null);
+      final lastMatchingCommentLineToken = nodeCommentLines.lastWhereOrNull(
+          (token) => token.toString().trim() == lastLineOfCommentToRemove);
       if (lastMatchingCommentLineToken != null) {
         // Remove multi line comment
         yieldPatch('', firstMatchingCommentLineToken.offset,
@@ -337,8 +336,8 @@ String renamePropsOrStateClass(String className) {
 /// This is useful when a certain min or max needs to be enforced but the
 /// current dependency can take many different forms.
 bool shouldUpdateVersionRange({
-  @required VersionConstraint constraint,
-  @required VersionRange targetConstraint,
+  required VersionConstraint constraint,
+  required VersionRange targetConstraint,
   bool shouldIgnoreMin = false,
 }) {
   if (constraint.isAny) return false;
@@ -353,7 +352,7 @@ bool shouldUpdateVersionRange({
     if (constraint.max == null && constraint.min != null) {
       // In that case, we need the min to be at least as high as our
       // target. If it is, do not update.
-      if (constraint.min >= targetConstraint.min) {
+      if (constraint.min! >= targetConstraint.min!) {
         return false;
       }
 
@@ -362,11 +361,11 @@ bool shouldUpdateVersionRange({
       // If there is a maximum, and it is higher than target max (but the
       // lower bound is still greater or equal to the target) do not
       // update.
-      if (constraintsHaveMax && constraint.max >= targetConstraint.max) {
+      if (constraintsHaveMax && constraint.max! >= targetConstraint.max!) {
         // If the codemod is asserting a specific minimum, the
         // constraint min does not matter.
         if (constraintsHaveMin &&
-            constraint.min >= targetConstraint.min &&
+            constraint.min! >= targetConstraint.min! &&
             !shouldIgnoreMin) {
           return false;
         }
@@ -400,7 +399,7 @@ String stripPrivateGeneratedPrefix(String value) {
 }
 
 extension IterableNullHelpers<E> on Iterable<E> {
-  E get firstOrNull => isEmpty ? null : first;
+  E? get firstOrNull => isEmpty ? null : first;
 }
 
 Iterable<String> pubspecYamlPaths() =>
@@ -423,7 +422,7 @@ bool hasParseErrors(String sourceText) {
 }
 
 /// Returns a lazy iterable of all descendants of [node], in breadth-first order.
-Iterable<AstNode> allDescendants(AstNode/*!*/ node) sync* {
+Iterable<AstNode> allDescendants(AstNode node) sync* {
   final nodesQueue = Queue<AstNode>()..add(node);
   while (nodesQueue.isNotEmpty) {
     final current = nodesQueue.removeFirst();

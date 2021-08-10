@@ -31,7 +31,7 @@ main() {
 
     void testDependencyOverridesSectionByPosition(SuggestorTester tester,
         Map inputSections, String expectedOverrideContent,
-        {String additionalOverrides, bool testIdempotency = true}) {
+        {String? additionalOverrides, bool testIdempotency = true}) {
       if (additionalOverrides != null) {
         expectedOverrideContent += additionalOverrides;
       }
@@ -53,10 +53,10 @@ main() {
               '',
           expectedOutput: ''
                   'dependencies:\n' +
-              expectedOutputSections['dependencies'] +
+              expectedOutputSections['dependencies']! +
               '\n'
                   'dev_dependencies:\n' +
-              expectedOutputSections['dev_dependencies'] +
+              expectedOutputSections['dev_dependencies']! +
               '\n'
                   'dependency_overrides:\n' +
               expectedOverrideContent +
@@ -89,10 +89,10 @@ main() {
               expectedOverrideContent +
               lineBreaksAfterDepOverridesSection +
               'dependencies:\n' +
-              expectedOutputSections['dependencies'] +
+              expectedOutputSections['dependencies']! +
               '\n'
                   'dev_dependencies:\n' +
-              expectedOutputSections['dev_dependencies'] +
+              expectedOutputSections['dev_dependencies']! +
               '',
         );
       });
@@ -119,13 +119,13 @@ main() {
               '',
           expectedOutput: ''
                   'dependencies:\n' +
-              expectedOutputSections['dependencies'] +
+              expectedOutputSections['dependencies']! +
               '\n'
                   'dependency_overrides:\n' +
               expectedOverrideContent +
               lineBreaksAfterDepOverridesSection +
               'dev_dependencies:\n' +
-              expectedOutputSections['dev_dependencies'] +
+              expectedOutputSections['dev_dependencies']! +
               '',
         );
       });
@@ -359,7 +359,7 @@ main() {
 
       final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
           reactOverrideConfig: defaultReactConfig,
-          overReactOverrideConfig: defaultOverReactConfig));
+          overReactOverrideConfig: defaultOverReactConfig) as Stream<Patch> Function(FileContext));
 
       commonOverrideUpdaterTests(testSuggestor, expectedOverrides);
     });
@@ -387,7 +387,7 @@ main() {
 
         final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
             reactOverrideConfig: defaultReactConfig,
-            overReactOverrideConfig: defaultOverReactConfig));
+            overReactOverrideConfig: defaultOverReactConfig) as Stream<Patch> Function(FileContext));
 
         // turning idempotency tests off for this because it would just add a new line the second run,
         // which caused failures for insignificant white space
@@ -412,7 +412,7 @@ main() {
 
         final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
             reactOverrideConfig: defaultReactConfig,
-            overReactOverrideConfig: defaultOverReactConfig));
+            overReactOverrideConfig: defaultOverReactConfig) as Stream<Patch> Function(FileContext));
 
         // turning idempotency tests off for this because it would just add a new line the second run,
         // which caused failures for insignificant white space

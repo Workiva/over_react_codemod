@@ -50,7 +50,7 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
 
     if (isClassOrConnectedComponentFactory(node) &&
         !isLegacyFactoryDecl(node)) {
-      final generatedFactory = getGeneratedFactory(node);
+      final generatedFactory = getGeneratedFactory(node)!;
       for (final comment in _findPossibleIgnoreComments(generatedFactory)) {
         removeIgnoreComment(comment, ignoreToRemove, yieldPatch);
       }

@@ -54,7 +54,7 @@ void semverUtilitiesTestHelper({
   bool shouldTreatAllComponentsAsPrivate = false,
   bool isValidFilePath = true,
 }) {
-  SemverHelper semverHelper;
+  late SemverHelper semverHelper;
 
   setUpAll(() {
     semverHelper = getSemverHelper(path,

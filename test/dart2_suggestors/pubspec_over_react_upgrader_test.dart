@@ -35,16 +35,16 @@ main() {
 
     group('with shouldAlwaysUpdate false', () {
       final defaultTestSuggestor = getSuggestorTester(
-          PubspecOverReactUpgrader(VersionConstraint.parse(versionRange)));
+          PubspecOverReactUpgrader(VersionConstraint.parse(versionRange) as VersionRange) as Stream<Patch> Function(FileContext));
 
       final doNotAddDependencies = getSuggestorTester(PubspecOverReactUpgrader(
-          VersionConstraint.parse(versionRange),
-          shouldAddDependencies: false));
+          VersionConstraint.parse(versionRange) as VersionRange,
+          shouldAddDependencies: false) as Stream<Patch> Function(FileContext));
 
       sharedPubspecTest(
         testSuggestor: defaultTestSuggestor,
         getExpectedOutput: getExpectedOutput,
-        startingRange: startingTestRange,
+        startingRange: startingTestRange as VersionRange,
         isDevDependency: false,
         dependency: dependency,
         midVersionRange: midRangeMark,
@@ -114,12 +114,12 @@ main() {
     group('with shouldAlwaysUpdate true', () {
       final defaultTestSuggestor = getSuggestorTester(
           PubspecOverReactUpgrader.alwaysUpdate(
-              VersionConstraint.parse(versionRange)));
+              VersionConstraint.parse(versionRange) as VersionRange) as Stream<Patch> Function(FileContext));
 
       sharedPubspecTest(
         testSuggestor: defaultTestSuggestor,
         getExpectedOutput: getExpectedOutput,
-        startingRange: startingTestRange,
+        startingRange: startingTestRange as VersionRange,
         isDevDependency: false,
         dependency: dependency,
         midVersionRange: midRangeMark,
@@ -165,8 +165,8 @@ main() {
   });
 }
 
-String getExpectedOutput({bool useMidVersionMin = false}) {
-  if (useMidVersionMin) {
+String getExpectedOutput({bool? useMidVersionMin = false}) {
+  if (useMidVersionMin!) {
     final expected =
         VersionConstraint.parse('^2.0.0').allows(Version.parse(midRangeMark))
             ? '^$midRangeMark'

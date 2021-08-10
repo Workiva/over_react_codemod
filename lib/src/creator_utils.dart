@@ -4,15 +4,15 @@ import 'package:path/path.dart' as p;
 
 /// Creates a temporary package with a `pubspec.yaml` and `main.dart` file
 class DartTempProjectCreator {
-  Directory dir;
-  List<PubspecCreator>/*!*/ pubspecCreators;
-  String/*!*/ mainDartContents;
+  late Directory dir;
+  late List<PubspecCreator> pubspecCreators;
+  late String mainDartContents;
 
   // fixme null-safety fix args
   DartTempProjectCreator(
-      {PubspecCreator pubspecCreator,
-      List<PubspecCreator>/*?*/ pubspecCreators,
-      String/*?*/ mainDartContents}) {
+      {PubspecCreator? pubspecCreator,
+      List<PubspecCreator>? pubspecCreators,
+      String? mainDartContents}) {
     if (pubspecCreator != null && pubspecCreators != null) {
       throw ArgumentError(
           'Cannot specify both pubspecCreator and pubspecCreators');
@@ -22,7 +22,7 @@ class DartTempProjectCreator {
         pubspecCreators ?? [pubspecCreator ?? PubspecCreator()];
     this.mainDartContents = mainDartContents ?? 'void main() {}';
     dir = Directory.systemTemp.createTempSync();
-    for (var pubspecCreator in pubspecCreators) {
+    for (var pubspecCreator in pubspecCreators!) {
       pubspecCreator.create(dir.path);
     }
     File(p.join(dir.path, 'main.dart')).writeAsStringSync(this.mainDartContents);
@@ -60,7 +60,7 @@ class PubspecCreator {
   }
 
   void addDependency(String name,
-      {String version = 'any', bool asDev = false, bool Function() shouldAdd}) {
+      {String version = 'any', bool asDev = false, bool Function()? shouldAdd}) {
     if (shouldAdd?.call() ?? true) {
       dependencies.add(DependencyCreator(name, version: version, asDev: asDev));
     }
@@ -98,7 +98,7 @@ class PubspecCreator {
 class DependencyCreator {
   final String name;
   final String version;
-  final String ref;
+  final String? ref;
   final String gitOverride;
   final String pathOverride;
   final bool asDev;
@@ -177,7 +177,7 @@ class DependencyCreator {
 
 /// A test helper class to configure versions of a pubspec to test
 class DartProjectCreatorTestConfig {
-  final String _testName;
+  final String? _testName;
 
   /// Whether or not the codemod is expected to run based on the dependencies provided.
   ///
@@ -186,16 +186,16 @@ class DartProjectCreatorTestConfig {
 
   final int expectedExitCode;
 
-  final String mainDartContents;
+  final String? mainDartContents;
 
-  List<PubspecCreator> pubspecCreators;
+  late List<PubspecCreator> pubspecCreators;
 
   DartProjectCreatorTestConfig({
-    String testName,
-    int expectedExitCode,
-    List<DependencyCreator> dependencies,
+    String? testName,
+    int? expectedExitCode,
+    List<DependencyCreator>? dependencies,
     this.mainDartContents,
-    List<PubspecCreator> pubspecCreators,
+    List<PubspecCreator>? pubspecCreators,
     this.shouldRunCodemod = false,
   })  : _testName = testName,
         expectedExitCode = expectedExitCode ?? (shouldRunCodemod ? 1 : 0) {
@@ -207,8 +207,8 @@ class DartProjectCreatorTestConfig {
         pubspecCreators ?? [PubspecCreator(dependencies: dependencies ?? [])];
   }
 
-  String/*!*/ get testName {
-    if (_testName != null) return _testName;
+  String get testName {
+    if (_testName != null) return _testName!;
 
     var name =
         'returns exit code ${expectedExitCode ?? (shouldRunCodemod ? 1 : 0)} with ';

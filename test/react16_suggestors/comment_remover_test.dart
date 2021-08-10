@@ -27,8 +27,8 @@ const manualCheckedRefString = '// [x] Check this box upon manual validation of'
 
 main() {
   group('CommentRemover', () {
-    final testSuggestor =
-        getSuggestorTester(CommentRemover('Check this box', 'complete'));
+    final Future<void> Function({String expectedOutput, int expectedPatchCount, String input, bool shouldDartfmtOutput, bool testIdempotency, void Function(String) validateContents}) testSuggestor =
+        getSuggestorTester(CommentRemover('Check this box', 'complete') as Stream<Patch> Function(FileContext));
 
     test('does not update an empty file', () async {
       await testSuggestor(expectedPatchCount: 0, input: '');

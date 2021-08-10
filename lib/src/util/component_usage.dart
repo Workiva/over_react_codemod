@@ -13,7 +13,7 @@ class FluentComponentUsage {
   final InvocationExpression node;
 
   /// The cascade of this usage (unwrapped from parens), or `null` if it doesn't have one.
-  final CascadeExpression cascadeExpression;
+  final CascadeExpression? cascadeExpression;
 
   /// The expression upon which the cascade is performed,
   /// and that is invoked with children to build the component.
@@ -23,7 +23,7 @@ class FluentComponentUsage {
   /// Usually a [MethodInvocation] or [Identifier].
   final Expression builder;
 
-  String get componentName => getComponentName(builder);
+  String? get componentName => getComponentName(builder);
 
   bool get isDom =>
       const ['DomProps', 'SvgProps'].contains(builder.staticType?.interfaceTypeName);
@@ -39,14 +39,14 @@ class FluentComponentUsage {
 }
 
 extension _TryCast<T> on T {
-  S tryCast<S extends T>() {
+  S? tryCast<S extends T>() {
     final self = this;
     return self is S ? self : null;
   }
 }
 
-extension on DartType {
-  String get interfaceTypeName => tryCast<InterfaceType>()?.element?.name;
+extension on DartType? {
+  String? get interfaceTypeName => tryCast<InterfaceType>()?.element?.name;
 }
 
 /// Returns the OverReact fluent interface component for the invocation expression [node],
@@ -64,11 +64,11 @@ extension on DartType {
 ///     * e.g., `getButtonBuilder()`
 /// * `*builder*`
 ///     * e.g., `var buttonBuilder = Button();`
-FluentComponentUsage getComponentUsage(InvocationExpression node) {
+FluentComponentUsage? getComponentUsage(InvocationExpression node) {
   var functionExpression = node.function;
 
   Expression builder;
-  CascadeExpression cascadeExpression;
+  CascadeExpression? cascadeExpression;
 
   if (functionExpression is ParenthesizedExpression) {
     var expression = functionExpression.expression;
@@ -91,7 +91,7 @@ FluentComponentUsage getComponentUsage(InvocationExpression node) {
     isComponent = false;
 
     if (builder is MethodInvocation) {
-      String builderName = getComponentName(builder);
+      String? builderName = getComponentName(builder);
 
       if (builderName != null) {
         isComponent =
@@ -111,7 +111,7 @@ FluentComponentUsage getComponentUsage(InvocationExpression node) {
   return FluentComponentUsage._(node, cascadeExpression, builder);
 }
 
-String getComponentName(Expression builder) {
+String? getComponentName(Expression builder) {
   if (builder.staticType != null) {
     // Resolved AST
     final typeName = builder.staticType?.interfaceTypeName;
@@ -129,7 +129,7 @@ String getComponentName(Expression builder) {
     // Unresolved
     String builderName;
     if (builder.target != null) {
-      builderName = builder.target.toSource() + '.' + builder.methodName.name;
+      builderName = builder.target!.toSource() + '.' + builder.methodName.name;
     } else {
       builderName = builder.methodName.name;
     }
@@ -181,7 +181,7 @@ bool hasChildComponent(ArgumentList arguments) {
 
 /// Attempt to find and return the closest expression that encloses the [node]
 /// and is an independent Flutter `Widget`.  Return `null` if nothing found.
-FluentComponentUsage identifyUsage(AstNode node) {
+FluentComponentUsage? identifyUsage(AstNode? node) {
   for (; node != null; node = node.parent) {
     if (node is InvocationExpression) {
       final usage = getComponentUsage(node);

@@ -66,7 +66,7 @@ void main() {
       });
 
       group('returns the generated factory config', () {
-        void _expectConfigName({String input, String expectedName}) {
+        void _expectConfigName({required String input, String? expectedName}) {
           final unit = parseString(content: input).unit;
           final argList = (unit.declarations
                   .whereType<TopLevelVariableDeclaration>()
@@ -77,7 +77,7 @@ void main() {
                   .initializer as MethodInvocation)
               .argumentList;
 
-          final returnValue = getGeneratedFactoryConfigArg(argList);
+          final returnValue = getGeneratedFactoryConfigArg(argList)!;
           expect(returnValue, isA<SimpleIdentifier>());
           expect(returnValue.name, expectedName);
         }
@@ -163,7 +163,7 @@ void main() {
               .first
               .argumentList;
 
-          final returnValue = getGeneratedFactoryConfigArg(uiFunctionArgList);
+          final returnValue = getGeneratedFactoryConfigArg(uiFunctionArgList)!;
           expect(returnValue, isA<SimpleIdentifier>());
           expect(returnValue.name, '_\$FooConfig');
         });
@@ -207,12 +207,12 @@ void main() {
       });
 
       group('returns the generated factory and true, respectively', () {
-        void _expectGeneratedFactoryName({String input, String expectedName}) {
+        void _expectGeneratedFactoryName({required String input, String? expectedName}) {
           final unit = parseString(content: input).unit;
           final decl =
               unit.declarations.whereType<TopLevelVariableDeclaration>().first;
 
-          final returnValue = getGeneratedFactory(decl);
+          final returnValue = getGeneratedFactory(decl)!;
           expect(returnValue, isA<SimpleIdentifier>());
           expect(returnValue.name, expectedName);
 
@@ -337,7 +337,7 @@ void main() {
 
     group('isLegacyFactoryDecl()', () {
       group('returns false', () {
-        void _expectFalse({String input}) {
+        void _expectFalse({required String input}) {
           final unit = parseString(content: input).unit;
           final decl =
               unit.declarations.whereType<TopLevelVariableDeclaration>()?.first;
@@ -371,7 +371,7 @@ void main() {
       });
 
       group('returns true', () {
-        void _expectTrue({String input}) {
+        void _expectTrue({required String input}) {
           final unit = parseString(content: input).unit;
           final decl =
               unit.declarations.whereType<TopLevelVariableDeclaration>()?.first;

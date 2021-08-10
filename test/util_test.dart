@@ -127,30 +127,30 @@ void overReactExample() {}''';
     group('generateNewVersionRange()', () {
       group('updates correctly with a basic range', () {
         sharedGenerateNewVersionRangeTests(
-          currentRange: VersionConstraint.parse('>=0.5.0 <3.0.0'),
+          currentRange: VersionConstraint.parse('>=0.5.0 <3.0.0') as VersionRange,
           currentRangeWithHigherMinBound:
-              VersionConstraint.parse('>=1.5.0 <3.0.0'),
-          targetRange: VersionConstraint.parse('>=1.0.0 <4.0.0'),
-          expectedMixedRange: VersionConstraint.parse('>=1.5.0 <4.0.0'),
+              VersionConstraint.parse('>=1.5.0 <3.0.0') as VersionRange,
+          targetRange: VersionConstraint.parse('>=1.0.0 <4.0.0') as VersionRange,
+          expectedMixedRange: VersionConstraint.parse('>=1.5.0 <4.0.0') as VersionRange,
         );
       });
 
       group('updates correctly with an open ended target range', () {
         sharedGenerateNewVersionRangeTests(
-          currentRange: VersionConstraint.parse('>=1.0.0 <2.0.0'),
+          currentRange: VersionConstraint.parse('>=1.0.0 <2.0.0') as VersionRange,
           currentRangeWithHigherMinBound:
-              VersionConstraint.parse('>=1.2.0 <2.0.0'),
-          targetRange: VersionConstraint.parse('>=1.0.0'),
-          expectedMixedRange: VersionConstraint.parse('>=1.2.0'),
+              VersionConstraint.parse('>=1.2.0 <2.0.0') as VersionRange,
+          targetRange: VersionConstraint.parse('>=1.0.0') as VersionRange,
+          expectedMixedRange: VersionConstraint.parse('>=1.2.0') as VersionRange,
         );
       });
 
       group('updates correctly with an open ended current range', () {
         sharedGenerateNewVersionRangeTests(
-          currentRange: VersionConstraint.parse('>=1.0.0'),
-          currentRangeWithHigherMinBound: VersionConstraint.parse('>=1.2.0'),
-          targetRange: VersionConstraint.parse('>=1.0.0 <2.0.0'),
-          expectedMixedRange: VersionConstraint.parse('>=1.2.0 <2.0.0'),
+          currentRange: VersionConstraint.parse('>=1.0.0') as VersionRange,
+          currentRangeWithHigherMinBound: VersionConstraint.parse('>=1.2.0') as VersionRange,
+          targetRange: VersionConstraint.parse('>=1.0.0 <2.0.0') as VersionRange,
+          expectedMixedRange: VersionConstraint.parse('>=1.2.0 <2.0.0') as VersionRange,
         );
       });
     });
@@ -224,7 +224,7 @@ void overReactExample() {}''';
         expect(
           shouldUpdateVersionRange(
             constraint: VersionConstraint.parse('any'),
-            targetConstraint: VersionConstraint.parse('^5.0.0'),
+            targetConstraint: VersionConstraint.parse('^5.0.0') as VersionRange,
           ),
           isFalse,
         );
@@ -235,7 +235,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('^4.0.0'),
-                  targetConstraint: VersionConstraint.parse('^5.0.0')),
+                  targetConstraint: VersionConstraint.parse('^5.0.0') as VersionRange),
               isTrue);
         });
 
@@ -243,7 +243,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('^4.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0') as VersionRange),
               isTrue);
         });
       });
@@ -253,7 +253,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=4.0.0'),
-                  targetConstraint: VersionConstraint.parse('^5.0.0')),
+                  targetConstraint: VersionConstraint.parse('^5.0.0') as VersionRange),
               isTrue);
         });
 
@@ -261,7 +261,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=4.0.0 <5.0.0'),
-                  targetConstraint: VersionConstraint.parse('^5.0.0')),
+                  targetConstraint: VersionConstraint.parse('^5.0.0') as VersionRange),
               isTrue);
         });
 
@@ -269,7 +269,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=4.0.0 <5.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0') as VersionRange),
               isTrue);
         });
       });
@@ -279,7 +279,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0'),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0') as VersionRange,
                   shouldIgnoreMin: true),
               isTrue);
         });
@@ -288,7 +288,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <7.0.0'),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <7.0.0') as VersionRange,
                   shouldIgnoreMin: true),
               isTrue);
         });
@@ -299,7 +299,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0') as VersionRange),
               isFalse);
         });
 
@@ -307,7 +307,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <7.0.0')),
+                  targetConstraint: VersionConstraint.parse('>=5.0.0 <7.0.0') as VersionRange),
               isTrue);
         });
       });
@@ -316,7 +316,7 @@ void overReactExample() {}''';
         expect(
             shouldUpdateVersionRange(
                 constraint: VersionConstraint.parse('>=5.0.0 <7.0.0'),
-                targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+                targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0') as VersionRange),
             isFalse);
       });
     });
@@ -394,7 +394,7 @@ void overReactExample() {}''';
 
         // Traverse the tokens until we get to var one.
         while (firstVar.value() != 'one' && !firstVar.isEof) {
-          firstVar = firstVar.next;
+          firstVar = firstVar.next!;
         }
 
         commentCount = allComments(firstVar).length;
@@ -713,10 +713,10 @@ class Foo extends _\$Foo
 }
 
 void sharedGenerateNewVersionRangeTests(
-    {@required VersionRange currentRange,
-    @required VersionRange currentRangeWithHigherMinBound,
-    @required VersionRange targetRange,
-    @required VersionRange expectedMixedRange}) {
+    {required VersionRange currentRange,
+    required VersionRange currentRangeWithHigherMinBound,
+    required VersionRange targetRange,
+    required VersionRange expectedMixedRange}) {
   group('', () {
     test('', () {
       expect(generateNewVersionRange(currentRange, targetRange), targetRange);
