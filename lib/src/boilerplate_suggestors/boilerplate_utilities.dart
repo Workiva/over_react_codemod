@@ -113,25 +113,22 @@ class SemverHelper {
     String path,
   ) {
     final className = stripPrivateGeneratedPrefix(node.name.name);
-    final locations = <String>[];
 
     if (!path.startsWith('lib/')) {
       // The member is not inside of lib/ - so its inherently private.
-      return locations;
+      return [];
     }
 
-    // fixme null-safety improve this control-flow
-    if (_exportList == null && _isAlwaysPrivate) return locations;
-    if (_exportList == null && !_isAlwaysPrivate) {
-      return [semverReportNotAvailable];
+    if (_exportList == null) {
+      return _isAlwaysPrivate ? [] : [semverReportNotAvailable];
     }
 
+    final locations = <String>[];
     _exportList!.forEach((key, value) {
       if (value['type'] == 'class' && value['grammar']['name'] == className) {
         locations.add(key);
       }
     });
-
     return locations;
   }
 }

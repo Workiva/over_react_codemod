@@ -8,7 +8,6 @@ class DartTempProjectCreator {
   late List<PubspecCreator> pubspecCreators;
   late String mainDartContents;
 
-  // fixme null-safety fix args
   DartTempProjectCreator(
       {PubspecCreator? pubspecCreator,
       List<PubspecCreator>? pubspecCreators,
