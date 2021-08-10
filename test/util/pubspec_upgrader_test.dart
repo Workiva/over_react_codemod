@@ -34,7 +34,7 @@ void main() {
       void sharedTests(bool isDevDependency) {
         final key = isDevDependency ? 'dev_dependencies' : 'dependencies';
 
-        String getExpectedOutput({bool useMidVersionMin = false}) {
+        String getExpectedOutput({bool/*!*/ useMidVersionMin = false}) {
           if (useMidVersionMin) {
             final expected = VersionConstraint.parse('^5.0.0')
                     .allows(Version.parse(midVersionMin))
@@ -55,7 +55,7 @@ void main() {
               '';
         }
 
-        String getExpectedPreReleaseOutput({bool useMidVersionMin = false}) {
+        String getExpectedPreReleaseOutput({bool/*!*/ useMidVersionMin = false}) {
           return ''
               '$key:\n'
               '  react: ^5.0.0-alpha\n'

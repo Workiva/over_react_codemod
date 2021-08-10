@@ -151,7 +151,7 @@ void main(List<String> args) async {
 extension on RecursiveAstVisitor {
   /// Iterates over all the files provided and inspects them.
   void inspectAllPaths(Iterable<String> files,
-      {bool Function() shortCircuitTest, Logger logger}) {
+      {bool Function() shortCircuitTest, Logger/*!*/ logger}) {
     for (final filePath in files) {
       if (shortCircuitTest?.call() ?? false) continue;
 

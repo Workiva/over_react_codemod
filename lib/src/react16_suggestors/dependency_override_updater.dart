@@ -69,8 +69,8 @@ abstract class DependencyOverrideConfig {
 
 /// Suggestor that adds overrides for over_react and react in the pubspec.
 class DependencyOverrideUpdater {
-  final DependencyOverrideConfig reactOverrideConfig;
-  final DependencyOverrideConfig overReactOverrideConfig;
+  final DependencyOverrideConfig/*!*/ reactOverrideConfig;
+  final DependencyOverrideConfig/*!*/ overReactOverrideConfig;
 
   DependencyOverrideUpdater({
     this.reactOverrideConfig,
@@ -242,7 +242,7 @@ bool fileAlreadyContainsMatchingOverrideForDependency(
 
 // Method that builds the RegEx that will match the dependency in the pubspec.
 RegExp getDependencyRegEx(
-    {@required String dependency, @required YamlMap yamlContent}) {
+    {@required String/*!*/ dependency, @required YamlMap yamlContent}) {
   if (yamlContent == null) throw Exception('Invalid yaml content');
 
   if (yamlContent['dependency_overrides'] != null) {

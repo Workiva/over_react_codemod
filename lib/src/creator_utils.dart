@@ -5,13 +5,14 @@ import 'package:path/path.dart' as p;
 /// Creates a temporary package with a `pubspec.yaml` and `main.dart` file
 class DartTempProjectCreator {
   Directory dir;
-  List<PubspecCreator> pubspecCreators;
-  String mainDartContents;
+  List<PubspecCreator>/*!*/ pubspecCreators;
+  String/*!*/ mainDartContents;
 
+  // fixme null-safety fix args
   DartTempProjectCreator(
       {PubspecCreator pubspecCreator,
-      List<PubspecCreator> pubspecCreators,
-      String mainDartContents}) {
+      List<PubspecCreator>/*?*/ pubspecCreators,
+      String/*?*/ mainDartContents}) {
     if (pubspecCreator != null && pubspecCreators != null) {
       throw ArgumentError(
           'Cannot specify both pubspecCreator and pubspecCreators');
@@ -206,7 +207,7 @@ class DartProjectCreatorTestConfig {
         pubspecCreators ?? [PubspecCreator(dependencies: dependencies ?? [])];
   }
 
-  String get testName {
+  String/*!*/ get testName {
     if (_testName != null) return _testName;
 
     var name =

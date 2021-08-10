@@ -132,7 +132,7 @@ String buildIgnoreComment({
 ///
 /// Otherwise, [partOfUri] must be a relative URI. The returned path will be
 /// this relative path joined with the containing directory of [libraryPath].
-String convertPartOfUriToRelativePath(String libraryPath, Uri partOfUri) {
+String convertPartOfUriToRelativePath(String/*!*/ libraryPath, Uri partOfUri) {
   if (partOfUri.scheme == 'package') {
     // Canonicalize to ensure that if we find different relative paths to
     // the same file, they will still match.
@@ -423,7 +423,7 @@ bool hasParseErrors(String sourceText) {
 }
 
 /// Returns a lazy iterable of all descendants of [node], in breadth-first order.
-Iterable<AstNode> allDescendants(AstNode node) sync* {
+Iterable<AstNode> allDescendants(AstNode/*!*/ node) sync* {
   final nodesQueue = Queue<AstNode>()..add(node);
   while (nodesQueue.isNotEmpty) {
     final current = nodesQueue.removeFirst();

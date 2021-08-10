@@ -120,6 +120,7 @@ class SemverHelper {
       return locations;
     }
 
+    // fixme null-safety improve this control-flow
     if (_exportList == null && _isAlwaysPrivate) return locations;
     if (_exportList == null && !_isAlwaysPrivate) {
       return [semverReportNotAvailable];
