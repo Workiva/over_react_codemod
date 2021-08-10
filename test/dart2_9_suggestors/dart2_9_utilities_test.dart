@@ -340,7 +340,7 @@ void main() {
         void _expectFalse({required String input}) {
           final unit = parseString(content: input).unit;
           final decl =
-              unit.declarations.whereType<TopLevelVariableDeclaration>()?.first;
+              unit.declarations.whereType<TopLevelVariableDeclaration>().first;
 
           expect(isLegacyFactoryDecl(decl), isFalse);
         }
@@ -374,7 +374,7 @@ void main() {
         void _expectTrue({required String input}) {
           final unit = parseString(content: input).unit;
           final decl =
-              unit.declarations.whereType<TopLevelVariableDeclaration>()?.first;
+              unit.declarations.whereType<TopLevelVariableDeclaration>().first;
 
           expect(isLegacyFactoryDecl(decl), isTrue);
         }

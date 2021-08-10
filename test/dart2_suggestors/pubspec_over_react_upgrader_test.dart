@@ -35,11 +35,11 @@ main() {
 
     group('with shouldAlwaysUpdate false', () {
       final defaultTestSuggestor = getSuggestorTester(
-          PubspecOverReactUpgrader(VersionConstraint.parse(versionRange) as VersionRange) as Stream<Patch> Function(FileContext));
+          PubspecOverReactUpgrader(VersionConstraint.parse(versionRange) as VersionRange));
 
       final doNotAddDependencies = getSuggestorTester(PubspecOverReactUpgrader(
           VersionConstraint.parse(versionRange) as VersionRange,
-          shouldAddDependencies: false) as Stream<Patch> Function(FileContext));
+          shouldAddDependencies: false));
 
       sharedPubspecTest(
         testSuggestor: defaultTestSuggestor,
@@ -114,7 +114,7 @@ main() {
     group('with shouldAlwaysUpdate true', () {
       final defaultTestSuggestor = getSuggestorTester(
           PubspecOverReactUpgrader.alwaysUpdate(
-              VersionConstraint.parse(versionRange) as VersionRange) as Stream<Patch> Function(FileContext));
+              VersionConstraint.parse(versionRange) as VersionRange));
 
       sharedPubspecTest(
         testSuggestor: defaultTestSuggestor,

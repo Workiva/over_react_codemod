@@ -32,13 +32,13 @@ main() {
   group('PubspecReactUpdater', () {
     /// Suggestor used to test the default configurations.
     final testSuggestor = getSuggestorTester(
-        PubspecReactUpdater(VersionConstraint.parse(reactVersionRange) as VersionRange) as Stream<Patch> Function(FileContext));
+        PubspecReactUpdater(VersionConstraint.parse(reactVersionRange) as VersionRange));
 
     /// Suggestor to test when the codemod should not add the dependency if
     /// it does not encounter it.
     final doNotAddDependencies = getSuggestorTester(PubspecReactUpdater(
         VersionConstraint.parse(reactVersionRange) as VersionRange,
-        shouldAddDependencies: false) as Stream<Patch> Function(FileContext));
+        shouldAddDependencies: false));
 
     group('when there are no special cases', () {
       sharedPubspecTest(
@@ -52,7 +52,7 @@ main() {
       group('and the new version is a pre-release version', () {
         sharedPubspecTest(
             testSuggestor: getSuggestorTester(PubspecReactUpdater(
-                VersionConstraint.parse(reactVersionRangeForTesting) as VersionRange) as Stream<Patch> Function(FileContext)),
+                VersionConstraint.parse(reactVersionRangeForTesting) as VersionRange)),
             getExpectedOutput: getExpectedPreReleaseOutput as dynamic Function({bool? useMidVersionMin}),
             startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0') as VersionRange,
             isDevDependency: false,

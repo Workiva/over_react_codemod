@@ -118,7 +118,7 @@ void main(List<String> args) async {
       aggregate([
         PubspecOverReactUpgrader(overReactVersionConstraint as VersionRange,
             shouldAddDependencies: false),
-      ].map((s) => ignoreable(s as Stream<Patch> Function(FileContext)))),
+      ].map((s) => ignoreable(s))),
       // Only pass valid low level codemod flags
       args: args.where((a) => !a.contains(_checkForTransitioning)),
       defaultYes: true,
@@ -131,10 +131,10 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
     [
-      FactoryAndConfigIgnoreCommentRemover('invalid_assignment') as Stream<Patch> Function(FileContext),
-      FactoryAndConfigIgnoreCommentRemover('argument_type_not_assignable') as Stream<Patch> Function(FileContext),
-      GeneratedFactoryMigrator() as Stream<Patch> Function(FileContext),
-      FactoryConfigMigrator() as Stream<Patch> Function(FileContext),
+      FactoryAndConfigIgnoreCommentRemover('invalid_assignment'),
+      FactoryAndConfigIgnoreCommentRemover('argument_type_not_assignable'),
+      GeneratedFactoryMigrator(),
+      FactoryConfigMigrator(),
     ],
     // Only pass valid low level codemod flags
     args: args.where((a) => !a.contains(_checkForTransitioning)),

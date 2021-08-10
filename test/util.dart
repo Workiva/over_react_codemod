@@ -154,8 +154,8 @@ typedef SuggestorTester = Future<void> Function({
   required String input,
   String? expectedOutput,
   int? expectedPatchCount,
-  required bool shouldDartfmtOutput,
-  required bool testIdempotency,
+  bool shouldDartfmtOutput,
+  bool testIdempotency,
   void Function(String contents)? validateContents,
 });
 

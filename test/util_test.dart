@@ -531,10 +531,6 @@ void overReactExample() {}''';
             ]));
       });
 
-      test('returns empty list when input is null', () {
-        expect(allDescendants(null).toList(), isEmpty);
-      });
-
       test('returns empty list when input has no descendants', () {
         final node = parseAndGetSingle('''
           UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
@@ -587,10 +583,6 @@ void overReactExample() {}''';
           expect(
               allDescendantsOfType<MethodDeclaration>(node).toList(), isEmpty);
         });
-      });
-
-      test('when input is null', () {
-        expect(allDescendantsOfType<SimpleIdentifier>(null).toList(), isEmpty);
       });
 
       test('when input has no descendants', () {

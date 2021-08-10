@@ -20,7 +20,7 @@ import '../util.dart';
 
 main() {
   group('ReactDomRenderMigrator', () {
-    final Future<void> Function({String expectedOutput, int expectedPatchCount, String input, bool shouldDartfmtOutput, bool testIdempotency, void Function(String) validateContents}) testSuggestor = getSuggestorTester(ReactDomRenderMigrator() as Stream<Patch> Function(FileContext));
+    final testSuggestor = getSuggestorTester(ReactDomRenderMigrator());
 
     test('empty file', () async {
       await testSuggestor(expectedPatchCount: 0, input: '');

@@ -68,7 +68,7 @@ void main() {
           'react',
           VersionConstraint.parse(reactVersionRange) as VersionRange,
           isDevDependency: isDevDependency,
-        ) as Stream<Patch> Function(FileContext));
+        ));
 
         /// Suggestor to test when the codemod should not add the dependency if
         /// it does not encounter it.
@@ -77,7 +77,7 @@ void main() {
           VersionConstraint.parse(reactVersionRange) as VersionRange,
           shouldAddDependencies: false,
           isDevDependency: isDevDependency,
-        ) as Stream<Patch> Function(FileContext));
+        ));
 
         group('when there are no special cases', () {
           sharedPubspecTest(
@@ -94,7 +94,7 @@ void main() {
                   'react',
                   VersionConstraint.parse(reactVersionRangeForTesting) as VersionRange,
                   isDevDependency: isDevDependency,
-                ) as Stream<Patch> Function(FileContext)),
+                )),
                 getExpectedOutput: getExpectedPreReleaseOutput as dynamic Function({bool? useMidVersionMin}),
                 startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0') as VersionRange,
                 isDevDependency: isDevDependency,

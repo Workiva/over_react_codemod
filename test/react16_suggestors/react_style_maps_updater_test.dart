@@ -20,7 +20,7 @@ import '../util.dart';
 
 main() {
   group('ReactStyleMapUpdater', () {
-    final Future<void> Function({String expectedOutput, int expectedPatchCount, String input, bool shouldDartfmtOutput, bool testIdempotency, void Function(String) validateContents}) testSuggestor = getSuggestorTester(ReactStyleMapsUpdater() as Stream<Patch> Function(FileContext));
+    final testSuggestor = getSuggestorTester(ReactStyleMapsUpdater());
 
     group('updates correctly when there', () {
       test('is an empty file', () async {

@@ -19,7 +19,7 @@ import '../util.dart';
 
 main() {
   group('FactoryConfigMigrator', () {
-    final Future<void> Function({String expectedOutput, int expectedPatchCount, String input, bool shouldDartfmtOutput, bool testIdempotency, void Function(String) validateContents}) testSuggestor = getSuggestorTester(FactoryConfigMigrator() as Stream<Patch> Function(FileContext));
+    final testSuggestor = getSuggestorTester(FactoryConfigMigrator());
 
     test('empty file', () async {
       await testSuggestor(expectedPatchCount: 0, input: '');

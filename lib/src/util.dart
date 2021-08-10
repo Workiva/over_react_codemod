@@ -44,18 +44,18 @@ typedef CompanionBuilder = String Function(String className,
 Iterable<Token> allComments(Token beginToken) sync* {
   Token? currentToken = beginToken;
   while (currentToken != null && !currentToken.isEof) {
-    var currentComment = currentToken.precedingComments;
+    Token? currentComment = currentToken.precedingComments;
     while (currentComment != null) {
       yield currentComment;
-      currentComment = currentComment.next as CommentToken?;
+      currentComment = currentComment.next;
     }
     currentToken = currentToken.next;
   }
   // Also check comments preceding EOF.
-  var currentComment = currentToken!.precedingComments;
+  Token? currentComment = currentToken!.precedingComments;
   while (currentComment != null) {
     yield currentComment;
-    currentComment = currentComment.next as CommentToken?;
+    currentComment = currentComment.next;
   }
 }
 
@@ -133,7 +133,7 @@ String buildIgnoreComment({
 ///
 /// Otherwise, [partOfUri] must be a relative URI. The returned path will be
 /// this relative path joined with the containing directory of [libraryPath].
-String convertPartOfUriToRelativePath(String libraryPath, Uri partOfUri) {
+String convertPartOfUriToRelativePath(String? libraryPath, Uri partOfUri) {
   if (partOfUri.scheme == 'package') {
     // Canonicalize to ensure that if we find different relative paths to
     // the same file, they will still match.
@@ -156,7 +156,7 @@ String convertPartOfUriToRelativePath(String libraryPath, Uri partOfUri) {
       // than the current file.
       p.join(
         // containing directory of the current library
-        p.dirname(libraryPath),
+        p.dirname(libraryPath!),
         // relative path from current file to parent library file
         partOfUri.path,
       ),

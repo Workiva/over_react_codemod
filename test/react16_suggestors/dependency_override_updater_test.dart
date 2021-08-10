@@ -359,7 +359,7 @@ main() {
 
       final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
           reactOverrideConfig: defaultReactConfig,
-          overReactOverrideConfig: defaultOverReactConfig) as Stream<Patch> Function(FileContext));
+          overReactOverrideConfig: defaultOverReactConfig));
 
       commonOverrideUpdaterTests(testSuggestor, expectedOverrides);
     });
@@ -387,7 +387,7 @@ main() {
 
         final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
             reactOverrideConfig: defaultReactConfig,
-            overReactOverrideConfig: defaultOverReactConfig) as Stream<Patch> Function(FileContext));
+            overReactOverrideConfig: defaultOverReactConfig));
 
         // turning idempotency tests off for this because it would just add a new line the second run,
         // which caused failures for insignificant white space
@@ -412,7 +412,7 @@ main() {
 
         final testSuggestor = getSuggestorTester(DependencyOverrideUpdater(
             reactOverrideConfig: defaultReactConfig,
-            overReactOverrideConfig: defaultOverReactConfig) as Stream<Patch> Function(FileContext));
+            overReactOverrideConfig: defaultOverReactConfig));
 
         // turning idempotency tests off for this because it would just add a new line the second run,
         // which caused failures for insignificant white space
