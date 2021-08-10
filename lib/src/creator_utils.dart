@@ -10,30 +10,31 @@ class DartTempProjectCreator {
 
   DartTempProjectCreator(
       {PubspecCreator pubspecCreator,
-      this.pubspecCreators,
-      this.mainDartContents}) {
+      List<PubspecCreator> pubspecCreators,
+      String mainDartContents}) {
     if (pubspecCreator != null && pubspecCreators != null) {
       throw ArgumentError(
           'Cannot specify both pubspecCreator and pubspecCreators');
     }
 
-    pubspecCreators ??= [pubspecCreator ?? PubspecCreator()];
-    mainDartContents ??= 'void main() {}';
+    this.pubspecCreators =
+        pubspecCreators ?? [pubspecCreator ?? PubspecCreator()];
+    this.mainDartContents = mainDartContents ?? 'void main() {}';
     dir = Directory.systemTemp.createTempSync();
     for (var pubspecCreator in pubspecCreators) {
       pubspecCreator.create(dir.path);
     }
-    File(p.join(dir.path, 'main.dart')).writeAsStringSync(mainDartContents);
+    File(p.join(dir.path, 'main.dart')).writeAsStringSync(this.mainDartContents);
   }
 }
 
 class PubspecCreator {
-  String name;
-  String version;
-  bool isPrivate;
-  String sdkVersion;
-  List<DependencyCreator> dependencies;
-  String path;
+  final String name;
+  final String version;
+  final bool isPrivate;
+  final String sdkVersion;
+  final List<DependencyCreator> dependencies;
+  final String path;
 
   PubspecCreator(
       {this.name = 'fake_package',
@@ -94,50 +95,55 @@ class PubspecCreator {
 }
 
 class DependencyCreator {
-  String name;
-  String version;
-  String ref;
-  String gitOverride;
-  String pathOverride;
-  bool asDev;
-  bool asNonGitOrPathOverride;
+  final String name;
+  final String version;
+  final String ref;
+  final String gitOverride;
+  final String pathOverride;
+  final bool asDev;
+  final bool asNonGitOrPathOverride;
 
   DependencyCreator(
     this.name, {
-    this.version = 'any',
+    String version = 'any',
     this.asDev = false,
     this.asNonGitOrPathOverride = false,
     this.gitOverride = '',
     this.pathOverride = '',
     this.ref,
-  }) {
+  }) : version = _versionWithQuotes(version) {
     if (pathOverride.isNotEmpty && gitOverride.isNotEmpty) {
       throw ArgumentError(
           'Cannot provide both git and path overrides on single dep.');
     }
-    this.version = _versionWithQuotes(version);
   }
 
-  DependencyCreator.fromOverrideConfig(DependencyOverrideConfig config) {
-    this.name = config.name;
-
+  factory DependencyCreator.fromOverrideConfig(
+      DependencyOverrideConfig config) {
     switch (config.type) {
       case ConfigType.simple:
-        this.version =
-            _versionWithQuotes((config as SimpleOverrideConfig).version);
-        this.asNonGitOrPathOverride = true;
+        return DependencyCreator(
+          config.name,
+          version: (config as SimpleOverrideConfig).version,
+          asNonGitOrPathOverride: true,
+        );
         break;
       case ConfigType.git:
         final tConfig = config as GitOverrideConfig;
-        this.asNonGitOrPathOverride = false;
-        this.gitOverride = tConfig.url;
-        this.ref = tConfig.ref;
+        return DependencyCreator(
+          tConfig.name,
+          asNonGitOrPathOverride: false,
+          gitOverride: tConfig.url,
+          ref: tConfig.ref,
+        );
         break;
     }
+
+    throw ArgumentError.value(config.type, 'config.type');
   }
 
   /// Checks if the version string should have quotes ands adds them if necessary.
-  String _versionWithQuotes(String version) {
+  static String _versionWithQuotes(String version) {
     if (version.contains(RegExp('[\>\<\=\ ]')) &&
         !version.startsWith(RegExp('[\'\"]'))) {
       return '"' + version + '"';
@@ -170,16 +176,16 @@ class DependencyCreator {
 
 /// A test helper class to configure versions of a pubspec to test
 class DartProjectCreatorTestConfig {
-  String _testName;
+  final String _testName;
 
   /// Whether or not the codemod is expected to run based on the dependencies provided.
   ///
   /// default: `false`
-  bool shouldRunCodemod = false;
+  final bool shouldRunCodemod;
 
-  int expectedExitCode;
+  final int expectedExitCode;
 
-  String mainDartContents;
+  final String mainDartContents;
 
   List<PubspecCreator> pubspecCreators;
 
@@ -188,18 +194,16 @@ class DartProjectCreatorTestConfig {
     int expectedExitCode,
     List<DependencyCreator> dependencies,
     this.mainDartContents,
-    this.pubspecCreators,
+    List<PubspecCreator> pubspecCreators,
     this.shouldRunCodemod = false,
-  }) {
-    _testName = testName;
-
+  })  : _testName = testName,
+        expectedExitCode = expectedExitCode ?? (shouldRunCodemod ? 1 : 0) {
     if (pubspecCreators != null && dependencies != null) {
       throw ArgumentError(
           'Cannot specify both pubspecCreators and dependencies');
     }
-    pubspecCreators ??= [PubspecCreator(dependencies: dependencies ?? [])];
-
-    this.expectedExitCode = expectedExitCode ?? (shouldRunCodemod ? 1 : 0);
+    this.pubspecCreators =
+        pubspecCreators ?? [PubspecCreator(dependencies: dependencies ?? [])];
   }
 
   String get testName {
