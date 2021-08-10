@@ -3,6 +3,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 /// A usage of an OverReact component via its fluent interface.
 class FluentComponentUsage {
@@ -25,8 +26,8 @@ class FluentComponentUsage {
   String get componentName => getComponentName(builder);
 
   bool get isDom =>
-      const ['DomProps', 'SvgProps'].contains(builder.staticType?.name);
-  bool get isSvg => const ['SvgProps'].contains(builder.staticType?.name);
+      const ['DomProps', 'SvgProps'].contains(builder.staticType?.interfaceTypeName);
+  bool get isSvg => const ['SvgProps'].contains(builder.staticType?.interfaceTypeName);
 
   /// Whether the invocation contains one or more children passed as arguments instead of a list.
   bool get hasVariadicChildren =>
@@ -35,6 +36,17 @@ class FluentComponentUsage {
 
   /// The number of child arguments passed into the invocation.
   int get childArgumentCount => node.argumentList.arguments.length;
+}
+
+extension _TryCast<T> on T {
+  S tryCast<S extends T>() {
+    final self = this;
+    return self is S ? self : null;
+  }
+}
+
+extension on DartType {
+  String get interfaceTypeName => tryCast<InterfaceType>()?.element?.name;
 }
 
 /// Returns the OverReact fluent interface component for the invocation expression [node],
@@ -73,7 +85,7 @@ FluentComponentUsage getComponentUsage(InvocationExpression node) {
   bool isComponent;
   if (builder.staticType != null) {
     // Resolved AST
-    isComponent = builder.staticType.name?.endsWith('Props') ?? false;
+    isComponent = builder.staticType.interfaceTypeName?.endsWith('Props') ?? false;
   } else {
     // Unresolved AST (or type wasn't available)
     isComponent = false;
@@ -102,7 +114,7 @@ FluentComponentUsage getComponentUsage(InvocationExpression node) {
 String getComponentName(Expression builder) {
   if (builder.staticType != null) {
     // Resolved AST
-    final typeName = builder.staticType?.name;
+    final typeName = builder.staticType?.interfaceTypeName;
     if (typeName == null) return null;
     if (const ['dynamic', 'UiProps'].contains(typeName)) return null;
     if (builder is MethodInvocation) {
