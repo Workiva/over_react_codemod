@@ -51,15 +51,15 @@ main() {
           await testSuggestor(
             expectedPatchCount: 1,
             input: '''
-          class test extends UiComponent {
-            var test = Foo()
+          class Test extends UiComponent {
+            var aTest = Foo()
             $manualCheckedStyleMapString $willBeRemovedCommentSuffix
             ..style = {};
           }
         ''',
             expectedOutput: '''
-          class test extends UiComponent {
-            var test = Foo()
+          class Test extends UiComponent {
+            var aTest = Foo()
             ..style = {};
           }
         ''',
@@ -94,8 +94,8 @@ main() {
         await testSuggestor(
           expectedPatchCount: 1,
           input: '''
-          class test extends UiComponent {
-            var test = Foo()
+          class Test extends UiComponent {
+            var aTest = Foo()
              $manualCheckedStyleMapString
              $styleMapExplanation
              //$willBeRemovedCommentSuffix
@@ -103,8 +103,8 @@ main() {
             }
           ''',
           expectedOutput: '''
-            class test extends UiComponent {
-              var test = Foo()
+            class Test extends UiComponent {
+              var aTest = Foo()
               ..style = {};
             }
           ''',
@@ -117,8 +117,8 @@ main() {
         await testSuggestor(
           expectedPatchCount: 1,
           input: '''
-          class test extends UiComponent {
-            var test = Foo()
+          class Test extends UiComponent {
+            var aTest = Foo()
              // [x] Check this box upon manual validation that this style map is
              // receiving a value that is valid for the following keys: width.
              $styleMapExplanation
@@ -127,8 +127,8 @@ main() {
             }
           ''',
           expectedOutput: '''
-            class test extends UiComponent {
-              var test = Foo()
+            class Test extends UiComponent {
+              var aTest = Foo()
               ..style = {};
             }
           ''',
@@ -137,8 +137,8 @@ main() {
         await testSuggestor(
           expectedPatchCount: 1,
           input: '''
-          class test extends UiComponent {
-            var test = Foo()
+          class Test extends UiComponent {
+            var aTest = Foo()
              // [x] Check this box upon manual validation that this style map is
              // receiving a value that is valid for the keys that are simple
              // string variables.
@@ -148,8 +148,8 @@ main() {
             }
           ''',
           expectedOutput: '''
-            class test extends UiComponent {
-              var test = Foo()
+            class Test extends UiComponent {
+              var aTest = Foo()
               ..style = {};
             }
           ''',
@@ -158,8 +158,8 @@ main() {
         await testSuggestor(
           expectedPatchCount: 1,
           input: '''
-          class test extends UiComponent {
-            var test = Foo()
+          class Test extends UiComponent {
+            var aTest = Foo()
              // [x] Check this box upon manual validation that this style map
              // uses a valid value for the keys that are numbers.
              $styleMapExplanation
@@ -168,8 +168,8 @@ main() {
             }
           ''',
           expectedOutput: '''
-            class test extends UiComponent {
-              var test = Foo()
+            class Test extends UiComponent {
+              var aTest = Foo()
               ..style = {};
             }
           ''',
@@ -179,9 +179,9 @@ main() {
       test('does not remove comments above', () async {
         await testSuggestor(
           expectedPatchCount: 1,
-          input: '''
-          class test extends UiComponent {
-            var test = Foo()
+          input: ''' 
+          class Test extends UiComponent {
+            var aTest = Foo()
              // A random comment that should not be removed.
              $manualCheckedStyleMapString
              $styleMapExplanation
@@ -190,8 +190,8 @@ main() {
             }
           ''',
           expectedOutput: '''
-            class test extends UiComponent {
-              var test = Foo()
+            class Test extends UiComponent {
+              var aTest = Foo()
               // A random comment that should not be removed.
               ..style = {};
             }
@@ -203,8 +203,8 @@ main() {
         await testSuggestor(
           expectedPatchCount: 1,
           input: '''
-          class test extends UiComponent {
-            var test = Foo()
+          class Test extends UiComponent {
+            var aTest = Foo()
              $manualCheckedStyleMapString
              $styleMapExplanation
              //$willBeRemovedCommentSuffix
@@ -213,8 +213,8 @@ main() {
             }
           ''',
           expectedOutput: '''
-            class test extends UiComponent {
-              var test = Foo()
+            class Test extends UiComponent {
+              var aTest = Foo()
               // A random comment that should not be removed.
               ..style = {};
             }
