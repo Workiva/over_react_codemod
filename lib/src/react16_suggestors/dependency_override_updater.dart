@@ -16,7 +16,6 @@ import 'dart:math';
 
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 import '../constants.dart';

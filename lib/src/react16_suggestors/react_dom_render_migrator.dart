@@ -49,13 +49,13 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
 
     final overReactImport = imports.lastWhereOrNull(
         (dir) =>
-            dir.uri?.stringValue == 'package:over_react/over_react.dart' ||
+            dir.uri.stringValue == 'package:over_react/over_react.dart' ||
             // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
-            dir.uri?.stringValue == 'package:' 'web_skin_dart/ui_core.dart');
+            dir.uri.stringValue == 'package:' 'web_skin_dart/ui_core.dart');
 
     final reactDomImport = imports.lastWhereOrNull(
-        (dir) => (dir.uri?.stringValue == 'package:react/react_dom.dart' ||
-            dir.uri?.stringValue == 'package:over_react/react_dom.dart'));
+        (dir) => (dir.uri.stringValue == 'package:react/react_dom.dart' ||
+            dir.uri.stringValue == 'package:over_react/react_dom.dart'));
 
     String? reactDomImportNamespace;
     bool isWrappedWithErrorBoundary = false;
@@ -72,7 +72,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     final inTest = testAncestor != null;
 
     if (node.methodName.name != 'render' ||
-        reactDomImportNamespace != node.realTarget?.toSource?.call() ||
+        reactDomImportNamespace != node.realTarget?.toSource() ||
         inTest) {
       return;
     }

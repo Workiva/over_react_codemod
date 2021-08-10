@@ -25,7 +25,6 @@ import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:glob/glob.dart';
-import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
@@ -210,17 +209,6 @@ VersionRange generateNewVersionRange(
   );
 }
 
-
-/// Recursively traverses the [AstNode.parent] of the provided [node] until it finds
-/// a [ClassOrMixinDeclaration], then returns it.
-///
-/// Returns `null` if the provided [node] is not within a [ClassOrMixinDeclaration].
-ClassOrMixinDeclaration? getContainingClass(AstNode node) {
-  if (node.parent == node.root) return null; // Not part of a class
-  if (node.parent is ClassOrMixinDeclaration) return node.parent as ClassOrMixinDeclaration?;
-
-  return getContainingClass(node.parent!);
-}
 
 /// Returns a string representation of [constraint], converting it to caret
 /// notation when possible.
@@ -426,8 +414,6 @@ Iterable<AstNode> allDescendants(AstNode node) sync* {
   final nodesQueue = Queue<AstNode>()..add(node);
   while (nodesQueue.isNotEmpty) {
     final current = nodesQueue.removeFirst();
-    if (current == null) return;
-
     for (final child in current.childEntities) {
       if (child is AstNode) {
         yield child;

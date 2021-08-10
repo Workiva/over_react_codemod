@@ -127,7 +127,6 @@ class DependencyCreator {
           version: (config as SimpleOverrideConfig).version,
           asNonGitOrPathOverride: true,
         );
-        break;
       case ConfigType.git:
         final tConfig = config as GitOverrideConfig;
         return DependencyCreator(
@@ -136,10 +135,7 @@ class DependencyCreator {
           gitOverride: tConfig.url,
           ref: tConfig.ref,
         );
-        break;
     }
-
-    throw ArgumentError.value(config.type, 'config.type');
   }
 
   /// Checks if the version string should have quotes ands adds them if necessary.
@@ -161,10 +157,10 @@ class DependencyCreator {
   String toString() {
     if (asOverride && !asNonGitOrPathOverride) {
       var temp = '  $name:\n';
-      if ((gitOverride?.isNotEmpty) ?? false) {
+      if (gitOverride.isNotEmpty) {
         temp += '    git:\n      url: $gitOverride\n';
       }
-      if ((pathOverride?.isNotEmpty) ?? false) {
+      if (pathOverride.isNotEmpty) {
         temp += '    path: $pathOverride\n';
       }
       if (ref != null) temp += '      ref: $ref\n';
@@ -210,7 +206,7 @@ class DartProjectCreatorTestConfig {
     if (_testName != null) return _testName!;
 
     var name =
-        'returns exit code ${expectedExitCode ?? (shouldRunCodemod ? 1 : 0)} with ';
+        'returns exit code ${expectedExitCode} with ';
     if (pubspecCreators.isEmpty) {
       name += 'no pubspecs';
     } else {

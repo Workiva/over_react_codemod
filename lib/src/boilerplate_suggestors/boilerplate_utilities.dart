@@ -80,7 +80,6 @@ bool isPublic(
   SemverHelper semverHelper,
   String path,
 ) {
-  assert(semverHelper != null);
   return semverHelper.getPublicExportLocations(node, path).isNotEmpty;
 }
 

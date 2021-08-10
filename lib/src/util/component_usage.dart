@@ -46,7 +46,7 @@ extension _TryCast<T> on T {
 }
 
 extension on DartType? {
-  String? get interfaceTypeName => tryCast<InterfaceType>()?.element?.name;
+  String? get interfaceTypeName => tryCast<InterfaceType>()?.element.name;
 }
 
 /// Returns the OverReact fluent interface component for the invocation expression [node],

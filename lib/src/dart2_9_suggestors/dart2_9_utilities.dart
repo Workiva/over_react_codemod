@@ -58,8 +58,8 @@ SimpleIdentifier? getGeneratedFactoryConfigArg(ArgumentList argList) {
 /// | UiFactory<FooProps> Foo = connect<SomeState, FooProps>(...)(_$Foo);  | _$Foo  |
 /// | UiFactory<FooProps> Foo = uiFunction((props) {}, _$FooConfig);       | null   |
 SimpleIdentifier? getGeneratedFactory(TopLevelVariableDeclaration node) {
-  final type = node.variables?.type;
-  if (type != null && type is NamedType && type?.name?.name == 'UiFactory') {
+  final type = node.variables.type;
+  if (type != null && type is NamedType && type.name.name == 'UiFactory') {
     final initializer = node.variables.variables.first.initializer;
     if (initializer != null) {
       final name = node.variables.variables.first.name.name;
@@ -80,7 +80,7 @@ bool isClassOrConnectedComponentFactory(TopLevelVariableDeclaration node) =>
 
 /// Returns whether or not [node] is in the legacy boilerplate syntax.
 bool isLegacyFactoryDecl(TopLevelVariableDeclaration node) {
-  final annotation = node.metadata?.firstWhereOrNull(
+  final annotation = node.metadata.firstWhereOrNull(
       (m) => m.toSource().startsWith('@Factory'));
   return isClassOrConnectedComponentFactory(node) && annotation != null;
 }

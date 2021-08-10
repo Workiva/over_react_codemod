@@ -17,7 +17,6 @@ import 'dart:io';
 import 'package:codemod/codemod.dart';
 import 'package:codemod/test.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';

@@ -34,7 +34,7 @@ class GeneratedFactoryMigrator extends RecursiveAstVisitor
       final generatedFactory = getGeneratedFactory(node);
       final parentMethod = generatedFactory?.parent?.parent;
       if (parentMethod is MethodInvocation &&
-          parentMethod.methodName?.name == castFunctionName) {
+          parentMethod.methodName.name == castFunctionName) {
         return;
       }
 

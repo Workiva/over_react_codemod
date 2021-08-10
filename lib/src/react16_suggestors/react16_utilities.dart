@@ -90,6 +90,6 @@ bool hasMultilineDocComment(
 SourceSpan nodeCommentSpan(AnnotatedNode node, SourceFile sourceFile) {
   return sourceFile.span(
       node.beginToken.offset,
-      node.metadata?.beginToken?.offset ??
+      node.metadata.beginToken?.offset ??
           node.firstTokenAfterCommentAndMetadata.offset);
 }
