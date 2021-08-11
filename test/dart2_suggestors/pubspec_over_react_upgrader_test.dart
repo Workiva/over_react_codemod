@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -35,10 +36,10 @@ main() {
 
     group('with shouldAlwaysUpdate false', () {
       final defaultTestSuggestor = getSuggestorTester(
-          PubspecOverReactUpgrader(VersionConstraint.parse(versionRange) as VersionRange));
+          PubspecOverReactUpgrader(parseVersionRange(versionRange)));
 
       final doNotAddDependencies = getSuggestorTester(PubspecOverReactUpgrader(
-          VersionConstraint.parse(versionRange) as VersionRange,
+          parseVersionRange(versionRange),
           shouldAddDependencies: false));
 
       sharedPubspecTest(
@@ -114,7 +115,7 @@ main() {
     group('with shouldAlwaysUpdate true', () {
       final defaultTestSuggestor = getSuggestorTester(
           PubspecOverReactUpgrader.alwaysUpdate(
-              VersionConstraint.parse(versionRange) as VersionRange));
+              parseVersionRange(versionRange)));
 
       sharedPubspecTest(
         testSuggestor: defaultTestSuggestor,

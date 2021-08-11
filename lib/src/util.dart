@@ -426,3 +426,11 @@ Iterable<AstNode> allDescendants(AstNode node) sync* {
 /// Returns a lazy iterable of all descendants of [node] of type [T], in breadth-first order.
 Iterable<T> allDescendantsOfType<T extends AstNode>(AstNode node) =>
     allDescendants(node).whereType<T>();
+
+VersionRange parseVersionRange(String text) {
+  final constraint = VersionConstraint.parse(text);
+  if (constraint is! VersionRange) {
+    throw ArgumentError.value(text, 'text', 'not a VersionRange; was a ${constraint.runtimeType}');
+  }
+  return constraint;
+}

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -25,13 +26,13 @@ class PubspecOverReactUpgrader extends PubspecUpgrader {
   /// Version constraint that ensures a version of over_react compatible with
   /// the new forwards- and backwards-compatible component boilerplate.
   static final VersionRange dart1And2Constraint =
-      VersionConstraint.parse('^1.30.2') as VersionRange;
+      parseVersionRange('^1.30.2');
 
   /// Version constraint that ensures a version of over_react compatible with
   /// the Dart 2 builder and also opens the range up to over_react 2.x which is
   /// the first release that drops support for Dart 1.
   static final VersionRange dart2Constraint =
-      VersionConstraint.parse('>=1.30.2 <3.0.0') as VersionRange;
+      parseVersionRange('>=1.30.2 <3.0.0');
 
   PubspecOverReactUpgrader(
     VersionRange targetConstraint, {
