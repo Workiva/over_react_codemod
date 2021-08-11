@@ -152,8 +152,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                 ? null
                 : cssPropertyValue.elements.last;
             if (lastElement is! InterpolationString ||
-                !_cssValueSuffixPattern
-                    .hasMatch(lastElement.value)) {
+                !_cssValueSuffixPattern.hasMatch(lastElement.value)) {
               flagAsPotentiallyInvalid();
             }
           } else if (cssPropertyValue is MethodInvocation) {

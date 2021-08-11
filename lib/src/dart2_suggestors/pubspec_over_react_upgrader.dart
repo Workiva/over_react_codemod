@@ -25,8 +25,7 @@ import 'package:pub_semver/pub_semver.dart';
 class PubspecOverReactUpgrader extends PubspecUpgrader {
   /// Version constraint that ensures a version of over_react compatible with
   /// the new forwards- and backwards-compatible component boilerplate.
-  static final VersionRange dart1And2Constraint =
-      parseVersionRange('^1.30.2');
+  static final VersionRange dart1And2Constraint = parseVersionRange('^1.30.2');
 
   /// Version constraint that ensures a version of over_react compatible with
   /// the Dart 2 builder and also opens the range up to over_react 2.x which is

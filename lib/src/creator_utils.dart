@@ -24,7 +24,8 @@ class DartTempProjectCreator {
     for (var pubspecCreator in pubspecCreators!) {
       pubspecCreator.create(dir.path);
     }
-    File(p.join(dir.path, 'main.dart')).writeAsStringSync(this.mainDartContents);
+    File(p.join(dir.path, 'main.dart'))
+        .writeAsStringSync(this.mainDartContents);
   }
 }
 
@@ -59,7 +60,9 @@ class PubspecCreator {
   }
 
   void addDependency(String name,
-      {String version = 'any', bool asDev = false, bool Function()? shouldAdd}) {
+      {String version = 'any',
+      bool asDev = false,
+      bool Function()? shouldAdd}) {
     if (shouldAdd?.call() ?? true) {
       dependencies.add(DependencyCreator(name, version: version, asDev: asDev));
     }
@@ -205,8 +208,7 @@ class DartProjectCreatorTestConfig {
   String get testName {
     if (_testName != null) return _testName!;
 
-    var name =
-        'returns exit code ${expectedExitCode} with ';
+    var name = 'returns exit code ${expectedExitCode} with ';
     if (pubspecCreators.isEmpty) {
       name += 'no pubspecs';
     } else {

@@ -207,7 +207,8 @@ void main() {
       });
 
       group('returns the generated factory and true, respectively', () {
-        void _expectGeneratedFactoryName({required String input, String? expectedName}) {
+        void _expectGeneratedFactoryName(
+            {required String input, String? expectedName}) {
           final unit = parseString(content: input).unit;
           final decl =
               unit.declarations.whereType<TopLevelVariableDeclaration>().first;

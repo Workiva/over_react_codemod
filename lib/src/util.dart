@@ -202,13 +202,13 @@ final _usesOverReactRegex = RegExp(
 VersionRange generateNewVersionRange(
     VersionRange currentRange, VersionRange targetRange) {
   return VersionRange(
-    min:
-        currentRange.min! > targetRange.min! ? currentRange.min : targetRange.min,
+    min: currentRange.min! > targetRange.min!
+        ? currentRange.min
+        : targetRange.min,
     includeMin: true,
     max: targetRange.max,
   );
 }
-
 
 /// Returns a string representation of [constraint], converting it to caret
 /// notation when possible.
@@ -430,7 +430,8 @@ Iterable<T> allDescendantsOfType<T extends AstNode>(AstNode node) =>
 VersionRange parseVersionRange(String text) {
   final constraint = VersionConstraint.parse(text);
   if (constraint is! VersionRange) {
-    throw ArgumentError.value(text, 'text', 'not a VersionRange; was a ${constraint.runtimeType}');
+    throw ArgumentError.value(
+        text, 'text', 'not a VersionRange; was a ${constraint.runtimeType}');
   }
   return constraint;
 }

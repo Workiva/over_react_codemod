@@ -66,8 +66,8 @@ SimpleIdentifier? getGeneratedFactory(TopLevelVariableDeclaration node) {
       final generatedName = r'_$' + name;
       if (initializer is SimpleIdentifier && initializer.name == generatedName)
         return initializer;
-      return allDescendantsOfType<SimpleIdentifier>(initializer).firstWhereOrNull(
-          (identifier) => identifier.name == generatedName);
+      return allDescendantsOfType<SimpleIdentifier>(initializer)
+          .firstWhereOrNull((identifier) => identifier.name == generatedName);
     }
   }
 
@@ -80,8 +80,8 @@ bool isClassOrConnectedComponentFactory(TopLevelVariableDeclaration node) =>
 
 /// Returns whether or not [node] is in the legacy boilerplate syntax.
 bool isLegacyFactoryDecl(TopLevelVariableDeclaration node) {
-  final annotation = node.metadata.firstWhereOrNull(
-      (m) => m.toSource().startsWith('@Factory'));
+  final annotation = node.metadata
+      .firstWhereOrNull((m) => m.toSource().startsWith('@Factory'));
   return isClassOrConnectedComponentFactory(node) && annotation != null;
 }
 

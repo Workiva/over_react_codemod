@@ -25,9 +25,10 @@ class FluentComponentUsage {
 
   String? get componentName => getComponentName(builder);
 
-  bool get isDom =>
-      const ['DomProps', 'SvgProps'].contains(builder.staticType?.interfaceTypeName);
-  bool get isSvg => const ['SvgProps'].contains(builder.staticType?.interfaceTypeName);
+  bool get isDom => const ['DomProps', 'SvgProps']
+      .contains(builder.staticType?.interfaceTypeName);
+  bool get isSvg =>
+      const ['SvgProps'].contains(builder.staticType?.interfaceTypeName);
 
   /// Whether the invocation contains one or more children passed as arguments instead of a list.
   bool get hasVariadicChildren =>
@@ -85,7 +86,8 @@ FluentComponentUsage? getComponentUsage(InvocationExpression node) {
   bool isComponent;
   if (builder.staticType != null) {
     // Resolved AST
-    isComponent = builder.staticType.interfaceTypeName?.endsWith('Props') ?? false;
+    isComponent =
+        builder.staticType.interfaceTypeName?.endsWith('Props') ?? false;
   } else {
     // Unresolved AST (or type wasn't available)
     isComponent = false;

@@ -164,9 +164,8 @@ class DependencyOverrideUpdater {
             dependency: dependencyName, yamlContent: parsedYamlMap);
         final dependencyMatch = dependencyRegex
             .allMatches(context.sourceText)
-            .singleWhereOrNull(
-                (match) =>
-                    _isDependencyMatchWithinDependencyOverridesSection(match));
+            .singleWhereOrNull((match) =>
+                _isDependencyMatchWithinDependencyOverridesSection(match));
 
         if (dependencyMatch != null) {
           // startPoint is needed because a new line would be added to the
