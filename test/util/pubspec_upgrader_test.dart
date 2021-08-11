@@ -82,7 +82,7 @@ void main() {
         group('when there are no special cases', () {
           sharedPubspecTest(
               testSuggestor: testSuggestor,
-              getExpectedOutput: getExpectedOutput as dynamic Function({bool? useMidVersionMin}),
+              getExpectedOutput: getExpectedOutput,
               startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0') as VersionRange,
               isDevDependency: isDevDependency,
               dependency: 'react',
@@ -95,7 +95,7 @@ void main() {
                   VersionConstraint.parse(reactVersionRangeForTesting) as VersionRange,
                   isDevDependency: isDevDependency,
                 )),
-                getExpectedOutput: getExpectedPreReleaseOutput as dynamic Function({bool? useMidVersionMin}),
+                getExpectedOutput: getExpectedPreReleaseOutput,
                 startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0') as VersionRange,
                 isDevDependency: isDevDependency,
                 midVersionRange: '^5.5.3',
@@ -107,7 +107,7 @@ void main() {
         group('when the codemod should not add dependencies', () {
           sharedPubspecTest(
               testSuggestor: doNotAddDependencies,
-              getExpectedOutput: getExpectedOutput as dynamic Function({bool? useMidVersionMin}),
+              getExpectedOutput: getExpectedOutput,
               startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0') as VersionRange,
               isDevDependency: isDevDependency,
               dependency: 'react',
@@ -120,7 +120,7 @@ void main() {
             'acceptable', () {
           sharedPubspecTest(
               testSuggestor: testSuggestor,
-              getExpectedOutput: getExpectedOutput as dynamic Function({bool? useMidVersionMin}),
+              getExpectedOutput: getExpectedOutput,
               startingRange: VersionConstraint.parse('^5.0.0') as VersionRange,
               isDevDependency: isDevDependency,
               dependency: 'react',
