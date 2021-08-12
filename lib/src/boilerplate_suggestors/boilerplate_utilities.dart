@@ -19,8 +19,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/util.dart';
 
-typedef YieldPatch = void Function(
-    String replacement, int startingOffset, int endingOffset);
+typedef YieldPatch = void Function(String replacement, int startingOffset,
+    [int? endingOffset]);
 
 const semverReportNotAvailable =
     'Semver report not available; this class is assumed to be public and thus will not be updated.';
