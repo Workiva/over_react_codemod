@@ -4,6 +4,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
+import 'package:meta/meta.dart';
+import 'package:over_react_codemod/src/util/range_factory.dart';
+import 'package:over_react_codemod/src/element_type_helpers.dart';
 
 /// A usage of an OverReact component via its fluent interface.
 class FluentComponentUsage {
@@ -37,6 +41,126 @@ class FluentComponentUsage {
 
   /// The number of child arguments passed into the invocation.
   int get childArgumentCount => node.argumentList.arguments.length;
+}
+
+PropAssignment? getPropAssignment(AssignmentExpression node) {
+  final lhs = node.leftHandSide;
+  // fixme cleanup move into factory
+  if (lhs is! PropertyAccess && lhs is! PrefixedIdentifier) {
+    return null;
+  }
+
+  final assignment = PropAssignment(node);
+  if (assignment.target.staticType?.isPropsClass ?? false) {
+    return assignment;
+  }
+
+  return null;
+}
+
+// Fixme write hella test cases for this, including `.aria.label`
+// TODO what about indexed prop assignments?
+abstract class PropAssignment {
+  factory PropAssignment(AssignmentExpression node) {
+    if (node.leftHandSide is PropertyAccess) {
+      return _PropertyAccessPropAssignment(node);
+    } else if (node.leftHandSide is PrefixedIdentifier) {
+      return _PrefixedIdentifierPropAssignment(node);
+    } else {
+      throw ArgumentError.value(
+        node.leftHandSide,
+        'node.leftHandSide',
+        'Unhandled LHS node type',
+      );
+    }
+  }
+
+  Expression get target;
+
+  /// The name of the prop being assigned.
+  Identifier get name;
+
+  /// The cascaded assignment expression that backs this assignment.
+  AssignmentExpression get assignment;
+
+  /// The property access representing the left hand side of this assignment.
+  Expression get leftHandSide => assignment.leftHandSide;
+
+  /// The expression for the right hand side of this assignment.
+  Expression get rightHandSide => assignment.rightHandSide;
+
+  //
+  // /// The "target" of the [name].
+  // ///
+  // /// For example, the value of `targetName.name` in the expression below is "aria":
+  // ///
+  // /// ```dart
+  // /// ..aria.label = 'foo'
+  // /// ```
+  // Identifier? get targetName => leftHandSide.tryCast<PropertyAccess>()?.target?.tryCast<PropertyAccess>()?.propertyName;
+
+  /// A range that can be used in a `builder.addDeletion` call to remove this prop.
+  ///
+  /// Includes the space between the previous token and the start of this assignment, so that
+  /// the entire prop line is removed.
+  ///
+  /// __Note: prefer using [removeProp] instead of using this directly to perform removals__
+  @protected
+  SourceRange get rangeForRemoval => range.node(assignment);
+
+  bool get isInCascade;
+}
+
+class _PropertyAccessPropAssignment with PropAssignment {
+  /// The cascaded assignment expression that backs this assignment.
+  @override
+  final AssignmentExpression assignment;
+
+  _PropertyAccessPropAssignment(this.assignment)
+      : assert(assignment.leftHandSide is PropertyAccess);
+
+  /// The property access representing the left hand side of this assignment.
+  @override
+  PropertyAccess get leftHandSide => assignment.leftHandSide as PropertyAccess;
+
+  @override
+  Identifier get name => leftHandSide.propertyName;
+
+  @override
+  Expression get target => leftHandSide.realTarget;
+
+  // Fixme is this implementation correct?
+  @override
+  bool get isInCascade =>
+      assignment
+          .thisOrAncestorOfType<CascadeExpression>()
+          ?.cascadeSections
+          .contains(assignment) ??
+      false;
+}
+
+class _PrefixedIdentifierPropAssignment with PropAssignment {
+  /// The cascaded assignment expression that backs this assignment.
+  @override
+  final AssignmentExpression assignment;
+
+  _PrefixedIdentifierPropAssignment(this.assignment)
+      : assert(assignment.leftHandSide is PrefixedIdentifier);
+
+  /// The property access representing the left hand side of this assignment.
+  @override
+  PrefixedIdentifier get leftHandSide =>
+      assignment.leftHandSide as PrefixedIdentifier;
+
+  @override
+  Identifier get name => leftHandSide.identifier;
+
+  @override
+  Expression get target => leftHandSide.prefix;
+
+  // Fixme is this implementation correct?
+  @override
+  bool get isInCascade => false;
 }
 
 extension _TryCast<T> on T {

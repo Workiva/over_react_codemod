@@ -46,3 +46,4 @@ executables:
   react17_dependency_override_update:
   react17_upgrade:
   dart2_9_upgrade:
+  mui_migration:
