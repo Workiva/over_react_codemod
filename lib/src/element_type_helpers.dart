@@ -1,6 +1,12 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
+extension ElementDeclarationHelpers on Element {
+  bool get isDeclaredInOverReact => isDeclaredInPackage('over_react');
+
+  bool get isDeclaredInWsd => isDeclaredInPackage('web_skin_dart');
+}
+
 extension ReactTypes$DartType on DartType {
   bool get isComponentClass => element?.isComponentClass ?? false;
   bool get isReactElement => element?.isReactElement ?? false;

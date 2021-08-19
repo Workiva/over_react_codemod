@@ -1,10 +1,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/element_type_helpers.dart';
+import 'package:over_react_codemod/src/fluent_interface_util/cascade_read.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
+import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
 // - Keep in mind: useful for components other than just button
 //
@@ -49,18 +46,17 @@ import 'package:over_react_codemod/src/util/component_usage.dart';
 // 7. Add RMUI script tag to relevant HTML files (examples, tests)
 //
 //     - Idea: find HTML files with react JS script tags and just add RMUI tags to those
+//       https://sourcegraph.wk-dev.wdesk.org/search?q=packages/react/react%5Cw%2B.js&patternType=regexp
+//          Lots of HTML (with a good portion of it generated or in templates), some Dart
 //
 // Question: how important is it that we flag tests containing components that have been updated? It could be pretty hard to tell what they are since tests don't usually render WSD components directly
 //
 //     - Can we just rely on test failures to identify these cases?
 
-class MuiButtonMigrator extends GeneralizingAstVisitor<void>
-    with AstVisitingSuggestor {
-  static const muiNamespace = 'mui';
+const muiNs = 'mui';
 
-  @override
-  bool shouldResolveAst(FileContext context) => true;
-
+class MuiButtonMigrator extends Object
+    with ClassSuggestor, ComponentUsageMigrator {
   // fixme how do we add imports in libraries? Collect files that need imports and add them after the fact?
 
   // fixme document decisions
@@ -73,230 +69,194 @@ class MuiButtonMigrator extends GeneralizingAstVisitor<void>
 
   // fixme cocdemod feedback yieldPatch without end should be treated as insertion, not replace until end of file.
 
-  // yieldPatch utilities
-  // replace prop name
-  // replace prop value
-  // remove prop
-  // add new prop (if cascaded and possible, otherwise add comment)
-  // add comment
+  // Consider dev workflow / CI / etc.
+
+  // Execution order:
+  // - Update pubspec.yaml
+  //
+  // - Update HTML and HTML templates
+  //
+  // - For full fluent usages
+  //    - Check if usage has ignore comment; if so, short-circuit
+  //    - Check if usage should be migrated (given factory and cascade); if not, short-circuit
+  //    - Perform migration
+  //        - Insert MUI library import if needed, remove WSD import if needed
+  // FIXME execution order on this is off; we may want to do this on a second pass after the migrator runs
+  //        - For known props that can't be perfectly converted, add a FIX-ME
+  //        - Assume most other props (e.g., onClick, key, etc.) are fine
+  //            - TODO Should we double-check ubiquitous/DOM/aria props?
+  //            - TODO We should probably add a fixme to addProps/modifyProps
+  //                - Other props maps
+  //                - Forwarded props maps, potentially with props from WSD mixins
+  //                  // TODO how to handle mixed in WSD props?
+  // - For other usages
+  //    - Check if usage has ignore comment; if so, short-circuit
+  //    - Add FIX-ME
+  //
+  // - Wrap react_dom.render calls in ThemeProvider (inside ErrorBoundary if possible)
+  //
+
+  final bool isLinkButtonAvailable;
+
+  MuiButtonMigrator({this.isLinkButtonAvailable = false});
+
+  static const linkButtonSkin = 'ButtonSkin.LINK';
+  static const outlineLinkButtonSkin = 'ButtonSkin.OUTLINE_LINK';
+
+  static const linkButtonSkins = {
+    linkButtonSkin,
+    outlineLinkButtonSkin,
+  };
+
+  static bool hasLinkButtonSkin(FluentComponentUsage usage) =>
+      usage.cascadedProps
+          .where((p) => p.name.name == 'skin')
+          .map((p) => p.rightHandSide)
+          .any(isLinkButtonSkin);
+
+  static bool isLinkButtonSkin(Expression expr) =>
+      linkButtonSkins.any((linkSkin) => isWsdStaticConstant(expr, linkSkin));
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    // final lhs = node.leftHandSide;
-    //
-    // late Expression target;
-    // late Identifier prop;
-    // if (lhs is PrefixedIdentifier) {
-    //   target = lhs.prefix;
-    //   prop = lhs.identifier;
-    // } else if (lhs is PropertyAccess) {
-    //   target = lhs.realTarget;
-    //   prop = lhs.propertyName;
-    // } else {
-    //   throw UnhandledCaseError();
-    // }
-    final propAssignment = getPropAssignment(node);
-    if (propAssignment == null) return;
-    if (propAssignment.target.staticType?.element
-            ?.isOrIsSubtypeOfTypeFromPackage('ButtonProps', 'web_skin_dart') ??
-        false) {
-      final propName = propAssignment.name.name;
-
-      switch (propName) {
-        case 'isActive':
-          if (propAssignment.isInCascade) {
-            final rhsSource = sourceFor(propAssignment.rightHandSide);
-            yieldPatchOverNode(
-                '  ..aria.selected = ${rhsSource}'
-                '\n  ..aria.expanded = ${rhsSource}',
-                node);
-          } else {
-            yieldPatch(
-                ' /* FIXME mui-migration replace with aria.selected/aria.expanded */',
-                node.end);
-          }
-          break;
-
-        case 'isCallout':
-          yieldPatch(' /* FIXME mui-migration handle this case */', node.end);
-          break;
-
-        // fixme pullRight/pullLeft
-
-        // fixme notext
-        //fixme tooltipContent/overlayTriggerProps
-        // fixme REFS
-
-        // fixme type checks?
-
-        // fixme size/skin what about prefixed imports to WSD? should we even worry about those
-
-        // fixme prop values inside ternaries in props? Should we be using AST for that instead of matching whole expression? probably not for all cases since the migration would be more complex
-        // will we get issues if implicit casts aren't enabled? e.g. `..color = condition ? ButtonSkin.PRIMARY : somethingElse`, since it's `dynamic`?
-
-        case 'size':
-          const valueMappings = {
-            'ButtonSize.XXSMALL': 'mui.ButtonSize.xxsmall',
-            'ButtonSize.XSMALL': 'mui.ButtonSize.xsmall',
-            'ButtonSize.SMALL': 'mui.ButtonSize.small',
-            'ButtonSize.DEFAULT': 'mui.ButtonSize.default',
-            'ButtonSize.LARGE': 'mui.ButtonSize.large',
-          };
-
-          final rhsSourceApproximation =
-              propAssignment.rightHandSide.toSource();
-          final newValue = valueMappings[rhsSourceApproximation];
-          if (newValue != null) {
-            yieldPatchOverNode(newValue, propAssignment.rightHandSide);
-          }
-          break;
-
-        case 'skin':
-          const colorMappings = {
-            // Different
-            'ButtonSkin.DANGER': 'mui.ButtonColor.error',
-            'ButtonSkin.ALTERNATE': 'mui.ButtonColor.secondary',
-            'ButtonSkin.LIGHT': 'mui.ButtonColor.wsdBtnLight',
-            'ButtonSkin.WHITE': 'mui.ButtonColor.wsdBtnWhite',
-            'ButtonSkin.INVERSE': 'mui.ButtonColor.wsdBtnInverse',
-            'ButtonSkin.DEFAULT': 'mui.ButtonColor.default_',
-            // Lowercase
-            'ButtonSkin.PRIMARY': 'mui.ButtonColor.primary',
-            'ButtonSkin.SUCCESS': 'mui.ButtonColor.success',
-            'ButtonSkin.WARNING': 'mui.ButtonColor.warning',
-            // FIXME need to check if a button can be translated based on this prop value?
-            // 'ButtonSkin.LINK': 'ButtonColor.link', Use the LinkButton component (Not yet available)
-          };
-
-          final rhsSourceApproximation =
-              propAssignment.rightHandSide.toSource();
-
-          final outlinePattern = RegExp(r'^(ButtonSkin\.)OUTLINE_(\w+)');
-          final isOutline = outlinePattern.hasMatch(rhsSourceApproximation);
-          final rhsSourceWithoutOutline =
-              rhsSourceApproximation.replaceFirstMapped(
-                  outlinePattern, (match) => '${match[1]!}${match[2]!}');
-
-          if (rhsSourceWithoutOutline == 'ButtonSkin.VANILLA') {
-            yieldPatch(
-                ' /* FIXME mui-migration convert this component to ButtonBase */',
-                node.end,
-                node.end);
-          } else {
-            final colorMapping = colorMappings[rhsSourceWithoutOutline];
-            if (colorMapping != null) {
-              yieldPatchOverNode('color', propAssignment.name);
-              if (isOutline) {
-                yieldPatchOverNode(
-                    '${colorMapping} \n  ..variant = mui.ButtonVariant.outlined',
-                    propAssignment.rightHandSide);
-              } else {
-                yieldPatchOverNode(colorMapping, propAssignment.rightHandSide);
-              }
-            }
-          }
-          break;
-
-        default:
-          const simpleRenames = {
-            'isDisabled': 'disabled',
-            'isFlat': 'disableElevation',
-            'isBlock': 'fullWidth',
-            'role': 'dom.role',
-          };
-          final simpleRename = simpleRenames[propName];
-          if (simpleRename != null) {
-            yieldPatchOverNode(simpleRename, propAssignment.name);
-          }
-          break;
+  MigrationDecision shouldMigrateUsage(FluentComponentUsage usage) {
+    if (usesWsdFactory(usage, 'Button')) {
+      if (!isLinkButtonAvailable && hasLinkButtonSkin(usage)) {
+        // We'll handle these once the LinkButton component is available.
+        return MigrationDecision.notApplicable;
       }
+
+      return MigrationDecision.shouldMigrate;
     }
+
+    return MigrationDecision.notApplicable;
   }
 
   @override
-  void visitIdentifier(Identifier node) {
-    final staticElement = node.staticElement;
-    // TODO do we need to handle both? add comment here on why you're handling both
+  void migrateUsage(FluentComponentUsage usage) {
+    bool shouldBeLinkButton = hasLinkButtonSkin(usage);
+    assert(!shouldBeLinkButton || isLinkButtonAvailable);
 
-    final name = staticElement.tryCast<PropertyAccessorElement>()?.name ??
-        staticElement.tryCast<FieldElement>()?.name;
+    final newFactory =
+        shouldBeLinkButton ? '$muiNs.LinkButton' : '$muiNs.Button';
+    yieldPatchOverNode(newFactory, usage.factory!);
 
-    if (name == 'Button' && staticElement!.isDeclaredInWsd) {
-      yieldPatch('mui.Button', node.offset, node.end);
+    migratePropsByName(usage, migratorsByName: {
+      // Simple replacements.
+      'isBlock': (p) => yieldPropPatch(p, newName: 'fullWidth'),
+      'isDisabled': (p) => yieldPropPatch(p, newName: 'disabled'),
+      'isFlat': (p) => yieldPropPatch(p, newName: 'disableElevation'),
+      'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
+
+      // Lengthier migration code; split out into methods.
+      'isActive': _migrateIsActive,
+      'skin': _migrateSkin,
+      'size': _migrateSize,
+
+      // Props that always need manual intervention.
+      'isCallout': yieldPropManualInterventionPatch,
+      'overlayTriggerProps': yieldPropManualInterventionPatch,
+      'pullRight': yieldPropManualInterventionPatch,
+      'tooltipContent': yieldPropManualInterventionPatch,
+
+      // We need to double-check ref types on basically every component.
+      'ref': yieldPropManualInterventionPatch,
+    });
+  }
+
+  void _migrateIsActive(PropAssignment prop) {
+    final rhsSource = context.sourceFor(prop.rightHandSide);
+    yieldPatchOverNode(
+        '..aria.selected = ${rhsSource}'
+        '\n  ..aria.expanded = ${rhsSource}',
+        prop.assignment);
+  }
+
+  void _migrateSkin(PropAssignment prop) {
+    final rhs = prop.rightHandSide;
+
+    const muiOutlineVariant = '$muiNs.ButtonVariant.outlined';
+
+    if (isWsdStaticConstant(rhs, linkButtonSkin)) {
+      yieldRemovePropPatch(prop);
+      return;
     }
+
+    if (isWsdStaticConstant(rhs, outlineLinkButtonSkin)) {
+      yieldPropPatch(prop, newName: 'variant', newRhs: muiOutlineVariant);
+      return;
+    }
+
+    const skinToColor = {
+      'ButtonSkin.DANGER': '$muiNs.ButtonColor.error',
+      'ButtonSkin.ALTERNATE': '$muiNs.ButtonColor.secondary',
+      'ButtonSkin.LIGHT': '$muiNs.ButtonColor.wsdBtnLight',
+      'ButtonSkin.WHITE': '$muiNs.ButtonColor.wsdBtnWhite',
+      'ButtonSkin.INVERSE': '$muiNs.ButtonColor.wsdBtnInverse',
+      'ButtonSkin.DEFAULT': '$muiNs.ButtonColor.default_',
+      'ButtonSkin.PRIMARY': '$muiNs.ButtonColor.primary',
+      'ButtonSkin.SUCCESS': '$muiNs.ButtonColor.success',
+      'ButtonSkin.WARNING': '$muiNs.ButtonColor.warning',
+    };
+    final colorFromSkin = skinToColor
+        .firstValueWhereOrNull((skin, _) => isWsdStaticConstant(rhs, skin));
+    if (colorFromSkin != null) {
+      yieldPropPatch(
+        prop,
+        newName: 'color',
+        newRhs: colorFromSkin,
+      );
+      return;
+    }
+
+    if (isWsdStaticConstant(rhs, 'ButtonSkin.OUTLINE_DEFAULT')) {
+      yieldPropPatch(prop, newName: 'variant', newRhs: muiOutlineVariant);
+      return;
+    }
+
+    const outlineSkinToColor = {
+      'ButtonSkin.OUTLINE_DANGER': '$muiNs.ButtonColor.error',
+      'ButtonSkin.OUTLINE_ALTERNATE': '$muiNs.ButtonColor.secondary',
+      'ButtonSkin.OUTLINE_LIGHT': '$muiNs.ButtonColor.wsdBtnLight',
+      'ButtonSkin.OUTLINE_WHITE': '$muiNs.ButtonColor.wsdBtnWhite',
+      'ButtonSkin.OUTLINE_INVERSE': '$muiNs.ButtonColor.wsdBtnInverse',
+      'ButtonSkin.OUTLINE_PRIMARY': '$muiNs.ButtonColor.primary',
+      'ButtonSkin.OUTLINE_SUCCESS': '$muiNs.ButtonColor.success',
+      'ButtonSkin.OUTLINE_WARNING': '$muiNs.ButtonColor.warning',
+    };
+    final colorFromOutlineSkin = outlineSkinToColor
+        .firstValueWhereOrNull((skin, _) => isWsdStaticConstant(rhs, skin));
+    if (colorFromOutlineSkin != null) {
+      yieldPropPatch(
+        prop,
+        newName: 'color',
+        newRhs: '${colorFromOutlineSkin}'
+            // We can safely tack on a new prop here,
+            // assuming we're already in a cascade.
+            '\n  ..variant = $muiOutlineVariant',
+      );
+      return;
+    }
+
+    // fixme make it obvious why we're calling this everywhere without having to copy-paste a huge comment every time.
+    yieldPropManualInterventionPatch(prop);
   }
 
-  String sourceFor(SyntacticEntity entity) {
-    return context.sourceText.substring(entity.offset, entity.end);
+  void _migrateSize(PropAssignment prop) {
+    const sizeToNewSize = {
+      'ButtonSize.XXSMALL': '$muiNs.ButtonSize.xxsmall',
+      'ButtonSize.XSMALL': '$muiNs.ButtonSize.xsmall',
+      'ButtonSize.SMALL': '$muiNs.ButtonSize.small',
+      'ButtonSize.DEFAULT': '$muiNs.ButtonSize.default',
+      'ButtonSize.LARGE': '$muiNs.ButtonSize.large',
+    };
+
+    final newSize = sizeToNewSize.firstValueWhereOrNull(
+        (size, _) => isWsdStaticConstant(prop.rightHandSide, size));
+    if (newSize != null) {
+      yieldPropPatch(prop, newRhs: newSize);
+      return;
+    }
+
+    yieldPropManualInterventionPatch(prop);
   }
-
-  void yieldPatchOverNode(String updatedText, SyntacticEntity entityToReplace) {
-    yieldPatch(updatedText, entityToReplace.offset, entityToReplace.end);
-  }
-
-// @override
-// void visitInvocationExpression(InvocationExpression node) {
-//   final returnType = node.staticType;
-//   if (returnType is! InterfaceType) return;
-//
-//   final returnTypeInheritsFromUiProps = returnType.element.allSupertypes
-//       .whereType<InterfaceType>()
-//       .map((e) => e.element)
-//       .any((element) =>
-//           element.name == 'UiProps' && element.isDeclaredInOverReact);
-//   if (!returnTypeInheritsFromUiProps) return;
-//
-//   // InvocationExpression: `someRandomMethod()`
-//   // InvocationExpression: `Button()`
-//   // InvocationExpression: `isComponentOfType(Button)`
-//   // InvocationExpression: `(renderAButton ? Button : Dom.div)()`
-//   // FIXME make sure we handle `wsd.Button()` as well as Button
-//
-//   final function = node is MethodInvocation ? node.methodName : node.function;
-//
-//   if (function is Identifier) {
-//     final staticElement = function.staticElement;
-//     // TODO do we need to handle both? add comment here on why you're handling both
-//
-//     final name = staticElement.tryCast<PropertyAccessorElement>()?.name ??
-//         staticElement.tryCast<FieldElement>()?.name;
-//
-//     if (name == 'Button' && staticElement!.isDeclaredInWsd) {
-//       // do stuff!
-//       yieldPatch('mui.Button', node.function.offset, node.function.end);
-//     }
-//   }
-// }
-}
-
-class UnhandledCaseError extends Error {}
-//
-// class Foo {
-//   var bar;
-// }
-//
-// main() {
-//   Foo foo = Foo(XZ);
-//
-//   // AssignmentExpressionImpl PrefixedIdentifierImpl
-//   foo.bar = '';
-//   // AssignmentExpressionImpl PropertyAccessImpl
-//   foo?.bar = '';
-//   // CascadeExpressionImpl AssignmentExpressionImpl PropertyAccessImpl
-//   foo..bar = '';
-// }
-
-extension _TryCast<T> on T {
-  S? tryCast<S extends T>() {
-    final self = this;
-    return self is S ? self : null;
-  }
-}
-
-// package:web_skin_dart/....
-
-extension on Element {
-  bool get isDeclaredInOverReact => isDeclaredInPackage('over_react');
-
-  bool get isDeclaredInWsd => isDeclaredInPackage('web_skin_dart');
 }

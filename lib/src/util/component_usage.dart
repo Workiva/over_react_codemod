@@ -8,6 +8,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/util/range_factory.dart';
 import 'package:over_react_codemod/src/element_type_helpers.dart';
+export 'package:over_react_codemod/src/fluent_interface_util/cascade_read.dart';
 
 /// A usage of an OverReact component via its fluent interface.
 class FluentComponentUsage {
@@ -26,6 +27,8 @@ class FluentComponentUsage {
   ///
   /// Usually a [MethodInvocation] or [Identifier].
   final Expression builder;
+
+  Expression? get factory => builder.tryCast<InvocationExpression>()?.function;
 
   String? get componentName => getComponentName(builder);
 
@@ -58,6 +61,22 @@ PropAssignment? getPropAssignment(AssignmentExpression node) {
   return null;
 }
 
+//
+// class Foo {
+//   var bar;
+// }
+// // fixme document this
+// main() {
+//   Foo foo = Foo(XZ);
+//
+//   // AssignmentExpressionImpl PrefixedIdentifierImpl
+//   foo.bar = '';
+//   // AssignmentExpressionImpl PropertyAccessImpl
+//   foo?.bar = '';
+//   // CascadeExpressionImpl AssignmentExpressionImpl PropertyAccessImpl
+//   foo..bar = '';
+// }
+
 // Fixme write hella test cases for this, including `.aria.label`
 // TODO what about indexed prop assignments?
 abstract class PropAssignment {
@@ -75,6 +94,9 @@ abstract class PropAssignment {
     }
   }
 
+  /// The object on which a property is being assigned
+  ///
+  /// (e.g., a factory invocation expression, a builder variable)
   Expression get target;
 
   /// The name of the prop being assigned.
@@ -109,6 +131,8 @@ abstract class PropAssignment {
   SourceRange get rangeForRemoval => range.node(assignment);
 
   bool get isInCascade;
+
+  CascadeExpression? get parentCascade;
 }
 
 class _PropertyAccessPropAssignment with PropAssignment {
@@ -129,14 +153,18 @@ class _PropertyAccessPropAssignment with PropAssignment {
   @override
   Expression get target => leftHandSide.realTarget;
 
-  // Fixme is this implementation correct?
   @override
-  bool get isInCascade =>
-      assignment
-          .thisOrAncestorOfType<CascadeExpression>()
-          ?.cascadeSections
-          .contains(assignment) ??
-      false;
+  bool get isInCascade => parentCascade != null;
+
+  // Fixme is this implementation correct / overly defensive?
+  // final cascade = assignment
+  //       .thisOrAncestorOfType<CascadeExpression>();
+  //
+  // if (cascade?.cascadeSections.contains(assignment.leftHandSide) ?? false) {
+  //   return cascade;
+  // }
+  @override
+  CascadeExpression? get parentCascade => assignment.parent.tryCast();
 }
 
 class _PrefixedIdentifierPropAssignment with PropAssignment {
@@ -161,6 +189,9 @@ class _PrefixedIdentifierPropAssignment with PropAssignment {
   // Fixme is this implementation correct?
   @override
   bool get isInCascade => false;
+
+  @override
+  get parentCascade => null;
 }
 
 extension _TryCast<T> on T {
@@ -320,4 +351,29 @@ FluentComponentUsage? identifyUsage(AstNode? node) {
     }
   }
   return null;
+}
+
+class ComponentUsageVisitor extends RecursiveAstVisitor<void> {
+  ComponentUsageVisitor(this.onComponent);
+
+  final void Function(FluentComponentUsage) onComponent;
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    visitInvocationExpression(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    visitInvocationExpression(node);
+  }
+
+  void visitInvocationExpression(InvocationExpression node) {
+    var usage = getComponentUsage(node);
+    if (usage != null) {
+      onComponent(usage);
+    }
+
+    node.visitChildren(this);
+  }
 }

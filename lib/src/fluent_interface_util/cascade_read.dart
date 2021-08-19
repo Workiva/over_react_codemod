@@ -1,6 +1,7 @@
 // import 'dart:async';
 //
-// import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:over_react_codemod/src/util/component_usage.dart';
 // import 'package:analyzer/source/source_range.dart';
 // import 'package:analyzer_plugin/utilities/range_factory.dart';
 // import 'package:meta/meta.dart';
@@ -8,21 +9,23 @@
 // import 'package:over_react_analyzer_plugin/src/util/util.dart';
 //
 // import 'cascade_edits.dart';
-//
-// extension UsageCascades on FluentComponentUsage {
-//   Iterable<Expression> get _cascadeSections => cascadeExpression?.cascadeSections ?? const [];
-//
-//   /// Returns an iterable of all cascaded prop assignments in this usage.
-//   ///
-//   /// See also: [cascadedMethodInvocations]
-//   Iterable<PropAssignment> get cascadedProps => _cascadeSections
-//       .whereType<AssignmentExpression>()
-//       .where((assignment) => assignment.leftHandSide is PropertyAccess)
-//       .map((assignment) => PropAssignment(assignment));
-//
-//   /// Returns an iterable of all cascaded method calls in this usage.
-//   Iterable<MethodInvocation> get cascadedMethodInvocations => _cascadeSections.whereType<MethodInvocation>();
-// }
+
+extension UsageCascades on FluentComponentUsage {
+  Iterable<Expression> get _cascadeSections =>
+      cascadeExpression?.cascadeSections ?? const [];
+
+  /// Returns an iterable of all cascaded prop assignments in this usage.
+  ///
+  /// See also: [cascadedMethodInvocations]
+  Iterable<PropAssignment> get cascadedProps => _cascadeSections
+      .whereType<AssignmentExpression>()
+      .where((assignment) => assignment.leftHandSide is PropertyAccess)
+      .map((assignment) => PropAssignment(assignment));
+
+  /// Returns an iterable of all cascaded method calls in this usage.
+  Iterable<MethodInvocation> get cascadedMethodInvocations =>
+      _cascadeSections.whereType<MethodInvocation>();
+}
 //
 // class PropAssignment {
 //   /// The cascaded assignment expression that backs this assignment.

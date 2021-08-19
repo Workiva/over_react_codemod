@@ -386,10 +386,6 @@ String stripPrivateGeneratedPrefix(String value) {
       : value;
 }
 
-extension IterableNullHelpers<E> on Iterable<E> {
-  E? get firstOrNull => isEmpty ? null : first;
-}
-
 Iterable<String> pubspecYamlPaths() =>
     filePathsFromGlob(Glob('**pubspec.yaml', recursive: true));
 
@@ -434,4 +430,11 @@ VersionRange parseVersionRange(String text) {
         text, 'text', 'not a VersionRange; was a ${constraint.runtimeType}');
   }
   return constraint;
+}
+
+extension TryCast<T> on T {
+  S? tryCast<S extends T>() {
+    final self = this;
+    return self is S ? self : null;
+  }
 }
