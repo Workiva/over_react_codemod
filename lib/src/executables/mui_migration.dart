@@ -17,46 +17,12 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
-import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
 
 void main(List<String> args) async {
-  final parser = ArgParser()
-    ..addFlag('help',
-        abbr: 'h', negatable: false, help: 'Prints this help output')
-    ..addFlag('verbose',
-        abbr: 'v',
-        negatable: false,
-        help: 'Outputs all logging to stdout/stderr.')
-    ..addFlag(
-      'yes-to-all',
-      negatable: false,
-      help: 'Forces all patches accepted without prompting the user. '
-          'Useful for scripts.',
-    )
-    ..addSeparator('Boilerplate Upgrade Options:');
+  final parser = ArgParser.allowAnything();
 
   final parsedArgs = parser.parse(args);
-
-  if (parsedArgs['help'] == true) {
-    stderr.writeln(parser.usage);
-    return;
-  }
-
-  final logger = Logger('over_react_codemod.mui_migration');
-
-  logger.onRecord.listen((rec) {
-    // ignore severe messages here because stderr will print it
-    if (rec.message.isNotEmpty && rec.level != Level.SEVERE) {
-      print('[${rec.level}] ${rec.message}');
-    }
-    if (rec.error != null) {
-      print(rec.error);
-    }
-    if (rec.stackTrace != null) {
-      print(rec.stackTrace);
-    }
-  });
 
   exitCode = await runInteractiveCodemodSequence(
     // allDartPathsExceptHidden(),
@@ -68,5 +34,7 @@ void main(List<String> args) async {
       //     shouldAddDependencies: false),
     ],
     defaultYes: true,
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
   );
 }
