@@ -30,7 +30,7 @@ void main(List<String> args) async {
     // allDartPathsExceptHidden(),
     filePathsFromGlob(Glob('lib/**.dart', recursive: true)),
     [
-      // MuiButtonMigrator(),
+      MuiButtonMigrator(),
       ...libraryAggregateSuggestorAsSequence(muiImporter),
       // TODO update this to add RMUI dependency in pubspec
       // PubspecOverReactUpgrader(overReactVersionConstraint as VersionRange,
