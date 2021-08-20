@@ -146,6 +146,7 @@ class MuiButtonMigrator extends Object
       'isDisabled': (p) => yieldPropPatch(p, newName: 'disabled'),
       'isFlat': (p) => yieldPropPatch(p, newName: 'disableElevation'),
       'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
+      'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
 
       // Lengthier migration code; split out into methods.
       'isActive': _migrateIsActive,
@@ -192,7 +193,7 @@ class MuiButtonMigrator extends Object
       'ButtonSkin.LIGHT': '$muiNs.ButtonColor.wsdBtnLight',
       'ButtonSkin.WHITE': '$muiNs.ButtonColor.wsdBtnWhite',
       'ButtonSkin.INVERSE': '$muiNs.ButtonColor.wsdBtnInverse',
-      'ButtonSkin.DEFAULT': '$muiNs.ButtonColor.default_',
+      'ButtonSkin.DEFAULT': '$muiNs.ButtonColor.inherit',
       'ButtonSkin.PRIMARY': '$muiNs.ButtonColor.primary',
       'ButtonSkin.SUCCESS': '$muiNs.ButtonColor.success',
       'ButtonSkin.WARNING': '$muiNs.ButtonColor.warning',
@@ -246,7 +247,7 @@ class MuiButtonMigrator extends Object
       'ButtonSize.XXSMALL': '$muiNs.ButtonSize.xxsmall',
       'ButtonSize.XSMALL': '$muiNs.ButtonSize.xsmall',
       'ButtonSize.SMALL': '$muiNs.ButtonSize.small',
-      'ButtonSize.DEFAULT': '$muiNs.ButtonSize.default',
+      'ButtonSize.DEFAULT': '$muiNs.ButtonSize.medium',
       'ButtonSize.LARGE': '$muiNs.ButtonSize.large',
     };
 
