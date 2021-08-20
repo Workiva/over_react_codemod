@@ -175,7 +175,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
     if (additionalCascadeSection != null) {
       // Add spaces so that dartfmt has a better time // todo is this necessary?
-      yieldPatch('\n  additionalCascadeSection', prop.rightHandSide.end,
+      yieldPatch('\n  $additionalCascadeSection', prop.rightHandSide.end,
           prop.rightHandSide.end);
     }
   }
