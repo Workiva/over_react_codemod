@@ -1,19 +1,16 @@
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
-
-// FIXME copy NodeLocator to this repo
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/utilities.dart' show NodeLocator;
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
 const muiNs = 'mui';
 
 final _log = Logger('muiImporter');
 
-Stream<Patch> muiImporter(FileContext context) async* {
+Stream<Patch> muiImporter(
+    FileContext context, List<FileContext> partsContexts) async* {
   final result = await context.getResolvedUnit();
   final unit = result?.unit;
 
@@ -22,30 +19,13 @@ Stream<Patch> muiImporter(FileContext context) async* {
     return;
   }
 
-  final undefinedIdentifiers = result.errors
+  // Look at errors in the main compilation unit and its part files.
+  final needsMuiImport = await Stream.fromIterable([context, ...partsContexts])
+      .asyncExpand(_getResolvedErrorsForContext)
       .where((error) => error.errorCode.name == 'UNDEFINED_IDENTIFIER')
-      .toList();
+      .any((error) => error.message.contains("Undefined name '$muiNs'"));
 
-  final undefinedNames = undefinedIdentifiers
-      .map((error) => NodeLocator(error.offset, error.offset + error.length)
-          .searchWithin(unit))
-      .whereType<SimpleIdentifier>()
-      .toList();
-
-  final needsMuiImport = undefinedNames.any((id) => id.name == muiNs);
   if (!needsMuiImport) return;
-
-  if (result.isPart) {
-    // todo is there a way to do this in libraries? This is pretty unfortunate
-    // fixme check for this commment so this migrator can be idempotent
-    yield Patch(
-        blockComment(
-                'FIXME(mui_migration) add mui import to the library of this part') +
-            '\n',
-        0,
-        0);
-    return;
-  }
 
   const rmuiImportUri = 'package:react_material_ui/react_material_ui.dart';
 
@@ -53,6 +33,19 @@ Stream<Patch> muiImporter(FileContext context) async* {
       _findImportInsertionLocation(rmuiImportUri, unit, result.lineInfo);
   yield Patch(
       "import '$rmuiImportUri' as $muiNs;\n", importOffset, importOffset);
+}
+
+// todo clean this up
+Stream<AnalysisError> _getResolvedErrorsForContext(FileContext context) async* {
+  final result = await context.getResolvedUnit();
+  final unit = result?.unit;
+
+  if (result == null || unit == null) {
+    _log.warning('Could not resolve ${context.relativePath}');
+    return;
+  }
+
+  yield* Stream.fromIterable(result.errors);
 }
 
 int _findImportInsertionLocation(
@@ -92,4 +85,32 @@ int _findImportInsertionLocation(
     }
   }
   return importOffset;
+}
+
+List<Suggestor> groupedLibrarySuggestor(
+    Stream<Patch> Function(
+            FileContext libraryContext, List<FileContext> partsContexts)
+        suggestForGroup) {
+  final contextsByPath = <String, FileContext>{};
+
+  Stream<Patch> collectingSuggestor(FileContext context) async* {
+    contextsByPath[context.path] = context;
+  }
+
+  // todo clean this up
+  Stream<Patch> actualSuggestor(FileContext context) async* {
+    final result = await context.getResolvedUnit();
+
+    if (result?.isPart ?? false) return;
+
+    final partContexts = result?.unit?.declaredElement?.library.parts
+            .map((e) => contextsByPath[e.source.fullName])
+            .whereNotNull()
+            .toList() ??
+        [];
+
+    yield* suggestForGroup(context, partContexts);
+  }
+
+  return [collectingSuggestor, actualSuggestor];
 }
