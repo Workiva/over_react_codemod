@@ -200,11 +200,9 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
   void yieldPropFixmePatch(PropAssignment prop, String message) {
     yieldPatch(
-        ' ' +
-            blockComment(
-                'FIXME(mui_migration) - ${prop.name.name} prop - $message'),
-        prop.rightHandSide.end,
-        prop.rightHandSide.end);
+        lineComment('FIXME(mui_migration) - ${prop.name.name} prop - $message'),
+        prop.assignment.offset,
+        prop.assignment.offset);
   }
 }
 
@@ -221,6 +219,9 @@ extension FileContextSourceHelper on FileContext {
 
 // todo properly escape
 String blockComment(String contents) => '/*$contents*/';
+
+String lineComment(String contents) =>
+    contents.split('\n').map((line) => '// $line\n').join('');
 
 // fixme implement
 bool hasFlaggedComment(AstNode node) => false;
