@@ -154,13 +154,13 @@ class MuiButtonMigrator extends Object
       'size': _migrateSize,
 
       // Props that always need manual intervention.
-      'isCallout': yieldPropManualInterventionPatch,
-      'overlayTriggerProps': yieldPropManualInterventionPatch,
-      'pullRight': yieldPropManualInterventionPatch,
-      'tooltipContent': yieldPropManualInterventionPatch,
+      'isCallout': yieldPropManualMigratePatch,
+      'overlayTriggerProps': yieldPropManualMigratePatch,
+      'pullRight': yieldPropManualMigratePatch,
+      'tooltipContent': yieldPropManualMigratePatch,
 
       // We need to double-check ref types on basically every component.
-      'ref': yieldPropManualInterventionPatch,
+      'ref': yieldPropManualMigratePatch,
     });
   }
 
@@ -244,7 +244,7 @@ class MuiButtonMigrator extends Object
     }
 
     // fixme make it obvious why we're calling this everywhere without having to copy-paste a huge comment every time.
-    yieldPropManualInterventionPatch(prop);
+    yieldPropManualMigratePatch(prop);
   }
 
   void _migrateSize(PropAssignment prop) {
@@ -263,6 +263,6 @@ class MuiButtonMigrator extends Object
       return;
     }
 
-    yieldPropManualInterventionPatch(prop);
+    yieldPropManualMigratePatch(prop);
   }
 }

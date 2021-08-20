@@ -175,10 +175,12 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
     if (additionalCascadeSection != null) {
       // Add spaces so that dartfmt has a better time // todo is this necessary?
-      yieldPatch('\n  additionalCascadeSection', prop.rightHandSide.end, prop.rightHandSide.end);
+      yieldPatch('\n  additionalCascadeSection', prop.rightHandSide.end,
+          prop.rightHandSide.end);
     }
   }
 
+  // fixme clean up comment
   // Unhandled cases need to be manually addressed; flag them as such.
   //
   // While we could handle more cases in the codemod (e.g., ternaries)
@@ -188,10 +190,19 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   // since they'll result in analysis errors (e.g., variables, method calls that reference a ButtonSkin),
   // some cases (e.g., expressions with type `dynamic`) will NOT cause analysis errors
   // and will need to be checked manually.
-  void yieldPropManualInterventionPatch(PropAssignment prop) {
+  void yieldPropManualVerificationPatch(PropAssignment prop) {
+    yieldPropFixmePatch(prop, 'manually verify');
+  }
+
+  void yieldPropManualMigratePatch(PropAssignment prop) {
+    yieldPropFixmePatch(prop, 'manually migrate');
+  }
+
+  void yieldPropFixmePatch(PropAssignment prop, String message) {
     yieldPatch(
-        blockComment(
-            'FIXME(mui_migration) manually verify ${prop.name.name} prop'),
+        ' ' +
+            blockComment(
+                'FIXME(mui_migration) - ${prop.name.name} prop - $message'),
         prop.rightHandSide.end,
         prop.rightHandSide.end);
   }
