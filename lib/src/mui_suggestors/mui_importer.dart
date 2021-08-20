@@ -4,13 +4,18 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/util/library_aggregate_suggestor.dart';
 
 const muiNs = 'mui';
 
 final _log = Logger('muiImporter');
 
-Stream<Patch> muiImporter(
-    FileContext context, List<FileContext> partsContexts) async* {
+/// A suggestor that adds imports in libraries that reference
+/// the [muiNs] import namespace (including in parts) but don't yet import it.
+LibraryAggregateSuggestor muiImporter = (
+  FileContext context,
+  List<FileContext?>? partContexts,
+) async* {
   final result = await context.getResolvedUnit();
   final unit = result?.unit;
 
@@ -19,9 +24,14 @@ Stream<Patch> muiImporter(
     return;
   }
 
-  // Look at errors in the main compilation unit and its part files.
-  final needsMuiImport = await Stream.fromIterable([context, ...partsContexts])
-      .asyncExpand(_getResolvedErrorsForContext)
+  // Look for errors in the main compilation unit and its part files.
+  // Ignore null partContexts and partContexts elements caused by
+  // resolution issues and parts being excluded in the codemod file list.
+  final needsMuiImport = await Stream.fromIterable([context, ...?partContexts])
+      .whereNotNull()
+      .asyncMap(_getResolvedErrorsForContext)
+      // `errors` will be null if one of the units couldn't resolve.
+      .expand((errors) => errors ?? <AnalysisError>[])
       .where((error) => error.errorCode.name == 'UNDEFINED_IDENTIFIER')
       .any((error) => error.message.contains("Undefined name '$muiNs'"));
 
@@ -33,19 +43,27 @@ Stream<Patch> muiImporter(
       _findImportInsertionLocation(rmuiImportUri, unit, result.lineInfo);
   yield Patch(
       "import '$rmuiImportUri' as $muiNs;\n", importOffset, importOffset);
+};
+
+extension<T> on Stream<T?> {
+  Stream<T> whereNotNull() async* {
+    await for (var element in this) {
+      if (element != null) yield element;
+    }
+  }
 }
 
-// todo clean this up
-Stream<AnalysisError> _getResolvedErrorsForContext(FileContext context) async* {
+/// Returns a list of errors for a given compilation unit, or null if the unit
+/// could not be resolved.
+Future<List<AnalysisError>?> _getResolvedErrorsForContext(
+    FileContext context) async {
   final result = await context.getResolvedUnit();
-  final unit = result?.unit;
-
-  if (result == null || unit == null) {
+  if (result == null) {
     _log.warning('Could not resolve ${context.relativePath}');
-    return;
+    return null;
   }
 
-  yield* Stream.fromIterable(result.errors);
+  return result.errors;
 }
 
 int _findImportInsertionLocation(
@@ -85,32 +103,4 @@ int _findImportInsertionLocation(
     }
   }
   return importOffset;
-}
-
-List<Suggestor> groupedLibrarySuggestor(
-    Stream<Patch> Function(
-            FileContext libraryContext, List<FileContext> partsContexts)
-        suggestForGroup) {
-  final contextsByPath = <String, FileContext>{};
-
-  Stream<Patch> collectingSuggestor(FileContext context) async* {
-    contextsByPath[context.path] = context;
-  }
-
-  // todo clean this up
-  Stream<Patch> actualSuggestor(FileContext context) async* {
-    final result = await context.getResolvedUnit();
-
-    if (result?.isPart ?? false) return;
-
-    final partContexts = result?.unit?.declaredElement?.library.parts
-            .map((e) => contextsByPath[e.source.fullName])
-            .whereNotNull()
-            .toList() ??
-        [];
-
-    yield* suggestForGroup(context, partContexts);
-  }
-
-  return [collectingSuggestor, actualSuggestor];
 }

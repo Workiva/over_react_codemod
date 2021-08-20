@@ -19,6 +19,7 @@ import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
+import 'package:over_react_codemod/src/util/library_aggregate_suggestor.dart';
 
 void main(List<String> args) async {
   final parser = ArgParser.allowAnything();
@@ -30,7 +31,7 @@ void main(List<String> args) async {
     filePathsFromGlob(Glob('lib/**.dart', recursive: true)),
     [
       // MuiButtonMigrator(),
-      ...groupedLibrarySuggestor(muiImporter),
+      ...libraryAggregateSuggestorAsSequence(muiImporter),
       // TODO update this to add RMUI dependency in pubspec
       // PubspecOverReactUpgrader(overReactVersionConstraint as VersionRange,
       //     shouldAddDependencies: false),
