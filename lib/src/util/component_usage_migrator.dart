@@ -159,6 +159,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     PropAssignment prop, {
     String? newName,
     String? newRhs,
+    String? additionalCascadeSection,
   }) {
     if (newName == null && newRhs == null) {
       throw ArgumentError.notNull('either newName or newValue');
@@ -170,6 +171,11 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
     if (newRhs != null) {
       yieldPatchOverNode(newRhs, prop.rightHandSide);
+    }
+
+    if (additionalCascadeSection != null) {
+      // Add spaces so that dartfmt has a better time // todo is this necessary?
+      yieldPatch('\n  additionalCascadeSection', prop.rightHandSide.end, prop.rightHandSide.end);
     }
   }
 

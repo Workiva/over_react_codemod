@@ -165,6 +165,7 @@ class MuiButtonMigrator extends Object
   }
 
   void _migrateIsActive(PropAssignment prop) {
+    // fixme ensure EOL comments are handled properly
     final rhsSource = context.sourceFor(prop.rightHandSide);
     yieldPatchOverNode(
         '..aria.selected = ${rhsSource}'
@@ -184,6 +185,14 @@ class MuiButtonMigrator extends Object
 
     if (isWsdStaticConstant(rhs, outlineLinkButtonSkin)) {
       yieldPropPatch(prop, newName: 'variant', newRhs: muiOutlineVariant);
+      return;
+    }
+
+    if (isWsdStaticConstant(rhs, 'ButtonSkin.VANILLA')) {
+      yieldPropPatch(prop,
+          newName: 'color',
+          newRhs: '$muiNs.ButtonColor.inherit',
+          additionalCascadeSection: '..variant = $muiNs.ButtonVariant.text');
       return;
     }
 
@@ -227,14 +236,10 @@ class MuiButtonMigrator extends Object
     final colorFromOutlineSkin = outlineSkinToColor
         .firstValueWhereOrNull((skin, _) => isWsdStaticConstant(rhs, skin));
     if (colorFromOutlineSkin != null) {
-      yieldPropPatch(
-        prop,
-        newName: 'color',
-        newRhs: '${colorFromOutlineSkin}'
-            // We can safely tack on a new prop here,
-            // assuming we're already in a cascade.
-            '\n  ..variant = $muiOutlineVariant',
-      );
+      yieldPropPatch(prop,
+          newName: 'color',
+          newRhs: colorFromOutlineSkin,
+          additionalCascadeSection: '..variant = $muiOutlineVariant');
       return;
     }
 
