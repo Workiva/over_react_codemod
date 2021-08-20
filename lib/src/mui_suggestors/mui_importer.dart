@@ -64,7 +64,9 @@ int _findImportInsertionLocation(
     // Insert the import in the right spot alphabetically.
     importOffset = 0;
     for (final directive in unit.directives) {
-      if (directive is ImportDirective) {
+      if (directive is LibraryDirective) {
+        importOffset = lineInfo.getOffsetOfLineAfter(directive.end);
+      } else if (directive is ImportDirective) {
         final importString = directive.uri.stringValue;
         if (importString != null) {
           if (importUri.compareTo(importString) > 0) {
@@ -73,16 +75,19 @@ int _findImportInsertionLocation(
             break;
           }
         }
-      } else if (directive is PartDirective) {
-        // Imports can't come after parts
-        break;
       } else if (directive is ExportDirective) {
         // Exports typically always come after imports.
         break;
-      } else if (directive is LibraryDirective) {
-        importOffset = lineInfo.getOffsetOfLineAfter(directive.end);
+      } else if (directive is PartDirective) {
+        // Imports can't come after parts
+        break;
+      } else if (directive is PartOfDirective) {
+        throw ArgumentError.value(
+            unit, 'unit', 'must not be a unit representing a part file');
       } else {
-        throw UnimplementedError('Unhandled directive type');
+        assert(false, 'Unhandled directive type: ${directive}');
+        // Bail out to be safe when running without assertions.
+        break;
       }
     }
   }
