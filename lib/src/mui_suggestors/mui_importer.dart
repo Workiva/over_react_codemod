@@ -17,15 +17,22 @@ Stream<Patch> muiImporter(FileContext context) async* {
     return;
   }
 
+  final libraryElement = libraryResult.element;
   final unitResults = libraryResult.units;
-  if (unitResults == null) {
+  if (libraryElement == null || unitResults == null) {
     _log.warning('Could not resolve ${context.relativePath}');
     return;
   }
 
-  final mainLibraryUnitResult =
-      unitResults.singleWhere((unitResult) => !unitResult.isPart);
-  if (mainLibraryUnitResult.unit == null) return;
+  // Parts that have not been generated can show up as `exists = false` but also `isPart = false`,
+  // so using the unitResults is a little trickier than using the libraryElement to get it.
+  final mainLibraryUnitResult = unitResults.singleWhere((unitResult) =>
+      unitResult.unit?.declaredElement ==
+      libraryElement.definingCompilationUnit);
+  if (mainLibraryUnitResult.unit == null) {
+    _log.warning('Could not resolve ${context.relativePath}');
+    return;
+  }
 
   // Look for errors in the main compilation unit and its part files.
   // Ignore null partContexts and partContexts elements caused by
