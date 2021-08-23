@@ -25,18 +25,30 @@ void main(List<String> args) async {
 
   final parsedArgs = parser.parse(args);
 
-  exitCode = await runInteractiveCodemodSequence(
-    // allDartPathsExceptHidden(),
-    filePathsFromGlob(Glob('lib/**.dart', recursive: true)),
-    [
-      MuiButtonMigrator(),
-      muiImporter,
-      // TODO update this to add RMUI dependency in pubspec
-      // PubspecOverReactUpgrader(overReactVersionConstraint as VersionRange,
-      //     shouldAddDependencies: false),
-    ],
-    defaultYes: true,
-    args: parsedArgs.rest,
-    additionalHelpOutput: parser.usage,
-  );
+  /// Runs a set of codemod sequences separately to work around an issue where
+  /// updates from an earlier suggestor aren't reflected in the resolved AST
+  /// for later suggestors.
+  Future<void> runCodemodSequences(
+      Iterable<Iterable<Suggestor>> sequences) async {
+    for (final sequence in sequences) {
+      exitCode = await runInteractiveCodemodSequence(
+        // allDartPathsExceptHidden(),
+        // filePathsFromGlob(Glob('lib/src/embedding_harness/harness_module/components/harness_tools_panel.dart', recursive: true)),
+        filePathsFromGlob(Glob('lib/**.dart', recursive: true)),
+        sequence,
+        defaultYes: true,
+        args: parsedArgs.rest,
+        additionalHelpOutput: parser.usage,
+      );
+      if (exitCode != 0) break;
+    }
+  }
+
+  await runCodemodSequences([
+    [MuiButtonMigrator()],
+    [muiImporter],
+    // TODO update this to add RMUI dependency in pubspec
+    // PubspecOverReactUpgrader(overReactVersionConstraint as VersionRange,
+    //     shouldAddDependencies: false),
+  ]);
 }
