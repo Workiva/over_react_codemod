@@ -144,6 +144,7 @@ class MuiButtonMigrator extends Object
 
     migratePropsByName(usage, migratorsByName: {
       // Simple replacements.
+      'isActive': (p) => yieldPropPatch(p, newName: 'aria.selected'),
       'isBlock': (p) => yieldPropPatch(p, newName: 'fullWidth'),
       'isDisabled': (p) => yieldPropPatch(p, newName: 'disabled'),
       'isFlat': (p) => yieldPropPatch(p, newName: 'disableElevation'),
@@ -151,7 +152,6 @@ class MuiButtonMigrator extends Object
       'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
 
       // Lengthier migration code; split out into methods.
-      'isActive': _migrateIsActive,
       'skin': _migrateSkin,
       'size': _migrateSize,
 
@@ -161,15 +161,6 @@ class MuiButtonMigrator extends Object
       'pullRight': yieldPropManualMigratePatch,
       'tooltipContent': yieldPropManualMigratePatch,
     });
-  }
-
-  void _migrateIsActive(PropAssignment prop) {
-    // fixme ensure EOL comments are handled properly
-    final rhsSource = context.sourceFor(prop.rightHandSide);
-    yieldPatchOverNode(
-        '..aria.selected = ${rhsSource}'
-        '\n  ..aria.expanded = ${rhsSource}',
-        prop.assignment);
   }
 
   void _migrateSkin(PropAssignment prop) {
