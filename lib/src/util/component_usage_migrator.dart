@@ -5,6 +5,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/element_type_helpers.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
@@ -55,7 +56,10 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
   MigrationDecision shouldMigrateUsage(FluentComponentUsage usage);
 
-  void migrateUsage(FluentComponentUsage usage);
+  @mustCallSuper
+  void migrateUsage(FluentComponentUsage usage) {
+    flagCommon(usage);
+  }
 
   bool get ignoreAlreadyFlaggedUsages => true;
 
@@ -100,6 +104,66 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     }
   }
 
+  //
+  // Common migration flagging
+
+  /// Whether [flagCommon] (called by [migrateUsage]) should flag
+  /// unsafe method calls (names not in [safeMethodCallNames] on) component usages.
+  bool get shouldFlagUnsafeMethodCalls => true;
+
+  Set get safeMethodCallNames => const {'addProp', 'addTestId'};
+
+  /// Whether [flagCommon] (called by [migrateUsage]) should flag
+  /// static extension methods/accessors on component usages.
+  bool get shouldFlagExtensionMembers => true;
+
+  /// Whether [flagCommon] (called by [migrateUsage]) should flag
+  /// the `ref` prop component usages.
+  bool get shouldFlagRefProp => true;
+
+  /// Whether [flagCommon] (called by [migrateUsage]) should flag
+  /// the `className` prop on component usages.
+  bool get shouldFlagClassName => true;
+
+  void flagCommon(FluentComponentUsage usage) {
+    // Flag things like addProps, addAll, modifyProps, which could be adding
+    // props for the old component.
+    // This also handles extension methods.
+    for (final method in usage.cascadedMethodInvocations) {
+      if ((shouldFlagUnsafeMethodCalls &&
+              !safeMethodCallNames.contains(method.methodName.name)) ||
+          (shouldFlagExtensionMembers && method.isExtensionMethod)) {
+        yieldPatch(
+            lineComment(
+                'FIXME(mui_migration) - ${method.methodName.name} call - manually verify'),
+            method.offset,
+            method.offset);
+      }
+    }
+
+    for (final prop in usage.cascadedProps) {
+      if (shouldFlagExtensionMembers && prop.isExtensionMethod) {
+        // Flag extension methods, since they could do anything.
+        yieldPatch(
+            lineComment(
+                'FIXME(mui_migration) - ${prop.name.name} (extension) - manually verify'),
+            prop.assignment.offset,
+            prop.assignment.offset);
+      } else if (shouldFlagRefProp && prop.name.name == 'ref') {
+        // Flag refs, since their type is likely to change.
+        // fixme add note about type?
+        yieldPatch(lineComment('FIXME(mui_migration) - ref - manually verify'),
+            prop.assignment.offset, prop.assignment.offset);
+      } else if (shouldFlagClassName && prop.name.name == 'className') {
+        yieldPatch(
+            lineComment('FIXME(mui_migration) - className - manually verify'),
+            prop.assignment.offset,
+            prop.assignment.offset);
+      }
+    }
+  }
+
+  //
   // Helpers
 
   void flagUsageWithManualIntervention(FluentComponentUsage usage) {
@@ -204,6 +268,25 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         prop.assignment.offset,
         prop.assignment.offset);
   }
+}
+
+extension on Element {
+  bool get isExtensionMethod {
+    final self = this;
+    return enclosingElement is ExtensionElement &&
+        self is ExecutableElement &&
+        !self.isStatic;
+  }
+}
+
+extension on PropAssignment {
+  bool get isExtensionMethod =>
+      assignment.staticElement?.isExtensionMethod ?? false;
+}
+
+extension on MethodInvocation {
+  bool get isExtensionMethod =>
+      methodName.staticElement?.isExtensionMethod ?? false;
 }
 
 enum MigrationDecision {

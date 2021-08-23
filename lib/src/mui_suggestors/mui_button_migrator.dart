@@ -133,6 +133,8 @@ class MuiButtonMigrator extends Object
 
   @override
   void migrateUsage(FluentComponentUsage usage) {
+    super.migrateUsage(usage);
+
     bool shouldBeLinkButton = hasLinkButtonSkin(usage);
     assert(!shouldBeLinkButton || isLinkButtonAvailable);
 
@@ -158,9 +160,6 @@ class MuiButtonMigrator extends Object
       'overlayTriggerProps': yieldPropManualMigratePatch,
       'pullRight': yieldPropManualMigratePatch,
       'tooltipContent': yieldPropManualMigratePatch,
-
-      // We need to double-check ref types on basically every component.
-      'ref': yieldPropManualMigratePatch,
     });
   }
 
