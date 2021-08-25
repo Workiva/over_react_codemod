@@ -108,10 +108,15 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   // Common migration flagging
 
   /// Whether [flagCommon] (called by [migrateUsage]) should flag
-  /// unsafe method calls (names not in [safeMethodCallNames] on) component usages.
+  /// unsafe method calls (names not in [safeMethodCallNames] or [_methodsWithCustomHandling])
+  ///on component usages.
   bool get shouldFlagUnsafeMethodCalls => true;
 
-  Set get safeMethodCallNames => const {'addProp', 'addTestId'};
+  Set get methodsWithCustomHandling => const {'addProp'};
+
+  Set get safeMethodCallNames => const {'addTestId'};
+
+  bool get shouldFlagUntypedSingleProp => true;
 
   /// Whether [flagCommon] (called by [migrateUsage]) should flag
   /// static extension methods/accessors on component usages.
@@ -130,12 +135,27 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     // props for the old component.
     // This also handles extension methods.
     for (final method in usage.cascadedMethodInvocations) {
-      if ((shouldFlagUnsafeMethodCalls &&
-              !safeMethodCallNames.contains(method.methodName.name)) ||
+      final name = method.methodName.name;
+
+      if (methodsWithCustomHandling.contains(name)) {
+        switch (name) {
+          case 'addProp':
+            final expression = method.argumentList.arguments.firstOrNull;
+            if (expression != null && !isDataAttributePropKey(expression)) {
+              yieldPatch(
+                  lineComment(
+                      'FIXME(mui_migration) - ${name} addProp - manually verify prop key'),
+                  method.offset,
+                  method.offset);
+            }
+            break;
+        }
+      } else if ((shouldFlagUnsafeMethodCalls &&
+              !safeMethodCallNames.contains(name)) ||
           (shouldFlagExtensionMembers && method.isExtensionMethod)) {
         yieldPatch(
             lineComment(
-                'FIXME(mui_migration) - ${method.methodName.name} call - manually verify'),
+                'FIXME(mui_migration) - ${name} call - manually verify'),
             method.offset,
             method.offset);
       }
@@ -157,6 +177,16 @@ mixin ComponentUsageMigrator on ClassSuggestor {
       } else if (shouldFlagClassName && prop.name.name == 'className') {
         yieldPatch(
             lineComment('FIXME(mui_migration) - className - manually verify'),
+            prop.assignment.offset,
+            prop.assignment.offset);
+      }
+    }
+
+    for (final prop in usage.cascadedIndexAssignments) {
+      if (!isDataAttributePropKey(prop.index)) {
+        yieldPatch(
+            lineComment(
+                'FIXME(mui_migration) - `..[propKey] =` - manually verify prop key'),
             prop.assignment.offset,
             prop.assignment.offset);
       }
@@ -268,6 +298,45 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         prop.assignment.offset,
         prop.assignment.offset);
   }
+}
+
+bool isDataAttributePropKey(Expression expression) {
+  final keyValue = getStringConstantValue(expression);
+  return keyValue != null && keyValue.startsWith('data-');
+}
+
+/// If the expression represents a constant string (e.g., a string literal
+/// without interpolation, a reference to a string constant),
+/// returns the value of that string, otherwise returns null.
+///
+/// This implementation may not be able to resolve all references, so a null
+/// return value doesn't mean it's definitely not a string constant.
+String? getStringConstantValue(Expression expression) {
+  if (expression is SimpleStringLiteral) {
+    return expression.value;
+  }
+
+  Element? staticElement;
+  if (expression is Identifier) {
+    staticElement = expression.staticElement;
+  } else if (expression is PropertyAccess) {
+    staticElement = expression.propertyName.staticElement;
+  }
+
+  if (staticElement != null) {
+    VariableElement? variable;
+    if (staticElement is VariableElement) {
+      variable = staticElement;
+    } else if (staticElement is PropertyAccessorElement) {
+      variable = staticElement.variable;
+    }
+
+    if (variable != null && variable.isConst) {
+      return variable.computeConstantValue()?.toStringValue();
+    }
+  }
+
+  return null;
 }
 
 extension on Element {

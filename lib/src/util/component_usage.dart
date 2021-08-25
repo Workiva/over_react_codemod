@@ -194,6 +194,30 @@ class _PrefixedIdentifierPropAssignment with PropAssignment {
   get parentCascade => null;
 }
 
+class IndexPropAssignment {
+  /// The cascaded assignment expression that backs this assignment.
+  final AssignmentExpression assignment;
+
+  IndexPropAssignment(this.assignment) {
+    if (assignment.leftHandSide is! IndexExpression) {
+      throw ArgumentError.value(
+        assignment.leftHandSide,
+        'node.leftHandSide',
+        'Must be an IndexExpreesion',
+      );
+    }
+  }
+
+  /// The property access representing the left hand side of this assignment.
+  IndexExpression get leftHandSide =>
+      assignment.leftHandSide as IndexExpression;
+
+  Expression get index => leftHandSide.index;
+
+  /// The expression for the right hand side of this assignment.
+  Expression get rightHandSide => assignment.rightHandSide;
+}
+
 extension _TryCast<T> on T {
   S? tryCast<S extends T>() {
     final self = this;

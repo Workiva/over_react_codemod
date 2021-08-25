@@ -22,6 +22,11 @@ extension UsageCascades on FluentComponentUsage {
       .where((assignment) => assignment.leftHandSide is PropertyAccess)
       .map((assignment) => PropAssignment(assignment));
 
+  Iterable<IndexPropAssignment> get cascadedIndexAssignments => _cascadeSections
+      .whereType<AssignmentExpression>()
+      .where((assignment) => assignment.leftHandSide is IndexExpression)
+      .map((assignment) => IndexPropAssignment(assignment));
+
   /// Returns an iterable of all cascaded method calls in this usage.
   Iterable<MethodInvocation> get cascadedMethodInvocations =>
       _cascadeSections.whereType<MethodInvocation>();
