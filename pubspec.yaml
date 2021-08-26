@@ -35,14 +35,4 @@ dev_dependencies:
   workiva_analysis_options: ^1.2.2
 
 executables:
-  boilerplate_upgrade:
-  component2_upgrade:
-  dart2_upgrade:
-  react16_ci_precheck:
-  react16_consumer_overlay_update:
-  react16_dependency_override_update:
-  react16_post_rollout_cleanup:
-  react16_upgrade:
-  react17_dependency_override_update:
-  react17_upgrade:
   dart2_9_upgrade:
