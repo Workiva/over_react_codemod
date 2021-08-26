@@ -47,12 +47,12 @@ setStateTests({
     shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
   ));
 
-  test('is an empty file', () {
-    testSuggestor(expectedPatchCount: 0, input: '');
+  test('is an empty file', () async {
+    await testSuggestor(expectedPatchCount: 0, input: '');
   });
 
-  test('are no matches', () {
-    testSuggestor(
+  test('are no matches', () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         library foo;
@@ -64,8 +64,8 @@ setStateTests({
 
   group('updates correctly when setState', () {
     group('is a function expression', () {
-      test('in a class that is fully upgradable', () {
-        testSuggestor(
+      test('in a class that is fully upgradable', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             @Component2()
@@ -91,8 +91,8 @@ setStateTests({
       });
 
       group('in a class that is not fully upgradable', () {
-        test('--extends from a non-Component class', () {
-          testSuggestor(
+        test('--extends from a non-Component class', () async {
+          await testSuggestor(
             expectedPatchCount: allowPartialUpgrades ? 1 : 0,
             input: '''
               @Component2()
@@ -117,8 +117,8 @@ setStateTests({
           );
         });
 
-        test('-- has deprecated lifecycle methods without codemods', () {
-          testSuggestor(
+        test('-- has deprecated lifecycle methods without codemods', () async {
+          await testSuggestor(
             expectedPatchCount: allowPartialUpgrades ? 1 : 0,
             input: '''
               @Component2()
@@ -151,8 +151,8 @@ setStateTests({
       });
 
       group('in an abstract class', () {
-        test('that is fully upgradable', () {
-          testSuggestor(
+        test('that is fully upgradable', () async {
+          await testSuggestor(
             expectedPatchCount: shouldUpgradeAbstractComponents ? 1 : 0,
             input: '''
               @AbstractComponent2()
@@ -178,8 +178,8 @@ setStateTests({
         });
 
         group('that is not fully upgradable', () {
-          test('--extends from a non-Component class', () {
-            testSuggestor(
+          test('--extends from a non-Component class', () async {
+            await testSuggestor(
               expectedPatchCount:
                   allowPartialUpgrades && shouldUpgradeAbstractComponents
                       ? 1
@@ -207,8 +207,9 @@ setStateTests({
             );
           });
 
-          test('-- has deprecated lifecycle methods without codemods', () {
-            testSuggestor(
+          test('-- has deprecated lifecycle methods without codemods',
+              () async {
+            await testSuggestor(
               expectedPatchCount:
                   allowPartialUpgrades && shouldUpgradeAbstractComponents
                       ? 1
@@ -216,13 +217,13 @@ setStateTests({
               input: '''
                 @AbstractProps()
                 class AbstractFooProps extends UiProps {}
-                
+
                 @AbstractComponent2()
                 class FooComponent extends UiComponent2 {
                   @override
                   componentWillReceiveProps(Map newProps) {
                     super.componentWillReceiveProps(newProps);
-  
+
                     setState((prevState, props) {
                       // return ...;
                     });
@@ -232,13 +233,13 @@ setStateTests({
               expectedOutput: '''
                 @AbstractProps()
                 class AbstractFooProps extends UiProps {}
-                
+
                 @AbstractComponent2()
                 class FooComponent extends UiComponent2 {
                   @override
                   componentWillReceiveProps(Map newProps) {
                     super.componentWillReceiveProps(newProps);
-  
+
                     ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'setStateWithUpdater' : 'setState'}((prevState, props) {
                       // return ...;
                     });
@@ -251,8 +252,8 @@ setStateTests({
       });
 
       group('using arrow notation', () {
-        test('in a class that is fully upgradable', () {
-          testSuggestor(
+        test('in a class that is fully upgradable', () async {
+          await testSuggestor(
             expectedPatchCount: 1,
             input: '''
               @Component2()
@@ -274,8 +275,8 @@ setStateTests({
         });
 
         group('in a class that is not fully upgradable', () {
-          test('--extends from a non-Component class', () {
-            testSuggestor(
+          test('--extends from a non-Component class', () async {
+            await testSuggestor(
               expectedPatchCount: allowPartialUpgrades ? 1 : 0,
               input: '''
                 @Component2()
@@ -296,8 +297,9 @@ setStateTests({
             );
           });
 
-          test('-- has deprecated lifecycle methods without codemods', () {
-            testSuggestor(
+          test('-- has deprecated lifecycle methods without codemods',
+              () async {
+            await testSuggestor(
               expectedPatchCount: allowPartialUpgrades ? 1 : 0,
               input: '''
                 @Component2()
@@ -305,7 +307,7 @@ setStateTests({
                   @override
                   componentWillReceiveProps(Map newProps) {
                     super.componentWillReceiveProps(newProps);
-                    
+
                     setState((prevState, props) => newState());
                   }
                 }
@@ -316,7 +318,7 @@ setStateTests({
                   @override
                   componentWillReceiveProps(Map newProps) {
                     super.componentWillReceiveProps(newProps);
-                    
+
                     ${allowPartialUpgrades ? 'setStateWithUpdater' : 'setState'}((prevState, props) => newState());
                   }
                 }
@@ -329,8 +331,8 @@ setStateTests({
   });
 
   group('does not update', () {
-    test('for non-component2 classes', () {
-      testSuggestor(
+    test('for non-component2 classes', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           @Component()

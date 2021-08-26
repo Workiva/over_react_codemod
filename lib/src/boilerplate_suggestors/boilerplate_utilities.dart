@@ -21,10 +21,9 @@ import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
 import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
-import 'package:source_span/source_span.dart';
 
 typedef YieldPatch = void Function(
-    int startingOffset, int endingOffset, String replacement);
+    String replacement, int startingOffset, int endingOffset);
 
 const semverReportNotAvailable =
     'Semver report not available; this class is assumed to be public and thus will not be updated.';
@@ -82,10 +81,10 @@ SemverHelper getSemverHelper(String path,
 bool isPublic(
   ClassDeclaration node,
   SemverHelper semverHelper,
-  Uri sourceFileUrl,
+  String path,
 ) {
   assert(semverHelper != null);
-  return semverHelper.getPublicExportLocations(node, sourceFileUrl).isNotEmpty;
+  return semverHelper.getPublicExportLocations(node, path).isNotEmpty;
 }
 
 class SemverHelper {
@@ -114,12 +113,12 @@ class SemverHelper {
   /// If [node] is not publicly exported, returns an empty list.
   List<String> getPublicExportLocations(
     ClassDeclaration node,
-    Uri sourceFileUrl,
+    String path,
   ) {
     final className = stripPrivateGeneratedPrefix(node.name.name);
     final locations = <String>[];
 
-    if (!sourceFileUrl.toString().startsWith('lib/')) {
+    if (!path.startsWith('lib/')) {
       // The member is not inside of lib/ - so its inherently private.
       return locations;
     }
@@ -192,13 +191,13 @@ bool shouldMigratePropsAndStateMixin(ClassDeclaration classNode) =>
 
 /// Returns whether a props or state class class [node] should be migrated as part of the boilerplate codemod.
 MigrationDecision getPropsAndStateClassMigrationDecision(
-    ClassDeclaration node, SemverHelper semverHelper, SourceFile sourceFile) {
+    ClassDeclaration node, SemverHelper semverHelper, String path) {
   final publicNodeName = stripPrivateGeneratedPrefix(node.name.name);
   if (!isAPropsOrStateClass(node)) {
     return MigrationDecision(false);
-  } else if (isPublic(node, semverHelper, sourceFile.url)) {
+  } else if (isPublic(node, semverHelper, path)) {
     final publicExportLocations =
-        semverHelper.getPublicExportLocations(node, sourceFile.url);
+        semverHelper.getPublicExportLocations(node, path);
     return MigrationDecision(false,
         reason:
             getPublicApiReasonComment(publicNodeName, publicExportLocations));
@@ -416,7 +415,6 @@ class ClassToMixinConverter {
     bool shouldAddMixinToName = false,
     bool shouldSwapParentClass = false,
     bool convertClassesWithExternalSuperclass = false,
-    SourceFile sourceFile,
   }) {
     // ---------------------------------------------------------------------------------------
     // [1] If we are migrating an advanced props class that extends from a superclass coming
@@ -456,7 +454,7 @@ class ClassToMixinConverter {
       if (dupeClassName != null || node.members.isEmpty) {
         // Delete the class since a mixin with the same name already exists,
         // or the class has no members of its own.
-        yieldPatch(node.offset, node.end, '');
+        yieldPatch('', node.offset, node.end);
 
         // If a class extends from UiProps/UiState and uses a single mixin that has a name
         // that matches the concrete class name appended with `Mixin`,
@@ -476,43 +474,43 @@ class ClassToMixinConverter {
     }
 
     if (node.abstractKeyword != null) {
-      yieldPatch(node.abstractKeyword.offset, node.abstractKeyword.charEnd, '');
+      yieldPatch('', node.abstractKeyword.offset, node.abstractKeyword.charEnd);
     }
 
-    yieldPatch(node.classKeyword.offset, node.classKeyword.charEnd, 'mixin');
+    yieldPatch('mixin', node.classKeyword.offset, node.classKeyword.charEnd);
 
     var newMixinName = originalPublicClassName;
 
     if (node.extendsClause?.extendsKeyword != null) {
       // --- Convert concrete props/state class to a mixin --- //
 
-      yieldPatch(node.name.token.offset,
-          node.name.token.offset + privateGeneratedPrefix.length, '');
+      yieldPatch('', node.name.token.offset,
+          node.name.token.offset + privateGeneratedPrefix.length);
 
-      yieldPatch(node.extendsClause.offset,
-          node.extendsClause.extendsKeyword.charEnd, 'on');
+      yieldPatch('on', node.extendsClause.offset,
+          node.extendsClause.extendsKeyword.charEnd);
 
       if (shouldAddMixinToName) {
-        yieldPatch(node.name.token.charEnd, node.name.token.charEnd, 'Mixin');
+        yieldPatch('Mixin', node.name.token.charEnd, node.name.token.charEnd);
         newMixinName = '${newMixinName}Mixin';
       }
 
       if (shouldSwapParentClass) {
         yieldPatch(
+            isAPropsClass(node) ? 'UiProps' : 'UiState',
             node.extendsClause.superclass.name.offset,
-            node.extendsClause.superclass.end,
-            isAPropsClass(node) ? 'UiProps' : 'UiState');
+            node.extendsClause.superclass.end);
       }
 
       if (node.withClause != null) {
-        yieldPatch(node.withClause.offset, node.withClause.end, '');
+        yieldPatch('', node.withClause.offset, node.withClause.end);
       }
     } else {
       // --- Convert props/state mixin to an actual mixin --- //
 
       if (node.name.name.startsWith(privateGeneratedPrefix)) {
-        yieldPatch(node.name.token.offset,
-            node.name.token.offset + privateGeneratedPrefix.length, '');
+        yieldPatch('', node.name.token.offset,
+            node.name.token.offset + privateGeneratedPrefix.length);
       }
 
       if (node.implementsClause?.implementsKeyword != null) {
@@ -521,8 +519,8 @@ class ClassToMixinConverter {
         if (implementsUiPropsOrUiState(node)) {
           if (nodeInterfaces.length == 1) {
             // Only implements UiProps / UiState
-            yieldPatch(node.implementsClause.offset,
-                node.implementsClause.implementsKeyword.charEnd, 'on');
+            yieldPatch('on', node.implementsClause.offset,
+                node.implementsClause.implementsKeyword.charEnd);
           } else {
             // Implements UiProps / UiState along with other interfaces
             final uiInterface = nodeInterfaces.firstWhere((interface) =>
@@ -531,8 +529,10 @@ class ClassToMixinConverter {
             final otherInterfaces = List.of(nodeInterfaces)
               ..remove(uiInterface);
 
-            yieldPatch(node.implementsClause.offset, node.implementsClause.end,
-                'on ${uiInterface.name.name} implements ${otherInterfaces.joinConvertedClassesByName()}');
+            yieldPatch(
+                'on ${uiInterface.name.name} implements ${otherInterfaces.joinConvertedClassesByName()}',
+                node.implementsClause.offset,
+                node.implementsClause.end);
           }
         } else {
           // Does not implement UiProps / UiState
@@ -540,8 +540,10 @@ class ClassToMixinConverter {
 
           if (nodeInterfaces.isNotEmpty) {
             // But does implement other stuff
-            yieldPatch(node.implementsClause.offset, node.implementsClause.end,
-                'on $uiInterfaceStr implements ${nodeInterfaces.joinConvertedClassesByName()}');
+            yieldPatch(
+                'on $uiInterfaceStr implements ${nodeInterfaces.joinConvertedClassesByName()}',
+                node.implementsClause.offset,
+                node.implementsClause.end);
           }
         }
       } else {
@@ -549,7 +551,7 @@ class ClassToMixinConverter {
         final uiInterfaceStr = isAPropsMixin(node) ? 'UiProps' : 'UiState';
 
         yieldPatch(
-            node.name.token.end, node.name.token.end, ' on $uiInterfaceStr');
+            ' on $uiInterfaceStr', node.name.token.end, node.name.token.end);
       }
     }
 
@@ -588,7 +590,6 @@ String getConvertedClassMixinName(
 extension IterableAstUtils on Iterable<NamedType> {
   List<String> getConvertedClassesByName({
     ClassToMixinConverter converter,
-    SourceFile sourceFile,
     bool includeGenericParameters = true,
     bool includeComments = true,
     bool includePrivateGeneratedClassNames = true,
@@ -623,7 +624,6 @@ extension IterableAstUtils on Iterable<NamedType> {
   ///     * The `// ignore` comments will be preserved in this case
   String joinConvertedClassesByName({
     ClassToMixinConverter converter,
-    SourceFile sourceFile,
     String separator,
     bool includeGenericParameters = true,
     bool includeComments = true,
@@ -631,7 +631,6 @@ extension IterableAstUtils on Iterable<NamedType> {
   }) {
     return getConvertedClassesByName(
       converter: converter,
-      sourceFile: sourceFile,
       includeGenericParameters: includeGenericParameters,
       includeComments: includeComments,
       includePrivateGeneratedClassNames: includePrivateGeneratedClassNames,

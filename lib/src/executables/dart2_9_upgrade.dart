@@ -39,7 +39,7 @@ const _changesRequiredOutput = """
   pub run dart_dev format (If you format this repository).
 """;
 
-void main(List<String> args) {
+void main(List<String> args) async {
   final parser = ArgParser()
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Prints this help output')
@@ -113,12 +113,12 @@ void main(List<String> args) {
   // If we're checking for transitioning and got to the point (i.e. there was
   // new boilerplate), ignore the pubspec.
   if (!checkForTransitioning) {
-    exitCode = runInteractiveCodemod(
+    exitCode = await runInteractiveCodemod(
       pubspecYamlPaths(),
-      AggregateSuggestor([
+      aggregate([
         PubspecOverReactUpgrader(overReactVersionConstraint,
             shouldAddDependencies: false),
-      ].map((s) => Ignoreable(s))),
+      ].map((s) => ignoreable(s))),
       // Only pass valid low level codemod flags
       args: args.where((a) => !a.contains(_checkForTransitioning)),
       defaultYes: true,
@@ -128,7 +128,7 @@ void main(List<String> args) {
     if (exitCode != 0) return;
   }
 
-  exitCode = runInteractiveCodemodSequence(
+  exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
     [
       FactoryAndConfigIgnoreCommentRemover('invalid_assignment'),

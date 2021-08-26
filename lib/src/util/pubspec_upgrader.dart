@@ -14,7 +14,6 @@
 
 import 'package:codemod/codemod.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:source_span/source_span.dart';
 
 import '../constants.dart';
 import '../util.dart';
@@ -25,7 +24,7 @@ import '../util.dart';
 /// If the package is already listed, but the minimum bound is not high enough,
 /// the version constraint will be updated. If the package is missing from
 /// the file, it will be added.
-class PubspecUpgrader implements Suggestor {
+class PubspecUpgrader {
   /// The package name to upgrade
   final String packageName;
 
@@ -58,10 +57,9 @@ class PubspecUpgrader implements Suggestor {
       {this.isDevDependency = false, this.shouldAddDependencies = true})
       : shouldIgnoreMin = true;
 
-  @override
-  Iterable<Patch> generatePatches(SourceFile sourceFile) sync* {
-    final contents = sourceFile.getText(0);
-    final packageMatch = getDependencyRegExp(packageName).firstMatch(contents);
+  Stream<Patch> call(FileContext context) async* {
+    final packageMatch =
+        getDependencyRegExp(packageName).firstMatch(context.sourceText);
 
     if (packageMatch != null) {
       // this package is already in pubspec.yaml
@@ -86,10 +84,8 @@ class PubspecUpgrader implements Suggestor {
           }
 
           // Update the version constraint to ensure a safe minimum bound.
-          yield Patch(
-              sourceFile,
-              sourceFile.span(packageMatch.start, packageMatch.end),
-              '  $packageName: $newValue');
+          yield Patch('  $packageName: $newValue', packageMatch.start,
+              packageMatch.end);
         }
       } catch (e) {
         // We can skip these. They are versions we don't want to mess with in this codemod.
@@ -103,7 +99,7 @@ class PubspecUpgrader implements Suggestor {
       // Package is missing in pubspec.yaml, so add it.
       final keyMatch =
           (isDevDependency ? devDependencyRegExp : dependencyRegExp)
-              .firstMatch(contents);
+              .firstMatch(context.sourceText);
       if (keyMatch != null) {
         // Wrap the new constraint in quotes if required.
         var newValue = targetConstraint.toString();
@@ -112,14 +108,11 @@ class PubspecUpgrader implements Suggestor {
         }
 
         yield Patch(
-          sourceFile,
-          sourceFile.span(keyMatch.end, keyMatch.end),
           '\n  $packageName: $newValue',
+          keyMatch.end,
+          keyMatch.end,
         );
       }
     }
   }
-
-  @override
-  bool shouldSkip(_) => false;
 }

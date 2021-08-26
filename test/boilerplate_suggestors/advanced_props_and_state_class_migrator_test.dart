@@ -120,24 +120,24 @@ void advancedPropsAndStateClassMigratorTestHelper({
     });
 
     group('does not perform a migration when', () {
-      test('it\'s an empty file', () {
-        testSuggestor()(expectedPatchCount: 0, input: '');
+      test('it\'s an empty file', () async {
+        await testSuggestor()(expectedPatchCount: 0, input: '');
 
         expect(converter.visitedNames, isEmpty);
       });
 
-      test('the class is simple', () {
-        testSuggestor()(
+      test('the class is simple', () async {
+        await testSuggestor()(
           expectedPatchCount: 0,
           input: '''
           $factoryDecl
-  
+
           @Props()
           class $propsClassName extends UiProps {
             String foo;
             int bar;
           }
-  
+
           $componentDecl
         ''',
         );
@@ -145,20 +145,21 @@ void advancedPropsAndStateClassMigratorTestHelper({
         expect(converter.wasMigrated(publicPropsClassName), isFalse);
       });
 
-      test('the class is not Component2, but does add a FIXME comment', () {
-        testSuggestor()(
+      test('the class is not Component2, but does add a FIXME comment',
+          () async {
+        await testSuggestor()(
           expectedPatchCount: 1,
           input: '''
           $factoryDecl
-  
-          /// Some documentation comment 
+
+          /// Some documentation comment
           /// might get in the way of fix me comment removal
           @Props()
           class $propsClassName extends UiProps with SomePropsMixin {
             String foo;
             int bar;
           }
-  
+
           @Component()
           class FooComponent extends UiComponent<$publicPropsClassName> {
             @override
@@ -172,17 +173,17 @@ void advancedPropsAndStateClassMigratorTestHelper({
       ''',
           expectedOutput: '''
           $factoryDecl
-  
+
           // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because `FooComponent` does not extend from `UiComponent2`.
           // For instructions on how to proceed, see: https://github.com/Workiva/over_react_codemod/tree/master/docs/boilerplate_upgrade.md#non-component2
-          /// Some documentation comment 
+          /// Some documentation comment
           /// might get in the way of fix me comment removal
           @Props()
           class $propsClassName extends UiProps with SomePropsMixin {
             String foo;
             int bar;
           }
-  
+
           @Component()
           class FooComponent extends UiComponent<$publicPropsClassName> {
             @override
@@ -199,27 +200,28 @@ void advancedPropsAndStateClassMigratorTestHelper({
         expect(converter.wasMigrated(publicPropsClassName), isFalse);
       });
 
-      test('the class is publicly exported, but does add a FIXME comment', () {
-        testSuggestor()(
+      test('the class is publicly exported, but does add a FIXME comment',
+          () async {
+        await testSuggestor()(
           expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
           input: r'''
           @Factory()
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
               $Bar;
-  
+
           @Props()
           class _$BarProps extends ADifferentPropsClass {
             String foo;
             int bar;
           }
-  
+
           @State()
           class _$BarState extends ADifferentStateClass {
             String foo;
             int bar;
           }
-  
+
           @Component2()
           class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
             @override
@@ -236,7 +238,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
               \$Bar;
-  
+
           ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: `BarProps` could not be auto-migrated to the new over_react boilerplate because it is exported from the following libraries in this repo:
           // lib/web_skin_dart.dart/BarProps
           // lib/another_file.dart/BarProps
@@ -257,7 +259,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             String foo;
             int bar;
           }
-  
+
           @Component2()
           class BarComponent extends UiStatefulComponent2<BarProps, BarState> {
             @override
@@ -277,42 +279,42 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
       group('the semver report does not exist, but does add a FIXME comment',
           () {
-        test('', () {
-          testSuggestor(isValidSemverReportFilePath: false)(
+        test('', () async {
+          await testSuggestor(isValidSemverReportFilePath: false)(
             expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 0 : 2,
             input: '''
             $factoryDecl
-    
+
             @Props()
             class $propsClassName extends ADifferentPropsClass {
               String foo;
               int bar;
             }
-    
+
             @State()
             class $stateClassName extends ADifferentStateClass {
               String foo;
               int bar;
             }
-    
+
             $componentDecl
           ''',
             expectedOutput: '''
             $factoryDecl
-    
+
             ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicPropsClassName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
             //
             // --------- If you are migrating an OSS library outside of Workiva ---------
-            // You do not have access to Workiva's internal Semver audit tool. 
+            // You do not have access to Workiva's internal Semver audit tool.
             // To complete the migration, you should:
             //
             //   1. Revert all changes to remove this FIX-ME comment
-            //   2. Re-run the migration script with the following flag:    
+            //   2. Re-run the migration script with the following flag:
             //
             //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
             //
             //   NOTE: The changes made to props / state classes by the codemod constitute breaking changes
-            //   if you publicly export them from your library. We strongly recommend that you release 
+            //   if you publicly export them from your library. We strongly recommend that you release
             //   the subsequent changes in a major version.
             //
             // --------- If you are migrating a Workiva library ---------
@@ -331,20 +333,20 @@ void advancedPropsAndStateClassMigratorTestHelper({
               String foo;
               int bar;
             }
-    
+
             ${shouldTreatAllComponentsAsPrivate ? '' : '''// FIXME: A Workiva Semver report was not found. `$publicStateClassName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
             //
             // --------- If you are migrating an OSS library outside of Workiva ---------
-            // You do not have access to Workiva's internal Semver audit tool. 
+            // You do not have access to Workiva's internal Semver audit tool.
             // To complete the migration, you should:
             //
             //   1. Revert all changes to remove this FIX-ME comment
-            //   2. Re-run the migration script with the following flag:    
+            //   2. Re-run the migration script with the following flag:
             //
             //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
             //
             //   NOTE: The changes made to props / state classes by the codemod constitute breaking changes
-            //   if you publicly export them from your library. We strongly recommend that you release 
+            //   if you publicly export them from your library. We strongly recommend that you release
             //   the subsequent changes in a major version.
             //
             // --------- If you are migrating a Workiva library ---------
@@ -363,7 +365,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
               String foo;
               int bar;
             }
-    
+
             $componentDecl
           ''',
           );
@@ -372,8 +374,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
           expect(converter.wasMigrated(publicStateClassName), isFalse);
         });
 
-        test('unless the declaration is in a file outside of lib/', () {
-          testSuggestor(
+        test('unless the declaration is in a file outside of lib/', () async {
+          await testSuggestor(
             isValidSemverReportFilePath: false,
             sourceFileUrl: 'web/src/input.dart',
             visitedClassNames: {
@@ -423,19 +425,19 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
         const input = '''
             $factoryDecl
-            
+
             @Props()
             class $propsClassName extends $externalSuperclassName {
               String foo;
               int bar;
             }
-            
+
             $componentDecl
             ''';
 
         const expectedOutputWithExternalSuperclassReasonComment = '''
             $factoryDecl
-            
+
             // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it extends from $externalSuperclassName, which comes from an external library.
             // Once that component has been upgraded to the new boilerplate, see instructions here: https://github.com/Workiva/over_react_codemod/tree/master/docs/boilerplate_upgrade.md#external-superclass
             @Props()
@@ -443,16 +445,16 @@ void advancedPropsAndStateClassMigratorTestHelper({
               String foo;
               int bar;
             }
-            
+
             $componentDecl
           ''';
 
         group('but does add a FIXME comment', () {
-          setUp(() {
+          setUp(() async {
             // When it is run the first time, nothing should happen since
             // we don't know if the custom classes are external or not.
-            testSuggestor()(expectedPatchCount: 0, input: input);
-            testSuggestor()(
+            await testSuggestor()(expectedPatchCount: 0, input: input);
+            await testSuggestor()(
               expectedPatchCount: 1,
               input: input,
               expectedOutput: expectedOutputWithExternalSuperclassReasonComment,
@@ -474,33 +476,33 @@ void advancedPropsAndStateClassMigratorTestHelper({
               'which then gets removed from the declaration that is converted to a mixin, and replaced '
               'with updated instructions on the new concrete class declaration when the script '
               'is re-ran with the --convert-classes-with-external-superclasses flag set',
-              () {
+              () async {
             // Run it a third time - this time simulating `--convert-classes-with-external-superclasses`
             // being set - which allows conversion of external superclasses
-            testSuggestor(convertClassesWithExternalSuperclass: true)(
+            await testSuggestor(convertClassesWithExternalSuperclass: true)(
               input: expectedOutputWithExternalSuperclassReasonComment,
               expectedOutput: '''
               $factoryDecl
-  
+
               @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
-  
+
               // FIXME:
               //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              //   3. You should notice that $externalSuperclassName is deprecated.  
+              //   3. You should notice that $externalSuperclassName is deprecated.
               //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-              //      the new class/mixin name and/or updating to a different entrypoint that exports the version of 
+              //      the new class/mixin name and/or updating to a different entrypoint that exports the version of
               //      $externalSuperclassName that is compatible with the new over_react boilerplate.
               //
-              //      If it is not deprecated, something most likely went wrong during the migration of the 
+              //      If it is not deprecated, something most likely went wrong during the migration of the
               //      library that contains it.
-              @Props() 
+              @Props()
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
-  
+
               ${componentDeclWithConsumedProps([
                 '${publicPropsClassName}Mixin'
               ])}
@@ -520,13 +522,13 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
         test(
             'unless the --convert-classes-with-external-superclasses flag is set',
-            () {
+            () async {
           // When it is run the first time, nothing should happen since
           // we don't know if the custom classes are external or not.
-          testSuggestor()(expectedPatchCount: 0, input: input);
+          await testSuggestor()(expectedPatchCount: 0, input: input);
           // Run it a second time - this time simulating `--convert-classes-with-external-superclasses`
           // being set - which allows conversion of external superclasses
-          testSuggestor(convertClassesWithExternalSuperclass: true)(
+          await testSuggestor(convertClassesWithExternalSuperclass: true)(
             input: '''
             $factoryDecl
 
@@ -540,26 +542,26 @@ void advancedPropsAndStateClassMigratorTestHelper({
           ''',
             expectedOutput: '''
               $factoryDecl
-  
+
               @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
-  
+
               // FIXME:
               //   1. Ensure that all mixins used by $externalSuperclassName are also mixed into this class.
               //   2. Fix any analyzer warnings on this class about missing mixins.
-              //   3. You should notice that $externalSuperclassName is deprecated.  
+              //   3. You should notice that $externalSuperclassName is deprecated.
               //      Follow the deprecation instructions to consume the replacement by either updating your usage to
-              //      the new class/mixin name and/or updating to a different entrypoint that exports the version of 
+              //      the new class/mixin name and/or updating to a different entrypoint that exports the version of
               //      $externalSuperclassName that is compatible with the new over_react boilerplate.
               //
-              //      If it is not deprecated, something most likely went wrong during the migration of the 
+              //      If it is not deprecated, something most likely went wrong during the migration of the
               //      library that contains it.
               @Props()
               class $publicPropsClassName = UiProps with $externalSuperclassName, ${publicPropsClassName}Mixin;
-  
+
               ${componentDeclWithConsumedProps([
               '${publicPropsClassName}Mixin'
             ])}
@@ -583,7 +585,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
           'but does add a FIXME comment', () {
         const expectedOutputWithUnMigratedSuperclassReasonComment = '''
             $factoryDecl
-            
+
             // FIXME: `$publicPropsClassName` could not be auto-migrated to the new over_react boilerplate because it extends from `ADifferentPropsClass`, which was not able to be migrated.
             // Address comments on that component and then see instructions here: https://github.com/Workiva/over_react_codemod/tree/master/docs/boilerplate_upgrade.md#unmigrated-superclass
             @Props()
@@ -591,27 +593,27 @@ void advancedPropsAndStateClassMigratorTestHelper({
               String foo;
               int bar;
             }
-    
+
             $componentDecl
             ''';
 
-        test('', () {
+        test('', () async {
           const input = '''
               $factoryDecl
-      
+
               @Props()
               class $propsClassName extends ADifferentPropsClass {
                 String foo;
                 int bar;
               }
-      
+
               $componentDecl
             ''';
 
           // When it is run the first time, nothing should happen since
           // we don't know if the custom classes are "migratable" or not.
-          testSuggestor()(expectedPatchCount: 0, input: input);
-          testSuggestor(
+          await testSuggestor()(expectedPatchCount: 0, input: input);
+          await testSuggestor(
             visitedClassNames: {
               'ADifferentPropsClass': null,
             },
@@ -629,13 +631,13 @@ void advancedPropsAndStateClassMigratorTestHelper({
         test(
             'which then gets removed and replaced with updated instructions '
             'when the script is re-ran after the consumer makes the class "migratable"',
-            () {
+            () async {
           // When it is run the first time, nothing should happen since
           // we don't know if the custom classes are "migratable" or not.
-          testSuggestor()(
+          await testSuggestor()(
               expectedPatchCount: 0,
               input: expectedOutputWithUnMigratedSuperclassReasonComment);
-          testSuggestor(
+          await testSuggestor(
             visitedClassNames: {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             },
@@ -643,7 +645,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             input: expectedOutputWithUnMigratedSuperclassReasonComment,
             expectedOutput: '''
             $factoryDecl
-            
+
             @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
@@ -655,7 +657,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             //   2. Fix any analyzer warnings on this class about missing mixins.
             @Props()
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
-    
+
             ${componentDeclWithConsumedProps(['${publicPropsClassName}Mixin'])}
           ''',
           );
@@ -669,9 +671,9 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
       test(
           'the class uses one or more mixins not found within ClassToMixinConverter.visitedClassNames:',
-          () {
+          () async {
         const externalMixinName = 'SomeExternalMixin';
-        testSuggestor()(
+        await testSuggestor()(
           input: '''
           $factoryDecl
 
@@ -685,7 +687,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
           ''',
           expectedOutput: '''
           $factoryDecl
-          
+
           @Props()
           mixin ${publicPropsClassName}Mixin on UiProps {
             String foo;
@@ -707,25 +709,25 @@ void advancedPropsAndStateClassMigratorTestHelper({
           'from custom classes that were converted to the new boilerplate', () {
         const input = '''
             $factoryDecl
-    
+
             @Props()
             class $propsClassName extends ADifferentPropsClass {
               String foo;
               int bar;
             }
-    
+
             @State()
             class $stateClassName extends ADifferentStateClass {
               String foo;
               int bar;
             }
-    
+
             $statefulComponentDecl
           ''';
 
         final expectedOutput = '''
             $factoryDecl
-    
+
             @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
@@ -737,7 +739,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
             //   2. Fix any analyzer warnings on this class about missing mixins.
             @Props()
             class $publicPropsClassName = UiProps with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin;
-    
+
             @State()
             mixin ${publicStateClassName}Mixin on UiState {
               String foo;
@@ -749,15 +751,15 @@ void advancedPropsAndStateClassMigratorTestHelper({
             //   2. Fix any analyzer warnings on this class about missing mixins.
             @State()
             class $publicStateClassName = UiState with ADifferentStateClassMixin, ${publicStateClassName}Mixin;
-    
+
             ${statefulComponentDeclWithConsumedProps([
           '${publicPropsClassName}Mixin'
         ])}
           ''';
 
-        test('on the first run', () {
+        test('on the first run', () async {
           // Simulates the case where the superclasses were visited first and successfully converted
-          testSuggestor(
+          await testSuggestor(
             visitedClassNames: {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
               'ADifferentStateClass': 'ADifferentStateClassMixin',
@@ -775,16 +777,16 @@ void advancedPropsAndStateClassMigratorTestHelper({
           });
         });
 
-        test('on the second run', () {
+        test('on the second run', () async {
           // When it is run the first time, nothing should happen since
           // we don't know if the custom classes are external or not.
-          testSuggestor(
+          await testSuggestor(
             visitedClassNames: {
               'ADifferentPropsClass': null,
               'ADifferentStateClass': null,
             },
           )(expectedPatchCount: 0, input: input);
-          testSuggestor(
+          await testSuggestor(
             visitedClassNames: {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
               'ADifferentStateClass': 'ADifferentStateClassMixin',
@@ -808,25 +810,25 @@ void advancedPropsAndStateClassMigratorTestHelper({
           () {
         const input = '''
             $factoryDecl
-    
+
             @Props()
             class $propsClassName extends UiProps with AMixin, AnotherMixin {
               String foo;
               int bar;
             }
-    
+
             @State()
             class $stateClassName extends UiState with AStateMixin, AnotherStateMixin {
               String foo;
               int bar;
             }
-    
+
             $statefulComponentDecl
             ''';
 
         final expectedOutput = '''
             $factoryDecl
-    
+
             @Props()
             mixin ${publicPropsClassName}Mixin on UiProps {
               String foo;
@@ -841,18 +843,18 @@ void advancedPropsAndStateClassMigratorTestHelper({
               String foo;
               int bar;
             }
-    
+
             @State()
             class $publicStateClassName = UiState with ${publicStateClassName}Mixin, AStateMixin, AnotherStateMixin;
-    
+
             ${statefulComponentDeclWithConsumedProps([
           '${publicPropsClassName}Mixin'
         ])}
           ''';
 
-        test('', () {
+        test('', () async {
           // Simulates the case where the superclasses were visited first and successfully converted
-          testSuggestor()(
+          await testSuggestor()(
             input: input,
             expectedOutput: expectedOutput,
           );
@@ -866,16 +868,16 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
       group('and there is just a props class', () {
         group('that extends from the reserved FluxUiProps class', () {
-          test('and uses no mixins', () {
+          test('and uses no mixins', () async {
             const input = '''
                 $factoryDecl
-      
+
                 @Props()
                 class $propsClassName extends FluxUiProps<SomeActions, SomeStore> {
                   String foo;
                   int bar;
                 }
-      
+
                 @Component2()
                 class FooComponent extends FluxUiComponent2<$publicPropsClassName> {
                   @override
@@ -888,25 +890,25 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 }
                 ''';
 
-            testSuggestor()(
+            await testSuggestor()(
               input: input,
               expectedOutput: '''
               $factoryDecl
-  
+
               @Props()
               mixin ${publicPropsClassName}Mixin on UiProps {
                 String foo;
                 int bar;
               }
-  
+
               @Props()
-              class $publicPropsClassName = UiProps 
+              class $publicPropsClassName = UiProps
                   with FluxUiPropsMixin<SomeActions, SomeStore>, ${publicPropsClassName}Mixin;
-  
+
               @Component2()
               class FooComponent extends FluxUiComponent2<$publicPropsClassName> {
                 ${consumedPropsOverride(['${publicPropsClassName}Mixin'])}
-                  
+
                 @override
                 render() {
                   return Dom.ul()(
@@ -926,13 +928,13 @@ void advancedPropsAndStateClassMigratorTestHelper({
           group('and uses a mixin', () {
             const input = '''
                 $factoryDecl
-      
+
                 @Props()
                 class $propsClassName extends FluxUiProps<SomeActions, SomeStore> with SomePropsMixin<SomeStore> {
                   String foo;
                   int bar;
                 }
-      
+
                 @Component2()
                 class FooComponent extends FluxUiComponent2<$publicPropsClassName> {
                   @override
@@ -947,24 +949,24 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
             final expectedOutput = '''
                 $factoryDecl
-    
+
                 @Props()
                 mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
                 }
 
-                @Props()    
-                class $publicPropsClassName = UiProps 
-                    with 
-                        FluxUiPropsMixin<SomeActions, SomeStore>, 
-                        ${publicPropsClassName}Mixin, 
+                @Props()
+                class $publicPropsClassName = UiProps
+                    with
+                        FluxUiPropsMixin<SomeActions, SomeStore>,
+                        ${publicPropsClassName}Mixin,
                         SomePropsMixin<SomeStore>;
-    
+
                 @Component2()
                 class FooComponent extends FluxUiComponent2<$publicPropsClassName> {
                   ${consumedPropsOverride(['${publicPropsClassName}Mixin'])}
-                
+
                   @override
                   render() {
                     return Dom.ul()(
@@ -975,8 +977,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 }
               ''';
 
-            test('', () {
-              testSuggestor()(
+            test('', () async {
+              await testSuggestor()(
                 input: input,
                 expectedOutput: expectedOutput,
               );
@@ -988,21 +990,21 @@ void advancedPropsAndStateClassMigratorTestHelper({
           });
 
           group('and is abstract', () {
-            test('with members of its own', () {
+            test('with members of its own', () async {
               const input = r'''
                   @AbstractProps()
-                  abstract class _$AbstractFluxProps<A extends SomeActions, S extends SomeStore> 
+                  abstract class _$AbstractFluxProps<A extends SomeActions, S extends SomeStore>
                       extends FluxUiProps<A, S>
                       with SomePropsMixin<S> {
                     String foo;
                     int bar;
                   }
-    
+
                   @AbstractComponent2()
                   abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
                 ''';
 
-              testSuggestor(visitedClassNames: {
+              await testSuggestor(visitedClassNames: {
                 'SomePropsMixin': 'SomePropsMixin',
               })(
                 input: input,
@@ -1014,7 +1016,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 }
 
                 @AbstractProps()
-                abstract class AbstractFluxProps<A extends SomeActions, S extends SomeStore> 
+                abstract class AbstractFluxProps<A extends SomeActions, S extends SomeStore>
                     implements FluxUiPropsMixin<A, S>, AbstractFluxPropsMixin<A, S>, SomePropsMixin<S> {}
 
                 @AbstractComponent2()
@@ -1028,10 +1030,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
               });
             });
 
-            test('with no members', () {
+            test('with no members', () async {
               const input = r'''
                   @AbstractProps()
-                  abstract class _$AbstractFluxProps<A extends SomeActions, S extends SomeStore> 
+                  abstract class _$AbstractFluxProps<A extends SomeActions, S extends SomeStore>
                       extends FluxUiProps<A, S>
                       with SomePropsMixin<S> {}
 
@@ -1039,7 +1041,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                   abstract class AbstractFluxComponent<T extends AbstractFluxProps> extends FluxUiComponent2<T> {}
                 ''';
 
-              testSuggestor(visitedClassNames: {
+              await testSuggestor(visitedClassNames: {
                 'SomePropsMixin': 'SomePropsMixin',
               })(
                 input: input,
@@ -1062,8 +1064,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
         });
 
         group('that extends from an arbitrary custom class', () {
-          test('that is not abstract', () {
-            testSuggestor(visitedClassNames: {
+          test('that is not abstract', () async {
+            await testSuggestor(visitedClassNames: {
               'ADifferentPropsClass': 'ADifferentPropsClassMixin',
             })(
               input: '''
@@ -1105,7 +1107,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
           });
 
           group('that is abstract', () {
-            test('with members of its own', () {
+            test('with members of its own', () async {
               const input = r'''
                   @AbstractProps()
                   abstract class _$AbstractBlockProps<A extends Something> extends SomeAbstractPropsClass<A>
@@ -1121,7 +1123,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                     String foo;
                     int bar;
                   }
-    
+
                   @AbstractComponent2()
                   abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                       with LayoutMixin<T>, BlockMixin<T> {}
@@ -1129,8 +1131,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
               // When it is run the first time, nothing should happen since
               // we don't know if the mixin(s) are external or not.
-              testSuggestor()(expectedPatchCount: 0, input: input);
-              testSuggestor(visitedClassNames: {
+              await testSuggestor()(expectedPatchCount: 0, input: input);
+              await testSuggestor(visitedClassNames: {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
@@ -1165,7 +1167,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
               });
             });
 
-            test('with no members', () {
+            test('with no members', () async {
               const input = r'''
                   @AbstractProps()
                   abstract class _$AbstractBlockProps<A extends Something> extends SomeAbstractPropsClass<A>
@@ -1178,7 +1180,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                           $BlockPropsMixin
                       implements
                           BlockClassHelperMapView {}
-    
+
                   @AbstractComponent2()
                   abstract class AbstractBlockComponent<T extends AbstractBlockProps> extends UiComponent2<T>
                       with LayoutMixin<T>, BlockMixin<T> {}
@@ -1186,8 +1188,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
               // When it is run the first time, nothing should happen since
               // we don't know if the mixin(s) are external or not.
-              testSuggestor()(expectedPatchCount: 0, input: input);
-              testSuggestor(visitedClassNames: {
+              await testSuggestor()(expectedPatchCount: 0, input: input);
+              await testSuggestor(visitedClassNames: {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
                 'LayoutPropsMixin': 'LayoutPropsMixin',
                 'BlockPropsMixin': null,
@@ -1217,11 +1219,11 @@ void advancedPropsAndStateClassMigratorTestHelper({
           });
 
           group('that is abstract based on annotation only (edge case)', () {
-            test('with members of its own', () {
+            test('with members of its own', () async {
               const input = r'''
                   @PropsMixin()
                   abstract class BreadcrumbPathPropsMixin {}
-                  
+
                   @AbstractProps()
                   class _$AbstractBreadcrumbPathProps extends AbstractGraphFormProps
                       with
@@ -1231,13 +1233,13 @@ void advancedPropsAndStateClassMigratorTestHelper({
                     String foo;
                     int bar;
                   }
-                  
+
                   @AbstractComponent2()
-                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps>
                       extends UiComponent2<T> {}
                 ''';
 
-              testSuggestor(visitedClassNames: {
+              await testSuggestor(visitedClassNames: {
                 'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
                 'AbstractGraphFormProps': 'AbstractGraphFormProps',
               })(
@@ -1245,7 +1247,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 expectedOutput: r'''
                 @PropsMixin()
                 abstract class BreadcrumbPathPropsMixin {}
-              
+
                 @AbstractProps()
                 mixin AbstractBreadcrumbPathPropsMixin on UiProps {
                   String foo;
@@ -1253,14 +1255,14 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 }
 
                 @AbstractProps()
-                abstract class AbstractBreadcrumbPathProps 
+                abstract class AbstractBreadcrumbPathProps
                     implements
                         AbstractGraphFormProps,
                         AbstractBreadcrumbPathPropsMixin,
                         BreadcrumbPathPropsMixin {}
 
                 @AbstractComponent2()
-                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps>
                     extends UiComponent2<T> {}
               ''',
               );
@@ -1273,24 +1275,24 @@ void advancedPropsAndStateClassMigratorTestHelper({
               });
             });
 
-            test('with no members', () {
+            test('with no members', () async {
               const input = r'''
                   @PropsMixin()
                   abstract class BreadcrumbPathPropsMixin {}
-                  
+
                   @AbstractProps()
                   class _$AbstractBreadcrumbPathProps extends AbstractGraphFormProps
                       with
                           BreadcrumbPathPropsMixin,
                           // ignore: mixin_of_non_class, undefined_class
                           $BreadcrumbPathPropsMixin {}
-                  
+
                   @AbstractComponent2()
-                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps>
                       extends UiComponent2<T> {}
                 ''';
 
-              testSuggestor(visitedClassNames: {
+              await testSuggestor(visitedClassNames: {
                 'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
                 'AbstractGraphFormProps': 'AbstractGraphFormProps',
               })(
@@ -1300,13 +1302,13 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 abstract class BreadcrumbPathPropsMixin {}
 
                 @AbstractProps()
-                abstract class AbstractBreadcrumbPathProps 
-                    implements 
-                        AbstractGraphFormProps, 
+                abstract class AbstractBreadcrumbPathProps
+                    implements
+                        AbstractGraphFormProps,
                         BreadcrumbPathPropsMixin {}
 
                 @AbstractComponent2()
-                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps>
                     extends UiComponent2<T> {}
               ''',
               );
@@ -1320,8 +1322,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
           });
 
           group('that has an analagous abstract component class', () {
-            test('and members of its own', () {
-              testSuggestor(visitedClassNames: {
+            test('and members of its own', () async {
+              await testSuggestor(visitedClassNames: {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClassMixin',
               })(
                 input: '''
@@ -1357,7 +1359,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 //   1. Ensure that all mixins used by SomeAbstractPropsClass are also mixed into this class.
                 //   2. Fix any analyzer warnings on this class about missing mixins.
                 @Props()
-                class $publicPropsClassName = UiProps 
+                class $publicPropsClassName = UiProps
                     with SomeAbstractPropsClassMixin, ${publicPropsClassName}Mixin
                     implements SomeAbstractPropsClass, SomeInterface;
 
@@ -1366,7 +1368,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                   ${consumedPropsOverride([
                   '${publicPropsClassName}Mixin'
                 ], fixmeComment: '// FIXME Ensure that consumedProps shouldn\'t be inherited from AbstractComponentClass instead of overridden here.')}
-                
+
                   @override
                   render() {
                     return Dom.ul()(
@@ -1384,8 +1386,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
               });
             });
 
-            test('but no members of its own', () {
-              testSuggestor(visitedClassNames: {
+            test('but no members of its own', () async {
+              await testSuggestor(visitedClassNames: {
                 'SomeAbstractPropsClass': 'SomeAbstractPropsClass',
               })(
                 input: '''
@@ -1417,7 +1419,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 @Component2()
                 class FooComponent extends AbstractComponentClass<$publicPropsClassName> {
                   ${consumedPropsOverride([], fixmeComment: '// FIXME Ensure that consumedProps shouldn\'t be inherited from AbstractComponentClass instead of overridden here.')}
-                
+
                   @override
                   render() {
                     return Dom.ul()(
@@ -1437,10 +1439,10 @@ void advancedPropsAndStateClassMigratorTestHelper({
           });
         });
 
-        test('that extends from UiProps, but uses mixins', () {
+        test('that extends from UiProps, but uses mixins', () async {
           const input = '''
               $factoryDecl
-    
+
               @Props()
               class $propsClassName extends UiProps
                   with ConvertedMixin,
@@ -1452,11 +1454,11 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 String foo;
                 int bar;
               }
-    
+
               $componentDecl
             ''';
 
-          testSuggestor()(
+          await testSuggestor()(
             input: input,
             expectedOutput: '''
             $factoryDecl
@@ -1480,10 +1482,11 @@ void advancedPropsAndStateClassMigratorTestHelper({
           });
         });
 
-        test('that extends from UiProps, but uses a "reserved" mixin', () {
+        test('that extends from UiProps, but uses a "reserved" mixin',
+            () async {
           const input = '''
               $factoryDecl
-    
+
               @Props()
               class $propsClassName extends UiProps
                   with DomPropsMixin,
@@ -1492,11 +1495,11 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 String foo;
                 int bar;
               }
-    
+
               $componentDecl
             ''';
 
-          testSuggestor()(
+          await testSuggestor()(
             input: input,
             expectedOutput: '''
             $factoryDecl
@@ -1522,8 +1525,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
         group('that extends from UiProps, uses mixins, implements interfaces',
             () {
-          test('and is not abstract', () {
-            testSuggestor(visitedClassNames: {
+          test('and is not abstract', () async {
+            await testSuggestor(visitedClassNames: {
               'ConvertedMixin': 'ConvertedMixin',
             })(
               input: '''
@@ -1547,7 +1550,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
               }
 
               @Props()
-              class $publicPropsClassName = UiProps 
+              class $publicPropsClassName = UiProps
                   with ${publicPropsClassName}Mixin, ConvertedMixin implements SomeInterface, SomeOtherInterface;
 
               ${componentDeclWithConsumedProps([
@@ -1563,7 +1566,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
           });
 
           group('and is abstract', () {
-            test('with members of its own', () {
+            test('with members of its own', () async {
               const input = r'''
               @AbstractProps()
               abstract class _$AbstractBlockProps extends UiProps
@@ -1585,7 +1588,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                   with LayoutMixin<T>, BlockMixin<T> {}
             ''';
 
-              testSuggestor()(
+              await testSuggestor()(
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
@@ -1612,7 +1615,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
               });
             });
 
-            test('with no members', () {
+            test('with no members', () async {
               const input = r'''
               @AbstractProps()
               abstract class _$AbstractBlockProps extends UiProps
@@ -1631,7 +1634,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                   with LayoutMixin<T>, BlockMixin<T> {}
             ''';
 
-              testSuggestor()(
+              await testSuggestor()(
                 input: input,
                 expectedOutput: r'''
                 @AbstractProps()
@@ -1653,11 +1656,11 @@ void advancedPropsAndStateClassMigratorTestHelper({
           });
 
           group('and is abstract based on annotation only (edge case)', () {
-            test('with members of its own', () {
+            test('with members of its own', () async {
               const input = r'''
                   @PropsMixin()
                   abstract class BreadcrumbPathPropsMixin {}
-                  
+
                   @AbstractProps()
                   class _$AbstractBreadcrumbPathProps extends UiProps
                       with
@@ -1667,20 +1670,20 @@ void advancedPropsAndStateClassMigratorTestHelper({
                     String foo;
                     int bar;
                   }
-                  
+
                   @AbstractComponent2()
-                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps>
                       extends UiComponent2<T> {}
                 ''';
 
-              testSuggestor(visitedClassNames: {
+              await testSuggestor(visitedClassNames: {
                 'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
               })(
                 input: input,
                 expectedOutput: r'''
                 @PropsMixin()
                 abstract class BreadcrumbPathPropsMixin {}
-              
+
                 @AbstractProps()
                 mixin AbstractBreadcrumbPathPropsMixin on UiProps {
                   String foo;
@@ -1688,13 +1691,13 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 }
 
                 @AbstractProps()
-                abstract class AbstractBreadcrumbPathProps 
+                abstract class AbstractBreadcrumbPathProps
                     implements
                         AbstractBreadcrumbPathPropsMixin,
                         BreadcrumbPathPropsMixin {}
 
                 @AbstractComponent2()
-                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps>
                     extends UiComponent2<T> {}
               ''',
               );
@@ -1706,37 +1709,37 @@ void advancedPropsAndStateClassMigratorTestHelper({
               });
             });
 
-            test('with no members', () {
+            test('with no members', () async {
               const input = r'''
                   @PropsMixin()
                   abstract class BreadcrumbPathPropsMixin {}
-                  
+
                   @AbstractProps()
                   class _$AbstractBreadcrumbPathProps extends UiProps
                       with
                           BreadcrumbPathPropsMixin,
                           // ignore: mixin_of_non_class, undefined_class
                           $BreadcrumbPathPropsMixin {}
-                  
+
                   @AbstractComponent2()
-                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                  class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps>
                       extends UiComponent2<T> {}
                 ''';
 
-              testSuggestor(visitedClassNames: {
+              await testSuggestor(visitedClassNames: {
                 'BreadcrumbPathPropsMixin': 'BreadcrumbPathPropsMixin',
               })(
                 input: input,
                 expectedOutput: r'''
                 @PropsMixin()
                 abstract class BreadcrumbPathPropsMixin {}
-                  
+
                 @AbstractProps()
-                abstract class AbstractBreadcrumbPathProps 
+                abstract class AbstractBreadcrumbPathProps
                     implements BreadcrumbPathPropsMixin {}
 
                 @AbstractComponent2()
-                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps> 
+                class AbstractBreadcrumbPathComponent<T extends AbstractBreadcrumbPathProps>
                     extends UiComponent2<T> {}
               ''',
               );
@@ -1755,22 +1758,22 @@ void advancedPropsAndStateClassMigratorTestHelper({
           group('and the class has no members of its own', () {
             test(
                 'and an accompanying component class that does not override `consumedProps`',
-                () {
-              testSuggestor(visitedClassNames: {
+                () async {
+              await testSuggestor(visitedClassNames: {
                 '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               })(
                 input: '''
                 $factoryDecl
-  
+
                 @PropsMixin()
                 mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
                 }
-  
+
                 @Props()
                 class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
-  
+
                 @Component2()
                 class FooComponent extends UiComponent2<$publicPropsClassName> {
                   @override
@@ -1779,22 +1782,22 @@ void advancedPropsAndStateClassMigratorTestHelper({
               ''',
                 expectedOutput: '''
                 $factoryDecl
-  
+
                 @PropsMixin()
                 mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
                 }
-  
+
                 @Component2()
                 class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
-                  // Override consumedProps to an empty list so that props within 
+                  // Override consumedProps to an empty list so that props within
                   // ${publicPropsClassName}Mixin are forwarded when `addUnconsumedProps` is used.
                   @override
                   get consumedProps => [];
-                
+
                   @override
-                  render() {} 
+                  render() {}
                 }
               ''',
               );
@@ -1808,48 +1811,48 @@ void advancedPropsAndStateClassMigratorTestHelper({
             group(
                 'and an accompanying component class that already overrides `consumedProps`',
                 () {
-              test('to an empty list', () {
-                testSuggestor(visitedClassNames: {
+              test('to an empty list', () async {
+                await testSuggestor(visitedClassNames: {
                   '${publicPropsClassName}Mixin':
                       '${publicPropsClassName}Mixin',
                 })(
                   input: '''
                   $factoryDecl
-    
+
                   @PropsMixin()
                   mixin ${publicPropsClassName}Mixin on UiProps {
                     String foo;
                     int bar;
                   }
-    
+
                   @Props()
                   class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
-    
+
                   @Component2()
                   class FooComponent extends UiComponent2<$publicPropsClassName> {
                     @override
                     get consumedProps => [];
-                  
+
                     @override
                     render() {}
                   }
                 ''',
                   expectedOutput: '''
                   $factoryDecl
-    
+
                   @PropsMixin()
                   mixin ${publicPropsClassName}Mixin on UiProps {
                     String foo;
                     int bar;
                   }
-    
+
                   @Component2()
                   class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
                     @override
                     get consumedProps => [];
-                  
+
                     @override
-                    render() {} 
+                    render() {}
                   }
                 ''',
                 );
@@ -1857,110 +1860,110 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
               group('to a non-empty empty list using an ExpressionFunctionBody',
                   () {
-                test('that contains `${publicPropsClassName}.meta`', () {
-                  testSuggestor(visitedClassNames: {
+                test('that contains `${publicPropsClassName}.meta`', () async {
+                  await testSuggestor(visitedClassNames: {
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
                     input: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Props()
                     class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<$publicPropsClassName> {
                       @override
                       get consumedProps => [
                         $publicPropsClassName.meta,
                       ];
-                    
+
                       @override
                       render() {}
                     }
                   ''',
                     expectedOutput: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
-                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed,
                       // and replaced by ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
                       // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
                       @override
                       get consumedProps => [
                         propsMeta.forMixin(${publicPropsClassName}Mixin),
                       ];
-                    
+
                       @override
-                      render() {} 
+                      render() {}
                     }
                   ''',
                   );
                 });
 
                 test('that does not contain `${publicPropsClassName}.meta`',
-                    () {
-                  testSuggestor(visitedClassNames: {
+                    () async {
+                  await testSuggestor(visitedClassNames: {
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
                     input: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Props()
                     class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<$publicPropsClassName> {
                       @override
                       get consumedProps => [
                         propsMeta.forMixin(${publicPropsClassName}Mixin),
                       ];
-                    
+
                       @override
                       render() {}
                     }
                   ''',
                     expectedOutput: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
-                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed,
                       // and replaced by ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
                       // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
                       @override
                       get consumedProps => [
                         propsMeta.forMixin(${publicPropsClassName}Mixin),
                       ];
-                    
+
                       @override
-                      render() {} 
+                      render() {}
                     }
                   ''',
                   );
@@ -1968,23 +1971,23 @@ void advancedPropsAndStateClassMigratorTestHelper({
               });
 
               group('to a non-empty empty list using an BlockFunctionBody', () {
-                test('that contains `${publicPropsClassName}.meta`', () {
-                  testSuggestor(visitedClassNames: {
+                test('that contains `${publicPropsClassName}.meta`', () async {
+                  await testSuggestor(visitedClassNames: {
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
                     input: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Props()
                     class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<$publicPropsClassName> {
                       @override
@@ -1993,93 +1996,93 @@ void advancedPropsAndStateClassMigratorTestHelper({
                           $publicPropsClassName.meta,
                         ];
                       }
-                    
+
                       @override
                       render() {}
                     }
                   ''',
                     expectedOutput: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
-                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed,
                       // and replaced by ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
                       // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
                       @override
-                      get consumedProps { 
+                      get consumedProps {
                         return [
                           propsMeta.forMixin(${publicPropsClassName}Mixin),
                         ];
                       }
-                    
+
                       @override
-                      render() {} 
+                      render() {}
                     }
                   ''',
                   );
                 });
 
                 test('that does not contain `${publicPropsClassName}.meta`',
-                    () {
-                  testSuggestor(visitedClassNames: {
+                    () async {
+                  await testSuggestor(visitedClassNames: {
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
                     input: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Props()
                     class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {}
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<$publicPropsClassName> {
                       @override
-                      get consumedProps { 
+                      get consumedProps {
                         return [
                           propsMeta.forMixin(${publicPropsClassName}Mixin),
                         ];
                       }
-                    
+
                       @override
                       render() {}
                     }
                   ''',
                     expectedOutput: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
-                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed,
                       // and replaced by ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
                       // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
                       @override
-                      get consumedProps { 
+                      get consumedProps {
                         return [
                           propsMeta.forMixin(${publicPropsClassName}Mixin),
                         ];
                       }
-                    
+
                       @override
-                      render() {} 
+                      render() {}
                     }
                   ''',
                   );
@@ -2091,8 +2094,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
           group('and the class has members', () {
             test(
                 'and an accompanying component class that does not override `consumedProps`',
-                () {
-              testSuggestor(visitedClassNames: {
+                () async {
+              await testSuggestor(visitedClassNames: {
                 '${publicPropsClassName}Mixin': '${publicPropsClassName}Mixin',
               })(
                 input: '''
@@ -2103,12 +2106,12 @@ void advancedPropsAndStateClassMigratorTestHelper({
                   String foo;
                   int bar;
                 }
-  
+
                 @Props()
                 class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
                   String baz;
                 }
-  
+
                 @Component2()
                 class FooComponent extends UiComponent2<$publicPropsClassName> {
                   @override
@@ -2117,23 +2120,23 @@ void advancedPropsAndStateClassMigratorTestHelper({
               ''',
                 expectedOutput: '''
                 $factoryDecl
-  
+
                 @PropsMixin()
                 mixin ${publicPropsClassName}Mixin on UiProps {
                   String foo;
                   int bar;
                   String baz;
                 }
-  
+
                 @Component2()
                 class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
-                  // Override consumedProps to an empty list so that props within 
+                  // Override consumedProps to an empty list so that props within
                   // ${publicPropsClassName}Mixin are forwarded when `addUnconsumedProps` is used.
                   @override
                   get consumedProps => [];
-                
+
                   @override
-                  render() {} 
+                  render() {}
                 }
               ''',
               );
@@ -2147,51 +2150,51 @@ void advancedPropsAndStateClassMigratorTestHelper({
             group(
                 'and an accompanying component class that already overrides `consumedProps`',
                 () {
-              test('to an empty list', () {
-                testSuggestor(visitedClassNames: {
+              test('to an empty list', () async {
+                await testSuggestor(visitedClassNames: {
                   '${publicPropsClassName}Mixin':
                       '${publicPropsClassName}Mixin',
                 })(
                   input: '''
                   $factoryDecl
-    
+
                   @PropsMixin()
                   mixin ${publicPropsClassName}Mixin on UiProps {
                     String foo;
                     int bar;
                   }
-    
+
                   @Props()
                   class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
                     String baz;
                   }
-    
+
                   @Component2()
                   class FooComponent extends UiComponent2<$publicPropsClassName> {
                     @override
                     get consumedProps => [];
-                  
+
                     @override
                     render() {}
                   }
                 ''',
                   expectedOutput: '''
                   $factoryDecl
-    
+
                   @PropsMixin()
                   mixin ${publicPropsClassName}Mixin on UiProps {
                     String foo;
                     int bar;
                     String baz;
                   }
-    
+
                   @Component2()
                   class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
                     @override
                     get consumedProps => [];
-                  
+
                     @override
-                    render() {} 
+                    render() {}
                   }
                 ''',
                 );
@@ -2199,116 +2202,116 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
               group('to a non-empty empty list using an ExpressionFunctionBody',
                   () {
-                test('that contains `${publicPropsClassName}.meta`', () {
-                  testSuggestor(visitedClassNames: {
+                test('that contains `${publicPropsClassName}.meta`', () async {
+                  await testSuggestor(visitedClassNames: {
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
                     input: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Props()
                     class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
                       String baz;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<$publicPropsClassName> {
                       @override
                       get consumedProps => [
                         $publicPropsClassName.meta,
                       ];
-                    
+
                       @override
                       render() {}
                     }
                   ''',
                     expectedOutput: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                       String baz;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
-                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed,
                       // and all of its props were moved to ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
                       // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
                       @override
                       get consumedProps => [
                         propsMeta.forMixin(${publicPropsClassName}Mixin),
                       ];
-                    
+
                       @override
-                      render() {} 
+                      render() {}
                     }
                   ''',
                   );
                 });
 
                 test('that does not contain `${publicPropsClassName}.meta`',
-                    () {
-                  testSuggestor(visitedClassNames: {
+                    () async {
+                  await testSuggestor(visitedClassNames: {
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
                     input: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Props()
                     class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
                       String baz;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<$publicPropsClassName> {
                       @override
                       get consumedProps => [
                         propsMeta.forMixin(${publicPropsClassName}Mixin),
                       ];
-                    
+
                       @override
                       render() {}
                     }
                   ''',
                     expectedOutput: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                       String baz;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
-                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed,
                       // and all of its props were moved to ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
                       // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
                       @override
                       get consumedProps => [
                         propsMeta.forMixin(${publicPropsClassName}Mixin),
                       ];
-                    
+
                       @override
-                      render() {} 
+                      render() {}
                     }
                   ''',
                   );
@@ -2316,25 +2319,25 @@ void advancedPropsAndStateClassMigratorTestHelper({
               });
 
               group('to a non-empty empty list using an BlockFunctionBody', () {
-                test('that contains `${publicPropsClassName}.meta`', () {
-                  testSuggestor(visitedClassNames: {
+                test('that contains `${publicPropsClassName}.meta`', () async {
+                  await testSuggestor(visitedClassNames: {
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
                     input: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Props()
                     class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
                       String baz;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<$publicPropsClassName> {
                       @override
@@ -2343,97 +2346,97 @@ void advancedPropsAndStateClassMigratorTestHelper({
                           $publicPropsClassName.meta,
                         ];
                       }
-                    
+
                       @override
                       render() {}
                     }
                   ''',
                     expectedOutput: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                       String baz;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
-                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed,
                       // and all of its props were moved to ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
                       // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
                       @override
-                      get consumedProps { 
+                      get consumedProps {
                         return [
                           propsMeta.forMixin(${publicPropsClassName}Mixin),
                         ];
                       }
-                    
+
                       @override
-                      render() {} 
+                      render() {}
                     }
                   ''',
                   );
                 });
 
                 test('that does not contain `${publicPropsClassName}.meta`',
-                    () {
-                  testSuggestor(visitedClassNames: {
+                    () async {
+                  await testSuggestor(visitedClassNames: {
                     '${publicPropsClassName}Mixin':
                         '${publicPropsClassName}Mixin',
                   })(
                     input: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                     }
-      
+
                     @Props()
                     class $propsClassName extends UiProps with ${publicPropsClassName}Mixin {
                       String baz;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<$publicPropsClassName> {
                       @override
-                      get consumedProps { 
+                      get consumedProps {
                         return [
                           propsMeta.forMixin(${publicPropsClassName}Mixin),
                         ];
                       }
-                    
+
                       @override
                       render() {}
                     }
                   ''',
                     expectedOutput: '''
                     $factoryDecl
-      
+
                     @PropsMixin()
                     mixin ${publicPropsClassName}Mixin on UiProps {
                       String foo;
                       int bar;
                       String baz;
                     }
-      
+
                     @Component2()
                     class FooComponent extends UiComponent2<${publicPropsClassName}Mixin> {
-                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed, 
+                      // FIXME: As part of the over_react boilerplate migration, $publicPropsClassName was removed,
                       // and all of its props were moved to ${publicPropsClassName}Mixin. Double check the `consumedProps` values below,
                       // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
                       @override
-                      get consumedProps { 
+                      get consumedProps {
                         return [
                           propsMeta.forMixin(${publicPropsClassName}Mixin),
                         ];
                       }
-                    
+
                       @override
-                      render() {} 
+                      render() {}
                     }
                   ''',
                   );
@@ -2446,29 +2449,29 @@ void advancedPropsAndStateClassMigratorTestHelper({
 
       test(
           'and there are classes that extend from arbitrary custom classes, along with mixins',
-          () {
+          () async {
         const input = '''
             $factoryDecl
-    
+
             @Props()
             class $propsClassName extends ADifferentPropsClass with AMixin, AnotherMixin {
               String foo;
               int bar;
             }
-    
+
             @State()
             class $stateClassName extends ADifferentStateClass with AStateMixin, AnotherStateMixin {
               String foo;
               int bar;
             }
-    
+
             $statefulComponentDecl
           ''';
 
         // When it is run the first time, nothing should happen since
         // we don't know if the mixin(s) are external or not.
-        testSuggestor()(expectedPatchCount: 0, input: input);
-        testSuggestor(visitedClassNames: {
+        await testSuggestor()(expectedPatchCount: 0, input: input);
+        await testSuggestor(visitedClassNames: {
           'AMixin': 'AMixin',
           'AnotherMixin': 'AnotherMixin',
           'ADifferentPropsClass': 'ADifferentPropsClassMixin',
@@ -2490,7 +2493,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
           //   1. Ensure that all mixins used by ADifferentPropsClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins.
           @Props()
-          class $publicPropsClassName = UiProps 
+          class $publicPropsClassName = UiProps
               with ADifferentPropsClassMixin, ${publicPropsClassName}Mixin, AMixin, AnotherMixin;
 
           @State()
@@ -2503,7 +2506,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
           //   1. Ensure that all mixins used by ADifferentStateClass are also mixed into this class.
           //   2. Fix any analyzer warnings on this class about missing mixins.
           @State()
-          class $publicStateClassName = UiState 
+          class $publicStateClassName = UiState
               with ADifferentStateClass, ${publicStateClassName}Mixin, AStateMixin, AnotherStateMixin;
 
           ${statefulComponentDeclWithConsumedProps([
@@ -2536,8 +2539,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
             });
           });
 
-          test('and the class has no members', () {
-            testSuggestor()(
+          test('and the class has no members', () async {
+            await testSuggestor()(
               input: '''
               $factoryDecl
 
@@ -2578,8 +2581,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
             });
           });
 
-          test('and the class has members', () {
-            testSuggestor()(
+          test('and the class has members', () async {
+            await testSuggestor()(
               input: '''
               $factoryDecl
 
@@ -2638,8 +2641,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
             });
           });
 
-          test('and the class has no members', () {
-            testSuggestor()(
+          test('and the class has no members', () async {
+            await testSuggestor()(
               input: '''
               $factoryDecl
 
@@ -2668,8 +2671,8 @@ void advancedPropsAndStateClassMigratorTestHelper({
             });
           });
 
-          test('and the class has members', () {
-            testSuggestor()(
+          test('and the class has members', () async {
+            await testSuggestor()(
               input: '''
               $factoryDecl
 
@@ -2691,7 +2694,7 @@ void advancedPropsAndStateClassMigratorTestHelper({
                 // FIXME: Everything in this body needs to be moved to the body of ${publicPropsClassName}Mixin.
                 // Once that is done, the body can be removed, and `extends` can be replaced with `=`.
                 String baz;
-              }              
+              }
               ${componentDeclWithConsumedProps([])}
             ''',
             );

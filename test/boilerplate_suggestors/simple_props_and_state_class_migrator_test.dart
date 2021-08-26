@@ -54,14 +54,14 @@ void simplePropsAndStateClassMigratorTestHelper({
     });
 
     group('does not migrate when', () {
-      test('its an empty file', () {
-        testSuggestor(expectedPatchCount: 0, input: '');
+      test('its an empty file', () async {
+        await testSuggestor(expectedPatchCount: 0, input: '');
 
         expect(converter.visitedNames, isEmpty);
       });
 
-      test('there are no matches', () {
-        testSuggestor(
+      test('there are no matches', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
         library foo;
@@ -73,8 +73,9 @@ void simplePropsAndStateClassMigratorTestHelper({
         expect(converter.visitedNames, isEmpty);
       });
 
-      test('the component is not Component2, but does add a FIXME comment', () {
-        testSuggestor(
+      test('the component is not Component2, but does add a FIXME comment',
+          () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: r'''
         @Factory()
@@ -156,15 +157,15 @@ void simplePropsAndStateClassMigratorTestHelper({
         });
       });
 
-      test('the class is a PropsMixin', () {
-        testSuggestor(
+      test('the class is a PropsMixin', () async {
+        await testSuggestor(
           expectedPatchCount: isValidFilePath ? 0 : 1,
           input: r'''
         @Factory()
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             $Foo;
-        
+
         @PropsMixin()
         class FooPropsMixin {
           String foo;
@@ -194,7 +195,7 @@ void simplePropsAndStateClassMigratorTestHelper({
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             $Foo;
-        
+
 
         @PropsMixin()
         class FooPropsMixin {
@@ -224,7 +225,7 @@ void simplePropsAndStateClassMigratorTestHelper({
         UiFactory<FooProps> Foo =
             // ignore: undefined_identifier
             \$Foo;
-        
+
         @PropsMixin()
         class FooPropsMixin {
           String foo;
@@ -257,21 +258,22 @@ void simplePropsAndStateClassMigratorTestHelper({
         });
       });
 
-      test('the class is publicly exported, but does add a FIXME comment', () {
-        testSuggestor(
+      test('the class is publicly exported, but does add a FIXME comment',
+          () async {
+        await testSuggestor(
           expectedPatchCount: shouldTreatAllComponentsAsPrivate ? 3 : 1,
           input: r'''
           @Factory()
           UiFactory<BarProps> Bar =
               // ignore: undefined_identifier
               $Bar;
-  
+
           @Props()
           class _$BarProps extends UiProps {
             String foo;
             int bar;
           }
-  
+
           @Component2()
           class BarComponent extends UiComponent2<BarProps> {
             @override
@@ -295,7 +297,7 @@ void simplePropsAndStateClassMigratorTestHelper({
             String foo;
             int bar;
           }
-    
+
           @Component2()
           class BarComponent extends UiComponent2<BarProps> {
             @override
@@ -322,7 +324,7 @@ void simplePropsAndStateClassMigratorTestHelper({
             String foo;
             int bar;
           }
-  
+
           @Component2()
           class BarComponent extends UiComponent2<BarProps> {
             @override
@@ -342,8 +344,8 @@ void simplePropsAndStateClassMigratorTestHelper({
       });
 
       group('the classes are not simple', () {
-        test('and there are both a props and a state class', () {
-          testSuggestor(
+        test('and there are both a props and a state class', () async {
+          await testSuggestor(
             expectedPatchCount: isValidFilePath ? 0 : 2,
             input: r'''
         @Factory()
@@ -443,8 +445,8 @@ void simplePropsAndStateClassMigratorTestHelper({
           });
         });
 
-        test('and there is just a props class', () {
-          testSuggestor(
+        test('and there is just a props class', () async {
+          await testSuggestor(
             expectedPatchCount: isValidFilePath ? 0 : 1,
             input: r'''
         @Factory()
@@ -527,27 +529,27 @@ void simplePropsAndStateClassMigratorTestHelper({
     });
 
     group('migrates when the classes are simple', () {
-      test('and there are both a props and a state class', () {
-        testSuggestor(
+      test('and there are both a props and a state class', () async {
+        await testSuggestor(
           expectedPatchCount: isValidFilePath ? 6 : 2,
           input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               $Foo;
-    
+
           @Props()
           class _$FooProps extends UiProps {
             String foo;
             int bar;
           }
-    
+
           @State()
           class _$FooState extends UiState {
             String foo;
             int bar;
           }
-    
+
           @Component2()
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
@@ -565,19 +567,19 @@ void simplePropsAndStateClassMigratorTestHelper({
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               $Foo;
-    
+
           @Props()
           mixin FooProps on UiProps {
             String foo;
             int bar;
           }
-    
+
           @State()
           mixin FooState on UiState {
             String foo;
             int bar;
           }
-    
+
           @Component2()
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
@@ -594,21 +596,21 @@ void simplePropsAndStateClassMigratorTestHelper({
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               \$Foo;
-    
+
           ${semverReportUnavailableComment('FooProps')}
           @Props()
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
-    
+
           ${semverReportUnavailableComment('FooState')}
           @State()
           class _\$FooState extends UiState {
             String foo;
             int bar;
           }
-    
+
           @Component2()
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
@@ -628,21 +630,21 @@ void simplePropsAndStateClassMigratorTestHelper({
         });
       });
 
-      test('and there is only a props class', () {
-        testSuggestor(
+      test('and there is only a props class', () async {
+        await testSuggestor(
           expectedPatchCount: isValidFilePath ? 3 : 1,
           input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               $Foo;
-    
+
           @Props()
           class _$FooProps extends UiProps {
             String foo;
             int bar;
           }
-    
+
           @Component2()
           class FooComponent extends UiComponent2<FooProps> {
             @override
@@ -660,13 +662,13 @@ void simplePropsAndStateClassMigratorTestHelper({
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               $Foo;
-    
+
           @Props()
           mixin FooProps on UiProps {
             String foo;
             int bar;
           }
-    
+
           @Component2()
           class FooComponent extends UiComponent2<FooProps> {
             @override
@@ -683,14 +685,14 @@ void simplePropsAndStateClassMigratorTestHelper({
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               \$Foo;
-    
+
           ${semverReportUnavailableComment('FooProps')}
           @Props()
           class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
-    
+
           @Component2()
           class FooComponent extends UiComponent2<FooProps> {
             @override
@@ -709,27 +711,27 @@ void simplePropsAndStateClassMigratorTestHelper({
         });
       });
 
-      test('and are abstract', () {
-        testSuggestor(
+      test('and are abstract', () async {
+        await testSuggestor(
           expectedPatchCount: isValidFilePath ? 8 : 2,
           input: r'''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               $Foo;
-    
+
           @AbstractProps()
           abstract class _$FooProps extends UiProps {
             String foo;
             int bar;
           }
-    
+
           @AbstractState()
           abstract class _$FooState extends UiState {
             String foo;
             int bar;
           }
-    
+
           @AbstractComponent2()
           abstract class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
@@ -747,19 +749,19 @@ void simplePropsAndStateClassMigratorTestHelper({
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               $Foo;
-    
+
           @AbstractProps()
           mixin FooProps on UiProps {
             String foo;
             int bar;
           }
-    
+
           @AbstractState()
           mixin FooState on UiState {
             String foo;
             int bar;
           }
-    
+
           @AbstractComponent2()
           abstract class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
@@ -776,21 +778,21 @@ void simplePropsAndStateClassMigratorTestHelper({
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               \$Foo;
-    
+
           ${semverReportUnavailableComment('FooProps')}
           @AbstractProps()
           abstract class _\$FooProps extends UiProps {
             String foo;
             int bar;
           }
-    
+
           ${semverReportUnavailableComment('FooState')}
           @AbstractState()
           abstract class _\$FooState extends UiState {
             String foo;
             int bar;
           }
-    
+
           @AbstractComponent2()
           abstract class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
@@ -818,16 +820,16 @@ String semverReportUnavailableComment(String nodeName) {
     // FIXME: A Workiva Semver report was not found. `$nodeName` is assumed to be exported from a library in this repo and thus was not auto-migrated to the new over_react boilerplate.
     //
     // --------- If you are migrating an OSS library outside of Workiva ---------
-    // You do not have access to Workiva's internal Semver audit tool. 
+    // You do not have access to Workiva's internal Semver audit tool.
     // To complete the migration, you should:
     //
     //   1. Revert all changes to remove this FIX-ME comment
-    //   2. Re-run the migration script with the following flag:    
+    //   2. Re-run the migration script with the following flag:
     //
     //        pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
     //
     //   NOTE: The changes made to props / state classes by the codemod constitute breaking changes
-    //   if you publicly export them from your library. We strongly recommend that you release 
+    //   if you publicly export them from your library. We strongly recommend that you release
     //   the subsequent changes in a major version.
     //
     // --------- If you are migrating a Workiva library ---------

@@ -21,8 +21,7 @@ import '../constants.dart';
 /// Suggestor that removes the `// ignore: ...` comment attached to each
 /// over_react generated part directive.
 class GeneratedPartDirectiveIgnoreRemover extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final _ignoreComment = RegExp(r'[\n]?[ ]*//[ ]*ignore:.*');
 
   @override
@@ -31,6 +30,7 @@ class GeneratedPartDirectiveIgnoreRemover extends RecursiveAstVisitor
       return;
     }
 
+    final sourceFile = context.sourceFile;
     final prevLineEnd = node.offset - 1;
     final prevLineStart = sourceFile.getOffset(sourceFile.getLine(prevLineEnd));
     final prevLine = sourceFile.getText(prevLineStart, prevLineEnd);
@@ -45,7 +45,7 @@ class GeneratedPartDirectiveIgnoreRemover extends RecursiveAstVisitor
       final shouldRemoveNewline =
           lineBeforeComment.isEmpty || lineBeforeComment.startsWith('part');
       yieldPatch(
-          prevLineStart, prevLineEnd + (shouldRemoveNewline ? 1 : 0), '');
+          '', prevLineStart, prevLineEnd + (shouldRemoveNewline ? 1 : 0));
     }
   }
 }

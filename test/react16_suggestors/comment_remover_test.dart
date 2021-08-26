@@ -30,12 +30,12 @@ main() {
     final testSuggestor =
         getSuggestorTester(CommentRemover('Check this box', 'complete'));
 
-    test('does not update an empty file', () {
-      testSuggestor(expectedPatchCount: 0, input: '');
+    test('does not update an empty file', () async {
+      await testSuggestor(expectedPatchCount: 0, input: '');
     });
 
-    test('does not update when there are no matches', () {
-      testSuggestor(
+    test('does not update when there are no matches', () async {
+      await testSuggestor(
         expectedPatchCount: 0,
         input: '''
           class test extends UiComponent {
@@ -47,8 +47,8 @@ main() {
 
     group('when removing style map comments', () {
       group('updates when there is a basic comment', () {
-        test('', () {
-          testSuggestor(
+        test('', () async {
+          await testSuggestor(
             expectedPatchCount: 1,
             input: '''
           class Test extends UiComponent {
@@ -66,8 +66,8 @@ main() {
           );
         });
 
-        test('nested under a function', () {
-          testSuggestor(
+        test('nested under a function', () async {
+          await testSuggestor(
             expectedPatchCount: 1,
             input: '''
           class test extends UiComponent {
@@ -90,8 +90,8 @@ main() {
         });
       });
 
-      test('updates when there is a multiline comment', () {
-        testSuggestor(
+      test('updates when there is a multiline comment', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
           class Test extends UiComponent {
@@ -113,8 +113,8 @@ main() {
 
       test(
           'updates when there is a multiline comment and a comment string is'
-          ' split', () {
-        testSuggestor(
+          ' split', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
           class Test extends UiComponent {
@@ -134,13 +134,13 @@ main() {
           ''',
         );
 
-        testSuggestor(
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
           class Test extends UiComponent {
             var aTest = Foo()
              // [x] Check this box upon manual validation that this style map is
-             // receiving a value that is valid for the keys that are simple 
+             // receiving a value that is valid for the keys that are simple
              // string variables.
              $styleMapExplanation
              //$willBeRemovedCommentSuffix
@@ -155,12 +155,12 @@ main() {
           ''',
         );
 
-        testSuggestor(
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
           class Test extends UiComponent {
             var aTest = Foo()
-             // [x] Check this box upon manual validation that this style map 
+             // [x] Check this box upon manual validation that this style map
              // uses a valid value for the keys that are numbers.
              $styleMapExplanation
              //$willBeRemovedCommentSuffix
@@ -176,8 +176,8 @@ main() {
         );
       });
 
-      test('does not remove comments above', () {
-        testSuggestor(
+      test('does not remove comments above', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: ''' 
           class Test extends UiComponent {
@@ -199,8 +199,8 @@ main() {
         );
       });
 
-      test('does not remove comments below', () {
-        testSuggestor(
+      test('does not remove comments below', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
           class Test extends UiComponent {
@@ -224,8 +224,8 @@ main() {
     });
 
     group('when removing react_dom.render comments', () {
-      test('updates when there is a basic comment', () {
-        testSuggestor(
+      test('updates when there is a basic comment', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             main() {
@@ -247,8 +247,8 @@ main() {
         );
       });
 
-      test('updates when there is a multiline comment', () {
-        testSuggestor(
+      test('updates when there is a multiline comment', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             main() {
@@ -271,7 +271,7 @@ main() {
           ''',
         );
 
-        testSuggestor(
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
           main() {

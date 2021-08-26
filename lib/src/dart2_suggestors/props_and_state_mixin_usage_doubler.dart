@@ -40,8 +40,7 @@ final _mixinIgnoreComment = buildIgnoreComment(
 ///             DebounceStateMixin {}
 // TODO: Can we use an ElementVisitor to definitively determine whether a mixin type is an over_react mixin? Otherwise we will hit false positives (e.g. `DebounceStateMixin`)
 class PropsAndStateMixinUsageDoubler extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   @override
   visitWithClause(WithClause node) {
     final allMixins = node.mixinTypes.map((n) => n.name.name);
@@ -62,13 +61,13 @@ class PropsAndStateMixinUsageDoubler extends RecursiveAstVisitor
       if (targetMixins.contains(mixinType.name.name)) {
         final typeArgs = mixinType.typeArguments?.toSource() ?? '';
         yieldPatch(
-          mixinType.end,
-          mixinType.end,
           [
             ',',
             '    $_mixinIgnoreComment',
             '    ${generatedPrefix}${mixinType.name.name}$typeArgs',
           ].join('\n'),
+          mixinType.end,
+          mixinType.end,
         );
       }
     }

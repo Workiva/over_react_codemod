@@ -29,8 +29,7 @@ import 'component2_utilities.dart';
 /// `react.dart` imports are also updated to show Component2 as well
 /// as Component.
 class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final bool allowPartialUpgrades;
   final bool shouldUpgradeAbstractComponents;
 
@@ -75,9 +74,9 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
         showNamesList != null &&
         !showNamesList.any((name) => name.toSource() == 'Component2')) {
       yieldPatch(
-        showNamesList.last.end,
-        showNamesList.last.end,
         ', Component2',
+        showNamesList.last.end,
+        showNamesList.last.end,
       );
     }
   }
@@ -104,9 +103,9 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
         extendsName.name == '$reactImportName.Component') {
       // Update `react.Component` extends clause.
       yieldPatch(
-        extendsName.end,
-        extendsName.end,
         '2',
+        extendsName.end,
+        extendsName.end,
       );
 
       wasUpdated = true;
@@ -130,9 +129,9 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
         }
 
         yieldPatch(
-          annotationRef.name.end,
-          annotationRef.name.end,
           '2',
+          annotationRef.name.end,
+          annotationRef.name.end,
         );
 
         wasUpdated = true;
@@ -141,9 +140,9 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
       if (upgradableV1ComponentClassNames.contains(extendsName.name)) {
         // Update `UiComponent` or `UiStatefulComponent` extends clause.
         yieldPatch(
-          extendsName.end,
-          extendsName.end,
           '2',
+          extendsName.end,
+          extendsName.end,
         );
 
         wasUpdated = true;
@@ -173,13 +172,13 @@ class ClassNameAndAnnotationMigrator extends GeneralizingAstVisitor
           'FIXME: Abstract class has been updated to $classToUpgradeTo. This is a breaking change if this class is exported.'),
     ].forEach((patch) {
       if (!patch.shouldYieldPatch(node) ||
-          hasMultilineDocComment(node, sourceFile, patch.commentSrc)) {
+          hasMultilineDocComment(node, context.sourceFile, patch.commentSrc)) {
         return;
       }
 
       final patchOffset = node.metadata?.beginToken?.offset ??
           node.firstTokenAfterCommentAndMetadata.offset;
-      yieldPatch(patchOffset, patchOffset, patch.commentSrc);
+      yieldPatch(patch.commentSrc, patchOffset, patchOffset);
     });
   }
 }

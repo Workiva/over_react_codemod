@@ -24,8 +24,7 @@ import 'boilerplate_utilities.dart';
 ///
 /// > NOTE: `@PropsMixin()` and `@StateMixin()` annotations are removed via [PropsMixinMigrator].
 class AnnotationsRemover extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final ClassToMixinConverter converter;
 
   AnnotationsRemover(this.converter);
@@ -45,10 +44,10 @@ class AnnotationsRemover extends GeneralizingAstVisitor
     // --- Migrate --- //
     // Take out the whole line if we can
     var end = annotationToRemove.end;
-    if (sourceFile.getText(end, end + 1) == '\n') {
+    if (context.sourceFile.getText(end, end + 1) == '\n') {
       end = end + 1;
     }
-    yieldPatch(annotationToRemove.offset, end, '');
+    yieldPatch('', annotationToRemove.offset, end);
   }
 
   static const _relevantAnnotationNames = [

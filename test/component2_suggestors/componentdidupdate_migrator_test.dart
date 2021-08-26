@@ -48,12 +48,12 @@ void componentDidUpdateTests({
     shouldUpgradeAbstractComponents: shouldUpgradeAbstractComponents,
   ));
 
-  test('empty file', () {
-    testSuggestor(expectedPatchCount: 0, input: '');
+  test('empty file', () async {
+    await testSuggestor(expectedPatchCount: 0, input: '');
   });
 
-  test('no matches', () {
-    testSuggestor(
+  test('no matches', () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         library foo;
@@ -64,8 +64,8 @@ void componentDidUpdateTests({
   });
 
   group('componentDidUpdate method', () {
-    test('updates if containing class is fully upgradable', () {
-      testSuggestor(
+    test('updates if containing class is fully upgradable', () async {
+      await testSuggestor(
         expectedPatchCount: 1,
         input: '''
           @Component2()
@@ -89,8 +89,8 @@ void componentDidUpdateTests({
     group(
         '${allowPartialUpgrades ? 'updates' : 'does not update'} if '
         'containing class is not fully upgradable', () {
-      test('-- extends from non-Component class', () {
-        testSuggestor(
+      test('-- extends from non-Component class', () async {
+        await testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 1 : 0,
           input: '''
             @Component2()
@@ -111,8 +111,8 @@ void componentDidUpdateTests({
         );
       });
 
-      test('-- has deprecated lifecycle methods without codemods', () {
-        testSuggestor(
+      test('-- has deprecated lifecycle methods without codemods', () async {
+        await testSuggestor(
           expectedPatchCount: allowPartialUpgrades ? 1 : 0,
           input: '''
             @Component2()
@@ -120,7 +120,7 @@ void componentDidUpdateTests({
               componentDidUpdate(Map prevProps, Map prevState) {
                 // method body
               }
-              
+
               @override
               componentWillReceiveProps() {}
             }
@@ -131,7 +131,7 @@ void componentDidUpdateTests({
               componentDidUpdate(Map prevProps, Map prevState${allowPartialUpgrades ? ', [snapshot]' : ''}) {
                 // method body
               }
-              
+
               @override
               componentWillReceiveProps() {}
             }
@@ -143,8 +143,8 @@ void componentDidUpdateTests({
     group('in an abstract class', () {
       test(
           'that is fully upgradable ${shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
-          () {
-        testSuggestor(
+          () async {
+        await testSuggestor(
           expectedPatchCount: shouldUpgradeAbstractComponents ? 1 : 0,
           input: '''
           @AbstractComponent2()
@@ -168,14 +168,14 @@ void componentDidUpdateTests({
       group(
           'that is not fully upgradable ${allowPartialUpgrades && shouldUpgradeAbstractComponents ? 'updates' : 'does not update'}',
           () {
-        test('-- extends from non-Component class', () {
-          testSuggestor(
+        test('-- extends from non-Component class', () async {
+          await testSuggestor(
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
             input: '''
               @AbstractProps()
               class AbstractFooProps extends UiProps {}
-            
+
               @AbstractComponent2()
               class FooComponent extends SomeOtherClass {
                 componentDidUpdate(Map prevProps, Map prevState) {
@@ -186,7 +186,7 @@ void componentDidUpdateTests({
             expectedOutput: '''
               @AbstractProps()
               class AbstractFooProps extends UiProps {}
-              
+
               @AbstractComponent2()
               class FooComponent extends SomeOtherClass {
                 componentDidUpdate(Map prevProps, Map prevState${allowPartialUpgrades && shouldUpgradeAbstractComponents ? ', [snapshot]' : ''}) {
@@ -197,8 +197,8 @@ void componentDidUpdateTests({
           );
         });
 
-        test('-- has deprecated lifecycle methods without codemods', () {
-          testSuggestor(
+        test('-- has deprecated lifecycle methods without codemods', () async {
+          await testSuggestor(
             expectedPatchCount:
                 allowPartialUpgrades && shouldUpgradeAbstractComponents ? 1 : 0,
             input: '''
@@ -207,7 +207,7 @@ void componentDidUpdateTests({
                 componentDidUpdate(Map prevProps, Map prevState) {
                   // method body
                 }
-                
+
                 @override
                 componentWillUpdate() {}
               }
@@ -218,7 +218,7 @@ void componentDidUpdateTests({
                 componentDidUpdate(Map prevProps, Map prevState${allowPartialUpgrades && shouldUpgradeAbstractComponents ? ', [snapshot]' : ''}) {
                   // method body
                 }
-                
+
                 @override
                 componentWillUpdate() {}
               }
@@ -230,8 +230,8 @@ void componentDidUpdateTests({
   });
 
   test('componentDidUpdate does not update if optional third argument exists',
-      () {
-    testSuggestor(
+      () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         @Component2()
@@ -244,8 +244,9 @@ void componentDidUpdateTests({
     );
   });
 
-  test('does not change componentDidUpdate for non-component2 classes', () {
-    testSuggestor(
+  test('does not change componentDidUpdate for non-component2 classes',
+      () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         @Component()

@@ -31,7 +31,7 @@ const _changesRequiredOutput = """
   Then, review the the changes, address any FIXMEs, and commit.
 """;
 
-void main(List<String> args) {
+void main(List<String> args) async {
   final reactVersionConstraint = VersionConstraint.parse('^5.1.0');
   final overReactVersionConstraint = VersionConstraint.parse('^3.1.3');
   final logger = Logger('over_react_codemod.fixmes');
@@ -55,9 +55,9 @@ void main(List<String> args) {
   final pubspecYamlQuery =
       filePathsFromGlob(Glob('**pubspec.yaml', recursive: true));
 
-  exitCode = runInteractiveCodemod(
+  exitCode = await runInteractiveCodemod(
     pubspecYamlQuery,
-    AggregateSuggestor([
+    aggregate([
       PubspecReactUpdater(reactVersionConstraint, shouldAddDependencies: false),
       PubspecOverReactUpgrader(overReactVersionConstraint,
           shouldAddDependencies: false),
@@ -69,7 +69,7 @@ void main(List<String> args) {
 
   if (exitCode != 0) return;
 
-  exitCode = runInteractiveCodemodSequence(
+  exitCode = await runInteractiveCodemodSequence(
     query,
     [CommentRemover(startingString, endingString)],
     args: args,

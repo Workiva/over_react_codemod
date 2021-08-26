@@ -16,7 +16,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/migration_decision.dart';
-import 'package:source_span/source_span.dart';
 
 import '../constants.dart';
 import '../util.dart';
@@ -30,8 +29,7 @@ import 'boilerplate_utilities.dart';
 ///
 /// Note: This should not operate on a class that does fit the criteria for _simple_.
 class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   final ClassToMixinConverter converter;
   final SemverHelper semverHelper;
   final bool convertClassesWithExternalSuperclass;
@@ -55,7 +53,6 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
     final parentClassName = node.extendsClause?.superclass?.name?.name;
     final mixinNames = node.withClause?.mixinTypes?.getConvertedClassesByName(
           converter: converter,
-          sourceFile: sourceFile,
           includeGenericParameters: false,
           includeComments: false,
           includePrivateGeneratedClassNames: false,
@@ -66,7 +63,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       node,
       converter,
       semverHelper,
-      sourceFile,
+      context.relativePath,
       mixinNames: mixinNames,
       parentClassHasBeenVisited: converter.wasVisited(parentClassName),
       parentClassHasBeenConverted: converter.wasMigrated(parentClassName),
@@ -148,8 +145,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         }
 
         mixinsForNewDeclaration.write(node.withClause.mixinTypes
-            .joinConvertedClassesByName(
-                converter: converter, sourceFile: sourceFile));
+            .joinConvertedClassesByName(converter: converter));
       }
 
       return mixinsForNewDeclaration;
@@ -246,9 +242,9 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
       // needs to be done.
       if (dupeClassInSameRoot != null) {
         yieldPatch(
+            node.members.map((member) => member.toSource()).join('\n'),
             dupeClassInSameRoot.rightBracket.offset,
-            dupeClassInSameRoot.rightBracket.offset,
-            node.members.map((member) => member.toSource()).join('\n'));
+            dupeClassInSameRoot.rightBracket.offset);
         didMoveMembersToDupeMixin = true;
 
         newDeclarationBuffer.write(declIsAbstract ? '{}' : ';');
@@ -271,8 +267,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
         shouldSwapParentClass:
             extendsFromCustomClass || extendsFromReservedClass,
         convertClassesWithExternalSuperclass:
-            convertClassesWithExternalSuperclass,
-        sourceFile: sourceFile);
+            convertClassesWithExternalSuperclass);
 
     // If a class extends from UiProps/UiState and uses a single mixin that has a name
     // that matches the concrete class name appended with `Mixin`, the call to
@@ -304,7 +299,7 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
 
       for (var classNameAsTypeArg in allClassNameAsTypeArguments) {
         yieldPatch(
-            classNameAsTypeArg.offset, classNameAsTypeArg.end, nameOfDupeMixin);
+            nameOfDupeMixin, classNameAsTypeArg.offset, classNameAsTypeArg.end);
       }
 
       // Consumed props changes don't apply to state classes
@@ -328,14 +323,13 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
             .whereType<MethodDeclaration>()
             .where((method) => method.name.name == 'consumedProps');
         if (consumedPropsDeclarations.isEmpty) {
-          yieldPatch(
-              componentNode.leftBracket.end, componentNode.leftBracket.end, '''
-            // Override consumedProps to an empty list so that props within 
+          yieldPatch('''
+            // Override consumedProps to an empty list so that props within
             // $nameOfDupeMixin are forwarded when `addUnconsumedProps` is used.
             @override
             get consumedProps => [];
-            
-          ''');
+
+          ''', componentNode.leftBracket.end, componentNode.leftBracket.end);
         } else {
           final consumedPropsDeclaration = consumedPropsDeclarations.single;
 
@@ -358,19 +352,19 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
           if (currentConsumedProps != null &&
               currentConsumedProps.elements.isNotEmpty) {
             if (node.members.isNotEmpty) {
-              yieldPatch(consumedPropsDeclaration.offset,
-                  consumedPropsDeclaration.offset, '''
-                // FIXME: As part of the over_react boilerplate migration, $className was removed, 
+              yieldPatch('''
+                // FIXME: As part of the over_react boilerplate migration, $className was removed,
                 // and all of its props were moved to $nameOfDupeMixin. Double check the `consumedProps` values below,
                 // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
-              ''');
+              ''', consumedPropsDeclaration.offset,
+                  consumedPropsDeclaration.offset);
             } else {
-              yieldPatch(consumedPropsDeclaration.offset,
-                  consumedPropsDeclaration.offset, '''
-                // FIXME: As part of the over_react boilerplate migration, $className was removed, 
+              yieldPatch('''
+                // FIXME: As part of the over_react boilerplate migration, $className was removed,
                 // and replaced by $nameOfDupeMixin. Double check the `consumedProps` values below,
                 // and the prop forwarding behavior of this component to ensure that no regressions have occurred.
-              ''');
+              ''', consumedPropsDeclaration.offset,
+                  consumedPropsDeclaration.offset);
             }
 
             final metaForConcreteClassThatWillBeRemoved = currentConsumedProps
@@ -379,16 +373,16 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
                     orElse: () => null);
             if (metaForConcreteClassThatWillBeRemoved != null) {
               yieldPatch(
+                  'propsMeta.forMixin($nameOfDupeMixin)',
                   metaForConcreteClassThatWillBeRemoved.offset,
-                  metaForConcreteClassThatWillBeRemoved.end,
-                  'propsMeta.forMixin($nameOfDupeMixin)');
+                  metaForConcreteClassThatWillBeRemoved.end);
             }
           }
         }
       }
     } else {
       // Patch with our newly generated concrete class
-      yieldPatch(node.end, node.end, newDeclarationBuffer.toString());
+      yieldPatch(newDeclarationBuffer.toString(), node.end, node.end);
 
       // Consumed props changes don't apply to state classes
       if (isAPropsClass(node)) {
@@ -473,8 +467,8 @@ class AdvancedPropsAndStateClassMigrator extends GeneralizingAstVisitor
             ''';
           }
 
-          yieldPatch(componentNode.leftBracket.end,
-              componentNode.leftBracket.end, consumedPropsImpl);
+          yieldPatch(consumedPropsImpl, componentNode.leftBracket.end,
+              componentNode.leftBracket.end);
         }
       }
     }
@@ -494,7 +488,7 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
   ClassDeclaration node,
   ClassToMixinConverter converter,
   SemverHelper semverHelper,
-  SourceFile sourceFile, {
+  String path, {
   bool convertClassesWithExternalSuperclass = false,
   bool parentClassHasBeenVisited = false,
   bool parentClassHasBeenConverted = false,
@@ -506,7 +500,7 @@ MigrationDecision shouldMigrateAdvancedPropsAndStateClass(
   }
 
   final _shouldMigratePropsAndStateClass =
-      getPropsAndStateClassMigrationDecision(node, semverHelper, sourceFile);
+      getPropsAndStateClassMigrationDecision(node, semverHelper, path);
   if (!_shouldMigratePropsAndStateClass.yee) {
     return _shouldMigratePropsAndStateClass;
   } else if (!isAdvancedPropsOrStateClass(node)) {

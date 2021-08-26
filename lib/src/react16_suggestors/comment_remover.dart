@@ -19,9 +19,7 @@ import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart
 
 /// Suggestor that removes a block of comments based on the beginning and end
 /// of the comments.
-class CommentRemover extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+class CommentRemover extends GeneralizingAstVisitor with AstVisitingSuggestor {
   final Pattern startString;
   final Pattern endString;
 
@@ -35,12 +33,14 @@ class CommentRemover extends GeneralizingAstVisitor
     int endingOffset;
 
     for (var comment in allComments(node.root.beginToken)) {
-      final commentText = sourceFile.getText(comment.offset, comment.end);
+      final commentText =
+          context.sourceFile.getText(comment.offset, comment.end);
 
       if (commentText.contains(startString) && startingOffset == null) {
         // Make the starting offset the end of the previous line.
-        startingOffset =
-            sourceFile.getOffset(sourceFile.getLine(comment.offset)) - 1;
+        startingOffset = context.sourceFile
+                .getOffset(context.sourceFile.getLine(comment.offset)) -
+            1;
       }
 
       if (commentText.contains(endString) &&
@@ -50,7 +50,7 @@ class CommentRemover extends GeneralizingAstVisitor
       }
 
       if (startingOffset != null && endingOffset != null) {
-        yieldPatch(startingOffset, endingOffset, '');
+        yieldPatch('', startingOffset, endingOffset);
         startingOffset = null;
         endingOffset = null;
       }

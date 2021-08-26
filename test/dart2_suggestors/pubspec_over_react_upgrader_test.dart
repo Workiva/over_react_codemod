@@ -60,8 +60,8 @@ main() {
         shouldAddDependencies: false,
       );
 
-      test('does not lower the lower bound', () {
-        defaultTestSuggestor(
+      test('does not lower the lower bound', () async {
+        await defaultTestSuggestor(
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           validateContents: validatePubspecYaml,
@@ -83,8 +83,8 @@ main() {
       });
 
       group('does not attempt to update dependency_overrides', () {
-        test('git', () {
-          defaultTestSuggestor(
+        test('git', () async {
+          await defaultTestSuggestor(
             expectedPatchCount: 0,
             shouldDartfmtOutput: false,
             validateContents: validatePubspecYaml,
@@ -97,8 +97,8 @@ main() {
           );
         });
 
-        test('path', () {
-          defaultTestSuggestor(
+        test('path', () async {
+          await defaultTestSuggestor(
             expectedPatchCount: 0,
             shouldDartfmtOutput: false,
             validateContents: validatePubspecYaml,
@@ -126,8 +126,8 @@ main() {
       );
 
       group('does not attempt to update dependency_overrides', () {
-        test('git', () {
-          defaultTestSuggestor(
+        test('git', () async {
+          await defaultTestSuggestor(
               expectedPatchCount: 0,
               shouldDartfmtOutput: false,
               validateContents: validatePubspecYaml,
@@ -145,8 +145,8 @@ main() {
                   '      ref: 5.0.0-wip\n');
         });
 
-        test('path', () {
-          defaultTestSuggestor(
+        test('path', () async {
+          await defaultTestSuggestor(
             expectedPatchCount: 0,
             shouldDartfmtOutput: false,
             validateContents: validatePubspecYaml,

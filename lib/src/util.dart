@@ -503,8 +503,8 @@ void removeCommentFromNode(
   if (firstMatchingCommentLineToken != null) {
     if (commentLinesToRemove.length == 1) {
       // Remove single line comment
-      yieldPatch(firstMatchingCommentLineToken.offset,
-          firstMatchingCommentLineToken.end, '');
+      yieldPatch('', firstMatchingCommentLineToken.offset,
+          firstMatchingCommentLineToken.end);
     } else {
       final lastLineOfCommentToRemove =
           commentLinesToRemove[commentLinesToRemove.length - 2];
@@ -513,8 +513,8 @@ void removeCommentFromNode(
           orElse: () => null);
       if (lastMatchingCommentLineToken != null) {
         // Remove multi line comment
-        yieldPatch(firstMatchingCommentLineToken.offset,
-            lastMatchingCommentLineToken.end, '');
+        yieldPatch('', firstMatchingCommentLineToken.offset,
+            lastMatchingCommentLineToken.end);
       }
     }
   }

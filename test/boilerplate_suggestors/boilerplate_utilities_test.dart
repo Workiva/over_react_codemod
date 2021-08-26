@@ -32,13 +32,13 @@ void main() {
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
                 \$Foo;
-            
+
             @Props()
             class _\$FooProps extends UiProps{
               String foo;
               int bar;
             }
-            
+
             @Component2()
             class FooComponent extends UiComponent2<FooProps> {
               @override
@@ -77,19 +77,19 @@ void main() {
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
                 \$Foo;
-            
+
             @Props()
             class _\$FooProps extends UiProps {
               String foo;
               int bar;
             }
-            
+
             @State()
             class _\$FooState extends UiState {
               String foo;
               int bar;
             }
-            
+
             @Component2()
             class FooComponent extends UiComponent2<FooProps> {
               @override
@@ -128,19 +128,19 @@ void main() {
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
                 \$Foo;
-            
+
             @Props()
             class _\$FooProps extends ADifferentPropsClass with APropsMixin {
               String foo;
               int bar;
             }
-            
+
             @State()
             class _\$FooState extends ADifferentStateClass with AStateMixin {
               String foo;
               int bar;
             }
-            
+
             @Component2()
             class FooComponent extends UiComponent2<FooProps> {
               @override
@@ -176,19 +176,19 @@ void main() {
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
                 \$Foo;
-            
+
             @Props()
             class _\$FooProps extends UiProps with APropsMixin {
               String foo;
               int bar;
             }
-            
+
             @State()
             class _\$FooState extends UiState with AStateMixin {
               String foo;
               int bar;
             }
-            
+
             @Component2()
             class FooComponent extends UiComponent2<FooProps> {
               @override
@@ -225,19 +225,19 @@ void main() {
             UiFactory<FooProps> Foo =
                 // ignore: undefined_identifier
                 \$Foo;
-            
+
             @Props()
             class _\$FooProps extends ADifferentPropsClass {
               String foo;
               int bar;
             }
-            
+
             @State()
             class _\$FooState extends ADifferentStateClass {
               String foo;
               int bar;
             }
-            
+
             @Component2()
             class FooComponent extends UiComponent2<FooProps> {
               @override
@@ -334,13 +334,13 @@ void semverUtilitiesTestHelper({
       unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
         expect(
             semverHelper.getPublicExportLocations(
-                classNode, Uri.parse('lib/src/foo.dart')),
+                classNode, 'lib/src/foo.dart'),
             isValidFilePath || shouldTreatAllComponentsAsPrivate
                 ? isEmpty
                 : [
                     'Semver report not available; this class is assumed to be public and thus will not be updated.'
                   ]);
-        expect(isPublic(classNode, semverHelper, Uri.parse('lib/src/foo.dart')),
+        expect(isPublic(classNode, semverHelper, 'lib/src/foo.dart'),
             !isValidFilePath && !shouldTreatAllComponentsAsPrivate);
       });
     });
@@ -360,10 +360,9 @@ void semverUtilitiesTestHelper({
       unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
         expect(
             semverHelper.getPublicExportLocations(
-                classNode, Uri.parse('web/src/foo.dart')),
+                classNode, 'web/src/foo.dart'),
             isEmpty);
-        expect(isPublic(classNode, semverHelper, Uri.parse('web/src/foo.dart')),
-            isFalse);
+        expect(isPublic(classNode, semverHelper, 'web/src/foo.dart'), isFalse);
       });
     });
   });
@@ -390,10 +389,9 @@ void semverUtilitiesTestHelper({
 
     unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
       expect(
-          semverHelper.getPublicExportLocations(
-              classNode, Uri.parse('lib/src/foo.dart')),
+          semverHelper.getPublicExportLocations(classNode, 'lib/src/foo.dart'),
           shouldTreatAllComponentsAsPrivate ? isEmpty : expectedOutput);
-      expect(isPublic(classNode, semverHelper, Uri.parse('lib/src/foo.dart')),
+      expect(isPublic(classNode, semverHelper, 'lib/src/foo.dart'),
           !shouldTreatAllComponentsAsPrivate);
     });
   });

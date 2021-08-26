@@ -34,12 +34,12 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
   final testSuggestor =
       getSuggestorTester(FactoryAndConfigIgnoreCommentRemover(ignoreToRemove));
 
-  test('empty file', () {
-    testSuggestor(expectedPatchCount: 0, input: '');
+  test('empty file', () async {
+    await testSuggestor(expectedPatchCount: 0, input: '');
   });
 
-  test('no matches', () {
-    testSuggestor(
+  test('no matches', () async {
+    await testSuggestor(
       expectedPatchCount: 0,
       input: '''
         library foo;
@@ -51,8 +51,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
 
   group('on Component Factory Declarations:', () {
     group('does not remove', () {
-      test('ignore comments from legacy boilerplate', () {
-        testSuggestor(
+      test('ignore comments from legacy boilerplate', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             @Factory()
@@ -64,8 +64,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         );
       });
 
-      test('other ignore comments', () {
-        testSuggestor(
+      test('other ignore comments', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             // ignore: invalid_assignment
@@ -76,8 +76,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         );
       });
 
-      test('from a non-component factory declaration', () {
-        testSuggestor(
+      test('from a non-component factory declaration', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             DriverFactory driverFactory = createDriver; // ignore: $ignoreToRemove
@@ -87,8 +87,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
     });
 
     group('correctly removes $ignoreToRemove ignore comments', () {
-      test('when the comment is on the same line', () {
-        testSuggestor(
+      test('when the comment is on the same line', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             UiFactory<FooProps> Foo = _\$Foo; // ignore: $ignoreToRemove
@@ -99,8 +99,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         );
       });
 
-      test('when the comment is on the initializer', () {
-        testSuggestor(
+      test('when the comment is on the initializer', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             UiFactory<FooProps> Foo =
@@ -113,8 +113,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         );
       });
 
-      test('when the comment is on the preceding line', () {
-        testSuggestor(
+      test('when the comment is on the preceding line', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             // ignore: $ignoreToRemove
@@ -126,62 +126,62 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         );
       });
 
-      test('when there is another comment above it', () {
-        testSuggestor(
+      test('when there is another comment above it', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             // this is another comment
             // ignore: $ignoreToRemove
-            UiFactory<FooProps> Foo = _\$Foo; 
+            UiFactory<FooProps> Foo = _\$Foo;
           ''',
           expectedOutput: '''
             // this is another comment
-            UiFactory<FooProps> Foo = _\$Foo; 
+            UiFactory<FooProps> Foo = _\$Foo;
           ''',
         );
       });
 
-      test('when there is a doc comment above it', () {
-        testSuggestor(
+      test('when there is a doc comment above it', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             /// this is a doc comment
             // ignore: $ignoreToRemove
-            UiFactory<FooProps> Foo = _\$Foo; 
+            UiFactory<FooProps> Foo = _\$Foo;
           ''',
           expectedOutput: '''
             /// this is a doc comment
-            UiFactory<FooProps> Foo = _\$Foo; 
+            UiFactory<FooProps> Foo = _\$Foo;
           ''',
         );
       });
 
-      test('when there are multiple factories', () {
-        testSuggestor(
+      test('when there are multiple factories', () async {
+        await testSuggestor(
           expectedPatchCount: 3,
           input: '''
             UiFactory<FooProps> Foo = _\$Foo; // ignore: $ignoreToRemove
-            
-            UiFactory<BarProps> Bar = 
+
+            UiFactory<BarProps> Bar =
               // ignore: $ignoreToRemove
-              _\$Bar; 
-            
+              _\$Bar;
+
             // ignore: $ignoreToRemove
             UiFactory<BazProps> Baz = _\$Baz;
           ''',
           expectedOutput: '''
             UiFactory<FooProps> Foo = _\$Foo;
-            
+
             UiFactory<BarProps> Bar = _\$Bar;
-            
+
             UiFactory<BazProps> Baz = _\$Baz;
           ''',
         );
       });
 
       group('when there are multiple ignores', () {
-        test('in the same comment', () {
-          testSuggestor(
+        test('in the same comment', () async {
+          await testSuggestor(
             expectedPatchCount: 1,
             input: '''
               UiFactory<FooProps> Foo = _\$Foo; // ignore: invalid_assignment, $ignoreToRemove, unused_element
@@ -192,12 +192,12 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
           );
         });
 
-        test('in different comments', () {
-          testSuggestor(
+        test('in different comments', () async {
+          await testSuggestor(
             expectedPatchCount: 3,
             input: '''
               // ignore: $ignoreToRemove, unused_element
-              UiFactory<FooProps> Foo = 
+              UiFactory<FooProps> Foo =
                 // ignore: $ignoreToRemove
                 _\$Foo; // ignore: invalid_assignment, $ignoreToRemove
             ''',
@@ -209,14 +209,14 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         });
       });
 
-      test('when the factory is already updated', () {
-        testSuggestor(
+      test('when the factory is already updated', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); // ignore: $ignoreToRemove
           ''',
           expectedOutput: '''
-            UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); 
+            UiFactory<FooProps> Foo = $castFunctionName(_\$Foo);
           ''',
         );
       });
@@ -226,8 +226,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
   group('on Connected Components:', () {
     void _testCommentLocations(String generatedArg) {
       group('and the comment is on the same line', () {
-        test('after the comma', () {
-          testSuggestor(
+        test('after the comma', () async {
+          await testSuggestor(
             expectedPatchCount: 1,
             input: '''
               UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
@@ -252,8 +252,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
           );
         });
 
-        test('after the semicolon', () {
-          testSuggestor(
+        test('after the semicolon', () async {
+          await testSuggestor(
             expectedPatchCount: 1,
             input: '''
               UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
@@ -275,8 +275,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         });
       });
 
-      test('and the comment is on the preceding line', () {
-        testSuggestor(
+      test('and the comment is on the preceding line', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
@@ -304,8 +304,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
     }
 
     group('does not remove', () {
-      test('other ignore comments', () {
-        testSuggestor(
+      test('other ignore comments', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
@@ -328,8 +328,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         _testCommentLocations('$castFunctionName(_\$Foo)');
       });
 
-      test('for `connectFlux` function', () {
-        testSuggestor(
+      test('for `connectFlux` function', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
               UiFactory<FooProps> Foo = connectFlux<SomeState, FooProps>(
@@ -350,8 +350,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         );
       });
 
-      test('for `composeHocs` function', () {
-        testSuggestor(
+      test('for `composeHocs` function', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             UiFactory<FooProps> Foo = composeHocs([
@@ -384,12 +384,12 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         );
       });
 
-      test('when there are two factories', () {
-        testSuggestor(
+      test('when there are two factories', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             UiFactory<FooProps> UnconnectedFoo = _\$UnconnectedFoo; // ignore: $ignoreToRemove
-            
+
             UiFactory<FooProps> Foo =
                 connect<SomeState, FooProps>(
               mapStateToProps: (state) => (UnconnectedFoo()
@@ -400,7 +400,7 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
           ''',
           expectedOutput: '''
             UiFactory<FooProps> UnconnectedFoo = _\$UnconnectedFoo;
-            
+
             UiFactory<FooProps> Foo =
                 connect<SomeState, FooProps>(
               mapStateToProps: (state) => (UnconnectedFoo()
@@ -412,8 +412,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         );
       });
 
-      test('when there are multiple ignores', () {
-        testSuggestor(
+      test('when there are multiple ignores', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
@@ -439,8 +439,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
   group('on Factory Configs:', () {
     void _testCommentLocations(String configArg) {
       group('and the comment is on the same line', () {
-        test('after the comma', () {
-          testSuggestor(
+        test('after the comma', () async {
+          await testSuggestor(
             expectedPatchCount: 1,
             input: '''
               final Foo = uiForwardRef<FooProps>(
@@ -457,8 +457,8 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
           );
         });
 
-        test('after the semicolon', () {
-          testSuggestor(
+        test('after the semicolon', () async {
+          await testSuggestor(
             expectedPatchCount: 1,
             input: '''
               UiFactory<FooProps> Foo = uiFunction(
@@ -467,27 +467,27 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
             ''',
             expectedOutput: '''
               UiFactory<FooProps> Foo = uiFunction(
-                (props) {}, 
+                (props) {},
                 $configArg);
             ''',
           );
         });
       });
 
-      test('and the comment is on the preceding line', () {
-        testSuggestor(
+      test('and the comment is on the preceding line', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             UiFactory<FooProps> Foo = uiFunction(
-              (props) {}, 
+              (props) {},
               // ignore: $ignoreToRemove
-              $configArg, 
+              $configArg,
             );
           ''',
           expectedOutput: '''
             UiFactory<FooProps> Foo = uiFunction(
-              (props) {}, 
-              $configArg, 
+              (props) {},
+              $configArg,
             );
           ''',
         );
@@ -495,12 +495,12 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
     }
 
     group('does not remove', () {
-      test('other ignore comments', () {
-        testSuggestor(
+      test('other ignore comments', () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
             final Foo = uiFunction<FooProps>(
-              (props) {}, 
+              (props) {},
               // ignore: invalid_assignment
               \$FooConfig, // ignore: unused_element
             );
@@ -518,19 +518,19 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         _testCommentLocations('_\$FooConfig');
       });
 
-      test('when there are multiple factories', () {
-        testSuggestor(
+      test('when there are multiple factories', () async {
+        await testSuggestor(
           expectedPatchCount: 2,
           input: '''
             final Foo = uiForwardRef<FooProps>(
               (props, ref) {},
               \$FooConfig, // ignore: $ignoreToRemove
             );
-            
+
             UiFactory<BarProps> Bar = uiFunction(
-              (props) {}, 
+              (props) {},
               // ignore: $ignoreToRemove
-              \$BarConfig, 
+              \$BarConfig,
             );
           ''',
           expectedOutput: '''
@@ -538,48 +538,48 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
               (props, ref) {},
               \$FooConfig,
             );
-            
+
             UiFactory<BarProps> Bar = uiFunction(
-              (props) {}, 
-              \$BarConfig, 
+              (props) {},
+              \$BarConfig,
             );
           ''',
         );
       });
 
       group('when there are multiple ignores', () {
-        test('in the same comment', () {
-          testSuggestor(
+        test('in the same comment', () async {
+          await testSuggestor(
             expectedPatchCount: 1,
             input: '''
               UiFactory<FooProps> Foo = uiFunction(
-                (props) {}, 
+                (props) {},
                 \$FooConfig, // ignore: invalid_assignment, $ignoreToRemove, unused_element
               );
             ''',
             expectedOutput: '''
               UiFactory<FooProps> Foo = uiFunction(
-                (props) {}, 
+                (props) {},
                 \$FooConfig, // ignore: invalid_assignment, unused_element
               );
             ''',
           );
         });
 
-        test('in different comments', () {
-          testSuggestor(
+        test('in different comments', () async {
+          await testSuggestor(
             expectedPatchCount: 2,
             input: '''
               final Foo = uiFunction<FooProps>(
-                (props) {}, 
+                (props) {},
                 // ignore: $ignoreToRemove
                 \$FooConfig, // ignore: $ignoreToRemove, unused_element
               );
             ''',
             expectedOutput: '''
               final Foo = uiFunction<FooProps>(
-                (props) {}, 
-                
+                (props) {},
+
                 \$FooConfig, // ignore: unused_element
               );
             ''',
@@ -587,18 +587,18 @@ void ignoreRemoverTestHelper(String ignoreToRemove) {
         });
       });
 
-      test('when wrapped in an hoc', () {
-        testSuggestor(
+      test('when wrapped in an hoc', () async {
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
             UiFactory<FooProps> Foo = someHOC(uiFunction(
-              (props) {}, 
+              (props) {},
               \$FooConfig, // ignore: $ignoreToRemove
             ));
           ''',
           expectedOutput: '''
             UiFactory<FooProps> Foo = someHOC(uiFunction(
-              (props) {}, 
+              (props) {},
               \$FooConfig,
             ));
           ''',

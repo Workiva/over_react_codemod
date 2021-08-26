@@ -28,20 +28,20 @@ main() {
     });
 
     group('does not perform a migration', () {
-      test('when it encounters an empty file', () {
+      test('when it encounters an empty file', () async {
         converter.setVisitedNames({
           'FooProps': 'FooProps',
         });
 
-        testSuggestor(expectedPatchCount: 0, input: '');
+        await testSuggestor(expectedPatchCount: 0, input: '');
       });
 
-      test('when there are no relevant annotations present', () {
+      test('when there are no relevant annotations present', () async {
         converter.setVisitedNames({
           'FooProps': 'FooProps',
         });
 
-        testSuggestor(
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
           library foo;
@@ -54,7 +54,7 @@ main() {
 
     group('performs a migration when there are relevant annotations present',
         () {
-      test('', () {
+      test('', () async {
         converter.setVisitedNames({
           'AbstractFooProps': 'AbstractFooPropsMixin',
           'AbstractBarProps': 'AbstractBarProps',
@@ -65,51 +65,51 @@ main() {
           'BarStateMixin': 'BarStateMixin',
         });
 
-        testSuggestor(
+        await testSuggestor(
           expectedPatchCount: 11,
           input: '''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               \$Foo;
-    
+
           /// Doc comment that should not have a blank space after it after annotation removal
           @AbstractProps()
           mixin AbstractFooPropsMixin on UiProps {
             bool baz;
           }
-          
+
           @AbstractProps()
           abstract class AbstractBarProps implements UiProps {
             bool baz;
           }
-          
+
           @Props()
           mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
-          
+
           @Props()
           class FooProps = UiProps with FooPropsMixin;
-          
+
           @PropsMixin()
           mixin BarPropsMixin on UiProps {}
-          
+
           @AbstractState()
           mixin AbstractFooState on UiState {
             bool baz;
           }
-    
+
           @State()
           mixin FooState on UiState {
             String foo;
             int bar;
           }
-          
+
           @StateMixin()
           mixin BarStateMixin on UiState {}
-    
+
           @Component2()
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
@@ -120,7 +120,7 @@ main() {
               );
             }
           }
-    
+
           @AbstractComponent2()
           abstract class AbstractBarComponent extends UiComponent2<AbstractBarProps> {}
         ''',
@@ -128,36 +128,36 @@ main() {
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               \$Foo;
-    
+
           /// Doc comment that should not have a blank space after it after annotation removal
           mixin AbstractFooPropsMixin on UiProps {
             bool baz;
           }
-          
+
           abstract class AbstractBarProps implements UiProps {
             bool baz;
           }
-          
+
           mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
-          
+
           class FooProps = UiProps with FooPropsMixin;
 
           mixin BarPropsMixin on UiProps {}
-          
+
           mixin AbstractFooState on UiState {
             bool baz;
           }
-    
+
           mixin FooState on UiState {
             String foo;
             int bar;
           }
 
           mixin BarStateMixin on UiState {}
-    
+
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
             render() {
@@ -173,13 +173,13 @@ main() {
         );
       });
 
-      test('handling class name edge cases', () {
+      test('handling class name edge cases', () async {
         converter.setVisitedNames({
           'GraphFormStateWrapperProps': 'GraphFormStateWrapperProps',
           'GraphFormStateWrapperState': 'GraphFormStateWrapperState',
         });
 
-        testSuggestor(
+        await testSuggestor(
           expectedPatchCount: 4,
           input: '''
           @Factory()
@@ -192,13 +192,13 @@ main() {
             String foo;
             int bar;
           }
-    
+
           @State()
           mixin GraphFormStateWrapperState on UiState {
             String foo;
             int bar;
           }
-    
+
           @Component2()
           class GraphFormStateWrapperComponent extends UiStatefulComponent2<GraphFormStateWrapperProps, GraphFormStateWrapperState> {
             @override
@@ -219,12 +219,12 @@ main() {
             String foo;
             int bar;
           }
-    
+
           mixin GraphFormStateWrapperState on UiState {
             String foo;
             int bar;
           }
-    
+
           class GraphFormStateWrapperComponent extends UiStatefulComponent2<GraphFormStateWrapperProps, GraphFormStateWrapperState> {
             @override
             render() {
@@ -238,7 +238,7 @@ main() {
         );
       });
 
-      test('leaving annotations with arguments in place', () {
+      test('leaving annotations with arguments in place', () async {
         converter.setVisitedNames({
           'AbstractFooProps': 'AbstractFooPropsMixin',
           'AbstractBarProps': 'AbstractBarProps',
@@ -249,50 +249,50 @@ main() {
           'BarStateMixin': 'BarStateMixin',
         });
 
-        testSuggestor(
+        await testSuggestor(
           expectedPatchCount: 1,
           input: '''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               \$Foo;
-    
+
           @AbstractProps(keyNamespace: '')
           mixin AbstractFooPropsMixin on UiProps {
             bool baz;
           }
-          
+
           @AbstractProps(keyNamespace: '')
           abstract class AbstractBarProps implements UiProps {
             bool baz;
           }
-    
+
           @Props(keyNamespace: '')
           mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
-          
+
           @Props(keyNamespace: '')
           class FooProps = UiProps with FooPropsMixin;
-          
+
           @PropsMixin(keyNamespace: '')
           mixin BarPropsMixin on UiProps {}
-          
+
           @AbstractState(keyNamespace: '')
           mixin AbstractFooState on UiState {
             bool baz;
           }
-    
+
           @State(keyNamespace: '')
           mixin FooState on UiState {
             String foo;
             int bar;
           }
-          
+
           @StateMixin(keyNamespace: '')
           mixin BarStateMixin on UiState {}
-    
+
           @Component2(subtypeOf: BarComponent)
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
@@ -308,43 +308,43 @@ main() {
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               \$Foo;
-    
+
           @AbstractProps(keyNamespace: '')
           mixin AbstractFooPropsMixin on UiProps {
             bool baz;
           }
-          
+
           @AbstractProps(keyNamespace: '')
           abstract class AbstractBarProps implements UiProps {
             bool baz;
           }
-    
+
           @Props(keyNamespace: '')
           mixin FooPropsMixin on UiProps {
             String foo;
             int bar;
           }
-          
+
           @Props(keyNamespace: '')
           class FooProps = UiProps with FooPropsMixin;
-          
+
           @PropsMixin(keyNamespace: '')
           mixin BarPropsMixin on UiProps {}
-          
+
           @AbstractState(keyNamespace: '')
           mixin AbstractFooState on UiState {
             bool baz;
           }
-    
+
           @State(keyNamespace: '')
           mixin FooState on UiState {
             String foo;
             int bar;
           }
-          
+
           @StateMixin(keyNamespace: '')
           mixin BarStateMixin on UiState {}
-    
+
           @Component2(subtypeOf: BarComponent)
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override
@@ -361,37 +361,37 @@ main() {
 
       test(
           'unless the class has not already been converted to the new boilerplate',
-          () {
-        testSuggestor(
+          () async {
+        await testSuggestor(
           expectedPatchCount: 0,
           input: '''
           @Factory()
           UiFactory<FooProps> Foo =
               // ignore: undefined_identifier
               \$Foo;
-    
+
           @AbstractProps()
           abstract class AbstractFooProps extends UiProps {
             bool baz;
           }
-          
+
           @Props()
           class FooProps extends AbstractFooProps {
             String foo;
             int bar;
           }
-          
+
           @AbstractState()
           abstract class AbstractFooState extends UiState {
             bool baz;
           }
-    
+
           @State()
           class FooState extends AbstractFooState {
             String foo;
             int bar;
           }
-    
+
           @Component2()
           class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
             @override

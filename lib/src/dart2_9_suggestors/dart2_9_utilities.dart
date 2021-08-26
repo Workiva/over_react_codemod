@@ -120,11 +120,11 @@ void removeIgnoreComment(
     final ignoreList =
         lexeme.replaceFirst(RegExp('\/\/ignore\:'), '').split(',');
     if (ignoreList.contains(ignoreToRemove) && ignoreList.length == 1) {
-      yieldPatch(comment.previous?.end ?? comment.offset, comment.end, '');
+      yieldPatch('', comment.previous?.end ?? comment.offset, comment.end);
     } else if (ignoreList.contains(ignoreToRemove)) {
       ignoreList.removeWhere((i) => i == ignoreToRemove);
       final newIgnoreComment = '// ignore: ${ignoreList.join(', ')}';
-      yieldPatch(comment.offset, comment.end, newIgnoreComment);
+      yieldPatch(newIgnoreComment, comment.offset, comment.end);
     }
   }
 }

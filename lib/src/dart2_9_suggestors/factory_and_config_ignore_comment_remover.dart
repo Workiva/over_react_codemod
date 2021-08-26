@@ -22,8 +22,7 @@ import 'package:over_react_codemod/src/util.dart';
 /// Suggestor that removes ignore comments from generated factory initializers
 /// and factory config arguments.
 class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   /// The name of the error that should be removed from ignore comments.
   ///
   /// Example: 'undefined_identifier'
@@ -62,13 +61,13 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
   }
 
   @override
-  bool shouldSkip(String sourceText) => hasParseErrors(sourceText);
+  bool shouldSkip(FileContext context) => hasParseErrors(context.sourceText);
 
   Iterable<Token> _findPossibleIgnoreComments(
       SimpleIdentifier generatedFactoryNode) sync* {
-    final lineNumber = sourceFile.getLine(generatedFactoryNode.offset);
+    final lineNumber = context.sourceFile.getLine(generatedFactoryNode.offset);
     for (var comment in allComments(generatedFactoryNode.root.beginToken)) {
-      final commentLineNumber = sourceFile.getLine(comment.offset);
+      final commentLineNumber = context.sourceFile.getLine(comment.offset);
       final commentAppliesToNode =
           // EOL comments
           commentLineNumber == lineNumber ||

@@ -25,8 +25,7 @@ import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart
 /// string literal is passed to a CSS property. React 16 specifies that such
 /// cases should be a num instead of a string.
 class ReactStyleMapsUpdater extends GeneralizingAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   static final _cssValueSuffixPattern =
       RegExp(r'\b(?:rem|em|ex|vh|vw|vmin|vmax|%|px|cm|mm|in|pt|pc|ch)$');
 
@@ -49,7 +48,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     }
 
     for (Expression cascade in node.cascadeSections) {
-      if (hasComment(cascade, sourceFile, willBeRemovedCommentSuffix)) {
+      if (hasComment(cascade, context.sourceFile, willBeRemovedCommentSuffix)) {
         continue;
       }
 
@@ -128,7 +127,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
               } else if (isANumber(cleanedPropertySubString) &&
                   !isANumber(property.toSource())) {
                 yieldPatch(
-                    property.offset, property.end, cleanedPropertySubString);
+                    cleanedPropertySubString, property.offset, property.end);
               }
             }
           } else if (cssPropertyValue is SimpleStringLiteral ||
@@ -141,10 +140,11 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
             if (cssPropertyValue is SimpleStringLiteral) {
               if (isANumber(cssPropertyValue.value)) {
                 yieldPatch(
-                    cssPropertyRow.offset,
-                    end,
-                    '$originalCssPropertyKey:'
-                    ' ${cssPropertyValue.value},');
+                  '$originalCssPropertyKey:'
+                  ' ${cssPropertyValue.value},',
+                  cssPropertyRow.offset,
+                  end,
+                );
               }
             }
           } else if (cssPropertyValue is StringInterpolation) {
@@ -189,17 +189,18 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           isAFunction ||
           isOther) {
         yieldPatch(
-            cascade.offset,
-            cascade.offset,
-            getString(
-                isAVariable: isAVariable,
-                hasPotentiallyInvalidValue:
-                    potentiallyInvalidProperties.isNotEmpty,
-                isAFunction: isAFunction,
-                affectedValues: potentiallyInvalidProperties,
-                addExtraLine: sourceFile.getLine(cascade.offset) ==
-                    sourceFile.getLine(cascade.parent.offset),
-                isOther: isOther));
+          getString(
+              isAVariable: isAVariable,
+              hasPotentiallyInvalidValue:
+                  potentiallyInvalidProperties.isNotEmpty,
+              isAFunction: isAFunction,
+              affectedValues: potentiallyInvalidProperties,
+              addExtraLine: context.sourceFile.getLine(cascade.offset) ==
+                  context.sourceFile.getLine(cascade.parent.offset),
+              isOther: isOther),
+          cascade.offset,
+          cascade.offset,
+        );
       }
     }
   }
@@ -256,7 +257,7 @@ String getString({
   } else {
     if (addExtraLine) {
       return '''
-    
+
       $checkboxWithAffectedValues
       $styleMapComment
       $willBeRemovedSuffix

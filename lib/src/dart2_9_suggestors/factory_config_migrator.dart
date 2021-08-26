@@ -23,8 +23,7 @@ import 'dart2_9_utilities.dart';
 /// preparation for Dart 2.12 when all names beginning with the `_$` prefix are
 /// assumed to be generated.
 class FactoryConfigMigrator extends RecursiveAstVisitor
-    with AstVisitingSuggestorMixin
-    implements Suggestor {
+    with AstVisitingSuggestor {
   @override
   visitArgumentList(ArgumentList node) {
     super.visitArgumentList(node);
@@ -33,10 +32,10 @@ class FactoryConfigMigrator extends RecursiveAstVisitor
     if (generatedArg == null) return;
 
     if (!generatedArg.name.startsWith('_')) {
-      yieldPatch(generatedArg.offset, generatedArg.offset, '_');
+      yieldPatch('_', generatedArg.offset, generatedArg.offset);
     }
   }
 
   @override
-  bool shouldSkip(String sourceText) => hasParseErrors(sourceText);
+  bool shouldSkip(FileContext context) => hasParseErrors(context.sourceText);
 }
