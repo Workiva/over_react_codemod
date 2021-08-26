@@ -386,10 +386,6 @@ String stripPrivateGeneratedPrefix(String value) {
       : value;
 }
 
-extension IterableNullHelpers<E> on Iterable<E> {
-  E? get firstOrNull => isEmpty ? null : first;
-}
-
 Iterable<String> pubspecYamlPaths() =>
     filePathsFromGlob(Glob('**pubspec.yaml', recursive: true));
 
