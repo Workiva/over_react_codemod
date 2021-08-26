@@ -34,7 +34,7 @@ jobs:
         if: always() && steps.install.outcome == 'success'
 
       - name: Validate formatting
-        run: pub run dart_dev format --check
+        run: dart format --set-exit-if-changed .
         if: always() && steps.install.outcome == 'success'
 
       - name: Analyze project source
