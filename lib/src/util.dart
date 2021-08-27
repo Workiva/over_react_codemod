@@ -23,17 +23,16 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:glob/glob.dart';
-import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 
-import 'component2_suggestors/component2_utilities.dart';
 import 'constants.dart';
 
 typedef CompanionBuilder = String Function(String className,
-    {String annotations, String commentPrefix, String docComment});
+    {String? annotations, String? commentPrefix, String? docComment});
 
 /// Returns an iterable of all the comments from [beginToken] to the end of the
 /// file.
@@ -42,9 +41,9 @@ typedef CompanionBuilder = String Function(String className,
 /// [Token.precedingComments], so it's difficult to iterate over them without
 /// this method.
 Iterable<Token> allComments(Token beginToken) sync* {
-  var currentToken = beginToken;
+  Token? currentToken = beginToken;
   while (currentToken != null && !currentToken.isEof) {
-    var currentComment = currentToken.precedingComments;
+    Token? currentComment = currentToken.precedingComments;
     while (currentComment != null) {
       yield currentComment;
       currentComment = currentComment.next;
@@ -52,7 +51,7 @@ Iterable<Token> allComments(Token beginToken) sync* {
     currentToken = currentToken.next;
   }
   // Also check comments preceding EOF.
-  var currentComment = currentToken.precedingComments;
+  Token? currentComment = currentToken!.precedingComments;
   while (currentComment != null) {
     yield currentComment;
     currentComment = currentComment.next;
@@ -66,12 +65,12 @@ bool _isCommentToken(Token token) {
 
 /// Returns all the comments before a given [node], including doc comments.
 Iterable<Token> allCommentsForNode(AstNode node) sync* {
-  Token firstCommentToken;
+  Token? firstCommentToken;
 
   final beginToken = node.beginToken;
   if (_isCommentToken(beginToken)) {
     firstCommentToken = beginToken;
-    while (firstCommentToken.previous != null) {
+    while (firstCommentToken!.previous != null) {
       firstCommentToken = firstCommentToken.previous;
     }
   } else {
@@ -81,7 +80,7 @@ Iterable<Token> allCommentsForNode(AstNode node) sync* {
   // No comments on this node.
   if (firstCommentToken == null) return;
 
-  var currentComment = firstCommentToken;
+  Token? currentComment = firstCommentToken;
   while (currentComment != null) {
     yield currentComment;
     currentComment = currentComment.next;
@@ -126,143 +125,6 @@ String buildIgnoreComment({
   return '// ignore: ${ignores.join(', ')}';
 }
 
-/// Returns the source code for a companion `@Props()` or `@AbstractProps()`
-/// class named [className].
-///
-/// Callers do not need to worry about the format/state of the given
-/// [className] (i.e. whether or not it has already been renamed for Dart 2
-/// compatibility); it will be normalized.
-///
-/// If the [docComment] string is non-null and non-empty, it will be included
-/// before the class.
-///
-/// If the [annotations] string is non-null and non-empty, it will be included
-/// before the class.
-///
-/// If given, [commentPrefix] will be inserted at the beginning of the
-/// double-slash comment on the companion class declaration. Use this as a way
-/// to reference a cleanup ticket or issue number.
-String buildPropsCompanionClass(
-  String className, {
-  String annotations,
-  String commentPrefix,
-  String docComment,
-  TypeParameterList typeParameters,
-}) =>
-    _buildPropsOrStateCompanionClass(className, propsMetaType,
-        annotations: annotations,
-        commentPrefix: commentPrefix,
-        docComment: docComment,
-        typeParameters: typeParameters);
-
-/// Returns the source code for a companion `@State()` or `@AbstractState()`
-/// class named [className].
-///
-/// Callers do not need to worry about the format/state of the given
-/// [className] (i.e. whether or not it has already been renamed for Dart 2
-/// compatibility); it will be normalized.
-///
-/// If the [docComment] string is non-null and non-empty, it will be included
-/// before the class.
-///
-/// If the [annotations] string is non-null and non-empty, it will be included
-/// before the class.
-///
-/// If given, [commentPrefix] will be inserted at the beginning of the
-/// double-slash comment on the companion class declaration. Use this as a way
-/// to reference a cleanup ticket or issue number.
-String buildStateCompanionClass(
-  String className, {
-  String annotations,
-  String commentPrefix,
-  String docComment,
-  TypeParameterList typeParameters,
-}) =>
-    _buildPropsOrStateCompanionClass(className, stateMetaType,
-        annotations: annotations,
-        commentPrefix: commentPrefix,
-        docComment: docComment,
-        typeParameters: typeParameters);
-
-/// Returns the source code for a companion class based on the given
-/// [className] and [metaType].
-///
-/// The returned class will have the following attributes:
-/// - Name: the result of calling [stripPrivateGeneratedPrefix] on [className].
-/// - Super class: the class name with the private generated prefix.
-///   [className]
-/// - Mixin: same as super class but with a `AccessorsMixin` suffix.
-/// - A static meta field typed as [metaType] (should be either `PropsMeta` or
-///   `StateMeta`) and with an initialized value of `$metaFor<name>` where name
-///   is the same as the class name.
-/// - Annotations if [annotations] is non-null and non-empty.
-/// - A doc comment if [docComment] is non-null and non-empty.
-/// - A single-line comment indicating that this class is temporary and will be
-///   removed when Dart 1 support is no longer needed. If a [commentPrefix] is
-///   given, it will be inserted at the beginning of this single-line comment.
-///
-/// Callers do not need to worry about the format/state of the given
-/// [className] (i.e. whether or not it has already been renamed for Dart 2
-/// compatibility); it will be normalized.
-String _buildPropsOrStateCompanionClass(
-  String className,
-  String metaType, {
-  String annotations,
-  String commentPrefix,
-  String docComment,
-  TypeParameterList typeParameters,
-}) {
-  annotations ??= '';
-  commentPrefix ??= '';
-  docComment ??= '';
-
-  final classCommentsAndAnnotations = <String>[];
-  if (docComment.isNotEmpty) {
-    classCommentsAndAnnotations.add(docComment);
-  }
-  if (annotations.isNotEmpty) {
-    classCommentsAndAnnotations.add(annotations);
-  }
-  classCommentsAndAnnotations.add(
-      '// ${commentPrefix}This will be removed once the transition to Dart 2 is complete.');
-
-  var typeParamsOnClass = '';
-  var typeParamsOnSuper = '';
-  if (typeParameters != null) {
-    typeParamsOnClass = typeParameters.toSource();
-    typeParamsOnSuper = (StringBuffer()
-          ..write('<')
-          ..write(
-              typeParameters.typeParameters.map((t) => t.name.name).join(', '))
-          ..write('>'))
-        .toString();
-  }
-
-  final strippedClassName = stripPrivateGeneratedPrefix(className);
-  final mixinIgnoreComment = buildIgnoreComment(
-    mixinOfNonClass: true,
-    undefinedClass: true,
-  );
-  final metaIgnoreComment = buildIgnoreComment(
-    constInitializedWithNonConstantValue: true,
-    undefinedClass: true,
-    undefinedIdentifier: true,
-  );
-  // With triple-quote strings, the first newline is ignored if the first line
-  // is empty, so this string purposely includes an extra blank line.
-  return '''
-
-${classCommentsAndAnnotations.join('\n')}
-class $strippedClassName$typeParamsOnClass extends ${privateGeneratedPrefix}$strippedClassName$typeParamsOnSuper
-    with
-        $mixinIgnoreComment
-        ${privateGeneratedPrefix}${strippedClassName}AccessorsMixin$typeParamsOnSuper {
-  $metaIgnoreComment
-  static const $metaType meta = ${privateGeneratedPrefix}metaFor$strippedClassName;
-}
-''';
-}
-
 /// Returns the canonicalized relative path for the given [partOfUri].
 ///
 /// If [partOfUri] is a `package:` URI, the returned path will be relative to
@@ -270,7 +132,7 @@ class $strippedClassName$typeParamsOnClass extends ${privateGeneratedPrefix}$str
 ///
 /// Otherwise, [partOfUri] must be a relative URI. The returned path will be
 /// this relative path joined with the containing directory of [libraryPath].
-String convertPartOfUriToRelativePath(String libraryPath, Uri partOfUri) {
+String convertPartOfUriToRelativePath(String? libraryPath, Uri partOfUri) {
   if (partOfUri.scheme == 'package') {
     // Canonicalize to ensure that if we find different relative paths to
     // the same file, they will still match.
@@ -293,7 +155,7 @@ String convertPartOfUriToRelativePath(String libraryPath, Uri partOfUri) {
       // than the current file.
       p.join(
         // containing directory of the current library
-        p.dirname(libraryPath),
+        p.dirname(libraryPath!),
         // relative path from current file to parent library file
         partOfUri.path,
       ),
@@ -333,29 +195,6 @@ final _usesOverReactRegex = RegExp(
   multiLine: true,
 );
 
-/// Returns whether or not [classNode] extends react.Component (either by having the
-/// `@Component` / `@Component2` annotation or by extending `react.Component`).
-bool extendsReactComponent(ClassDeclaration classNode) {
-  var extendsName = classNode?.extendsClause?.superclass?.name;
-  if (extendsName == null) {
-    return false;
-  }
-
-  final reactImportName =
-      getImportNamespace(classNode, 'package:react/react.dart');
-
-  if ((reactImportName != null &&
-          extendsName.name == '$reactImportName.Component') ||
-      classNode.metadata.any((m) => [
-            ...overReact16ComponentAnnotationNamesToMigrate,
-            ...overReact16Component2AnnotationNames
-          ].contains(m.name.name))) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
 /// Method that creates a new dependency range by targeting a higher range.
 ///
 /// This can be used to update dependency ranges without lowering a current
@@ -363,38 +202,12 @@ bool extendsReactComponent(ClassDeclaration classNode) {
 VersionRange generateNewVersionRange(
     VersionRange currentRange, VersionRange targetRange) {
   return VersionRange(
-    min:
-        currentRange.min > targetRange.min ? currentRange.min : targetRange.min,
+    min: currentRange.min! > targetRange.min!
+        ? currentRange.min
+        : targetRange.min,
     includeMin: true,
     max: targetRange.max,
   );
-}
-
-/// Returns the class in the root of the provided [node] that extends from UiComponent / UiComponent2.
-ClassDeclaration getComponentNodeInRoot(AstNode node) {
-  CompilationUnit unit = node.root;
-
-  final classDeclarationsInRoot =
-      unit.declarations.whereType<ClassDeclaration>();
-
-  for (var decl in classDeclarationsInRoot) {
-    if (extendsReactComponent(decl)) {
-      return decl;
-    }
-  }
-
-  return null;
-}
-
-/// Recursively traverses the [AstNode.parent] of the provided [node] until it finds
-/// a [ClassOrMixinDeclaration], then returns it.
-///
-/// Returns `null` if the provided [node] is not within a [ClassOrMixinDeclaration].
-ClassOrMixinDeclaration getContainingClass(AstNode node) {
-  if (node.parent == node.root) return null; // Not part of a class
-  if (node.parent is ClassOrMixinDeclaration) return node.parent;
-
-  return getContainingClass(node.parent);
 }
 
 /// Returns a string representation of [constraint], converting it to caret
@@ -410,45 +223,13 @@ ClassOrMixinDeclaration getContainingClass(AstNode node) {
 /// ```
 String friendlyVersionConstraint(VersionConstraint constraint) {
   if (constraint is VersionRange && constraint.min != null) {
-    final caretConstraint = VersionConstraint.compatibleWith(constraint.min);
+    final caretConstraint = VersionConstraint.compatibleWith(constraint.min!);
     if (caretConstraint == constraint) {
       return caretConstraint.toString();
     }
   }
 
   return constraint.toString();
-}
-
-/// Returns whether or not [node] is declared in the same file as a Component2 component.
-bool isAssociatedWithComponent2(AstNode node) {
-  bool containsComponent2 = false;
-  CompilationUnit unit = node.root;
-
-  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-    if (extendsComponent2(classNode)) {
-      containsComponent2 = true;
-    }
-  });
-
-  return containsComponent2;
-}
-
-/// Returns whether or not [node] is declared in the same file as a AbstractComponent2 component.
-bool isAssociatedWithAbstractComponent2(AstNode node) {
-  bool containsAbstractComponent2 = false;
-  CompilationUnit unit = node.root;
-
-  unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-    if (!extendsComponent2(classNode)) {
-      containsAbstractComponent2 = false;
-    } else {
-      // TODO: Is there a better way to determine if the superclass is abstract?
-      containsAbstractComponent2 =
-          classNode.extendsClause.superclass.name.name.startsWith('Abstract');
-    }
-  });
-
-  return containsAbstractComponent2;
 }
 
 /// Return whether or not a particular pubspec.yaml dependency value string
@@ -464,7 +245,7 @@ bool mightNeedYamlEscaping(String scalarValue) =>
 /// removes the relevant items from the [args] list.**
 ///
 /// **[args] may be modified in place.**
-String parseAndRemoveCommentPrefixArg(List<String> args) {
+String? parseAndRemoveCommentPrefixArg(List<String> args) {
   final _commentPrefixParser = ArgParser()..addOption('comment-prefix');
 
   final commentPrefixArgs = <String>[];
@@ -496,9 +277,8 @@ void removeCommentFromNode(
   final commentLinesToRemove =
       commentToRemove.split('\n').map((line) => line.trim()).toList();
   final firstLineOfCommentToRemove = commentLinesToRemove.first;
-  final firstMatchingCommentLineToken = nodeCommentLines.firstWhere(
-      (token) => token.toString().trim() == firstLineOfCommentToRemove,
-      orElse: () => null);
+  final firstMatchingCommentLineToken = nodeCommentLines.firstWhereOrNull(
+      (token) => token.toString().trim() == firstLineOfCommentToRemove);
 
   if (firstMatchingCommentLineToken != null) {
     if (commentLinesToRemove.length == 1) {
@@ -508,9 +288,8 @@ void removeCommentFromNode(
     } else {
       final lastLineOfCommentToRemove =
           commentLinesToRemove[commentLinesToRemove.length - 2];
-      final lastMatchingCommentLineToken = nodeCommentLines.lastWhere(
-          (token) => token.toString().trim() == lastLineOfCommentToRemove,
-          orElse: () => null);
+      final lastMatchingCommentLineToken = nodeCommentLines.lastWhereOrNull(
+          (token) => token.toString().trim() == lastLineOfCommentToRemove);
       if (lastMatchingCommentLineToken != null) {
         // Remove multi line comment
         yieldPatch('', firstMatchingCommentLineToken.offset,
@@ -545,8 +324,8 @@ String renamePropsOrStateClass(String className) {
 /// This is useful when a certain min or max needs to be enforced but the
 /// current dependency can take many different forms.
 bool shouldUpdateVersionRange({
-  @required VersionConstraint constraint,
-  @required VersionRange targetConstraint,
+  required VersionConstraint constraint,
+  required VersionRange targetConstraint,
   bool shouldIgnoreMin = false,
 }) {
   if (constraint.isAny) return false;
@@ -561,7 +340,7 @@ bool shouldUpdateVersionRange({
     if (constraint.max == null && constraint.min != null) {
       // In that case, we need the min to be at least as high as our
       // target. If it is, do not update.
-      if (constraint.min >= targetConstraint.min) {
+      if (constraint.min! >= targetConstraint.min!) {
         return false;
       }
 
@@ -570,11 +349,11 @@ bool shouldUpdateVersionRange({
       // If there is a maximum, and it is higher than target max (but the
       // lower bound is still greater or equal to the target) do not
       // update.
-      if (constraintsHaveMax && constraint.max >= targetConstraint.max) {
+      if (constraintsHaveMax && constraint.max! >= targetConstraint.max!) {
         // If the codemod is asserting a specific minimum, the
         // constraint min does not matter.
         if (constraintsHaveMin &&
-            constraint.min >= targetConstraint.min &&
+            constraint.min! >= targetConstraint.min! &&
             !shouldIgnoreMin) {
           return false;
         }
@@ -607,10 +386,6 @@ String stripPrivateGeneratedPrefix(String value) {
       : value;
 }
 
-extension IterableNullHelpers<E> on Iterable<E> {
-  E get firstOrNull => isEmpty ? null : first;
-}
-
 Iterable<String> pubspecYamlPaths() =>
     filePathsFromGlob(Glob('**pubspec.yaml', recursive: true));
 
@@ -635,8 +410,6 @@ Iterable<AstNode> allDescendants(AstNode node) sync* {
   final nodesQueue = Queue<AstNode>()..add(node);
   while (nodesQueue.isNotEmpty) {
     final current = nodesQueue.removeFirst();
-    if (current == null) return;
-
     for (final child in current.childEntities) {
       if (child is AstNode) {
         yield child;
@@ -649,3 +422,12 @@ Iterable<AstNode> allDescendants(AstNode node) sync* {
 /// Returns a lazy iterable of all descendants of [node] of type [T], in breadth-first order.
 Iterable<T> allDescendantsOfType<T extends AstNode>(AstNode node) =>
     allDescendants(node).whereType<T>();
+
+VersionRange parseVersionRange(String text) {
+  final constraint = VersionConstraint.parse(text);
+  if (constraint is! VersionRange) {
+    throw ArgumentError.value(
+        text, 'text', 'not a VersionRange; was a ${constraint.runtimeType}');
+  }
+  return constraint;
+}

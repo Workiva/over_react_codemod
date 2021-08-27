@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:io';
-
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:source_span/source_span.dart';
 
@@ -42,7 +39,7 @@ bool hasComment(AstNode node, SourceFile sourceFile, String comment) {
   final line = sourceFile.getLine(node.offset);
 
   // Find the comment associated with this line.
-  String commentText;
+  String? commentText;
   for (var comment in allComments(node.root.beginToken)) {
     final commentLine = sourceFile.getLine(comment.end);
     if (commentLine == line ||
@@ -92,24 +89,6 @@ bool hasMultilineDocComment(
 SourceSpan nodeCommentSpan(AnnotatedNode node, SourceFile sourceFile) {
   return sourceFile.span(
       node.beginToken.offset,
-      node.metadata?.beginToken?.offset ??
+      node.metadata.beginToken?.offset ??
           node.firstTokenAfterCommentAndMetadata.offset);
-}
-
-/// Returns whether or not there is a React 16 upgrade comment within a
-/// project that is unaddressed.
-bool hasUnaddressedReact16Comment(Iterable<String> paths, {Logger logger}) {
-  bool hasUnaddressedComment = false;
-
-  for (final dartFile in paths) {
-    final dartSource = File(dartFile).readAsStringSync();
-    if (dartSource.contains('[ ] $manualValidationCommentSubstring')) {
-      logger?.severe(
-          'over_react_codemod validation comments are unaddressed in $dartFile');
-
-      hasUnaddressedComment = true;
-    }
-  }
-
-  return hasUnaddressedComment;
 }

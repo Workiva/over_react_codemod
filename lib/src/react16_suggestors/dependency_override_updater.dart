@@ -15,7 +15,7 @@
 import 'dart:math';
 
 import 'package:codemod/codemod.dart';
-import 'package:meta/meta.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:yaml/yaml.dart';
 
 import '../constants.dart';
@@ -38,10 +38,10 @@ enum ConfigType {
 ///       ref: a-specific-branch
 /// ```
 class GitOverrideConfig extends DependencyOverrideConfig {
-  final String ref;
+  final String? ref;
   final String url;
 
-  GitOverrideConfig({@required String name, @required this.url, this.ref})
+  GitOverrideConfig({required String name, required this.url, this.ref})
       : super(name, ConfigType.git);
 }
 
@@ -55,7 +55,7 @@ class GitOverrideConfig extends DependencyOverrideConfig {
 class SimpleOverrideConfig extends DependencyOverrideConfig {
   final String version;
 
-  SimpleOverrideConfig({@required String name, @required this.version})
+  SimpleOverrideConfig({required String name, required this.version})
       : super(name, ConfigType.simple);
 }
 
@@ -73,8 +73,8 @@ class DependencyOverrideUpdater {
   final DependencyOverrideConfig overReactOverrideConfig;
 
   DependencyOverrideUpdater({
-    this.reactOverrideConfig,
-    this.overReactOverrideConfig,
+    required this.reactOverrideConfig,
+    required this.overReactOverrideConfig,
   });
 
   Stream<Patch> call(FileContext context) async* {
@@ -136,7 +136,7 @@ class DependencyOverrideUpdater {
       overReactDependencyOverride,
     ];
 
-    YamlMap parsedYamlMap;
+    YamlMap? parsedYamlMap;
 
     try {
       parsedYamlMap = loadYaml(context.sourceText);
@@ -164,10 +164,8 @@ class DependencyOverrideUpdater {
             dependency: dependencyName, yamlContent: parsedYamlMap);
         final dependencyMatch = dependencyRegex
             .allMatches(context.sourceText)
-            .singleWhere(
-                (match) =>
-                    _isDependencyMatchWithinDependencyOverridesSection(match),
-                orElse: () => null);
+            .singleWhereOrNull((match) =>
+                _isDependencyMatchWithinDependencyOverridesSection(match));
 
         if (dependencyMatch != null) {
           // startPoint is needed because a new line would be added to the
@@ -175,7 +173,7 @@ class DependencyOverrideUpdater {
           // starting line up one or keep it the default.
           int startPoint = dependencyMatch.start;
 
-          if (context.sourceFile.getLine(dependencyOverrideSectionKey.end) !=
+          if (context.sourceFile.getLine(dependencyOverrideSectionKey!.end) !=
               context.sourceFile.getLine(dependencyMatch.start - 1)) {
             startPoint = dependencyMatch.start - 1;
           }
@@ -220,7 +218,7 @@ class DependencyOverrideUpdater {
 }
 
 bool fileAlreadyContainsOverrideForDependency(
-    {@required DependencyCreator dependency, @required YamlMap yamlContent}) {
+    {required DependencyCreator dependency, required YamlMap? yamlContent}) {
   if (yamlContent == null) return false;
 
   if (yamlContent['dependency_overrides'] != null) {
@@ -233,16 +231,16 @@ bool fileAlreadyContainsOverrideForDependency(
 }
 
 bool fileAlreadyContainsMatchingOverrideForDependency(
-    {@required DependencyCreator dependency, @required YamlMap yamlContent}) {
+    {required DependencyCreator dependency, required YamlMap? yamlContent}) {
   if (!fileAlreadyContainsOverrideForDependency(
       dependency: dependency, yamlContent: yamlContent)) return false;
-  return yamlContent['dependency_overrides'][dependency.name] ==
+  return yamlContent!['dependency_overrides'][dependency.name] ==
       dependency.version;
 }
 
 // Method that builds the RegEx that will match the dependency in the pubspec.
 RegExp getDependencyRegEx(
-    {@required String dependency, @required YamlMap yamlContent}) {
+    {required String dependency, required YamlMap? yamlContent}) {
   if (yamlContent == null) throw Exception('Invalid yaml content');
 
   if (yamlContent['dependency_overrides'] != null) {

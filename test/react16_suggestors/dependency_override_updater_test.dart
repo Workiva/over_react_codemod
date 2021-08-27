@@ -31,7 +31,7 @@ main() {
 
     void testDependencyOverridesSectionByPosition(SuggestorTester tester,
         Map inputSections, String expectedOverrideContent,
-        {String additionalOverrides, bool testIdempotency = true}) {
+        {String? additionalOverrides, bool testIdempotency = true}) {
       if (additionalOverrides != null) {
         expectedOverrideContent += additionalOverrides;
       }
@@ -53,10 +53,10 @@ main() {
               '',
           expectedOutput: ''
                   'dependencies:\n' +
-              expectedOutputSections['dependencies'] +
+              expectedOutputSections['dependencies']! +
               '\n'
                   'dev_dependencies:\n' +
-              expectedOutputSections['dev_dependencies'] +
+              expectedOutputSections['dev_dependencies']! +
               '\n'
                   'dependency_overrides:\n' +
               expectedOverrideContent +
@@ -89,10 +89,10 @@ main() {
               expectedOverrideContent +
               lineBreaksAfterDepOverridesSection +
               'dependencies:\n' +
-              expectedOutputSections['dependencies'] +
+              expectedOutputSections['dependencies']! +
               '\n'
                   'dev_dependencies:\n' +
-              expectedOutputSections['dev_dependencies'] +
+              expectedOutputSections['dev_dependencies']! +
               '',
         );
       });
@@ -119,13 +119,13 @@ main() {
               '',
           expectedOutput: ''
                   'dependencies:\n' +
-              expectedOutputSections['dependencies'] +
+              expectedOutputSections['dependencies']! +
               '\n'
                   'dependency_overrides:\n' +
               expectedOverrideContent +
               lineBreaksAfterDepOverridesSection +
               'dev_dependencies:\n' +
-              expectedOutputSections['dev_dependencies'] +
+              expectedOutputSections['dev_dependencies']! +
               '',
         );
       });

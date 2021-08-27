@@ -17,7 +17,6 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
@@ -59,14 +58,6 @@ void main() {
         expect(buildIgnoreComment(mixinOfNonClass: true, undefinedClass: true),
             '// ignore: mixin_of_non_class, undefined_class');
       });
-    });
-
-    group('buildPropsCompanionClass()', () {
-      testCompanionClassBuilder(buildPropsCompanionClass, propsMetaType);
-    });
-
-    group('buildStateCompanionClass()', () {
-      testCompanionClassBuilder(buildStateCompanionClass, stateMetaType);
     });
 
     group('convertPartOfUriToRelativePath()', () {
@@ -135,30 +126,28 @@ void overReactExample() {}''';
     group('generateNewVersionRange()', () {
       group('updates correctly with a basic range', () {
         sharedGenerateNewVersionRangeTests(
-          currentRange: VersionConstraint.parse('>=0.5.0 <3.0.0'),
-          currentRangeWithHigherMinBound:
-              VersionConstraint.parse('>=1.5.0 <3.0.0'),
-          targetRange: VersionConstraint.parse('>=1.0.0 <4.0.0'),
-          expectedMixedRange: VersionConstraint.parse('>=1.5.0 <4.0.0'),
+          currentRange: parseVersionRange('>=0.5.0 <3.0.0'),
+          currentRangeWithHigherMinBound: parseVersionRange('>=1.5.0 <3.0.0'),
+          targetRange: parseVersionRange('>=1.0.0 <4.0.0'),
+          expectedMixedRange: parseVersionRange('>=1.5.0 <4.0.0'),
         );
       });
 
       group('updates correctly with an open ended target range', () {
         sharedGenerateNewVersionRangeTests(
-          currentRange: VersionConstraint.parse('>=1.0.0 <2.0.0'),
-          currentRangeWithHigherMinBound:
-              VersionConstraint.parse('>=1.2.0 <2.0.0'),
-          targetRange: VersionConstraint.parse('>=1.0.0'),
-          expectedMixedRange: VersionConstraint.parse('>=1.2.0'),
+          currentRange: parseVersionRange('>=1.0.0 <2.0.0'),
+          currentRangeWithHigherMinBound: parseVersionRange('>=1.2.0 <2.0.0'),
+          targetRange: parseVersionRange('>=1.0.0'),
+          expectedMixedRange: parseVersionRange('>=1.2.0'),
         );
       });
 
       group('updates correctly with an open ended current range', () {
         sharedGenerateNewVersionRangeTests(
-          currentRange: VersionConstraint.parse('>=1.0.0'),
-          currentRangeWithHigherMinBound: VersionConstraint.parse('>=1.2.0'),
-          targetRange: VersionConstraint.parse('>=1.0.0 <2.0.0'),
-          expectedMixedRange: VersionConstraint.parse('>=1.2.0 <2.0.0'),
+          currentRange: parseVersionRange('>=1.0.0'),
+          currentRangeWithHigherMinBound: parseVersionRange('>=1.2.0'),
+          targetRange: parseVersionRange('>=1.0.0 <2.0.0'),
+          expectedMixedRange: parseVersionRange('>=1.2.0 <2.0.0'),
         );
       });
     });
@@ -184,167 +173,6 @@ void overReactExample() {}''';
         expect(friendlyFromString('any'), 'any');
         expect(friendlyVersionConstraint(VersionConstraint.empty),
             VersionConstraint.empty.toString());
-      });
-    });
-
-    group('isAssociatedWithComponent2()', () {
-      group('returns true', () {
-        test('if component extending UiComponent2 is in the same file', () {
-          final input = '''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                \$Foo;
-            
-            @Props()
-            class _\$FooProps extends UiProps {
-              String foo;
-              int bar;
-            }
-            
-            @Component2()
-            class FooComponent extends UiComponent2<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-          ''';
-
-          CompilationUnit unit = parseString(content: input).unit;
-          expect(unit.declarations.whereType<ClassDeclaration>().length, 2);
-
-          unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-            expect(isAssociatedWithComponent2(classNode), true);
-          });
-        });
-
-        test('if Component2 extending a non-base class is in the same file',
-            () {
-          final input = '''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                \$Foo;
-            
-            @Props()
-            class _\$FooProps extends UiProps {
-              String foo;
-              int bar;
-            }
-            
-            @Component2()
-            class FooComponent extends SomeClassName<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-          ''';
-
-          CompilationUnit unit = parseString(content: input).unit;
-          expect(unit.declarations.whereType<ClassDeclaration>().length, 2);
-
-          unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-            expect(isAssociatedWithComponent2(classNode), true);
-          });
-        });
-      });
-
-      group('returns false', () {
-        test('if component extending UiComponent is in the same file', () {
-          final input = '''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                \$Foo;
-            
-            @Props()
-            class _\$FooProps extends UiProps {
-              String foo;
-              int bar;
-            }
-            
-            @Component()
-            class FooComponent extends UiComponent<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-          ''';
-
-          CompilationUnit unit = parseString(content: input).unit;
-          expect(unit.declarations.whereType<ClassDeclaration>().length, 2);
-
-          unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-            expect(isAssociatedWithComponent2(classNode), false);
-          });
-        });
-
-        test('if Component extending a non-base class is in the same file', () {
-          final input = '''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                \$Foo;
-            
-            @Props()
-            class _\$FooProps extends UiProps {
-              String foo;
-              int bar;
-            }
-            
-            @Component()
-            class FooComponent extends SomeClassName<FooProps> {
-              @override
-              render() {
-                return Dom.ul()(
-                  Dom.li()('Foo: ', props.foo),
-                  Dom.li()('Bar: ', props.bar),
-                );
-              }
-            }
-          ''';
-
-          CompilationUnit unit = parseString(content: input).unit;
-          expect(unit.declarations.whereType<ClassDeclaration>().length, 2);
-
-          unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-            expect(isAssociatedWithComponent2(classNode), false);
-          });
-        });
-
-        test('if there is no component class in the same file', () {
-          final input = '''
-            @Factory()
-            UiFactory<FooProps> Foo =
-                // ignore: undefined_identifier
-                \$Foo;
-            
-            @Props()
-            class _\$FooProps extends UiProps {
-              String foo;
-              int bar;
-            }
-          ''';
-
-          CompilationUnit unit = parseString(content: input).unit;
-          expect(unit.declarations.whereType<ClassDeclaration>().length, 1);
-
-          unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
-            expect(isAssociatedWithComponent2(classNode), false);
-          });
-        });
       });
     });
 
@@ -393,7 +221,7 @@ void overReactExample() {}''';
         expect(
           shouldUpdateVersionRange(
             constraint: VersionConstraint.parse('any'),
-            targetConstraint: VersionConstraint.parse('^5.0.0'),
+            targetConstraint: parseVersionRange('^5.0.0'),
           ),
           isFalse,
         );
@@ -404,7 +232,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('^4.0.0'),
-                  targetConstraint: VersionConstraint.parse('^5.0.0')),
+                  targetConstraint: parseVersionRange('^5.0.0')),
               isTrue);
         });
 
@@ -412,7 +240,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('^4.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+                  targetConstraint: parseVersionRange('>=5.0.0 <6.0.0')),
               isTrue);
         });
       });
@@ -422,7 +250,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=4.0.0'),
-                  targetConstraint: VersionConstraint.parse('^5.0.0')),
+                  targetConstraint: parseVersionRange('^5.0.0')),
               isTrue);
         });
 
@@ -430,7 +258,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=4.0.0 <5.0.0'),
-                  targetConstraint: VersionConstraint.parse('^5.0.0')),
+                  targetConstraint: parseVersionRange('^5.0.0')),
               isTrue);
         });
 
@@ -438,7 +266,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=4.0.0 <5.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+                  targetConstraint: parseVersionRange('>=5.0.0 <6.0.0')),
               isTrue);
         });
       });
@@ -448,7 +276,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0'),
+                  targetConstraint: parseVersionRange('>=5.0.0 <6.0.0'),
                   shouldIgnoreMin: true),
               isTrue);
         });
@@ -457,7 +285,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <7.0.0'),
+                  targetConstraint: parseVersionRange('>=5.0.0 <7.0.0'),
                   shouldIgnoreMin: true),
               isTrue);
         });
@@ -468,7 +296,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+                  targetConstraint: parseVersionRange('>=5.0.0 <6.0.0')),
               isFalse);
         });
 
@@ -476,7 +304,7 @@ void overReactExample() {}''';
           expect(
               shouldUpdateVersionRange(
                   constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: VersionConstraint.parse('>=5.0.0 <7.0.0')),
+                  targetConstraint: parseVersionRange('>=5.0.0 <7.0.0')),
               isTrue);
         });
       });
@@ -485,7 +313,7 @@ void overReactExample() {}''';
         expect(
             shouldUpdateVersionRange(
                 constraint: VersionConstraint.parse('>=5.0.0 <7.0.0'),
-                targetConstraint: VersionConstraint.parse('>=5.0.0 <6.0.0')),
+                targetConstraint: parseVersionRange('>=5.0.0 <6.0.0')),
             isFalse);
       });
     });
@@ -563,7 +391,7 @@ void overReactExample() {}''';
 
         // Traverse the tokens until we get to var one.
         while (firstVar.value() != 'one' && !firstVar.isEof) {
-          firstVar = firstVar.next;
+          firstVar = firstVar.next!;
         }
 
         commentCount = allComments(firstVar).length;
@@ -700,10 +528,6 @@ void overReactExample() {}''';
             ]));
       });
 
-      test('returns empty list when input is null', () {
-        expect(allDescendants(null).toList(), isEmpty);
-      });
-
       test('returns empty list when input has no descendants', () {
         final node = parseAndGetSingle('''
           UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
@@ -756,10 +580,6 @@ void overReactExample() {}''';
           expect(
               allDescendantsOfType<MethodDeclaration>(node).toList(), isEmpty);
         });
-      });
-
-      test('when input is null', () {
-        expect(allDescendantsOfType<SimpleIdentifier>(null).toList(), isEmpty);
       });
 
       test('when input has no descendants', () {
@@ -882,10 +702,10 @@ class Foo extends _\$Foo
 }
 
 void sharedGenerateNewVersionRangeTests(
-    {@required VersionRange currentRange,
-    @required VersionRange currentRangeWithHigherMinBound,
-    @required VersionRange targetRange,
-    @required VersionRange expectedMixedRange}) {
+    {required VersionRange currentRange,
+    required VersionRange currentRangeWithHigherMinBound,
+    required VersionRange targetRange,
+    required VersionRange expectedMixedRange}) {
   group('', () {
     test('', () {
       expect(generateNewVersionRange(currentRange, targetRange), targetRange);

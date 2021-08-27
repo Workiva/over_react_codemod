@@ -15,6 +15,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
@@ -28,37 +29,34 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     super.visitMethodInvocation(node);
 
     final imports = node
-        .thisOrAncestorOfType<CompilationUnit>()
+        .thisOrAncestorOfType<CompilationUnit>()!
         .directives
         .whereType<ImportDirective>()
         .toList();
 
     final isPartOf = node
-        .thisOrAncestorOfType<CompilationUnit>()
+        .thisOrAncestorOfType<CompilationUnit>()!
         .directives
         .whereType<PartOfDirective>()
         .toList()
         .isNotEmpty;
 
     final libraryDirective = node
-        .thisOrAncestorOfType<CompilationUnit>()
+        .thisOrAncestorOfType<CompilationUnit>()!
         .directives
         .whereType<LibraryDirective>()
         .toList();
 
-    final overReactImport = imports.lastWhere(
-        (dir) =>
-            dir.uri?.stringValue == 'package:over_react/over_react.dart' ||
-            // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
-            dir.uri?.stringValue == 'package:' 'web_skin_dart/ui_core.dart',
-        orElse: () => null);
+    final overReactImport = imports.lastWhereOrNull((dir) =>
+        dir.uri.stringValue == 'package:over_react/over_react.dart' ||
+        // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
+        dir.uri.stringValue == 'package:' 'web_skin_dart/ui_core.dart');
 
-    final reactDomImport = imports.lastWhere(
-        (dir) => (dir.uri?.stringValue == 'package:react/react_dom.dart' ||
-            dir.uri?.stringValue == 'package:over_react/react_dom.dart'),
-        orElse: () => null);
+    final reactDomImport = imports.lastWhereOrNull((dir) =>
+        (dir.uri.stringValue == 'package:react/react_dom.dart' ||
+            dir.uri.stringValue == 'package:over_react/react_dom.dart'));
 
-    String reactDomImportNamespace;
+    String? reactDomImportNamespace;
     bool isWrappedWithErrorBoundary = false;
 
     if (reactDomImport == null) {
@@ -73,20 +71,20 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
     final inTest = testAncestor != null;
 
     if (node.methodName.name != 'render' ||
-        reactDomImportNamespace != node.realTarget?.toSource?.call() ||
+        reactDomImportNamespace != node.realTarget?.toSource() ||
         inTest) {
       return;
     }
 
-    FluentComponentUsage usage;
+    FluentComponentUsage? usage;
     final renderFirstArg = node.argumentList.arguments.first;
 
     // Get function declaration to determine return value type.
-    FunctionDeclaration functionDecl = node.thisOrAncestorMatching((ancestor) {
+    FunctionDeclaration? functionDecl = node.thisOrAncestorMatching((ancestor) {
       return ancestor is FunctionDeclaration;
     });
 
-    void addOverReactPatch([int offset]) {
+    void addOverReactPatch([int? offset]) {
       if (offset == null && imports.isNotEmpty) {
         offset = imports.last.offset;
       } else if (libraryDirective.isNotEmpty) {
@@ -127,7 +125,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       addOverReactPatch(reactDomImport?.offset);
     }
 
-    String comment;
+    String? comment;
     if (usage == null) {
       comment =
           '\n // [ ] Check this box upon manual validation that the component '
@@ -144,8 +142,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         // Instances of this class are always children of the class [VariableDeclarationList]
         yieldPatch(
           ';',
-          parent.equals.offset,
-          parent.equals.end,
+          parent.equals!.offset,
+          parent.equals!.end,
         );
 
         // Add this on the render call and not before the parent so that dupe
@@ -154,8 +152,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           comment ??
               '\n // [ ] Check this box upon manual validation of this ref and '
                   'its typing.$willBeRemovedCommentSuffix\n',
-          node.realTarget.offset,
-          node.realTarget.offset,
+          node.realTarget!.offset,
+          node.realTarget!.offset,
         );
 
         refVariableName = parent.name.name;
@@ -215,8 +213,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         '\n// [ ] Check this box upon manually updating this argument to use a '
         'callback ref instead of the return value of `react_dom.render`.'
         '$willBeRemovedCommentSuffix\n',
-        node.realTarget.offset,
-        node.realTarget.offset,
+        node.realTarget!.offset,
+        node.realTarget!.offset,
       );
     } else if ((parent is ReturnStatement ||
             parent is ExpressionFunctionBody) &&
@@ -228,8 +226,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         '// [ ] Check this box upon manually updating this variable to be set using a '
         'callback ref instead of the return value of `react_dom.render`.'
         '$willBeRemovedCommentSuffix\n',
-        node.realTarget.offset,
-        node.realTarget.offset,
+        node.realTarget!.offset,
+        node.realTarget!.offset,
       );
     } else {
       if (!hasValidationComment(node, context.sourceFile) &&
@@ -238,8 +236,8 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           comment ??
               '// [ ] Check this box upon manual validation of this ref.'
                   '$willBeRemovedCommentSuffix\n',
-          node.realTarget.offset,
-          node.realTarget.offset,
+          node.realTarget!.offset,
+          node.realTarget!.offset,
         );
       }
     }

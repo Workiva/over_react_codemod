@@ -17,7 +17,6 @@ import 'dart:io';
 import 'package:codemod/codemod.dart';
 import 'package:codemod/test.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
@@ -85,9 +84,9 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       var description = lines[i++].replaceAll('>>>', '');
 
       // Let the test specify how many patches should be generated.
-      int expectedNumPatches;
+      int? expectedNumPatches;
       description = description.replaceAllMapped(_patchesPattern, (match) {
-        expectedNumPatches = int.parse(match.group(1));
+        expectedNumPatches = int.parse(match.group(1)!);
         return '';
       });
 
@@ -107,7 +106,7 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       });
 
       // Let the test specify a file path, as the suggestor may use it.
-      String path;
+      String? path;
       description = description.replaceAllMapped(_pathPattern, (match) {
         path = match.group(1);
         return '';
@@ -151,12 +150,12 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
 }
 
 typedef SuggestorTester = Future<void> Function({
-  @required String input,
-  String expectedOutput,
-  int expectedPatchCount,
+  required String input,
+  String? expectedOutput,
+  int? expectedPatchCount,
   bool shouldDartfmtOutput,
   bool testIdempotency,
-  void Function(String contents) validateContents,
+  void Function(String contents)? validateContents,
 });
 
 const defaultSuggestorTesterInputUrl = 'lib/src/input';
@@ -165,12 +164,12 @@ const defaultSuggestorTesterInputUrl = 'lib/src/input';
 SuggestorTester getSuggestorTester(Suggestor suggestor,
     {String inputUrl = defaultSuggestorTesterInputUrl}) {
   return ({
-    @required String input,
-    String expectedOutput,
-    int expectedPatchCount,
+    required String input,
+    String? expectedOutput,
+    int? expectedPatchCount,
     bool shouldDartfmtOutput = true,
     bool testIdempotency = true,
-    void Function(String contents) validateContents,
+    void Function(String contents)? validateContents,
   }) =>
       testSuggestor(
         suggestor: suggestor,
@@ -185,14 +184,14 @@ SuggestorTester getSuggestorTester(Suggestor suggestor,
 }
 
 Future<void> testSuggestor({
-  @required Suggestor suggestor,
-  @required String input,
-  String expectedOutput,
-  int expectedPatchCount,
+  required Suggestor suggestor,
+  required String input,
+  String? expectedOutput,
+  int? expectedPatchCount,
   bool shouldDartfmtOutput = true,
   bool testIdempotency = true,
-  void Function(String contents) validateContents,
-  String inputUrl,
+  void Function(String contents)? validateContents,
+  String? inputUrl,
 }) async {
   inputUrl ??= defaultSuggestorTesterInputUrl;
   expectedOutput ??= input;

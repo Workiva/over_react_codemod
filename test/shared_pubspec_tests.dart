@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -46,15 +45,15 @@ import 'util.dart';
 /// `midVersionRange` is a version range between the expected range max and
 /// min. Used in conjunction with `shouldUpdateMidRange`.
 void sharedPubspecTest({
-  @required Function({bool useMidVersionMin}) getExpectedOutput,
-  @required SuggestorTester testSuggestor,
-  @required String dependency,
-  @required VersionRange startingRange,
-  @required bool isDevDependency,
+  required Function({bool useMidVersionMin}) getExpectedOutput,
+  required SuggestorTester testSuggestor,
+  required String dependency,
+  required VersionRange startingRange,
+  required bool isDevDependency,
   bool shouldAddDependencies = true,
   bool shouldUpdate = true,
   bool shouldUpdateMidRange = true,
-  String midVersionRange,
+  String? midVersionRange,
 }) {
   final patchCount = shouldUpdate ? 1 : 0;
   final key = isDevDependency ? 'dev_dependencies' : 'dependencies';

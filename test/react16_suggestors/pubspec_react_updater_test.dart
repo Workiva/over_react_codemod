@@ -14,6 +14,7 @@
 
 import 'package:over_react_codemod/src/react16_suggestors/constants.dart';
 import 'package:over_react_codemod/src/react16_suggestors/pubspec_react_upgrader.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -32,19 +33,19 @@ main() {
   group('PubspecReactUpdater', () {
     /// Suggestor used to test the default configurations.
     final testSuggestor = getSuggestorTester(
-        PubspecReactUpdater(VersionConstraint.parse(reactVersionRange)));
+        PubspecReactUpdater(parseVersionRange(reactVersionRange)));
 
     /// Suggestor to test when the codemod should not add the dependency if
     /// it does not encounter it.
     final doNotAddDependencies = getSuggestorTester(PubspecReactUpdater(
-        VersionConstraint.parse(reactVersionRange),
+        parseVersionRange(reactVersionRange),
         shouldAddDependencies: false));
 
     group('when there are no special cases', () {
       sharedPubspecTest(
           testSuggestor: testSuggestor,
           getExpectedOutput: getExpectedOutput,
-          startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
+          startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
           isDevDependency: false,
           dependency: 'react',
           midVersionRange: '^$midVersionMin');
@@ -52,9 +53,9 @@ main() {
       group('and the new version is a pre-release version', () {
         sharedPubspecTest(
             testSuggestor: getSuggestorTester(PubspecReactUpdater(
-                VersionConstraint.parse(reactVersionRangeForTesting))),
+                parseVersionRange(reactVersionRangeForTesting))),
             getExpectedOutput: getExpectedPreReleaseOutput,
-            startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
+            startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
             isDevDependency: false,
             midVersionRange: '^5.5.3',
             shouldUpdateMidRange: false,
@@ -66,7 +67,7 @@ main() {
       sharedPubspecTest(
           testSuggestor: doNotAddDependencies,
           getExpectedOutput: getExpectedOutput,
-          startingRange: VersionConstraint.parse('>=4.6.1 <4.9.0'),
+          startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
           isDevDependency: false,
           dependency: 'react',
           midVersionRange: '^$midVersionMin',
@@ -79,7 +80,7 @@ main() {
       sharedPubspecTest(
           testSuggestor: testSuggestor,
           getExpectedOutput: getExpectedOutput,
-          startingRange: VersionConstraint.parse('^5.0.0'),
+          startingRange: parseVersionRange('^5.0.0'),
           isDevDependency: false,
           dependency: 'react',
           shouldUpdate: false,

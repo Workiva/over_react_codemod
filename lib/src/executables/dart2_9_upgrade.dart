@@ -116,7 +116,7 @@ void main(List<String> args) async {
     exitCode = await runInteractiveCodemod(
       pubspecYamlPaths(),
       aggregate([
-        PubspecOverReactUpgrader(overReactVersionConstraint,
+        PubspecOverReactUpgrader(overReactVersionConstraint as VersionRange,
             shouldAddDependencies: false),
       ].map((s) => ignoreable(s))),
       // Only pass valid low level codemod flags
@@ -151,7 +151,7 @@ void main(List<String> args) async {
 extension on RecursiveAstVisitor {
   /// Iterates over all the files provided and inspects them.
   void inspectAllPaths(Iterable<String> files,
-      {bool Function() shortCircuitTest, Logger logger}) {
+      {bool Function()? shortCircuitTest, required Logger logger}) {
     for (final filePath in files) {
       if (shortCircuitTest?.call() ?? false) continue;
 

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -35,16 +36,16 @@ main() {
 
     group('with shouldAlwaysUpdate false', () {
       final defaultTestSuggestor = getSuggestorTester(
-          PubspecOverReactUpgrader(VersionConstraint.parse(versionRange)));
+          PubspecOverReactUpgrader(parseVersionRange(versionRange)));
 
       final doNotAddDependencies = getSuggestorTester(PubspecOverReactUpgrader(
-          VersionConstraint.parse(versionRange),
+          parseVersionRange(versionRange),
           shouldAddDependencies: false));
 
       sharedPubspecTest(
         testSuggestor: defaultTestSuggestor,
         getExpectedOutput: getExpectedOutput,
-        startingRange: startingTestRange,
+        startingRange: startingTestRange as VersionRange,
         isDevDependency: false,
         dependency: dependency,
         midVersionRange: midRangeMark,
@@ -114,12 +115,12 @@ main() {
     group('with shouldAlwaysUpdate true', () {
       final defaultTestSuggestor = getSuggestorTester(
           PubspecOverReactUpgrader.alwaysUpdate(
-              VersionConstraint.parse(versionRange)));
+              parseVersionRange(versionRange)));
 
       sharedPubspecTest(
         testSuggestor: defaultTestSuggestor,
         getExpectedOutput: getExpectedOutput,
-        startingRange: startingTestRange,
+        startingRange: startingTestRange as VersionRange,
         isDevDependency: false,
         dependency: dependency,
         midVersionRange: midRangeMark,
@@ -165,8 +166,8 @@ main() {
   });
 }
 
-String getExpectedOutput({bool useMidVersionMin = false}) {
-  if (useMidVersionMin) {
+String getExpectedOutput({bool? useMidVersionMin = false}) {
+  if (useMidVersionMin!) {
     final expected =
         VersionConstraint.parse('^2.0.0').allows(Version.parse(midRangeMark))
             ? '^$midRangeMark'

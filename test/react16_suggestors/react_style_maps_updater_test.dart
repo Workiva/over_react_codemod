@@ -213,8 +213,8 @@ main() {
             main() {
               Foo()
               ${manualVariableCheckComment(keysOfModdedValues: [
-            'width',
-          ])}
+                'width',
+              ])}
               ..style = {
                 'width': isWide ?? isNotWide,
                 'height': '40%',
@@ -244,8 +244,8 @@ main() {
             main() {
               Foo()
               ${manualVariableCheckComment(keysOfModdedValues: [
-            'width',
-          ])}
+                'width',
+              ])}
               ..style = {
                 'width': width / 10,
                 'height': '40%',
@@ -347,10 +347,10 @@ main() {
             main() {
               Foo()
                 ${getCheckboxComment(keysOfModdedValues: [
-            'width',
-            'height',
-            'fontSize'
-          ])}
+                'width',
+                'height',
+                'fontSize'
+              ])}
                 ..style = {
                   'width': '\$width',
                   'height': '\${getHeight()}foo',
@@ -384,10 +384,10 @@ main() {
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: [
-            'width',
-            'fontSize',
-            'margin'
-          ])}
+                'width',
+                'fontSize',
+                'margin'
+              ])}
               ..style = {
                 'width': isWide ? 40 : 20,
                 'height': '40%',
@@ -400,10 +400,10 @@ main() {
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: [
-            'width',
-            'fontSize',
-            'margin'
-          ])}
+                'width',
+                'fontSize',
+                'margin'
+              ])}
               ..style = {
                 'width': isWide ? 40 : 20,
                 'height': '40%',
@@ -617,8 +617,8 @@ main() {
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: [
-          'width'
-        ], checked: true)}
+              'width'
+            ], checked: true)}
               ..style = {
                 'width': '40px',
               };
@@ -717,8 +717,8 @@ main() {
             main() {
               Foo()
               ${manualVariableCheckComment(keysOfModdedValues: [
-          'width'
-        ], isChecked: true)}
+              'width'
+            ], isChecked: true)}
               ..style = {
                 'width': isWide ?? 40,
                 'height': '40%',
@@ -731,8 +731,8 @@ main() {
             main() {
               Foo()
               ${manualVariableCheckComment(keysOfModdedValues: [
-          'width'
-        ], isChecked: true)}
+              'width'
+            ], isChecked: true)}
               ..style = {
                 'width': isWide ?? 40,
                 'height': '40%',
