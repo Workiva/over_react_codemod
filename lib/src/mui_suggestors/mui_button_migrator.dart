@@ -144,7 +144,7 @@ class MuiButtonMigrator extends Object
 
     migratePropsByName(usage, migratorsByName: {
       // Simple replacements.
-      'isActive': (p) => yieldPropPatch(p, newName: 'aria.selected'),
+      'isActive': (p) => yieldPropPatch(p, newName: 'aria.pressed'),
       'isBlock': (p) => yieldPropPatch(p, newName: 'fullWidth'),
       'isDisabled': (p) => yieldPropPatch(p, newName: 'disabled'),
       'isFlat': (p) => yieldPropPatch(p, newName: 'disableElevation'),
