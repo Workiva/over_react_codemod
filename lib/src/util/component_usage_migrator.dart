@@ -385,9 +385,10 @@ extension on DartType {
   }
 }
 
-extension MapKeyValueHelpers<K, V> on Map<K, V> {
-  V? firstValueWhereOrNull(bool Function(K key, V value) test) => entries
-      .where((element) => test(element.key, element.value))
+V? mapWsdConstant<V>(
+    Expression expression, Map<String, V> wsdConstantToNewValue) {
+  return wsdConstantToNewValue.entries
+      .where((element) => isWsdStaticConstant(expression, element.key))
       .map((e) => e.value)
       .firstOrNull;
 }

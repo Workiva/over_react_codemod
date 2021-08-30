@@ -186,7 +186,7 @@ class MuiButtonMigrator extends Object
       return;
     }
 
-    const skinToColor = {
+    final colorFromWsdSkin = mapWsdConstant(rhs, const {
       'ButtonSkin.DANGER': '$muiNs.ButtonColor.error',
       'ButtonSkin.ALTERNATE': '$muiNs.ButtonColor.secondary',
       'ButtonSkin.LIGHT': '$muiNs.ButtonColor.wsdBtnLight',
@@ -196,14 +196,12 @@ class MuiButtonMigrator extends Object
       'ButtonSkin.PRIMARY': '$muiNs.ButtonColor.primary',
       'ButtonSkin.SUCCESS': '$muiNs.ButtonColor.success',
       'ButtonSkin.WARNING': '$muiNs.ButtonColor.warning',
-    };
-    final colorFromSkin = skinToColor
-        .firstValueWhereOrNull((skin, _) => isWsdStaticConstant(rhs, skin));
-    if (colorFromSkin != null) {
+    });
+    if (colorFromWsdSkin != null) {
       yieldPropPatch(
         prop,
         newName: 'color',
-        newRhs: colorFromSkin,
+        newRhs: colorFromWsdSkin,
       );
       return;
     }
@@ -213,7 +211,7 @@ class MuiButtonMigrator extends Object
       return;
     }
 
-    const outlineSkinToColor = {
+    final colorFromWsdOutlineSkin = mapWsdConstant(rhs, const {
       'ButtonSkin.OUTLINE_DANGER': '$muiNs.ButtonColor.error',
       'ButtonSkin.OUTLINE_ALTERNATE': '$muiNs.ButtonColor.secondary',
       'ButtonSkin.OUTLINE_LIGHT': '$muiNs.ButtonColor.wsdBtnLight',
@@ -222,13 +220,11 @@ class MuiButtonMigrator extends Object
       'ButtonSkin.OUTLINE_PRIMARY': '$muiNs.ButtonColor.primary',
       'ButtonSkin.OUTLINE_SUCCESS': '$muiNs.ButtonColor.success',
       'ButtonSkin.OUTLINE_WARNING': '$muiNs.ButtonColor.warning',
-    };
-    final colorFromOutlineSkin = outlineSkinToColor
-        .firstValueWhereOrNull((skin, _) => isWsdStaticConstant(rhs, skin));
-    if (colorFromOutlineSkin != null) {
+    });
+    if (colorFromWsdOutlineSkin != null) {
       yieldPropPatch(prop,
           newName: 'color',
-          newRhs: colorFromOutlineSkin,
+          newRhs: colorFromWsdOutlineSkin,
           additionalCascadeSection: '..variant = $muiOutlineVariant');
       return;
     }
@@ -238,18 +234,15 @@ class MuiButtonMigrator extends Object
   }
 
   void _migrateSize(PropAssignment prop) {
-    const sizeToNewSize = {
+    final sizeFromWsdSize = mapWsdConstant(prop.rightHandSide, const {
       'ButtonSize.XXSMALL': '$muiNs.ButtonSize.xxsmall',
       'ButtonSize.XSMALL': '$muiNs.ButtonSize.xsmall',
       'ButtonSize.SMALL': '$muiNs.ButtonSize.small',
       'ButtonSize.DEFAULT': '$muiNs.ButtonSize.medium',
       'ButtonSize.LARGE': '$muiNs.ButtonSize.large',
-    };
-
-    final newSize = sizeToNewSize.firstValueWhereOrNull(
-        (size, _) => isWsdStaticConstant(prop.rightHandSide, size));
-    if (newSize != null) {
-      yieldPropPatch(prop, newRhs: newSize);
+    });
+    if (sizeFromWsdSize != null) {
+      yieldPropPatch(prop, newRhs: sizeFromWsdSize);
       return;
     }
 
