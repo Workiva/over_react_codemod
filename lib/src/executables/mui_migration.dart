@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
+import 'package:over_react_codemod/src/mui_suggestors/mui_button_group_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 
@@ -45,7 +46,16 @@ void main(List<String> args) async {
   }
 
   await runCodemodSequences([
-    [MuiButtonMigrator()],
+    [
+      // It should generally be safe to aggregate these since each component usage
+      // should only be handled by a single migrator, and shouldn't depend on the
+      // output of previous migrators.
+      // fixme is there any benefit to aggregating these?
+      aggregate([
+        MuiButtonMigrator(),
+        MuiButtonGroupMigrator(),
+      ]),
+    ],
     [muiImporter],
     // TODO update this to add RMUI dependency in pubspec
     // PubspecOverReactUpgrader(overReactVersionConstraint as VersionRange,

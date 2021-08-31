@@ -4,7 +4,7 @@ import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 
-const muiNs = 'mui';
+import 'constants.dart';
 
 final _log = Logger('muiImporter');
 

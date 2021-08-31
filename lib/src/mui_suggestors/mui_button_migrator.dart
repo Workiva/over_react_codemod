@@ -3,6 +3,8 @@ import 'package:over_react_codemod/src/fluent_interface_util/cascade_read.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
+import 'constants.dart';
+
 // - Keep in mind: useful for components other than just button
 //
 // 1. Replace WSD component factory invocations with MUI component factory invocations
@@ -53,10 +55,16 @@ import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 //
 //     - Can we just rely on test failures to identify these cases?
 
-const muiNs = 'mui';
+const _linkButtonSkin = 'ButtonSkin.LINK';
+const _outlineLinkButtonSkin = 'ButtonSkin.OUTLINE_LINK';
+
+const _linkButtonSkins = {
+  _linkButtonSkin,
+  _outlineLinkButtonSkin,
+};
 
 class MuiButtonMigrator extends Object
-    with ClassSuggestor, ComponentUsageMigrator {
+    with ClassSuggestor, ComponentUsageMigrator, ButtonDisplayPropsMigrator {
   // fixme how do we add imports in libraries? Collect files that need imports and add them after the fact?
 
   // fixme document decisions
@@ -100,13 +108,6 @@ class MuiButtonMigrator extends Object
 
   MuiButtonMigrator({this.isLinkButtonAvailable = false});
 
-  static const linkButtonSkin = 'ButtonSkin.LINK';
-  static const outlineLinkButtonSkin = 'ButtonSkin.OUTLINE_LINK';
-
-  static const linkButtonSkins = {
-    linkButtonSkin,
-    outlineLinkButtonSkin,
-  };
 
   static bool hasLinkButtonSkin(FluentComponentUsage usage) =>
       usage.cascadedProps
@@ -115,7 +116,7 @@ class MuiButtonMigrator extends Object
           .any(isLinkButtonSkin);
 
   static bool isLinkButtonSkin(Expression expr) =>
-      linkButtonSkins.any((linkSkin) => isWsdStaticConstant(expr, linkSkin));
+      _linkButtonSkins.any((linkSkin) => isWsdStaticConstant(expr, linkSkin));
 
   @override
   MigrationDecision shouldMigrateUsage(FluentComponentUsage usage) {
@@ -152,8 +153,9 @@ class MuiButtonMigrator extends Object
       'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
 
       // Lengthier migration code; split out into methods.
-      'skin': _migrateSkin,
-      'size': _migrateSize,
+      'skin': (p) =>
+          migrateButtonSkin(p, handleLinkVariants: isLinkButtonAvailable),
+      'size': migrateButtonSize,
 
       // Props that always need manual intervention.
       'isCallout': yieldPropManualMigratePatch,
@@ -162,23 +164,28 @@ class MuiButtonMigrator extends Object
       'tooltipContent': yieldPropManualMigratePatch,
     });
   }
+}
 
-  void _migrateSkin(PropAssignment prop) {
+mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
+  void migrateButtonSkin(PropAssignment prop,
+      {bool handleLinkVariants = false}) {
     final rhs = prop.rightHandSide;
 
     const muiOutlineVariant = '$muiNs.ButtonVariant.outlined';
 
-    if (isWsdStaticConstant(rhs, linkButtonSkin)) {
+    if (handleLinkVariants && isWsdStaticConstant(rhs, _linkButtonSkin)) {
       yieldRemovePropPatch(prop);
       return;
     }
 
-    if (isWsdStaticConstant(rhs, outlineLinkButtonSkin)) {
+    if (handleLinkVariants &&
+        isWsdStaticConstant(rhs, _outlineLinkButtonSkin)) {
       yieldPropPatch(prop, newName: 'variant', newRhs: muiOutlineVariant);
       return;
     }
 
     if (isWsdStaticConstant(rhs, 'ButtonSkin.VANILLA')) {
+      // todo play around with removing props and adding them vs modifying them
       yieldPropPatch(prop,
           newName: 'color',
           newRhs: '$muiNs.ButtonColor.inherit',
@@ -233,7 +240,7 @@ class MuiButtonMigrator extends Object
     yieldPropManualMigratePatch(prop);
   }
 
-  void _migrateSize(PropAssignment prop) {
+  void migrateButtonSize(PropAssignment prop) {
     final sizeFromWsdSize = mapWsdConstant(prop.rightHandSide, const {
       'ButtonSize.XXSMALL': '$muiNs.ButtonSize.xxsmall',
       'ButtonSize.XSMALL': '$muiNs.ButtonSize.xsmall',
