@@ -2,6 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/fluent_interface_util/cascade_read.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 import 'constants.dart';
 
@@ -163,6 +164,73 @@ class MuiButtonMigrator
       'pullRight': yieldPropManualMigratePatch,
       'tooltipContent': yieldPropManualMigratePatch,
     });
+
+    migrateChildIcons(usage);
+  }
+
+  /// Find icons that are the first/last children and also have siblings,
+  /// and move them to startIcon/endIcon.
+  ///
+  /// For ambiguous cases, flag as needing manual verification.
+  void migrateChildIcons(FluentComponentUsage usage) {
+    // There can't be any icons if there aren't any children.
+    // Also, being able to assume that children is non-empty simplifies below logic.
+    if (usage.children.isEmpty) return;
+
+    // If it's a single child or `noText = true`, no moving is needed.
+    if (usage.children.length == 1 ||
+        usage.cascadedProps.any((p) =>
+            p.name.name == 'noText' &&
+            p.rightHandSide.tryCast<BooleanLiteral>()?.value == true)) {
+      return;
+    }
+
+    void handleEndChild(ComponentChild child, {required bool isFirst}) {
+      final iconPropName = isFirst ? 'startIcon' : 'endIcon';
+
+      void flagChild() => yieldInsertionPatch(
+          lineComment('FIXME(mui_migration) - Button child'
+              ' - manually verify that this child is not an icon that should be moved to `$iconPropName`'),
+          child.node.offset);
+
+      // Don't try to handle non-expression (collection element) children.
+      if (child is! ExpressionComponentChild) {
+        flagChild();
+        return;
+      }
+
+      // Ignore primitive children since we know they can't be components.
+      if (child.childType == SimpleChildType.primitive) return;
+
+      // Flag for manual verification if children are of unknown types.
+      if (child.childType != SimpleChildType.reactElement) {
+        flagChild();
+        return;
+      }
+
+      // Of the ReactElement children, if any aren't inline component usages
+      // using factories directly, flag for manual verification since we
+      // can't tell for sure what component type they are.
+      final childAsUsage = getComponentUsageFromExpression(child.node);
+      if (childAsUsage != null && childAsUsage.factory != null) {
+        flagChild();
+        return;
+      }
+
+      // Handle any icon children and move them.
+      if (usesWsdFactory(childAsUsage!, 'Icon')) {
+        yieldAddPropPatch(
+            usage, '..$iconPropName = ${context.sourceFor(child.node)}');
+        yieldRemoveChildPatch(child.node);
+      }
+    }
+
+    final children = usage.children.toList();
+    assert(children.length > 1);
+    // Make sure we're operating on a non-filtered list of children here,
+    // since we want to check the indexes of the children.
+    handleEndChild(children.first, isFirst: true);
+    handleEndChild(children.last, isFirst: false);
   }
 }
 

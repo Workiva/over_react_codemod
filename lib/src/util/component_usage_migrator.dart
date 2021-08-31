@@ -1,5 +1,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:codemod/codemod.dart';
@@ -48,6 +49,10 @@ mixin ClassSuggestor {
 
   void yieldPatch(String updatedText, int startOffset, [int? endOffset]) {
     _patches.add(Patch(updatedText, startOffset, endOffset));
+  }
+
+  void yieldInsertionPatch(String updatedText, int offset) {
+    _patches.add(Patch(updatedText, offset, offset));
   }
 }
 
@@ -247,6 +252,27 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
   void yieldRemovePropPatch(PropAssignment prop) {
     yieldPatchOverNode('', prop.assignment);
+  }
+
+  void yieldAddPropPatch(FluentComponentUsage usage, String newPropCascade) {
+    final function = usage.node.function;
+    if (function is ParenthesizedExpression) {
+      // Add at the beginning so we don't accidentally cascade onto an arrow function prop
+      yieldPatch(newPropCascade, usage.builder.end, usage.builder.end);
+    } else {
+      yieldPatch('(', function.offset, function.offset);
+      yieldPatch(newPropCascade, function.end, function.end);
+      yieldPatch(')', function.end, function.end);
+    }
+  }
+
+  void yieldRemoveChildPatch(AstNode child) {
+    final start = child.offset;
+    final nextToken = child.endToken.next;
+    final end = (nextToken != null && nextToken.type == TokenType.COMMA)
+        ? nextToken.end
+        : child.end;
+    yieldPatch('', start, end);
   }
 
   void yieldPropPatch(

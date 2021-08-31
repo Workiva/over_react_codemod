@@ -34,6 +34,7 @@ class FluentComponentUsage {
 
   bool get isDom => const ['DomProps', 'SvgProps']
       .contains(builder.staticType?.interfaceTypeName);
+
   bool get isSvg =>
       const ['SvgProps'].contains(builder.staticType?.interfaceTypeName);
 
@@ -44,6 +45,75 @@ class FluentComponentUsage {
 
   /// The number of child arguments passed into the invocation.
   int get childArgumentCount => node.argumentList.arguments.length;
+
+  Iterable<ComponentChild> get children sync* {
+    final arguments = node.argumentList.arguments;
+
+    if (arguments.length == 1) {
+      final singleArgument = arguments[0];
+      if (singleArgument is ListLiteral) {
+        for (final element in singleArgument.elements) {
+          if (element is Expression) {
+            yield ExpressionComponentChild(element, isVariadic: false);
+          } else {
+            // IfElement|ForElement|SpreadElement
+            yield CollectionElementComponentChild(element);
+          }
+        }
+        return;
+      }
+    }
+
+    for (final child in arguments) {
+      yield ExpressionComponentChild(child, isVariadic: true);
+    }
+  }
+}
+
+abstract class ComponentChild {
+  AstNode get node;
+}
+
+class CollectionElementComponentChild implements ComponentChild {
+  @override
+  final CollectionElement node;
+
+  CollectionElementComponentChild(this.node);
+}
+
+class ExpressionComponentChild implements ComponentChild {
+  @override
+  final Expression node;
+
+  final bool isVariadic;
+
+  SimpleChildType get childType {
+    final staticType = node.staticType;
+    if (staticType == null) {
+      return SimpleChildType.other;
+    }
+
+    if (staticType.isReactElement) {
+      return SimpleChildType.reactElement;
+    }
+
+    if (staticType.isDartCoreString ||
+        staticType.isDartCoreBool ||
+        staticType.isDartCoreInt ||
+        staticType.isDartCoreNum) {
+      return SimpleChildType.primitive;
+    }
+
+    return SimpleChildType.other;
+  }
+
+  ExpressionComponentChild(this.node, {required this.isVariadic});
+}
+
+enum SimpleChildType {
+  primitive,
+  reactElement,
+  other,
 }
 
 PropAssignment? getPropAssignment(AssignmentExpression node) {
@@ -290,6 +360,10 @@ FluentComponentUsage? getComponentUsage(InvocationExpression node) {
   if (!isComponent) return null;
 
   return FluentComponentUsage._(node, cascadeExpression, builder);
+}
+
+FluentComponentUsage? getComponentUsageFromExpression(Expression node) {
+  return node is InvocationExpression ? getComponentUsage(node) : null;
 }
 
 String? getComponentName(Expression builder) {

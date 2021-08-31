@@ -438,3 +438,7 @@ extension TryCast<T> on T {
     return self is S ? self : null;
   }
 }
+
+extension IterableCastHelpers<T> on Iterable<T?> {
+  Iterable<T> castNotNull() => cast();
+}
