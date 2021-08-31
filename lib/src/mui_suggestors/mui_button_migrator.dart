@@ -212,13 +212,13 @@ class MuiButtonMigrator
       // using factories directly, flag for manual verification since we
       // can't tell for sure what component type they are.
       final childAsUsage = getComponentUsageFromExpression(child.node);
-      if (childAsUsage != null && childAsUsage.factory != null) {
+      if (childAsUsage == null || childAsUsage.factory == null) {
         flagChild();
         return;
       }
 
       // Handle any icon children and move them.
-      if (usesWsdFactory(childAsUsage!, 'Icon')) {
+      if (usesWsdFactory(childAsUsage, 'Icon')) {
         yieldAddPropPatch(
             usage, '..$iconPropName = ${context.sourceFor(child.node)}');
         yieldRemoveChildPatch(child.node);
