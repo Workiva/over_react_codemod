@@ -107,8 +107,7 @@ class MuiButtonMigrator
 
   final bool isLinkButtonAvailable;
 
-  MuiButtonMigrator({this.isLinkButtonAvailable = false});
-
+  MuiButtonMigrator({this.isLinkButtonAvailable = true});
 
   static bool hasLinkButtonSkin(FluentComponentUsage usage) =>
       usage.cascadedProps
