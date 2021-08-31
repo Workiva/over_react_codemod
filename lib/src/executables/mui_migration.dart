@@ -19,6 +19,7 @@ import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_group_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
+import 'package:over_react_codemod/src/mui_suggestors/mui_button_toolbar_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 
 void main(List<String> args) async {
@@ -54,6 +55,7 @@ void main(List<String> args) async {
       aggregate([
         MuiButtonMigrator(),
         MuiButtonGroupMigrator(),
+        MuiButtonToolbarMigrator(),
       ]),
     ],
     [muiImporter],
