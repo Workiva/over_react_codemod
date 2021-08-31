@@ -3,7 +3,7 @@ import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
-class MuiButtonGroupMigrator extends Object
+class MuiButtonGroupMigrator
     with ClassSuggestor, ComponentUsageMigrator, ButtonDisplayPropsMigrator {
   @override
   MigrationDecision shouldMigrateUsage(FluentComponentUsage usage) =>

@@ -3,8 +3,7 @@ import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
 import 'constants.dart';
 
-class MuiButtonToolbarMigrator extends Object
-    with ClassSuggestor, ComponentUsageMigrator {
+class MuiButtonToolbarMigrator with ClassSuggestor, ComponentUsageMigrator {
   @override
   MigrationDecision shouldMigrateUsage(FluentComponentUsage usage) =>
       usesWsdFactory(usage, 'ButtonToolbar')

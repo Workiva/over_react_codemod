@@ -63,7 +63,7 @@ const _linkButtonSkins = {
   _outlineLinkButtonSkin,
 };
 
-class MuiButtonMigrator extends Object
+class MuiButtonMigrator
     with ClassSuggestor, ComponentUsageMigrator, ButtonDisplayPropsMigrator {
   // fixme how do we add imports in libraries? Collect files that need imports and add them after the fact?
 
