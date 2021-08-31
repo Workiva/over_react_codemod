@@ -145,24 +145,24 @@ mixin ComponentUsageMigrator on ClassSuggestor {
       if (methodsWithCustomHandling.contains(name)) {
         switch (name) {
           case 'addProp':
-            final expression = method.argumentList.arguments.firstOrNull;
+            final expression = method.node.argumentList.arguments.firstOrNull;
             if (expression != null && !isDataAttributePropKey(expression)) {
               yieldPatch(
                   lineComment(
                       'FIXME(mui_migration) - ${name} addProp - manually verify prop key'),
-                  method.offset,
-                  method.offset);
+                  method.node.offset,
+                  method.node.offset);
             }
             break;
         }
       } else if ((shouldFlagUnsafeMethodCalls &&
               !safeMethodCallNames.contains(name)) ||
-          (shouldFlagExtensionMembers && method.isExtensionMethod)) {
+          (shouldFlagExtensionMembers && method.node.isExtensionMethod)) {
         yieldPatch(
             lineComment(
                 'FIXME(mui_migration) - ${name} call - manually verify'),
-            method.offset,
-            method.offset);
+            method.node.offset,
+            method.node.offset);
       }
     }
 
@@ -192,8 +192,8 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         yieldPatch(
             lineComment(
                 'FIXME(mui_migration) - `..[propKey] =` - manually verify prop key'),
-            prop.assignment.offset,
-            prop.assignment.offset);
+            prop.node.offset,
+            prop.node.offset);
       }
     }
   }
@@ -257,9 +257,28 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   void yieldAddPropPatch(FluentComponentUsage usage, String newPropCascade) {
     final function = usage.node.function;
     if (function is ParenthesizedExpression) {
-      // Add at the beginning so we don't accidentally cascade onto an arrow function prop
-      yieldPatch(newPropCascade, usage.builder.end, usage.builder.end);
+      // Try to insert it after other props that aren't method calls or index expressions,
+      // or members typically inserted at the end like addTestId, key, and ref.
+      final bestPropToInsertAfter =
+          usage.cascadedMembers.lastWhereOrNull((element) {
+        if (element is BuilderMethodInvocation) {
+          return false;
+        } else if (element is PropAssignment) {
+          final name = element.name.name;
+          return name != 'key' && name != 'ref';
+        } else if (element is IndexPropAssignment) {
+          return false;
+        } else {
+          throw ArgumentError.value(
+              element, 'element', 'Unhandled BuilderMemberAccess subtype');
+        }
+      });
+
+      final offset = bestPropToInsertAfter?.node.offset ??
+          function.rightParenthesis.offset;
+      yieldPatch(newPropCascade, offset, offset);
     } else {
+      assert(usage.cascadeExpression == null);
       yieldPatch('(', function.offset, function.offset);
       yieldPatch(newPropCascade, function.end, function.end);
       yieldPatch(')', function.end, function.end);

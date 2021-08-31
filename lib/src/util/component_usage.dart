@@ -147,9 +147,22 @@ PropAssignment? getPropAssignment(AssignmentExpression node) {
 //   foo..bar = '';
 // }
 
+abstract class BuilderMemberAccess {
+  AstNode get node;
+}
+
+class BuilderMethodInvocation implements BuilderMemberAccess {
+  @override
+  final MethodInvocation node;
+
+  BuilderMethodInvocation(this.node);
+
+  Identifier get methodName => node.methodName;
+}
+
 // Fixme write hella test cases for this, including `.aria.label`
 // TODO what about indexed prop assignments?
-abstract class PropAssignment {
+abstract class PropAssignment implements BuilderMemberAccess {
   factory PropAssignment(AssignmentExpression node) {
     if (node.leftHandSide is PropertyAccess) {
       return _PropertyAccessPropAssignment(node);
@@ -174,6 +187,10 @@ abstract class PropAssignment {
 
   /// The cascaded assignment expression that backs this assignment.
   AssignmentExpression get assignment;
+
+  // todo remove assignment in favor of node
+  @override
+  AssignmentExpression get node => assignment;
 
   /// The property access representing the left hand side of this assignment.
   Expression get leftHandSide => assignment.leftHandSide;
@@ -264,14 +281,15 @@ class _PrefixedIdentifierPropAssignment with PropAssignment {
   get parentCascade => null;
 }
 
-class IndexPropAssignment {
+class IndexPropAssignment implements BuilderMemberAccess {
   /// The cascaded assignment expression that backs this assignment.
-  final AssignmentExpression assignment;
+  @override
+  final AssignmentExpression node;
 
-  IndexPropAssignment(this.assignment) {
-    if (assignment.leftHandSide is! IndexExpression) {
+  IndexPropAssignment(this.node) {
+    if (node.leftHandSide is! IndexExpression) {
       throw ArgumentError.value(
-        assignment.leftHandSide,
+        node.leftHandSide,
         'node.leftHandSide',
         'Must be an IndexExpreesion',
       );
@@ -279,13 +297,12 @@ class IndexPropAssignment {
   }
 
   /// The property access representing the left hand side of this assignment.
-  IndexExpression get leftHandSide =>
-      assignment.leftHandSide as IndexExpression;
+  IndexExpression get leftHandSide => node.leftHandSide as IndexExpression;
 
   Expression get index => leftHandSide.index;
 
   /// The expression for the right hand side of this assignment.
-  Expression get rightHandSide => assignment.rightHandSide;
+  Expression get rightHandSide => node.rightHandSide;
 }
 
 extension _TryCast<T> on T {
