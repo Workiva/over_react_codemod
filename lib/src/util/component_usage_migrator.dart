@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/element_type_helpers.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
+import 'package:source_span/source_span.dart';
 
 mixin ClassSuggestor {
   final _patches = <Patch>{};
@@ -274,9 +275,11 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         }
       });
 
-      final offset = bestPropToInsertAfter?.node.offset ??
-          function.rightParenthesis.offset;
-      yieldPatch(newPropCascade, offset, offset);
+      // Insert at the beginning of the next line so that we're not fighting with
+      // insertions at the beginning of that prop (e.g., fix-me comments).
+      final offset = context.sourceFile.getOffsetOfLineAfter(
+          bestPropToInsertAfter?.node.end ?? function.rightParenthesis.offset);
+      yieldInsertionPatch('\n' + newPropCascade, offset);
     } else {
       assert(usage.cascadeExpression == null);
       yieldPatch('(', function.offset, function.offset);
@@ -343,6 +346,12 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         prop.assignment.offset,
         prop.assignment.offset);
   }
+}
+
+extension on SourceFile {
+  /// Return the offset of the first character on the line following the line
+  /// containing the given [offset].
+  int getOffsetOfLineAfter(int offset) => getOffset(getLine(offset) + 1);
 }
 
 bool isDataAttributePropKey(Expression expression) {
