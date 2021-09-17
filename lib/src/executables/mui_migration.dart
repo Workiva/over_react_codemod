@@ -17,10 +17,13 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
+import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_group_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_toolbar_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
+import 'package:over_react_codemod/src/util.dart';
+import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
 void main(List<String> args) async {
   final parser = ArgParser.allowAnything();
@@ -59,8 +62,14 @@ void main(List<String> args) async {
       ]),
     ],
     [muiImporter],
-    // TODO update this to add RMUI dependency in pubspec
-    // PubspecOverReactUpgrader(overReactVersionConstraint as VersionRange,
-    //     shouldAddDependencies: false),
   ]);
+
+  exitCode = await runInteractiveCodemod(
+      ['./pubspec.yaml'],
+      aggregate([
+        PubspecUpgrader('react_material_ui', parseVersionRange('^0.3.0'),
+        hostedUrl: 'https://pub.workiva.org'),
+      ].map((s) => ignoreable(s))),
+      defaultYes: true,
+    );
 }
