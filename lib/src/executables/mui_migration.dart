@@ -71,5 +71,6 @@ void main(List<String> args) async {
         hostedUrl: 'https://pub.workiva.org'),
       ].map((s) => ignoreable(s))),
       defaultYes: true,
+      args: parsedArgs.rest,
     );
 }
