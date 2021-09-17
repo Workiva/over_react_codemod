@@ -166,7 +166,7 @@ main() {
   });
 }
 
-String getExpectedOutput({bool? useMidVersionMin = false}) {
+String getExpectedOutput({bool? useMidVersionMin = false, String? hostedUrl}) {
   if (useMidVersionMin!) {
     final expected =
         VersionConstraint.parse('^2.0.0').allows(Version.parse(midRangeMark))
