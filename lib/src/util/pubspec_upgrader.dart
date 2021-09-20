@@ -34,6 +34,9 @@ class PubspecUpgrader {
   /// Whether this is a dev dependency versus a normal dependency.
   final bool isDevDependency;
 
+  /// If the package is hosted on a private pub server, specify the url here.
+  final String? hostedUrl;
+
   /// Whether or not the codemod should ignore the constraint minimum when
   /// considering whether to write a patch.
   final bool shouldIgnoreMin;
@@ -43,7 +46,7 @@ class PubspecUpgrader {
   final bool shouldAddDependencies;
 
   PubspecUpgrader(this.packageName, this.targetConstraint,
-      {this.isDevDependency = false, this.shouldAddDependencies = true})
+      {this.isDevDependency = false, this.shouldAddDependencies = true, this.hostedUrl})
       : shouldIgnoreMin = false;
 
   /// Constructor used to ignore checks and ensure that the codemod always
@@ -54,12 +57,26 @@ class PubspecUpgrader {
   /// will not update the pubspec is if the target version range is equal to
   /// the version that is already there (avoiding an empty patch error).
   PubspecUpgrader.alwaysUpdate(this.packageName, this.targetConstraint,
-      {this.isDevDependency = false, this.shouldAddDependencies = true})
+      {this.isDevDependency = false, this.shouldAddDependencies = true, this.hostedUrl})
       : shouldIgnoreMin = true;
 
+  String getPatch(String newVersionConstraint) {
+    if (hostedUrl == null) {
+      return '$packageName: $newVersionConstraint';
+    } else {
+      return '''$packageName:
+    hosted:
+      name: $packageName
+      url: ${this.hostedUrl}
+    version: $newVersionConstraint''';
+      }
+  }
+
   Stream<Patch> call(FileContext context) async* {
-    final packageMatch =
-        getDependencyRegExp(packageName).firstMatch(context.sourceText);
+    final regex = hostedUrl == null
+        ? getDependencyRegExp(packageName)
+        : getHostedDependencyRegExp(packageName);
+    final packageMatch = regex.firstMatch(context.sourceText);
 
     if (packageMatch != null) {
       // this package is already in pubspec.yaml
@@ -85,7 +102,7 @@ class PubspecUpgrader {
           }
 
           // Update the version constraint to ensure a safe minimum bound.
-          yield Patch('  $packageName: $newValue', packageMatch.start,
+          yield Patch(getPatch(newValue), packageMatch.start,
               packageMatch.end);
         }
       } catch (e) {
@@ -109,7 +126,7 @@ class PubspecUpgrader {
         }
 
         yield Patch(
-          '\n  $packageName: $newValue',
+          '\n  ${getPatch(newValue)}',
           keyMatch.end,
           keyMatch.end,
         );

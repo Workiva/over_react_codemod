@@ -140,7 +140,7 @@ main() {
   });
 }
 
-String getExpectedOutput({bool useMidVersionMin = false}) {
+String getExpectedOutput({bool useMidVersionMin = false, String? hostedUrl}) {
   if (useMidVersionMin) {
     final expected =
         VersionConstraint.parse('^5.0.0').allows(Version.parse(midVersionMin))
@@ -161,7 +161,7 @@ String getExpectedOutput({bool useMidVersionMin = false}) {
       '';
 }
 
-String getExpectedPreReleaseOutput({bool useMidVersionMin = false}) {
+String getExpectedPreReleaseOutput({bool useMidVersionMin = false, String? hostedUrl}) {
   return ''
       'dependencies:\n'
       '  react: ^5.0.0-alpha\n'

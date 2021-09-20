@@ -17,13 +17,23 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
+import 'package:glob/list_local_fs.dart';
+import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/ignoreable.dart';
+import 'package:over_react_codemod/src/mui_suggestors/mui_button_group_migrator.dart';
+import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
+import 'package:over_react_codemod/src/mui_suggestors/mui_button_toolbar_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_migrators.dart';
+import 'package:over_react_codemod/src/util.dart';
+import 'package:over_react_codemod/src/util/package_util.dart';
+import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
+final _log = Logger('orcm.mui_migration');
 const _componentFlag = 'component';
 
 void main(List<String> args) async {
-  final parser = ArgParser()
+  final parser = ArgParser.allowAnything()
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Prints this help output')
     ..addFlag(
@@ -46,23 +56,47 @@ void main(List<String> args) async {
     return;
   }
 
+  // codemod sets up a global logging handler that forwards to the console, and
+  // we want that set up before we do other non-codemodd things that might log.
+  //
+  // We could set up logging too, but we can't disable codemod's log handler,
+  // so we'd have to disable our own logging before calling into codemod.
+  // While hackier, this is easier.
+  //
+  // This also lets us handle `--help` before we start doing other work.
+  //
+  // FIXME each time we call runInteractiveCodemod, all subsequent logs are forwarded to the console an extra time. Update codemod package to prevent this (maybe a flag to disable automatic global logging?)
+  exitCode = await runInteractiveCodemod(
+    [],
+    (_) async* {},
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+  );
+  if (exitCode != 0) return;
+  print('^ Ignore the "codemod found no files" warning above for now.');
+
   /// Runs a set of codemod sequences separately to work around an issue where
   /// updates from an earlier suggestor aren't reflected in the resolved AST
   /// for later suggestors.
-  Future<void> runCodemodSequences(
-      Iterable<Iterable<Suggestor>> sequences) async {
+  ///
+  /// If any sequence fails, returns that exit code and short-circuits the other
+  /// sequences.
+  Future<int> runCodemodSequences(
+    Iterable<String> paths,
+    Iterable<Iterable<Suggestor>> sequences,
+  ) async {
     for (final sequence in sequences) {
-      exitCode = await runInteractiveCodemodSequence(
-        // allDartPathsExceptHidden(),
-        // filePathsFromGlob(Glob('lib/src/embedding_harness/harness_module/components/harness_tools_panel.dart', recursive: true)),
-        filePathsFromGlob(Glob('lib/**.dart', recursive: true)),
+      final exitCode = await runInteractiveCodemodSequence(
+        paths,
         sequence,
         defaultYes: true,
         args: parsedArgs.rest,
         additionalHelpOutput: parser.usage,
       );
-      if (exitCode != 0) break;
+      if (exitCode != 0) return exitCode;
     }
+
+    return 0;
   }
 
   // Only run the migrators for components that were specified in [args].
@@ -70,24 +104,56 @@ void main(List<String> args) async {
   final migratorsToRun = parsedArgs[_componentFlag] == null
       ? muiMigrators.values
       : (parsedArgs[_componentFlag] as List<String>).map((componentName) {
-          final migrator = muiMigrators[componentName];
-          if (migrator == null) {
-            throw Exception('Could not find a migrator for $componentName');
-          }
-          return migrator;
-        });
+    final migrator = muiMigrators[componentName];
+    if (migrator == null) {
+      throw Exception('Could not find a migrator for $componentName');
+    }
+    return migrator;
+  });
 
-  await runCodemodSequences([
+  final dartPaths = dartFilesToMigrate();
+  await pubGetForAllPackageRoots(dartPaths);
+  exitCode = await runCodemodSequences(dartPaths, [
     [
       // It should generally be safe to aggregate these since each component usage
       // should only be handled by a single migrator, and shouldn't depend on the
       // output of previous migrators.
       // fixme is there any benefit to aggregating these?
-      aggregate(migratorsToRun)
+      aggregate(migratorsToRun),
     ],
     [muiImporter],
-    // TODO update this to add RMUI dependency in pubspec
-    // PubspecOverReactUpgrader(overReactVersionConstraint as VersionRange,
-    //     shouldAddDependencies: false),
   ]);
+  if (exitCode != 0) return;
+
+  exitCode = await runInteractiveCodemod(
+    // FIXME use allPubsepcYamlPaths()
+    ['./pubspec.yaml'],
+    aggregate([
+      PubspecUpgrader('react_material_ui', parseVersionRange('^0.3.0'),
+          hostedUrl: 'https://pub.workiva.org'),
+    ].map((s) => ignoreable(s))),
+    defaultYes: true,
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+  );
+  if (exitCode != 0) return;
 }
+
+Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
+  _log.info(
+      'Running `pub get` if needed so that all Dart files can be resolved...');
+  final packageRoots = files.map(getPackageRootForFile).toSet();
+  for (final packageRoot in packageRoots) {
+    await runPubGetIfNeeded(packageRoot);
+  }
+}
+
+// TODO we'll probably going to need to also ignore files excluded in analysis_options.yaml
+// so that our component migrator codemods don't fail when they can't resolve the files.
+Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
+    .listSync()
+    .whereType<File>()
+    .where(isNotHiddenFile)
+    .where(isNotDartHiddenFile)
+    .where(isNotWithinTopLevelBuildOutputDir)
+    .map((e) => e.path);

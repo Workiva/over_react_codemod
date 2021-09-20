@@ -84,8 +84,8 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     final result = await context.getResolvedUnit();
     final unit = result?.unit;
     if (unit == null) {
-      _log.warning('Could not get resolved unit for "${context.relativePath}"');
-      return;
+      throw Exception(
+          'Could not get resolved unit for "${context.relativePath}"');
     }
 
     final allUsages = <FluentComponentUsage>[];
