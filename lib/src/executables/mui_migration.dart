@@ -32,23 +32,28 @@ void main(List<String> args) async {
   /// Runs a set of codemod sequences separately to work around an issue where
   /// updates from an earlier suggestor aren't reflected in the resolved AST
   /// for later suggestors.
-  Future<void> runCodemodSequences(
+  ///
+  /// If any sequence fails, returns that exit code and short-circuits the other
+  /// sequences.
+  Future<int> runCodemodSequences(
     Iterable<String> paths,
     Iterable<Iterable<Suggestor>> sequences,
   ) async {
     for (final sequence in sequences) {
-      exitCode = await runInteractiveCodemodSequence(
+      final exitCode = await runInteractiveCodemodSequence(
         paths,
         sequence,
         defaultYes: true,
         args: parsedArgs.rest,
         additionalHelpOutput: parser.usage,
       );
-      if (exitCode != 0) break;
+      if (exitCode != 0) return exitCode;
     }
+
+    return 0;
   }
 
-  await runCodemodSequences(allDartPathsExceptHiddenAndGenerated(), [
+  exitCode = await runCodemodSequences(allDartPathsExceptHiddenAndGenerated(), [
     [
       // It should generally be safe to aggregate these since each component usage
       // should only be handled by a single migrator, and shouldn't depend on the
@@ -62,6 +67,7 @@ void main(List<String> args) async {
     ],
     [muiImporter],
   ]);
+  if (exitCode != 0) return;
 
   exitCode = await runInteractiveCodemod(
     // FIXME use allPubsepcYamlPaths()
@@ -72,5 +78,7 @@ void main(List<String> args) async {
     ].map((s) => ignoreable(s))),
     defaultYes: true,
     args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
   );
+  if (exitCode != 0) return;
 }
