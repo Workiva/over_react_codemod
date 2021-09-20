@@ -20,9 +20,6 @@ import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_button_group_migrator.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_button_toolbar_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_migrators.dart';
 import 'package:over_react_codemod/src/util.dart';
@@ -33,7 +30,7 @@ final _log = Logger('orcm.mui_migration');
 const _componentFlag = 'component';
 
 void main(List<String> args) async {
-  final parser = ArgParser.allowAnything()
+  final parser = ArgParser()
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Prints this help output')
     ..addFlag(
@@ -101,15 +98,16 @@ void main(List<String> args) async {
 
   // Only run the migrators for components that were specified in [args].
   // If no components were specified, run all migrators.
-  final migratorsToRun = parsedArgs[_componentFlag] == null
+  final componentsToMigrate = parsedArgs[_componentFlag] as List<String>;
+  final migratorsToRun = componentsToMigrate.isEmpty
       ? muiMigrators.values
-      : (parsedArgs[_componentFlag] as List<String>).map((componentName) {
-    final migrator = muiMigrators[componentName];
-    if (migrator == null) {
-      throw Exception('Could not find a migrator for $componentName');
-    }
-    return migrator;
-  });
+      : componentsToMigrate.map((componentName) {
+          final migrator = muiMigrators[componentName];
+          if (migrator == null) {
+            throw Exception('Could not find a migrator for $componentName');
+          }
+          return migrator;
+        }).toList();
 
   final dartPaths = dartFilesToMigrate();
   await pubGetForAllPackageRoots(dartPaths);
