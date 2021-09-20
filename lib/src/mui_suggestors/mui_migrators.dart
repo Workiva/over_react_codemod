@@ -17,6 +17,10 @@ import 'package:over_react_codemod/src/mui_suggestors/mui_button_group_migrator.
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_toolbar_migrator.dart';
 
+/// A map of component names to their respective migrators.
+///
+/// Used to determine which migrators should be run when only a subset of
+/// components is being migrated at a time.
 final muiMigrators = <String, Suggestor>{
   'Button': MuiButtonMigrator(),
   'ButtonGroup': MuiButtonGroupMigrator(),
