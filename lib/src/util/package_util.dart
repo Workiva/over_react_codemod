@@ -80,3 +80,10 @@ extension on FileSystemEntity {
     yield* parent.ancestors;
   }
 }
+
+bool isNotWithinTopLevelBuildOutputDir(File file) =>
+    !isWithinTopLevelBuildOutputDir(file);
+
+bool isWithinTopLevelBuildOutputDir(File file) => file.ancestors.any((dir) =>
+    p.basename(dir.path) == 'build' &&
+    File(p.join(dir.parent.path, 'pubspec.yaml')).existsSync());

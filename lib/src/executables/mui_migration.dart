@@ -16,6 +16,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
+import 'package:glob/glob.dart';
+import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_group_migrator.dart';
@@ -76,7 +78,7 @@ void main(List<String> args) async {
     return 0;
   }
 
-  final dartPaths = allDartPathsExceptHiddenAndGenerated();
+  final dartPaths = dartFilesToMigrate();
   await pubGetForAllPackageRoots(dartPaths);
   exitCode = await runCodemodSequences(dartPaths, [
     [
@@ -116,3 +118,11 @@ Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
     await runPubGetIfNeeded(packageRoot);
   }
 }
+
+Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
+    .listSync()
+    .whereType<File>()
+    .where(isNotHiddenFile)
+    .where(isNotDartHiddenFile)
+    .where(isNotWithinTopLevelBuildOutputDir)
+    .map((e) => e.path);
