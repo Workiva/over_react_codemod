@@ -119,6 +119,8 @@ Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
   }
 }
 
+// TODO we'll probably going to need to also ignore files excluded in analysis_options.yaml
+// so that our component migrator codemods don't fail when they can't resolve the files.
 Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
     .listSync()
     .whereType<File>()
