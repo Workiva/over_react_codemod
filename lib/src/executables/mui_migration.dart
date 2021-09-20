@@ -17,15 +17,34 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_button_group_migrator.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_button_toolbar_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
+import 'package:over_react_codemod/src/mui_suggestors/mui_migrators.dart';
+
+const _componentFlag = 'component';
 
 void main(List<String> args) async {
-  final parser = ArgParser.allowAnything();
+  final parser = ArgParser()
+    ..addFlag('help',
+        abbr: 'h', negatable: false, help: 'Prints this help output')
+    ..addFlag(
+      'yes-to-all',
+      negatable: false,
+      help: 'Forces all patches accepted without prompting the user. '
+          'Useful for scripts.',
+    )
+    ..addSeparator('MUI Migration Options:')
+    ..addMultiOption(
+      _componentFlag,
+      allowed: muiMigrators.keys,
+      help: 'Choose which component migrators should be run.',
+    );
 
   final parsedArgs = parser.parse(args);
+
+  if (parsedArgs['help'] == true) {
+    stderr.writeln(parser.usage);
+    return;
+  }
 
   /// Runs a set of codemod sequences separately to work around an issue where
   /// updates from an earlier suggestor aren't reflected in the resolved AST
@@ -46,17 +65,25 @@ void main(List<String> args) async {
     }
   }
 
+  // Only run the migrators for components that were specified in [args].
+  // If no components were specified, run all migrators.
+  final migratorsToRun = parsedArgs[_componentFlag] == null
+      ? muiMigrators.values
+      : (parsedArgs[_componentFlag] as List<String>).map((componentName) {
+          final migrator = muiMigrators[componentName];
+          if (migrator == null) {
+            throw Exception('Could not find a migrator for $componentName');
+          }
+          return migrator;
+        });
+
   await runCodemodSequences([
     [
       // It should generally be safe to aggregate these since each component usage
       // should only be handled by a single migrator, and shouldn't depend on the
       // output of previous migrators.
       // fixme is there any benefit to aggregating these?
-      aggregate([
-        MuiButtonMigrator(),
-        MuiButtonGroupMigrator(),
-        MuiButtonToolbarMigrator(),
-      ]),
+      aggregate(migratorsToRun)
     ],
     [muiImporter],
     // TODO update this to add RMUI dependency in pubspec
