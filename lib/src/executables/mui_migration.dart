@@ -41,6 +41,8 @@ void main(List<String> args) async {
   // While hackier, this is easier.
   //
   // This also lets us handle `--help` before we start doing other work.
+  //
+  // FIXME each time we call runInteractiveCodemod, all subsequent logs are forwarded to the console an extra time. Update codemod package to prevent this (maybe a flag to disable automatic global logging?)
   exitCode = await runInteractiveCodemod(
     [],
     (_) async* {},
@@ -48,6 +50,7 @@ void main(List<String> args) async {
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
+  print('^ Ignore the "codemod found no files" warning above for now.');
 
   /// Runs a set of codemod sequences separately to work around an issue where
   /// updates from an earlier suggestor aren't reflected in the resolved AST
