@@ -35,7 +35,7 @@ Future<void> runPubGetIfNeeded(String packageRoot) async {
 Future<void> runPubGet(String workingDirectory) async {
   _logger.info('Running `pub get` in `$workingDirectory`...');
 
-  final process = await Process.start('pub', ['get', '--offline'],
+  final process = await Process.start('pub', ['get'],
       workingDirectory: workingDirectory,
       runInShell: true,
       mode: ProcessStartMode.inheritStdio);
