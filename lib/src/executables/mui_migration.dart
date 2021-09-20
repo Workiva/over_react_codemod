@@ -16,18 +16,38 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
+import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_group_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_toolbar_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 import 'package:over_react_codemod/src/util.dart';
+import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
+
+final _log = Logger('orcm.mui_migration');
 
 void main(List<String> args) async {
   final parser = ArgParser.allowAnything();
 
   final parsedArgs = parser.parse(args);
+
+  // codemod sets up a global logging handler that forwards to the console, and
+  // we want that set up before we do other non-codemodd things that might log.
+  //
+  // We could set up logging too, but we can't disable codemod's log handler,
+  // so we'd have to disable our own logging before calling into codemod.
+  // While hackier, this is easier.
+  //
+  // This also lets us handle `--help` before we start doing other work.
+  exitCode = await runInteractiveCodemod(
+    [],
+    (_) async* {},
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+  );
+  if (exitCode != 0) return;
 
   /// Runs a set of codemod sequences separately to work around an issue where
   /// updates from an earlier suggestor aren't reflected in the resolved AST
@@ -53,7 +73,9 @@ void main(List<String> args) async {
     return 0;
   }
 
-  exitCode = await runCodemodSequences(allDartPathsExceptHiddenAndGenerated(), [
+  final dartPaths = allDartPathsExceptHiddenAndGenerated();
+  await pubGetForAllPackageRoots(dartPaths);
+  exitCode = await runCodemodSequences(dartPaths, [
     [
       // It should generally be safe to aggregate these since each component usage
       // should only be handled by a single migrator, and shouldn't depend on the
@@ -81,4 +103,13 @@ void main(List<String> args) async {
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
+}
+
+Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
+  _log.info(
+      'Running `pub get` if needed so that all Dart files can be resolved...');
+  final packageRoots = files.map(getPackageRootForFile).toSet();
+  for (final packageRoot in packageRoots) {
+    await runPubGetIfNeeded(packageRoot);
+  }
 }
