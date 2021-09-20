@@ -16,7 +16,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
-import 'package:glob/glob.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_group_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
@@ -34,12 +33,12 @@ void main(List<String> args) async {
   /// updates from an earlier suggestor aren't reflected in the resolved AST
   /// for later suggestors.
   Future<void> runCodemodSequences(
-      Iterable<Iterable<Suggestor>> sequences) async {
+    Iterable<String> paths,
+    Iterable<Iterable<Suggestor>> sequences,
+  ) async {
     for (final sequence in sequences) {
       exitCode = await runInteractiveCodemodSequence(
-        // allDartPathsExceptHidden(),
-        // filePathsFromGlob(Glob('lib/src/embedding_harness/harness_module/components/harness_tools_panel.dart', recursive: true)),
-        filePathsFromGlob(Glob('lib/**.dart', recursive: true)),
+        paths,
         sequence,
         defaultYes: true,
         args: parsedArgs.rest,
@@ -49,7 +48,7 @@ void main(List<String> args) async {
     }
   }
 
-  await runCodemodSequences([
+  await runCodemodSequences(allDartPathsExceptHiddenAndGenerated(), [
     [
       // It should generally be safe to aggregate these since each component usage
       // should only be handled by a single migrator, and shouldn't depend on the
@@ -65,12 +64,13 @@ void main(List<String> args) async {
   ]);
 
   exitCode = await runInteractiveCodemod(
-      ['./pubspec.yaml'],
-      aggregate([
-        PubspecUpgrader('react_material_ui', parseVersionRange('^0.3.0'),
-        hostedUrl: 'https://pub.workiva.org'),
-      ].map((s) => ignoreable(s))),
-      defaultYes: true,
-      args: parsedArgs.rest,
-    );
+    // FIXME use allPubsepcYamlPaths()
+    ['./pubspec.yaml'],
+    aggregate([
+      PubspecUpgrader('react_material_ui', parseVersionRange('^0.3.0'),
+          hostedUrl: 'https://pub.workiva.org'),
+    ].map((s) => ignoreable(s))),
+    defaultYes: true,
+    args: parsedArgs.rest,
+  );
 }
