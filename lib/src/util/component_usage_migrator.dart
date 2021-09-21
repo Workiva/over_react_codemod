@@ -242,10 +242,9 @@ mixin ComponentUsageMigrator on ClassSuggestor {
       } else if ((shouldFlagUnsafeMethodCalls &&
               !safeMethodCallNames.contains(name)) ||
           (shouldFlagExtensionMembers && method.node.isExtensionMethod)) {
-        yieldPatch(
+        yieldInsertionPatch(
             lineComment(
                 'FIXME(mui_migration) - ${name} call - manually verify'),
-            method.node.offset,
             method.node.offset);
       }
     }
@@ -253,30 +252,28 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     for (final prop in usage.cascadedProps) {
       if (shouldFlagExtensionMembers && prop.isExtensionMethod) {
         // Flag extension methods, since they could do anything.
-        yieldPatch(
+        yieldInsertionPatch(
             lineComment(
                 'FIXME(mui_migration) - ${prop.name.name} (extension) - manually verify'),
-            prop.assignment.offset,
             prop.assignment.offset);
       } else if (shouldFlagRefProp && prop.name.name == 'ref') {
         // Flag refs, since their type is likely to change.
         // fixme add note about type?
-        yieldPatch(lineComment('FIXME(mui_migration) - ref - manually verify'),
-            prop.assignment.offset, prop.assignment.offset);
+        yieldInsertionPatch(
+            lineComment('FIXME(mui_migration) - ref - manually verify'),
+            prop.assignment.offset);
       } else if (shouldFlagClassName && prop.name.name == 'className') {
-        yieldPatch(
+        yieldInsertionPatch(
             lineComment('FIXME(mui_migration) - className - manually verify'),
-            prop.assignment.offset,
             prop.assignment.offset);
       }
     }
 
     for (final prop in usage.cascadedIndexAssignments) {
       if (!isDataAttributePropKey(prop.index)) {
-        yieldPatch(
+        yieldInsertionPatch(
             lineComment(
                 'FIXME(mui_migration) - `..[propKey] =` - manually verify prop key'),
-            prop.node.offset,
             prop.node.offset);
       }
     }
@@ -286,8 +283,9 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   // Helpers
 
   void flagUsageWithManualIntervention(FluentComponentUsage usage) {
-    yieldPatch(blockComment('FIXME(mui_migration) needs manual intervention'),
-        usage.node.end, usage.node.end);
+    yieldInsertionPatch(
+        blockComment('FIXME(mui_migration) needs manual intervention'),
+        usage.node.end);
   }
 
   void migratePropsByName(
@@ -426,8 +424,8 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
     if (additionalCascadeSection != null) {
       // Add spaces so that dartfmt has a better time // todo is this necessary?
-      yieldPatch('\n  $additionalCascadeSection', prop.rightHandSide.end,
-          prop.rightHandSide.end);
+      yieldInsertionPatch(
+          '\n  $additionalCascadeSection', prop.rightHandSide.end);
     }
   }
 
@@ -450,9 +448,8 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   }
 
   void yieldPropFixmePatch(PropAssignment prop, String message) {
-    yieldPatch(
+    yieldInsertionPatch(
         lineComment('FIXME(mui_migration) - ${prop.name.name} prop - $message'),
-        prop.assignment.offset,
         prop.assignment.offset);
   }
 }

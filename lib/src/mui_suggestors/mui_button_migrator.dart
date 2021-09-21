@@ -105,11 +105,9 @@ class MuiButtonMigrator
   // - Wrap react_dom.render calls in ThemeProvider (inside ErrorBoundary if possible)
   //
 
-  static bool hasLinkButtonSkin(FluentComponentUsage usage) =>
-      usage.cascadedProps
-          .where((p) => p.name.name == 'skin')
-          .map((p) => p.rightHandSide)
-          .any(isLinkButtonSkin);
+  static bool hasLinkButtonSkin(FluentComponentUsage usage) => usage
+      .cascadedProps
+      .any((p) => p.name.name == 'skin' && isLinkButtonSkin(p.rightHandSide));
 
   static bool isLinkButtonSkin(Expression expr) =>
       _linkButtonSkins.any((linkSkin) => isWsdStaticConstant(expr, linkSkin));
