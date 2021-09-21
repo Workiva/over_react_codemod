@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -13,7 +15,9 @@ import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:source_span/source_span.dart';
 
 mixin ClassSuggestor {
-  final _patches = <Patch>{};
+  // This should be a List and not a Set to avoid patches in the same location getting mysteriously dropped.
+  // TODO potentially update AstSuggestingVisitor in codemod with this same change
+  final _patches = <Patch>[];
 
   /// The context helper for the file currently being visited.
   FileContext get context {
@@ -76,6 +80,21 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
     return factoryStaticElement.name == wsdFactoryName &&
         factoryStaticElement.isDeclaredInWsd;
+  }
+
+  bool usesWsdV1Factory(FluentComponentUsage usage) {
+    final factoryStaticElement =
+        usage.factory?.tryCast<Identifier>()?.staticElement;
+    if (factoryStaticElement == null || !factoryStaticElement.isDeclaredInWsd) {
+      return false;
+    }
+
+    final declaringFileName = factoryStaticElement
+        .thisOrAncestorOfType<CompilationUnitElement>()
+        ?.uri;
+
+    return declaringFileName != null &&
+        declaringFileName.contains('/src/_deprecated/');
   }
 
   @override
@@ -230,7 +249,8 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         if (unknownPropNames.isNotEmpty) {
           throw ArgumentError(
               "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
-              " not statically available on builder class '$builderClassName'."
+              " not statically available on builder class '$builderClassName'"
+              " (declared in ${builderElement.enclosingElement.uri})."
               " Double-check that that prop exists in that props class"
               " and that the key in 'migratorsByName' does not have any typos.");
         }
@@ -255,36 +275,70 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     yieldPatchOverNode('', prop.assignment);
   }
 
-  void yieldAddPropPatch(FluentComponentUsage usage, String newPropCascade) {
+  void yieldAddPropPatch(FluentComponentUsage usage, String newPropCascade,
+      {NewPropPlacement placement = NewPropPlacement.auto}) {
     final function = usage.node.function;
     if (function is ParenthesizedExpression) {
-      // Try to insert it after other props that aren't method calls or index expressions,
-      // or members typically inserted at the end like addTestId, key, and ref.
-      final bestPropToInsertAfter =
-          usage.cascadedMembers.lastWhereOrNull((element) {
-        if (element is BuilderMethodInvocation) {
-          return false;
-        } else if (element is PropAssignment) {
-          final name = element.name.name;
-          return name != 'key' && name != 'ref';
-        } else if (element is IndexPropAssignment) {
-          return false;
-        } else {
-          throw ArgumentError.value(
-              element, 'element', 'Unhandled BuilderMemberAccess subtype');
-        }
-      });
-
-      // Insert at the beginning of the next line so that we're not fighting with
-      // insertions at the beginning of that prop (e.g., fix-me comments).
-      final offset = context.sourceFile.getOffsetOfLineAfter(
-          bestPropToInsertAfter?.node.end ?? function.rightParenthesis.offset);
+      // If this is null, we default to right after the invocation.
+      late int offset;
+      switch (placement) {
+        case NewPropPlacement.auto:
+          // Try to insert it after other props that aren't method calls or index expressions,
+          // or members typically inserted at the end like addTestId, key, and ref.
+          final propToInsertAfter =
+              usage.cascadedMembers.lastWhereOrNull((element) {
+            if (element is BuilderMethodInvocation) {
+              return false;
+            } else if (element is PropAssignment) {
+              final name = element.name.name;
+              return name != 'key' && name != 'ref';
+            } else if (element is IndexPropAssignment) {
+              return false;
+            } else {
+              throw ArgumentError.value(
+                  element, 'element', 'Unhandled BuilderMemberAccess subtype');
+            }
+          });
+          // Insert at the beginning of the next line so that we're not fighting with
+          // insertions at the beginning of that prop (e.g., fix-me comments).
+          offset = propToInsertAfter != null
+              ? min(
+                  context.sourceFile
+                      .getOffsetOfLineAfter(propToInsertAfter.node.end),
+                  // Ensure this position isn't outside of the cascade parens
+                  // (e.g., single-line cascade, multiline cascade with non-aligned right paren).
+                  function.rightParenthesis.offset,
+                )
+              : function.rightParenthesis.offset;
+          break;
+        case NewPropPlacement.start:
+          // TODO would it be better formatting and insertion-wise to attempt to insert at the beginning of the line of the first prop (similar to above)?
+          offset = usage.cascadeExpression?.target.end ??
+              function.rightParenthesis.offset;
+          break;
+        case NewPropPlacement.end:
+          // TODO would it be better formatting and insertion-wise to attempt to insert at the beginning of the line after the last prop (similar to above)?
+          offset = function.rightParenthesis.offset;
+          break;
+      }
       yieldInsertionPatch('\n' + newPropCascade, offset);
     } else {
       assert(usage.cascadeExpression == null);
-      yieldPatch('(', function.offset, function.offset);
-      yieldPatch(newPropCascade, function.end, function.end);
-      yieldPatch(')', function.end, function.end);
+
+      var leftParenOffset = function.offset;
+      var rightParenOffset = function.end;
+
+      // //
+      // if (isWhitespace(context.sourceText[leftParenOffset - 1])) {
+      //   leftParenOffset = leftParenOffset - 1;
+      // }
+      // if (isWhitespace(context.sourceText[rightParenOffset + 1])) {
+      //   rightParenOffset = rightParenOffset + 1;
+      // }
+
+      yieldInsertionPatch('(', leftParenOffset);
+      yieldInsertionPatch(newPropCascade, function.end);
+      yieldInsertionPatch(')', rightParenOffset);
     }
   }
 
@@ -346,6 +400,12 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         prop.assignment.offset,
         prop.assignment.offset);
   }
+}
+
+enum NewPropPlacement {
+  auto,
+  start,
+  end,
 }
 
 extension on SourceFile {

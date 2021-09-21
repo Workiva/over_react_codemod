@@ -121,12 +121,17 @@ class MuiButtonMigrator
   @override
   MigrationDecision shouldMigrateUsage(FluentComponentUsage usage) {
     if (usesWsdFactory(usage, 'Button')) {
-      if (!isLinkButtonAvailable && hasLinkButtonSkin(usage)) {
-        // We'll handle these once the LinkButton component is available.
-        return MigrationDecision.notApplicable;
-      }
+      return (!isLinkButtonAvailable && hasLinkButtonSkin(usage))
+          // We'll handle these once the LinkButton component is available.
+          ? MigrationDecision.notApplicable
+          : MigrationDecision.shouldMigrate;
+    }
 
-      return MigrationDecision.shouldMigrate;
+    if (usesWsdFactory(usage, 'FormSubmitInput') ||
+        usesWsdFactory(usage, 'FormResetInput')) {
+      return hasLinkButtonSkin(usage)
+          ? MigrationDecision.needsManualIntervention
+          : MigrationDecision.shouldMigrate;
     }
 
     return MigrationDecision.notApplicable;
@@ -143,14 +148,30 @@ class MuiButtonMigrator
         shouldBeLinkButton ? '$muiNs.LinkButton' : '$muiNs.Button';
     yieldPatchOverNode(newFactory, usage.factory!);
 
+    var propsClassHasHitareaMixin = false;
+    if (usesWsdFactory(usage, 'FormSubmitInput')) {
+      yieldAddPropPatch(usage, '..color = $muiPrimaryColor',
+          placement: NewPropPlacement.start);
+      // FIXME adding two props at the same time
+      // FormSubmitInput()('Create Item'),
+      // ((mui.Button()..color = mui.ButtonColor.primary)..type = 'submit')('Create Item')
+      yieldAddPropPatch(usage, "..type = 'submit'",
+          placement: NewPropPlacement.end);
+
+      propsClassHasHitareaMixin = usesWsdV1Factory(usage);
+    } else if (usesWsdFactory(usage, 'FormResetInput')) {
+      yieldAddPropPatch(usage, "..type = 'reset'",
+          placement: NewPropPlacement.end);
+
+      propsClassHasHitareaMixin = usesWsdV1Factory(usage);
+    }
+
     migratePropsByName(usage, migratorsByName: {
       // Simple replacements.
       'isActive': (p) => yieldPropPatch(p, newName: 'aria.pressed'),
       'isBlock': (p) => yieldPropPatch(p, newName: 'fullWidth'),
       'isDisabled': (p) => yieldPropPatch(p, newName: 'disabled'),
       'isFlat': (p) => yieldPropPatch(p, newName: 'disableElevation'),
-      'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
-      'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
 
       // Lengthier migration code; split out into methods.
       'skin': (p) =>
@@ -158,10 +179,19 @@ class MuiButtonMigrator
       'size': migrateButtonSize,
 
       // Props that always need manual intervention.
+      // TODO for these point to migration guide or hint at what to do
       'isCallout': yieldPropManualMigratePatch,
-      'overlayTriggerProps': yieldPropManualMigratePatch,
       'pullRight': yieldPropManualMigratePatch,
-      'tooltipContent': yieldPropManualMigratePatch,
+
+      // Only attempt to migrate these props if they're declared on the props class
+      // (since we'll get errors otherwise).
+      if (propsClassHasHitareaMixin) ...{
+        'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
+        'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
+        // TODO follow up on how we want to handle this; maybe add tooltipContent?
+        'overlayTriggerProps': yieldPropManualMigratePatch,
+        'tooltipContent': yieldPropManualMigratePatch,
+      }
     });
 
     migrateChildIcons(usage);
@@ -233,6 +263,8 @@ class MuiButtonMigrator
   }
 }
 
+const muiPrimaryColor = '$muiNs.ButtonColor.primary';
+
 mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
   void migrateButtonSkin(PropAssignment prop,
       {bool handleLinkVariants = false}) {
@@ -267,7 +299,7 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
       'ButtonSkin.WHITE': '$muiNs.ButtonColor.wsdBtnWhite',
       'ButtonSkin.INVERSE': '$muiNs.ButtonColor.wsdBtnInverse',
       'ButtonSkin.DEFAULT': '$muiNs.ButtonColor.inherit',
-      'ButtonSkin.PRIMARY': '$muiNs.ButtonColor.primary',
+      'ButtonSkin.PRIMARY': muiPrimaryColor,
       'ButtonSkin.SUCCESS': '$muiNs.ButtonColor.success',
       'ButtonSkin.WARNING': '$muiNs.ButtonColor.warning',
     });

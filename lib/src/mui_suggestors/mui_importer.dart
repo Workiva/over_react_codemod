@@ -52,6 +52,14 @@ Stream<Patch> muiImporter(FileContext context) async* {
       "import '$rmuiImportUri' as $muiNs;\n", importOffset, importOffset);
 }
 
+// TODO suboptimal case:
+//
+// import 'dart:async';
+// import 'dart:html';
+// >>> import 'package:react_material_ui/react_material_ui.dart' as mui;
+//
+// import 'package:w_common/disposable.dart';
+
 int _findImportInsertionLocation(
     String importUri, CompilationUnit unit, LineInfo lineInfo) {
   late int importOffset;
