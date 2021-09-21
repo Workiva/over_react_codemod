@@ -31,13 +31,34 @@ const _componentFlag = 'component';
 
 void main(List<String> args) async {
   final parser = ArgParser()
-    ..addFlag('help',
-        abbr: 'h', negatable: false, help: 'Prints this help output')
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: 'Prints this help output.',
+    )
+    ..addFlag(
+      'verbose',
+      abbr: 'v',
+      negatable: false,
+      help: 'Outputs all logging to stdout/stderr.',
+    )
     ..addFlag(
       'yes-to-all',
       negatable: false,
       help: 'Forces all patches accepted without prompting the user. '
           'Useful for scripts.',
+    )
+    ..addFlag(
+      'fail-on-changes',
+      negatable: false,
+      help: 'Returns a non-zero exit code if there are changes to be made. '
+          'Will not make any changes (i.e. this is a dry-run).',
+    )
+    ..addFlag(
+      'stderr-assume-tty',
+      negatable: false,
+      help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
     )
     ..addSeparator('MUI Migration Options:')
     ..addMultiOption(
@@ -66,7 +87,8 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemod(
     [],
     (_) async* {},
-    args: parsedArgs.rest,
+    // Only pass valid low level codemod flags
+    args: args.where((arg) => !arg.contains(_componentFlag)),
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
@@ -87,7 +109,8 @@ void main(List<String> args) async {
         paths,
         sequence,
         defaultYes: true,
-        args: parsedArgs.rest,
+        // Only pass valid low level codemod flags
+        args: args.where((arg) => !arg.contains(_componentFlag)),
         additionalHelpOutput: parser.usage,
       );
       if (exitCode != 0) return exitCode;
@@ -131,7 +154,8 @@ void main(List<String> args) async {
           hostedUrl: 'https://pub.workiva.org'),
     ].map((s) => ignoreable(s))),
     defaultYes: true,
-    args: parsedArgs.rest,
+    // Only pass valid low level codemod flags
+    args: args.where((arg) => !arg.contains(_componentFlag)),
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
