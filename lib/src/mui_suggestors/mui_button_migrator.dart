@@ -105,10 +105,6 @@ class MuiButtonMigrator
   // - Wrap react_dom.render calls in ThemeProvider (inside ErrorBoundary if possible)
   //
 
-  final bool isLinkButtonAvailable;
-
-  MuiButtonMigrator({this.isLinkButtonAvailable = true});
-
   static bool hasLinkButtonSkin(FluentComponentUsage usage) =>
       usage.cascadedProps
           .where((p) => p.name.name == 'skin')
@@ -121,10 +117,7 @@ class MuiButtonMigrator
   @override
   MigrationDecision shouldMigrateUsage(FluentComponentUsage usage) {
     if (usesWsdFactory(usage, 'Button')) {
-      return (!isLinkButtonAvailable && hasLinkButtonSkin(usage))
-          // We'll handle these once the LinkButton component is available.
-          ? MigrationDecision.notApplicable
-          : MigrationDecision.shouldMigrate;
+      return MigrationDecision.shouldMigrate;
     }
 
     if (usesWsdFactory(usage, 'FormSubmitInput') ||
@@ -141,11 +134,8 @@ class MuiButtonMigrator
   void migrateUsage(FluentComponentUsage usage) {
     super.migrateUsage(usage);
 
-    bool shouldBeLinkButton = hasLinkButtonSkin(usage);
-    assert(!shouldBeLinkButton || isLinkButtonAvailable);
-
     final newFactory =
-        shouldBeLinkButton ? '$muiNs.LinkButton' : '$muiNs.Button';
+        hasLinkButtonSkin(usage) ? '$muiNs.LinkButton' : '$muiNs.Button';
     yieldPatchOverNode(newFactory, usage.factory!);
 
     var propsClassHasHitareaMixin = false;
@@ -183,8 +173,7 @@ class MuiButtonMigrator
       'isFlat': (p) => yieldPropPatch(p, newName: 'disableElevation'),
 
       // Lengthier migration code; split out into methods.
-      'skin': (p) =>
-          migrateButtonSkin(p, handleLinkVariants: isLinkButtonAvailable),
+      'skin': (p) => migrateButtonSkin(p, handleLinkVariants: true),
       'size': migrateButtonSize,
 
       // Props that always need manual intervention.
