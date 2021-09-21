@@ -58,6 +58,10 @@ void main(List<String> args) async {
   /// updates from an earlier suggestor aren't reflected in the resolved AST
   /// for later suggestors.
   ///
+  /// This means we have to set up analysis contexts multiple times, which takes longer,
+  /// but isn't a dealbreaker. E.g., for wdesk_sdk, running two sequences takes 2:52
+  /// as opposed to 2:00 for one sequence.
+  ///
   /// If any sequence fails, returns that exit code and short-circuits the other
   /// sequences.
   Future<int> runCodemodSequences(

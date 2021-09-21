@@ -175,6 +175,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     unit.accept(ComponentUsageVisitor(allUsages.add));
 
     for (final usage in allUsages) {
+      // fixme respect orcm_ignore comments, make sure whole files can be ignored (allow ignoring specific components and not just all of them)
       if (ignoreAlreadyFlaggedUsages && hasFlaggedComment(usage.node)) {
         continue;
       }
@@ -217,6 +218,8 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
   /// Whether [flagCommon] (called by [migrateUsage]) should flag
   /// the `className` prop on component usages.
+  // FIXME follow-up ticket for WS classes in custom CSS selectors
+  // FIXME CPLAT-15321 also flag WS classes in custom CSS selectors
   bool get shouldFlagClassName => true;
 
   void flagCommon(FluentComponentUsage usage) {

@@ -76,7 +76,10 @@ class MuiButtonMigrator
   // - only migrate factory based on condition, then follow up in second pass and fix props on MUI button with analysis errors?
   // - collect which ones to migrate, do all of them in one pass?
 
-  // fixme cocdemod feedback yieldPatch without end should be treated as insertion, not replace until end of file.
+  // fixme codemod feedback
+  // - calling runInteractiveCodemod(Sequence) more than once per main sets up additional Logger listeners, you get duplicated log output
+  // - FileContext.sourceText/sourceFile can be out of date
+  // - FileContext resolved unit can be out of date
 
   // Consider dev workflow / CI / etc.
 
@@ -351,3 +354,12 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
     yieldPropManualMigratePatch(prop);
   }
 }
+
+// fixme document decisions / guidelines
+// - Don't operate on unhandled cases; either they'll result in an analysis error or be fine (e.g., onClick)
+// - When in doubt, flag for manual verification; even if you were able to migrate
+// - Watch out for dynamic casts
+// - Be conservative when computing patch ranges; this helps prevent conflicting ("overlapping") patches,
+//   especially when there are multiple places in the code making replacements.
+// - Don't use toSource()
+// -
