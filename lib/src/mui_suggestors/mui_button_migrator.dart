@@ -150,13 +150,22 @@ class MuiButtonMigrator
 
     var propsClassHasHitareaMixin = false;
     if (usesWsdFactory(usage, 'FormSubmitInput')) {
-      yieldAddPropPatch(usage, '..color = $muiPrimaryColor',
-          placement: NewPropPlacement.start);
-      // FIXME adding two props at the same time
-      // FormSubmitInput()('Create Item'),
-      // ((mui.Button()..color = mui.ButtonColor.primary)..type = 'submit')('Create Item')
-      yieldAddPropPatch(usage, "..type = 'submit'",
-          placement: NewPropPlacement.end);
+      // Avoid adding two props separately at the same time when there are no
+      // no parens around the builder, which yields the following diff:
+      // - FormSubmitInput()('Create Item'),
+      // + ((mui.Button()..color = mui.ButtonColor.primary..type = 'submit'))('Create Item')
+      // Normally this isn't a big deal and doesn't happen often, but for this
+      // factory it's really common to not have any parens/props.
+
+      final colorPatch = '..color = $muiPrimaryColor';
+      const typePatch = "..type = 'submit'";
+
+      if (usage.node.function is! ParenthesizedExpression) {
+        yieldAddPropPatch(usage, colorPatch + typePatch);
+      } else {
+        yieldAddPropPatch(usage, colorPatch, placement: NewPropPlacement.start);
+        yieldAddPropPatch(usage, typePatch, placement: NewPropPlacement.end);
+      }
 
       propsClassHasHitareaMixin = usesWsdV1Factory(usage);
     } else if (usesWsdFactory(usage, 'FormResetInput')) {
