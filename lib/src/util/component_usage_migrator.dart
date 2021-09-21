@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:codemod/codemod.dart';
+import 'package:collection/collection.dart' as collection;
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -38,11 +39,58 @@ mixin ClassSuggestor {
 
     // Force the copying of this list, otherwise it would be a lazy iterable
     // mapped to the field on this class that will change on the next call.
-    final patches = _patches.toList();
+    var patches = _patches.toList();
     _context = null;
+
+    if (sortParenInsertionPatches) {
+      patches = patches
+          // group keys:
+          // - int: insertion patches at that offset
+          // - null: all other patches
+          .groupBy((patch) => patch.isInsertionPatch ? patch.startOffset : null)
+          .entries
+          .expand((entry) {
+        final isInsertionPatchGroup = entry.key != null;
+        if (!isInsertionPatchGroup) return entry.value;
+
+        return entry.value.toList()
+          ..sort((a, b) {
+            if (a.updatedText == '(' && b.updatedText == '(') return 0;
+            if (a.updatedText == '(') return -1000;
+            if (b.updatedText == '(') return 1000;
+
+            if (a.updatedText == ')' && b.updatedText == ')') return 0;
+            if (a.updatedText == ')') return 1000;
+            if (b.updatedText == ')') return -1000;
+
+            return entry.value.indexOf(a).compareTo(entry.value.indexOf(b));
+          });
+      }).toList();
+    }
 
     yield* Stream.fromIterable(patches);
   }
+
+  /// Whether to sort insertion patches at the same locations such that
+  /// opening parentheses get applied first and closing parentheses are applied
+  /// last.
+  ///
+  /// For instance,
+  ///     [
+  ///       Patch('(', 0, 0),
+  ///       Patch('..bar', 3, 3),
+  ///       Patch(')', 3, 3),
+  ///       Patch('(', 0, 0),
+  ///       Patch('..baz', 3, 3),
+  ///       Patch(')', 3, 3),
+  ///     ]
+  /// on the string `foo()`
+  /// would normally yield
+  ///     ((foo..bar)..baz)()
+  /// but with this `true`, yields
+  ///     ((foo..bar..baz))()
+  ///
+  bool get sortParenInsertionPatches => true;
 
   Future<void> generatePatches();
 
@@ -59,6 +107,22 @@ mixin ClassSuggestor {
   void yieldInsertionPatch(String updatedText, int offset) {
     _patches.add(Patch(updatedText, offset, offset));
   }
+}
+
+extension<E> on Iterable<E> {
+  /// Groups the elements in this iterable by the value returned by [key].
+  ///
+  /// Returns a map from keys computed by [key] to a list of all values for which
+  /// [key] returns that key. The values appear in the list in the same relative
+  /// order as in [values].
+  ///
+  /// Extension version of [collection.groupBy], for better inference of generics.
+  Map<T, List<E>> groupBy<T>(T Function(E) key) =>
+      collection.groupBy(this, key);
+}
+
+extension on Patch {
+  bool get isInsertionPatch => startOffset == endOffset;
 }
 
 mixin ComponentUsageMigrator on ClassSuggestor {
@@ -325,20 +389,11 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     } else {
       assert(usage.cascadeExpression == null);
 
-      var leftParenOffset = function.offset;
-      var rightParenOffset = function.end;
-
-      // //
-      // if (isWhitespace(context.sourceText[leftParenOffset - 1])) {
-      //   leftParenOffset = leftParenOffset - 1;
-      // }
-      // if (isWhitespace(context.sourceText[rightParenOffset + 1])) {
-      //   rightParenOffset = rightParenOffset + 1;
-      // }
-
-      yieldInsertionPatch('(', leftParenOffset);
+      yieldInsertionPatch('(', function.offset);
       yieldInsertionPatch(newPropCascade, function.end);
-      yieldInsertionPatch(')', rightParenOffset);
+      // Separate the closing paren and the cascade patches so that they can be
+      // applied separately if there are other calls to addProp.
+      yieldInsertionPatch(')', function.end);
     }
   }
 
