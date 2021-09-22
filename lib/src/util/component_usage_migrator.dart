@@ -218,7 +218,6 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
   /// Whether [flagCommon] (called by [migrateUsage]) should flag
   /// the `className` prop on component usages.
-  // FIXME follow-up ticket for WS classes in custom CSS selectors
   // FIXME CPLAT-15321 also flag WS classes in custom CSS selectors
   bool get shouldFlagClassName => true;
 
