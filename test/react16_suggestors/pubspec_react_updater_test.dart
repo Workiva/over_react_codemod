@@ -161,7 +161,8 @@ String getExpectedOutput({bool useMidVersionMin = false, String? hostedUrl}) {
       '';
 }
 
-String getExpectedPreReleaseOutput({bool useMidVersionMin = false, String? hostedUrl}) {
+String getExpectedPreReleaseOutput(
+    {bool useMidVersionMin = false, String? hostedUrl}) {
   return ''
       'dependencies:\n'
       '  react: ^5.0.0-alpha\n'

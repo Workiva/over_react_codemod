@@ -45,7 +45,8 @@ import 'util.dart';
 /// `midVersionRange` is a version range between the expected range max and
 /// min. Used in conjunction with `shouldUpdateMidRange`.
 void sharedPubspecTest({
-  required Function({bool useMidVersionMin, String? hostedUrl}) getExpectedOutput,
+  required Function({bool useMidVersionMin, String? hostedUrl})
+      getExpectedOutput,
   required SuggestorTester testSuggestor,
   required String dependency,
   required VersionRange startingRange,
@@ -321,13 +322,14 @@ void sharedPubspecTest({
   });
 }
 
-String getDependencyDeclaration(String dependency, String? version, [String? hostedUrl]) {
+String getDependencyDeclaration(String dependency, String? version,
+    [String? hostedUrl]) {
   if (hostedUrl != null) {
     return '  $dependency:\n'
-           '    hosted:\n'
-           '      name: $dependency\n'
-           '      url: $hostedUrl\n'
-           '    version: $version\n';
+        '    hosted:\n'
+        '      name: $dependency\n'
+        '      url: $hostedUrl\n'
+        '    version: $version\n';
   }
 
   return '  $dependency: $version\n';

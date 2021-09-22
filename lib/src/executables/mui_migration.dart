@@ -20,20 +20,60 @@ import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_button_group_migrator.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_button_migrator.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_button_toolbar_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
+import 'package:over_react_codemod/src/mui_suggestors/mui_migrators.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
 final _log = Logger('orcm.mui_migration');
+const _componentFlag = 'component';
 
 void main(List<String> args) async {
-  final parser = ArgParser.allowAnything();
+  final parser = ArgParser()
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: 'Prints this help output.',
+    )
+    ..addFlag(
+      'verbose',
+      abbr: 'v',
+      negatable: false,
+      help: 'Outputs all logging to stdout/stderr.',
+    )
+    ..addFlag(
+      'yes-to-all',
+      negatable: false,
+      help: 'Forces all patches accepted without prompting the user. '
+          'Useful for scripts.',
+    )
+    ..addFlag(
+      'fail-on-changes',
+      negatable: false,
+      help: 'Returns a non-zero exit code if there are changes to be made. '
+          'Will not make any changes (i.e. this is a dry-run).',
+    )
+    ..addFlag(
+      'stderr-assume-tty',
+      negatable: false,
+      help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
+    )
+    ..addSeparator('MUI Migration Options:')
+    ..addMultiOption(
+      _componentFlag,
+      allowed: muiMigrators.keys,
+      help: 'Choose which component migrators should be run. '
+          'If no components are specified, all component migrators will be run.',
+    );
 
   final parsedArgs = parser.parse(args);
+
+  if (parsedArgs['help'] == true) {
+    stderr.writeln(parser.usage);
+    return;
+  }
 
   // codemod sets up a global logging handler that forwards to the console, and
   // we want that set up before we do other non-codemodd things that might log.
@@ -48,7 +88,8 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemod(
     [],
     (_) async* {},
-    args: parsedArgs.rest,
+    // Only pass valid low level codemod flags
+    args: args.where((arg) => !arg.contains(_componentFlag)),
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
@@ -73,7 +114,8 @@ void main(List<String> args) async {
         paths,
         sequence,
         defaultYes: true,
-        args: parsedArgs.rest,
+        // Only pass valid low level codemod flags
+        args: args.where((arg) => !arg.contains(_componentFlag)),
         additionalHelpOutput: parser.usage,
       );
       if (exitCode != 0) return exitCode;
@@ -81,6 +123,19 @@ void main(List<String> args) async {
 
     return 0;
   }
+
+  // Only run the migrators for components that were specified in [args].
+  // If no components were specified, run all migrators.
+  final componentsToMigrate = parsedArgs[_componentFlag] as List<String>;
+  final migratorsToRun = componentsToMigrate.isEmpty
+      ? muiMigrators.values
+      : componentsToMigrate.map((componentName) {
+          final migrator = muiMigrators[componentName];
+          if (migrator == null) {
+            throw Exception('Could not find a migrator for $componentName');
+          }
+          return migrator;
+        }).toList();
 
   final dartPaths = dartFilesToMigrate();
   await pubGetForAllPackageRoots(dartPaths);
@@ -90,11 +145,7 @@ void main(List<String> args) async {
       // should only be handled by a single migrator, and shouldn't depend on the
       // output of previous migrators.
       // fixme is there any benefit to aggregating these?
-      aggregate([
-        MuiButtonMigrator(),
-        MuiButtonGroupMigrator(),
-        MuiButtonToolbarMigrator(),
-      ]),
+      aggregate(migratorsToRun),
     ],
     [muiImporter],
   ]);
@@ -108,7 +159,8 @@ void main(List<String> args) async {
           hostedUrl: 'https://pub.workiva.org'),
     ].map((s) => ignoreable(s))),
     defaultYes: true,
-    args: parsedArgs.rest,
+    // Only pass valid low level codemod flags
+    args: args.where((arg) => !arg.contains(_componentFlag)),
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
