@@ -46,7 +46,9 @@ class PubspecUpgrader {
   final bool shouldAddDependencies;
 
   PubspecUpgrader(this.packageName, this.targetConstraint,
-      {this.isDevDependency = false, this.shouldAddDependencies = true, this.hostedUrl})
+      {this.isDevDependency = false,
+      this.shouldAddDependencies = true,
+      this.hostedUrl})
       : shouldIgnoreMin = false;
 
   /// Constructor used to ignore checks and ensure that the codemod always
@@ -57,7 +59,9 @@ class PubspecUpgrader {
   /// will not update the pubspec is if the target version range is equal to
   /// the version that is already there (avoiding an empty patch error).
   PubspecUpgrader.alwaysUpdate(this.packageName, this.targetConstraint,
-      {this.isDevDependency = false, this.shouldAddDependencies = true, this.hostedUrl})
+      {this.isDevDependency = false,
+      this.shouldAddDependencies = true,
+      this.hostedUrl})
       : shouldIgnoreMin = true;
 
   String getPatch(String newVersionConstraint) {
@@ -69,7 +73,7 @@ class PubspecUpgrader {
       name: $packageName
       url: ${this.hostedUrl}
     version: $newVersionConstraint''';
-      }
+    }
   }
 
   Stream<Patch> call(FileContext context) async* {
@@ -102,8 +106,7 @@ class PubspecUpgrader {
           }
 
           // Update the version constraint to ensure a safe minimum bound.
-          yield Patch(getPatch(newValue), packageMatch.start,
-              packageMatch.end);
+          yield Patch(getPatch(newValue), packageMatch.start, packageMatch.end);
         }
       } catch (e) {
         // We can skip these. They are versions we don't want to mess with in this codemod.

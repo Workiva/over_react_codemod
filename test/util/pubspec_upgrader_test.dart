@@ -35,7 +35,8 @@ void main() {
       void sharedTests(bool isDevDependency, {String? hostedUrl}) {
         final key = isDevDependency ? 'dev_dependencies' : 'dependencies';
 
-        String getExpectedOutput({bool useMidVersionMin = false, String? hostedUrl}) {
+        String getExpectedOutput(
+            {bool useMidVersionMin = false, String? hostedUrl}) {
           if (useMidVersionMin) {
             final expected = VersionConstraint.parse('^5.0.0')
                     .allows(Version.parse(midVersionMin))
@@ -56,7 +57,8 @@ void main() {
               '';
         }
 
-        String getExpectedPreReleaseOutput({bool useMidVersionMin = false, String? hostedUrl}) {
+        String getExpectedPreReleaseOutput(
+            {bool useMidVersionMin = false, String? hostedUrl}) {
           return ''
               '$key:\n'
               '${getDependencyDeclaration('react', '^5.0.0-alpha', hostedUrl)}'
@@ -191,12 +193,14 @@ void main() {
       group('true', () {
         sharedTests(true);
 
-        group('and the dependency is hosted', () => sharedTests(true, hostedUrl: 'https://pub.whatever.org'));
+        group('and the dependency is hosted',
+            () => sharedTests(true, hostedUrl: 'https://pub.whatever.org'));
       });
       group('false', () {
         sharedTests(false);
 
-        group('and the dependency is hosted', () => sharedTests(false, hostedUrl: 'https://pub.whatever.org'));
+        group('and the dependency is hosted',
+            () => sharedTests(false, hostedUrl: 'https://pub.whatever.org'));
       });
     });
   });

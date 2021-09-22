@@ -107,7 +107,8 @@ RegExp getDependencyRegExp(String packageName) => RegExp(
     );
 
 RegExp getHostedDependencyRegExp(String packageName) => RegExp(
-      packageName + r''':\n\s+hosted:\n\s+name:.*\n\s+url:.*\n\s+version:\s*(["']?)(.+)\1\s*$''',
+      packageName +
+          r''':\n\s+hosted:\n\s+name:.*\n\s+url:.*\n\s+version:\s*(["']?)(.+)\1\s*$''',
       multiLine: true,
     );
 
