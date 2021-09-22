@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 
 class SharedAnalysisContext {
@@ -24,6 +25,8 @@ class SharedAnalysisContext {
     print('Cleaning up old files...');
     Directory(p.join(projectRoot, testFileSubpath))
         .deleteSyncIfExists(recursive: true);
+
+    await runPubGetIfNeeded(projectRoot);
 
     collection = AnalysisContextCollection(
       includedPaths: [projectRoot],
