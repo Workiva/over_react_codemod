@@ -169,7 +169,7 @@ void main(List<String> args) async {
 Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
   _log.info(
       'Running `pub get` if needed so that all Dart files can be resolved...');
-  final packageRoots = files.map(getPackageRootForFile).toSet();
+  final packageRoots = files.map(findPackageRootFor).toSet();
   for (final packageRoot in packageRoots) {
     await runPubGetIfNeeded(packageRoot);
   }

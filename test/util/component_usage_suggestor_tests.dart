@@ -8,7 +8,7 @@ main() {
   late SharedAnalysisContext sharedContext;
 
   setUpAll(() async {
-    sharedContext = SharedAnalysisContext();
+    sharedContext = SharedAnalysisContext.overReact;
     await sharedContext.init();
   });
 

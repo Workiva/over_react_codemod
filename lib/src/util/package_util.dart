@@ -45,30 +45,28 @@ Future<void> runPubGet(String workingDirectory) async {
   }
 }
 
-String getPackageRootForFile(String filePath) {
-  final packageRoot =
-      _closestDirectoryContainingFile(File(filePath), 'pubspec.yaml');
+String findPackageRootFor(String path) {
+  final packageRoot = _closestDirectoryContainingFile(path, 'pubspec.yaml');
   if (packageRoot == null) {
-    throw Exception('Could not find package root for file `$filePath`');
+    throw Exception('Could not find package root for file `$path`');
   }
 
-  return packageRoot.path;
+  return packageRoot;
 }
 
-Directory? _closestDirectoryContainingFile(
-    FileSystemEntity file, String filename) {
+String? _closestDirectoryContainingFile(String startingPath, String filename) {
   if (p.basename(filename) != filename) {
     throw ArgumentError.value(
         filename, 'filename', 'must be a filename and not a path');
   }
 
-  final directories = [
-    if (file is Directory) file,
-    ...file.ancestors,
+  final directoriesToCheck = [
+    startingPath,
+    ...ancestorsOfPath(startingPath),
   ];
 
-  return directories
-      .firstWhereOrNull((dir) => File(p.join(dir.path, filename)).existsSync());
+  return directoriesToCheck
+      .firstWhereOrNull((path) => File(p.join(path, filename)).existsSync());
 }
 
 extension on FileSystemEntity {
@@ -78,6 +76,14 @@ extension on FileSystemEntity {
 
     yield parent;
     yield* parent.ancestors;
+  }
+}
+
+Iterable<String> ancestorsOfPath(String path) sync* {
+  for (var current = p.canonicalize(path);
+      current != p.dirname(current);
+      current = p.dirname(current)) {
+    yield current;
   }
 }
 

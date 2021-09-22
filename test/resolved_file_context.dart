@@ -6,10 +6,23 @@ import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 
+final _testFixturePath =
+    p.join(findPackageRootFor(p.current), 'test/test_fixtures');
+
 class SharedAnalysisContext {
-  // fixme don't hardcode this
-  final projectRoot = '/Users/greglittlefield/workspaces/over_react_codemod/'
-      'test/test_fixtures/wsd_project';
+  static final overReact =
+      SharedAnalysisContext(p.join(_testFixturePath, 'over_react_project'));
+
+  static final wsd =
+      SharedAnalysisContext(p.join(_testFixturePath, 'wsd_project'));
+
+  final String projectRoot;
+
+  SharedAnalysisContext(this.projectRoot) {
+    if (!p.isAbsolute(projectRoot)) {
+      throw ArgumentError.value(projectRoot, 'projectRoot', 'must be absolute');
+    }
+  }
 
   static const testFileSubpath = 'lib/dynamic_test_files';
 
@@ -18,10 +31,6 @@ class SharedAnalysisContext {
   static const warmUpAnalysis = false;
 
   Future<void> init() async {
-    if (!p.isAbsolute(projectRoot)) {
-      throw ArgumentError.value(projectRoot, 'projectRoot', 'must be absolute');
-    }
-
     print('Cleaning up old files...');
     Directory(p.join(projectRoot, testFileSubpath))
         .deleteSyncIfExists(recursive: true);
