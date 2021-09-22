@@ -3,3 +3,5 @@
 .packages
 pubspec.lock
 .idea/
+
+test/test_fixtures/wsd_project/lib/dynamic_test_files
