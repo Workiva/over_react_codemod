@@ -64,7 +64,8 @@ void main(List<String> args) async {
     ..addMultiOption(
       _componentFlag,
       allowed: muiMigrators.keys,
-      help: 'Choose which component migrators should be run.',
+      help: 'Choose which component migrators should be run. '
+          'If no components are specified, all component migrators will be run.',
     );
 
   final parsedArgs = parser.parse(args);
