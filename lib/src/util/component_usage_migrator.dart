@@ -279,6 +279,16 @@ mixin ComponentUsageMigrator on ClassSuggestor {
             prop.node.offset);
       }
     }
+
+    for (final prop in usage.cascadedGetters) {
+      if (shouldFlagExtensionMembers && prop.isExtensionMethod) {
+        // Flag extension methods, since they could do anything.
+        yieldInsertionPatch(
+            lineComment(
+                'FIXME(mui_migration) - ${prop.name.name} (extension) - manually verify'),
+            prop.node.offset);
+      }
+    }
   }
 
   //
@@ -516,9 +526,20 @@ extension on Element {
   }
 }
 
+extension on PropAccess {
+  bool get isExtensionMethod {
+    final staticElement = node.propertyName.staticElement;
+    return staticElement?.isExtensionMethod ?? false;
+  }
+}
+
 extension on PropAssignment {
-  bool get isExtensionMethod =>
-      assignment.staticElement?.isExtensionMethod ?? false;
+  bool get isExtensionMethod {
+    // For some reason staticElement on extensions is null, and we need to use
+    // writeElement instead. TODO report this as an analyzer bug?
+    final staticElement = assignment.staticElement ?? assignment.writeElement;
+    return staticElement?.isExtensionMethod ?? false;
+  }
 }
 
 extension on MethodInvocation {

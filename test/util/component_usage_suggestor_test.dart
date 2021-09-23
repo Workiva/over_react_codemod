@@ -168,9 +168,7 @@ main() {
             isMuiMigrationFixmeCommentPatch(),
           ]);
         });
-      },
-          skip:
-              'staticElement on these extension methods seems to be null... perhaps an analyzer bug?');
+      });
     });
 
     group('migratePropsByName', () {

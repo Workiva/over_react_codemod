@@ -2,6 +2,7 @@
 //
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
+
 // import 'package:analyzer/source/source_range.dart';
 // import 'package:analyzer_plugin/utilities/range_factory.dart';
 // import 'package:meta/meta.dart';
@@ -22,6 +23,10 @@ extension UsageCascades on FluentComponentUsage {
       .where((assignment) => assignment.leftHandSide is PropertyAccess)
       .map((assignment) => PropAssignment(assignment));
 
+  // fixme tests for how `..dom.id = ''` works
+  Iterable<PropAccess> get cascadedGetters =>
+      cascadeSections.whereType<PropertyAccess>().map((p) => PropAccess(p));
+
   Iterable<IndexPropAssignment> get cascadedIndexAssignments => cascadeSections
       .whereType<AssignmentExpression>()
       .where((assignment) => assignment.leftHandSide is IndexExpression)
@@ -35,6 +40,7 @@ extension UsageCascades on FluentComponentUsage {
 
   List<BuilderMemberAccess> get cascadedMembers => [
         ...cascadedProps,
+        ...cascadedGetters,
         ...cascadedIndexAssignments,
         ...cascadedMethodInvocations,
       ]

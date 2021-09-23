@@ -151,6 +151,15 @@ abstract class BuilderMemberAccess {
   AstNode get node;
 }
 
+class PropAccess implements BuilderMemberAccess {
+  @override
+  final PropertyAccess node;
+
+  PropAccess(this.node);
+
+  Identifier get name => node.propertyName;
+}
+
 class BuilderMethodInvocation implements BuilderMemberAccess {
   @override
   final MethodInvocation node;
