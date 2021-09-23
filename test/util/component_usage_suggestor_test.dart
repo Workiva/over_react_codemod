@@ -26,6 +26,57 @@ main() {
 
     group('identifies web_skin_dart component usages', () {});
 
+    test('throws when a file fails to resolve', () async {
+      // FIXME a Dart file with parse errors won't satisfy this; need to come up with a different setup or use a mocked context?
+      // const unresolvableSource = 'class E extends E {}';
+      //
+      // final migrator = GenericMigrator();
+      // final context =
+      //     await sharedContext.resolvedFileContextForTest(unresolvableSource,
+      //         // Otherwise, resolvedFileContextForTest will throw.
+      //         // We want to see how the migrator handles it.
+      //         preResolveFile: false);
+      //
+      // expect(
+      //     () async => await migrator(context).toList(),
+      //     throwsA(isA<Exception>()
+      //         .havingToStringValue(contains('Could not get resolved unit'))));
+    });
+
+    test('calls migrateUsage for each component usage', () async {
+      final usages = <FluentComponentUsage>[];
+      final suggestor = GenericMigrator((_, usage) {
+        usages.add(usage);
+      });
+      final source = unindent(/*language=dart*/ r'''
+          import 'package:over_react/over_react.dart';
+            
+          UiFactory Foo;
+          UiFactory Bar;
+          UiProps builder;
+          dynamic notAUsage() {}
+          dynamic alsoNotAUsage;
+                    
+          usages() => Foo()(
+            (Bar()..baz = 'something')(),
+            Dom.div()(),
+            builder(),
+            notAUsage(),
+            alsoNotAUsage,
+          );
+      ''');
+      await sharedContext.getPatches(suggestor, source);
+
+      expect(
+          usages.map((u) => u.builder.toSource()),
+          unorderedEquals([
+            'Foo()',
+            'Bar()',
+            'Dom.div()',
+            'builder',
+          ]));
+    });
+
     group('common usage flagging', () {
       group('of untyped props:', () {
         final otherContents = unindent('''
@@ -191,6 +242,11 @@ extension on TypeMatcher<Patch> {
       having((p) => p.updatedText, 'updatedText', matcher);
 }
 
+extension on TypeMatcher<Object> {
+  Matcher havingToStringValue(dynamic matcher) =>
+      having((p) => p.toString(), 'toString() value', matcher);
+}
+
 class CommonOnlySuggestor with ClassSuggestor, ComponentUsageMigrator {
   @override
   MigrationDecision shouldMigrateUsage(usage) =>
@@ -202,15 +258,15 @@ class GenericMigrator with ClassSuggestor, ComponentUsageMigrator {
   MigrationDecision shouldMigrateUsage(usage) =>
       MigrationDecision.shouldMigrate;
 
-  void Function(GenericMigrator migrator, FluentComponentUsage usage)
+  void Function(GenericMigrator migrator, FluentComponentUsage usage)?
       onMigrateUsage;
 
-  GenericMigrator(this.onMigrateUsage);
+  GenericMigrator([this.onMigrateUsage]);
 
   @override
   migrateUsage(usage) {
     super.migrateUsage(usage);
-    onMigrateUsage(this, usage);
+    onMigrateUsage?.call(this, usage);
   }
 }
 
