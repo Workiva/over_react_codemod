@@ -3,8 +3,13 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
+
+// This isn't strictly required for anything, so if the import becomes invalid,
+// just comment it and related code out.
+import 'package:test_api/src/backend/invoker.dart' show Invoker;
 
 final _testFixturePath =
     p.join(findPackageRootFor(p.current), 'test/test_fixtures');
@@ -58,8 +63,22 @@ class SharedAnalysisContext {
   }
 
   Future<FileContext> resolvedFileContextForTest(String sourceText,
-      {String? filename}) async {
+      {String? filename, bool includeTestDescription = true}) async {
     filename ??= nextFilename();
+
+    if (includeTestDescription) {
+      // For convenience, include the current test description in the file as
+      // a comment, so that:
+      // - you can tell you're looking at the right file for a given test
+      // - you can search for the test description to easily find the right file
+      try {
+        final testName = Invoker.current!.liveTest.test.name;
+        sourceText =
+            lineComment('Created within test with name:\n> $testName') +
+                '\n' +
+                sourceText;
+      } catch (_) {}
+    }
 
     final path = p.join(projectRoot, testFileSubpath, filename);
     final file = File(path);
@@ -101,8 +120,8 @@ class SharedAnalysisContext {
     }
 
     if (shouldPrint) {
-      print(
-          'Resolving a file for the first time. This may take a few seconds...');
+      print('Resolving a file for the first time in this context;'
+          ' this will take a few seconds...');
     }
     final result = await callback();
     if (shouldPrint) {
