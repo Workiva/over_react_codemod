@@ -62,8 +62,12 @@ class SharedAnalysisContext {
     return await suggestor(context).toList();
   }
 
-  Future<FileContext> resolvedFileContextForTest(String sourceText,
-      {String? filename, bool includeTestDescription = true}) async {
+  Future<FileContext> resolvedFileContextForTest(
+    String sourceText, {
+    String? filename,
+    bool includeTestDescription = true,
+    bool preResolveFile = true,
+  }) async {
     filename ??= nextFilename();
 
     if (includeTestDescription) {
@@ -93,10 +97,14 @@ class SharedAnalysisContext {
 
     final context = collection.contexts
         .singleWhere((c) => c.contextRoot.root.path == projectRoot);
-    // Resolve the file so that calls to AnalysisContextCollection.contextFor don't throw a StateError.
-    await _printAboutFirstFile(
-        () => context.currentSession.getResolvedLibrary2(path));
-    // Verify that this doesn't throw.
+
+    if (preResolveFile) {
+      await _printAboutFirstFile(
+          () => context.currentSession.getResolvedLibrary2(path));
+    }
+
+    // Assert that this doesn't throw a StateError due to this file not
+    // existing in the context we've set up (which shouldn't ever happen).
     collection.contextFor(path);
 
     return FileContext(path, collection, root: projectRoot);
