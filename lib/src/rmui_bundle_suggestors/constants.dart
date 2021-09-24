@@ -14,3 +14,6 @@
 
 const rmuiBundleScript =
     '<script src="packages/react_material_ui/react-material-ui-development.umd.js"></script>';
+
+const reactJsScriptPattern =
+    r'([^\S\r\n]*)<script.*packages/react/react\w+.js.*</script>';

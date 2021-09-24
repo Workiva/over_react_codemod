@@ -80,6 +80,48 @@ main() {
       );
     });
 
+    test('in context with other HTML logic', () async {
+      await testSuggestor(
+        expectedPatchCount: 1,
+        shouldDartfmtOutput: false,
+        input: ''
+            '<!DOCTYPE html>\n'
+            '<html>\n'
+            '  <head>\n'
+            '    <title>{{testName}}</title>\n'
+            '    <!--my custom header-->\n'
+            '    <script src="packages/react/react_with_addons.js"></script>\n'
+            '    <script src="packages/react/react_dom.js"></script>\n'
+            '    <script src="packages/engine/gopherBindings.js"></script>\n'
+            '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
+            '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
+            '    {{testScript}}\n'
+            '    <script src="packages/test/dart.js"></script>\n'
+            '  </head>\n'
+            '  <body></body>\n'
+            '</html>\n'
+            '',
+        expectedOutput: ''
+            '<!DOCTYPE html>\n'
+            '<html>\n'
+            '  <head>\n'
+            '    <title>{{testName}}</title>\n'
+            '    <!--my custom header-->\n'
+            '    <script src="packages/react/react_with_addons.js"></script>\n'
+            '    $rmuiBundleScript\n'
+            '    <script src="packages/react/react_dom.js"></script>\n'
+            '    <script src="packages/engine/gopherBindings.js"></script>\n'
+            '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
+            '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
+            '    {{testScript}}\n'
+            '    <script src="packages/test/dart.js"></script>\n'
+            '  </head>\n'
+            '  <body></body>\n'
+            '</html>\n'
+            '',
+      );
+    });
+
     test('with a different script added', () async {
       final someOtherScript =
           '<script src="packages/something_else/something-else.js"></script>';
@@ -95,6 +137,17 @@ main() {
         expectedOutput: ''
             '  <script src="/packages/react/react_with_addons.js"></script>\n'
             '  $someOtherScript\n'
+            '',
+      );
+    });
+
+    test('when the script already exists', () async {
+      await testSuggestor(
+        expectedPatchCount: 0,
+        shouldDartfmtOutput: false,
+        input: ''
+            '  $rmuiBundleScript\n'
+            '  <script src="/packages/react/react_with_addons.js"></script>\n'
             '',
       );
     });

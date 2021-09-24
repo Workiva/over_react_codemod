@@ -18,6 +18,7 @@ import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/rmui_bundle_suggestors/constants.dart';
+import 'package:over_react_codemod/src/rmui_bundle_suggestors/dart_script_adder.dart';
 import 'package:over_react_codemod/src/rmui_bundle_suggestors/html_script_adder.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
@@ -52,6 +53,20 @@ void main(List<String> args) async {
     allHtmlPaths(),
     [
       HtmlScriptAdder(rmuiBundleScript),
+    ],
+    defaultYes: true,
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
+
+  if (exitCode != 0) return;
+
+  // Add RMUI bundle script to all HTML files.
+  exitCode = await runInteractiveCodemodSequence(
+    allDartPathsExceptHidden(),
+    [
+      DartScriptAdder(rmuiBundleScript),
     ],
     defaultYes: true,
     args: parsedArgs.rest,

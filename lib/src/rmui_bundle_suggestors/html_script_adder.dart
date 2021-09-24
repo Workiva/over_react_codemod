@@ -13,12 +13,14 @@
 // limitations under the License.
 
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/util.dart';
+import 'package:over_react_codemod/src/rmui_bundle_suggestors/dart_script_adder.dart';
+
+import 'constants.dart';
 
 /// Suggestor that adds a [scriptToAdd] line after the first usage of a
 /// react-dart script in a file.
 ///
-/// Meant to be run on HTML files (use [allHtmlPaths]).
+/// Meant to be run on HTML files (use [DartScriptAdder] to run on Dart files).
 class HtmlScriptAdder {
   final String scriptToAdd;
 
@@ -28,9 +30,8 @@ class HtmlScriptAdder {
     // Do not add the script if it already exists in the file.
     if (context.sourceText.contains(scriptToAdd)) return;
 
-    final reactScriptRegex =
-        RegExp(r'([^\S\r\n]*)<script.*packages/react/react\w+.js.*</script>');
-    final scriptMatch = reactScriptRegex.firstMatch(context.sourceText);
+    final scriptMatch =
+        RegExp(reactJsScriptPattern).firstMatch(context.sourceText);
 
     if (scriptMatch != null) {
       yield Patch(
