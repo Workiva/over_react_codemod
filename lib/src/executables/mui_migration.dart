@@ -14,11 +14,15 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_migrators.dart';
@@ -137,7 +141,12 @@ void main(List<String> args) async {
           return migrator;
         }).toList();
 
-  final dartPaths = dartFilesToMigrate();
+  final dartPaths = dartFilesToMigrate().toList();
+  // A terrible hack to work around parts being unresolved if you resolve them
+  // before their libraries.
+  // FIXME improve this
+  sortPartsLast(dartPaths);
+
   await pubGetForAllPackageRoots(dartPaths);
   exitCode = await runCodemodSequences(dartPaths, [
     [
@@ -164,6 +173,36 @@ void main(List<String> args) async {
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
+}
+
+void sortPartsLast(List<String> dartPaths) {
+  _log.info('Sorting part files...');
+  final collection = AnalysisContextCollection(
+    // These paths must be absolute.
+    includedPaths: dartPaths.map(p.canonicalize).toList(),
+  );
+
+  final isPartCache = <String, bool>{};
+  bool isPart(String path) => isPartCache.putIfAbsent(path, () {
+        final canonicalPath = p.canonicalize(path);
+        final parsed = collection
+            .contextFor(canonicalPath)
+            .currentSession
+            .getParsedUnit2(canonicalPath);
+        if (parsed is ParsedUnitResult) {
+          return parsed.unit.directives.whereType<PartOfDirective>().isNotEmpty;
+        }
+        return false;
+      });
+
+  dartPaths.sort((a, b) {
+    final isAPart = isPart(a);
+    final isBPart = isPart(b);
+
+    if (isAPart == isBPart) return 0;
+    return isAPart ? 1 : -1;
+  });
+  _log.info('Done.');
 }
 
 Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
