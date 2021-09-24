@@ -40,7 +40,19 @@ Future<void> runPubGet(String workingDirectory) async {
       runInShell: true,
       mode: ProcessStartMode.inheritStdio);
   final exitCode = await process.exitCode;
-  if (exitCode != 0) {
+
+  if (exitCode == 69) {
+    _logger.info(
+        'Re-running `pub get` but with `--offline`, to hopefully fix the above error.');
+    final process = await Process.start('pub', ['get', '--offline'],
+        workingDirectory: workingDirectory,
+        runInShell: true,
+        mode: ProcessStartMode.inheritStdio);
+    final exitCode = await process.exitCode;
+    if (exitCode != 0) {
+      throw Exception('pub get failed with exit code: $exitCode');
+    }
+  } else if (exitCode != 0) {
     throw Exception('pub get failed with exit code: $exitCode');
   }
 }
