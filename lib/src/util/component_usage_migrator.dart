@@ -161,11 +161,17 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         declaringFileName.contains('/src/_deprecated/');
   }
 
+  static const _fatalUnresolvedUsages = true;
+
   @override
   Future<void> generatePatches() async {
     _log.info('Resolving ${context.relativePath}...');
     final result = await context.getResolvedUnit();
-    final unit = result?.unit;
+    if (result == null) {
+      throw Exception(
+          'Could not get resolved result for "${context.relativePath}"');
+    }
+    final unit = result.unit;
     if (unit == null) {
       throw Exception(
           'Could not get resolved unit for "${context.relativePath}"');
@@ -180,6 +186,15 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         continue;
       }
 
+      // If things aren't fully resolved, the unresolved branch of the FluentComponentUsage
+      // detection will be used. Check for that here, since that probably means
+      // the library declaring the component wasn't resolved, and we want to know
+      // about it so the component isn't skipped over silently (since the checks
+      // to see what component it is often rely on resolved AST).
+      if (_fatalUnresolvedUsages) {
+        verifyUsageIsResolved(usage);
+      }
+
       final decision = shouldMigrateUsage(usage);
       switch (decision) {
         case MigrationDecision.notApplicable:
@@ -190,6 +205,28 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         case MigrationDecision.needsManualIntervention:
           flagUsageWithManualIntervention(usage);
           break;
+      }
+    }
+  }
+
+  Exception _unresolvedException(String message, SyntacticEntity entity) {
+    const commonMessage =
+        'Check that `pub get` has been run and that this is a valid over_react component usage.';
+    final span = context.sourceFile.span(entity.offset, entity.end);
+    return Exception(span.message('$message $commonMessage'));
+  }
+
+  void verifyUsageIsResolved(FluentComponentUsage usage) {
+    final staticType = usage.builder.staticType;
+    if (staticType == null || staticType.isDynamic) {
+      throw _unresolvedException(
+          'Builder type could not be resolved.', usage.builder);
+    }
+    final factory = usage.factory;
+    if (factory != null) {
+      if (factory.staticType == null ||
+          (factory is Identifier && factory.staticElement == null)) {
+        throw _unresolvedException('Factory could not be resolved. ', factory);
       }
     }
   }

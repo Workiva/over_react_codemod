@@ -325,6 +325,54 @@ extension on DartType? {
   String? get interfaceTypeName => tryCast<InterfaceType>()?.element.name;
 }
 
+/// Returns whether [expression] and all of its descendants are fully resolved
+/// by checking whether there are any unresolved identifiers or unresolved
+/// invocations.
+///
+/// This is a more accurate alternative than just checking for [Expression.staticType],
+/// since that often shows up as `dynamic` in resolved contexts when something doesn't fully resolve.
+bool isFullyResolved(Expression expression) {
+  if (expression.staticType == null) return false;
+
+  final visitor = ResolvedExpressionVisitor();
+  expression.accept(visitor);
+  return visitor.isFullyResolved;
+}
+
+class ResolvedExpressionVisitor extends GeneralizingAstVisitor<void> {
+  var isFullyResolved = true;
+
+  @override
+  visitIdentifier(Identifier node) {
+    super.visitIdentifier(node);
+
+    if (node.staticElement == null) {
+      isFullyResolved = false;
+    }
+  }
+
+  @override
+  visitInvocationExpression(InvocationExpression node) {
+    super.visitInvocationExpression(node);
+
+    if (node.staticInvokeType == null) {
+      isFullyResolved = false;
+    }
+  }
+}
+
+Expression unrwapCascadesAndParens(Expression expression) {
+  if (expression is ParenthesizedExpression) {
+    return unrwapCascadesAndParens(expression.unParenthesized);
+  }
+
+  if (expression is CascadeExpression) {
+    return unrwapCascadesAndParens(expression.target);
+  }
+
+  return expression;
+}
+
 /// Returns the OverReact fluent interface component for the invocation expression [node],
 /// or `null` if it doesn't represent one.
 ///
@@ -359,7 +407,10 @@ FluentComponentUsage? getComponentUsage(InvocationExpression node) {
   }
 
   bool isComponent;
-  if (builder.staticType != null) {
+
+  // Can't just check for staticType since if we're in an attempted-to-be-resolved AST
+  // but something goes wrong, we'll get dynamic.
+  if (isFullyResolved(builder)) {
     // Resolved AST
     isComponent =
         builder.staticType.interfaceTypeName?.endsWith('Props') ?? false;
@@ -393,7 +444,9 @@ FluentComponentUsage? getComponentUsageFromExpression(Expression node) {
 }
 
 String? getComponentName(Expression builder) {
-  if (builder.staticType != null) {
+  // Can't just check for staticType since if we're in an attempted-to-be-resolved AST
+  // but something goes wrong, we'll get dynamic.
+  if (isFullyResolved(builder)) {
     // Resolved AST
     final typeName = builder.staticType?.interfaceTypeName;
     if (typeName == null) return null;

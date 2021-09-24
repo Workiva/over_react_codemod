@@ -43,6 +43,64 @@ main() {
       //         .havingToStringValue(contains('Could not get resolved unit'))));
     });
 
+    group('throws when a component usage is not resolved', () {
+      test('', () async {
+        const unresolvedUsages = [
+          'Foo()()',
+          '(Foo()..bar = "baz")()',
+          'Dom.div()()',
+          'builder()',
+        ];
+
+        for (final usage in unresolvedUsages) {
+          final migrator = GenericMigrator(boundExpectAsync2((_, __) {},
+              count: 0,
+              reason: 'migrator should not be called for any of these usages;'
+                  ' it should throw first'));
+          await expectLater(
+            () async =>
+                await sharedContext.getPatches(migrator, 'usage() => $usage;',
+                    // Otherwise, resolvedFileContextForTest might throw.
+                    // We want to see how the migrator handles it.
+                    preResolveFile: false),
+            throwsA(isA<Exception>().havingToStringValue(allOf(
+              contains('could not be resolved.'),
+              contains(usage),
+            ))),
+          );
+        }
+      });
+
+      test(
+          'but not for resolved dynamic calls might look like unresolved usages',
+          () async {
+        // Valid dynamic calls that are resolved and just looks like usages
+        const source = '''
+        // Dynamic first and second invocation
+        dynamic Foo1;
+        usage() => Foo1()();
+        
+        // Static first invocation, dynamic second invocation
+        dynamic Foo2() {}
+        dynamic builder2;
+        usage() => Foo2()();
+        usage() => builder2();
+        
+        // Static first/second invocation, dynamic return value
+        dynamic Function() Foo3() {}
+        dynamic builder3() {}
+        usage() => Foo3()();
+        usage() => builder3();
+       ''';
+
+        final migrator = GenericMigrator(boundExpectAsync2((_, __) {},
+            count: 0, reason: 'these calls should not be detected as usages'));
+        // awaiting this is the best way to assert it does not throw, since
+        // returnsNormally doesn't work as intended with async functions.
+        await sharedContext.getPatches(migrator, source);
+      });
+    });
+
     test('calls migrateUsage for each component usage', () async {
       final usages = <FluentComponentUsage>[];
       final suggestor = GenericMigrator((_, usage) {
@@ -222,6 +280,10 @@ main() {
 Func1<T, A> boundExpectAsync1<T, A>(T Function(A) callback,
         {int count = 1, int max = 0, String? id, String? reason}) =>
     expectAsync1(callback, count: count, max: max, id: id, reason: reason);
+
+Func2<T, A, B> boundExpectAsync2<T, A, B>(T Function(A, B) callback,
+        {int count = 1, int max = 0, String? id, String? reason}) =>
+    expectAsync2(callback, count: count, max: max, id: id, reason: reason);
 
 extension on TypeMatcher<ArgumentError> {
   Matcher havingMessage(dynamic matcher) =>

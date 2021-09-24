@@ -56,9 +56,17 @@ class SharedAnalysisContext {
     }
   }
 
-  Future<List<Patch>> getPatches(Suggestor suggestor, String sourceText,
-      {String? filename}) async {
-    final context = await resolvedFileContextForTest(sourceText);
+  Future<List<Patch>> getPatches(
+    Suggestor suggestor,
+    String sourceText, {
+    String? filename,
+    bool preResolveFile = true,
+  }) async {
+    final context = await resolvedFileContextForTest(
+      sourceText,
+      preResolveFile: preResolveFile,
+      filename: filename,
+    );
     return await suggestor(context).toList();
   }
 
@@ -90,7 +98,8 @@ class SharedAnalysisContext {
       throw StateError('File already exists.'
           ' Cannot use an existing file, since there is no public API'
           ' to update a file within a AnalysisContextCollection.'
-          ' Use a unique filename each time.');
+          ' Make sure you\'re calling init() first, and that you\'re using'
+          ' a unique filename each time.');
     }
     file.parent.createSync(recursive: true);
     file.writeAsStringSync(sourceText);
