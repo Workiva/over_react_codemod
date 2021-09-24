@@ -46,122 +46,129 @@ const jsFileTypes = {
 
 void main() {
   group('HtmlScriptAdder', () {
-    final testSuggestor = getSuggestorTester(HtmlScriptAdder(rmuiBundleScript));
+    group('add prod script', () => _htmlScriptAdderTests(isProd: true));
 
-    test('empty file', () async {
-      await testSuggestor(expectedPatchCount: 0, input: '');
-    });
+    group('add non-prod script', () => _htmlScriptAdderTests(isProd: false));
+  });
+}
 
-    test('no matches', () async {
+void _htmlScriptAdderTests({bool isProd = true}) {
+  final expectedAddedScript = isProd ? rmuiBundleProd : rmuiBundleDev;
+  final testSuggestor =
+      getSuggestorTester(HtmlScriptAdder(expectedAddedScript, isProd));
+
+  test('empty file', () async {
+    await testSuggestor(expectedPatchCount: 0, input: '');
+  });
+
+  test('no matches', () async {
+    await testSuggestor(
+      expectedPatchCount: 0,
+      shouldDartfmtOutput: false,
+      input: ''
+          '<script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
+          '',
+    );
+  });
+
+  jsFileTypes.forEach((testName, scripts) {
+    test(testName, () async {
+      final isTestProd = testName.contains('Prod');
       await testSuggestor(
-        expectedPatchCount: 0,
+        expectedPatchCount: isProd == isTestProd ? 1 : 0,
         shouldDartfmtOutput: false,
         input: ''
-            '<script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
-            '',
-      );
-    });
-
-    jsFileTypes.forEach((testName, scripts) {
-      test(testName, () async {
-        await testSuggestor(
-          expectedPatchCount: 1,
-          shouldDartfmtOutput: false,
-          input: ''
-              '${scripts.join('\n')}'
-              '',
-          expectedOutput: ''
-              '${scripts.join('\n')}\n'
-              '$rmuiBundleScript\n'
-              '',
-        );
-      });
-    });
-
-    test('with indentation', () async {
-      await testSuggestor(
-        expectedPatchCount: 1,
-        shouldDartfmtOutput: false,
-        input: ''
-            '  ${devReact.join('\n  ')}'
+            '${scripts.join('\n')}'
             '',
         expectedOutput: ''
-            '  ${devReact.join('\n  ')}\n'
-            '  $rmuiBundleScript\n'
+            '${scripts.join('\n')}\n'
+            '${isProd == isTestProd ? '$expectedAddedScript\n' : ''}'
             '',
       );
     });
+  });
 
-    test('in context with other HTML logic', () async {
-      await testSuggestor(
-        expectedPatchCount: 1,
-        shouldDartfmtOutput: false,
-        input: ''
-            '<!DOCTYPE html>\n'
-            '<html>\n'
-            '  <head>\n'
-            '    <title>{{testName}}</title>\n'
-            '    <!--my custom header-->\n'
-            '    <script src="packages/react/react_with_addons.js"></script>\n'
-            '    <script src="packages/react/react_dom.js"></script>\n'
-            '    <script src="packages/engine/gopherBindings.js"></script>\n'
-            '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
-            '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
-            '    {{testScript}}\n'
-            '    <script src="packages/test/dart.js"></script>\n'
-            '  </head>\n'
-            '  <body></body>\n'
-            '</html>\n'
-            '',
-        expectedOutput: ''
-            '<!DOCTYPE html>\n'
-            '<html>\n'
-            '  <head>\n'
-            '    <title>{{testName}}</title>\n'
-            '    <!--my custom header-->\n'
-            '    <script src="packages/react/react_with_addons.js"></script>\n'
-            '    <script src="packages/react/react_dom.js"></script>\n'
-            '    $rmuiBundleScript\n'
-            '    <script src="packages/engine/gopherBindings.js"></script>\n'
-            '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
-            '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
-            '    {{testScript}}\n'
-            '    <script src="packages/test/dart.js"></script>\n'
-            '  </head>\n'
-            '  <body></body>\n'
-            '</html>\n'
-            '',
-      );
-    });
+  test('with indentation', () async {
+    await testSuggestor(
+      expectedPatchCount: 1,
+      shouldDartfmtOutput: false,
+      input: ''
+          '  ${(isProd ? prodReact : devReact).join('\n  ')}'
+          '',
+      expectedOutput: ''
+          '  ${(isProd ? prodReact : devReact).join('\n  ')}\n'
+          '  $expectedAddedScript\n'
+          '',
+    );
+  });
 
-    test('with a different script added', () async {
-      final someOtherScript =
-          '<script src="packages/something_else/something-else.js"></script>';
-      final anotherTestSuggestor =
-          getSuggestorTester(HtmlScriptAdder(someOtherScript));
+  test('in context with other HTML logic', () async {
+    await testSuggestor(
+      expectedPatchCount: 1,
+      shouldDartfmtOutput: false,
+      input: ''
+          '<!DOCTYPE html>\n'
+          '<html>\n'
+          '  <head>\n'
+          '    <title>{{testName}}</title>\n'
+          '    <!--my custom header-->\n'
+          '    ${(isProd ? prodReact : devReact).join('\n    ')}\n'
+          '    <script src="packages/engine/gopherBindings.js"></script>\n'
+          '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
+          '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
+          '    {{testScript}}\n'
+          '    <script src="packages/test/dart.js"></script>\n'
+          '  </head>\n'
+          '  <body></body>\n'
+          '</html>\n'
+          '',
+      expectedOutput: ''
+          '<!DOCTYPE html>\n'
+          '<html>\n'
+          '  <head>\n'
+          '    <title>{{testName}}</title>\n'
+          '    <!--my custom header-->\n'
+          '    ${(isProd ? prodReact : devReact).join('\n    ')}\n'
+          '    $expectedAddedScript\n'
+          '    <script src="packages/engine/gopherBindings.js"></script>\n'
+          '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
+          '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
+          '    {{testScript}}\n'
+          '    <script src="packages/test/dart.js"></script>\n'
+          '  </head>\n'
+          '  <body></body>\n'
+          '</html>\n'
+          '',
+    );
+  });
 
-      await anotherTestSuggestor(
-        expectedPatchCount: 1,
-        shouldDartfmtOutput: false,
-        input: ''
-            '    ${devReact.join('\n    ')}'
-            '',
-        expectedOutput: ''
-            '    ${devReact.join('\n    ')}\n'
-            '    $someOtherScript\n'
-            '',
-      );
-    });
+  test('with a different script added', () async {
+    final someOtherScript =
+        '<script src="packages/something_else/something-else.js"></script>';
+    final anotherTestSuggestor =
+        getSuggestorTester(HtmlScriptAdder(someOtherScript, isProd));
 
-    test('when the script already exists', () async {
-      await testSuggestor(
-        expectedPatchCount: 0,
-        shouldDartfmtOutput: false,
-        input: ''
-            '  $rmuiBundleScript\n'
-            '  ${devReact.join('\n  ')}\n'
-            '',
-      );
-    });
+    await anotherTestSuggestor(
+      expectedPatchCount: 1,
+      shouldDartfmtOutput: false,
+      input: ''
+          '    ${(isProd ? prodReact : devReact).join('\n    ')}'
+          '',
+      expectedOutput: ''
+          '    ${(isProd ? prodReact : devReact).join('\n    ')}\n'
+          '    $someOtherScript\n'
+          '',
+    );
+  });
+
+  test('when the script already exists', () async {
+    await testSuggestor(
+      expectedPatchCount: 0,
+      shouldDartfmtOutput: false,
+      input: ''
+          '    $expectedAddedScript\n'
+          '    ${(isProd ? prodReact : devReact).join('\n    ')}\n'
+          '',
+    );
   });
 }

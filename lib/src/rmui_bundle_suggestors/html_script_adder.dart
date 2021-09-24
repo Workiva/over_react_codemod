@@ -24,7 +24,12 @@ import 'constants.dart';
 class HtmlScriptAdder {
   final String scriptToAdd;
 
-  HtmlScriptAdder(this.scriptToAdd);
+  /// Whether or not [scriptToAdd] is for production.
+  ///
+  /// This will determine if the script should be added to React dev or React prod js files.
+  final bool isProd;
+
+  HtmlScriptAdder(this.scriptToAdd, this.isProd);
 
   Stream<Patch> call(FileContext context) async* {
     // Do not add the script if it already exists in the file.
@@ -35,6 +40,13 @@ class HtmlScriptAdder {
 
     if (scriptMatches.isNotEmpty) {
       final lastMatch = scriptMatches.last;
+
+      // Only add [scriptToAdd] if it has the same prod/dev status as the
+      // react-dart js [lastMatch] found.
+      final lastMatchValue = lastMatch.group(0);
+      if (lastMatchValue == null || isProd != isScriptProd(lastMatchValue))
+        return;
+
       yield Patch(
         // Add the new script with the same indentation as the line before it.
         '\n${lastMatch.group(1)}$scriptToAdd',
@@ -44,3 +56,6 @@ class HtmlScriptAdder {
     }
   }
 }
+
+/// Returns whether or not [script]'s source is a prod JS file.
+bool isScriptProd(String script) => script.contains('_prod');

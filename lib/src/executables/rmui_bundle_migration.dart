@@ -52,7 +52,8 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemodSequence(
     allHtmlPathsIncludingTemplates(),
     [
-      HtmlScriptAdder(rmuiBundleScript),
+      HtmlScriptAdder(rmuiBundleDev, false),
+      HtmlScriptAdder(rmuiBundleProd, true),
     ],
     defaultYes: true,
     args: parsedArgs.rest,
@@ -66,7 +67,8 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
     [
-      DartScriptAdder(rmuiBundleScript),
+      DartScriptAdder(rmuiBundleDev, false),
+      DartScriptAdder(rmuiBundleProd, true),
     ],
     defaultYes: true,
     args: parsedArgs.rest,

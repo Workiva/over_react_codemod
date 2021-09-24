@@ -27,7 +27,12 @@ import 'constants.dart';
 class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
   final String scriptToAdd;
 
-  DartScriptAdder(this.scriptToAdd);
+  /// Whether or not [scriptToAdd] is for production.
+  ///
+  /// This will determine if the script should be added to React dev or React prod js files.
+  final bool isProd;
+
+  DartScriptAdder(this.scriptToAdd, this.isProd);
 
   @override
   visitSimpleStringLiteral(SimpleStringLiteral node) {
@@ -44,6 +49,13 @@ class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
 
       if (scriptMatches.isNotEmpty) {
         final lastMatch = scriptMatches.last;
+
+        // Only add [scriptToAdd] if it has the same prod/dev status as the
+        // react-dart js [lastMatch] found.
+        final lastMatchValue = lastMatch.group(0);
+        if (lastMatchValue == null || isProd != isScriptProd(lastMatchValue))
+          return;
+
         yieldPatch(
           // Add the new script with the same indentation as the line before it.
           '\n${lastMatch.group(1)}$scriptToAdd',
@@ -70,6 +82,12 @@ class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
             element is SimpleStringLiteral &&
             reactScriptRegex.firstMatch(element.value) != null);
         if (node.offset != lastMatchElement.offset) return;
+
+        // Only add [scriptToAdd] if it has the same prod/dev status as the
+        // react-dart js [scriptMatch] found.
+        final scriptMatchValue = scriptMatch.group(0);
+        if (scriptMatchValue == null ||
+            isProd != isScriptProd(scriptMatchValue)) return;
 
         yieldPatch(
           // Add the new script to the list.

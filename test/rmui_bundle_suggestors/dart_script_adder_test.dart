@@ -21,269 +21,273 @@ import 'html_script_adder_test.dart';
 
 main() {
   group('DartScriptAdder', () {
-    final testSuggestor = getSuggestorTester(DartScriptAdder(rmuiBundleScript));
+    group('add prod script', () => _dartScriptAdderTests(isProd: true));
 
-    test('empty file', () async {
-      await testSuggestor(expectedPatchCount: 0, input: '');
-    });
+    group('add non-prod script', () => _dartScriptAdderTests(isProd: false));
+  });
+}
 
-    test('no matches', () async {
-      await testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
+void _dartScriptAdderTests({bool isProd = true}) {
+  final expectedAddedScript = isProd ? rmuiBundleProd : rmuiBundleDev;
+  final testSuggestor =
+      getSuggestorTester(DartScriptAdder(expectedAddedScript, isProd));
+
+  test('empty file', () async {
+    await testSuggestor(expectedPatchCount: 0, input: '');
+  });
+
+  test('no matches', () async {
+    await testSuggestor(
+      expectedPatchCount: 0,
+      input: '''
           final script = '<script src="packages/react_testing_library/js/react-testing-library.js"></script>';
         ''',
-      );
-    });
+    );
+  });
 
-    group('string literal in a list literal', () {
-      jsFileTypes.forEach((testName, scripts) {
-        test(testName, () async {
-          await testSuggestor(
-            expectedPatchCount: 1,
-            input: '''
+  group('string literal in a list literal', () {
+    jsFileTypes.forEach((testName, scripts) {
+      test(testName, () async {
+        final isTestProd = testName.contains('Prod');
+        await testSuggestor(
+          expectedPatchCount: isProd == isTestProd ? 1 : 0,
+          input: '''
               List<String> _reactHtmlHeaders = const [
                 '${scripts.join('\',\n\'')}'
               ];
             ''',
-            expectedOutput: '''
+          expectedOutput: '''
               List<String> _reactHtmlHeaders = const [
-                '${scripts.join('\',\n\'')}',
-                '$rmuiBundleScript'
+                '${scripts.join('\',\n\'')}'
+                ${isProd == isTestProd ? ',\n\'$expectedAddedScript\'' : ''}
               ];
             ''',
-          );
-        });
-      });
-
-      test('when there is already a comma after the preceding string',
-          () async {
-        await testSuggestor(
-          expectedPatchCount: 1,
-          input: '''
-            List<String> _reactHtmlHeaders = const [
-              '${prodReactOneFile[0]}',
-              '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
-            ];
-          ''',
-          expectedOutput: '''
-            List<String> _reactHtmlHeaders = const [
-              '${prodReactOneFile[0]}',
-              '$rmuiBundleScript',
-              '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
-            ];
-          ''',
-        );
-      });
-
-      test('when the added script already exists in the list', () async {
-        await testSuggestor(
-          expectedPatchCount: 0,
-          input: '''
-            List<String> _reactHtmlHeaders = const [
-              '${devReact.join('\',\n\'')}',
-              '$rmuiBundleScript',
-            ];
-          ''',
-        );
-      });
-
-      test('with a different script added', () async {
-        final someOtherScript =
-            '<script src="packages/something_else/something-else.js"></script>';
-        final anotherTestSuggestor =
-            getSuggestorTester(DartScriptAdder(someOtherScript));
-
-        await anotherTestSuggestor(
-          expectedPatchCount: 1,
-          input: '''
-            List<String> _reactHtmlHeaders = const [
-              '${prodReactOneFile[0]}',
-            ];
-          ''',
-          expectedOutput: '''
-            List<String> _reactHtmlHeaders = const [
-              '${prodReactOneFile[0]}',
-              '$someOtherScript',
-            ];
-          ''',
-        );
-      });
-
-      test('empty list', () async {
-        await testSuggestor(
-          expectedPatchCount: 0,
-          input: '''
-            List<String> _reactHtmlHeaders = [];
-          ''',
-        );
-      });
-
-      test('no react-dart js files', () async {
-        await testSuggestor(
-          expectedPatchCount: 0,
-          input: '''
-            List<String> _reactHtmlHeaders = [
-              '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
-            ];
-          ''',
-        );
-      });
-
-      test('nested in other logic', () async {
-        await testSuggestor(
-          expectedPatchCount: 1,
-          input: '''
-            import 'package:dart_dev/dart_dev.dart' show config, TestRunnerConfig, Environment;
-            
-            main(List<String> args) async {
-              config.genTestRunner.configs = [
-                new TestRunnerConfig(
-                    genHtml: true,
-                    directory: 'test/unit',
-                    env: Environment.browser,
-                    filename: 'generated_runner_test',
-                    dartHeaders: const [
-                      "import 'package:web_skin/web_skin.dart';",
-                      "import 'package:platform_detect/decorator.dart';",
-                      "import 'package:web_skin_dart/ui_core.dart';",
-                      "import 'package:over_react/over_react.dart';",
-                      "import 'package:web_skin_dart/ui_components.dart';",
-                    ],
-                    htmlHeaders: const [
-                      '<script src="packages/react/react_with_addons.js"></script>',
-                      '<script src="packages/react/react_dom.js"></script>',
-                    ]),
-              ];
-            }
-          ''',
-          expectedOutput: '''
-            import 'package:dart_dev/dart_dev.dart' show config, TestRunnerConfig, Environment;
-            
-            main(List<String> args) async {
-              config.genTestRunner.configs = [
-                new TestRunnerConfig(
-                    genHtml: true,
-                    directory: 'test/unit',
-                    env: Environment.browser,
-                    filename: 'generated_runner_test',
-                    dartHeaders: const [
-                      "import 'package:web_skin/web_skin.dart';",
-                      "import 'package:platform_detect/decorator.dart';",
-                      "import 'package:web_skin_dart/ui_core.dart';",
-                      "import 'package:over_react/over_react.dart';",
-                      "import 'package:web_skin_dart/ui_components.dart';",
-                    ],
-                    htmlHeaders: const [
-                      '<script src="packages/react/react_with_addons.js"></script>',
-                      '<script src="packages/react/react_dom.js"></script>',
-                      '$rmuiBundleScript',
-                    ]),
-              ];
-            }
-          ''',
         );
       });
     });
 
-    group('string literal in a variable declaration', () {
-      jsFileTypes.forEach((testName, scripts) {
-        test(testName, () async {
-          await testSuggestor(
-            expectedPatchCount: 1,
-            input: '''
-              const expectedTemplateHeaders = \'\'\'
-                ${scripts.join('\n                ')}
-              \'\'\';
-            ''',
-            expectedOutput: '''
-              const expectedTemplateHeaders = \'\'\'
-                ${scripts.join('\n                ')}
-                $rmuiBundleScript
-              \'\'\';
-            ''',
-          );
-        });
-      });
+    test('when there is already a comma after the preceding string', () async {
+      await testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+            List<String> _reactHtmlHeaders = const [
+              '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+              '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
+            ];
+          ''',
+        expectedOutput: '''
+            List<String> _reactHtmlHeaders = const [
+              '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+              '$expectedAddedScript',
+              '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
+            ];
+          ''',
+      );
+    });
 
-      test('with a large string', () async {
+    test('when the added script already exists in the list', () async {
+      await testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+            List<String> _reactHtmlHeaders = const [
+              '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+              '$expectedAddedScript',
+            ];
+          ''',
+      );
+    });
+
+    test('with a different script added', () async {
+      final someOtherScript =
+          '<script src="packages/something_else/something-else.js"></script>';
+      final anotherTestSuggestor =
+          getSuggestorTester(DartScriptAdder(someOtherScript, isProd));
+
+      await anotherTestSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+            List<String> _reactHtmlHeaders = const [
+              '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+            ];
+          ''',
+        expectedOutput: '''
+            List<String> _reactHtmlHeaders = const [
+              '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+              '$someOtherScript',
+            ];
+          ''',
+      );
+    });
+
+    test('empty list', () async {
+      await testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+            List<String> _reactHtmlHeaders = [];
+          ''',
+      );
+    });
+
+    test('no react-dart js files', () async {
+      await testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+            List<String> _reactHtmlHeaders = [
+              '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
+            ];
+          ''',
+      );
+    });
+
+    test('nested in other logic', () async {
+      await testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+            import 'package:dart_dev/dart_dev.dart' show config, TestRunnerConfig, Environment;
+            
+            main(List<String> args) async {
+              config.genTestRunner.configs = [
+                new TestRunnerConfig(
+                    genHtml: true,
+                    directory: 'test/unit',
+                    env: Environment.browser,
+                    filename: 'generated_runner_test',
+                    dartHeaders: const [
+                      "import 'package:web_skin/web_skin.dart';",
+                      "import 'package:platform_detect/decorator.dart';",
+                      "import 'package:web_skin_dart/ui_core.dart';",
+                      "import 'package:over_react/over_react.dart';",
+                      "import 'package:web_skin_dart/ui_components.dart';",
+                    ],
+                    htmlHeaders: const [
+                      '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+                    ]),
+              ];
+            }
+          ''',
+        expectedOutput: '''
+            import 'package:dart_dev/dart_dev.dart' show config, TestRunnerConfig, Environment;
+            
+            main(List<String> args) async {
+              config.genTestRunner.configs = [
+                new TestRunnerConfig(
+                    genHtml: true,
+                    directory: 'test/unit',
+                    env: Environment.browser,
+                    filename: 'generated_runner_test',
+                    dartHeaders: const [
+                      "import 'package:web_skin/web_skin.dart';",
+                      "import 'package:platform_detect/decorator.dart';",
+                      "import 'package:web_skin_dart/ui_core.dart';",
+                      "import 'package:over_react/over_react.dart';",
+                      "import 'package:web_skin_dart/ui_components.dart';",
+                    ],
+                    htmlHeaders: const [
+                      '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+                      '$expectedAddedScript',
+                    ]),
+              ];
+            }
+          ''',
+      );
+    });
+  });
+
+  group('string literal in a variable declaration', () {
+    jsFileTypes.forEach((testName, scripts) {
+      test(testName, () async {
+        final isTestProd = testName.contains('Prod');
         await testSuggestor(
-          expectedPatchCount: 1,
+          expectedPatchCount: isProd == isTestProd ? 1 : 0,
           input: '''
-            const expectedTemplateHeaders = \'\'\'
-              <!DOCTYPE html>
-              <html>
-                <head>
-                  <title>{{testName}}</title>
-                  <!--my custom header-->
-                  <script src="packages/react/react_with_addons.js"></script>
-                  <script src="packages/react/react_dom.js"></script>
-                  <script src="packages/engine/gopherBindings.js"></script>
-                  <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
-                  <script src="packages/react_testing_library/js/react-testing-library.js"></script>
-                  {{testScript}}
-                  <script src="packages/test/dart.js"></script>
-                </head>
-                <body></body>
-              </html>
+              const expectedTemplateHeaders = \'\'\'
+                ${scripts.join('\n                ')}
               \'\'\';
-          ''',
+            ''',
           expectedOutput: '''
-            const expectedTemplateHeaders = \'\'\'
-              <!DOCTYPE html>
-              <html>
-                <head>
-                  <title>{{testName}}</title>
-                  <!--my custom header-->
-                  <script src="packages/react/react_with_addons.js"></script>
-                  <script src="packages/react/react_dom.js"></script>
-                  $rmuiBundleScript
-                  <script src="packages/engine/gopherBindings.js"></script>
-                  <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
-                  <script src="packages/react_testing_library/js/react-testing-library.js"></script>
-                  {{testScript}}
-                  <script src="packages/test/dart.js"></script>
-                </head>
-                <body></body>
-              </html>
+              const expectedTemplateHeaders = \'\'\'
+                ${scripts.join('\n                ')}${isProd == isTestProd ? '\n                $expectedAddedScript' : ''}
               \'\'\';
-          ''',
+            ''',
         );
       });
+    });
 
-      test('with a different script added', () async {
-        final someOtherScript =
-            '<script src="packages/something_else/something-else.js"></script>';
-        final anotherTestSuggestor =
-            getSuggestorTester(DartScriptAdder(someOtherScript));
-
-        await anotherTestSuggestor(
-          expectedPatchCount: 1,
-          input: '''
+    test('with a large string', () async {
+      await testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
             const expectedTemplateHeaders = \'\'\'
-              ${prodReactOneFile[0]}
+              <!DOCTYPE html>
+              <html>
+                <head>
+                  <title>{{testName}}</title>
+                  <!--my custom header-->
+                  ${(isProd ? prodReact : devReact).join('\n                  ')}
+                  <script src="packages/engine/gopherBindings.js"></script>
+                  <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
+                  <script src="packages/react_testing_library/js/react-testing-library.js"></script>
+                  {{testScript}}
+                  <script src="packages/test/dart.js"></script>
+                </head>
+                <body></body>
+              </html>
+              \'\'\';
+          ''',
+        expectedOutput: '''
+            const expectedTemplateHeaders = \'\'\'
+              <!DOCTYPE html>
+              <html>
+                <head>
+                  <title>{{testName}}</title>
+                  <!--my custom header-->
+                  ${(isProd ? prodReact : devReact).join('\n                  ')}
+                  $expectedAddedScript
+                  <script src="packages/engine/gopherBindings.js"></script>
+                  <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
+                  <script src="packages/react_testing_library/js/react-testing-library.js"></script>
+                  {{testScript}}
+                  <script src="packages/test/dart.js"></script>
+                </head>
+                <body></body>
+              </html>
+              \'\'\';
+          ''',
+      );
+    });
+
+    test('with a different script added', () async {
+      final someOtherScript =
+          '<script src="packages/something_else/something-else.js"></script>';
+      final anotherTestSuggestor =
+          getSuggestorTester(DartScriptAdder(someOtherScript, isProd));
+
+      await anotherTestSuggestor(
+        expectedPatchCount: 1,
+        input: '''
+            const expectedTemplateHeaders = \'\'\'
+              ${(isProd ? prodReact : devReact).join('\n              ')}
             \'\'\';
           ''',
-          expectedOutput: '''
+        expectedOutput: '''
             const expectedTemplateHeaders = \'\'\'
-              ${prodReactOneFile[0]}
+              ${(isProd ? prodReact : devReact).join('\n              ')}
               $someOtherScript
             \'\'\';
           ''',
-        );
-      });
+      );
+    });
 
-      test('when the script already exists', () async {
-        await testSuggestor(
-          expectedPatchCount: 0,
-          input: '''
+    test('when the script already exists', () async {
+      await testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
             const expectedTemplateHeaders = \'\'\'
-              ${prodReactOneFile[0]}
-              $rmuiBundleScript
+              ${(isProd ? prodReact : devReact).join('\n              ')}
+              $expectedAddedScript
             \'\'\';
           ''',
-        );
-      });
+      );
     });
   });
 }
