@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/// The script tag for the RMUI bundle.
 const rmuiBundleScript =
     '<script src="packages/react_material_ui/react-material-ui-development.umd.js"></script>';
 
+/// The regex pattern for finding react-dart JS scripts (including preceding whitespace).
 const reactJsScriptPattern =
     r'([^\S\r\n]*)<script.*packages/react/react\w+.js.*</script>';

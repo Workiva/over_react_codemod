@@ -20,8 +20,8 @@ import 'package:over_react_codemod/src/util.dart';
 
 import 'constants.dart';
 
-/// Suggestor that adds a [scriptToAdd] line after the first usage of a
-/// react-dart script in a Dart string literal.
+/// Suggestor that adds a [scriptToAdd] line after the last usage of a
+/// react-dart script in a Dart string literal or list of string literals.
 ///
 /// Meant to be run on Dart files (use [HtmlScriptAdder] to run on HTML files).
 class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
@@ -39,16 +39,18 @@ class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
     if (stringValue.contains(scriptToAdd)) return;
 
     if (parent is VariableDeclaration) {
-      final scriptMatch = RegExp(reactJsScriptPattern).firstMatch(stringValue);
+      final scriptMatches =
+          RegExp(reactJsScriptPattern).allMatches(stringValue);
 
-      if (scriptMatch != null) {
+      if (scriptMatches.isNotEmpty) {
+        final lastMatch = scriptMatches.last;
         yieldPatch(
           // Add the new script with the same indentation as the line before it.
-          '\n${scriptMatch.group(1)}$scriptToAdd',
-          // Add [scriptToAdd] right after the location of [scriptMatch] within
+          '\n${lastMatch.group(1)}$scriptToAdd',
+          // Add [scriptToAdd] right after the location of [lastMatch] within
           // the string literal [node].
-          node.offset + scriptMatch.end,
-          node.offset + scriptMatch.end,
+          node.offset + lastMatch.end,
+          node.offset + lastMatch.end,
         );
       }
     } else if (parent is ListLiteral) {
@@ -63,11 +65,11 @@ class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
 
       if (scriptMatch != null) {
         // To avoid adding the [scriptToAdd] twice, verify that [node] is the
-        // first matching react script in the list.
-        final firstMatchElement = parent.elements.firstWhere((element) =>
+        // last matching react script in the list.
+        final lastMatchElement = parent.elements.lastWhere((element) =>
             element is SimpleStringLiteral &&
             reactScriptRegex.firstMatch(element.value) != null);
-        if (node.offset != firstMatchElement.offset) return;
+        if (node.offset != lastMatchElement.offset) return;
 
         yieldPatch(
           // Add the new script to the list.

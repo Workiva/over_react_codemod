@@ -74,8 +74,8 @@ main() {
             '',
         expectedOutput: ''
             '    <script src="/packages/react/react_with_addons.js"></script>\n'
-            '    $rmuiBundleScript\n'
             '    <script src="/packages/react/react_dom.js"></script>\n'
+            '    $rmuiBundleScript\n'
             '',
       );
     });
@@ -108,8 +108,8 @@ main() {
             '    <title>{{testName}}</title>\n'
             '    <!--my custom header-->\n'
             '    <script src="packages/react/react_with_addons.js"></script>\n'
-            '    $rmuiBundleScript\n'
             '    <script src="packages/react/react_dom.js"></script>\n'
+            '    $rmuiBundleScript\n'
             '    <script src="packages/engine/gopherBindings.js"></script>\n'
             '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
             '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'

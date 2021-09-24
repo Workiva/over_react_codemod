@@ -65,8 +65,8 @@ main() {
           expectedOutput: '''
             List<String> _reactHtmlHeaders = [
               '<script src="packages/react/react_with_addons.js"></script>',
-              '$rmuiBundleScript',
               '<script src="packages/react/react_dom.js"></script>',
+              '$rmuiBundleScript',
             ];
           ''',
         );
@@ -101,6 +101,26 @@ main() {
             List<String> _reactHtmlHeaders = const [
               '<script src="packages/react/react_dom.js"></script>',
               '$someOtherScript',
+            ];
+          ''',
+        );
+      });
+
+      test('empty list', () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            List<String> _reactHtmlHeaders = [];
+          ''',
+        );
+      });
+
+      test('no react-dart js files', () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+            List<String> _reactHtmlHeaders = [
+              '<script src="packages/react/react.js"></script>',
             ];
           ''',
         );
@@ -152,8 +172,8 @@ main() {
                     ],
                     htmlHeaders: const [
                       '<script src="packages/react/react_with_addons.js"></script>',
-                      '$rmuiBundleScript',
                       '<script src="packages/react/react_dom.js"></script>',
+                      '$rmuiBundleScript',
                     ]),
               ];
             }
@@ -234,8 +254,8 @@ main() {
                   <title>{{testName}}</title>
                   <!--my custom header-->
                   <script src="packages/react/react_with_addons.js"></script>
-                  $rmuiBundleScript
                   <script src="packages/react/react_dom.js"></script>
+                  $rmuiBundleScript
                   <script src="packages/engine/gopherBindings.js"></script>
                   <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
                   <script src="packages/react_testing_library/js/react-testing-library.js"></script>
