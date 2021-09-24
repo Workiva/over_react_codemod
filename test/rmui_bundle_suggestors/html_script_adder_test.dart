@@ -18,7 +18,33 @@ import 'package:test/test.dart';
 
 import '../util.dart';
 
-main() {
+const devReact = [
+  '<script src="/packages/react/react.js"></script>',
+  '<script src="/packages/react/react_dom.js"></script>',
+];
+
+const devReactWithAddons = [
+  '<script src="/packages/react/react_with_addons.js"></script>',
+  '<script src="/packages/react/react_dom.js"></script>',
+];
+
+const prodReact = [
+  '<script src="/packages/react/react_prod.js"></script>',
+  '<script src="/packages/react/react_dom_prod.js"></script>',
+];
+
+const prodReactOneFile = [
+  '<script src="/packages/react/react_with_react_dom_prod.js"></script>',
+];
+
+const jsFileTypes = {
+  'Dev React JS files': devReact,
+  'Dev React with addons JS files': devReactWithAddons,
+  'Prod React JS files': prodReact,
+  'Prod React JS file (one file)': prodReactOneFile,
+};
+
+void main() {
   group('HtmlScriptAdder', () {
     final testSuggestor = getSuggestorTester(HtmlScriptAdder(rmuiBundleScript));
 
@@ -31,51 +57,37 @@ main() {
         expectedPatchCount: 0,
         shouldDartfmtOutput: false,
         input: ''
-            '<script src="/packages/react/react.js"></script>\n'
+            '<script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
             '',
       );
     });
 
-    test('no indentation', () async {
-      await testSuggestor(
-        expectedPatchCount: 1,
-        shouldDartfmtOutput: false,
-        input: ''
-            '<script src="/packages/react/react_dom.js"></script>\n'
-            '',
-        expectedOutput: ''
-            '<script src="/packages/react/react_dom.js"></script>\n'
-            '$rmuiBundleScript\n'
-            '',
-      );
+    jsFileTypes.forEach((testName, scripts) {
+      test(testName, () async {
+        await testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          input: ''
+              '${scripts.join('\n')}'
+              '',
+          expectedOutput: ''
+              '${scripts.join('\n')}\n'
+              '$rmuiBundleScript\n'
+              '',
+        );
+      });
     });
 
-    test('with some indentation', () async {
+    test('with indentation', () async {
       await testSuggestor(
         expectedPatchCount: 1,
         shouldDartfmtOutput: false,
         input: ''
-            '  <script src="/packages/react/react_with_addons.js"></script>\n'
+            '  ${devReact.join('\n  ')}'
             '',
         expectedOutput: ''
-            '  <script src="/packages/react/react_with_addons.js"></script>\n'
+            '  ${devReact.join('\n  ')}\n'
             '  $rmuiBundleScript\n'
-            '',
-      );
-    });
-
-    test('with two react-dart js files', () async {
-      await testSuggestor(
-        expectedPatchCount: 1,
-        shouldDartfmtOutput: false,
-        input: ''
-            '    <script src="/packages/react/react_with_addons.js"></script>\n'
-            '    <script src="/packages/react/react_dom.js"></script>\n'
-            '',
-        expectedOutput: ''
-            '    <script src="/packages/react/react_with_addons.js"></script>\n'
-            '    <script src="/packages/react/react_dom.js"></script>\n'
-            '    $rmuiBundleScript\n'
             '',
       );
     });
@@ -132,11 +144,11 @@ main() {
         expectedPatchCount: 1,
         shouldDartfmtOutput: false,
         input: ''
-            '  <script src="/packages/react/react_with_addons.js"></script>\n'
+            '    ${devReact.join('\n    ')}'
             '',
         expectedOutput: ''
-            '  <script src="/packages/react/react_with_addons.js"></script>\n'
-            '  $someOtherScript\n'
+            '    ${devReact.join('\n    ')}\n'
+            '    $someOtherScript\n'
             '',
       );
     });
@@ -147,7 +159,7 @@ main() {
         shouldDartfmtOutput: false,
         input: ''
             '  $rmuiBundleScript\n'
-            '  <script src="/packages/react/react_with_addons.js"></script>\n'
+            '  ${devReact.join('\n  ')}\n'
             '',
       );
     });

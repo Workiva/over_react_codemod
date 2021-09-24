@@ -17,6 +17,7 @@ import 'package:over_react_codemod/src/rmui_bundle_suggestors/dart_script_adder.
 import 'package:test/test.dart';
 
 import '../util.dart';
+import 'html_script_adder_test.dart';
 
 main() {
   group('DartScriptAdder', () {
@@ -30,43 +31,46 @@ main() {
       await testSuggestor(
         expectedPatchCount: 0,
         input: '''
-          final script = '<script src="/packages/react/react.js"></script>';
+          final script = '<script src="packages/react_testing_library/js/react-testing-library.js"></script>';
         ''',
       );
     });
 
     group('string literal in a list literal', () {
-      test('', () async {
-        await testSuggestor(
-          expectedPatchCount: 1,
-          input: '''
-            List<String> _reactHtmlHeaders = const [
-              '<script src="packages/react/react_dom.js"></script>',
-            ];
-          ''',
-          expectedOutput: '''
-            List<String> _reactHtmlHeaders = const [
-              '<script src="packages/react/react_dom.js"></script>',
-              '$rmuiBundleScript',
-            ];
-          ''',
-        );
+      jsFileTypes.forEach((testName, scripts) {
+        test(testName, () async {
+          await testSuggestor(
+            expectedPatchCount: 1,
+            input: '''
+              List<String> _reactHtmlHeaders = const [
+                '${scripts.join('\',\n\'')}'
+              ];
+            ''',
+            expectedOutput: '''
+              List<String> _reactHtmlHeaders = const [
+                '${scripts.join('\',\n\'')}',
+                '$rmuiBundleScript'
+              ];
+            ''',
+          );
+        });
       });
 
-      test('when there are multiple react-dart js files in the list', () async {
+      test('when there is already a comma after the preceding string',
+          () async {
         await testSuggestor(
           expectedPatchCount: 1,
           input: '''
-            List<String> _reactHtmlHeaders = [
-              '<script src="packages/react/react_with_addons.js"></script>',
-              '<script src="packages/react/react_dom.js"></script>',
+            List<String> _reactHtmlHeaders = const [
+              '${prodReactOneFile[0]}',
+              '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
             ];
           ''',
           expectedOutput: '''
-            List<String> _reactHtmlHeaders = [
-              '<script src="packages/react/react_with_addons.js"></script>',
-              '<script src="packages/react/react_dom.js"></script>',
+            List<String> _reactHtmlHeaders = const [
+              '${prodReactOneFile[0]}',
               '$rmuiBundleScript',
+              '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
             ];
           ''',
         );
@@ -77,7 +81,7 @@ main() {
           expectedPatchCount: 0,
           input: '''
             List<String> _reactHtmlHeaders = const [
-              '<script src="packages/react/react_dom.js"></script>',
+              '${devReact.join('\',\n\'')}',
               '$rmuiBundleScript',
             ];
           ''',
@@ -94,12 +98,12 @@ main() {
           expectedPatchCount: 1,
           input: '''
             List<String> _reactHtmlHeaders = const [
-              '<script src="packages/react/react_dom.js"></script>',
+              '${prodReactOneFile[0]}',
             ];
           ''',
           expectedOutput: '''
             List<String> _reactHtmlHeaders = const [
-              '<script src="packages/react/react_dom.js"></script>',
+              '${prodReactOneFile[0]}',
               '$someOtherScript',
             ];
           ''',
@@ -120,7 +124,7 @@ main() {
           expectedPatchCount: 0,
           input: '''
             List<String> _reactHtmlHeaders = [
-              '<script src="packages/react/react.js"></script>',
+              '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
             ];
           ''',
         );
@@ -183,48 +187,26 @@ main() {
     });
 
     group('string literal in a variable declaration', () {
-      test('', () async {
-        await testSuggestor(
-          expectedPatchCount: 1,
-          input: '''
-            const expectedTemplateHeaders = \'\'\'
-              <!DOCTYPE html>
-              <html>
-                <head>
-                  <title>{{testName}}</title>
-                  <!--my custom header-->
-                  <script src="packages/react/react_with_addons.js"></script>
-                  <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
-                  <script src="packages/react_testing_library/js/react-testing-library.js"></script>
-                  {{testScript}}
-                  <script src="packages/test/dart.js"></script>
-                </head>
-                <body></body>
-              </html>
+      jsFileTypes.forEach((testName, scripts) {
+        test(testName, () async {
+          await testSuggestor(
+            expectedPatchCount: 1,
+            input: '''
+              const expectedTemplateHeaders = \'\'\'
+                ${scripts.join('\n                ')}
               \'\'\';
-          ''',
-          expectedOutput: '''
-            const expectedTemplateHeaders = \'\'\'
-              <!DOCTYPE html>
-              <html>
-                <head>
-                  <title>{{testName}}</title>
-                  <!--my custom header-->
-                  <script src="packages/react/react_with_addons.js"></script>
-                  $rmuiBundleScript
-                  <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
-                  <script src="packages/react_testing_library/js/react-testing-library.js"></script>
-                  {{testScript}}
-                  <script src="packages/test/dart.js"></script>
-                </head>
-                <body></body>
-              </html>
+            ''',
+            expectedOutput: '''
+              const expectedTemplateHeaders = \'\'\'
+                ${scripts.join('\n                ')}
+                $rmuiBundleScript
               \'\'\';
-          ''',
-        );
+            ''',
+          );
+        });
       });
 
-      test('with multiple react-dart JS scripts', () async {
+      test('with a large string', () async {
         await testSuggestor(
           expectedPatchCount: 1,
           input: '''
@@ -279,12 +261,12 @@ main() {
           expectedPatchCount: 1,
           input: '''
             const expectedTemplateHeaders = \'\'\'
-              <script src="packages/react/react_with_addons.js"></script>
+              ${prodReactOneFile[0]}
             \'\'\';
           ''',
           expectedOutput: '''
             const expectedTemplateHeaders = \'\'\'
-              <script src="packages/react/react_with_addons.js"></script>
+              ${prodReactOneFile[0]}
               $someOtherScript
             \'\'\';
           ''',
@@ -296,7 +278,7 @@ main() {
           expectedPatchCount: 0,
           input: '''
             const expectedTemplateHeaders = \'\'\'
-              <script src="packages/react/react_with_addons.js"></script>
+              ${prodReactOneFile[0]}
               $rmuiBundleScript
             \'\'\';
           ''',

@@ -18,4 +18,4 @@ const rmuiBundleScript =
 
 /// The regex pattern for finding react-dart JS scripts (including preceding whitespace).
 const reactJsScriptPattern =
-    r'([^\S\r\n]*)<script.*packages/react/react\w+.js.*</script>';
+    r'([^\S\r\n]*)<script.*packages/react/react\w*.js.*</script>';
