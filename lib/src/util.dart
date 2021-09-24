@@ -394,8 +394,10 @@ Iterable<String> pubspecYamlPaths() =>
     filePathsFromGlob(Glob('**pubspec.yaml', recursive: true));
 
 Iterable<String> allHtmlPaths() =>
-    filePathsFromGlob(Glob('**.html', recursive: true))
-        .followedBy(filePathsFromGlob(Glob('**.html.tpl', recursive: true)));
+    filePathsFromGlob(Glob('**.html', recursive: true));
+
+Iterable<String> allHtmlPathsIncludingTemplates() => allHtmlPaths()
+    .followedBy(filePathsFromGlob(Glob('**.html.tpl', recursive: true)));
 
 Iterable<String> allDartPathsExceptHidden() =>
     filePathsFromGlob(Glob('**.dart', recursive: true));

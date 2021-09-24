@@ -48,9 +48,9 @@ void main(List<String> args) async {
 
   if (exitCode != 0) return;
 
-  // Add RMUI bundle script to all HTML files.
+  // Add RMUI bundle script to all HTML files (and templates).
   exitCode = await runInteractiveCodemodSequence(
-    allHtmlPaths(),
+    allHtmlPathsIncludingTemplates(),
     [
       HtmlScriptAdder(rmuiBundleScript),
     ],
@@ -62,7 +62,7 @@ void main(List<String> args) async {
 
   if (exitCode != 0) return;
 
-  // Add RMUI bundle script to all HTML files.
+  // Add RMUI bundle script to all Dart files.
   exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
     [
