@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -192,7 +193,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
       // about it so the component isn't skipped over silently (since the checks
       // to see what component it is often rely on resolved AST).
       if (_fatalUnresolvedUsages) {
-        verifyUsageIsResolved(usage);
+        verifyUsageIsResolved(usage, result);
       }
 
       final decision = shouldMigrateUsage(usage);
@@ -213,20 +214,39 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     const commonMessage =
         'Check that `pub get` has been run and that this is a valid over_react component usage.';
     final span = context.sourceFile.span(entity.offset, entity.end);
-    return Exception(span.message('$message $commonMessage'));
+    return Exception(span.message('$message$commonMessage'));
   }
 
-  void verifyUsageIsResolved(FluentComponentUsage usage) {
+  void verifyUsageIsResolved(
+      FluentComponentUsage usage, ResolvedUnitResult result) {
+    String errorsMessage() => result.errors.isEmpty
+        ? ''
+        : ' \nAnalysis errors in file:\n' +
+            result.errors.map((e) {
+              final severity = e.errorCode.errorSeverity.name.toLowerCase();
+              final errorCode = e.errorCode.name.toLowerCase();
+              final location = result.lineInfo.getLocation(e.offset).toString();
+
+              return " - [$severity] ${e.message} ($errorCode at $location)";
+            }).join('\n') +
+            '\n';
+    //error: Undefined name 'message'. (undefined_identifier at [over_react_codemod] lib/src/util/component_usage_migrator.dart:228)
     final staticType = usage.builder.staticType;
     if (staticType == null || staticType.isDynamic) {
+      final typeDescription = staticType == null
+          ? 'null'
+          : 'type \'${staticType.getDisplayString(withNullability: false)}\'';
+      // debugger();
       throw _unresolvedException(
-          'Builder type could not be resolved.', usage.builder);
+          'Builder static type could not be resolved; was $typeDescription. ${errorsMessage()}',
+          usage.builder);
     }
     final factory = usage.factory;
     if (factory != null) {
       if (factory.staticType == null ||
           (factory is Identifier && factory.staticElement == null)) {
-        throw _unresolvedException('Factory could not be resolved. ', factory);
+        throw _unresolvedException(
+            'Factory could not be resolved. ${errorsMessage()}', factory);
       }
     }
   }
