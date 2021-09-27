@@ -224,8 +224,15 @@ Future<void> testSuggestor({
           '(expected: $expectedPatchCount, actual: ${patches.length})\n'
           'Patches:\n$patches');
     }
-    modifiedInput =
-        applyPatches(context.sourceFile, patches).trimRight() + '\n';
+    try {
+      modifiedInput =
+          applyPatches(context.sourceFile, patches).trimRight() + '\n';
+    } catch (_) {
+      print('Patches:\n${patches.map((p) {
+        return '<Patch: from ${p.startOffset} to ${p.endOffset} with text "${p.updatedText}">';
+      }).join('\n')}\n');
+      rethrow;
+    }
     if (validateContents != null) {
       expect(() => validateContents(modifiedInput), returnsNormally,
           reason: 'output is invalid');
