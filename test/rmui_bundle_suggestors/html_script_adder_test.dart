@@ -19,26 +19,31 @@ import 'package:test/test.dart';
 
 import '../util.dart';
 
-const devReact = [
-  '<script src="/packages/react/react.js"></script>',
-  '<script src="/packages/react/react_dom.js"></script>',
+typedef GetScriptWithPathPrefix = String Function(String);
+
+const pathPrefixesToTest = ['', '/', '../', '{{some_template}}/'];
+
+final devReact = <GetScriptWithPathPrefix>[
+  (p) => '<script src="${p}packages/react/react.js"></script>',
+  (p) => '<script src="${p}packages/react/react_dom.js"></script>',
 ];
 
-const devReactWithAddons = [
-  '<script src="/packages/react/react_with_addons.js"></script>',
-  '<script src="/packages/react/react_dom.js"></script>',
+final devReactWithAddons = <GetScriptWithPathPrefix>[
+  (p) => '<script src="${p}packages/react/react_with_addons.js"></script>',
+  (p) => '<script src="${p}packages/react/react_dom.js"></script>',
 ];
 
-const prodReact = [
-  '<script src="/packages/react/react_prod.js"></script>',
-  '<script src="/packages/react/react_dom_prod.js"></script>',
+final prodReact = <GetScriptWithPathPrefix>[
+  (p) => '<script src="${p}packages/react/react_prod.js"></script>',
+  (p) => '<script src="${p}packages/react/react_dom_prod.js"></script>',
 ];
 
-const prodReactOneFile = [
-  '<script src="/packages/react/react_with_react_dom_prod.js"></script>',
+final prodReactOneFile = <GetScriptWithPathPrefix>[
+  (p) =>
+      '<script src="${p}packages/react/react_with_react_dom_prod.js"></script>',
 ];
 
-const jsFileTypes = {
+final jsFileTypes = {
   'Dev React JS files': devReact,
   'Dev React with addons JS files': devReactWithAddons,
   'Prod React JS files': prodReact,
@@ -70,15 +75,18 @@ void main() {
     });
 
     group('add prod and non-prod script', () {
-      jsFileTypes.forEach((testName, scripts) {
-        final isTestProd = testName.contains('Prod');
+      pathPrefixesToTest.forEach((pathPrefix) {
+        jsFileTypes.forEach((testName, scripts) {
+          final isTestProd = testName.contains('Prod');
 
-        group(testName, () {
-          _htmlScriptAdderTests(
-            testSuggestor,
-            scripts: scripts,
-            expectedAddedScript: isTestProd ? rmuiBundleProd : rmuiBundleDev,
-          );
+          group(testName, () {
+            _htmlScriptAdderTests(
+              testSuggestor,
+              scripts: scripts,
+              expectedAddedScript: isTestProd ? rmuiBundleProd : rmuiBundleDev,
+              pathPrefix: pathPrefix,
+            );
+          });
         });
       });
     });
@@ -87,19 +95,24 @@ void main() {
 
 void _htmlScriptAdderTests(
   SuggestorTester testSuggestor, {
-  required List<String> scripts,
-  required String expectedAddedScript,
+  required List<GetScriptWithPathPrefix> scripts,
+  required ScriptToAdd expectedAddedScript,
+  required String pathPrefix,
 }) {
+  final scriptStrings = scripts
+      .map((getScriptWithPrefix) => getScriptWithPrefix(pathPrefix))
+      .toList();
+
   test('basic case', () async {
     await testSuggestor(
       expectedPatchCount: 1,
       shouldDartfmtOutput: false,
       input: ''
-          '${scripts.join('\n')}'
+          '${scriptStrings.join('\n')}'
           '',
       expectedOutput: ''
-          '${scripts.join('\n')}\n'
-          '$expectedAddedScript\n'
+          '${scriptStrings.join('\n')}\n'
+          '${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\n'
           '',
     );
   });
@@ -109,11 +122,11 @@ void _htmlScriptAdderTests(
       expectedPatchCount: 1,
       shouldDartfmtOutput: false,
       input: ''
-          '  ${scripts.join('\n  ')}'
+          '  ${scriptStrings.join('\n  ')}'
           '',
       expectedOutput: ''
-          '  ${scripts.join('\n  ')}\n'
-          '  $expectedAddedScript\n'
+          '  ${scriptStrings.join('\n  ')}\n'
+          '  ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\n'
           '',
     );
   });
@@ -128,7 +141,7 @@ void _htmlScriptAdderTests(
           '  <head>\n'
           '    <title>{{testName}}</title>\n'
           '    <!--my custom header-->\n'
-          '    ${scripts.join('\n    ')}\n'
+          '    ${scriptStrings.join('\n    ')}\n'
           '    <script src="packages/engine/gopherBindings.js"></script>\n'
           '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
           '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
@@ -144,8 +157,8 @@ void _htmlScriptAdderTests(
           '  <head>\n'
           '    <title>{{testName}}</title>\n'
           '    <!--my custom header-->\n'
-          '    ${scripts.join('\n    ')}\n'
-          '    $expectedAddedScript\n'
+          '    ${scriptStrings.join('\n    ')}\n'
+          '    ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\n'
           '    <script src="packages/engine/gopherBindings.js"></script>\n'
           '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
           '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
@@ -160,7 +173,7 @@ void _htmlScriptAdderTests(
 
   test('with a different script added', () async {
     final someOtherScript =
-        '<script src="packages/something_else/something-else.js"></script>';
+        ScriptToAdd(path: 'packages/something_else/something-else.js');
     final anotherTestSuggestor = getSuggestorTester(aggregate([
       HtmlScriptAdder(someOtherScript, true),
       HtmlScriptAdder(someOtherScript, false),
@@ -170,11 +183,11 @@ void _htmlScriptAdderTests(
       expectedPatchCount: 1,
       shouldDartfmtOutput: false,
       input: ''
-          '    ${scripts.join('\n    ')}'
+          '    ${scriptStrings.join('\n    ')}'
           '',
       expectedOutput: ''
-          '    ${scripts.join('\n    ')}\n'
-          '    $someOtherScript\n'
+          '    ${scriptStrings.join('\n    ')}\n'
+          '    ${someOtherScript.scriptTag(pathPrefix: pathPrefix)}\n'
           '',
     );
   });
@@ -184,8 +197,8 @@ void _htmlScriptAdderTests(
       expectedPatchCount: 0,
       shouldDartfmtOutput: false,
       input: ''
-          '    $expectedAddedScript\n'
-          '    ${scripts.join('\n    ')}\n'
+          '    ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\n'
+          '    ${scriptStrings.join('\n    ')}\n'
           '',
     );
   });

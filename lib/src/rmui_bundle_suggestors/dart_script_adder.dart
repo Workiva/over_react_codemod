@@ -25,7 +25,7 @@ import 'constants.dart';
 ///
 /// Meant to be run on Dart files (use [HtmlScriptAdder] to run on HTML files).
 class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
-  final String scriptToAdd;
+  final ScriptToAdd scriptToAdd;
 
   /// Whether or not [scriptToAdd] is for production.
   ///
@@ -41,11 +41,10 @@ class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
     final parent = node.parent;
 
     // Do not add the script if it already exists in the string.
-    if (stringValue.contains(scriptToAdd)) return;
+    if (scriptToAdd.pattern.hasMatch(stringValue)) return;
 
     if (parent is VariableDeclaration) {
-      final scriptMatches =
-          RegExp(reactJsScriptPattern).allMatches(stringValue);
+      final scriptMatches = reactJsScript.pattern.allMatches(stringValue);
 
       if (scriptMatches.isNotEmpty) {
         final lastMatch = scriptMatches.last;
@@ -57,7 +56,8 @@ class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
 
         yieldPatch(
           // Add the new script with the same indentation as the line before it.
-          '\n${lastMatch.group(1)}$scriptToAdd',
+          '\n${lastMatch.precedingWhitespaceGroup}'
+          '${scriptToAdd.scriptTag(pathPrefix: lastMatch.pathPrefixGroup)}',
           // Add [scriptToAdd] right after the location of [lastMatch] within
           // the string literal [node].
           node.offset + lastMatch.end,
@@ -68,18 +68,20 @@ class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
       // Do not add the script to the list if it is already there.
       if (parent.elements.any((element) =>
           element is SimpleStringLiteral &&
-          element.literal.lexeme.contains(scriptToAdd))) return;
+          scriptToAdd.pattern.hasMatch(element.literal.lexeme))) {
+        return;
+      }
 
       // Verify [node.value] (without the quotes) is an exact match.
-      final reactScriptRegex = RegExp('^$reactJsScriptPattern\$');
-      final scriptMatch = reactScriptRegex.firstMatch(node.value);
-
-      if (scriptMatch != null) {
+      final scriptMatch = reactJsScript.pattern.firstMatch(node.value);
+      final isExactMatch =
+          scriptMatch != null && scriptMatch.group(0)! == scriptMatch.input;
+      if (scriptMatch != null && isExactMatch) {
         // To avoid adding the [scriptToAdd] twice, verify that [node] is the
         // last matching react script in the list.
         final lastMatchElement = parent.elements.lastWhere((element) =>
             element is SimpleStringLiteral &&
-            reactScriptRegex.firstMatch(element.value) != null);
+            reactJsScript.pattern.firstMatch(element.value) != null);
         if (node.offset != lastMatchElement.offset) return;
 
         // Only add [scriptToAdd] if it has the same prod/dev status as the
@@ -89,7 +91,7 @@ class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
 
         yieldPatch(
           // Add the new script to the list.
-          ',\n\'$scriptToAdd\'',
+          ',\n\'${scriptToAdd.scriptTag(pathPrefix: scriptMatch.pathPrefixGroup)}\'',
           node.end,
           node.end,
         );

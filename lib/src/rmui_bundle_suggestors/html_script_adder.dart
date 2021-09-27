@@ -17,12 +17,14 @@ import 'package:over_react_codemod/src/rmui_bundle_suggestors/dart_script_adder.
 
 import 'constants.dart';
 
+typedef GetScriptToAdd = String Function({String pathPrefix});
+
 /// Suggestor that adds a [scriptToAdd] line after the last usage of a
 /// react-dart script in a file.
 ///
 /// Meant to be run on HTML files (use [DartScriptAdder] to run on Dart files).
 class HtmlScriptAdder {
-  final String scriptToAdd;
+  final ScriptToAdd scriptToAdd;
 
   /// Whether or not [scriptToAdd] is for production.
   ///
@@ -33,10 +35,9 @@ class HtmlScriptAdder {
 
   Stream<Patch> call(FileContext context) async* {
     // Do not add the script if it already exists in the file.
-    if (context.sourceText.contains(scriptToAdd)) return;
+    if (scriptToAdd.pattern.hasMatch(context.sourceText)) return;
 
-    final scriptMatches =
-        RegExp(reactJsScriptPattern).allMatches(context.sourceText);
+    final scriptMatches = reactJsScript.pattern.allMatches(context.sourceText);
 
     if (scriptMatches.isNotEmpty) {
       final lastMatch = scriptMatches.last;
@@ -48,7 +49,8 @@ class HtmlScriptAdder {
 
       yield Patch(
         // Add the new script with the same indentation as the line before it.
-        '\n${lastMatch.group(1)}$scriptToAdd',
+        '\n${lastMatch.precedingWhitespaceGroup}'
+        '${scriptToAdd.scriptTag(pathPrefix: lastMatch.pathPrefixGroup)}',
         lastMatch.end,
         lastMatch.end,
       );

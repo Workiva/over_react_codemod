@@ -44,15 +44,18 @@ main() {
     });
 
     group('add non-prod and prod scripts', () {
-      jsFileTypes.forEach((testName, scripts) {
-        final isTestProd = testName.contains('Prod');
+      pathPrefixesToTest.forEach((pathPrefix) {
+        jsFileTypes.forEach((testName, scripts) {
+          final isTestProd = testName.contains('Prod');
 
-        group('testName', () {
-          _dartScriptAdderTests(
-            testSuggestor,
-            scripts: scripts,
-            expectedAddedScript: isTestProd ? rmuiBundleProd : rmuiBundleDev,
-          );
+          group(testName, () {
+            _dartScriptAdderTests(
+              testSuggestor,
+              scripts: scripts,
+              expectedAddedScript: isTestProd ? rmuiBundleProd : rmuiBundleDev,
+              pathPrefix: pathPrefix,
+            );
+          });
         });
       });
     });
@@ -61,22 +64,27 @@ main() {
 
 void _dartScriptAdderTests(
   SuggestorTester testSuggestor, {
-  required List<String> scripts,
-  required String expectedAddedScript,
+  required List<GetScriptWithPathPrefix> scripts,
+  required ScriptToAdd expectedAddedScript,
+  required String pathPrefix,
 }) {
+  final scriptStrings = scripts
+      .map((getScriptWithPrefix) => getScriptWithPrefix(pathPrefix))
+      .toList();
+
   group('string literal in a list literal', () {
     test('', () async {
       await testSuggestor(
         expectedPatchCount: 1,
         input: '''
               List<String> _reactHtmlHeaders = const [
-                '${scripts.join('\',\n\'')}'
+                '${scriptStrings.join('\',\n\'')}'
               ];
             ''',
         expectedOutput: '''
               List<String> _reactHtmlHeaders = const [
-                '${scripts.join('\',\n\'')}'
-                ,\n\'$expectedAddedScript\'
+                '${scriptStrings.join('\',\n\'')}'
+                ,\n\'${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\'
               ];
             ''',
       );
@@ -87,14 +95,14 @@ void _dartScriptAdderTests(
         expectedPatchCount: 1,
         input: '''
             List<String> _reactHtmlHeaders = const [
-              '${scripts.join('\',\n\'')}',
+              '${scriptStrings.join('\',\n\'')}',
               '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
             ];
           ''',
         expectedOutput: '''
             List<String> _reactHtmlHeaders = const [
-              '${scripts.join('\',\n\'')}',
-              '$expectedAddedScript',
+              '${scriptStrings.join('\',\n\'')}',
+              '${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}',
               '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
             ];
           ''',
@@ -106,8 +114,8 @@ void _dartScriptAdderTests(
         expectedPatchCount: 0,
         input: '''
             List<String> _reactHtmlHeaders = const [
-              '${scripts.join('\',\n\'')}',
-              '$expectedAddedScript',
+              '${scriptStrings.join('\',\n\'')}',
+              '${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}',
             ];
           ''',
       );
@@ -115,7 +123,7 @@ void _dartScriptAdderTests(
 
     test('with a different script added', () async {
       final someOtherScript =
-          '<script src="packages/something_else/something-else.js"></script>';
+          ScriptToAdd(path: 'packages/something_else/something-else.js');
       final anotherTestSuggestor = getSuggestorTester(aggregate([
         DartScriptAdder(someOtherScript, false),
         DartScriptAdder(someOtherScript, true),
@@ -125,13 +133,13 @@ void _dartScriptAdderTests(
         expectedPatchCount: 1,
         input: '''
             List<String> _reactHtmlHeaders = const [
-              '${scripts.join('\',\n\'')}',
+              '${scriptStrings.join('\',\n\'')}',
             ];
           ''',
         expectedOutput: '''
             List<String> _reactHtmlHeaders = const [
-              '${scripts.join('\',\n\'')}',
-              '$someOtherScript',
+              '${scriptStrings.join('\',\n\'')}',
+              '${someOtherScript.scriptTag(pathPrefix: pathPrefix)}',
             ];
           ''',
       );
@@ -178,7 +186,7 @@ void _dartScriptAdderTests(
                       "import 'package:web_skin_dart/ui_components.dart';",
                     ],
                     htmlHeaders: const [
-                      '${scripts.join('\',\n\'')}',
+                      '${scriptStrings.join('\',\n\'')}',
                     ]),
               ];
             }
@@ -201,8 +209,8 @@ void _dartScriptAdderTests(
                       "import 'package:web_skin_dart/ui_components.dart';",
                     ],
                     htmlHeaders: const [
-                      '${scripts.join('\',\n\'')}',
-                      '$expectedAddedScript',
+                      '${scriptStrings.join('\',\n\'')}',
+                      '${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}',
                     ]),
               ];
             }
@@ -217,13 +225,13 @@ void _dartScriptAdderTests(
         expectedPatchCount: 1,
         input: '''
               const expectedTemplateHeaders = \'\'\'
-                ${scripts.join('\n                ')}
+                ${scriptStrings.join('\n                ')}
               \'\'\';
             ''',
         expectedOutput: '''
               const expectedTemplateHeaders = \'\'\'
-                ${scripts.join('\n                ')}
-                $expectedAddedScript
+                ${scriptStrings.join('\n                ')}
+                ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}
               \'\'\';
             ''',
       );
@@ -239,7 +247,7 @@ void _dartScriptAdderTests(
                 <head>
                   <title>{{testName}}</title>
                   <!--my custom header-->
-                  ${scripts.join('\n                  ')}
+                  ${scriptStrings.join('\n                  ')}
                   <script src="packages/engine/gopherBindings.js"></script>
                   <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
                   <script src="packages/react_testing_library/js/react-testing-library.js"></script>
@@ -257,8 +265,8 @@ void _dartScriptAdderTests(
                 <head>
                   <title>{{testName}}</title>
                   <!--my custom header-->
-                  ${scripts.join('\n                  ')}
-                  $expectedAddedScript
+                  ${scriptStrings.join('\n                  ')}
+                  ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}
                   <script src="packages/engine/gopherBindings.js"></script>
                   <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
                   <script src="packages/react_testing_library/js/react-testing-library.js"></script>
@@ -274,7 +282,7 @@ void _dartScriptAdderTests(
 
     test('with a different script added', () async {
       final someOtherScript =
-          '<script src="packages/something_else/something-else.js"></script>';
+          ScriptToAdd(path: 'packages/something_else/something-else.js');
       final anotherTestSuggestor = getSuggestorTester(aggregate([
         DartScriptAdder(someOtherScript, false),
         DartScriptAdder(someOtherScript, true),
@@ -284,13 +292,13 @@ void _dartScriptAdderTests(
         expectedPatchCount: 1,
         input: '''
             const expectedTemplateHeaders = \'\'\'
-              ${scripts.join('\n              ')}
+              ${scriptStrings.join('\n              ')}
             \'\'\';
           ''',
         expectedOutput: '''
             const expectedTemplateHeaders = \'\'\'
-              ${scripts.join('\n              ')}
-              $someOtherScript
+              ${scriptStrings.join('\n              ')}
+              ${someOtherScript.scriptTag(pathPrefix: pathPrefix)}
             \'\'\';
           ''',
       );
@@ -301,8 +309,8 @@ void _dartScriptAdderTests(
         expectedPatchCount: 0,
         input: '''
             const expectedTemplateHeaders = \'\'\'
-              ${scripts.join('\n              ')}
-              $expectedAddedScript
+              ${scriptStrings.join('\n              ')}
+              ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}
             \'\'\';
           ''',
       );
