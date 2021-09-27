@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/rmui_bundle_suggestors/constants.dart';
 import 'package:over_react_codemod/src/rmui_bundle_suggestors/dart_script_adder.dart';
 import 'package:test/test.dart';
@@ -21,49 +22,64 @@ import 'html_script_adder_test.dart';
 
 main() {
   group('DartScriptAdder', () {
-    group('add prod script', () => _dartScriptAdderTests(isProd: true));
+    // Test both suggestors together to:
+    // 1. verify for all cases that the wrong bundle type isn't added
+    // 2. verify they work well together, since they'll never really be run individually
+    final testSuggestor = getSuggestorTester(aggregate([
+      DartScriptAdder(rmuiBundleProd, true),
+      DartScriptAdder(rmuiBundleDev, false)
+    ]));
 
-    group('add non-prod script', () => _dartScriptAdderTests(isProd: false));
+    test('empty file', () async {
+      await testSuggestor(expectedPatchCount: 0, input: '');
+    });
+
+    test('no matches', () async {
+      await testSuggestor(
+        expectedPatchCount: 0,
+        input: '''
+            final script = '<script src="packages/react_testing_library/js/react-testing-library.js"></script>';
+          ''',
+      );
+    });
+
+    group('add non-prod and prod scripts', () {
+      jsFileTypes.forEach((testName, scripts) {
+        final isTestProd = testName.contains('Prod');
+
+        group('testName', () {
+          _dartScriptAdderTests(
+            testSuggestor,
+            scripts: scripts,
+            expectedAddedScript: isTestProd ? rmuiBundleProd : rmuiBundleDev,
+          );
+        });
+      });
+    });
   });
 }
 
-void _dartScriptAdderTests({bool isProd = true}) {
-  final expectedAddedScript = isProd ? rmuiBundleProd : rmuiBundleDev;
-  final testSuggestor =
-      getSuggestorTester(DartScriptAdder(expectedAddedScript, isProd));
-
-  test('empty file', () async {
-    await testSuggestor(expectedPatchCount: 0, input: '');
-  });
-
-  test('no matches', () async {
-    await testSuggestor(
-      expectedPatchCount: 0,
-      input: '''
-          final script = '<script src="packages/react_testing_library/js/react-testing-library.js"></script>';
-        ''',
-    );
-  });
-
+void _dartScriptAdderTests(
+  SuggestorTester testSuggestor, {
+  required List<String> scripts,
+  required String expectedAddedScript,
+}) {
   group('string literal in a list literal', () {
-    jsFileTypes.forEach((testName, scripts) {
-      test(testName, () async {
-        final isTestProd = testName.contains('Prod');
-        await testSuggestor(
-          expectedPatchCount: isProd == isTestProd ? 1 : 0,
-          input: '''
+    test('', () async {
+      await testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
               List<String> _reactHtmlHeaders = const [
                 '${scripts.join('\',\n\'')}'
               ];
             ''',
-          expectedOutput: '''
+        expectedOutput: '''
               List<String> _reactHtmlHeaders = const [
                 '${scripts.join('\',\n\'')}'
-                ${isProd == isTestProd ? ',\n\'$expectedAddedScript\'' : ''}
+                ,\n\'$expectedAddedScript\'
               ];
             ''',
-        );
-      });
+      );
     });
 
     test('when there is already a comma after the preceding string', () async {
@@ -71,13 +87,13 @@ void _dartScriptAdderTests({bool isProd = true}) {
         expectedPatchCount: 1,
         input: '''
             List<String> _reactHtmlHeaders = const [
-              '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+              '${scripts.join('\',\n\'')}',
               '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
             ];
           ''',
         expectedOutput: '''
             List<String> _reactHtmlHeaders = const [
-              '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+              '${scripts.join('\',\n\'')}',
               '$expectedAddedScript',
               '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
             ];
@@ -90,7 +106,7 @@ void _dartScriptAdderTests({bool isProd = true}) {
         expectedPatchCount: 0,
         input: '''
             List<String> _reactHtmlHeaders = const [
-              '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+              '${scripts.join('\',\n\'')}',
               '$expectedAddedScript',
             ];
           ''',
@@ -100,19 +116,21 @@ void _dartScriptAdderTests({bool isProd = true}) {
     test('with a different script added', () async {
       final someOtherScript =
           '<script src="packages/something_else/something-else.js"></script>';
-      final anotherTestSuggestor =
-          getSuggestorTester(DartScriptAdder(someOtherScript, isProd));
+      final anotherTestSuggestor = getSuggestorTester(aggregate([
+        DartScriptAdder(someOtherScript, false),
+        DartScriptAdder(someOtherScript, true),
+      ]));
 
       await anotherTestSuggestor(
         expectedPatchCount: 1,
         input: '''
             List<String> _reactHtmlHeaders = const [
-              '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+              '${scripts.join('\',\n\'')}',
             ];
           ''',
         expectedOutput: '''
             List<String> _reactHtmlHeaders = const [
-              '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+              '${scripts.join('\',\n\'')}',
               '$someOtherScript',
             ];
           ''',
@@ -160,7 +178,7 @@ void _dartScriptAdderTests({bool isProd = true}) {
                       "import 'package:web_skin_dart/ui_components.dart';",
                     ],
                     htmlHeaders: const [
-                      '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+                      '${scripts.join('\',\n\'')}',
                     ]),
               ];
             }
@@ -183,7 +201,7 @@ void _dartScriptAdderTests({bool isProd = true}) {
                       "import 'package:web_skin_dart/ui_components.dart';",
                     ],
                     htmlHeaders: const [
-                      '${(isProd ? prodReact : devReact).join('\',\n\'')}',
+                      '${scripts.join('\',\n\'')}',
                       '$expectedAddedScript',
                     ]),
               ];
@@ -194,23 +212,21 @@ void _dartScriptAdderTests({bool isProd = true}) {
   });
 
   group('string literal in a variable declaration', () {
-    jsFileTypes.forEach((testName, scripts) {
-      test(testName, () async {
-        final isTestProd = testName.contains('Prod');
-        await testSuggestor(
-          expectedPatchCount: isProd == isTestProd ? 1 : 0,
-          input: '''
+    test('', () async {
+      await testSuggestor(
+        expectedPatchCount: 1,
+        input: '''
               const expectedTemplateHeaders = \'\'\'
                 ${scripts.join('\n                ')}
               \'\'\';
             ''',
-          expectedOutput: '''
+        expectedOutput: '''
               const expectedTemplateHeaders = \'\'\'
-                ${scripts.join('\n                ')}${isProd == isTestProd ? '\n                $expectedAddedScript' : ''}
+                ${scripts.join('\n                ')}
+                $expectedAddedScript
               \'\'\';
             ''',
-        );
-      });
+      );
     });
 
     test('with a large string', () async {
@@ -223,7 +239,7 @@ void _dartScriptAdderTests({bool isProd = true}) {
                 <head>
                   <title>{{testName}}</title>
                   <!--my custom header-->
-                  ${(isProd ? prodReact : devReact).join('\n                  ')}
+                  ${scripts.join('\n                  ')}
                   <script src="packages/engine/gopherBindings.js"></script>
                   <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
                   <script src="packages/react_testing_library/js/react-testing-library.js"></script>
@@ -241,7 +257,7 @@ void _dartScriptAdderTests({bool isProd = true}) {
                 <head>
                   <title>{{testName}}</title>
                   <!--my custom header-->
-                  ${(isProd ? prodReact : devReact).join('\n                  ')}
+                  ${scripts.join('\n                  ')}
                   $expectedAddedScript
                   <script src="packages/engine/gopherBindings.js"></script>
                   <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
@@ -259,19 +275,21 @@ void _dartScriptAdderTests({bool isProd = true}) {
     test('with a different script added', () async {
       final someOtherScript =
           '<script src="packages/something_else/something-else.js"></script>';
-      final anotherTestSuggestor =
-          getSuggestorTester(DartScriptAdder(someOtherScript, isProd));
+      final anotherTestSuggestor = getSuggestorTester(aggregate([
+        DartScriptAdder(someOtherScript, false),
+        DartScriptAdder(someOtherScript, true),
+      ]));
 
       await anotherTestSuggestor(
         expectedPatchCount: 1,
         input: '''
             const expectedTemplateHeaders = \'\'\'
-              ${(isProd ? prodReact : devReact).join('\n              ')}
+              ${scripts.join('\n              ')}
             \'\'\';
           ''',
         expectedOutput: '''
             const expectedTemplateHeaders = \'\'\'
-              ${(isProd ? prodReact : devReact).join('\n              ')}
+              ${scripts.join('\n              ')}
               $someOtherScript
             \'\'\';
           ''',
@@ -283,7 +301,7 @@ void _dartScriptAdderTests({bool isProd = true}) {
         expectedPatchCount: 0,
         input: '''
             const expectedTemplateHeaders = \'\'\'
-              ${(isProd ? prodReact : devReact).join('\n              ')}
+              ${scripts.join('\n              ')}
               $expectedAddedScript
             \'\'\';
           ''',

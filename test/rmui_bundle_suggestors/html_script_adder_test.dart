@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/rmui_bundle_suggestors/constants.dart';
 import 'package:over_react_codemod/src/rmui_bundle_suggestors/html_script_adder.dart';
 import 'package:test/test.dart';
@@ -46,46 +47,61 @@ const jsFileTypes = {
 
 void main() {
   group('HtmlScriptAdder', () {
-    group('add prod script', () => _htmlScriptAdderTests(isProd: true));
+    // Test both suggestors together to:
+    // 1. verify for all cases that the wrong bundle type isn't added
+    // 2. verify they work well together, since they'll never really be run individually
+    final testSuggestor = getSuggestorTester(aggregate([
+      HtmlScriptAdder(rmuiBundleProd, true),
+      HtmlScriptAdder(rmuiBundleDev, false)
+    ]));
 
-    group('add non-prod script', () => _htmlScriptAdderTests(isProd: false));
-  });
-}
+    test('empty file', () async {
+      await testSuggestor(expectedPatchCount: 0, input: '');
+    });
 
-void _htmlScriptAdderTests({bool isProd = true}) {
-  final expectedAddedScript = isProd ? rmuiBundleProd : rmuiBundleDev;
-  final testSuggestor =
-      getSuggestorTester(HtmlScriptAdder(expectedAddedScript, isProd));
-
-  test('empty file', () async {
-    await testSuggestor(expectedPatchCount: 0, input: '');
-  });
-
-  test('no matches', () async {
-    await testSuggestor(
-      expectedPatchCount: 0,
-      shouldDartfmtOutput: false,
-      input: ''
-          '<script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
-          '',
-    );
-  });
-
-  jsFileTypes.forEach((testName, scripts) {
-    test(testName, () async {
-      final isTestProd = testName.contains('Prod');
+    test('no matches', () async {
       await testSuggestor(
-        expectedPatchCount: isProd == isTestProd ? 1 : 0,
+        expectedPatchCount: 0,
         shouldDartfmtOutput: false,
         input: ''
-            '${scripts.join('\n')}'
-            '',
-        expectedOutput: ''
-            '${scripts.join('\n')}\n'
-            '${isProd == isTestProd ? '$expectedAddedScript\n' : ''}'
+            '<script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
             '',
       );
     });
+
+    group('add prod and non-prod script', () {
+      jsFileTypes.forEach((testName, scripts) {
+        final isTestProd = testName.contains('Prod');
+
+        group(testName, () {
+          _htmlScriptAdderTests(
+            testSuggestor,
+            scripts: scripts,
+            expectedAddedScript: isTestProd ? rmuiBundleProd : rmuiBundleDev,
+          );
+        });
+      });
+    });
+  });
+}
+
+void _htmlScriptAdderTests(
+  SuggestorTester testSuggestor, {
+  required List<String> scripts,
+  required String expectedAddedScript,
+}) {
+  test('basic case', () async {
+    await testSuggestor(
+      expectedPatchCount: 1,
+      shouldDartfmtOutput: false,
+      input: ''
+          '${scripts.join('\n')}'
+          '',
+      expectedOutput: ''
+          '${scripts.join('\n')}\n'
+          '$expectedAddedScript\n'
+          '',
+    );
   });
 
   test('with indentation', () async {
@@ -93,10 +109,10 @@ void _htmlScriptAdderTests({bool isProd = true}) {
       expectedPatchCount: 1,
       shouldDartfmtOutput: false,
       input: ''
-          '  ${(isProd ? prodReact : devReact).join('\n  ')}'
+          '  ${scripts.join('\n  ')}'
           '',
       expectedOutput: ''
-          '  ${(isProd ? prodReact : devReact).join('\n  ')}\n'
+          '  ${scripts.join('\n  ')}\n'
           '  $expectedAddedScript\n'
           '',
     );
@@ -112,7 +128,7 @@ void _htmlScriptAdderTests({bool isProd = true}) {
           '  <head>\n'
           '    <title>{{testName}}</title>\n'
           '    <!--my custom header-->\n'
-          '    ${(isProd ? prodReact : devReact).join('\n    ')}\n'
+          '    ${scripts.join('\n    ')}\n'
           '    <script src="packages/engine/gopherBindings.js"></script>\n'
           '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
           '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
@@ -128,7 +144,7 @@ void _htmlScriptAdderTests({bool isProd = true}) {
           '  <head>\n'
           '    <title>{{testName}}</title>\n'
           '    <!--my custom header-->\n'
-          '    ${(isProd ? prodReact : devReact).join('\n    ')}\n'
+          '    ${scripts.join('\n    ')}\n'
           '    $expectedAddedScript\n'
           '    <script src="packages/engine/gopherBindings.js"></script>\n'
           '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
@@ -145,17 +161,19 @@ void _htmlScriptAdderTests({bool isProd = true}) {
   test('with a different script added', () async {
     final someOtherScript =
         '<script src="packages/something_else/something-else.js"></script>';
-    final anotherTestSuggestor =
-        getSuggestorTester(HtmlScriptAdder(someOtherScript, isProd));
+    final anotherTestSuggestor = getSuggestorTester(aggregate([
+      HtmlScriptAdder(someOtherScript, true),
+      HtmlScriptAdder(someOtherScript, false),
+    ]));
 
     await anotherTestSuggestor(
       expectedPatchCount: 1,
       shouldDartfmtOutput: false,
       input: ''
-          '    ${(isProd ? prodReact : devReact).join('\n    ')}'
+          '    ${scripts.join('\n    ')}'
           '',
       expectedOutput: ''
-          '    ${(isProd ? prodReact : devReact).join('\n    ')}\n'
+          '    ${scripts.join('\n    ')}\n'
           '    $someOtherScript\n'
           '',
     );
@@ -167,7 +185,7 @@ void _htmlScriptAdderTests({bool isProd = true}) {
       shouldDartfmtOutput: false,
       input: ''
           '    $expectedAddedScript\n'
-          '    ${(isProd ? prodReact : devReact).join('\n    ')}\n'
+          '    ${scripts.join('\n    ')}\n'
           '',
     );
   });
