@@ -57,7 +57,7 @@ class ScriptToAdd extends Script {
       : super(pathSubpattern: RegExp.escape(path));
 
   String scriptTag({required String pathPrefix}) =>
-      '<script src="${pathPrefix}$path"></script>';
+      '<script src="$pathPrefix$path"></script>';
 
   @override
   String toString() => 'ScriptToAdd(path: $path, pattern: $pattern)';

@@ -17,8 +17,6 @@ import 'package:over_react_codemod/src/rmui_bundle_suggestors/dart_script_adder.
 
 import 'constants.dart';
 
-typedef GetScriptToAdd = String Function({String pathPrefix});
-
 /// Suggestor that adds a [scriptToAdd] line after the last usage of a
 /// react-dart script in a file.
 ///

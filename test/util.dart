@@ -183,7 +183,7 @@ SuggestorTester getSuggestorTester(Suggestor suggestor,
       );
 }
 
-String _formatWithBetterFailureOuput(String input, {required String uri}) {
+String _formatWithBetterFailureOutput(String input, {required String uri}) {
   try {
     return formatter.format(input, uri: uri);
   } catch (_) {
@@ -212,7 +212,7 @@ Future<void> testSuggestor({
 
   if (shouldDartfmtOutput) {
     expectedOutput =
-        _formatWithBetterFailureOuput(expectedOutput, uri: 'expectedOutput');
+        _formatWithBetterFailureOutput(expectedOutput, uri: 'expectedOutput');
   }
 
   String modifiedInput;
@@ -238,7 +238,7 @@ Future<void> testSuggestor({
           reason: 'output is invalid');
     }
     if (shouldDartfmtOutput) {
-      modifiedInput = _formatWithBetterFailureOuput(modifiedInput,
+      modifiedInput = _formatWithBetterFailureOutput(modifiedInput,
           uri: '$inputUrl.modifiedInput');
     }
     expect(modifiedInput, expectedOutput,
@@ -251,7 +251,7 @@ Future<void> testSuggestor({
     var doubleModifiedInput =
         applyPatches(context.sourceFile, patches).trimRight() + '\n';
     if (shouldDartfmtOutput) {
-      doubleModifiedInput = _formatWithBetterFailureOuput(doubleModifiedInput,
+      doubleModifiedInput = _formatWithBetterFailureOutput(doubleModifiedInput,
           uri: '$inputUrl.doubleModifiedInput');
     }
     expect(doubleModifiedInput, expectedOutput,

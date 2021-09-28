@@ -20,7 +20,7 @@ import 'package:test/test.dart';
 import '../util.dart';
 import 'html_script_adder_test.dart';
 
-main() {
+void main() {
   group('DartScriptAdder', () {
     // Test both suggestors together to:
     // 1. verify for all cases that the wrong bundle type isn't added
@@ -44,7 +44,7 @@ main() {
     });
 
     group('add non-prod and prod scripts', () {
-      pathPrefixesToTest.forEach((pathPrefix) {
+      for (final pathPrefix in pathPrefixesToTest) {
         jsFileTypes.forEach((testName, scripts) {
           final isTestProd = testName.contains('Prod');
 
@@ -57,7 +57,7 @@ main() {
             );
           });
         });
-      });
+      }
     });
   });
 }

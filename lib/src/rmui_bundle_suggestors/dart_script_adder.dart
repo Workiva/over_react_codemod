@@ -24,7 +24,7 @@ import 'constants.dart';
 /// react-dart script in a Dart string literal or list of string literals.
 ///
 /// Meant to be run on Dart files (use [HtmlScriptAdder] to run on HTML files).
-class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
+class DartScriptAdder extends RecursiveAstVisitor<void> with AstVisitingSuggestor {
   final ScriptToAdd scriptToAdd;
 
   /// Whether or not [scriptToAdd] is for production.
@@ -35,7 +35,7 @@ class DartScriptAdder extends RecursiveAstVisitor with AstVisitingSuggestor {
   DartScriptAdder(this.scriptToAdd, this.isProd);
 
   @override
-  visitSimpleStringLiteral(SimpleStringLiteral node) {
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
     // This value includes the quotation marks.
     final stringValue = node.literal.lexeme;
     final parent = node.parent;

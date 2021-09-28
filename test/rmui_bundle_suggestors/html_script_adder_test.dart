@@ -75,7 +75,7 @@ void main() {
     });
 
     group('add prod and non-prod script', () {
-      pathPrefixesToTest.forEach((pathPrefix) {
+      for (final pathPrefix in pathPrefixesToTest) {
         jsFileTypes.forEach((testName, scripts) {
           final isTestProd = testName.contains('Prod');
 
@@ -88,7 +88,7 @@ void main() {
             );
           });
         });
-      });
+      }
     });
   });
 }
