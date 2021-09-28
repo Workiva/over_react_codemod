@@ -152,6 +152,52 @@ void overReactExample() {}''';
       });
     });
 
+    group('getDependencyVersion', () {
+      final pubspecContent = ''
+          'name: nothing\n'
+          'version: 0.0.0\n'
+          'dependencies:\n'
+          '  any_dependency: any\n'
+          '  greater_than_ranged: ">=5.7.8"\n'
+          '  less_than_ranged: "<=5.7.8"\n'
+          '  intersection: ">=2.3.0 <2.8.0"\n'
+          'dev_dependencies:\n'
+          '  caret_syntax: ^2.3.4\n'
+          '  fixed: 10.2.3\n'
+          '';
+
+      test('returns null if the dependency is not found', () {
+        expect(getDependencyVersion(pubspecContent, 'a_dependency'), isNull);
+      });
+
+      group('identifies the expected version for a dependency that is', () {
+        test('"any"', () {
+          expect(getDependencyVersion(pubspecContent, 'any_dependency'),
+              VersionConstraint.parse('any'));
+        });
+        test('fixed', () {
+          expect(getDependencyVersion(pubspecContent, 'fixed'),
+              VersionConstraint.parse('10.2.3'));
+        });
+        test('using the caret syntax', () {
+          expect(getDependencyVersion(pubspecContent, 'caret_syntax'),
+              VersionConstraint.parse('^2.3.4'));
+        });
+        test('a greater than range', () {
+          expect(getDependencyVersion(pubspecContent, 'greater_than_ranged'),
+              VersionConstraint.parse('>=5.7.8'));
+        });
+        test('a less than range', () {
+          expect(getDependencyVersion(pubspecContent, 'less_than_ranged'),
+              VersionConstraint.parse('<=5.7.8'));
+        });
+        test('an intersection', () {
+          expect(getDependencyVersion(pubspecContent, 'intersection'),
+              VersionConstraint.parse('>=2.3.0 <2.8.0'));
+        });
+      });
+    });
+
     group('friendlyVersionConstraint()', () {
       String friendlyFromString(String constraintSource) =>
           friendlyVersionConstraint(VersionConstraint.parse(constraintSource));

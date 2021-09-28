@@ -423,6 +423,20 @@ Iterable<AstNode> allDescendants(AstNode node) sync* {
 Iterable<T> allDescendantsOfType<T extends AstNode>(AstNode node) =>
     allDescendants(node).whereType<T>();
 
+/// Finds a dependency within a pubspec and returns the [VersionRange].
+VersionRange? getDependencyVersion(String pubspecContent, String dependency) {
+  final dependencyValidatorRegex =
+      RegExp('^  $dependency: (.+)\$', multiLine: true);
+  final dependencyMatch = dependencyValidatorRegex.firstMatch(pubspecContent);
+  if (dependencyMatch == null) return null;
+
+  final versionString = dependencyMatch.group(1);
+
+  if (versionString == null) return null;
+
+  return parseVersionRange(versionString.replaceAll('"', ''));
+}
+
 VersionRange parseVersionRange(String text) {
   final constraint = VersionConstraint.parse(text);
   if (constraint is! VersionRange) {

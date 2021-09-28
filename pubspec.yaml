@@ -36,3 +36,4 @@ dev_dependencies:
 
 executables:
   dart2_9_upgrade:
+  dependency_validator_updater:
