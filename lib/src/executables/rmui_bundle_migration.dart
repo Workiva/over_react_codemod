@@ -17,6 +17,9 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
+import 'package:over_react_codemod/src/rmui_bundle_suggestors/constants.dart';
+import 'package:over_react_codemod/src/rmui_bundle_suggestors/dart_script_adder.dart';
+import 'package:over_react_codemod/src/rmui_bundle_suggestors/html_script_adder.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
@@ -44,4 +47,32 @@ void main(List<String> args) async {
   );
 
   if (exitCode != 0) return;
+
+  // Add RMUI bundle script to all HTML files (and templates).
+  exitCode = await runInteractiveCodemodSequence(
+    allHtmlPathsIncludingTemplates(),
+    [
+      HtmlScriptAdder(rmuiBundleDev, false),
+      HtmlScriptAdder(rmuiBundleProd, true),
+    ],
+    defaultYes: true,
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
+
+  if (exitCode != 0) return;
+
+  // Add RMUI bundle script to all Dart files.
+  exitCode = await runInteractiveCodemodSequence(
+    allDartPathsExceptHidden(),
+    [
+      DartScriptAdder(rmuiBundleDev, false),
+      DartScriptAdder(rmuiBundleProd, true),
+    ],
+    defaultYes: true,
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
 }
