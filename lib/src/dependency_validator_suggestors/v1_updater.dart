@@ -13,15 +13,32 @@
 // limitations under the License.
 
 import 'package:codemod/codemod.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 class V1DepdendencyValidatorUpdater {
   Stream<Patch> call(FileContext context) async* {
+    // print('searching ${context.path}');
     final fileContent = context.sourceText;
     final dependencyValidatorRunCommand =
-        RegExp('pub run dependency_validator');
+        // RegExp('(pub run dependency_validator)(.*)((-i|--ignore) (([a-z\_])+[,]{0,1})+){0,1}');
+    RegExp('(pub run dependency_validator)(.*)?((-i|--ignore) (([a-z\_])+[,]{0,1})+){0,1}');
 
     if (dependencyValidatorRunCommand.hasMatch(fileContent)) {
+      final matches = dependencyValidatorRunCommand.allMatches(fileContent);
+      // final command
+
+      // print(matches?.group(0));
+      matches.forEach((element) {
+        print(element.groupCount);
+        print(element.group(0));
+        print(element.group(1));
+        print(element.group(2));
+        print(element.group(3));
+        print(element.group(5));
+
+        // print(element.groupNames);
+        // print(element.namedGroup(element.groupNames.first));
+      });
+
       return;
     }
   }

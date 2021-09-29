@@ -16,7 +16,9 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
+import 'package:glob/glob.dart';
 import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/dependency_validator_suggestors/v1_updater.dart';
 import 'package:over_react_codemod/src/dependency_validator_suggestors/v2_updater.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -77,10 +79,12 @@ void main(List<String> args) async {
 
   int exitCode = 0;
 
+  logger.info('Detected dependency_validator version $dependencyValidatorVersion');
+
   switch (majorVersion) {
     case 1:
-      // exitCode = await runInteractiveCodemod(
-      // [...filePathsFromGlob(Glob('**.yaml', recursive: true)), ...filePathsFromGlob(Glob('**.dart', recursive: true)), ...filePathsFromGlob(Glob('**.sh', recursive: true))], suggestor)
+      exitCode = await runInteractiveCodemod(
+      [...filePathsFromGlob(Glob('**.yaml', recursive: true)), ...filePathsFromGlob(Glob('**.dart', recursive: true)), ...filePathsFromGlob(Glob('**.sh', recursive: true))], V1DepdendencyValidatorUpdater());
       break;
     case 2:
       exitCode = await runInteractiveCodemod(
