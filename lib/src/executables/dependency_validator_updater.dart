@@ -14,31 +14,14 @@
 
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
-import 'package:glob/glob.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_constants.dart';
-import 'package:over_react_codemod/src/dart2_9_suggestors/factory_and_config_ignore_comment_remover.dart';
-import 'package:over_react_codemod/src/dart2_9_suggestors/factory_config_migrator.dart';
-import 'package:over_react_codemod/src/dart2_9_suggestors/generated_factory_migrator.dart';
-import 'package:over_react_codemod/src/dart2_9_suggestors/latest_boilerplate_visitor.dart';
-import 'package:over_react_codemod/src/dart2_suggestors/pubspec_over_react_upgrader.dart';
+import 'package:over_react_codemod/src/dependency_validator_suggestors/v2_updater.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../ignoreable.dart';
-
-const _dependency = 'check-for-transitioning';
-const _changesRequiredOutput = """
-  To update your code, run the following commands in your repository:
-  pub global activate over_react_codemod
-  pub global run over_react_codemod:dart2_9_upgrade
-  pub run dart_dev format (If you format this repository).
-""";
+const _dependency = 'dependency';
 
 void main(List<String> args) async {
   final parser = ArgParser()
@@ -86,4 +69,29 @@ void main(List<String> args) async {
   final rootPubspec = File('pubspec.yaml');
   final VersionRange? dependencyValidatorVersion = getDependencyVersion(
       rootPubspec.readAsStringSync(), 'dependency_validator');
+  final majorVersion = dependencyValidatorVersion?.min?.major;
+
+  if (majorVersion == null) {
+    exit(0);
+  }
+
+  int exitCode = 0;
+
+  switch (majorVersion) {
+    case 1:
+      // exitCode = await runInteractiveCodemod(
+      // [...filePathsFromGlob(Glob('**.yaml', recursive: true)), ...filePathsFromGlob(Glob('**.dart', recursive: true)), ...filePathsFromGlob(Glob('**.sh', recursive: true))], suggestor)
+      break;
+    case 2:
+      exitCode = await runInteractiveCodemod(
+          [rootPubspec.path], V2DependencyValidatorUpdater(dependencyToUpdate));
+      break;
+    case 3:
+      break;
+    default:
+      throw UnsupportedError(
+          'Unexpected version for dependency_validator detected: $majorVersion');
+  }
+
+  exit(exitCode);
 }
