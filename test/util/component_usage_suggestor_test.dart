@@ -22,7 +22,7 @@ main() {
       final source = getTestComponentUsageSourceFile(
           cascade: cascade, otherContents: otherContents);
       final context = await sharedContext.resolvedFileContextForTest(source);
-      return await CommonOnlySuggestor()(context).toList();
+      return await GenericMigrator()(context).toList();
     }
 
     group('identifies web_skin_dart component usages', () {});
@@ -54,10 +54,12 @@ main() {
         ];
 
         for (final usage in unresolvedUsages) {
-          final migrator = GenericMigrator(boundExpectAsync2((_, __) {},
-              count: 0,
-              reason: 'migrator should not be called for any of these usages;'
-                  ' it should throw first'));
+          final migrator = GenericMigrator(
+            onMigrateUsage: boundExpectAsync2((_, __) {},
+                count: 0,
+                reason: 'migrator should not be called for any of these usages;'
+                    ' it should throw first'),
+          );
           await expectLater(
             () async =>
                 await sharedContext.getPatches(migrator, 'usage() => $usage;',
@@ -94,46 +96,78 @@ main() {
         usage() => builder3();
        ''';
 
-        final migrator = GenericMigrator(boundExpectAsync2((_, __) {},
-            count: 0, reason: 'these calls should not be detected as usages'));
+        final migrator = GenericMigrator(
+          onMigrateUsage: boundExpectAsync2((_, __) {},
+              count: 0, reason: 'these calls should not be detected as usages'),
+        );
         // awaiting this is the best way to assert it does not throw, since
         // returnsNormally doesn't work as intended with async functions.
         await sharedContext.getPatches(migrator, source);
       });
     });
 
-    test('calls migrateUsage for each component usage', () async {
-      final usages = <FluentComponentUsage>[];
-      final suggestor = GenericMigrator((_, usage) {
-        usages.add(usage);
+    group('calls migrateUsage for each component usage', () {
+      test('only if shouldMigrateUsage returns MigrationDecision.shouldMigrate',
+          () async {
+        final migrateUsageCalls = <FluentComponentUsage>[];
+        await sharedContext.getPatches(
+          GenericMigrator(
+            onMigrateUsage: (_, usage) => migrateUsageCalls.add(usage),
+            onShouldMigrateUsage: (_, usage) {
+              switch (usage.builder.toSource()) {
+                case 'Dom.div()':
+                  return MigrationDecision.notApplicable;
+                case 'Dom.span()':
+                  return MigrationDecision.shouldMigrate;
+                case 'Dom.a()':
+                  return MigrationDecision.needsManualIntervention;
+              }
+              throw ArgumentError('Unexpected builder');
+            },
+          ),
+          withOverReactImport(/*language=dart*/ '''
+              usages() => [
+                Dom.div()(),
+                Dom.span()(),
+                Dom.a()(),
+              ];
+          '''),
+        );
+        expect(migrateUsageCalls.map((u) => u.builder.toSource()).toList(), [
+          'Dom.span()',
+        ]);
       });
-      final source = unindent(/*language=dart*/ r'''
-          import 'package:over_react/over_react.dart';
-            
-          UiFactory Foo;
-          UiFactory Bar;
-          UiProps builder;
-          dynamic notAUsage() {}
-          dynamic alsoNotAUsage;
-                    
-          usages() => Foo()(
-            (Bar()..baz = 'something')(),
-            Dom.div()(),
-            builder(),
-            notAUsage(),
-            alsoNotAUsage,
-          );
-      ''');
-      await sharedContext.getPatches(suggestor, source);
 
-      expect(
-          usages.map((u) => u.builder.toSource()),
-          unorderedEquals([
-            'Foo()',
-            'Bar()',
-            'Dom.div()',
-            'builder',
-          ]));
+      test('for all types of components', () async {
+        final migrateUsageCalls = <FluentComponentUsage>[];
+        await sharedContext.getPatches(
+          GenericMigrator(
+            onMigrateUsage: (_, usage) => migrateUsageCalls.add(usage),
+          ),
+          withOverReactImport(/*language=dart*/ '''
+              UiFactory Foo;
+              UiFactory Bar;
+              UiProps builder;
+              dynamic notAUsage() {}
+              dynamic alsoNotAUsage;
+                        
+              usages() => Foo()(
+                (Bar()..baz = 'something')(),
+                Dom.div()(),
+                builder(),
+                notAUsage(),
+                alsoNotAUsage,
+              );
+          '''),
+        );
+
+        expect(migrateUsageCalls.map((u) => u.builder.toSource()).toList(), [
+          'Foo()',
+          'Bar()',
+          'Dom.div()',
+          'builder',
+        ]);
+      });
     });
 
     group('common usage flagging', () {
@@ -151,12 +185,12 @@ main() {
 
         test('does not flag valid usages', () async {
           await testSuggestor(
-            suggestor: GenericMigrator(boundExpectAsync2(
-              (_, __) {},
-              // This suggestor gets run twice since idempotency is tested.
-              count: 2,
-              reason: 'should have run on the valid component usage',
-            )),
+            suggestor: GenericMigrator(
+              onMigrateUsage: boundExpectAsync2((_, __) {},
+                  // This suggestor gets run twice since idempotency is tested.
+                  count: 2,
+                  reason: 'should have run on the valid component usage'),
+            ),
             resolvedContext: sharedContext,
             input: /*language=dart*/ withOverReactImport('''
                 contents() => (Dom.div()
@@ -272,7 +306,7 @@ main() {
 
     group('migratePropsByName', () {
       test('runs the migrator for each prop with a matching name', () async {
-        final suggestor = GenericMigrator((migrator, usage) {
+        final suggestor = GenericMigrator(onMigrateUsage: (migrator, usage) {
           migrator.migratePropsByName(
             usage,
             migratorsByName: {
@@ -300,7 +334,7 @@ main() {
       });
 
       test('throws when a prop does not exist on the props class', () async {
-        final suggestor = GenericMigrator((migrator, usage) {
+        final suggestor = GenericMigrator(onMigrateUsage: (migrator, usage) {
           migrator.migratePropsByName(usage, migratorsByName: {
             'notARealProp': (_) {},
           });
@@ -348,24 +382,24 @@ extension on TypeMatcher<Object> {
       having((p) => p.toString(), 'toString() value', matcher);
 }
 
-class CommonOnlySuggestor with ClassSuggestor, ComponentUsageMigrator {
-  @override
-  MigrationDecision shouldMigrateUsage(usage) =>
-      MigrationDecision.shouldMigrate;
-}
+typedef OnMigrateUsage = void Function(
+    GenericMigrator migrator, FluentComponentUsage usage);
+typedef OnShouldMigrateUsage = MigrationDecision Function(
+    GenericMigrator migrator, FluentComponentUsage usage);
 
 class GenericMigrator with ClassSuggestor, ComponentUsageMigrator {
+  final OnMigrateUsage? onMigrateUsage;
+  final OnShouldMigrateUsage? onShouldMigrateUsage;
+
+  GenericMigrator({this.onMigrateUsage, this.onShouldMigrateUsage});
+
   @override
   MigrationDecision shouldMigrateUsage(usage) =>
+      onShouldMigrateUsage?.call(this, usage) ??
       MigrationDecision.shouldMigrate;
 
-  void Function(GenericMigrator migrator, FluentComponentUsage usage)?
-      onMigrateUsage;
-
-  GenericMigrator([this.onMigrateUsage]);
-
   @override
-  migrateUsage(usage) {
+  void migrateUsage(usage) {
     super.migrateUsage(usage);
     onMigrateUsage?.call(this, usage);
   }
