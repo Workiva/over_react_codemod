@@ -79,12 +79,16 @@ void main(List<String> args) async {
 
   int exitCode = 0;
 
-  logger.info('Detected dependency_validator version $dependencyValidatorVersion');
+  logger.info(
+      'Detected dependency_validator version $dependencyValidatorVersion');
 
   switch (majorVersion) {
     case 1:
-      exitCode = await runInteractiveCodemod(
-      [...filePathsFromGlob(Glob('**.yaml', recursive: true)), ...filePathsFromGlob(Glob('**.dart', recursive: true)), ...filePathsFromGlob(Glob('**.sh', recursive: true))], V1DepdendencyValidatorUpdater());
+      exitCode = await runInteractiveCodemod([
+        ...filePathsFromGlob(Glob('**.yaml', recursive: true)),
+        ...filePathsFromGlob(Glob('**.dart', recursive: true)),
+        ...filePathsFromGlob(Glob('**.sh', recursive: true))
+      ], V1DependencyValidatorUpdater(dependencyToUpdate));
       break;
     case 2:
       exitCode = await runInteractiveCodemod(
