@@ -85,9 +85,9 @@ void main(List<String> args) async {
   switch (majorVersion) {
     case 1:
       exitCode = await runInteractiveCodemod([
-        ...filePathsFromGlob(Glob('**.yaml', recursive: true)),
-        ...filePathsFromGlob(Glob('**.dart', recursive: true)),
-        ...filePathsFromGlob(Glob('**.sh', recursive: true))
+        // Run on files because because there isn't a real limit to witch file
+        // types may include the command
+        ...filePathsFromGlob(Glob('**', recursive: true)),
       ], V1DependencyValidatorUpdater(dependencyToUpdate));
       break;
     case 2:
