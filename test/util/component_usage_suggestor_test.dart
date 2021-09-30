@@ -172,7 +172,7 @@ main() {
                   reason: 'should have run on the valid component usage'),
             ),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: withOverReactImport(/*language=dart*/ '''
                 contents() => (Dom.div()
                   ..addProp('data-foo', '')
                   ..addProp(dataFooConst, '')
@@ -192,7 +192,7 @@ main() {
           await testSuggestor(
             suggestor: GenericMigrator(),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: withOverReactImport(/*language=dart*/ '''
                 bool condition;
             
                 contents() => (Dom.div()
@@ -206,7 +206,7 @@ main() {
                 )();
                 $constantsSource
             '''),
-            expectedOutput: /*language=dart*/ withOverReactImport('''
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
                 bool condition;
                 
                 contents() => (Dom.div()
@@ -236,14 +236,14 @@ main() {
           await testSuggestor(
             suggestor: GenericMigrator(),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''            
+            input: withOverReactImport(/*language=dart*/ '''            
                 content() => (Dom.div()
                   ..addProps({})
                   ..modifyProps((_) {})
                   ..addTestId("foo")
                 )();
             '''),
-            expectedOutput: /*language=dart*/ withOverReactImport('''
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()
                   // FIXME(mui_migration) - addProps call - manually verify
                   ..addProps({})
@@ -267,7 +267,7 @@ main() {
         await testSuggestor(
           suggestor: GenericMigrator(),
           resolvedContext: sharedContext,
-          input: /*language=dart*/ withOverReactImport('''
+          input: withOverReactImport(/*language=dart*/ '''
               content() => (Dom.div()
                 ..extensionGetter
                 ..extensionSetter = 'foo'
@@ -275,7 +275,7 @@ main() {
               
               $extensionSource
           '''),
-          expectedOutput: /*language=dart*/ withOverReactImport('''
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
               content() => (Dom.div()
                 // FIXME(mui_migration) - extensionGetter (extension) - manually verify
                 ..extensionGetter
@@ -352,10 +352,10 @@ main() {
               migrator.yieldAddPropPatch(usage, '..foo = "foo"');
             }),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: withOverReactImport(/*language=dart*/ '''
                 content() => Dom.div()();
             '''),
-            expectedOutput: /*language=dart*/ withOverReactImport('''
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()..foo = "foo")();
             '''),
           );
@@ -370,10 +370,10 @@ main() {
               migrator.yieldAddPropPatch(usage, '..bar = "bar"');
             }),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: withOverReactImport(/*language=dart*/ '''
                 content() => Dom.div()();
             '''),
-            expectedOutput: /*language=dart*/ withOverReactImport('''
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
                 content() => ((Dom.div()
                   ..foo = "foo"
                   ..bar = "bar"
@@ -388,10 +388,10 @@ main() {
               migrator.yieldAddPropPatch(usage, '..foo = "foo"');
             }),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: withOverReactImport(/*language=dart*/ '''
                   content() => (Dom.div())();
               '''),
-            expectedOutput: /*language=dart*/ withOverReactImport('''
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
                   content() => (Dom.div()..foo = "foo")();
               '''),
           );
@@ -408,10 +408,10 @@ main() {
               migrator.yieldAddPropPatch(usage, '..foo = "foo"');
             }),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()..id = "some_id")();
             '''),
-            expectedOutput: /*language=dart*/ withOverReactImport('''
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()
                   ..id = "some_id"
                   ..foo = "foo"
@@ -431,13 +431,13 @@ main() {
               migrator.yieldAddPropPatch(usage, '..foo = "foo"');
             }),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()
                   // This comment puts this cascaded prop on a separate line
                   ..id = "some_id"
                 )();
             '''),
-            expectedOutput: /*language=dart*/ withOverReactImport('''
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()
                   // This comment puts this cascaded prop on a separate line
                   ..id = "some_id"
@@ -453,13 +453,13 @@ main() {
               migrator.yieldAddPropPatch(usage, '..foo = "foo"');
             }),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()
                   ..id = "some_id"
                   ..onClick = (_) {}
                 )();
             '''),
-            expectedOutput: /*language=dart*/ withOverReactImport('''
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()
                   ..id = "some_id"
                   ..onClick = (_) {}
@@ -491,14 +491,14 @@ main() {
                 migrator.yieldRemovePropPatch(usage.cascadedProps.first);
               }),
               resolvedContext: sharedContext,
-              input: /*language=dart*/ withOverReactImport('''
+              input: withOverReactImport(/*language=dart*/ '''
                   content() => (Dom.div()
                     ..id = "some_id"
                     ..onClick = (_) {}
                     ..title = "title"
                   )();
               '''),
-              expectedOutput: /*language=dart*/ withOverReactImport('''
+              expectedOutput: withOverReactImport(/*language=dart*/ '''
                   content() => (Dom.div()
                     ..onClick = (_) {}
                     ..title = "title"
@@ -513,14 +513,14 @@ main() {
                 migrator.yieldRemovePropPatch(usage.cascadedProps.elementAt(1));
               }),
               resolvedContext: sharedContext,
-              input: /*language=dart*/ withOverReactImport('''
+              input: withOverReactImport(/*language=dart*/ '''
                   content() => (Dom.div()
                     ..id = "some_id"
                     ..onClick = (_) {}
                     ..title = "title"
                   )();
               '''),
-              expectedOutput: /*language=dart*/ withOverReactImport('''
+              expectedOutput: withOverReactImport(/*language=dart*/ '''
                   content() => (Dom.div()
                     ..id = "some_id"
                     ..title = "title"
@@ -535,14 +535,14 @@ main() {
                 migrator.yieldRemovePropPatch(usage.cascadedProps.last);
               }),
               resolvedContext: sharedContext,
-              input: /*language=dart*/ withOverReactImport('''
+              input: withOverReactImport(/*language=dart*/ '''
                   content() => (Dom.div()
                     ..id = "some_id"
                     ..onClick = (_) {}
                     ..title = "title"
                   )();
               '''),
-              expectedOutput: /*language=dart*/ withOverReactImport('''
+              expectedOutput: withOverReactImport(/*language=dart*/ '''
                   content() => (Dom.div()
                     ..id = "some_id"
                     ..onClick = (_) {}
@@ -558,12 +558,12 @@ main() {
               migrator.yieldRemovePropPatch(usage.cascadedProps.single);
             }),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()
                   ..id = "some_id"
                 )();
             '''),
-            expectedOutput: /*language=dart*/ withOverReactImport('''
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div())();
             '''),
           );
@@ -579,7 +579,7 @@ main() {
                   throwsA(isArgumentError.havingToStringValue(
                       contains('either newName or newRhs'))));
             })),
-            /*language=dart*/ withOverReactImport('''
+            withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()..id = "some_id" )();
             '''),
           );
@@ -597,14 +597,14 @@ main() {
                   additionalCascadeSection: '..additionalCascade');
             }),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()
                   ..id = "some_id"
                   ..title = "some_id"
                   ..onClick = (_) {}
                 )();
             '''),
-            expectedOutput: /*language=dart*/ withOverReactImport('''
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()
                   ..newName0 = "some_id"
                   ..title = newRhs1
@@ -635,7 +635,7 @@ main() {
               migrator.yieldRemoveChildPatch(usage.children.single.node);
             }),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: withOverReactImport(/*language=dart*/ '''
                 content() => [
                   Dom.div()('single child'),
                   Dom.div()(
@@ -647,7 +647,7 @@ main() {
                   ]),
                 ];
             '''),
-            expectedOutput: /*language=dart*/ withOverReactImport('''
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
                 content() => [
                   Dom.div()(),
                   Dom.div()(),
@@ -665,7 +665,7 @@ main() {
                 migrator.yieldRemoveChildPatch(usage.children.last.node);
               }),
               resolvedContext: sharedContext,
-              input: /*language=dart*/ withOverReactImport('''
+              input: withOverReactImport(/*language=dart*/ '''
                   content() => [
                     Dom.div()('first child', 'second child'),
                     Dom.div()(
@@ -679,7 +679,7 @@ main() {
                     ]),
                   ];
               '''),
-              expectedOutput: /*language=dart*/ withOverReactImport('''
+              expectedOutput: withOverReactImport(/*language=dart*/ '''
                   content() => [
                     Dom.div()('first child'),
                     Dom.div()(
@@ -700,7 +700,7 @@ main() {
                 migrator.yieldRemoveChildPatch(usage.children.first.node);
               }),
               resolvedContext: sharedContext,
-              input: /*language=dart*/ withOverReactImport('''
+              input: withOverReactImport(/*language=dart*/ '''
                   content() => [
                     Dom.div()('first child', 'second child'),
                     Dom.div()(
@@ -714,7 +714,7 @@ main() {
                     ]),
                   ];
               '''),
-              expectedOutput: /*language=dart*/ withOverReactImport('''
+              expectedOutput: withOverReactImport(/*language=dart*/ '''
                   content() => [
                     Dom.div()('second child'),
                     Dom.div()(
