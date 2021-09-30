@@ -21,6 +21,8 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import 'resolved_file_context.dart';
+
 final _patchesPattern = RegExp(r'\(patches (\d+)\)');
 final _pathPattern = RegExp(r'\(path ([\w./]+)\)');
 final _dartfmtOutputPattern = RegExp(r'\s*@dartfmt_output');
@@ -135,6 +137,11 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       expectedOutput = expectedOutput.trimRight() + '\n';
 
       test(description, () async {
+        SharedAnalysisContext? resolvedContext;
+        if (shouldResolve) {
+          resolvedContext = SharedAnalysisContext.overReact;
+        }
+
         await testSuggestor(
           suggestor: suggestor,
           input: input,
@@ -142,6 +149,7 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
           expectedPatchCount: expectedNumPatches,
           shouldDartfmtOutput: shouldDartfmtOutput,
           testIdempotency: testIdempotency,
+          resolvedContext: resolvedContext,
           inputUrl: path,
         );
       });
@@ -155,6 +163,7 @@ typedef SuggestorTester = Future<void> Function({
   int? expectedPatchCount,
   bool shouldDartfmtOutput,
   bool testIdempotency,
+  SharedAnalysisContext? resolvedContext,
   void Function(String contents)? validateContents,
 });
 
@@ -169,6 +178,7 @@ SuggestorTester getSuggestorTester(Suggestor suggestor,
     int? expectedPatchCount,
     bool shouldDartfmtOutput = true,
     bool testIdempotency = true,
+    SharedAnalysisContext? resolvedContext,
     void Function(String contents)? validateContents,
   }) =>
       testSuggestor(
@@ -178,6 +188,7 @@ SuggestorTester getSuggestorTester(Suggestor suggestor,
         expectedPatchCount: expectedPatchCount,
         shouldDartfmtOutput: shouldDartfmtOutput,
         testIdempotency: testIdempotency,
+        resolvedContext: resolvedContext,
         validateContents: validateContents,
         inputUrl: inputUrl,
       );
@@ -190,11 +201,22 @@ Future<void> testSuggestor({
   int? expectedPatchCount,
   bool shouldDartfmtOutput = true,
   bool testIdempotency = true,
+  SharedAnalysisContext? resolvedContext,
   void Function(String contents)? validateContents,
   String? inputUrl,
 }) async {
-  inputUrl ??= defaultSuggestorTesterInputUrl;
+  inputUrl ??=
+      resolvedContext?.nextFilename() ?? defaultSuggestorTesterInputUrl;
   expectedOutput ??= input;
+
+  Future<FileContext> getFileContext({
+    required String contents,
+    required String path,
+  }) =>
+      resolvedContext != null
+          ? resolvedContext.resolvedFileContextForTest(contents,
+              filename: path, includeTestDescription: false)
+          : fileContextForTest(path, contents);
 
   if (validateContents != null) {
     expect(() => validateContents(input), returnsNormally,
@@ -207,7 +229,7 @@ Future<void> testSuggestor({
 
   String modifiedInput;
   {
-    final context = await fileContextForTest(inputUrl, input);
+    final context = await getFileContext(contents: input, path: inputUrl);
     final patches = await suggestor(context).toList();
     if (expectedPatchCount != null && patches.length != expectedPatchCount) {
       fail('Incorrect number of patches generated '
@@ -229,7 +251,8 @@ Future<void> testSuggestor({
   }
 
   if (testIdempotency) {
-    final context = await fileContextForTest('$inputUrl.modifiedInput', input);
+    final context =
+        await getFileContext(contents: input, path: '$inputUrl.modifiedInput');
     final patches = await suggestor(context).toList();
     var doubleModifiedInput =
         applyPatches(context.sourceFile, patches).trimRight() + '\n';

@@ -6,6 +6,7 @@ import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 import 'package:test/test.dart';
 
 import '../resolved_file_context.dart';
+import '../util.dart';
 
 main() {
   group('ComponentUsageMigrator', () {
@@ -137,7 +138,8 @@ main() {
 
     group('common usage flagging', () {
       group('of untyped props:', () {
-        final otherContents = unindent('''
+        const constantsSource = /*language=dart*/ '''
+        
           const dataFooConst = 'data-foo';
           const somethingElseConst = 'somethingElse';
           
@@ -145,87 +147,126 @@ main() {
             static const dataFooConst = 'data-foo';
             static const somethingElseConst = 'somethingElse';
           }
-        ''');
+        ''';
 
-        group('does not flag usages:', () {
-          const cascadesToNotFlag = {
-            'addProp with data-attribute key (inline)': /*          */ r"..addProp('data-foo', '')",
-            'addProp with data-attribute key (const)': /*           */ r"..addProp(dataFooConst, '')",
-            'addProp with data-attribute key (class const)': /*     */ r"..addProp(Foo.dataFooConst, '')",
-            'operator[]= with data-attribute key (inline)': /*      */ r"..['data-foo'] = ''",
-            'operator[]= with data-attribute key (const)': /*       */ r"..[dataFooConst] = ''",
-            'operator[]= with data-attribute key (class const)': /* */ r"..[Foo.dataFooConst] = ''",
-            'addProp without arguments': /**/ r"..addProp() /* bad call */",
-          };
-
-          cascadesToNotFlag.forEach((description, cascade) {
-            test(description, () async {
-              final patches = await patchesForCascade(cascade,
-                  otherContents: otherContents);
-              expect(patches, isEmpty);
-            });
-          });
+        test('does not flag valid usages', () async {
+          await testSuggestor(
+            suggestor: GenericMigrator(boundExpectAsync2(
+              (_, __) {},
+              // This suggestor gets run twice since idempotency is tested.
+              count: 2,
+              reason: 'should have run on the valid component usage',
+            )),
+            resolvedContext: sharedContext,
+            input: /*language=dart*/ withOverReactImport('''
+                contents() => (Dom.div()
+                  ..addProp('data-foo', '')
+                  ..addProp(dataFooConst, '')
+                  ..addProp(Foo.dataFooConst, '')
+                  ..['data-foo'] = ''
+                  ..[dataFooConst] = ''
+                  ..[Foo.dataFooConst] = ''
+                  ..addProp() /* bad call */
+                )();
+                $constantsSource
+            '''),
+          );
         });
 
-        group('flags usages:', () {
-          const cascadesToFlag = {
-            'addProp (inline)': /*         */ r"..addProp('somethingElse', '')",
-            'addProp (const)': /*          */ r"..addProp(somethingElseConst, '')",
-            'addProp (class const)': /*    */ r"..addProp(Foo.somethingElseConst, '')",
-            'operator[]= (inline)': /*     */ r"..['somethingElse'] = ''",
-            'operator[]= (const)': /*      */ r"..[somethingElseConst] = ''",
-            'operator[]= (class const)': /**/ r"..[Foo.somethingElseConst] = ''",
-            'operator[]= (unknown)': /*    */ r"..[condition ? 'data-foo' : 'data-bar'] = ''",
-          };
-
-          cascadesToFlag.forEach((description, cascade) {
-            test(description, () async {
-              final patches = await patchesForCascade(cascade,
-                  otherContents: otherContents);
-              expect(patches, [
-                isMuiMigrationFixmeCommentPatch(
-                    withMessage: 'manually verify prop key'),
-              ]);
-            });
-          });
+        test('flags usages as expected', () async {
+          await testSuggestor(
+            suggestor: GenericMigrator(),
+            resolvedContext: sharedContext,
+            input: /*language=dart*/ withOverReactImport('''
+                contents() => (Dom.div()
+                  ..addProp('somethingElse', '')
+                  ..addProp(somethingElseConst, '')
+                  ..addProp(Foo.somethingElseConst, '')
+                  ..['somethingElse'] = ''
+                  ..[somethingElseConst] = ''
+                  ..[Foo.somethingElseConst] = ''
+                  ..[condition ? 'data-foo' : 'data-bar'] = ''
+                )();
+                $constantsSource
+            '''),
+            expectedOutput: /*language=dart*/ withOverReactImport('''
+                contents() => (Dom.div()
+                  // FIXME(mui_migration) - addProp - manually verify prop key
+                  ..addProp('somethingElse', '')
+                  // FIXME(mui_migration) - addProp - manually verify prop key
+                  ..addProp(somethingElseConst, '')
+                  // FIXME(mui_migration) - addProp - manually verify prop key
+                  ..addProp(Foo.somethingElseConst, '')
+                  // FIXME(mui_migration) - operator[]= - manually verify prop key
+                  ..['somethingElse'] = ''
+                  // FIXME(mui_migration) - operator[]= - manually verify prop key
+                  ..[somethingElseConst] = ''
+                  // FIXME(mui_migration) - operator[]= - manually verify prop key
+                  ..[Foo.somethingElseConst] = ''
+                  // FIXME(mui_migration) - operator[]= - manually verify prop key
+                  ..[condition ? 'data-foo' : 'data-bar'] = ''
+                )();
+                $constantsSource
+            '''),
+          );
         });
       });
 
       group('methods:', () {
         test('flags method calls other than addTestId', () async {
-          expect(await patchesForCascade('..addProps({})'), [
-            isMuiMigrationFixmeCommentPatch(),
-          ]);
-          expect(await patchesForCascade('..modifyProps(modifier)'), [
-            isMuiMigrationFixmeCommentPatch(),
-          ]);
-
-          expect(await patchesForCascade('..addTestId("foo")'), isEmpty);
+          await testSuggestor(
+            suggestor: GenericMigrator(),
+            resolvedContext: sharedContext,
+            input: /*language=dart*/ withOverReactImport('''
+                content() => (Dom.div()
+                  ..addProps({})
+                  ..modifyProps(modifier)
+                  ..addTestId("foo")
+                )();
+            '''),
+            expectedOutput: /*language=dart*/ withOverReactImport('''
+                content() => (Dom.div()
+                  // FIXME(mui_migration) - addProps call - manually verify
+                  ..addProps({})
+                  // FIXME(mui_migration) - modifyProps call - manually verify
+                  ..modifyProps(modifier)
+                  ..addTestId("foo")
+                )();
+            '''),
+          );
         });
       });
 
-      group('flags static extension', () {
-        final extensionSource = ''
-            'extension on DomProps {\n'
-            '  get extension => null;\n'
-            '  set extension(value) {}\n'
-            '}';
+      test('flags static extension getters and setters', () async {
+        const extensionSource = /*language=dart*/ '''
+            extension on DomProps {
+              get extensionGetter => null;
+              set extensionSetter(value) {}
+            }
+        ''';
 
-        test('getters', () async {
-          final patches = await patchesForCascade('..extension',
-              otherContents: extensionSource);
-          expect(patches, [
-            isMuiMigrationFixmeCommentPatch(),
-          ]);
-        });
-
-        test('setters', () async {
-          final patches = await patchesForCascade('..extension = "foo"',
-              otherContents: extensionSource);
-          expect(patches, [
-            isMuiMigrationFixmeCommentPatch(),
-          ]);
-        });
+        await testSuggestor(
+          suggestor: GenericMigrator(),
+          resolvedContext: sharedContext,
+          input: /*language=dart*/ withOverReactImport('''
+              content() => (Dom.div()
+                ..extensionGetter
+                ..extensionSetter = 'foo'
+              )();
+              
+              $extensionSource
+          '''),
+          expectedOutput: /*language=dart*/ withOverReactImport('''
+              content() => (Dom.div()
+                // FIXME(mui_migration) - extensionGetter (extension) - manually verify
+                ..extensionGetter
+                // FIXME(mui_migration) - extensionSetter (extension) - manually verify
+                ..extensionSetter = 'foo'
+              )();
+              
+              $extensionSource
+          '''),
+        );
       });
     });
 
@@ -351,4 +392,14 @@ String unindent(String multilineString) {
   var indent = RegExp(r'^( *)').firstMatch(multilineString)![1]!;
   assert(indent.isNotEmpty);
   return multilineString.trim().replaceAll('\n$indent', '\n');
+}
+
+const overReactImport = "import 'package:over_react/over_react.dart';";
+
+String withOverReactImport(String source) {
+  return '$overReactImport\n$source';
+}
+
+String fileWithCascadeOnUsage(String cascade) {
+  return withOverReactImport('content() => (Dom.div()\n$cascade\n)())');
 }

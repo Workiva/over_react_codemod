@@ -292,7 +292,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
             if (expression != null && !isDataAttributePropKey(expression)) {
               yieldPatch(
                   lineComment(
-                      'FIXME(mui_migration) - ${name} addProp - manually verify prop key'),
+                      'FIXME(mui_migration) - ${name} - manually verify prop key'),
                   method.node.offset,
                   method.node.offset);
             }
@@ -332,7 +332,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
       if (!isDataAttributePropKey(prop.index)) {
         yieldInsertionPatch(
             lineComment(
-                'FIXME(mui_migration) - `..[propKey] =` - manually verify prop key'),
+                'FIXME(mui_migration) - operator[]= - manually verify prop key'),
             prop.node.offset);
       }
     }

@@ -37,6 +37,7 @@ class SharedAnalysisContext {
 
   Future<void> init() async {
     print('Cleaning up old files...');
+    // fixme throw state error if this is called twice. Perhaps run this automatically?
     Directory(p.join(projectRoot, testFileSubpath))
         .deleteSyncIfExists(recursive: true);
 
