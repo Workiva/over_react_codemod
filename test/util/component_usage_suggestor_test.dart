@@ -64,7 +64,7 @@ main() {
                     // We want to see how the migrator handles it.
                     preResolveFile: false),
             throwsA(isA<Exception>().havingToStringValue(allOf(
-              contains('could not be resolved.'),
+              contains('Builder static type could not be resolved'),
               contains(usage),
             ))),
           );
