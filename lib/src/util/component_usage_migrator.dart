@@ -457,11 +457,29 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   }
 
   void yieldRemoveChildPatch(AstNode child) {
-    final start = child.offset;
+    // This logic is a little extra, but isn't too much effort and helps keep things tidy.
+
+    late int start;
+    late int end;
+
+    // If there's a trailing comma, remove it with the child
     final nextToken = child.endToken.next;
-    final end = (nextToken != null && nextToken.type == TokenType.COMMA)
-        ? nextToken.end
-        : child.end;
+    if (nextToken != null && nextToken.type == TokenType.COMMA) {
+      start = child.offset;
+      end = nextToken.end;
+    } else {
+      // Otherwise, if there's a comma before the child, remove that
+      // so that the list doesn't go from not having trailing commas to having them.
+      final prevToken = child.beginToken.previous;
+      if (prevToken != null && prevToken.type == TokenType.COMMA) {
+        start = prevToken.offset;
+        end = child.end;
+      } else {
+        // Otherwise, we're probably a single child. Just remove the child itself.
+        start = child.offset;
+        end = child.end;
+      }
+    }
     yieldPatch('', start, end);
   }
 
@@ -472,7 +490,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     String? additionalCascadeSection,
   }) {
     if (newName == null && newRhs == null) {
-      throw ArgumentError.notNull('either newName or newValue');
+      throw ArgumentError.notNull('either newName or newRhs');
     }
 
     if (newName != null) {
