@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
@@ -17,32 +15,7 @@ main() {
       await sharedContext.init();
     });
 
-    Future<List<Patch>> patchesForCascade(String cascade,
-        {String otherContents = ''}) async {
-      final source = getTestComponentUsageSourceFile(
-          cascade: cascade, otherContents: otherContents);
-      final context = await sharedContext.resolvedFileContextForTest(source);
-      return await GenericMigrator()(context).toList();
-    }
-
     group('identifies web_skin_dart component usages', () {});
-
-    test('throws when a file fails to resolve', () async {
-      // FIXME a Dart file with parse errors won't satisfy this; need to come up with a different setup or use a mocked context?
-      // const unresolvableSource = 'class E extends E {}';
-      //
-      // final migrator = GenericMigrator();
-      // final context =
-      //     await sharedContext.resolvedFileContextForTest(unresolvableSource,
-      //         // Otherwise, resolvedFileContextForTest will throw.
-      //         // We want to see how the migrator handles it.
-      //         preResolveFile: false);
-      //
-      // expect(
-      //     () async => await migrator(context).toList(),
-      //     throwsA(isA<Exception>()
-      //         .havingToStringValue(contains('Could not get resolved unit'))));
-    });
 
     group('throws when a component usage is not resolved', () {
       test('', () async {
@@ -337,11 +310,13 @@ main() {
             }),
           );
         });
-        final source = getTestComponentUsageSourceFile(
-            cascade: '\n'
-                '  ..onClick = (_) {}\n'
-                '  ..href = "example.com"\n'
-                '  ..id = "foo"\n');
+        final source = withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()
+              ..onClick = (_) {}
+              ..href = "example.com"
+              ..id = "foo"
+            )();
+        ''');
         await sharedContext.getPatches(suggestor, source);
       });
 
@@ -352,7 +327,7 @@ main() {
           });
         });
 
-        final source = getTestComponentUsageSourceFile(cascade: '');
+        final source = withOverReactImport('content() => Dom.div()();');
         expect(
             () async => await sharedContext.getPatches(suggestor, source),
             throwsA(isA<ArgumentError>().havingMessage(allOf(
@@ -415,29 +390,6 @@ class GenericMigrator with ClassSuggestor, ComponentUsageMigrator {
     super.migrateUsage(usage);
     onMigrateUsage?.call(this, usage);
   }
-}
-
-String getTestComponentUsageSourceFile({
-  required String cascade,
-  String otherContents = '',
-}) =>
-    '''
-import 'package:over_react/over_react.dart';
-
-render() => ${getTestComponentUsageWithCascade(cascade)};
-
-$otherContents
-'''
-        .trimRight() +
-    '\n';
-
-String getTestComponentUsageWithCascade(String cascade) =>
-    '(Dom.div()$cascade)()';
-
-String unindent(String multilineString) {
-  var indent = RegExp(r'^( *)').firstMatch(multilineString)![1]!;
-  assert(indent.isNotEmpty);
-  return multilineString.trim().replaceAll('\n$indent', '\n');
 }
 
 const overReactImport = "import 'package:over_react/over_react.dart';";
