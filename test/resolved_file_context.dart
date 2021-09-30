@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
@@ -62,10 +65,12 @@ class SharedAnalysisContext {
     String sourceText, {
     String? filename,
     bool preResolveFile = true,
+    bool throwOnAnalysisErrors = true,
   }) async {
     final context = await resolvedFileContextForTest(
       sourceText,
       preResolveFile: preResolveFile,
+      throwOnAnalysisErrors: throwOnAnalysisErrors,
       filename: filename,
     );
     return await suggestor(context).toList();
@@ -76,6 +81,7 @@ class SharedAnalysisContext {
     String? filename,
     bool includeTestDescription = true,
     bool preResolveFile = true,
+    bool throwOnAnalysisErrors = true,
   }) async {
     filename ??= nextFilename();
 
@@ -108,9 +114,16 @@ class SharedAnalysisContext {
     final context = collection.contexts
         .singleWhere((c) => c.contextRoot.root.path == projectRoot);
 
+    if (throwOnAnalysisErrors && !preResolveFile) {
+      throw ArgumentError(
+          'If throwOnAnalysisErrors is false, preResolveFile must be true');
+    }
     if (preResolveFile) {
-      await _printAboutFirstFile(
+      final result = await _printAboutFirstFile(
           () => context.currentSession.getResolvedLibrary2(path));
+      if (throwOnAnalysisErrors) {
+        _checkResolvedResultForErrors(result);
+      }
     }
 
     // Assert that this doesn't throw a StateError due to this file not
@@ -146,6 +159,40 @@ class SharedAnalysisContext {
       print('Done resolving.');
     }
     return result;
+  }
+}
+
+void _checkResolvedResultForErrors(SomeResolvedLibraryResult result) {
+  const sharedMessage =
+      'If analysis errors are expected for this test, set `throwOnAnalysisErrors: false`.';
+
+  if (result is! ResolvedLibraryResult) {
+    throw ArgumentError([
+      'Error resolving file; result was ${result}.',
+      sharedMessage
+    ].join(' '));
+  }
+
+  final units = result.units;
+  if (units == null) {
+    throw ArgumentError([
+      'Error resolving file; units was null. Result: ${result}.',
+      sharedMessage
+    ].join(' '));
+  }
+
+  final severeErrors = units
+      .expand((unit) => unit.errors)
+      .where((element) => element.severity == Severity.error)
+      .toList();
+  if (severeErrors.isNotEmpty) {
+    throw ArgumentError([
+      // ignore: no_adjacent_strings_in_list
+      'File had analysis errors, which may indicate that the test file is set up improperly,'
+          ' potentially resulting in false positives in your test.',
+      sharedMessage,
+      'Errors:\n${prettyPrintErrors(severeErrors)}.'
+    ].join(' '));
   }
 }
 

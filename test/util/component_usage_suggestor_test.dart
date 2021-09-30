@@ -60,12 +60,19 @@ main() {
                 reason: 'migrator should not be called for any of these usages;'
                     ' it should throw first'),
           );
+
+          final context = await sharedContext.resolvedFileContextForTest(
+            // We're intentionally not importing over_react here since we don't
+            // want things like Dom.div to resolve.
+            'usage() => $usage;',
+            // Don't pre-resolve, otherwise resolvedFileContextForTest might throw.
+            // We want to see how the migrator handles it when it's the first
+            // thing that resolves a file.
+            preResolveFile: false,
+            throwOnAnalysisErrors: false,
+          );
           await expectLater(
-            () async =>
-                await sharedContext.getPatches(migrator, 'usage() => $usage;',
-                    // Otherwise, resolvedFileContextForTest might throw.
-                    // We want to see how the migrator handles it.
-                    preResolveFile: false),
+            () async => await migrator(context).toList(),
             throwsA(isA<Exception>().havingToStringValue(allOf(
               contains('Builder static type could not be resolved'),
               contains(usage),
@@ -78,22 +85,22 @@ main() {
           'but not for resolved dynamic calls might look like unresolved usages',
           () async {
         // Valid dynamic calls that are resolved and just looks like usages
-        const source = '''
-        // Dynamic first and second invocation
-        dynamic Foo1;
-        usage() => Foo1()();
-        
-        // Static first invocation, dynamic second invocation
-        dynamic Foo2() {}
-        dynamic builder2;
-        usage() => Foo2()();
-        usage() => builder2();
-        
-        // Static first/second invocation, dynamic return value
-        dynamic Function() Foo3() {}
-        dynamic builder3() {}
-        usage() => Foo3()();
-        usage() => builder3();
+        const source = /*language=dart*/ '''
+            // Dynamic first and second invocation
+            dynamic Foo1;
+            usage1() => Foo1()();
+            
+            // Static first invocation, dynamic second invocation
+            dynamic Foo2() {}
+            dynamic builder2;
+            usage2_1() => Foo2()();
+            usage2_2() => builder2();
+            
+            // Static first/second invocation, dynamic return value
+            dynamic Function() Foo3() {}
+            dynamic builder3() {}
+            usage3_1() => Foo3()();
+            usage3_2() => builder3();
        ''';
 
         final migrator = GenericMigrator(
@@ -152,7 +159,7 @@ main() {
               dynamic alsoNotAUsage;
                         
               usages() => Foo()(
-                (Bar()..baz = 'something')(),
+                (Bar()..id = 'something')(),
                 Dom.div()(),
                 builder(),
                 notAUsage(),
@@ -200,6 +207,7 @@ main() {
                   ..['data-foo'] = ''
                   ..[dataFooConst] = ''
                   ..[Foo.dataFooConst] = ''
+                  // ignore: not_enough_positional_arguments
                   ..addProp() /* bad call */
                 )();
                 $constantsSource
@@ -212,6 +220,8 @@ main() {
             suggestor: GenericMigrator(),
             resolvedContext: sharedContext,
             input: /*language=dart*/ withOverReactImport('''
+                bool condition;
+            
                 contents() => (Dom.div()
                   ..addProp('somethingElse', '')
                   ..addProp(somethingElseConst, '')
@@ -224,6 +234,8 @@ main() {
                 $constantsSource
             '''),
             expectedOutput: /*language=dart*/ withOverReactImport('''
+                bool condition;
+                
                 contents() => (Dom.div()
                   // FIXME(mui_migration) - addProp - manually verify prop key
                   ..addProp('somethingElse', '')
@@ -251,10 +263,10 @@ main() {
           await testSuggestor(
             suggestor: GenericMigrator(),
             resolvedContext: sharedContext,
-            input: /*language=dart*/ withOverReactImport('''
+            input: /*language=dart*/ withOverReactImport('''            
                 content() => (Dom.div()
                   ..addProps({})
-                  ..modifyProps(modifier)
+                  ..modifyProps((_) {})
                   ..addTestId("foo")
                 )();
             '''),
@@ -263,7 +275,7 @@ main() {
                   // FIXME(mui_migration) - addProps call - manually verify
                   ..addProps({})
                   // FIXME(mui_migration) - modifyProps call - manually verify
-                  ..modifyProps(modifier)
+                  ..modifyProps((_) {})
                   ..addTestId("foo")
                 )();
             '''),

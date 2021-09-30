@@ -221,15 +221,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
       FluentComponentUsage usage, ResolvedUnitResult result) {
     String errorsMessage() => result.errors.isEmpty
         ? ''
-        : ' \nAnalysis errors in file:\n' +
-            result.errors.map((e) {
-              final severity = e.errorCode.errorSeverity.name.toLowerCase();
-              final errorCode = e.errorCode.name.toLowerCase();
-              final location = result.lineInfo.getLocation(e.offset).toString();
-
-              return " - [$severity] ${e.message} ($errorCode at $location)";
-            }).join('\n') +
-            '\n';
+        : ' \nAnalysis errors in file:\n${prettyPrintErrors(result.errors)}\n';
     //error: Undefined name 'message'. (undefined_identifier at [over_react_codemod] lib/src/util/component_usage_migrator.dart:228)
     final staticType = usage.builder.staticType;
     if (staticType == null || staticType.isDynamic) {

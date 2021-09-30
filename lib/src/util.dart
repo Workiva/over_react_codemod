@@ -21,6 +21,8 @@ import 'dart:collection';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart' show IterableExtension;
@@ -441,4 +443,17 @@ extension TryCast<T> on T {
 
 extension IterableCastHelpers<T> on Iterable<T?> {
   Iterable<T> castNotNull() => cast();
+}
+
+String prettyPrintErrors(Iterable<AnalysisError> errors,
+    {LineInfo? lineInfo, bool includeFilename = true}) {
+  return errors.map((e) {
+    final severity = e.errorCode.errorSeverity.name.toLowerCase();
+    final errorCode = e.errorCode.name.toLowerCase();
+    final location =
+        lineInfo?.getLocation(e.offset).toString() ?? 'offset ${e.offset}';
+    final filename = e.source.shortName;
+
+    return " - [$severity] ${e.message} ($errorCode at${includeFilename ? ' $filename' : ''} $location)";
+  }).join('\n');
 }
