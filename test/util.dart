@@ -137,11 +137,6 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       expectedOutput = expectedOutput.trimRight() + '\n';
 
       test(description, () async {
-        SharedAnalysisContext? resolvedContext;
-        if (shouldResolve) {
-          resolvedContext = SharedAnalysisContext.overReact;
-        }
-
         await testSuggestor(
           suggestor: suggestor,
           input: input,
@@ -149,7 +144,6 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
           expectedPatchCount: expectedNumPatches,
           shouldDartfmtOutput: shouldDartfmtOutput,
           testIdempotency: testIdempotency,
-          resolvedContext: resolvedContext,
           inputUrl: path,
         );
       });
