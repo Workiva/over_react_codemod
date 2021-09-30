@@ -20,6 +20,7 @@ import 'package:glob/glob.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/dependency_validator_suggestors/v1_updater.dart';
 import 'package:over_react_codemod/src/dependency_validator_suggestors/v2_updater.dart';
+import 'package:over_react_codemod/src/dependency_validator_suggestors/v3_updater.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -95,6 +96,18 @@ void main(List<String> args) async {
           [rootPubspec.path], V2DependencyValidatorUpdater(dependencyToUpdate));
       break;
     case 3:
+      final configFiles = [
+        ...filePathsFromGlob(Glob('**/dart_dependency_validator.yaml'))
+      ];
+
+      if (configFiles.isEmpty) {
+        final configFile = File('dart_dependency_validator.yaml');
+        configFile.createSync();
+        configFiles.add(configFile.path);
+      }
+
+      exitCode = await runInteractiveCodemod(
+          configFiles, V3DependencyValidatorUpdater(dependencyToUpdate));
       break;
     default:
       throw UnsupportedError(
