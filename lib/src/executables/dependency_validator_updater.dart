@@ -74,11 +74,13 @@ void main(List<String> args) async {
       rootPubspec.readAsStringSync(), 'dependency_validator');
   final majorVersion = dependencyValidatorVersion?.min?.major;
 
+  // This means that either there is no dependency on `dependency_validator`
+  // or the version couldn't be parsed.
   if (majorVersion == null) {
     exit(0);
   }
 
-  int exitCode = 0;
+  var exitCode = 0;
 
   logger.info(
       'Detected dependency_validator version $dependencyValidatorVersion');
@@ -86,7 +88,7 @@ void main(List<String> args) async {
   switch (majorVersion) {
     case 1:
       exitCode = await runInteractiveCodemod([
-        // Run on files because because there isn't a real limit to witch file
+        // Run on all files because because there isn't a real limit to witch file
         // types may include the command
         ...filePathsFromGlob(Glob('**', recursive: true)),
       ], V1DependencyValidatorUpdater(dependencyToUpdate));
@@ -111,7 +113,7 @@ void main(List<String> args) async {
       break;
     default:
       throw UnsupportedError(
-          'Unexpected version for dependency_validator detected: $majorVersion');
+          'Unexpected version of dependency_validator detected: $majorVersion');
   }
 
   exit(exitCode);

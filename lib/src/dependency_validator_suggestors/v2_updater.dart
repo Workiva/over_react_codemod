@@ -37,7 +37,7 @@ class V2DependencyValidatorUpdater {
         final ignoreList = ignoreListNode.value as YamlList;
 
         if (ignoreList.contains(dependency)) return;
-        pubspec.update([dependencyValidatorKey, 'ignore'],
+        pubspec.update([dependencyValidatorKey, ignoreKey],
             [...ignoreList.toList(), dependency]);
         yield Patch(pubspec.toString(), 0, context.sourceFile.length);
 
@@ -47,7 +47,7 @@ class V2DependencyValidatorUpdater {
           dependencyValidatorKey
         ], {
           ...currentDependencyValidatorConfig,
-          'ignore': [dependency],
+          ignoreKey: [dependency],
         });
         yield Patch(pubspec.toString(), 0, context.sourceFile.length);
       }

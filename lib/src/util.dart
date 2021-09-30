@@ -424,6 +424,8 @@ Iterable<T> allDescendantsOfType<T extends AstNode>(AstNode node) =>
     allDescendants(node).whereType<T>();
 
 /// Finds a dependency within a pubspec and returns the [VersionRange].
+///
+/// NOTE: This logic is not very flexible and doesn't work for hosted dependencies.
 VersionRange? getDependencyVersion(String pubspecContent, String dependency) {
   final dependencyValidatorRegex =
       RegExp('^  $dependency: (.+)\$', multiLine: true);
