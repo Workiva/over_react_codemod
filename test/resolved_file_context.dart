@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
@@ -122,7 +123,7 @@ class SharedAnalysisContext {
       final result = await _printAboutFirstFile(
           () => context.currentSession.getResolvedLibrary2(path));
       if (throwOnAnalysisErrors) {
-        _checkResolvedResultForErrors(result);
+        checkResolvedResultForErrors(result);
       }
     }
 
@@ -162,9 +163,16 @@ class SharedAnalysisContext {
   }
 }
 
-void _checkResolvedResultForErrors(SomeResolvedLibraryResult result) {
+bool _defaultIsExpectedError(_) => false;
+
+void checkResolvedResultForErrors(
+  SomeResolvedLibraryResult result, {
+  bool Function(AnalysisError) isExpectedError = _defaultIsExpectedError,
+}) {
   const sharedMessage =
-      'If analysis errors are expected for this test, set `throwOnAnalysisErrors: false`.';
+      'If analysis errors are expected for this test, set `throwOnAnalysisErrors: false`,'
+      ' and use `checkResolvedResultForErrors` with `isExpectedError`'
+      ' to verify only the expected errors are present.';
 
   if (result is! ResolvedLibraryResult) {
     throw ArgumentError([
@@ -183,7 +191,8 @@ void _checkResolvedResultForErrors(SomeResolvedLibraryResult result) {
 
   final severeErrors = units
       .expand((unit) => unit.errors)
-      .where((element) => element.severity == Severity.error)
+      .where((error) => error.severity == Severity.error)
+      .where((error) => !isExpectedError(error))
       .toList();
   if (severeErrors.isNotEmpty) {
     throw ArgumentError([
