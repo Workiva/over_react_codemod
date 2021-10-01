@@ -31,8 +31,8 @@ class V3DependencyValidatorUpdater {
     if (currentIgnoreList.isNotEmpty) {
       if (currentIgnoreList.contains(dependency)) return;
 
-      config.update([ignoreKey], [...currentIgnoreList.toList(), dependency]);
-      yield Patch(config.toString(), 0, context.sourceFile.length);
+      config.appendToList([ignoreKey], dependency);
+      yield Patch(config.toString(), 0);
     } else {
       yield Patch('$ignoreKey:\n  - $dependency\n', context.sourceFile.length);
     }

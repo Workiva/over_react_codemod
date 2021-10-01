@@ -16,6 +16,7 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:over_react_codemod/src/executables/dependency_validator_updater.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
@@ -152,7 +153,7 @@ void overReactExample() {}''';
       });
     });
 
-    group('getDependencyVersion', () {
+    group('getNonHostedDependencyVersion', () {
       final pubspecContent = ''
           'name: nothing\n'
           'version: 0.0.0\n'
@@ -161,38 +162,54 @@ void overReactExample() {}''';
           '  greater_than_ranged: ">=5.7.8"\n'
           '  less_than_ranged: "<=5.7.8"\n'
           '  intersection: ">=2.3.0 <2.8.0"\n'
+          '  intersection_single_quoted: \'>=2.3.0 <2.8.0\'\n'
           'dev_dependencies:\n'
           '  caret_syntax: ^2.3.4\n'
           '  fixed: 10.2.3\n'
           '';
 
       test('returns null if the dependency is not found', () {
-        expect(getDependencyVersion(pubspecContent, 'a_dependency'), isNull);
+        expect(getNonHostedDependencyVersion(pubspecContent, 'a_dependency'),
+            isNull);
       });
 
       group('identifies the expected version for a dependency that is', () {
         test('"any"', () {
-          expect(getDependencyVersion(pubspecContent, 'any_dependency'),
+          expect(
+              getNonHostedDependencyVersion(pubspecContent, 'any_dependency'),
               VersionConstraint.parse('any'));
         });
         test('fixed', () {
-          expect(getDependencyVersion(pubspecContent, 'fixed'),
+          expect(getNonHostedDependencyVersion(pubspecContent, 'fixed'),
               VersionConstraint.parse('10.2.3'));
         });
         test('using the caret syntax', () {
-          expect(getDependencyVersion(pubspecContent, 'caret_syntax'),
+          expect(getNonHostedDependencyVersion(pubspecContent, 'caret_syntax'),
               VersionConstraint.parse('^2.3.4'));
         });
         test('a greater than range', () {
-          expect(getDependencyVersion(pubspecContent, 'greater_than_ranged'),
+          expect(
+              getNonHostedDependencyVersion(
+                  pubspecContent, 'greater_than_ranged'),
               VersionConstraint.parse('>=5.7.8'));
         });
         test('a less than range', () {
-          expect(getDependencyVersion(pubspecContent, 'less_than_ranged'),
+          expect(
+              getNonHostedDependencyVersion(pubspecContent, 'less_than_ranged'),
               VersionConstraint.parse('<=5.7.8'));
         });
         test('an intersection', () {
-          expect(getDependencyVersion(pubspecContent, 'intersection'),
+          expect(getNonHostedDependencyVersion(pubspecContent, 'intersection'),
+              VersionConstraint.parse('>=2.3.0 <2.8.0'));
+        });
+        test('with double quotes', () {
+          expect(getNonHostedDependencyVersion(pubspecContent, 'intersection'),
+              VersionConstraint.parse('>=2.3.0 <2.8.0'));
+        });
+        test('with single quotes', () {
+          expect(
+              getNonHostedDependencyVersion(
+                  pubspecContent, 'intersection_single_quoted'),
               VersionConstraint.parse('>=2.3.0 <2.8.0'));
         });
       });

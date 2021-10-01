@@ -18,6 +18,7 @@ import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/dependency_validator_suggestors/v1_updater.dart';
 import 'package:over_react_codemod/src/dependency_validator_suggestors/v2_updater.dart';
 import 'package:over_react_codemod/src/dependency_validator_suggestors/v3_updater.dart';
@@ -68,10 +69,11 @@ void main(List<String> args) async {
     }
   });
 
-  final String dependencyToUpdate = parsedArgs[_dependency];
+  final dependencyToUpdate = parsedArgs[_dependency] as String;
   final rootPubspec = File('pubspec.yaml');
-  final VersionRange? dependencyValidatorVersion = getDependencyVersion(
-      rootPubspec.readAsStringSync(), 'dependency_validator');
+  final VersionRange? dependencyValidatorVersion =
+      getNonHostedDependencyVersion(
+          rootPubspec.readAsStringSync(), 'dependency_validator');
   final majorVersion = dependencyValidatorVersion?.min?.major;
 
   // This means that either there is no dependency on `dependency_validator`
@@ -117,4 +119,22 @@ void main(List<String> args) async {
   }
 
   exit(exitCode);
+}
+
+/// Finds a dependency within a pubspec and returns the [VersionRange].
+///
+/// NOTE: This logic is not very flexible and doesn't work for hosted dependencies.
+@visibleForTesting
+VersionRange? getNonHostedDependencyVersion(
+    String pubspecContent, String dependency) {
+  final dependencyValidatorRegex =
+      RegExp('^ {2,}$dependency: *(.+)\$', multiLine: true);
+  final dependencyMatch = dependencyValidatorRegex.firstMatch(pubspecContent);
+  if (dependencyMatch == null) return null;
+
+  final versionString = dependencyMatch.group(1);
+
+  if (versionString == null) return null;
+
+  return parseVersionRange(versionString.replaceAll(RegExp("'|\""), ''));
 }

@@ -35,20 +35,15 @@ main() {
     final testSuggestor =
         getSuggestorTester(V1DependencyValidatorUpdater(addedDependency));
 
-    void sharedCommandTests(String context) {
-      group(context, () {
-        final contextWrapper = contexts[context];
-
-        if (contextWrapper == null) {
-          throw ArgumentError('Bad context');
-        }
-
+    void sharedCommandTests(String contextName,
+        String Function(String command) getCommandWithinContext) {
+      group(contextName, () {
         test('makes no updates when there is no command', () async {
           await testSuggestor(
             shouldDartfmtOutput: false,
             expectedPatchCount: 0,
-            input: contextWrapper('dart format .'),
-            expectedOutput: contextWrapper('dart format .'),
+            input: getCommandWithinContext('dart format .'),
+            expectedOutput: getCommandWithinContext('dart format .'),
           );
         });
 
@@ -57,18 +52,18 @@ main() {
             await testSuggestor(
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
-                input: contextWrapper(depValidatorCommand),
-                expectedOutput:
-                    contextWrapper('$depValidatorCommand -i $addedDependency'));
+                input: getCommandWithinContext(depValidatorCommand),
+                expectedOutput: getCommandWithinContext(
+                    '$depValidatorCommand -i $addedDependency'));
           });
 
           test('the exclude flag is present', () async {
             await testSuggestor(
               shouldDartfmtOutput: false,
               expectedPatchCount: 1,
-              input:
-                  contextWrapper('$depValidatorCommand -x app/,bin/,random/'),
-              expectedOutput: contextWrapper(
+              input: getCommandWithinContext(
+                  '$depValidatorCommand -x app/,bin/,random/'),
+              expectedOutput: getCommandWithinContext(
                   '$depValidatorCommand -i $addedDependency -x app/,bin/,random/'),
             );
           });
@@ -77,9 +72,9 @@ main() {
             await testSuggestor(
               shouldDartfmtOutput: false,
               expectedPatchCount: 1,
-              input: contextWrapper(
+              input: getCommandWithinContext(
                   '$depValidatorCommand --no-fatal-unused -x app/,bin/,random/ --no-fatal-missing'),
-              expectedOutput: contextWrapper(
+              expectedOutput: getCommandWithinContext(
                   '$depValidatorCommand -i $addedDependency --no-fatal-unused -x app/,bin/,random/ --no-fatal-missing'),
             );
           });
@@ -89,9 +84,21 @@ main() {
               await testSuggestor(
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
-                input: contextWrapper('$depValidatorCommand -i over_react'),
-                expectedOutput: contextWrapper(
+                input: getCommandWithinContext(
+                    '$depValidatorCommand -i over_react'),
+                expectedOutput: getCommandWithinContext(
                     '$depValidatorCommand -i over_react,$addedDependency'),
+              );
+            });
+
+            test('using `-i with no space`', () async {
+              await testSuggestor(
+                shouldDartfmtOutput: false,
+                expectedPatchCount: 1,
+                input: getCommandWithinContext(
+                    '$depValidatorCommand -iover_react'),
+                expectedOutput: getCommandWithinContext(
+                    '$depValidatorCommand -iover_react,$addedDependency'),
               );
             });
 
@@ -99,9 +106,9 @@ main() {
               await testSuggestor(
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
-                input:
-                    contextWrapper('$depValidatorCommand --ignore over_react'),
-                expectedOutput: contextWrapper(
+                input: getCommandWithinContext(
+                    '$depValidatorCommand --ignore over_react'),
+                expectedOutput: getCommandWithinContext(
                     '$depValidatorCommand --ignore over_react,$addedDependency'),
               );
             });
@@ -110,9 +117,9 @@ main() {
               await testSuggestor(
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
-                input:
-                    contextWrapper('$depValidatorCommand --ignore=over_react'),
-                expectedOutput: contextWrapper(
+                input: getCommandWithinContext(
+                    '$depValidatorCommand --ignore=over_react'),
+                expectedOutput: getCommandWithinContext(
                     '$depValidatorCommand --ignore=over_react,$addedDependency'),
               );
             });
@@ -121,8 +128,9 @@ main() {
               await testSuggestor(
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
-                input: contextWrapper('$depValidatorCommand -i over_react,'),
-                expectedOutput: contextWrapper(
+                input: getCommandWithinContext(
+                    '$depValidatorCommand -i over_react,'),
+                expectedOutput: getCommandWithinContext(
                     '$depValidatorCommand -i over_react,$addedDependency'),
               );
             });
@@ -131,9 +139,9 @@ main() {
               await testSuggestor(
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
-                input: contextWrapper(
+                input: getCommandWithinContext(
                     '$depValidatorCommand -i over_react -x app/,bin/,random/ --no-fatal-missing'),
-                expectedOutput: contextWrapper(
+                expectedOutput: getCommandWithinContext(
                     '$depValidatorCommand -i over_react,$addedDependency -x app/,bin/,random/ --no-fatal-missing'),
               );
             });
@@ -142,9 +150,9 @@ main() {
               await testSuggestor(
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
-                input: contextWrapper(
+                input: getCommandWithinContext(
                     '$depValidatorCommand -x app/,bin/,random/ --no-fatal-missing -i over_react'),
-                expectedOutput: contextWrapper(
+                expectedOutput: getCommandWithinContext(
                     '$depValidatorCommand -x app/,bin/,random/ --no-fatal-missing -i over_react,$addedDependency'),
               );
             });
@@ -154,10 +162,23 @@ main() {
               await testSuggestor(
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
-                input: contextWrapper(
+                input: getCommandWithinContext(
                     '$depValidatorCommand -x app/,bin/,random/ -i over_react --no-fatal-missing'),
-                expectedOutput: contextWrapper(
+                expectedOutput: getCommandWithinContext(
                     '$depValidatorCommand -x app/,bin/,random/ -i over_react,$addedDependency --no-fatal-missing'),
+              );
+            });
+
+            test(
+                'when the dependency name is part of an existing ignore dependency',
+                () async {
+              await testSuggestor(
+                shouldDartfmtOutput: false,
+                expectedPatchCount: 1,
+                input: getCommandWithinContext(
+                    '$depValidatorCommand -i ${addedDependency}_plus_more'),
+                expectedOutput: getCommandWithinContext(
+                    '$depValidatorCommand -i ${addedDependency}_plus_more,$addedDependency'),
               );
             });
           });
@@ -166,18 +187,17 @@ main() {
     }
 
     group('within the context', () {
-      for (final context in contexts.keys) {
-        sharedCommandTests(context);
-      }
+      contexts.forEach(sharedCommandTests);
     });
 
     test('adds to all locations within a file', () async {
-      final context = contexts['basic-dockerfile'];
+      final getCommandWithinContext = contexts['basic-dockerfile'];
       await testSuggestor(
           shouldDartfmtOutput: false,
           expectedPatchCount: 2,
-          input: context!('$depValidatorCommand\n$depValidatorCommand'),
-          expectedOutput: context(
+          input: getCommandWithinContext!(
+              '$depValidatorCommand\n$depValidatorCommand'),
+          expectedOutput: getCommandWithinContext(
               '$depValidatorCommand -i $addedDependency\n$depValidatorCommand -i $addedDependency'));
     });
 

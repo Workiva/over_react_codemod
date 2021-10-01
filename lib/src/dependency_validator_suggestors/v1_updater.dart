@@ -24,7 +24,7 @@ class V1DependencyValidatorUpdater {
 
     const command = 'pub run dependency_validator';
 
-    final commandPattern = RegExp('$command(.*)');
+    final commandPattern = RegExp('${RegExp.escape(command)}(.*)');
     final ignoreArgPattern = RegExp(r"(?:-i ?|--ignore[= ])([^ ']+)");
 
     final commandMatch = commandPattern.allMatches(fileContent);
@@ -56,7 +56,8 @@ class V1DependencyValidatorUpdater {
         final dependenciesListOffset =
             ignoreArgMatches.first.group(0)!.indexOf(ignoreArgMatch);
 
-        if (ignoreArgMatch.contains(dependency)) {
+        final ignoredPackages = ignoreArgMatch.split(',');
+        if (ignoredPackages.contains(dependency)) {
           return;
         }
 

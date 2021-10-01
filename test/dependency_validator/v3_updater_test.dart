@@ -39,11 +39,15 @@ main() {
           shouldDartfmtOutput: false,
           expectedPatchCount: 1,
           input: ''
+              '# a comment above exclude\n'
               'exclude:\n'
+              '  # a comment above an excluded directory\n'
               '  - app\n'
               '',
           expectedOutput: ''
+              '# a comment above exclude\n'
               'exclude:\n'
+              '  # a comment above an excluded directory\n'
               '  - app\n'
               'ignore:\n'
               '  - $addedDependency\n'
@@ -56,15 +60,21 @@ main() {
           shouldDartfmtOutput: false,
           expectedPatchCount: 1,
           input: ''
+              '# a comment above exclude\n'
               'exclude:\n'
+              '  # a comment above an excluded directory\n'
               '  - app\n'
               'ignore:\n'
+              '  # a comment above a specific dependency\n'
               '  - a_dependency\n'
               '',
           expectedOutput: ''
+              '# a comment above exclude\n'
               'exclude:\n'
+              '  # a comment above an excluded directory\n'
               '  - app\n'
-              'ignore: \n'
+              'ignore:\n'
+              '  # a comment above a specific dependency\n'
               '  - a_dependency\n'
               '  - $addedDependency\n'
               '');
@@ -75,9 +85,12 @@ main() {
           shouldDartfmtOutput: false,
           expectedPatchCount: 0,
           input: ''
+              '# a comment above exclude\n'
               'exclude:\n'
+              '  # a comment above an excluded directory\n'
               '  - app\n'
               'ignore:\n'
+              '  # a comment above a specific dependency\n'
               '  - a_dependency\n'
               '  - $addedDependency\n'
               '');

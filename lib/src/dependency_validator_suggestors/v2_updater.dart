@@ -37,25 +37,26 @@ class V2DependencyValidatorUpdater {
         final ignoreList = ignoreListNode.value as YamlList;
 
         if (ignoreList.contains(dependency)) return;
-        pubspec.update([dependencyValidatorKey, ignoreKey],
-            [...ignoreList.toList(), dependency]);
-        yield Patch(pubspec.toString(), 0, context.sourceFile.length);
+        pubspec.appendToList([dependencyValidatorKey, ignoreKey], dependency);
+        yield Patch(pubspec.toString(), 0);
 
         // This case adds to any config that does not have an ignore list
       } else {
-        pubspec.update([
-          dependencyValidatorKey
-        ], {
-          ...currentDependencyValidatorConfig,
-          ignoreKey: [dependency],
-        });
-        yield Patch(pubspec.toString(), 0, context.sourceFile.length);
+        pubspec.update(
+          [dependencyValidatorKey, ignoreKey],
+          [dependency],
+        );
+        yield Patch(pubspec.toString(), 0);
       }
       // If there is no existing "dependency_validator" tag, `YamlEdit` cannot add one, so
       // we just add a new "dependency_validator" config to the end of the file
     } else {
+      var prependNewLine = true;
+
+      if (context.sourceFile.length == 0) prependNewLine = false;
+
       yield Patch(
-          '$dependencyValidatorKey:\n  $ignoreKey:\n    - $dependency\n',
+          '${prependNewLine ? '\n' : ''}$dependencyValidatorKey:\n  $ignoreKey:\n    - $dependency\n',
           context.sourceFile.length);
     }
   }
