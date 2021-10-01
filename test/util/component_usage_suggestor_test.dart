@@ -12,7 +12,6 @@ main() {
 
     setUpAll(() async {
       sharedContext = SharedAnalysisContext.overReact;
-      await sharedContext.init();
     });
 
     group('identifies web_skin_dart component usages', () {});

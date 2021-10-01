@@ -26,6 +26,8 @@ class SharedAnalysisContext {
       SharedAnalysisContext(p.join(_testFixturePath, 'wsd_project'));
 
   final String projectRoot;
+  late final AnalysisContextCollection collection;
+  bool _isInitialized = false;
 
   SharedAnalysisContext(this.projectRoot) {
     if (!p.isAbsolute(projectRoot)) {
@@ -33,32 +35,37 @@ class SharedAnalysisContext {
     }
   }
 
-  static const testFileSubpath = 'lib/dynamic_test_files';
+  static const _testFileSubpath = 'lib/dynamic_test_files';
 
-  late AnalysisContextCollection collection;
+  Future<void> _initIfNeeded() async {
+    if (!_isInitialized) {
+      print('Cleaning up files from previous runs...');
+      Directory(p.join(projectRoot, _testFileSubpath))
+          .deleteSyncIfExists(recursive: true);
 
-  static const warmUpAnalysis = false;
+      await runPubGetIfNeeded(projectRoot);
 
-  Future<void> init() async {
-    print('Cleaning up old files...');
-    // fixme throw state error if this is called twice. Perhaps run this automatically?
-    Directory(p.join(projectRoot, testFileSubpath))
-        .deleteSyncIfExists(recursive: true);
+      collection = AnalysisContextCollection(
+        includedPaths: [projectRoot],
+      );
 
-    await runPubGetIfNeeded(projectRoot);
-
-    collection = AnalysisContextCollection(
-      includedPaths: [projectRoot],
-    );
-    if (warmUpAnalysis) {
-      print('Warming up up AnalysisContextCollection...');
-      final path = p.join(projectRoot, 'lib/analysis_warmup.dart');
-      await collection
-          .contextFor(path)
-          .currentSession
-          .getResolvedLibrary2(path);
-      print('Done.');
+      _isInitialized = true;
     }
+  }
+
+  /// Warms up the AnalysisContextCollection by getting the resolved library for
+  /// `lib/analysis_warmup.dart` in the project.
+  ///
+  /// This is useful to run in a setUpAll so that the first test resolving a file
+  /// doesn't take abnormally long (e.g., if having consistent test times is
+  /// important, or if the first test might have a short timeout).
+  Future<void> warmUpAnalysis() async {
+    await _initIfNeeded();
+    print('Warming up the AnalysisContextCollection...');
+    final path = p.join(projectRoot, 'lib/analysis_warmup.dart');
+    await collection.contextFor(path).currentSession.getResolvedLibrary2(path);
+    print('Done.');
+    _shouldPrintFirstFileWarning = false;
   }
 
   Future<List<Patch>> getPatches(
@@ -84,6 +91,8 @@ class SharedAnalysisContext {
     bool preResolveFile = true,
     bool throwOnAnalysisErrors = true,
   }) async {
+    await _initIfNeeded();
+
     filename ??= nextFilename();
 
     if (includeTestDescription) {
@@ -100,7 +109,7 @@ class SharedAnalysisContext {
       } catch (_) {}
     }
 
-    final path = p.join(projectRoot, testFileSubpath, filename);
+    final path = p.join(projectRoot, _testFileSubpath, filename);
     final file = File(path);
     if (file.existsSync()) {
       throw StateError('File already exists.'
@@ -138,7 +147,7 @@ class SharedAnalysisContext {
 
   String nextFilename() => 'test_${_fileNameCounter++}.dart';
 
-  bool _shouldPrintFirstFileWarning = !warmUpAnalysis;
+  bool _shouldPrintFirstFileWarning = true;
 
   /// We can't intelligently warn only when this is taking too long since
   /// getResolvedLibrary2 blocks the main thread for a long period of time,
