@@ -70,7 +70,7 @@ main() {
             dynamic builder3() {}
             usage3_1() => Foo3()();
             usage3_2() => builder3();
-       ''';
+        ''';
 
         final migrator = GenericMigrator(
           migrateUsage: boundExpectAsync2((_, __) {},
@@ -149,14 +149,14 @@ main() {
     group('common usage flagging', () {
       group('of untyped props:', () {
         const constantsSource = /*language=dart*/ '''
-        
-          const dataFooConst = 'data-foo';
-          const somethingElseConst = 'somethingElse';
-          
-          class Foo {
-            static const dataFooConst = 'data-foo';
-            static const somethingElseConst = 'somethingElse';
-          }
+
+            const dataFooConst = 'data-foo';
+            const somethingElseConst = 'somethingElse';
+
+            class Foo {
+              static const dataFooConst = 'data-foo';
+              static const somethingElseConst = 'somethingElse';
+            }
         ''';
 
         test('does not flag valid usages', () async {
@@ -371,11 +371,11 @@ void yieldAddPropPatchTests() {
       }),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
-            content() => Dom.div()();
-        '''),
+          content() => Dom.div()();
+      '''),
       expectedOutput: withOverReactImport(/*language=dart*/ '''
-            content() => (Dom.div()..foo = "foo")();
-        '''),
+          content() => (Dom.div()..foo = "foo")();
+      '''),
     );
   });
 
@@ -389,14 +389,14 @@ void yieldAddPropPatchTests() {
       }),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
-            content() => Dom.div()();
-        '''),
+          content() => Dom.div()();
+      '''),
       expectedOutput: withOverReactImport(/*language=dart*/ '''
-            content() => ((Dom.div()
-              ..foo = "foo"
-              ..bar = "bar"
-            ))();
-        '''),
+          content() => ((Dom.div()
+            ..foo = "foo"
+            ..bar = "bar"
+          ))();
+      '''),
     );
   });
 
@@ -407,11 +407,11 @@ void yieldAddPropPatchTests() {
       }),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
-              content() => (Dom.div())();
-          '''),
+          content() => (Dom.div())();
+      '''),
       expectedOutput: withOverReactImport(/*language=dart*/ '''
-              content() => (Dom.div()..foo = "foo")();
-          '''),
+          content() => (Dom.div()..foo = "foo")();
+      '''),
     );
   });
 
@@ -427,14 +427,14 @@ void yieldAddPropPatchTests() {
       }),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
-            content() => (Dom.div()..id = "some_id")();
-        '''),
+          content() => (Dom.div()..id = "some_id")();
+      '''),
       expectedOutput: withOverReactImport(/*language=dart*/ '''
-            content() => (Dom.div()
-              ..id = "some_id"
-              ..foo = "foo"
-            )();
-        '''),
+          content() => (Dom.div()
+            ..id = "some_id"
+            ..foo = "foo"
+          )();
+      '''),
     );
   });
 
@@ -450,18 +450,18 @@ void yieldAddPropPatchTests() {
       }),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
-            content() => (Dom.div()
-              // This comment puts this cascaded prop on a separate line
-              ..id = "some_id"
-            )();
-        '''),
+          content() => (Dom.div()
+            // This comment puts this cascaded prop on a separate line
+            ..id = "some_id"
+          )();
+      '''),
       expectedOutput: withOverReactImport(/*language=dart*/ '''
-            content() => (Dom.div()
-              // This comment puts this cascaded prop on a separate line
-              ..id = "some_id"
-              ..foo = "foo"
-            )();
-        '''),
+          content() => (Dom.div()
+            // This comment puts this cascaded prop on a separate line
+            ..id = "some_id"
+            ..foo = "foo"
+          )();
+      '''),
     );
   });
 
@@ -472,18 +472,18 @@ void yieldAddPropPatchTests() {
       }),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
-            content() => (Dom.div()
-              ..id = "some_id"
-              ..onClick = (_) {}
-            )();
-        '''),
+          content() => (Dom.div()
+            ..id = "some_id"
+            ..onClick = (_) {}
+          )();
+      '''),
       expectedOutput: withOverReactImport(/*language=dart*/ '''
-            content() => (Dom.div()
-              ..id = "some_id"
-              ..onClick = (_) {}
-              ..foo = "foo"
-            )();
-        '''),
+          content() => (Dom.div()
+            ..id = "some_id"
+            ..onClick = (_) {}
+            ..foo = "foo"
+          )();
+      '''),
     );
   });
 
@@ -510,18 +510,18 @@ void yieldRemovePropPatchTests() {
         }),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
-              content() => (Dom.div()
-                ..id = "some_id"
-                ..onClick = (_) {}
-                ..title = "title"
-              )();
-          '''),
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..onClick = (_) {}
+              ..title = "title"
+            )();
+        '''),
         expectedOutput: withOverReactImport(/*language=dart*/ '''
-              content() => (Dom.div()
-                ..onClick = (_) {}
-                ..title = "title"
-              )();
-          '''),
+            content() => (Dom.div()
+              ..onClick = (_) {}
+              ..title = "title"
+            )();
+        '''),
       );
     });
 
@@ -532,18 +532,18 @@ void yieldRemovePropPatchTests() {
         }),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
-              content() => (Dom.div()
-                ..id = "some_id"
-                ..onClick = (_) {}
-                ..title = "title"
-              )();
-          '''),
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..onClick = (_) {}
+              ..title = "title"
+            )();
+        '''),
         expectedOutput: withOverReactImport(/*language=dart*/ '''
-              content() => (Dom.div()
-                ..id = "some_id"
-                ..title = "title"
-              )();
-          '''),
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..title = "title"
+            )();
+        '''),
       );
     });
 
@@ -554,18 +554,18 @@ void yieldRemovePropPatchTests() {
         }),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
-              content() => (Dom.div()
-                ..id = "some_id"
-                ..onClick = (_) {}
-                ..title = "title"
-              )();
-          '''),
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..onClick = (_) {}
+              ..title = "title"
+            )();
+        '''),
         expectedOutput: withOverReactImport(/*language=dart*/ '''
-              content() => (Dom.div()
-                ..id = "some_id"
-                ..onClick = (_) {}
-              )();
-          '''),
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..onClick = (_) {}
+            )();
+        '''),
       );
     });
   });
@@ -577,13 +577,13 @@ void yieldRemovePropPatchTests() {
       }),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
-            content() => (Dom.div()
-              ..id = "some_id"
-            )();
-        '''),
+          content() => (Dom.div()
+            ..id = "some_id"
+          )();
+      '''),
       expectedOutput: withOverReactImport(/*language=dart*/ '''
-            content() => (Dom.div())();
-        '''),
+          content() => (Dom.div())();
+      '''),
     );
   });
 }
@@ -596,25 +596,25 @@ void yieldRemoveChildPatchTests() {
       }),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
-            content() => [
-              Dom.div()('single child'),
-              Dom.div()(
-                'single child with trailing comma',
-              ),
-              Dom.div()(['single child in list']),
-              Dom.div()([
-                'single child in list with trailing comma',
-              ]),
-            ];
-        '''),
+          content() => [
+            Dom.div()('single child'),
+            Dom.div()(
+              'single child with trailing comma',
+            ),
+            Dom.div()(['single child in list']),
+            Dom.div()([
+              'single child in list with trailing comma',
+            ]),
+          ];
+      '''),
       expectedOutput: withOverReactImport(/*language=dart*/ '''
-            content() => [
-              Dom.div()(),
-              Dom.div()(),
-              Dom.div()([]),
-              Dom.div()([]),
-            ];
-        '''),
+          content() => [
+            Dom.div()(),
+            Dom.div()(),
+            Dom.div()([]),
+            Dom.div()([]),
+          ];
+      '''),
     );
   });
 
@@ -626,31 +626,31 @@ void yieldRemoveChildPatchTests() {
         }),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
-              content() => [
-                Dom.div()('first child', 'second child'),
-                Dom.div()(
-                  'first child', 
-                  'second child with trailing comma',
-                ),
-                Dom.div()(['first child in list', 'second child in list']),
-                Dom.div()([
-                  'first child in list',
-                  'second child in list with trailing comma',
-                ]),
-              ];
-          '''),
+            content() => [
+              Dom.div()('first child', 'second child'),
+              Dom.div()(
+                'first child', 
+                'second child with trailing comma',
+              ),
+              Dom.div()(['first child in list', 'second child in list']),
+              Dom.div()([
+                'first child in list',
+                'second child in list with trailing comma',
+              ]),
+            ];
+        '''),
         expectedOutput: withOverReactImport(/*language=dart*/ '''
-              content() => [
-                Dom.div()('first child'),
-                Dom.div()(
-                  'first child',
-                ),
-                Dom.div()(['first child in list']),
-                Dom.div()([
-                  'first child in list',
-                ]),
-              ];
-          '''),
+            content() => [
+              Dom.div()('first child'),
+              Dom.div()(
+                'first child',
+              ),
+              Dom.div()(['first child in list']),
+              Dom.div()([
+                'first child in list',
+              ]),
+            ];
+        '''),
       );
     });
 
@@ -661,31 +661,31 @@ void yieldRemoveChildPatchTests() {
         }),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
-              content() => [
-                Dom.div()('first child', 'second child'),
-                Dom.div()(
-                  'first child', 
-                  'second child with trailing comma',
-                ),
-                Dom.div()(['first child in list', 'second child in list']),
-                Dom.div()([
-                  'first child in list',
-                  'second child in list with trailing comma',
-                ]),
-              ];
-          '''),
+            content() => [
+              Dom.div()('first child', 'second child'),
+              Dom.div()(
+                'first child', 
+                'second child with trailing comma',
+              ),
+              Dom.div()(['first child in list', 'second child in list']),
+              Dom.div()([
+                'first child in list',
+                'second child in list with trailing comma',
+              ]),
+            ];
+        '''),
         expectedOutput: withOverReactImport(/*language=dart*/ '''
-              content() => [
-                Dom.div()('second child'),
-                Dom.div()(
-                  'second child with trailing comma',
-                ),
-                Dom.div()(['second child in list']),
-                Dom.div()([
-                  'second child in list with trailing comma',
-                ]),
-              ];
-          '''),
+            content() => [
+              Dom.div()('second child'),
+              Dom.div()(
+                'second child with trailing comma',
+              ),
+              Dom.div()(['second child in list']),
+              Dom.div()([
+                'second child in list with trailing comma',
+              ]),
+            ];
+        '''),
       );
     });
   });
@@ -701,8 +701,8 @@ void yieldPropPatchTests() {
                 .havingToStringValue(contains('either newName or newRhs'))));
       })),
       withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()..id = "some_id" )();
-            '''),
+          content() => (Dom.div()..id = "some_id" )();
+      '''),
     );
   });
 
@@ -719,20 +719,20 @@ void yieldPropPatchTests() {
       }),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()
-                  ..id = "some_id"
-                  ..title = "some_id"
-                  ..onClick = (_) {}
-                )();
-            '''),
+          content() => (Dom.div()
+            ..id = "some_id"
+            ..title = "some_id"
+            ..onClick = (_) {}
+          )();
+      '''),
       expectedOutput: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()
-                  ..newName0 = "some_id"
-                  ..title = newRhs1
-                  ..newName2 = newRhs2
-                  ..additionalCascade
-                )();
-            '''),
+          content() => (Dom.div()
+            ..newName0 = "some_id"
+            ..title = newRhs1
+            ..newName2 = newRhs2
+            ..additionalCascade
+          )();
+      '''),
     );
   });
 }
