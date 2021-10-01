@@ -1,4 +1,5 @@
 import 'package:codemod/codemod.dart';
+import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 import 'package:test/test.dart';
@@ -6,14 +7,10 @@ import 'package:test/test.dart';
 import '../resolved_file_context.dart';
 import '../util.dart';
 
+final sharedContext = SharedAnalysisContext.overReact;
+
 main() {
   group('ComponentUsageMigrator', () {
-    late SharedAnalysisContext sharedContext;
-
-    setUpAll(() async {
-      sharedContext = SharedAnalysisContext.overReact;
-    });
-
     group('identifies web_skin_dart component usages', () {});
 
     group('throws when a component usage is not resolved', () {
@@ -344,276 +341,9 @@ main() {
         // fixme add tests
       });
 
-      group('yieldAddPropPatch adds a prop', () {
-        test('when the builder is not parenthesized', () async {
-          await testSuggestor(
-            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-              migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-            }),
-            resolvedContext: sharedContext,
-            input: withOverReactImport(/*language=dart*/ '''
-                content() => Dom.div()();
-            '''),
-            expectedOutput: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()..foo = "foo")();
-            '''),
-          );
-        });
-
-        test(
-            'when the builder is not parenthesized and yieldAddPropPatch is called more than once',
-            () async {
-          await testSuggestor(
-            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-              migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-              migrator.yieldAddPropPatch(usage, '..bar = "bar"');
-            }),
-            resolvedContext: sharedContext,
-            input: withOverReactImport(/*language=dart*/ '''
-                content() => Dom.div()();
-            '''),
-            expectedOutput: withOverReactImport(/*language=dart*/ '''
-                content() => ((Dom.div()
-                  ..foo = "foo"
-                  ..bar = "bar"
-                ))();
-            '''),
-          );
-        });
-
-        test('when the builder is parenthesized with no cascade', () async {
-          await testSuggestor(
-            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-              migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-            }),
-            resolvedContext: sharedContext,
-            input: withOverReactImport(/*language=dart*/ '''
-                  content() => (Dom.div())();
-              '''),
-            expectedOutput: withOverReactImport(/*language=dart*/ '''
-                  content() => (Dom.div()..foo = "foo")();
-              '''),
-          );
-        });
-
-        test('when the builder has a single cascade on one line', () async {
-          await testSuggestor(
-            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-              final getLine = migrator.context.sourceFile.getLine;
-              expect(getLine(usage.cascadeSections.single.offset),
-                  getLine(usage.builder.offset),
-                  reason: 'cascade and builder should be on the same line');
-
-              migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-            }),
-            resolvedContext: sharedContext,
-            input: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()..id = "some_id")();
-            '''),
-            expectedOutput: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()
-                  ..id = "some_id"
-                  ..foo = "foo"
-                )();
-            '''),
-          );
-        });
-
-        test('when the builder has a single cascade on a new line', () async {
-          await testSuggestor(
-            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-              final getLine = migrator.context.sourceFile.getLine;
-              expect(getLine(usage.cascadeSections.single.offset),
-                  isNot(getLine(usage.builder.offset)),
-                  reason: 'cascade and builder should not be on the same line');
-
-              migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-            }),
-            resolvedContext: sharedContext,
-            input: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()
-                  // This comment puts this cascaded prop on a separate line
-                  ..id = "some_id"
-                )();
-            '''),
-            expectedOutput: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()
-                  // This comment puts this cascaded prop on a separate line
-                  ..id = "some_id"
-                  ..foo = "foo"
-                )();
-            '''),
-          );
-        });
-
-        test('when the builder has multiple cascaded sections', () async {
-          await testSuggestor(
-            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-              migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-            }),
-            resolvedContext: sharedContext,
-            input: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()
-                  ..id = "some_id"
-                  ..onClick = (_) {}
-                )();
-            '''),
-            expectedOutput: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()
-                  ..id = "some_id"
-                  ..onClick = (_) {}
-                  ..foo = "foo"
-                )();
-            '''),
-          );
-        });
-
-        group('automatically places a prop in the best location', () {
-          // fixme add tests
-          // various test cases
-        });
-
-        test('when placement is placement is NewPropPlacement.start', () {
-          // fixme add tests
-        });
-
-        test('when placement is placement is NewPropPlacement.end', () {
-          // fixme add tests
-        });
-      });
-
-      group('yieldRemovePropPatch', () {
-        group('when the builder has more than one cascade section', () {
-          test('and the first prop is removed', () async {
-            await testSuggestor(
-              suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-                migrator.yieldRemovePropPatch(usage.cascadedProps.first);
-              }),
-              resolvedContext: sharedContext,
-              input: withOverReactImport(/*language=dart*/ '''
-                  content() => (Dom.div()
-                    ..id = "some_id"
-                    ..onClick = (_) {}
-                    ..title = "title"
-                  )();
-              '''),
-              expectedOutput: withOverReactImport(/*language=dart*/ '''
-                  content() => (Dom.div()
-                    ..onClick = (_) {}
-                    ..title = "title"
-                  )();
-              '''),
-            );
-          });
-
-          test('and a middle prop is removed', () async {
-            await testSuggestor(
-              suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-                migrator.yieldRemovePropPatch(usage.cascadedProps.elementAt(1));
-              }),
-              resolvedContext: sharedContext,
-              input: withOverReactImport(/*language=dart*/ '''
-                  content() => (Dom.div()
-                    ..id = "some_id"
-                    ..onClick = (_) {}
-                    ..title = "title"
-                  )();
-              '''),
-              expectedOutput: withOverReactImport(/*language=dart*/ '''
-                  content() => (Dom.div()
-                    ..id = "some_id"
-                    ..title = "title"
-                  )();
-              '''),
-            );
-          });
-
-          test('and the last prop is removed', () async {
-            await testSuggestor(
-              suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-                migrator.yieldRemovePropPatch(usage.cascadedProps.last);
-              }),
-              resolvedContext: sharedContext,
-              input: withOverReactImport(/*language=dart*/ '''
-                  content() => (Dom.div()
-                    ..id = "some_id"
-                    ..onClick = (_) {}
-                    ..title = "title"
-                  )();
-              '''),
-              expectedOutput: withOverReactImport(/*language=dart*/ '''
-                  content() => (Dom.div()
-                    ..id = "some_id"
-                    ..onClick = (_) {}
-                  )();
-              '''),
-            );
-          });
-        });
-
-        test('when the builder has a single prop', () async {
-          await testSuggestor(
-            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-              migrator.yieldRemovePropPatch(usage.cascadedProps.single);
-            }),
-            resolvedContext: sharedContext,
-            input: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()
-                  ..id = "some_id"
-                )();
-            '''),
-            expectedOutput: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div())();
-            '''),
-          );
-        });
-      });
-
-      group('yieldPropPatch', () {
-        test('throws if neither arguments are specified', () async {
-          await sharedContext.getPatches(
-            GenericMigrator(migrateUsage: boundExpectAsync2((migrator, usage) {
-              expect(
-                  () => migrator.yieldPropPatch(usage.cascadedProps.first),
-                  throwsA(isArgumentError.havingToStringValue(
-                      contains('either newName or newRhs'))));
-            })),
-            withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()..id = "some_id" )();
-            '''),
-          );
-        });
-
-        test('inserts content', () async {
-          await testSuggestor(
-            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-              final propAt = usage.cascadedProps.elementAt;
-              migrator.yieldPropPatch(propAt(0), newName: 'newName0');
-              migrator.yieldPropPatch(propAt(1), newRhs: 'newRhs1');
-              migrator.yieldPropPatch(propAt(2),
-                  newName: 'newName2',
-                  newRhs: 'newRhs2',
-                  additionalCascadeSection: '..additionalCascade');
-            }),
-            resolvedContext: sharedContext,
-            input: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()
-                  ..id = "some_id"
-                  ..title = "some_id"
-                  ..onClick = (_) {}
-                )();
-            '''),
-            expectedOutput: withOverReactImport(/*language=dart*/ '''
-                content() => (Dom.div()
-                  ..newName0 = "some_id"
-                  ..title = newRhs1
-                  ..newName2 = newRhs2
-                  ..additionalCascade
-                )();
-            '''),
-          );
-        });
-      });
+      group('yieldAddPropPatch', yieldAddPropPatchTests);
+      group('yieldRemovePropPatch', yieldRemovePropPatchTests);
+      group('yieldPropPatch', yieldPropPatchTests);
 
       group('yieldPropManualVerificationPatch', () {
         // fixme add tests
@@ -627,109 +357,383 @@ main() {
         // fixme add tests
       });
 
-      group('yieldRemoveChildPatch', () {
-        test('when it is the only child', () async {
-          await testSuggestor(
-            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-              migrator.yieldRemoveChildPatch(usage.children.single.node);
-            }),
-            resolvedContext: sharedContext,
-            input: withOverReactImport(/*language=dart*/ '''
-                content() => [
-                  Dom.div()('single child'),
-                  Dom.div()(
-                    'single child with trailing comma',
-                  ),
-                  Dom.div()(['single child in list']),
-                  Dom.div()([
-                    'single child in list with trailing comma',
-                  ]),
-                ];
-            '''),
-            expectedOutput: withOverReactImport(/*language=dart*/ '''
-                content() => [
-                  Dom.div()(),
-                  Dom.div()(),
-                  Dom.div()([]),
-                  Dom.div()([]),
-                ];
-            '''),
-          );
-        });
-
-        group('when there are multiple children', () {
-          test('last child', () async {
-            await testSuggestor(
-              suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-                migrator.yieldRemoveChildPatch(usage.children.last.node);
-              }),
-              resolvedContext: sharedContext,
-              input: withOverReactImport(/*language=dart*/ '''
-                  content() => [
-                    Dom.div()('first child', 'second child'),
-                    Dom.div()(
-                      'first child', 
-                      'second child with trailing comma',
-                    ),
-                    Dom.div()(['first child in list', 'second child in list']),
-                    Dom.div()([
-                      'first child in list',
-                      'second child in list with trailing comma',
-                    ]),
-                  ];
-              '''),
-              expectedOutput: withOverReactImport(/*language=dart*/ '''
-                  content() => [
-                    Dom.div()('first child'),
-                    Dom.div()(
-                      'first child',
-                    ),
-                    Dom.div()(['first child in list']),
-                    Dom.div()([
-                      'first child in list',
-                    ]),
-                  ];
-              '''),
-            );
-          });
-
-          test('first child', () async {
-            await testSuggestor(
-              suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-                migrator.yieldRemoveChildPatch(usage.children.first.node);
-              }),
-              resolvedContext: sharedContext,
-              input: withOverReactImport(/*language=dart*/ '''
-                  content() => [
-                    Dom.div()('first child', 'second child'),
-                    Dom.div()(
-                      'first child', 
-                      'second child with trailing comma',
-                    ),
-                    Dom.div()(['first child in list', 'second child in list']),
-                    Dom.div()([
-                      'first child in list',
-                      'second child in list with trailing comma',
-                    ]),
-                  ];
-              '''),
-              expectedOutput: withOverReactImport(/*language=dart*/ '''
-                  content() => [
-                    Dom.div()('second child'),
-                    Dom.div()(
-                      'second child with trailing comma',
-                    ),
-                    Dom.div()(['second child in list']),
-                    Dom.div()([
-                      'second child in list with trailing comma',
-                    ]),
-                  ];
-              '''),
-            );
-          });
-        });
-      });
+      group('yieldRemoveChildPatch', yieldRemoveChildPatchTests);
     });
+  });
+}
+
+@isTestGroup
+void yieldAddPropPatchTests() {
+  test('when the builder is not parenthesized', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+            content() => Dom.div()();
+        '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()..foo = "foo")();
+        '''),
+    );
+  });
+
+  test(
+      'when the builder is not parenthesized and yieldAddPropPatch is called more than once',
+      () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+        migrator.yieldAddPropPatch(usage, '..bar = "bar"');
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+            content() => Dom.div()();
+        '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() => ((Dom.div()
+              ..foo = "foo"
+              ..bar = "bar"
+            ))();
+        '''),
+    );
+  });
+
+  test('when the builder is parenthesized with no cascade', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div())();
+          '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()..foo = "foo")();
+          '''),
+    );
+  });
+
+  test('when the builder has a single cascade on one line', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        final getLine = migrator.context.sourceFile.getLine;
+        expect(getLine(usage.cascadeSections.single.offset),
+            getLine(usage.builder.offset),
+            reason: 'cascade and builder should be on the same line');
+
+        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()..id = "some_id")();
+        '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..foo = "foo"
+            )();
+        '''),
+    );
+  });
+
+  test('when the builder has a single cascade on a new line', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        final getLine = migrator.context.sourceFile.getLine;
+        expect(getLine(usage.cascadeSections.single.offset),
+            isNot(getLine(usage.builder.offset)),
+            reason: 'cascade and builder should not be on the same line');
+
+        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()
+              // This comment puts this cascaded prop on a separate line
+              ..id = "some_id"
+            )();
+        '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()
+              // This comment puts this cascaded prop on a separate line
+              ..id = "some_id"
+              ..foo = "foo"
+            )();
+        '''),
+    );
+  });
+
+  test('when the builder has multiple cascaded sections', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..onClick = (_) {}
+            )();
+        '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..onClick = (_) {}
+              ..foo = "foo"
+            )();
+        '''),
+    );
+  });
+
+  group('automatically places a prop in the best location', () {
+    // fixme add tests
+    // various test cases
+  });
+
+  test('when placement is placement is NewPropPlacement.start', () {
+    // fixme add tests
+  });
+
+  test('when placement is placement is NewPropPlacement.end', () {
+    // fixme add tests
+  });
+}
+
+void yieldRemovePropPatchTests() {
+  group('when the builder has more than one cascade section', () {
+    test('and the first prop is removed', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldRemovePropPatch(usage.cascadedProps.first);
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..onClick = (_) {}
+                ..title = "title"
+              )();
+          '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..onClick = (_) {}
+                ..title = "title"
+              )();
+          '''),
+      );
+    });
+
+    test('and a middle prop is removed', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldRemovePropPatch(usage.cascadedProps.elementAt(1));
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..onClick = (_) {}
+                ..title = "title"
+              )();
+          '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..title = "title"
+              )();
+          '''),
+      );
+    });
+
+    test('and the last prop is removed', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldRemovePropPatch(usage.cascadedProps.last);
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..onClick = (_) {}
+                ..title = "title"
+              )();
+          '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..onClick = (_) {}
+              )();
+          '''),
+      );
+    });
+  });
+
+  test('when the builder has a single prop', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        migrator.yieldRemovePropPatch(usage.cascadedProps.single);
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()
+              ..id = "some_id"
+            )();
+        '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div())();
+        '''),
+    );
+  });
+}
+
+void yieldRemoveChildPatchTests() {
+  test('when it is the only child', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        migrator.yieldRemoveChildPatch(usage.children.single.node);
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+            content() => [
+              Dom.div()('single child'),
+              Dom.div()(
+                'single child with trailing comma',
+              ),
+              Dom.div()(['single child in list']),
+              Dom.div()([
+                'single child in list with trailing comma',
+              ]),
+            ];
+        '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() => [
+              Dom.div()(),
+              Dom.div()(),
+              Dom.div()([]),
+              Dom.div()([]),
+            ];
+        '''),
+    );
+  });
+
+  group('when there are multiple children', () {
+    test('last child', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldRemoveChildPatch(usage.children.last.node);
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+              content() => [
+                Dom.div()('first child', 'second child'),
+                Dom.div()(
+                  'first child', 
+                  'second child with trailing comma',
+                ),
+                Dom.div()(['first child in list', 'second child in list']),
+                Dom.div()([
+                  'first child in list',
+                  'second child in list with trailing comma',
+                ]),
+              ];
+          '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => [
+                Dom.div()('first child'),
+                Dom.div()(
+                  'first child',
+                ),
+                Dom.div()(['first child in list']),
+                Dom.div()([
+                  'first child in list',
+                ]),
+              ];
+          '''),
+      );
+    });
+
+    test('first child', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldRemoveChildPatch(usage.children.first.node);
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+              content() => [
+                Dom.div()('first child', 'second child'),
+                Dom.div()(
+                  'first child', 
+                  'second child with trailing comma',
+                ),
+                Dom.div()(['first child in list', 'second child in list']),
+                Dom.div()([
+                  'first child in list',
+                  'second child in list with trailing comma',
+                ]),
+              ];
+          '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => [
+                Dom.div()('second child'),
+                Dom.div()(
+                  'second child with trailing comma',
+                ),
+                Dom.div()(['second child in list']),
+                Dom.div()([
+                  'second child in list with trailing comma',
+                ]),
+              ];
+          '''),
+      );
+    });
+  });
+}
+
+void yieldPropPatchTests() {
+  test('throws if neither arguments are specified', () async {
+    await sharedContext.getPatches(
+      GenericMigrator(migrateUsage: boundExpectAsync2((migrator, usage) {
+        expect(
+            () => migrator.yieldPropPatch(usage.cascadedProps.first),
+            throwsA(isArgumentError
+                .havingToStringValue(contains('either newName or newRhs'))));
+      })),
+      withOverReactImport(/*language=dart*/ '''
+                content() => (Dom.div()..id = "some_id" )();
+            '''),
+    );
+  });
+
+  test('inserts content', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        final propAt = usage.cascadedProps.elementAt;
+        migrator.yieldPropPatch(propAt(0), newName: 'newName0');
+        migrator.yieldPropPatch(propAt(1), newRhs: 'newRhs1');
+        migrator.yieldPropPatch(propAt(2),
+            newName: 'newName2',
+            newRhs: 'newRhs2',
+            additionalCascadeSection: '..additionalCascade');
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+                content() => (Dom.div()
+                  ..id = "some_id"
+                  ..title = "some_id"
+                  ..onClick = (_) {}
+                )();
+            '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+                content() => (Dom.div()
+                  ..newName0 = "some_id"
+                  ..title = newRhs1
+                  ..newName2 = newRhs2
+                  ..additionalCascade
+                )();
+            '''),
+    );
   });
 }
 
