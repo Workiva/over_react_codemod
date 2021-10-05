@@ -194,6 +194,17 @@ class MuiButtonMigrator
     });
 
     migrateChildIcons(usage);
+
+    // It's almost impossible to tell with certainty which components a component
+    // is nested within, so instead we'll just use the presence of that component
+    // name in the file as a heuristic, and flag migrated buttons to be
+    // manually checked.
+    if (context.sourceText.contains('DialogFooter')) {
+      flagUsageFixmeComment(
+          usage,
+          "check whether this button is nested inside a DialogFooter."
+          " If so, wrap it in a $muiNs.ButtonToolbar with `..sx = {'float': 'right'}`.");
+    }
   }
 
   /// Find icons that are the first/last children and also have siblings,

@@ -345,8 +345,13 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
   void flagUsageWithManualIntervention(FluentComponentUsage usage) {
     yieldInsertionPatch(
-        blockComment('FIXME(mui_migration) needs manual intervention'),
-        usage.node.end);
+        lineComment('FIXME(mui_migration) needs manual intervention'),
+        usage.node.offset);
+  }
+
+  void flagUsageFixmeComment(FluentComponentUsage usage, String message) {
+    yieldInsertionPatch(
+        lineComment('FIXME(mui_migration) $message'), usage.node.offset);
   }
 
   void migratePropsByName(
