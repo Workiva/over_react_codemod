@@ -408,7 +408,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     final function = usage.node.function;
     if (function is ParenthesizedExpression) {
       // If this is null, we default to right after the invocation.
-      late int offset;
+      final int offset;
       switch (placement) {
         case NewPropPlacement.auto:
           // Try to insert it after other props that aren't method calls or index expressions,
@@ -464,8 +464,8 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   void yieldRemoveChildPatch(AstNode child) {
     // This logic is a little extra, but isn't too much effort and helps keep things tidy.
 
-    late int start;
-    late int end;
+    final int start;
+    final int end;
 
     // If there's a trailing comma, remove it with the child
     final nextToken = child.endToken.next;

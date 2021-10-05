@@ -62,7 +62,7 @@ Stream<Patch> muiImporter(FileContext context) async* {
 
 int _findImportInsertionLocation(
     String importUri, CompilationUnit unit, LineInfo lineInfo) {
-  late int importOffset;
+  int importOffset;
   if (unit.directives.isEmpty) {
     importOffset = unit.declarations.firstOrNull?.offset ?? 0;
   } else {
