@@ -108,17 +108,28 @@ void main(List<String> args) async {
     switch (majorVersion) {
       case 1:
         detectedV1 = true;
-        exitCode = await runInteractiveCodemod([
-          ...filePathsFromGlob(Glob('**.yaml', recursive: true)),
-          ...filePathsFromGlob(Glob('**.dart', recursive: true)),
-          ...filePathsFromGlob(Glob('**.sh', recursive: true)),
-          ...filePathsFromGlob(Glob('**.txt', recursive: true)),
-          ...filePathsFromGlob(Glob('**Dockerfile', recursive: true)),
-        ], V1DependencyValidatorUpdater(dependencyToUpdate));
+        exitCode = await runInteractiveCodemod(
+          [
+            ...filePathsFromGlob(Glob('**.yaml', recursive: true)),
+            ...filePathsFromGlob(Glob('**.dart', recursive: true)),
+            ...filePathsFromGlob(Glob('**.sh', recursive: true)),
+            ...filePathsFromGlob(Glob('**.txt', recursive: true)),
+            ...filePathsFromGlob(Glob('**Dockerfile', recursive: true)),
+          ],
+          V1DependencyValidatorUpdater(dependencyToUpdate),
+          // Only pass valid low level codemod flags
+          args: args
+              .where((arg) => !arg.contains(_dependency) && !arg.contains('d')),
+        );
         break;
       case 2:
-        exitCode = await runInteractiveCodemod([pubspecFile.path],
-            V2DependencyValidatorUpdater(dependencyToUpdate));
+        exitCode = await runInteractiveCodemod(
+          [pubspecFile.path],
+          V2DependencyValidatorUpdater(dependencyToUpdate),
+          // Only pass valid low level codemod flags
+          args: args
+              .where((arg) => !arg.contains(_dependency) && !arg.contains('d')),
+        );
         break;
       case 3:
         final pubspecPath = pubspecFile.parent.path;
@@ -134,7 +145,11 @@ void main(List<String> args) async {
         }
 
         exitCode = await runInteractiveCodemod(
-            configFiles, V3DependencyValidatorUpdater(dependencyToUpdate));
+          configFiles, V3DependencyValidatorUpdater(dependencyToUpdate),
+          // Only pass valid low level codemod flags
+          args: args
+              .where((arg) => !arg.contains(_dependency) && !arg.contains('d')),
+        );
         break;
       default:
         throw UnsupportedError(
