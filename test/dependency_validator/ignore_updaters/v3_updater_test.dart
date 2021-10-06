@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/dependency_validator_suggestors/v3_updater.dart';
+import 'package:over_react_codemod/src/dependency_validator_suggestors/ignore_updaters/v3_updater.dart';
 import 'package:test/test.dart';
 
-import '../util.dart';
+import '../../util.dart';
 
 main() {
   group('V3DependencyUpdater', () {

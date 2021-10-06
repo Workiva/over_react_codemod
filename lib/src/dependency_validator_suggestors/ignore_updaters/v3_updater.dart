@@ -16,6 +16,23 @@ import 'package:codemod/codemod.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
+/// Handles adding a dependency to the ignore list of a `dependency_validator` yaml
+/// configuration.
+///
+/// Example:
+/// ```
+/// // Before
+/// exclude:
+///   - "app/**"
+///
+/// // After (with `dependency` equal to "a_dependency")
+/// exclude:
+///   - "app/**"
+/// ignore:
+///   - a_dependency
+/// ```
+///
+/// See: [dependency_validator V3](https://github.com/Workiva/dependency_validator/blob/a296309ad75741215d19d2186e71c1a2406507ab/README.md)
 class V3DependencyValidatorUpdater {
   String dependency;
 

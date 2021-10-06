@@ -14,6 +14,18 @@
 
 import 'package:codemod/codemod.dart';
 
+/// Handles adding a dependency to the ignore list of a `dependency_validator` command.
+///
+/// Example:
+/// ```
+/// // Before
+/// pub run dependency validator
+///
+/// // After (with `dependency` equal to "a_dependency")
+/// pub run dependency_validator -i a_dependency
+/// ```
+///
+/// See: [dependency_validator V1](https://github.com/Workiva/dependency_validator/blob/9554150b6473a7f822be65c863642b94653ea0d0/README.md)
 class V1DependencyValidatorUpdater {
   final String dependency;
 
