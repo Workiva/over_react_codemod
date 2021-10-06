@@ -77,6 +77,8 @@ void main(List<String> args) async {
 
   var exitCode = 0;
 
+  var detectedV1 = false;
+
   for (final pubspec in pubspecs) {
     final pubspecFile = File(pubspec);
     final VersionRange? dependencyValidatorVersion =
@@ -86,13 +88,16 @@ void main(List<String> args) async {
 
     // This means that either there is no dependency on `dependency_validator`
     // or the version couldn't be parsed.
-    if (majorVersion == null) {
-      continue;
-    }
+    if (majorVersion == null) continue;
 
-    if (exitCode == 1) {
-      continue;
-    }
+    // If the script finds that one pubspec uses V1, we want to skip re-running the script.
+    // It appears that most libraries with multiple packages use the same version of
+    // dependency validator, and if that version happens to be V1, then looping through
+    // the packages will be redundant (and take a long time) because V1 already
+    // searches all nested files.
+    if (detectedV1) continue;
+
+    if (exitCode == 1) continue;
 
     logger.info(
         'Detected dependency_validator version $dependencyValidatorVersion');
@@ -101,8 +106,8 @@ void main(List<String> args) async {
     // differently because each major has a different method to identify
     // dependencies to ignore.
     switch (majorVersion) {
-      // V1 config docs: https://github.com/Workiva/dependency_validator/blob/9554150b6473a7f822be65c863642b94653ea0d0/README.md
       case 1:
+        detectedV1 = true;
         exitCode = await runInteractiveCodemod([
           ...filePathsFromGlob(Glob('**.yaml', recursive: true)),
           ...filePathsFromGlob(Glob('**.dart', recursive: true)),
@@ -111,21 +116,19 @@ void main(List<String> args) async {
           ...filePathsFromGlob(Glob('**Dockerfile', recursive: true)),
         ], V1DependencyValidatorUpdater(dependencyToUpdate));
         break;
-
-      // V2 config docs: https://github.com/Workiva/dependency_validator/blob/40e148b78ccb667c633f9b0e7044da10df18052c/README.md
       case 2:
         exitCode = await runInteractiveCodemod([pubspecFile.path],
             V2DependencyValidatorUpdater(dependencyToUpdate));
         break;
-
-      // V3 config docs: https://github.com/Workiva/dependency_validator/blob/a296309ad75741215d19d2186e71c1a2406507ab/README.md
       case 3:
-        final configFiles = [
-          ...filePathsFromGlob(Glob('**/dart_dependency_validator.yaml'))
-        ];
+        final pubspecPath = pubspecFile.parent.path;
+        final expectedConfigPath =
+            '$pubspecPath/dart_dependency_validator.yaml';
+
+        final configFiles = [...filePathsFromGlob(Glob(expectedConfigPath))];
 
         if (configFiles.isEmpty) {
-          final configFile = File('dart_dependency_validator.yaml');
+          final configFile = File(expectedConfigPath);
           configFile.createSync();
           configFiles.add(configFile.path);
         }
