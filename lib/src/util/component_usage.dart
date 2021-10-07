@@ -58,7 +58,9 @@ class FluentComponentUsage {
     return null;
   }
 
-  String? get propsName => propsType?.tryCast<InterfaceType>()?.element.name;
+  Element? get propsClassElement => propsType.tryCast<InterfaceType>()?.element;
+
+  String? get propsName => propsClassElement?.name;
 
   String? get componentName {
     final factoryTopLevelVariableElement = this.factoryTopLevelVariableElement;

@@ -642,24 +642,46 @@ bool usesWsdFactory(FluentComponentUsage usage, String wsdFactoryName) {
         'must be a valid, non-namespaced identifier');
   }
 
-  final factoryStaticElement =
-      usage.factory?.tryCast<Identifier>()?.staticElement;
-  if (factoryStaticElement == null) return false;
+  final factoryElement = usage.factoryTopLevelVariableElement;
+  if (factoryElement == null) return false;
 
-  return factoryStaticElement.name == wsdFactoryName &&
-      factoryStaticElement.isDeclaredInWsd;
+  return factoryElement.name == wsdFactoryName &&
+      factoryElement.isDeclaredInWsd;
 }
 
-bool usesWsdV1Factory(FluentComponentUsage usage) {
-  final factoryStaticElement =
-      usage.factory?.tryCast<Identifier>()?.staticElement;
-  if (factoryStaticElement == null || !factoryStaticElement.isDeclaredInWsd) {
-    return false;
+bool usesWsdPropsClass(FluentComponentUsage usage, String wsdPropsName) {
+  if (!isValidSimpleIdentifier(wsdPropsName)) {
+    throw ArgumentError.value(wsdPropsName, 'wsdPropsName',
+        'must be a valid, non-namespaced identifier');
   }
 
-  final declaringFileName =
-      factoryStaticElement.thisOrAncestorOfType<CompilationUnitElement>()?.uri;
+  final propsClassElement = usage.propsClassElement;
+  if (propsClassElement == null) return false;
 
-  return declaringFileName != null &&
-      declaringFileName.contains('/src/_deprecated/');
+  return propsClassElement.name == wsdPropsName &&
+      propsClassElement.isDeclaredInWsd;
+}
+
+enum WsdComponentVersion {
+  notResolved,
+  notWsd,
+  v1,
+  v2,
+}
+
+WsdComponentVersion wsdComponentVersionForFactory(FluentComponentUsage usage) {
+  final factoryElement = usage.factoryTopLevelVariableElement;
+  if (factoryElement == null) {
+    return WsdComponentVersion.notResolved;
+  }
+
+  if (!factoryElement.isDeclaredInWsd) {
+    return WsdComponentVersion.notWsd;
+  }
+
+  // isDeclaredInWsd implies non-null source
+  final fileDeclaringFactory = factoryElement.source!.uri;
+  return fileDeclaringFactory.path.contains('/src/_deprecated/')
+      ? WsdComponentVersion.v1
+      : WsdComponentVersion.v2;
 }

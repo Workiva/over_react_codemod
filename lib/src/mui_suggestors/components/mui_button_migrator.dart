@@ -65,12 +65,14 @@ class MuiButtonMigrator
         yieldAddPropPatch(usage, typePatch, placement: NewPropPlacement.end);
       }
 
-      propsClassHasHitareaMixin = usesWsdV1Factory(usage);
+      propsClassHasHitareaMixin =
+          wsdComponentVersionForFactory(usage) == WsdComponentVersion.v1;
     } else if (usesWsdFactory(usage, 'FormResetInput')) {
       yieldAddPropPatch(usage, "..type = 'reset'",
           placement: NewPropPlacement.end);
 
-      propsClassHasHitareaMixin = usesWsdV1Factory(usage);
+      propsClassHasHitareaMixin =
+          wsdComponentVersionForFactory(usage) == WsdComponentVersion.v1;
     }
 
     migratePropsByName(usage, migratorsByName: {
