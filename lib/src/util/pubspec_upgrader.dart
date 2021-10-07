@@ -14,6 +14,8 @@
 
 import 'package:codemod/codemod.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:yaml/yaml.dart';
+import 'package:yaml_edit/yaml_edit.dart';
 
 import '../constants.dart';
 import '../util.dart';
@@ -118,22 +120,34 @@ class PubspecUpgrader {
       }
     } else if (shouldAddDependencies) {
       // Package is missing in pubspec.yaml, so add it.
-      final keyMatch =
-          (isDevDependency ? devDependencyRegExp : dependencyRegExp)
-              .firstMatch(context.sourceText);
-      if (keyMatch != null) {
-        // Wrap the new constraint in quotes if required.
-        var newValue = targetConstraint.toString();
-        if (newValue.contains(' ')) {
-          newValue = '"$newValue"';
-        }
+      final pubspec = YamlEditor(context.sourceText);
+      final depKey = isDevDependency ? 'dev_dependencies' : 'dependencies';
 
-        yield Patch(
-          '\n  ${getPatch(newValue)}',
-          keyMatch.end,
-          keyMatch.end,
-        );
+      try {
+        pubspec.parseAt([depKey]);
+      } on ArgumentError {
+        // Do nothing if the dependency path could not be found.
+        return;
       }
+
+      // Add the dependency in alphabetical order.
+      if (hostedUrl == null) {
+        pubspec.update([depKey, packageName], targetConstraint.toString());
+      } else {
+        pubspec.update(
+            [depKey, packageName],
+            YamlMap.wrap({
+              'hosted': {'name': packageName, 'url': hostedUrl}
+            }));
+        // Add the version range separately so it will be correctly formatted with quotes.
+        pubspec.update(
+            [depKey, packageName, 'version'], targetConstraint.toString());
+      }
+
+      // Update the pubspec and also replace any unnecessary spaces because
+      // [YamlEditor] adds spaces after [packageName] for added dependencies
+      // even if there is no version constraint on the same line.
+      yield Patch(pubspec.toString().replaceAll(': \n', ':\n'), 0);
     }
   }
 }
