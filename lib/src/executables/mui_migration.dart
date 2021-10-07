@@ -25,7 +25,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_migrators.dart';
+import 'package:over_react_codemod/src/mui_suggestors/components.dart';
 import 'package:over_react_codemod/src/mui_suggestors/unused_wsd_import_remover.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
@@ -68,7 +68,7 @@ void main(List<String> args) async {
     ..addSeparator('MUI Migration Options:')
     ..addMultiOption(
       _componentFlag,
-      allowed: muiMigrators.keys,
+      allowed: componentMigratorsByName.keys,
       help: 'Choose which component migrators should be run. '
           'If no components are specified, all component migrators will be run.',
     );
@@ -133,9 +133,9 @@ void main(List<String> args) async {
   // If no components were specified, run all migrators.
   final componentsToMigrate = parsedArgs[_componentFlag] as List<String>;
   final migratorsToRun = componentsToMigrate.isEmpty
-      ? muiMigrators.values
+      ? componentMigratorsByName.values
       : componentsToMigrate.map((componentName) {
-          final migrator = muiMigrators[componentName];
+          final migrator = componentMigratorsByName[componentName];
           if (migrator == null) {
             throw Exception('Could not find a migrator for $componentName');
           }

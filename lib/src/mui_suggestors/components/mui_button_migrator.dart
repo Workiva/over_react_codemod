@@ -4,7 +4,7 @@ import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 import 'package:over_react_codemod/src/util.dart';
 
-import 'constants.dart';
+import '../constants.dart';
 
 const _linkButtonSkin = 'ButtonSkin.LINK';
 const _outlineLinkButtonSkin = 'ButtonSkin.OUTLINE_LINK';
