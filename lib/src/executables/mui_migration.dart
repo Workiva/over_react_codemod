@@ -26,6 +26,7 @@ import 'package:path/path.dart' as p;
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_migrators.dart';
+import 'package:over_react_codemod/src/mui_suggestors/unused_wsd_import_remover.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
@@ -157,6 +158,7 @@ void main(List<String> args) async {
       aggregate(migratorsToRun),
     ],
     [muiImporter],
+    [unusedWsdImportRemover],
   ]);
   if (exitCode != 0) return;
 
