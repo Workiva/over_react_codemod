@@ -6,56 +6,6 @@ import 'package:over_react_codemod/src/util.dart';
 
 import 'constants.dart';
 
-// - Keep in mind: useful for components other than just button
-//
-// 1. Replace WSD component factory invocations with MUI component factory invocations
-//
-//
-//     (Button() ... )('children')
-//
-//     (mui.Button() ... )('children')
-//
-// 2. Translate prop name and values from WSD to MUI
-//
-//     (Button()..skin = ButtonSkin.PRIMARY)(
-//       (Button()..skin = ButtonSkin.PRIMARY)('children'),
-//     )
-//
-//     (Button()
-//       ..skin = ButtonSkin.PRIMARY
-//     )('children')
-//
-//     final builder = Button()
-//      ..skin = ButtonSkin.PRIMARY;
-//
-//     if (something) builder.skin = ButtonSkin.DANGER;
-//     builder('children')
-//
-//     mui.Button()
-//       ..color = mui.ButtonColor.primary
-//
-// 3. Add imports to RMUI, prefixed with mui (assuming any APIs accessed in other steps are also namespaced)
-//
-//     import 'package:react_material_ui/react_material_ui.dart' as mui;
-//
-// 4. (Potentially) Wrapping react_dom.render calls in a ThemeProvider
-//
-// 5. Remove unused imports for WSD component
-//
-//     - Resolved AST will allow us to detect these
-//
-// 6. Updates pubspec to include react_material_ui dependency with the correct version
-//
-// 7. Add RMUI script tag to relevant HTML files (examples, tests)
-//
-//     - Idea: find HTML files with react JS script tags and just add RMUI tags to those
-//       https://sourcegraph.wk-dev.wdesk.org/search?q=packages/react/react%5Cw%2B.js&patternType=regexp
-//          Lots of HTML (with a good portion of it generated or in templates), some Dart
-//
-// Question: how important is it that we flag tests containing components that have been updated? It could be pretty hard to tell what they are since tests don't usually render WSD components directly
-//
-//     - Can we just rely on test failures to identify these cases?
-
 const _linkButtonSkin = 'ButtonSkin.LINK';
 const _outlineLinkButtonSkin = 'ButtonSkin.OUTLINE_LINK';
 
@@ -66,48 +16,6 @@ const _linkButtonSkins = {
 
 class MuiButtonMigrator
     with ClassSuggestor, ComponentUsageMigrator, ButtonDisplayPropsMigrator {
-  // fixme how do we add imports in libraries? Collect files that need imports and add them after the fact?
-
-  // fixme document decisions
-  // Don't operate on unhandled cases; either they'll result in an analysis error or be fine (e.g., onClick)
-
-  // FIXME need to figure out order to support cases that shouldn't get migrated...
-  // E.g.:
-  // - only migrate factory based on condition, then follow up in second pass and fix props on MUI button with analysis errors?
-  // - collect which ones to migrate, do all of them in one pass?
-
-  // fixme codemod feedback
-  // - calling runInteractiveCodemod(Sequence) more than once per main sets up additional Logger listeners, you get duplicated log output
-  // - FileContext.sourceText/sourceFile can be out of date
-  // - FileContext resolved unit can be out of date
-
-  // Consider dev workflow / CI / etc.
-
-  // Execution order:
-  // - Update pubspec.yaml
-  //
-  // - Update HTML and HTML templates
-  //
-  // - For full fluent usages
-  //    - Check if usage has ignore comment; if so, short-circuit
-  //    - Check if usage should be migrated (given factory and cascade); if not, short-circuit
-  //    - Perform migration
-  //        - Insert MUI library import if needed, remove WSD import if needed
-  // FIXME execution order on this is off; we may want to do this on a second pass after the migrator runs
-  //        - For known props that can't be perfectly converted, add a FIX-ME
-  //        - Assume most other props (e.g., onClick, key, etc.) are fine
-  //            - TODO Should we double-check ubiquitous/DOM/aria props?
-  //            - TODO We should probably add a fixme to addProps/modifyProps
-  //                - Other props maps
-  //                - Forwarded props maps, potentially with props from WSD mixins
-  //                  // TODO how to handle mixed in WSD props?
-  // - For other usages
-  //    - Check if usage has ignore comment; if so, short-circuit
-  //    - Add FIX-ME
-  //
-  // - Wrap react_dom.render calls in ThemeProvider (inside ErrorBoundary if possible)
-  //
-
   static bool hasLinkButtonSkin(FluentComponentUsage usage) => usage
       .cascadedProps
       .any((p) => p.name.name == 'skin' && isLinkButtonSkin(p.rightHandSide));
@@ -256,6 +164,8 @@ class MuiButtonMigrator
         return;
       }
 
+      // fixme what about something like props.iconFactory()()?
+      // Perhaps this should check for the props class in the inheritance instead.
       // Handle any icon children and move them.
       if (usesWsdFactory(childAsUsage, 'Icon')) {
         yieldAddPropPatch(
@@ -373,4 +283,7 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
 // - Be conservative when computing patch ranges; this helps prevent conflicting ("overlapping") patches,
 //   especially when there are multiple places in the code making replacements.
 // - Don't use toSource()
-// -
+// - Don't operate on unhandled props cases; either they'll result in an analysis error or be fine (e.g., onClick)
+//    - Assume most other props (e.g., onClick, key, etc.) are fine
+//        - fixme Should we double-check ubiquitous/DOM/aria props?
+//        - fixme how to handle mixed in WSD props?

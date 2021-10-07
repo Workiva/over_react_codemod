@@ -419,7 +419,7 @@ main() {
     group('migratePropsByName', () {
       test('runs the migrator for each prop with a matching name', () async {
         final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.migratePropsByName(
+          migratePropsByName(
             usage,
             migratorsByName: {
               'onClick': boundExpectAsync1((p) {
@@ -449,7 +449,7 @@ main() {
 
       test('throws when a prop does not exist on the props class', () async {
         final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.migratePropsByName(usage, migratorsByName: {
+          migratePropsByName(usage, migratorsByName: {
             'notARealProp': (_) {},
           });
         });

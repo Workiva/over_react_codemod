@@ -263,13 +263,6 @@ class _PropertyAccessPropAssignment with PropAssignment {
   @override
   bool get isInCascade => parentCascade != null;
 
-  // Fixme is this implementation correct / overly defensive?
-  // final cascade = assignment
-  //       .thisOrAncestorOfType<CascadeExpression>();
-  //
-  // if (cascade?.cascadeSections.contains(assignment.leftHandSide) ?? false) {
-  //   return cascade;
-  // }
   @override
   CascadeExpression? get parentCascade => assignment.parent.tryCast();
 }

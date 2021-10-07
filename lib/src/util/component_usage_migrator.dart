@@ -17,115 +17,10 @@ import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/ignore_info.dart';
 import 'package:source_span/source_span.dart';
 
-mixin ClassSuggestor {
-  // This should be a List and not a Set to avoid patches in the same location getting mysteriously dropped.
-  // TODO potentially update AstSuggestingVisitor in codemod with this same change
-  final _patches = <Patch>[];
+import 'class_suggestor.dart';
+export 'class_suggestor.dart' show ClassSuggestor;
 
-  /// The context helper for the file currently being visited.
-  FileContext get context {
-    if (_context != null) return _context!;
-    throw StateError('context accessed outside of a visiting context. '
-        'Ensure that your suggestor only accesses `this.context` inside an AST visitor method.');
-  }
-
-  FileContext? _context;
-
-  Stream<Patch> call(FileContext context) async* {
-    if (shouldSkip(context)) return;
-
-    _patches.clear();
-    _context = context;
-
-    await generatePatches();
-
-    // Force the copying of this list, otherwise it would be a lazy iterable
-    // mapped to the field on this class that will change on the next call.
-    var patches = _patches.toList();
-    _context = null;
-
-    if (sortParenInsertionPatches) {
-      patches = patches
-          // group keys:
-          // - int: insertion patches at that offset
-          // - null: all other patches
-          .groupBy((patch) => patch.isInsertionPatch ? patch.startOffset : null)
-          .entries
-          .expand((entry) {
-        final isInsertionPatchGroup = entry.key != null;
-        if (!isInsertionPatchGroup) return entry.value;
-
-        return entry.value.toList()
-          ..sort((a, b) {
-            if (a.updatedText == '(' && b.updatedText == '(') return 0;
-            if (a.updatedText == '(') return -1000;
-            if (b.updatedText == '(') return 1000;
-
-            if (a.updatedText == ')' && b.updatedText == ')') return 0;
-            if (a.updatedText == ')') return 1000;
-            if (b.updatedText == ')') return -1000;
-
-            return entry.value.indexOf(a).compareTo(entry.value.indexOf(b));
-          });
-      }).toList();
-    }
-
-    yield* Stream.fromIterable(patches);
-  }
-
-  /// Whether to sort insertion patches at the same locations such that
-  /// opening parentheses get applied first and closing parentheses are applied
-  /// last.
-  ///
-  /// For instance,
-  ///     [
-  ///       Patch('(', 0, 0),
-  ///       Patch('..bar', 3, 3),
-  ///       Patch(')', 3, 3),
-  ///       Patch('(', 0, 0),
-  ///       Patch('..baz', 3, 3),
-  ///       Patch(')', 3, 3),
-  ///     ]
-  /// on the string `foo()`
-  /// would normally yield
-  ///     ((foo..bar)..baz)()
-  /// but with this `true`, yields
-  ///     ((foo..bar..baz))()
-  ///
-  bool get sortParenInsertionPatches => true;
-
-  Future<void> generatePatches();
-
-  /// Whether the file represented by [context] should be parsed and visited.
-  ///
-  /// Subclasses can override this to skip all work for a file based on its
-  /// contents if needed.
-  bool shouldSkip(FileContext context) => false;
-
-  void yieldPatch(String updatedText, int startOffset, [int? endOffset]) {
-    _patches.add(Patch(updatedText, startOffset, endOffset));
-  }
-
-  void yieldInsertionPatch(String updatedText, int offset) {
-    _patches.add(Patch(updatedText, offset, offset));
-  }
-}
-
-extension<E> on Iterable<E> {
-  /// Groups the elements in this iterable by the value returned by [key].
-  ///
-  /// Returns a map from keys computed by [key] to a list of all values for which
-  /// [key] returns that key. The values appear in the list in the same relative
-  /// order as in [values].
-  ///
-  /// Extension version of [collection.groupBy], for better inference of generics.
-  Map<T, List<E>> groupBy<T>(T Function(E) key) =>
-      collection.groupBy(this, key);
-}
-
-extension on Patch {
-  bool get isInsertionPatch => startOffset == endOffset;
-}
+final isValidSimpleIdentifier = RegExp(r'[_$a-zA-Z][_$a-zA-Z0-9]*').hasMatch;
 
 /// Component usages can be ignored via comments, resulting in this migrator
 /// not calling [shouldMigrateUsage]/[migrateUsage] for them.
@@ -178,35 +73,14 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
   bool get ignoreAlreadyFlaggedUsages => true;
 
-  bool usesWsdFactory(FluentComponentUsage usage, String wsdFactoryName) {
-    final factoryStaticElement =
-        usage.factory?.tryCast<Identifier>()?.staticElement;
-    if (factoryStaticElement == null) return false;
-
-    return factoryStaticElement.name == wsdFactoryName &&
-        factoryStaticElement.isDeclaredInWsd;
-  }
-
-  bool usesWsdV1Factory(FluentComponentUsage usage) {
-    final factoryStaticElement =
-        usage.factory?.tryCast<Identifier>()?.staticElement;
-    if (factoryStaticElement == null || !factoryStaticElement.isDeclaredInWsd) {
-      return false;
-    }
-
-    final declaringFileName = factoryStaticElement
-        .thisOrAncestorOfType<CompilationUnitElement>()
-        ?.uri;
-
-    return declaringFileName != null &&
-        declaringFileName.contains('/src/_deprecated/');
-  }
-
   static const _fatalUnresolvedUsages = true;
 
   @override
   Future<void> generatePatches() async {
     _log.info('Resolving ${context.relativePath}...');
+
+    // fixme codemod apparently you have to resolve the main library before resolving a part??
+
     final result = await context.getResolvedUnit();
     if (result == null) {
       throw Exception(
@@ -265,6 +139,8 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
   void verifyUsageIsResolved(
       FluentComponentUsage usage, ResolvedUnitResult result) {
+    // fixme add note in error message about part file needing to be resolved after main library
+
     String errorsMessage() => result.errors.isEmpty
         ? ''
         : ' \nAnalysis errors in file:\n${prettyPrintErrors(result.errors)}\n';
@@ -389,56 +265,15 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   //
   // Helpers
 
+  static const _manualInterventionMessage = 'needs manual intervention';
+
   void flagUsageWithManualIntervention(FluentComponentUsage usage) {
-    yieldInsertionPatch(
-        lineComment('FIXME(mui_migration) needs manual intervention'),
-        usage.node.offset);
+    flagUsageFixmeComment(usage, _manualInterventionMessage);
   }
 
   void flagUsageFixmeComment(FluentComponentUsage usage, String message) {
     yieldInsertionPatch(
         lineComment('FIXME(mui_migration) $message'), usage.node.offset);
-  }
-
-  void migratePropsByName(
-    FluentComponentUsage usage, {
-    required Map<String, void Function(PropAssignment)> migratorsByName,
-    void Function(PropAssignment)? catchAll,
-  }) {
-    // Validate that there aren't typos in they keys to `migratorsByName`.
-    // This has negligible perf overhead and is extremely valuable when
-    // authoring migrations.
-    {
-      final builderStaticType =
-          usage.builder.staticType?.typeOrBounds as InterfaceType?;
-      if (builderStaticType != null) {
-        final builderElement = builderStaticType.element;
-        final builderClassName = builderElement.name;
-        final library =
-            (usage.builder.root as CompilationUnit).declaredElement!.library;
-        final unknownPropNames = migratorsByName.keys
-            .where((propName) =>
-                builderElement.lookUpSetter(propName, library) == null)
-            .toList();
-        if (unknownPropNames.isNotEmpty) {
-          throw ArgumentError(
-              "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
-              " not statically available on builder class '$builderClassName'"
-              " (declared in ${builderElement.enclosingElement.uri})."
-              " Double-check that that prop exists in that props class"
-              " and that the key in 'migratorsByName' does not have any typos.");
-        }
-      }
-    }
-
-    for (final prop in usage.cascadedProps) {
-      final propMigrator = migratorsByName[prop.name.name];
-      if (propMigrator != null) {
-        propMigrator(prop);
-      } else if (catchAll != null) {
-        catchAll(prop);
-      }
-    }
   }
 
   void yieldPatchOverNode(String updatedText, SyntacticEntity entityToReplace) {
@@ -609,6 +444,47 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   }
 }
 
+void migratePropsByName(
+  FluentComponentUsage usage, {
+  required Map<String, void Function(PropAssignment)> migratorsByName,
+  void Function(PropAssignment)? catchAll,
+}) {
+  // Validate that there aren't typos in they keys to `migratorsByName`.
+  // This has negligible perf overhead and is extremely valuable when
+  // authoring migrations.
+  {
+    final builderStaticType =
+        usage.builder.staticType?.typeOrBounds as InterfaceType?;
+    if (builderStaticType != null) {
+      final builderElement = builderStaticType.element;
+      final builderClassName = builderElement.name;
+      final library =
+          (usage.builder.root as CompilationUnit).declaredElement!.library;
+      final unknownPropNames = migratorsByName.keys
+          .where((propName) =>
+              builderElement.lookUpSetter(propName, library) == null)
+          .toList();
+      if (unknownPropNames.isNotEmpty) {
+        throw ArgumentError(
+            "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
+            " not statically available on builder class '$builderClassName'"
+            " (declared in ${builderElement.enclosingElement.uri})."
+            " Double-check that that prop exists in that props class"
+            " and that the key in 'migratorsByName' does not have any typos.");
+      }
+    }
+  }
+
+  for (final prop in usage.cascadedProps) {
+    final propMigrator = migratorsByName[prop.name.name];
+    if (propMigrator != null) {
+      propMigrator(prop);
+    } else if (catchAll != null) {
+      catchAll(prop);
+    }
+  }
+}
+
 extension on SourceFile {
   FileSpan spanFor(SyntacticEntity entity) => span(entity.offset, entity.end);
 }
@@ -759,4 +635,32 @@ bool isStaticConstant(Expression expression, String constant,
   return staticElement.name == staticFieldName &&
       staticElement.enclosingElement?.name == className &&
       (fromPackage == null || staticElement.isDeclaredInPackage(fromPackage));
+}
+
+bool usesWsdFactory(FluentComponentUsage usage, String wsdFactoryName) {
+  if (!isValidSimpleIdentifier(wsdFactoryName)) {
+    throw ArgumentError.value(wsdFactoryName, 'wsdFactoryName',
+        'must be a valid, non-namespaced identifier');
+  }
+
+  final factoryStaticElement =
+      usage.factory?.tryCast<Identifier>()?.staticElement;
+  if (factoryStaticElement == null) return false;
+
+  return factoryStaticElement.name == wsdFactoryName &&
+      factoryStaticElement.isDeclaredInWsd;
+}
+
+bool usesWsdV1Factory(FluentComponentUsage usage) {
+  final factoryStaticElement =
+      usage.factory?.tryCast<Identifier>()?.staticElement;
+  if (factoryStaticElement == null || !factoryStaticElement.isDeclaredInWsd) {
+    return false;
+  }
+
+  final declaringFileName =
+      factoryStaticElement.thisOrAncestorOfType<CompilationUnitElement>()?.uri;
+
+  return declaringFileName != null &&
+      declaringFileName.contains('/src/_deprecated/');
 }
