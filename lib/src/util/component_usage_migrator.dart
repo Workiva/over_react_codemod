@@ -14,6 +14,7 @@ import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/element_type_helpers.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
+import 'package:over_react_codemod/src/util/ignore_info.dart';
 import 'package:source_span/source_span.dart';
 
 mixin ClassSuggestor {
@@ -126,6 +127,45 @@ extension on Patch {
   bool get isInsertionPatch => startOffset == endOffset;
 }
 
+/// Component usages can be ignored via comments, resulting in this migrator
+/// not calling [shouldMigrateUsage]/[migrateUsage] for them.
+///
+/// Comment formats:
+///
+/// - An `// orcm_ignore` comment on the first line of the usage or the line before it:
+///
+///     ```dart
+///     // orcm_ignore
+///     Foo()();
+///
+///     (Foo() // orcm_ignore
+///       ..bar = baz
+///     )()
+///     ```
+///
+/// - An `// orcm_ignore_for_file` comment, which ignores everything in the file.
+///
+///     ```dart
+///     // orcm_ignore_for_file
+///
+///     // All of the following usages get ignored:
+///     Foo()();
+///     Bar()();
+///     ```
+///
+/// - An `// orcm_ignore_for_file: ` comment with one or more factory or props class
+///   names, separated by commas:
+///
+///     ```dart
+///     // orcm_ignore_for_file: Foo, BarProps
+///
+///     BuilderOnlyUiFactory<BarProps> barFactory;
+///
+///     // All of the following usages get ignored:
+///     Foo()();
+///     Bar()();
+///     barFactory()();
+///     ```
 mixin ComponentUsageMigrator on ClassSuggestor {
   static final _log = Logger('ComponentUsageMigrator');
 
@@ -182,7 +222,13 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     unit.accept(ComponentUsageVisitor(allUsages.add));
 
     for (final usage in allUsages) {
-      // fixme respect orcm_ignore comments, make sure whole files can be ignored (allow ignoring specific components and not just all of them)
+      if (_isIgnored(usage, unit)) {
+        _log.finest(context.sourceFile
+            .spanFor(usage.factoryOrBuilder)
+            .message('Skipping ignored usage'));
+        continue;
+      }
+
       if (ignoreAlreadyFlaggedUsages && hasFlaggedComment(usage.node)) {
         continue;
       }
@@ -536,6 +582,35 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         lineComment('FIXME(mui_migration) - ${prop.name.name} prop - $message'),
         prop.assignment.offset);
   }
+
+  static final _ignoreInfoForUnitCache = Expando<OrcmIgnoreInfo>();
+
+  /// Returns whether a [usage] has been ignored via a comment.
+  ///
+  /// See [ComponentUsageMigrator] for comment formats.
+  bool _isIgnored(FluentComponentUsage usage, CompilationUnit unit) {
+    final ignoreInfo = _ignoreInfoForUnitCache[unit] ??=
+        OrcmIgnoreInfo.forDart(unit, context.sourceText);
+    // IgnoreInfo's line numbers are 1-based,
+    // whereas SourceFile's are 0-based
+    final line = context.sourceFile.getLine(usage.node.offset) + 1;
+
+    if (ignoreInfo.blanketIgnoredAt(line)) {
+      return true;
+    }
+
+    final componentName = usage.componentName;
+    final propsName = usage.propsName;
+    final codes = <String>[
+      if (componentName != null) componentName,
+      if (propsName != null) propsName,
+    ];
+    return codes.any((code) => ignoreInfo.ignoredAt(code, line));
+  }
+}
+
+extension on SourceFile {
+  FileSpan spanFor(SyntacticEntity entity) => span(entity.offset, entity.end);
 }
 
 enum NewPropPlacement {

@@ -82,6 +82,137 @@ main() {
       });
     });
 
+    group('respects ignore comments, skipping shouldMigrateUsage when', () {
+      group('a component usage is ignored', () {
+        Future<List<FluentComponentUsage>> getShouldMigrateUsageCalls(
+            String source) async {
+          final calls = <FluentComponentUsage>[];
+          final migrator = GenericMigrator(shouldMigrateUsage: (_, usage) {
+            calls.add(usage);
+            return MigrationDecision.notApplicable;
+          });
+          await sharedContext.getPatches(migrator, source);
+          return calls;
+        }
+
+        test('via a plain orcm_ignore comment on the usage', () async {
+          final source = withOverReactImport(/*language=dart*/ r'''
+              usage() {
+                // orcm_ignore
+                Dom.div()("ignored via comment on line before");
+                
+                (Dom.div() // orcm_ignore
+                  ..id = 'id'
+                  ..onClick = (_) {}
+                )("ignored via comment on same line");
+                
+                Dom.div()("not ignored");
+                
+                Dom.div()("not ignored (comment is on next line)");
+                // orcm_ignore
+                
+                // orcm_ignore
+                
+                Dom.div()("not ignored (comment is two lines above)");
+              }
+          ''');
+
+          final calls = await getShouldMigrateUsageCalls(source);
+          expect(calls.map((u) => u.node.argumentList.toSource()).toList(), [
+            '("not ignored")',
+            '("not ignored (comment is on next line)")',
+            '("not ignored (comment is two lines above)")',
+          ]);
+        });
+
+        test('via a orcm_ignore comment with args on the usage', () async {
+          final source = withOverReactImport(/*language=dart*/ r'''
+              UiFactory<FooProps> Foo;
+              mixin FooProps on UiProps {}
+              
+              usage() {
+                // orcm_ignore: Foo
+                Foo()("ignored via factory");
+                // orcm_ignore: FooProps
+                Foo()("ignored via props");
+                
+                // orcm_ignore:
+                Foo()("not ignored (no args)");
+                
+                // orcm_ignore: Foo
+                Dom.div()("not ignored (not a matching factory)");
+                // orcm_ignore: FooProps
+                Dom.div()("not ignored (not a matching props class)");
+              }
+          ''');
+
+          final calls = await getShouldMigrateUsageCalls(source);
+          expect(calls.map((u) => u.node.argumentList.toSource()).toList(), [
+            '("not ignored (no args)")',
+            '("not ignored (not a matching factory)")',
+            '("not ignored (not a matching props class)")',
+          ]);
+        });
+
+        test('via a plain orcm_ignore_for_file comment somewhere in the file',
+            () async {
+          final source = withOverReactImport(/*language=dart*/ r'''
+              // orcm_ignore_for_file
+          
+              usage() {
+                Dom.div()("ignored");
+                Dom.div()("ignored");
+              }
+          ''');
+
+          final calls = await getShouldMigrateUsageCalls(source);
+          expect(calls, isEmpty);
+        });
+
+        test(
+            'via an orcm_ignore_for_file comment with args somewhere in the file',
+            () async {
+          final source = withOverReactImport(/*language=dart*/ r'''          
+              // orcm_ignore_for_file: Foo
+              // orcm_ignore_for_file: BarProps
+              // orcm_ignore_for_file: Dom.div, Dom.span
+              // (Verify that that no args does not ignore everything)
+              // orcm_ignore_for_file:
+          
+              UiFactory<FooProps> Foo;
+              mixin FooProps on UiProps {}
+              
+              UiFactory<BarProps> Bar;
+              mixin BarProps on UiProps {}
+              
+              UiFactory<BarProps> BarHoc;
+              
+              UiFactory<QuxProps> Qux;
+              mixin QuxProps on UiProps {}
+              
+              usage() {
+                Foo()("ignored in whole file via factory");
+                
+                Bar()("ignored in whole file via props");
+                BarHoc()("ignored in whole file via props (different factory)");
+                
+                Dom.div()("ignored in whole file via (DOM) factory");
+                Dom.span()("ignored in whole file via (DOM) factory (same comment)");
+                
+                Qux()("not ignored");
+                Dom.a()("not ignored");
+              }
+          ''');
+
+          final calls = await getShouldMigrateUsageCalls(source);
+          expect(calls.map((u) => u.builder.toSource()).toList(), [
+            'Qux()',
+            'Dom.a()',
+          ]);
+        });
+      });
+    });
+
     group('calls migrateUsage for each component usage', () {
       test('only if shouldMigrateUsage returns MigrationDecision.shouldMigrate',
           () async {
