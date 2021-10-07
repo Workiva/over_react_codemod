@@ -231,9 +231,9 @@ mixin ComponentUsageMigrator on ClassSuggestor {
             prop.assignment.offset);
       } else if (shouldFlagRefProp && prop.name.name == 'ref') {
         // Flag refs, since their type is likely to change.
-        // fixme add note about type?
         yieldInsertionPatch(
-            lineComment('FIXME(mui_migration) - ref - manually verify'),
+            lineComment(
+                'FIXME(mui_migration) - ref - manually verify ref type is correct'),
             prop.assignment.offset);
       } else if (shouldFlagClassName && prop.name.name == 'className') {
         yieldInsertionPatch(
@@ -622,7 +622,6 @@ bool isStaticConstant(Expression expression, String constant,
 
   // FIXME handle more cases (namespaced, etc)
   // fixme check is static
-  // fixme check package
 
   Element? staticElement;
   if (expression is PropertyAccess && !expression.isCascaded) {

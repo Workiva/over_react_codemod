@@ -2,14 +2,14 @@
 // TODO consolidate these into a single library; perhaps in over_react?
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:meta/meta.dart';
-import 'package:over_react_codemod/src/util/range_factory.dart';
 import 'package:over_react_codemod/src/element_type_helpers.dart';
-export 'package:over_react_codemod/src/fluent_interface_util/cascade_read.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 /// A usage of an OverReact component via its fluent interface.
 class FluentComponentUsage {
@@ -79,6 +79,42 @@ class FluentComponentUsage {
       yield ExpressionComponentChild(child, isVariadic: true);
     }
   }
+
+  Iterable<Expression> get cascadeSections =>
+      cascadeExpression?.cascadeSections ?? const [];
+
+  /// Returns an iterable of all cascaded prop assignments in this usage.
+  ///
+  /// See also: [cascadedMethodInvocations]
+  Iterable<PropAssignment> get cascadedProps => cascadeSections
+      .whereType<AssignmentExpression>()
+      .where((assignment) => assignment.leftHandSide is PropertyAccess)
+      .map((assignment) => PropAssignment(assignment));
+
+  // fixme tests for how `..dom.id = ''` works
+  Iterable<PropAccess> get cascadedGetters =>
+      cascadeSections.whereType<PropertyAccess>().map((p) => PropAccess(p));
+
+  Iterable<IndexPropAssignment> get cascadedIndexAssignments => cascadeSections
+      .whereType<AssignmentExpression>()
+      .where((assignment) => assignment.leftHandSide is IndexExpression)
+      .map((assignment) => IndexPropAssignment(assignment));
+
+  /// Returns an iterable of all cascaded method calls in this usage.
+  Iterable<BuilderMethodInvocation> get cascadedMethodInvocations =>
+      cascadeSections
+          .whereType<MethodInvocation>()
+          .map((methodInvocation) => BuilderMethodInvocation(methodInvocation));
+
+  List<BuilderMemberAccess> get cascadedMembers => [
+        // fixme include other  members not handled by these getters
+        ...cascadedProps,
+        ...cascadedGetters,
+        ...cascadedIndexAssignments,
+        ...cascadedMethodInvocations,
+      ]
+        // Order them in the order they appear by sorting based on the offset.
+        ..sort((a, b) => a.node.offset.compareTo(b.node.offset));
 }
 
 abstract class ComponentChild {
@@ -235,11 +271,15 @@ abstract class PropAssignment implements BuilderMemberAccess {
   ///
   /// __Note: prefer using [removeProp] instead of using this directly to perform removals__
   @protected
-  SourceRange get rangeForRemoval => range.node(assignment);
+  SourceRange get rangeForRemoval => assignment.sourceRange;
 
   bool get isInCascade;
 
   CascadeExpression? get parentCascade;
+}
+
+extension on SyntacticEntity {
+  SourceRange get sourceRange => SourceRange(offset, length);
 }
 
 class _PropertyAccessPropAssignment with PropAssignment {
@@ -316,13 +356,6 @@ class IndexPropAssignment implements BuilderMemberAccess {
 
   /// The expression for the right hand side of this assignment.
   Expression get rightHandSide => node.rightHandSide;
-}
-
-extension _TryCast<T> on T {
-  S? tryCast<S extends T>() {
-    final self = this;
-    return self is S ? self : null;
-  }
 }
 
 extension on DartType? {
