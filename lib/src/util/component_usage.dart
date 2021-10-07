@@ -33,16 +33,62 @@ class FluentComponentUsage {
 
   Expression get factoryOrBuilder => factory ?? builder;
 
-  // The name
-  String? get componentName => getComponentName(builder);
-
-  String? get propsName {
-    if (isFullyResolved(builder)) {
-      final staticType = builder.staticType!;
-      return staticType.interfaceTypeName;
+  TopLevelVariableElement? get factoryTopLevelVariableElement {
+    final factory = this.factory;
+    if (factory is Identifier) {
+      final staticElement = factory.staticElement;
+      VariableElement? variable;
+      if (staticElement is VariableElement) {
+        variable = staticElement;
+      } else if (staticElement is PropertyAccessorElement) {
+        variable = staticElement.variable;
+      }
+      if (variable is TopLevelVariableElement) {
+        return variable;
+      }
     }
 
     return null;
+  }
+
+  DartType? get propsType {
+    if (isFullyResolved(builder)) {
+      return builder.staticType;
+    }
+    return null;
+  }
+
+  String? get propsName => propsType?.tryCast<InterfaceType>()?.element.name;
+
+  String? get componentName {
+    final factoryTopLevelVariableElement = this.factoryTopLevelVariableElement;
+    if (factoryTopLevelVariableElement != null) {
+      return factoryTopLevelVariableElement.name;
+    }
+
+    final builder = this.builder;
+    if (builder is MethodInvocation) {
+      final methodElement =
+          builder.methodName.staticElement?.tryCast<MethodElement>();
+      if (methodElement != null && methodElement.isStatic) {
+        final className = methodElement.enclosingElement.name;
+        if (className != null) {
+          return className + '.' + builder.methodName.name;
+        }
+      }
+    }
+
+    final propsName = this.propsName;
+    if (propsName != null &&
+        !const {'dynamic', 'UiProps'}.contains(propsName)) {
+      if (propsName.endsWith('Props')) {
+        // Some props classes have an extra "Component" part in their name.
+        return propsName.replaceFirst(r'(Component)?Props$', '');
+      }
+      return propsName;
+    }
+
+    return getUnresolvedComponentName(builder);
   }
 
   bool get isDom => const {'DomProps', 'SvgProps'}.contains(propsName);
@@ -358,10 +404,6 @@ class IndexPropAssignment implements BuilderMemberAccess {
   Expression get rightHandSide => node.rightHandSide;
 }
 
-extension on DartType? {
-  String? get interfaceTypeName => tryCast<InterfaceType>()?.element.name;
-}
-
 /// Returns whether [expression] and all of its descendants are fully resolved
 /// by checking whether there are any unresolved identifiers or unresolved
 /// invocations.
@@ -449,15 +491,13 @@ FluentComponentUsage? getComponentUsage(InvocationExpression node) {
   // but something goes wrong, we'll get dynamic.
   if (isFullyResolved(builder)) {
     // Resolved AST
-    isComponent =
-        builder.staticType.interfaceTypeName?.endsWith('Props') ?? false;
+    isComponent = builder.staticType!.isPropsClass;
   } else {
     // Unresolved AST (or type wasn't available)
     isComponent = false;
 
     if (builder is MethodInvocation) {
-      String? builderName = getComponentName(builder);
-
+      final builderName = getUnresolvedComponentName(builder);
       if (builderName != null) {
         isComponent =
             RegExp(r'(?:^|\.)Dom\.[a-z0-9]+$').hasMatch(builderName) ||
@@ -480,46 +520,8 @@ FluentComponentUsage? getComponentUsageFromExpression(Expression node) {
   return node is InvocationExpression ? getComponentUsage(node) : null;
 }
 
-String? getComponentName(Expression builder) {
-  // Can't just check for staticType since if we're in an attempted-to-be-resolved AST
-  // but something goes wrong, we'll get dynamic.
-  if (isFullyResolved(builder)) {
-    final factory = builder.tryCast<InvocationExpression>()?.function;
-    if (factory is Identifier) {
-      final staticElement = factory.staticElement;
-      VariableElement? variable;
-      if (staticElement is VariableElement) {
-        variable = staticElement;
-      } else if (staticElement is PropertyAccessorElement) {
-        variable = staticElement.variable;
-      }
-      if (variable is TopLevelVariableElement) {
-        return variable.name;
-      }
-    }
-
-    if (builder is MethodInvocation) {
-      final methodElement =
-          builder.methodName.staticElement?.tryCast<MethodElement>();
-      if (methodElement != null && methodElement.isStatic) {
-        final className = methodElement.enclosingElement.name;
-        if (className != null) {
-          return className + '.' + builder.methodName.name;
-        }
-      }
-    }
-
-    final staticType = builder.staticType;
-    assert(staticType != null, 'isFullyResolved implies non-null staticType');
-
-    final typeName = staticType.interfaceTypeName;
-    if (typeName != null && !const {'dynamic', 'UiProps'}.contains(typeName)) {
-      if (typeName.endsWith('Props')) {
-        // Some props classes have an extra "Component" part in their name.
-        return typeName.replaceFirst(r'(Component)?Props$', '');
-      }
-    }
-  } else if (builder is MethodInvocation) {
+String? getUnresolvedComponentName(Expression builder) {
+  if (builder is MethodInvocation) {
     // Unresolved
     String builderName;
     if (builder.target != null) {
