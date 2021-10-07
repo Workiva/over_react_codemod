@@ -454,23 +454,27 @@ void migratePropsByName(
   // authoring migrations.
   {
     final builderStaticType =
-        usage.builder.staticType?.typeOrBounds as InterfaceType?;
+        usage.builder.staticType?.typeOrBounds.tryCast<InterfaceType>();
     if (builderStaticType != null) {
       final builderElement = builderStaticType.element;
       final builderClassName = builderElement.name;
-      final library =
-          (usage.builder.root as CompilationUnit).declaredElement!.library;
-      final unknownPropNames = migratorsByName.keys
-          .where((propName) =>
-              builderElement.lookUpSetter(propName, library) == null)
-          .toList();
-      if (unknownPropNames.isNotEmpty) {
-        throw ArgumentError(
-            "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
-            " not statically available on builder class '$builderClassName'"
-            " (declared in ${builderElement.enclosingElement.uri})."
-            " Double-check that that prop exists in that props class"
-            " and that the key in 'migratorsByName' does not have any typos.");
+      final library = usage.builder.root
+          .tryCast<CompilationUnit>()
+          ?.declaredElement!
+          .library;
+      if (library != null) {
+        final unknownPropNames = migratorsByName.keys
+            .where((propName) =>
+                builderElement.lookUpSetter(propName, library) == null)
+            .toList();
+        if (unknownPropNames.isNotEmpty) {
+          throw ArgumentError(
+              "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
+              " not statically available on builder class '$builderClassName'"
+              " (declared in ${builderElement.enclosingElement.uri})."
+              " Double-check that that prop exists in that props class"
+              " and that the key in 'migratorsByName' does not have any typos.");
+        }
       }
     }
   }
