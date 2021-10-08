@@ -164,8 +164,12 @@ typedef SuggestorTester = Future<void> Function({
 const defaultSuggestorTesterInputUrl = 'lib/src/input';
 
 /// Returns a version of [testSuggestor] with [suggestor] curried.
-SuggestorTester getSuggestorTester(Suggestor suggestor,
-    {String inputUrl = defaultSuggestorTesterInputUrl}) {
+SuggestorTester getSuggestorTester(
+  Suggestor suggestor, {
+  String? inputUrl,
+  SharedAnalysisContext? resolvedContext,
+}) {
+  final defaultResolvedContext = resolvedContext;
   return ({
     required String input,
     String? expectedOutput,
@@ -182,7 +186,7 @@ SuggestorTester getSuggestorTester(Suggestor suggestor,
         expectedPatchCount: expectedPatchCount,
         shouldDartfmtOutput: shouldDartfmtOutput,
         testIdempotency: testIdempotency,
-        resolvedContext: resolvedContext,
+        resolvedContext: resolvedContext ?? defaultResolvedContext,
         validateContents: validateContents,
         inputUrl: inputUrl,
       );

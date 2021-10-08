@@ -412,7 +412,13 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
   void yieldPropFixmePatch(PropAssignment prop, String message) {
     yieldInsertionPatch(
-        lineComment('FIXME(mui_migration) - ${prop.name.name} prop - $message'),
+        // Add an extra newline beforehand so that the comment doesn't end up on
+        // the same line as the cascade target (the builder) in single-prop cascades.
+        // Add a space so that dartfmt indents comment with the next line as opposed to
+        //  keeping it at the beginning of the line
+        '\n ' +
+            lineComment(
+                'FIXME(mui_migration) - ${prop.name.name} prop - $message'),
         prop.assignment.offset);
   }
 
