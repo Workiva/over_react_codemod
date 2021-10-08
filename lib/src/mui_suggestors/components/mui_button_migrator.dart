@@ -46,7 +46,7 @@ class MuiButtonMigrator
         hasLinkButtonSkin(usage) ? '$muiNs.LinkButton' : '$muiNs.Button';
     yieldPatchOverNode(newFactory, usage.factory!);
 
-    var propsClassHasHitareaMixin = false;
+    bool propsClassHasHitareaMixin;
     if (usesWsdFactory(usage, 'FormSubmitInput')) {
       // Avoid adding two props separately at the same time when there are no
       // no parens around the builder, which yields the following diff:
@@ -73,6 +73,8 @@ class MuiButtonMigrator
 
       propsClassHasHitareaMixin =
           wsdComponentVersionForFactory(usage) == WsdComponentVersion.v1;
+    } else {
+      propsClassHasHitareaMixin = true;
     }
 
     migratePropsByName(usage, migratorsByName: {

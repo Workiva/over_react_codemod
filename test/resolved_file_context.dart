@@ -112,11 +112,12 @@ class SharedAnalysisContext {
     final path = p.join(projectRoot, _testFileSubpath, filename);
     final file = File(path);
     if (file.existsSync()) {
-      throw StateError('File already exists.'
+      throw StateError('File already exists: ${filename}.'
           ' Cannot use an existing file, since there is no public API'
           ' to update a file within a AnalysisContextCollection.'
-          ' Make sure you\'re calling init() first, and that you\'re using'
-          ' a unique filename each time.');
+          ' Make sure you\'re using a unique filename each time.'
+          // fixme implement some sort of file lock/mutex to avoid this?
+          ' This error can also occcur if there are concurrent test runs');
     }
     file.parent.createSync(recursive: true);
     file.writeAsStringSync(sourceText);
