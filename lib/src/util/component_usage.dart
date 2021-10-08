@@ -83,11 +83,8 @@ class FluentComponentUsage {
     final propsName = this.propsName;
     if (propsName != null &&
         !const {'dynamic', 'UiProps'}.contains(propsName)) {
-      if (propsName.endsWith('Props')) {
-        // Some props classes have an extra "Component" part in their name.
-        return propsName.replaceFirst(r'(Component)?Props$', '');
-      }
-      return propsName;
+      // Some props classes have an extra "Component" part in their name.
+      return propsName.replaceFirst(RegExp(r'(Component)?Props$'), '');
     }
 
     return getUnresolvedComponentName(builder);
@@ -524,7 +521,6 @@ FluentComponentUsage? getComponentUsageFromExpression(Expression node) {
 
 String? getUnresolvedComponentName(Expression builder) {
   if (builder is MethodInvocation) {
-    // Unresolved
     String builderName;
     if (builder.target != null) {
       builderName = builder.target!.toSource() + '.' + builder.methodName.name;
