@@ -139,18 +139,16 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
   void verifyUsageIsResolved(
       FluentComponentUsage usage, ResolvedUnitResult result) {
-    // fixme add note in error message about part file needing to be resolved after main library
-
     String errorsMessage() => result.errors.isEmpty
         ? ''
-        : ' \nAnalysis errors in file:\n${prettyPrintErrors(result.errors)}\n';
-    //error: Undefined name 'message'. (undefined_identifier at [over_react_codemod] lib/src/util/component_usage_migrator.dart:228)
+        : ' \nAnalysis errors in file:\n${prettyPrintErrors(result.errors)}\n'
+            'If this is a part file and all of its imported members seem to be unresolved,'
+            ' make sure its library is resolved first.';
     final staticType = usage.builder.staticType;
     if (staticType == null || staticType.isDynamic) {
       final typeDescription = staticType == null
           ? 'null'
           : 'type \'${staticType.getDisplayString(withNullability: false)}\'';
-      // debugger();
       throw _unresolvedException(
           'Builder static type could not be resolved; was $typeDescription. ${errorsMessage()}',
           usage.builder);
