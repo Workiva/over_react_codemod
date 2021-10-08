@@ -38,3 +38,4 @@ dev_dependencies:
 executables:
   dart2_9_upgrade:
   dependency_validator_ignore:
+  wk_theme_provider:
