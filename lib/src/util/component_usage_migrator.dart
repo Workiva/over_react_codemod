@@ -475,7 +475,7 @@ void migratePropsByName(
           throw ArgumentError(
               "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
               " not statically available on builder class '$builderClassName'"
-              " (declared in ${builderElement.enclosingElement.uri})."
+              " (declared in ${builderElement.enclosingElement.source.uri})."
               " Double-check that that prop exists in that props class"
               " and that the key in 'migratorsByName' does not have any typos.");
         }

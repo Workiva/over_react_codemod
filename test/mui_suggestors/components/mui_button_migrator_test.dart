@@ -12,9 +12,31 @@ void main() {
       resolvedContext: SharedAnalysisContext.wsd,
     );
 
-    group('migrates WSD Buttons', () {
-      test('that are either unnamespaced or namespaced, and either v1 or v2',
-          () async {
+    test(
+        'does not migrate non-WSD Button/FormSubmitInput/FormResetInput factories'
+        ' or other components', () async {
+      await testSuggestor(
+        input: withOverReactAndWsdImports(/*language=dart*/ '''
+            // Shadows the WSD factories
+            UiFactory Button;
+            UiFactory FormSubmitInput;
+            UiFactory FormResetInput;
+            
+            content() {
+              // Non-WSD
+              Button()();
+              FormSubmitInput()();
+              FormResetInput()();
+              
+              Tooltip()();
+              Dom.div()();
+            }
+        '''),
+      );
+    });
+
+    group('updates the factory', () {
+      test('for Button (potentially namespaced or v1/v2)', () async {
         await testSuggestor(
           input: withOverReactAndWsdImports(/*language=dart*/ '''
               content() {
@@ -33,36 +55,123 @@ void main() {
         );
       });
 
-      test('and not non-WSD Buttons or other components', () async {
-        await testSuggestor(
-          input: withOverReactAndWsdImports(/*language=dart*/ '''
-              // Shadows the WSD Button
-              UiFactory Button;
-              content() {
-                // Non-WSD Button
-                Button()();
-                
-                Tooltip()();
-                Dom.div()();
-              }
-          '''),
-        );
-      });
-    });
+      group(
+          'for FormResetInput (potentially namespaced or v1/v2),'
+          ' also adding relevant props', () {
+        test('when there are no props', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  FormResetInput()();
+                  wsd_v1.FormResetInput()();
+                  wsd_v2.FormResetInput()();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Button()..type = 'reset')();
+                  (mui.Button()..type = 'reset')();
+                  (mui.Button()..type = 'reset')();
+                }
+            '''),
+          );
+        });
 
-    test('updates the factory', () async {
-      await testSuggestor(
-        input: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              Button()();
-            }
-        '''),
-        expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              mui.Button()();
-            }
-        '''),
-      );
+        test('when there are existing cascades', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (FormResetInput()
+                    // `type` should go after all existing cascades
+                    ..id = 'id'
+                  )();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Button()
+                    // `type` should go after all existing cascades
+                    ..id = 'id'
+                    ..type = 'reset'
+                  )();
+                }
+            '''),
+          );
+        });
+      });
+
+      group(
+          'for FormSubmit (potentially namespaced or v1/v2),'
+          ' also adding relevant props', () {
+        test('when there are no parens around the builder', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  FormSubmitInput()();
+                  wsd_v1.FormSubmitInput()();
+                  wsd_v2.FormSubmitInput()();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Button()
+                    ..color = mui.ButtonColor.primary
+                    ..type = 'submit'
+                  )();
+                  (mui.Button()
+                    ..color = mui.ButtonColor.primary
+                    ..type = 'submit'
+                  )();
+                  (mui.Button()
+                    ..color = mui.ButtonColor.primary
+                    ..type = 'submit'
+                  )();
+                }
+            '''),
+          );
+        });
+
+        test('when there are parens around the builder', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (FormSubmitInput())();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Button()
+                    ..color = mui.ButtonColor.primary
+                    ..type = 'submit'
+                  )();
+                }
+            '''),
+          );
+        });
+
+        test('when there are cascades on the builder', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (FormSubmitInput()
+                    // `color` should go before existing cascades, and `type` afterwards
+                    ..id = 'id'
+                  )();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Button()
+                    ..color = mui.ButtonColor.primary
+                    // `color` should go before existing cascades, and `type` afterwards
+                    ..id = 'id'
+                    ..type = 'submit'
+                  )();
+                }
+            '''),
+          );
+        });
+      });
     });
 
     group('updates props', () {
