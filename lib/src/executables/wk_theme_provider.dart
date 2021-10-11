@@ -34,8 +34,8 @@ void main(List<String> args) async {
   final parsedArgs = parser.parse(args);
 
   final exitCode = await runInteractiveCodemod(
-    pubspecYamlPaths(),
-    [ThemeProviderAdder(wkTheme)],
+    allDartPathsExceptHidden(),
+    ThemeProviderAdder(wkTheme),
     defaultYes: true,
     args: parsedArgs.rest,
     changesRequiredOutput: _changesRequiredOutput,
