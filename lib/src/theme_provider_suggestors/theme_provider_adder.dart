@@ -72,9 +72,9 @@ class ThemeProviderAdder extends GeneralizingAstVisitor
             '`reactDomImport` should never be null here unless `isPartOf == true`');
       }
       yieldPatch(
-          'import \'package:react_material_ui/styles/theme_provider.dart\';\n',
-          reactDomImport.offset,
-          reactDomImport.offset);
+          '\nimport \'package:react_material_ui/styles/theme_provider.dart\';',
+          reactDomImport.end,
+          reactDomImport.end);
     }
 
     FluentComponentUsage? usage;

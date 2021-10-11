@@ -36,22 +36,6 @@ main() {
       );
     });
 
-    // todo also add testcase for already updated errorboudndary wtih thteme provider
-    test('render usage not from react or over_react', () async {
-      await testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
-          import 'dart:html';
-
-          import 'package:somewhere_else/react_dom.dart' as react_dom;
-
-          main() {
-            react_dom.render(Foo()(), mountNode);
-          }
-        ''',
-      );
-    });
-
     test('render usage from react', () async {
       await testSuggestor(
         expectedPatchCount: 3,
@@ -67,8 +51,8 @@ main() {
         expectedOutput: '''
           import 'dart:html';
           
-          import 'package:react_material_ui/styles/theme_provider.dart';
           import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
 
           main() {
             react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
@@ -92,8 +76,8 @@ main() {
         expectedOutput: '''
           import 'dart:html';
           
-          import 'package:react_material_ui/styles/theme_provider.dart';
           import 'package:over_react/react_dom.dart' as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
 
           main() {
             react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
@@ -117,8 +101,8 @@ main() {
         expectedOutput: '''
           import 'dart:html';
           
-          import 'package:react_material_ui/styles/theme_provider.dart';
           import 'package:over_react/react_dom.dart' as some_other_namespace;
+          import 'package:react_material_ui/styles/theme_provider.dart';
 
           main() {
             some_other_namespace.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
@@ -142,11 +126,134 @@ main() {
         expectedOutput: '''
           import 'dart:html';
           
-          import 'package:react_material_ui/styles/theme_provider.dart';
           import 'package:react/react_dom.dart';
+          import 'package:react_material_ui/styles/theme_provider.dart';
 
           main() {
             render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('import with double quotes', () async {
+      await testSuggestor(
+        expectedPatchCount: 3,
+        input: '''
+          import 'package:over_react/over_react.dart';
+          import "package:react/react_dom.dart" as react_dom;
+
+          main() {
+            react_dom.render(Foo()(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import 'package:over_react/over_react.dart';
+          import "package:react/react_dom.dart" as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
+
+          main() {
+            react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('render usage with non-component usage', () async {
+      await testSuggestor(
+        expectedPatchCount: 5,
+        input: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:react/react_dom.dart' as react_dom;
+
+          main() {
+            var instance1 = react_dom.render(foo(), mountNode);
+
+            var instance2 = react_dom.render(foo, mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
+
+          main() {
+            var instance1 = react_dom.render((ThemeProvider()..theme = wkTheme)(foo()), mountNode);
+
+            var instance2 = react_dom.render((ThemeProvider()..theme = wkTheme)(foo), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('render usage as return value', () async {
+      await testSuggestor(
+        expectedPatchCount: 3,
+        input: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:react/react_dom.dart' as react_dom;
+
+          main() {
+            return react_dom.render((Foo()..color = 'red')(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
+
+          main() {
+            return react_dom.render((Foo()..color = 'red')(), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('render usage as an argument', () async {
+      await testSuggestor(
+        expectedPatchCount: 3,
+        input: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:react/react_dom.dart' as react_dom;
+
+          main() {
+            var instance = getDartComponent(react_dom.render(Foo()(), mountNode));
+          }
+        ''',
+        expectedOutput: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
+
+          main() {
+            var instance = getDartComponent(react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode));
+          }
+        ''',
+      );
+    });
+
+    test('render usage with existing other props', () async {
+      await testSuggestor(
+        expectedPatchCount: 3,
+        input: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:react/react_dom.dart' as react_dom;
+
+          main() {
+            var instance = react_dom.render((Foo()
+              ..id = 'foo'
+            )(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import 'package:over_react/over_react.dart';
+          import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
+
+          main() {
+            var instance = react_dom.render((ThemeProvider()..theme = wkTheme)((Foo()
+              ..id = 'foo'
+            )()), mountNode);
           }
         ''',
       );
@@ -158,8 +265,8 @@ main() {
         input: '''
           import 'dart:html';
           
-          import 'package:react_material_ui/styles/theme_provider.dart';
           import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
 
           main() {
             react_dom.render(Foo()(), mountNode);
@@ -168,8 +275,35 @@ main() {
         expectedOutput: '''
           import 'dart:html';
         
-          import 'package:react_material_ui/styles/theme_provider.dart';
           import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
+
+          main() {
+            react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
+          }
+        ''',
+      );
+    });
+
+    test('when the ThemeProvider import already exists with double quotes',
+        () async {
+      await testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          import 'dart:html';
+          
+          import 'package:react/react_dom.dart' as react_dom;
+          import "package:react_material_ui/styles/theme_provider.dart";
+
+          main() {
+            react_dom.render(Foo()(), mountNode);
+          }
+        ''',
+        expectedOutput: '''
+          import 'dart:html';
+        
+          import 'package:react/react_dom.dart' as react_dom;
+          import "package:react_material_ui/styles/theme_provider.dart";
 
           main() {
             react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
@@ -193,8 +327,8 @@ main() {
         expectedOutput: '''
           import 'dart:html';
           
-          import 'package:react_material_ui/styles/theme_provider.dart';
           import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
 
           main() {
             react_dom.render(ErrorBoundary()((ThemeProvider()..theme = wkTheme)(Foo()())), mountNode);
@@ -220,8 +354,8 @@ main() {
         expectedOutput: '''
           import 'dart:html';
           
-          import 'package:react_material_ui/styles/theme_provider.dart';
           import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
 
           main() {
             react_dom.render((ErrorBoundary()
@@ -247,8 +381,8 @@ main() {
         expectedOutput: '''
           import 'dart:html';
           
-          import 'package:react_material_ui/styles/theme_provider.dart';
           import 'package:react/react_dom.dart' as react_dom;
+          import 'package:react_material_ui/styles/theme_provider.dart';
 
           main() {
             react_dom.render((ThemeProvider()..theme = anotherTheme)(Foo()()), mountNode);
@@ -259,19 +393,23 @@ main() {
 
     test('no react_dom.dart import but usage has namespace in a `part of` file',
         () async {
-      await testSuggestor(expectedPatchCount: 2, input: '''
+      await testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
           part of 'a_file.dart';
 
           main() {
             react_dom.render(Foo()(), mountNode);
           }
-        ''', expectedOutput: '''
+        ''',
+        expectedOutput: '''
           part of 'a_file.dart';
 
           main() {
             react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
           }
-        ''');
+        ''',
+      );
     });
 
     group('render usage already wrapped in ThemeProvider', () {
@@ -279,15 +417,40 @@ main() {
         await testSuggestor(
           expectedPatchCount: 0,
           input: '''
-          import 'dart:html';
+            import 'dart:html';
+  
+            import 'package:react/react_dom.dart' as react_dom;
+            import 'package:react_material_ui/styles/theme_provider.dart';
+  
+            main() {
+              react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
+            }
+          ''',
+        );
+      });
 
-          import 'package:react_material_ui/styles/theme_provider.dart';
-          import 'package:react/react_dom.dart' as react_dom;
-
-          main() {
-            react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
-          }
-        ''',
+      test('but has no import', () async {
+        await testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+            import 'dart:html';
+  
+            import 'package:react/react_dom.dart' as react_dom;
+  
+            main() {
+              react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
+            }
+          ''',
+          expectedOutput: '''
+            import 'dart:html';
+  
+            import 'package:react/react_dom.dart' as react_dom;
+            import 'package:react_material_ui/styles/theme_provider.dart';
+  
+            main() {
+              react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
+            }
+          ''',
         );
       });
 
@@ -295,15 +458,15 @@ main() {
         await testSuggestor(
           expectedPatchCount: 0,
           input: '''
-          import 'dart:html';
-          
-          import 'package:react_material_ui/styles/theme_provider.dart';
-          import 'package:react/react_dom.dart' as react_dom;
-
-          main() {
-            react_dom.render(ErrorBoundary()((ThemeProvider()..theme = wkTheme)(Foo()())), mountNode);
-          }
-        ''',
+            import 'dart:html';
+            
+            import 'package:react/react_dom.dart' as react_dom;
+            import 'package:react_material_ui/styles/theme_provider.dart';
+  
+            main() {
+              react_dom.render(ErrorBoundary()((ThemeProvider()..theme = wkTheme)(Foo()())), mountNode);
+            }
+          ''',
         );
       });
 
@@ -311,17 +474,17 @@ main() {
         await testSuggestor(
           expectedPatchCount: 0,
           input: '''
-          import 'dart:html';
-          
-          import 'package:react_material_ui/styles/theme_provider.dart';
-          import 'package:react/react_dom.dart' as react_dom;
-
-          main() {
-            react_dom.render((ErrorBoundary()
-              ..onComponentDidCatch = (error, _) => true
-            )((ThemeProvider()..theme = wkTheme)(Foo()())), mountNode);
-          }
-        ''',
+            import 'dart:html';
+            
+            import 'package:react/react_dom.dart' as react_dom;
+            import 'package:react_material_ui/styles/theme_provider.dart';
+  
+            main() {
+              react_dom.render((ErrorBoundary()
+                ..onComponentDidCatch = (error, _) => true
+              )((ThemeProvider()..theme = wkTheme)(Foo()())), mountNode);
+            }
+          ''',
         );
       });
     });
@@ -332,14 +495,14 @@ main() {
             inputUrl: 'test/input')(
           expectedPatchCount: 0,
           input: '''
-          import 'dart:html';
-          
-          import 'package:react/react_dom.dart' as react_dom;
-
-          main() {
-            react_dom.render(Foo()(), mountNode);
-          }
-        ''',
+            import 'dart:html';
+            
+            import 'package:react/react_dom.dart' as react_dom;
+  
+            main() {
+              react_dom.render(Foo()(), mountNode);
+            }
+          ''',
         );
       });
 
@@ -348,14 +511,14 @@ main() {
             inputUrl: 'subpackages/a_package/test/input')(
           expectedPatchCount: 0,
           input: '''
-          import 'dart:html';
-          
-          import 'package:react/react_dom.dart' as react_dom;
-
-          main() {
-            react_dom.render(Foo()(), mountNode);
-          }
-        ''',
+            import 'dart:html';
+            
+            import 'package:react/react_dom.dart' as react_dom;
+  
+            main() {
+              react_dom.render(Foo()(), mountNode);
+            }
+          ''',
         );
       });
     });
@@ -420,7 +583,7 @@ main() {
       );
     });
 
-    test('render usage with no namespace and no react_dom  import', () async {
+    test('render usage with no namespace and no react_dom import', () async {
       await testSuggestor(
         expectedPatchCount: 0,
         input: '''
@@ -430,330 +593,5 @@ main() {
         ''',
       );
     });
-
-    // test('simple usage', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 3,
-    //     input: '''
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         var instance = react_dom.render(Foo()(), mountNode);
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         var instance = react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-    // test('simple usage already wrapped with ErrorBoundary that has props',
-    //     () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 5,
-    //     input: '''
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         react_dom.render((ErrorBoundary()..prop = true)(Foo()()), mountNode);
-    //         react_dom.render((ErrorBoundary()..prop = true)(foo), mountNode);
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         react_dom.render((ErrorBoundary()..prop = true)((ThemeProvider()..theme = wkTheme)(Foo()())), mountNode);
-    //         react_dom.render((ErrorBoundary()..prop = true)((ThemeProvider()..theme = wkTheme)(foo)), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-    // test('simple usage as an argument', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 3,
-    //     input: '''
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         var instance = getDartComponent(react_dom.render(Foo()(), mountNode));
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         var instance = getDartComponent(react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode));
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-    // test('simple usage as a return value', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 3,
-    //     input: '''
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         return react_dom.render(Foo()(), mountNode);
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         return react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-    // test('simple usage with existing other props', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 3,
-    //     input: '''
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         var instance = react_dom.render((Foo()
-    //           ..id = 'foo'
-    //         )(), mountNode);
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         var instance = react_dom.render((ThemeProvider()..theme = wkTheme)((Foo()
-    //           ..id = 'foo'
-    //         )()), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-
-    //
-    // test('simple usage with non-component usage', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 9,
-    //     input: '''
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         var instance1 = react_dom.render(foo(), mountNode);
-    //
-    //         var instance2 = react_dom.render(foo, mountNode);
-    //
-    //         instance3 = react_dom.render(foo(), mountNode);
-    //
-    //         instance4 = react_dom.render(foo, mountNode);
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as react_dom;
-    //
-    //       main() {
-    //         var instance1 = react_dom.render((ThemeProvider()..theme = wkTheme)(foo()), mountNode);
-    //
-    //         var instance2 = react_dom.render((ThemeProvider()..theme = wkTheme)(foo), mountNode);
-    //
-    //         instance3 = react_dom.render((ThemeProvider()..theme = wkTheme)(foo()), mountNode);
-    //
-    //         instance4 = react_dom.render((ThemeProvider()..theme = wkTheme)(foo), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-
-    //
-    // test('import with double quotes', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 3,
-    //     input: '''
-    //       import 'package:over_react/over_react.dart';
-    //       import "package:react/react_dom.dart" as react_dom;
-    //
-    //       main() {
-    //         react_dom.render(Foo()(), mountNode);
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import "package:react/react_dom.dart" as react_dom;
-    //
-    //       main() {
-    //         react_dom.render(ErrorBoundary()(Foo()()), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-    // test('imported from `over_react` with namespace', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 3,
-    //     input: '''
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:over_react/react_dom.dart' as different_namespace;
-    //
-    //       main() {
-    //         different_namespace.render(Foo()(), mountNode);
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:over_react/react_dom.dart' as different_namespace;
-    //
-    //       main() {
-    //         different_namespace.render(ErrorBoundary()(Foo()()), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-    // test('imported from `over_react` without namespace', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 3,
-    //     input: '''
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:over_react/react_dom.dart';
-    //
-    //       main() {
-    //         render(Foo()(), mountNode);
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:over_react/react_dom.dart';
-    //
-    //       main() {
-    //         render(ErrorBoundary()(Foo()()), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-    // test('different import namespace', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 3,
-    //     input: '''
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as different_namespace;
-    //
-    //       main() {
-    //         different_namespace.render(Foo()(), mountNode);
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart' as different_namespace;
-    //
-    //       main() {
-    //         different_namespace.render(ErrorBoundary()(Foo()()), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-    // test('no import namespace', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 3,
-    //     input: '''
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart';
-    //
-    //       main() {
-    //         render(Foo()(), mountNode);
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart';
-    //
-    //       main() {
-    //         render(ErrorBoundary()(Foo()()), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-    // test('no react_dom.dart import', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 0,
-    //     input: '''
-    //       main() {
-    //         render(Foo()(), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
-    //
-    //
-    // test('no react_dom.dart import but usage has namespace', () async {
-    //   await testSuggestor(expectedPatchCount: 3, input: '''
-    //       main() {
-    //         react_dom.render(Foo()(), mountNode);
-    //       }
-    //     ''', expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //
-    //       main() {
-    //         react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
-    //       }
-    //     ''');
-    // });
-    //
-    // test('no import of over_react but is wrapped with ErrorBoundary', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 3,
-    //     input: '''
-    //       import 'package:react/react_dom.dart';
-    //
-    //       main() {
-    //         render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
-    //       }
-    //     ''',
-    //     expectedOutput: '''
-    //       import 'package:react_material_ui/styles/theme_provider.dart';
-    //       import 'package:over_react/over_react.dart';
-    //       import 'package:react/react_dom.dart';
-    //
-    //       main() {
-    //         render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
-    //       }
-    //     ''',
-    //   );
-    // });
   });
 }
