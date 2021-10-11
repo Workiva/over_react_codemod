@@ -167,9 +167,9 @@ main() {
           import 'package:react/react_dom.dart' as react_dom;
 
           main() {
-            var instance1 = react_dom.render(foo(), mountNode);
+            react_dom.render(foo(), mountNode);
 
-            var instance2 = react_dom.render(foo, mountNode);
+            react_dom.render(foo, mountNode);
           }
         ''',
         expectedOutput: '''
@@ -178,58 +178,207 @@ main() {
           import 'package:react_material_ui/styles/theme_provider.dart';
 
           main() {
-            var instance1 = react_dom.render((ThemeProvider()..theme = wkTheme)(foo()), mountNode);
+            react_dom.render((ThemeProvider()..theme = wkTheme)(foo()), mountNode);
 
-            var instance2 = react_dom.render((ThemeProvider()..theme = wkTheme)(foo), mountNode);
+            react_dom.render((ThemeProvider()..theme = wkTheme)(foo), mountNode);
           }
         ''',
       );
     });
 
-    test('render usage as return value', () async {
-      await testSuggestor(
-        expectedPatchCount: 3,
-        input: '''
-          import 'package:over_react/over_react.dart';
-          import 'package:react/react_dom.dart' as react_dom;
+    group('adds FIXME comments for render usage as', () {
+      group('return value', () {
+        test('', () async {
+          await testSuggestor(
+            expectedPatchCount: 4,
+            input: '''
+            import 'package:over_react/over_react.dart';
+            import 'package:react/react_dom.dart' as react_dom;
+  
+            main() {
+              return react_dom.render((Foo()..color = 'red')(), mountNode);
+            }
+          ''',
+            expectedOutput: '''
+            import 'package:over_react/over_react.dart';
+            import 'package:react/react_dom.dart' as react_dom;
+            import 'package:react_material_ui/styles/theme_provider.dart';
+  
+            main() {
+              return $checkTypingFixmeComment
+                react_dom.render((ThemeProvider()..theme = wkTheme)((Foo()..color = 'red')()), mountNode);
+            }
+          ''',
+          );
+        });
 
-          main() {
-            return react_dom.render((Foo()..color = 'red')(), mountNode);
-          }
-        ''',
-        expectedOutput: '''
-          import 'package:over_react/over_react.dart';
-          import 'package:react/react_dom.dart' as react_dom;
-          import 'package:react_material_ui/styles/theme_provider.dart';
+        test('arrow function', () async {
+          await testSuggestor(
+            expectedPatchCount: 4,
+            input: '''
+            import 'package:over_react/over_react.dart';
+            import 'package:react/react_dom.dart' as react_dom;
+  
+            main() => react_dom.render((Foo()..color = 'red')(), mountNode);
+          ''',
+            expectedOutput: '''
+            import 'package:over_react/over_react.dart';
+            import 'package:react/react_dom.dart' as react_dom;
+            import 'package:react_material_ui/styles/theme_provider.dart';
+  
+            main() => $checkTypingFixmeComment
+                react_dom.render((ThemeProvider()..theme = wkTheme)((Foo()..color = 'red')()), mountNode);
+          ''',
+          );
+        });
 
-          main() {
-            return react_dom.render((ThemeProvider()..theme = wkTheme)((Foo()..color = 'red')()), mountNode);
-          }
-        ''',
-      );
-    });
+        test('unless it is wrapped in an ErrorBoundary', () async {
+          await testSuggestor(
+            expectedPatchCount: 3,
+            input: '''
+            import 'package:over_react/over_react.dart';
+            import 'package:react/react_dom.dart' as react_dom;
+  
+            main() {
+              return react_dom.render(ErrorBoundary()((Foo()..color = 'red')()), mountNode);
+            }
+          ''',
+            expectedOutput: '''
+            import 'package:over_react/over_react.dart';
+            import 'package:react/react_dom.dart' as react_dom;
+            import 'package:react_material_ui/styles/theme_provider.dart';
+  
+            main() {
+              return react_dom.render(ErrorBoundary()((ThemeProvider()..theme = wkTheme)((Foo()..color = 'red')())), mountNode);
+            }
+          ''',
+          );
+        });
+      });
 
-    test('render usage as an argument', () async {
-      await testSuggestor(
-        expectedPatchCount: 3,
-        input: '''
-          import 'package:over_react/over_react.dart';
-          import 'package:react/react_dom.dart' as react_dom;
+      group('an argument', () {
+        test('', () async {
+          await testSuggestor(
+            expectedPatchCount: 4,
+            input: '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react/react_dom.dart' as react_dom;
+    
+              main() {
+                var instance = getDartComponent(react_dom.render(Foo()(), mountNode));
+              }
+            ''',
+            expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react/react_dom.dart' as react_dom;
+              import 'package:react_material_ui/styles/theme_provider.dart';
+    
+              main() {
+                var instance = getDartComponent( $checkTypingFixmeComment
+                  react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode));
+              }
+            ''',
+          );
+        });
 
-          main() {
-            var instance = getDartComponent(react_dom.render(Foo()(), mountNode));
-          }
-        ''',
-        expectedOutput: '''
-          import 'package:over_react/over_react.dart';
-          import 'package:react/react_dom.dart' as react_dom;
-          import 'package:react_material_ui/styles/theme_provider.dart';
+        test('unless it is wrapped in an ErrorBoundary', () async {
+          await testSuggestor(
+            expectedPatchCount: 3,
+            input: '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react/react_dom.dart' as react_dom;
+    
+              main() {
+                var instance = getDartComponent(react_dom.render(ErrorBoundary()(Foo()()), mountNode));
+              }
+            ''',
+            expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react/react_dom.dart' as react_dom;
+              import 'package:react_material_ui/styles/theme_provider.dart';
+    
+              main() {
+                var instance = getDartComponent(react_dom.render(ErrorBoundary()((ThemeProvider()..theme = wkTheme)(Foo()())), mountNode));
+              }
+            ''',
+          );
+        });
+      });
 
-          main() {
-            var instance = getDartComponent(react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode));
-          }
-        ''',
-      );
+      group('a variable', () {
+        test('declaration', () async {
+          await testSuggestor(
+            expectedPatchCount: 4,
+            input: '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react/react_dom.dart' as react_dom;
+    
+              main() {
+                var instance = react_dom.render(Foo()(), mountNode);
+              }
+            ''',
+            expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react/react_dom.dart' as react_dom;
+              import 'package:react_material_ui/styles/theme_provider.dart';
+    
+              main() {
+                var instance = $checkTypingFixmeComment
+                  react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
+              }
+            ''',
+          );
+        });
+
+        test('assignment', () async {
+          await testSuggestor(
+            expectedPatchCount: 4,
+            input: '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react/react_dom.dart' as react_dom;
+    
+              main() {
+                var instance;
+                instance = react_dom.render(Foo()(), mountNode);
+              }
+            ''',
+            expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react/react_dom.dart' as react_dom;
+              import 'package:react_material_ui/styles/theme_provider.dart';
+    
+              main() {
+                var instance;
+                instance = $checkTypingFixmeComment
+                  react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
+              }
+            ''',
+          );
+        });
+
+        test('unless it is wrapped in an ErrorBoundary', () async {
+          await testSuggestor(
+            expectedPatchCount: 3,
+            input: '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react/react_dom.dart' as react_dom;
+    
+              main() {
+                var instance = react_dom.render(ErrorBoundary()(Foo()()), mountNode);
+              }
+            ''',
+            expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react/react_dom.dart' as react_dom;
+              import 'package:react_material_ui/styles/theme_provider.dart';
+    
+              main() {
+                var instance = react_dom.render(ErrorBoundary()((ThemeProvider()..theme = wkTheme)(Foo()())), mountNode);
+              }
+            ''',
+          );
+        });
+      });
     });
 
     test('render usage with existing other props', () async {
@@ -240,7 +389,7 @@ main() {
           import 'package:react/react_dom.dart' as react_dom;
 
           main() {
-            var instance = react_dom.render((Foo()
+            react_dom.render((Foo()
               ..id = 'foo'
             )(), mountNode);
           }
@@ -251,7 +400,7 @@ main() {
           import 'package:react_material_ui/styles/theme_provider.dart';
 
           main() {
-            var instance = react_dom.render((ThemeProvider()..theme = wkTheme)((Foo()
+            react_dom.render((ThemeProvider()..theme = wkTheme)((Foo()
               ..id = 'foo'
             )()), mountNode);
           }
@@ -464,7 +613,7 @@ main() {
             import 'package:react_material_ui/styles/theme_provider.dart';
   
             main() {
-              react_dom.render(ErrorBoundary()((ThemeProvider()..theme = wkTheme)(Foo()())), mountNode);
+              var instance = react_dom.render(ErrorBoundary()((ThemeProvider()..theme = wkTheme)(Foo()())), mountNode);
             }
           ''',
         );
@@ -480,7 +629,7 @@ main() {
             import 'package:react_material_ui/styles/theme_provider.dart';
   
             main() {
-              react_dom.render((ErrorBoundary()
+              return react_dom.render((ErrorBoundary()
                 ..onComponentDidCatch = (error, _) => true
               )((ThemeProvider()..theme = wkTheme)(Foo()())), mountNode);
             }
@@ -516,7 +665,33 @@ main() {
             import 'package:react/react_dom.dart' as react_dom;
   
             main() {
+              return react_dom.render(Foo()(), mountNode);
+            }
+          ''',
+        );
+      });
+
+      test('in lib', () async {
+        await getSuggestorTester(ThemeProviderAdder('wkTheme'),
+            inputUrl: 'lib/a_dir/test/input')(
+          expectedPatchCount: 3,
+          input: '''
+            import 'dart:html';
+            
+            import 'package:react/react_dom.dart' as react_dom;
+  
+            main() {
               react_dom.render(Foo()(), mountNode);
+            }
+          ''',
+          expectedOutput: '''
+            import 'dart:html';
+            
+            import 'package:react/react_dom.dart' as react_dom;
+            import 'package:react_material_ui/styles/theme_provider.dart';
+  
+            main() {
+              react_dom.render((ThemeProvider()..theme = wkTheme)(Foo()()), mountNode);
             }
           ''',
         );
@@ -547,7 +722,7 @@ main() {
           import 'package:somewhere_else/react_dom.dart' as react_dom;
 
           main() {
-            react_dom.render(Foo()(), mountNode);
+            var instance = getDartComponent(react_dom.render(Foo()(), mountNode));
           }
         ''',
       );

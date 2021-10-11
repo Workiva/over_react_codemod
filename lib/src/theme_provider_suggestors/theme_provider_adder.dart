@@ -18,6 +18,9 @@ import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:over_react_codemod/src/util/component_usage.dart';
 
+const checkTypingFixmeComment =
+    '// FIXME: Verify this typing now that it is wrapped in a ThemeProvider.';
+
 /// Suggestor that wraps the contents of `react_dom.render` calls in a ThemeProvider.
 class ThemeProviderAdder extends GeneralizingAstVisitor
     with AstVisitingSuggestor {
@@ -31,8 +34,13 @@ class ThemeProviderAdder extends GeneralizingAstVisitor
     super.visitMethodInvocation(node);
 
     // Don't update if [node] is not a render call or the file is in a test directory.
+    final filePath = context.relativePath.split('/');
     if (node.methodName.name != 'render' ||
-        context.relativePath.split('/').contains('test')) return;
+        // Some test directories are nested, but we still want to update
+        // files in lib directories.
+        (filePath.contains('test') && !filePath.contains('lib'))) {
+      return;
+    }
 
     final imports = node
         .thisOrAncestorOfType<CompilationUnit>()!
@@ -63,7 +71,9 @@ class ThemeProviderAdder extends GeneralizingAstVisitor
     if ((!isPartOf &&
             (reactDomImport == null ||
                 namespace != reactDomImport.prefix?.name)) ||
-        (isPartOf && namespace != 'react_dom')) return;
+        (isPartOf && namespace != 'react_dom')) {
+      return;
+    }
 
     // Add `theme_provider.dart` import if it is not already there or in a `part of` file.
     if (!isPartOf && themeProviderImport == null) {
@@ -72,9 +82,10 @@ class ThemeProviderAdder extends GeneralizingAstVisitor
             '`reactDomImport` should never be null here unless `isPartOf == true`');
       }
       yieldPatch(
-          '\nimport \'package:react_material_ui/styles/theme_provider.dart\';',
-          reactDomImport.end,
-          reactDomImport.end);
+        '\nimport \'package:react_material_ui/styles/theme_provider.dart\';',
+        reactDomImport.end,
+        reactDomImport.end,
+      );
     }
 
     FluentComponentUsage? usage;
@@ -91,7 +102,9 @@ class ThemeProviderAdder extends GeneralizingAstVisitor
         final errorBoundaryChild = renderFirstArg.argumentList.arguments.first;
         if (errorBoundaryChild is InvocationExpression &&
             getComponentUsage(errorBoundaryChild)?.componentName ==
-                'ThemeProvider') return;
+                'ThemeProvider') {
+          return;
+        }
       }
     }
 
@@ -106,16 +119,19 @@ class ThemeProviderAdder extends GeneralizingAstVisitor
         renderFirstArg.argumentList.leftParenthesis.end,
       );
     } else {
-      yieldPatch(
-        patch,
-        renderFirstArg.offset,
-        renderFirstArg.offset,
-      );
+      final parent = node.parent;
+      if (parent is ArgumentList ||
+          parent is VariableDeclaration ||
+          parent is AssignmentExpression ||
+          parent is ReturnStatement ||
+          parent is ExpressionFunctionBody) {
+        // Add a comment to verify the typing if the react_dom.render is an
+        // argument, return value, or variable assignment.
+        yieldPatch(' $checkTypingFixmeComment\n', node.offset, node.offset);
+      }
+
+      yieldPatch(patch, renderFirstArg.offset, renderFirstArg.offset);
     }
-    yieldPatch(
-      ')',
-      renderFirstArg.end,
-      renderFirstArg.end,
-    );
+    yieldPatch(')', renderFirstArg.end, renderFirstArg.end);
   }
 }
