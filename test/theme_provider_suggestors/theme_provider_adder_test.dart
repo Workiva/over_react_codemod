@@ -203,7 +203,7 @@ main() {
           import 'package:react_material_ui/styles/theme_provider.dart';
 
           main() {
-            return react_dom.render((Foo()..color = 'red')(), mountNode);
+            return react_dom.render((ThemeProvider()..theme = wkTheme)((Foo()..color = 'red')()), mountNode);
           }
         ''',
       );
