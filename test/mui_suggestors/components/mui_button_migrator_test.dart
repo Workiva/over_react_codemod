@@ -368,42 +368,6 @@ void main() {
         });
       });
 
-      test('isCallout', () async {
-        await testSuggestor(
-          input: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (Button()..isCallout = true)();
-              }
-          '''),
-          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (mui.Button()
-                  // FIXME(mui_migration) - isCallout prop - manually migrate
-                  ..isCallout = true
-                )();
-              }
-          '''),
-        );
-      });
-
-      test('pullRight', () async {
-        await testSuggestor(
-          input: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (Button()..pullRight = true)();
-              }
-          '''),
-          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (mui.Button()
-                  // FIXME(mui_migration) - pullRight prop - manually migrate
-                  ..pullRight = true
-                )();
-              }
-          '''),
-        );
-      });
-
       test('role', () async {
         await testSuggestor(
           input: withOverReactAndWsdImports(/*language=dart*/ '''
@@ -434,40 +398,31 @@ void main() {
         );
       });
 
-      test('overlayTriggerProps', () async {
-        await testSuggestor(
-          input: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (Button()..overlayTriggerProps = {})();
-              }
-          '''),
-          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (mui.Button()
-                  // FIXME(mui_migration) - overlayTriggerProps prop - manually migrate
-                  ..overlayTriggerProps = {}
-                )();
-              }
-          '''),
-        );
-      });
+      group('always flagging for manual migration:', () {
+        void sharedTest(String propName, {required String rhs}) async {
+          test(propName, () async {
+            await testSuggestor(
+              input: withOverReactAndWsdImports('''
+                  content() {
+                    (Button()..$propName = $rhs)();
+                  }
+              '''),
+              expectedOutput: withOverReactAndWsdImports('''
+                  content() {
+                    (mui.Button()
+                      // FIXME(mui_migration) - $propName prop - manually migrate
+                      ..$propName = $rhs
+                    )();
+                  }
+              '''),
+            );
+          });
+        }
 
-      test('tooltipContent', () async {
-        await testSuggestor(
-          input: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (Button()..tooltipContent = '')();
-              }
-          '''),
-          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (mui.Button()
-                  // FIXME(mui_migration) - tooltipContent prop - manually migrate
-                  ..tooltipContent = ''
-                )();
-              }
-          '''),
-        );
+        sharedTest('isCallout', rhs: 'true');
+        sharedTest('pullRight', rhs: 'true');
+        sharedTest('overlayTriggerProps', rhs: '{}');
+        sharedTest('tooltipContent', rhs: '""');
       });
     });
   });
