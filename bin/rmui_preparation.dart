@@ -12,4 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export 'package:over_react_codemod/src/executables/rmui_bundle_migration.dart';
+export 'package:over_react_codemod/src/executables/rmui_preparation.dart';
