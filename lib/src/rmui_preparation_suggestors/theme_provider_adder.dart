@@ -19,7 +19,7 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:over_react_codemod/src/util/component_usage.dart';
 
 const checkTypingFixmeComment =
-    '// FIXME: Verify this typing now that it is wrapped in a ThemeProvider.';
+    '// FIXME: Verify the return value of react_dom.render is unused, since the wrapper ThemeProvider has no component instance. If a component instance is needed, set a ref on the child component.';
 
 /// Suggestor that wraps the contents of `react_dom.render` calls in a ThemeProvider.
 class ThemeProviderAdder extends GeneralizingAstVisitor
@@ -120,13 +120,9 @@ class ThemeProviderAdder extends GeneralizingAstVisitor
       );
     } else {
       final parent = node.parent;
-      if (parent is ArgumentList ||
-          parent is VariableDeclaration ||
-          parent is AssignmentExpression ||
-          parent is ReturnStatement ||
-          parent is ExpressionFunctionBody) {
-        // Add a comment to verify the typing if the react_dom.render is an
-        // argument, return value, or variable assignment.
+      if (parent is! ExpressionStatement) {
+        // Add a comment to verify the typing if the return value
+        // of react_dom.render could be used.
         yieldPatch(' $checkTypingFixmeComment\n', node.offset, node.offset);
       }
 
