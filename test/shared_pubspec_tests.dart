@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/constants.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -45,11 +46,13 @@ import 'util.dart';
 /// `midVersionRange` is a version range between the expected range max and
 /// min. Used in conjunction with `shouldUpdateMidRange`.
 void sharedPubspecTest({
-  required Function({bool useMidVersionMin}) getExpectedOutput,
+  required Function({bool useMidVersionMin, String? hostedUrl})
+      getExpectedOutput,
   required SuggestorTester testSuggestor,
   required String dependency,
   required VersionRange startingRange,
   required bool isDevDependency,
+  String? hostedUrl,
   bool shouldAddDependencies = true,
   bool shouldUpdate = true,
   bool shouldUpdateMidRange = true,
@@ -82,12 +85,12 @@ void sharedPubspecTest({
       input: ''
           'name: nothing\n'
           'version: 0.0.0\n'
-          '${getExpectedOutput()}'
+          '${getExpectedOutput(hostedUrl: hostedUrl)}'
           '',
       expectedOutput: ''
           'name: nothing\n'
           'version: 0.0.0\n'
-          '${getExpectedOutput()}'
+          '${getExpectedOutput(hostedUrl: hostedUrl)}'
           '',
     );
   });
@@ -101,13 +104,13 @@ void sharedPubspecTest({
           'name: nothing\n'
           'version: 0.0.0\n'
           '$key:\n'
-          '  $dependency: any\n'
+          '${getDependencyDeclaration(dependency, 'any', hostedUrl)}'
           '',
       expectedOutput: ''
           'name: nothing\n'
           'version: 0.0.0\n'
           '$key:\n'
-          '  $dependency: any\n'
+          '${getDependencyDeclaration(dependency, 'any', hostedUrl)}'
           '',
     );
   });
@@ -124,12 +127,80 @@ void sharedPubspecTest({
           '  test: 1.5.1\n'
           '',
       expectedOutput: ''
-          '${shouldAddDependencies ? getExpectedOutput() : ''
+          '${shouldAddDependencies ? getExpectedOutput(hostedUrl: hostedUrl) : ''
               '$key:\n'
               '  test: 1.5.1\n'}'
           '',
     );
   });
+
+  if (shouldAddDependencies) {
+    group('adds the dependency, if missing, in correct alphabetical order', () {
+      final expectedAddedDep = (hostedUrl == null
+                  ? getDependencyRegExp(dependency)
+                  : getHostedDependencyRegExp(dependency))
+              .firstMatch(getExpectedOutput(hostedUrl: hostedUrl))
+              ?.group(0) ??
+          '';
+
+      test('when the dependency should be first', () async {
+        await testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          validateContents: validatePubspecYaml,
+          input: ''
+              '$key:\n'
+              '  z: 1.5.1\n'
+              '',
+          expectedOutput: ''
+              '$key:\n'
+              '  $expectedAddedDep\n'
+              '  z: 1.5.1\n'
+              '',
+        );
+      });
+
+      test('when the dependency should be last', () async {
+        await testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          validateContents: validatePubspecYaml,
+          input: ''
+              '$key:\n'
+              '  a: 1.5.1\n'
+              '  c: 1.5.1\n'
+              '',
+          expectedOutput: ''
+              '$key:\n'
+              '  a: 1.5.1\n'
+              '  c: 1.5.1\n'
+              '  $expectedAddedDep\n'
+              '',
+        );
+      });
+
+      test('when the dependency should be in the middle', () async {
+        await testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          validateContents: validatePubspecYaml,
+          input: ''
+              '$key:\n'
+              '  a: 1.5.1\n'
+              '  b: 1.5.1\n'
+              '  x: 1.5.1\n'
+              '',
+          expectedOutput: ''
+              '$key:\n'
+              '  a: 1.5.1\n'
+              '  b: 1.5.1\n'
+              '  $expectedAddedDep\n'
+              '  x: 1.5.1\n'
+              '',
+        );
+      });
+    });
+  }
 
   group('updates the caret syntax', () {
     test('', () async {
@@ -139,14 +210,14 @@ void sharedPubspecTest({
         validateContents: validatePubspecYaml,
         input: ''
             '$key:\n'
-            '  $dependency: ^${startingRange.min}\n'
+            '${getDependencyDeclaration(dependency, '^${startingRange.min}', hostedUrl)}'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput()
+            ? getExpectedOutput(hostedUrl: hostedUrl)
             : ''
                 '$key:\n'
-                '  $dependency: ^${startingRange.min}\n'
+                '${getDependencyDeclaration(dependency, '^${startingRange.min}', hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
       );
@@ -161,14 +232,14 @@ void sharedPubspecTest({
         validateContents: validatePubspecYaml,
         input: ''
             '$key:\n'
-            '  $dependency: $midVersionRange\n'
+            '${getDependencyDeclaration(dependency, midVersionRange, hostedUrl)}'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdateMidRange
-            ? getExpectedOutput(useMidVersionMin: true)
+            ? getExpectedOutput(useMidVersionMin: true, hostedUrl: hostedUrl)
             : ''
                 '$key:\n'
-                '  $dependency: $midVersionRange\n'
+                '${getDependencyDeclaration(dependency, midVersionRange, hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
       );
@@ -181,14 +252,14 @@ void sharedPubspecTest({
         validateContents: validatePubspecYaml,
         input: ''
             '$key:\n'
-            '  $dependency: \'^${startingRange.min}\'\n'
+            '${getDependencyDeclaration(dependency, '\'^${startingRange.min}\'', hostedUrl)}'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput()
+            ? getExpectedOutput(hostedUrl: hostedUrl)
             : ''
                 '$key:\n'
-                '  $dependency: \'^${startingRange.min}\'\n'
+                '${getDependencyDeclaration(dependency, '\'^${startingRange.min}\'', hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
       );
@@ -201,14 +272,14 @@ void sharedPubspecTest({
         validateContents: validatePubspecYaml,
         input: ''
             '$key:\n'
-            '  $dependency: "^${startingRange.min}"\n'
+            '${getDependencyDeclaration(dependency, '"^${startingRange.min}"', hostedUrl)}'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput()
+            ? getExpectedOutput(hostedUrl: hostedUrl)
             : ''
                 '$key:\n'
-                '  $dependency: "^${startingRange.min}"\n'
+                '${getDependencyDeclaration(dependency, '"^${startingRange.min}"', hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
       );
@@ -223,14 +294,14 @@ void sharedPubspecTest({
         validateContents: validatePubspecYaml,
         input: ''
             '$key:\n'
-            '  $dependency: \'$startingRange\'\n'
+            '${getDependencyDeclaration(dependency, '\'$startingRange\'', hostedUrl)}'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput()
+            ? getExpectedOutput(hostedUrl: hostedUrl)
             : ''
                 '$key:\n'
-                '  $dependency: \'$startingRange\'\n'
+                '${getDependencyDeclaration(dependency, '\'$startingRange\'', hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
       );
@@ -243,14 +314,14 @@ void sharedPubspecTest({
         validateContents: validatePubspecYaml,
         input: ''
             '$key:\n'
-            '  $dependency: "$startingRange"\n'
+            '${getDependencyDeclaration(dependency, '"$startingRange"', hostedUrl)}'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput()
+            ? getExpectedOutput(hostedUrl: hostedUrl)
             : ''
                 '$key:\n'
-                '  $dependency: "$startingRange"\n'
+                '${getDependencyDeclaration(dependency, '"$startingRange"', hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
       );
@@ -265,14 +336,14 @@ void sharedPubspecTest({
         validateContents: validatePubspecYaml,
         input: ''
             '$key:\n'
-            '  $dependency: ">=${startingRange.min}"\n'
+            '${getDependencyDeclaration(dependency, '">=${startingRange.min}"', hostedUrl)}'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput()
+            ? getExpectedOutput(hostedUrl: hostedUrl)
             : ''
                 '$key:\n'
-                '  $dependency: ">=${startingRange.min}"\n'
+                '${getDependencyDeclaration(dependency, '">=${startingRange.min}"', hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
       );
@@ -285,14 +356,14 @@ void sharedPubspecTest({
         validateContents: validatePubspecYaml,
         input: ''
             '$key:\n'
-            '  $dependency: \'>=${startingRange.min}\'\n'
+            '${getDependencyDeclaration(dependency, '\'>=${startingRange.min}\'', hostedUrl)}'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput()
+            ? getExpectedOutput(hostedUrl: hostedUrl)
             : ''
                 '$key:\n'
-                '  $dependency: \'>=${startingRange.min}\'\n'
+                '${getDependencyDeclaration(dependency, '\'>=${startingRange.min}\'', hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
       );
@@ -305,17 +376,30 @@ void sharedPubspecTest({
         validateContents: validatePubspecYaml,
         input: ''
             '$key:\n'
-            '  $dependency: ">=${startingRange.min}"\n'
+            '${getDependencyDeclaration(dependency, '">=${startingRange.min}"', hostedUrl)}'
             '  test: 1.5.1\n'
             '',
         expectedOutput: shouldUpdate
-            ? getExpectedOutput()
+            ? getExpectedOutput(hostedUrl: hostedUrl)
             : ''
                 '$key:\n'
-                '  $dependency: ">=${startingRange.min}"\n'
+                '${getDependencyDeclaration(dependency, '">=${startingRange.min}"', hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
       );
     });
   });
+}
+
+String getDependencyDeclaration(String dependency, String? version,
+    [String? hostedUrl]) {
+  if (hostedUrl != null) {
+    return '  $dependency:\n'
+        '    hosted:\n'
+        '      name: $dependency\n'
+        '      url: $hostedUrl\n'
+        '    version: $version\n';
+  }
+
+  return '  $dependency: $version\n';
 }

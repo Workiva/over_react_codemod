@@ -183,6 +183,15 @@ SuggestorTester getSuggestorTester(Suggestor suggestor,
       );
 }
 
+String _formatWithBetterFailureOutput(String input, {required String uri}) {
+  try {
+    return formatter.format(input, uri: uri);
+  } catch (_) {
+    print('Contents that failed to format ($uri):\n---------------\n$input');
+    rethrow;
+  }
+}
+
 Future<void> testSuggestor({
   required Suggestor suggestor,
   required String input,
@@ -202,7 +211,8 @@ Future<void> testSuggestor({
   }
 
   if (shouldDartfmtOutput) {
-    expectedOutput = formatter.format(expectedOutput, uri: 'expectedOutput');
+    expectedOutput =
+        _formatWithBetterFailureOutput(expectedOutput, uri: 'expectedOutput');
   }
 
   String modifiedInput;
@@ -214,15 +224,22 @@ Future<void> testSuggestor({
           '(expected: $expectedPatchCount, actual: ${patches.length})\n'
           'Patches:\n$patches');
     }
-    modifiedInput =
-        applyPatches(context.sourceFile, patches).trimRight() + '\n';
+    try {
+      modifiedInput =
+          applyPatches(context.sourceFile, patches).trimRight() + '\n';
+    } catch (_) {
+      print('Patches:\n${patches.map((p) {
+        return '<Patch: from ${p.startOffset} to ${p.endOffset} with text "${p.updatedText}">';
+      }).join('\n')}\n');
+      rethrow;
+    }
     if (validateContents != null) {
       expect(() => validateContents(modifiedInput), returnsNormally,
           reason: 'output is invalid');
     }
     if (shouldDartfmtOutput) {
-      modifiedInput =
-          formatter.format(modifiedInput, uri: '$inputUrl.modifiedInput');
+      modifiedInput = _formatWithBetterFailureOutput(modifiedInput,
+          uri: '$inputUrl.modifiedInput');
     }
     expect(modifiedInput, expectedOutput,
         reason: 'Original input:\n---------------\n$input');
@@ -234,7 +251,7 @@ Future<void> testSuggestor({
     var doubleModifiedInput =
         applyPatches(context.sourceFile, patches).trimRight() + '\n';
     if (shouldDartfmtOutput) {
-      doubleModifiedInput = formatter.format(doubleModifiedInput,
+      doubleModifiedInput = _formatWithBetterFailureOutput(doubleModifiedInput,
           uri: '$inputUrl.doubleModifiedInput');
     }
     expect(doubleModifiedInput, expectedOutput,
