@@ -364,7 +364,115 @@ void main() {
         });
       });
     });
+
+    group('FluentComponentUsage', () {
+      group('cascaded helpers', () {
+        late FluentComponentUsage usage;
+
+        setUpAll(() async {
+          usage = getComponentUsage(await parseInvocation('''
+              (Foo()
+                ..cascadedProp1 = null
+                ..cascadedGetter1
+                ..["cascadedIndexAssignment1"] = null
+                ..["cascadedIndexRead1"]
+                ..cascadedMethodInvocation1()
+                // Don't group the same types of nodes together so that 
+                // we can verify the order in cascadedMembers (i.e., put all
+                // the "2"s together instead of right next to their "1"s).
+                ..cascadedProp2 = null
+                ..cascadedGetter2
+                ..["cascadedIndexAssignment2"] = null
+                ..["cascadedIndexRead2"]
+                ..cascadedMethodInvocation2(null)
+              )()
+          '''))!;
+        });
+
+        group('return the expected values for different types of cascades', () {
+          test('cascadedProps', () {
+            expect(usage.cascadedProps, [
+              isA<PropAssignment>().havingStringName('cascadedProp1'),
+              isA<PropAssignment>().havingStringName('cascadedProp2'),
+            ]);
+          });
+
+          test('cascadedGetters', () {
+            expect(usage.cascadedGetters, [
+              isA<PropAccess>().havingStringName('cascadedGetter1'),
+              isA<PropAccess>().havingStringName('cascadedGetter2'),
+            ]);
+          });
+
+          test('cascadedIndexAssignments', () {
+            expect(usage.cascadedIndexAssignments, [
+              isA<IndexPropAssignment>()
+                  .havingIndexValueSource('"cascadedIndexAssignment1"'),
+              isA<IndexPropAssignment>()
+                  .havingIndexValueSource('"cascadedIndexAssignment2"'),
+            ]);
+          });
+
+          test('cascadedMethodInvocations', () {
+            expect(usage.cascadedMethodInvocations, [
+              isA<BuilderMethodInvocation>()
+                  .havingStringName('cascadedMethodInvocation1'),
+              isA<BuilderMethodInvocation>()
+                  .havingStringName('cascadedMethodInvocation2'),
+            ]);
+          });
+        });
+
+        test(
+            'cascadedMembers returns all values for different types of cascades,'
+            ' in the order they appeared in the original source', () {
+          expect(usage.cascadedMembers, [
+            isA<PropAssignment>().havingStringName('cascadedProp1'),
+            isA<PropAccess>().havingStringName('cascadedGetter1'),
+            isA<IndexPropAssignment>()
+                .havingIndexValueSource('"cascadedIndexAssignment1"'),
+            isA<BuilderMemberAccess>().havingSource('..["cascadedIndexRead1"]'),
+            isA<BuilderMethodInvocation>()
+                .havingStringName('cascadedMethodInvocation1'),
+            isA<PropAssignment>().havingStringName('cascadedProp2'),
+            isA<PropAccess>().havingStringName('cascadedGetter2'),
+            isA<IndexPropAssignment>()
+                .havingIndexValueSource('"cascadedIndexAssignment2"'),
+            isA<BuilderMemberAccess>().havingSource('..["cascadedIndexRead2"]'),
+            isA<BuilderMethodInvocation>()
+                .havingStringName('cascadedMethodInvocation2'),
+          ]);
+          expect(usage.cascadedMembers, hasLength(usage.cascadeSections.length),
+              reason: 'all cascade sections should map to a cascaded member');
+        });
+      });
+    });
   });
+}
+
+extension on TypeMatcher<BuilderMemberAccess> {
+  Matcher havingSource(dynamic matcher) =>
+      having((p) => p.node.toSource(), 'node.toSource()', matcher);
+}
+
+extension on TypeMatcher<PropAssignment> {
+  Matcher havingStringName(dynamic matcher) =>
+      having((p) => p.name.name, 'name.name', matcher);
+}
+
+extension on TypeMatcher<PropAccess> {
+  Matcher havingStringName(dynamic matcher) =>
+      having((p) => p.name.name, 'name.name', matcher);
+}
+
+extension on TypeMatcher<BuilderMethodInvocation> {
+  Matcher havingStringName(dynamic matcher) =>
+      having((p) => p.methodName.name, 'methodName.name', matcher);
+}
+
+extension on TypeMatcher<IndexPropAssignment> {
+  Matcher havingIndexValueSource(dynamic matcher) =>
+      having((p) => p.index.toSource(), 'index.toSource', matcher);
 }
 
 void checkComponentUsage(FluentComponentUsage? componentUsage,

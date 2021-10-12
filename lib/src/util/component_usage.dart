@@ -125,7 +125,7 @@ class FluentComponentUsage {
     }
   }
 
-  Iterable<Expression> get cascadeSections =>
+  List<Expression> get cascadeSections =>
       cascadeExpression?.cascadeSections ?? const [];
 
   /// Returns an iterable of all cascaded prop assignments in this usage.
@@ -151,15 +151,26 @@ class FluentComponentUsage {
           .whereType<MethodInvocation>()
           .map((methodInvocation) => BuilderMethodInvocation(methodInvocation));
 
-  List<BuilderMemberAccess> get cascadedMembers => [
-        // fixme include other  members not handled by these getters
-        ...cascadedProps,
-        ...cascadedGetters,
-        ...cascadedIndexAssignments,
-        ...cascadedMethodInvocations,
-      ]
-        // Order them in the order they appear by sorting based on the offset.
-        ..sort((a, b) => a.node.offset.compareTo(b.node.offset));
+  List<BuilderMemberAccess> get cascadedMembers {
+    final allHandledMembers = [
+      ...cascadedProps,
+      ...cascadedGetters,
+      ...cascadedIndexAssignments,
+      ...cascadedMethodInvocations,
+    ];
+
+    final allUnhandledMembers = cascadeSections
+        .where((section) => !allHandledMembers.any((m) => m.node == section))
+        .map((section) => OtherBuilderMemberAccess(section))
+        .toList();
+
+    return [
+      ...allHandledMembers,
+      ...allUnhandledMembers,
+    ]
+      // Order them in the order they appear by sorting based on the offset.
+      ..sort((a, b) => a.node.offset.compareTo(b.node.offset));
+  }
 }
 
 abstract class ComponentChild {
@@ -240,7 +251,16 @@ PropAssignment? getPropAssignment(AssignmentExpression node) {
 // }
 
 abstract class BuilderMemberAccess {
-  AstNode get node;
+  Expression get node;
+}
+
+/// An access of a builder member whose expression type is not explicitly handled
+/// by another BuilderMemberAccess subtype.
+class OtherBuilderMemberAccess implements BuilderMemberAccess {
+  @override
+  final Expression node;
+
+  OtherBuilderMemberAccess(this.node);
 }
 
 class PropAccess implements BuilderMemberAccess {
