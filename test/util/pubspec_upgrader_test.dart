@@ -32,10 +32,11 @@ const midVersionMin = '4.8.3';
 void main() {
   group('PubspecUpgrader', () {
     group('when dev_dependencies is', () {
-      void sharedTests(bool isDevDependency) {
+      void sharedTests(bool isDevDependency, {String? hostedUrl}) {
         final key = isDevDependency ? 'dev_dependencies' : 'dependencies';
 
-        String getExpectedOutput({bool useMidVersionMin = false}) {
+        String getExpectedOutput(
+            {bool useMidVersionMin = false, String? hostedUrl}) {
           if (useMidVersionMin) {
             final expected = VersionConstraint.parse('^5.0.0')
                     .allows(Version.parse(midVersionMin))
@@ -44,22 +45,23 @@ void main() {
 
             return ''
                 '$key:\n'
-                '  react: $expected\n'
+                '${getDependencyDeclaration('react', expected, hostedUrl)}'
                 '  test: 1.5.1\n'
                 '';
           }
 
           return ''
               '$key:\n'
-              '  react: ">=4.7.0 <6.0.0"\n'
+              '${getDependencyDeclaration('react', '">=4.7.0 <6.0.0"', hostedUrl)}'
               '  test: 1.5.1\n'
               '';
         }
 
-        String getExpectedPreReleaseOutput({bool useMidVersionMin = false}) {
+        String getExpectedPreReleaseOutput(
+            {bool useMidVersionMin = false, String? hostedUrl}) {
           return ''
               '$key:\n'
-              '  react: ^5.0.0-alpha\n'
+              '${getDependencyDeclaration('react', '^5.0.0-alpha', hostedUrl)}'
               '  test: 1.5.1\n'
               '';
         }
@@ -69,6 +71,7 @@ void main() {
           'react',
           parseVersionRange(reactVersionRange),
           isDevDependency: isDevDependency,
+          hostedUrl: hostedUrl,
         ));
 
         /// Suggestor to test when the codemod should not add the dependency if
@@ -78,12 +81,14 @@ void main() {
           parseVersionRange(reactVersionRange),
           shouldAddDependencies: false,
           isDevDependency: isDevDependency,
+          hostedUrl: hostedUrl,
         ));
 
         group('when there are no special cases', () {
           sharedPubspecTest(
               testSuggestor: testSuggestor,
               getExpectedOutput: getExpectedOutput,
+              hostedUrl: hostedUrl,
               startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
               isDevDependency: isDevDependency,
               dependency: 'react',
@@ -95,8 +100,10 @@ void main() {
                   'react',
                   parseVersionRange(reactVersionRangeForTesting),
                   isDevDependency: isDevDependency,
+                  hostedUrl: hostedUrl,
                 )),
                 getExpectedOutput: getExpectedPreReleaseOutput,
+                hostedUrl: hostedUrl,
                 startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
                 isDevDependency: isDevDependency,
                 midVersionRange: '^5.5.3',
@@ -109,6 +116,7 @@ void main() {
           sharedPubspecTest(
               testSuggestor: doNotAddDependencies,
               getExpectedOutput: getExpectedOutput,
+              hostedUrl: hostedUrl,
               startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
               isDevDependency: isDevDependency,
               dependency: 'react',
@@ -122,6 +130,7 @@ void main() {
           sharedPubspecTest(
               testSuggestor: testSuggestor,
               getExpectedOutput: getExpectedOutput,
+              hostedUrl: hostedUrl,
               startingRange: parseVersionRange('^5.0.0'),
               isDevDependency: isDevDependency,
               dependency: 'react',
@@ -139,14 +148,14 @@ void main() {
                 'name: nothing\n'
                 'version: 0.0.0\n'
                 '$key:\n'
-                '  react: ">=4.8.0 <5.0.0"\n'
+                '${getDependencyDeclaration('react', '">=4.8.0 <5.0.0"', hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
             expectedOutput: ''
                 'name: nothing\n'
                 'version: 0.0.0\n'
                 '$key:\n'
-                '  react: ">=4.8.0 <6.0.0"\n'
+                '${getDependencyDeclaration('react', '">=4.8.0 <6.0.0"', hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
           );
@@ -181,8 +190,18 @@ void main() {
         });
       }
 
-      group('true', () => sharedTests(true));
-      group('false', () => sharedTests(false));
+      group('true', () {
+        sharedTests(true);
+
+        group('and the dependency is hosted',
+            () => sharedTests(true, hostedUrl: 'https://pub.whatever.org'));
+      });
+      group('false', () {
+        sharedTests(false);
+
+        group('and the dependency is hosted',
+            () => sharedTests(false, hostedUrl: 'https://pub.whatever.org'));
+      });
     });
   });
 }

@@ -14,6 +14,8 @@
 
 import 'package:codemod/codemod.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:yaml/yaml.dart';
+import 'package:yaml_edit/yaml_edit.dart';
 
 import '../constants.dart';
 import '../util.dart';
@@ -34,6 +36,9 @@ class PubspecUpgrader {
   /// Whether this is a dev dependency versus a normal dependency.
   final bool isDevDependency;
 
+  /// If the package is hosted on a private pub server, specify the url here.
+  final String? hostedUrl;
+
   /// Whether or not the codemod should ignore the constraint minimum when
   /// considering whether to write a patch.
   final bool shouldIgnoreMin;
@@ -43,7 +48,9 @@ class PubspecUpgrader {
   final bool shouldAddDependencies;
 
   PubspecUpgrader(this.packageName, this.targetConstraint,
-      {this.isDevDependency = false, this.shouldAddDependencies = true})
+      {this.isDevDependency = false,
+      this.shouldAddDependencies = true,
+      this.hostedUrl})
       : shouldIgnoreMin = false;
 
   /// Constructor used to ignore checks and ensure that the codemod always
@@ -54,12 +61,28 @@ class PubspecUpgrader {
   /// will not update the pubspec is if the target version range is equal to
   /// the version that is already there (avoiding an empty patch error).
   PubspecUpgrader.alwaysUpdate(this.packageName, this.targetConstraint,
-      {this.isDevDependency = false, this.shouldAddDependencies = true})
+      {this.isDevDependency = false,
+      this.shouldAddDependencies = true,
+      this.hostedUrl})
       : shouldIgnoreMin = true;
 
+  String getPatch(String newVersionConstraint) {
+    if (hostedUrl == null) {
+      return '$packageName: $newVersionConstraint';
+    } else {
+      return '''$packageName:
+    hosted:
+      name: $packageName
+      url: ${this.hostedUrl}
+    version: $newVersionConstraint''';
+    }
+  }
+
   Stream<Patch> call(FileContext context) async* {
-    final packageMatch =
-        getDependencyRegExp(packageName).firstMatch(context.sourceText);
+    final regex = hostedUrl == null
+        ? getDependencyRegExp(packageName)
+        : getHostedDependencyRegExp(packageName);
+    final packageMatch = regex.firstMatch(context.sourceText);
 
     if (packageMatch != null) {
       // this package is already in pubspec.yaml
@@ -85,8 +108,7 @@ class PubspecUpgrader {
           }
 
           // Update the version constraint to ensure a safe minimum bound.
-          yield Patch('  $packageName: $newValue', packageMatch.start,
-              packageMatch.end);
+          yield Patch(getPatch(newValue), packageMatch.start, packageMatch.end);
         }
       } catch (e) {
         // We can skip these. They are versions we don't want to mess with in this codemod.
@@ -98,22 +120,34 @@ class PubspecUpgrader {
       }
     } else if (shouldAddDependencies) {
       // Package is missing in pubspec.yaml, so add it.
-      final keyMatch =
-          (isDevDependency ? devDependencyRegExp : dependencyRegExp)
-              .firstMatch(context.sourceText);
-      if (keyMatch != null) {
-        // Wrap the new constraint in quotes if required.
-        var newValue = targetConstraint.toString();
-        if (newValue.contains(' ')) {
-          newValue = '"$newValue"';
-        }
+      final pubspec = YamlEditor(context.sourceText);
+      final depKey = isDevDependency ? 'dev_dependencies' : 'dependencies';
 
-        yield Patch(
-          '\n  $packageName: $newValue',
-          keyMatch.end,
-          keyMatch.end,
-        );
+      try {
+        pubspec.parseAt([depKey]);
+      } on ArgumentError {
+        // Do nothing if the dependency path could not be found.
+        return;
       }
+
+      // Add the dependency in alphabetical order.
+      if (hostedUrl == null) {
+        pubspec.update([depKey, packageName], targetConstraint.toString());
+      } else {
+        pubspec.update(
+            [depKey, packageName],
+            YamlMap.wrap({
+              'hosted': {'name': packageName, 'url': hostedUrl}
+            }));
+        // Add the version range separately so it will be correctly formatted with quotes.
+        pubspec.update(
+            [depKey, packageName, 'version'], targetConstraint.toString());
+      }
+
+      // Update the pubspec and also replace any unnecessary spaces because
+      // [YamlEditor] adds spaces after [packageName] for added dependencies
+      // even if there is no version constraint on the same line.
+      yield Patch(pubspec.toString().replaceAll(': \n', ':\n'), 0);
     }
   }
 }

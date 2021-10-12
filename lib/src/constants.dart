@@ -102,7 +102,13 @@ const String temporaryCompanionClassComment =
     'This will be removed once the transition to Dart 2 is complete.';
 
 RegExp getDependencyRegExp(String packageName) => RegExp(
-      r'''^\s*''' + packageName + r''':\s*(["']?)(.+)\1\s*$''',
+      packageName + r''':\s*(["']?)(.+)\1\s*$''',
+      multiLine: true,
+    );
+
+RegExp getHostedDependencyRegExp(String packageName) => RegExp(
+      packageName +
+          r''':\n\s+hosted:\n\s+name:.*\n\s+url:.*\n\s+version:\s*(["']?)(.+)\1\s*$''',
       multiLine: true,
     );
 
