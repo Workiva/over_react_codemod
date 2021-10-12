@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/theme_provider_suggestors/theme_provider_adder.dart';
+import 'package:over_react_codemod/src/rmui_preparation_suggestors/theme_provider_adder.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';

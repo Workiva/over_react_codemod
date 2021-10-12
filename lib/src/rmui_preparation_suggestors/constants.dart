@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/// The name of the Workiva theme for RMUI components.
+const wkTheme = 'wkTheme';
+
 /// The script for the dev RMUI bundle.
 final rmuiBundleDev = ScriptToAdd(
     path: 'packages/react_material_ui/react-material-ui-development.umd.js');

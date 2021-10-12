@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/rmui_bundle_suggestors/constants.dart';
-import 'package:over_react_codemod/src/rmui_bundle_suggestors/dart_script_adder.dart';
+import 'package:over_react_codemod/src/rmui_preparation_suggestors/constants.dart';
+import 'package:over_react_codemod/src/rmui_preparation_suggestors/dart_script_adder.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';

@@ -38,5 +38,4 @@ dev_dependencies:
 executables:
   dart2_9_upgrade:
   dependency_validator_ignore:
-  rmui_bundle_migration:
-  wk_theme_provider:
+  rmui_preparation:

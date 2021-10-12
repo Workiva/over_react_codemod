@@ -15,16 +15,17 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/rmui_bundle_suggestors/html_script_adder.dart';
 import 'package:over_react_codemod/src/util.dart';
 
 import 'constants.dart';
+import 'html_script_adder.dart';
 
 /// Suggestor that adds a [scriptToAdd] line after the last usage of a
 /// react-dart script in a Dart string literal or list of string literals.
 ///
 /// Meant to be run on Dart files (use [HtmlScriptAdder] to run on HTML files).
-class DartScriptAdder extends RecursiveAstVisitor<void> with AstVisitingSuggestor {
+class DartScriptAdder extends RecursiveAstVisitor<void>
+    with AstVisitingSuggestor {
   final ScriptToAdd scriptToAdd;
 
   /// Whether or not [scriptToAdd] is for production.

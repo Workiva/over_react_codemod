@@ -17,16 +17,17 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
-import 'package:over_react_codemod/src/rmui_bundle_suggestors/constants.dart';
-import 'package:over_react_codemod/src/rmui_bundle_suggestors/dart_script_adder.dart';
-import 'package:over_react_codemod/src/rmui_bundle_suggestors/html_script_adder.dart';
+import 'package:over_react_codemod/src/rmui_preparation_suggestors/constants.dart';
+import 'package:over_react_codemod/src/rmui_preparation_suggestors/dart_script_adder.dart';
+import 'package:over_react_codemod/src/rmui_preparation_suggestors/html_script_adder.dart';
+import 'package:over_react_codemod/src/rmui_preparation_suggestors/theme_provider_adder.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
-  pub global run over_react_codemod:rmui_bundle_migration
+  pub global run over_react_codemod:rmui_preparation
 """;
 
 void main(List<String> args) async {
@@ -63,12 +64,13 @@ void main(List<String> args) async {
 
   if (exitCode != 0) return;
 
-  // Add RMUI bundle script to all Dart files.
+  // Add RMUI bundle script to all Dart files and wrap react_dom.render calls in a ThemeProvider.
   exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
     [
       DartScriptAdder(rmuiBundleDev, false),
       DartScriptAdder(rmuiBundleProd, true),
+      ThemeProviderAdder(wkTheme),
     ],
     defaultYes: true,
     args: parsedArgs.rest,
