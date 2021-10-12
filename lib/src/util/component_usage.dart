@@ -298,12 +298,20 @@ abstract class PropAssignment implements BuilderMemberAccess {
     }
   }
 
-  /// The object on which a property is being assigned
+  /// The object on which a property is being assigned.
   ///
-  /// (e.g., a factory invocation expression, a builder variable)
+  /// Could be:
+  /// - a factory invocation expression (`Foo()` in `Foo()..prop = ...`)
+  /// - a builder expression (`builder` in `builder..prop = ...`)
+  /// - a prop being assigned to (`..dom` in `Foo()..dom.id = ...`)
   Expression get target;
 
-  /// The name of the prop being assigned.
+  /// The name of the prop being assigned,
+  /// or of the property on a prop being assigned.
+  ///
+  /// For example:
+  /// - `prop` for `Foo()..prop = ...`
+  /// - `id` for `Foo()..dom.id = ...`
   Identifier get name;
 
   /// The cascaded assignment expression that backs this assignment.
@@ -329,22 +337,9 @@ abstract class PropAssignment implements BuilderMemberAccess {
   // /// ```
   // Identifier? get targetName => leftHandSide.tryCast<PropertyAccess>()?.target?.tryCast<PropertyAccess>()?.propertyName;
 
-  /// A range that can be used in a `builder.addDeletion` call to remove this prop.
-  ///
-  /// Includes the space between the previous token and the start of this assignment, so that
-  /// the entire prop line is removed.
-  ///
-  /// __Note: prefer using [removeProp] instead of using this directly to perform removals__
-  @protected
-  SourceRange get rangeForRemoval => assignment.sourceRange;
-
   bool get isInCascade;
 
   CascadeExpression? get parentCascade;
-}
-
-extension on SyntacticEntity {
-  SourceRange get sourceRange => SourceRange(offset, length);
 }
 
 class _PropertyAccessPropAssignment with PropAssignment {

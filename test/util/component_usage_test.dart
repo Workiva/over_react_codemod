@@ -372,53 +372,62 @@ void main() {
         setUpAll(() async {
           usage = getComponentUsage(await parseInvocation('''
               (Foo()
-                ..cascadedProp1 = null
-                ..cascadedGetter1
-                ..["cascadedIndexAssignment1"] = null
-                ..["cascadedIndexRead1"]
-                ..cascadedMethodInvocation1()
+                ..setter1 = null
+                ..getter1
+                ..prefix.prefixedSetter1 = null
+                ..prefix.prefixedGetter1
+                ..["indexAssignment1"] = null
+                ..["indexRead1"]
+                ..methodInvocation1()
+                
                 // Don't group the same types of nodes together so that 
                 // we can verify the order in cascadedMembers (i.e., put all
                 // the "2"s together instead of right next to their "1"s).
-                ..cascadedProp2 = null
-                ..cascadedGetter2
-                ..["cascadedIndexAssignment2"] = null
-                ..["cascadedIndexRead2"]
-                ..cascadedMethodInvocation2(null)
+                ..setter2 = null
+                ..getter2
+                ..prefix.prefixedSetter2 = null
+                ..prefix.prefixedGetter2
+                ..["indexAssignment2"] = null
+                ..["indexRead2"]
+                ..methodInvocation2(null)
               )()
           '''))!;
         });
 
         group('return the expected values for different types of cascades', () {
-          test('cascadedProps', () {
+          test('cascadedSetters', () {
             expect(usage.cascadedProps, [
-              isA<PropAssignment>().havingStringName('cascadedProp1'),
-              isA<PropAssignment>().havingStringName('cascadedProp2'),
+              isA<PropAssignment>().havingStringName('setter1'),
+              isA<PropAssignment>().havingStringName('prefixedSetter1'),
+              isA<PropAssignment>().havingStringName('setter2'),
+              isA<PropAssignment>().havingStringName('prefixedSetter2'),
             ]);
           });
 
           test('cascadedGetters', () {
             expect(usage.cascadedGetters, [
-              isA<PropAccess>().havingStringName('cascadedGetter1'),
-              isA<PropAccess>().havingStringName('cascadedGetter2'),
+              isA<PropAccess>().havingStringName('getter1'),
+              isA<PropAccess>().havingStringName('prefixedGetter1'),
+              isA<PropAccess>().havingStringName('getter2'),
+              isA<PropAccess>().havingStringName('prefixedGetter2'),
             ]);
           });
 
           test('cascadedIndexAssignments', () {
             expect(usage.cascadedIndexAssignments, [
               isA<IndexPropAssignment>()
-                  .havingIndexValueSource('"cascadedIndexAssignment1"'),
+                  .havingIndexValueSource('"indexAssignment1"'),
               isA<IndexPropAssignment>()
-                  .havingIndexValueSource('"cascadedIndexAssignment2"'),
+                  .havingIndexValueSource('"indexAssignment2"'),
             ]);
           });
 
           test('cascadedMethodInvocations', () {
             expect(usage.cascadedMethodInvocations, [
               isA<BuilderMethodInvocation>()
-                  .havingStringName('cascadedMethodInvocation1'),
+                  .havingStringName('methodInvocation1'),
               isA<BuilderMethodInvocation>()
-                  .havingStringName('cascadedMethodInvocation2'),
+                  .havingStringName('methodInvocation2'),
             ]);
           });
         });
@@ -427,27 +436,114 @@ void main() {
             'cascadedMembers returns all values for different types of cascades,'
             ' in the order they appeared in the original source', () {
           expect(usage.cascadedMembers, [
-            isA<PropAssignment>().havingStringName('cascadedProp1'),
-            isA<PropAccess>().havingStringName('cascadedGetter1'),
+            // "1"s
+            isA<PropAssignment>().havingStringName('setter1'),
+            isA<PropAccess>().havingStringName('getter1'),
+            isA<PropAssignment>().havingStringName('prefixedSetter1'),
+            isA<PropAccess>().havingStringName('prefixedGetter1'),
             isA<IndexPropAssignment>()
-                .havingIndexValueSource('"cascadedIndexAssignment1"'),
-            isA<BuilderMemberAccess>().havingSource('..["cascadedIndexRead1"]'),
+                .havingIndexValueSource('"indexAssignment1"'),
+            isA<BuilderMemberAccess>().havingSource('..["indexRead1"]'),
             isA<BuilderMethodInvocation>()
-                .havingStringName('cascadedMethodInvocation1'),
-            isA<PropAssignment>().havingStringName('cascadedProp2'),
-            isA<PropAccess>().havingStringName('cascadedGetter2'),
+                .havingStringName('methodInvocation1'),
+            // "2"s
+            isA<PropAssignment>().havingStringName('setter2'),
+            isA<PropAccess>().havingStringName('getter2'),
+            isA<PropAssignment>().havingStringName('prefixedSetter2'),
+            isA<PropAccess>().havingStringName('prefixedGetter2'),
             isA<IndexPropAssignment>()
-                .havingIndexValueSource('"cascadedIndexAssignment2"'),
-            isA<BuilderMemberAccess>().havingSource('..["cascadedIndexRead2"]'),
+                .havingIndexValueSource('"indexAssignment2"'),
+            isA<BuilderMemberAccess>().havingSource('..["indexRead2"]'),
             isA<BuilderMethodInvocation>()
-                .havingStringName('cascadedMethodInvocation2'),
+                .havingStringName('methodInvocation2'),
           ]);
           expect(usage.cascadedMembers, hasLength(usage.cascadeSections.length),
               reason: 'all cascade sections should map to a cascaded member');
         });
       });
     });
+
+    // fixme run this for both resolved and unresolved cases; maybe the group above as well?
+    group('PropAssignment getters return the correct values', () {
+      test('for a simple prop', () async {
+        final assignment = getComponentUsage(await parseInvocation('''
+            (Foo()..cascadedProp = null)()
+        '''))!.cascadedProps.single;
+
+        expect(assignment.node, hasSource('..cascadedProp = null'));
+        expect(assignment.assignment, same(assignment.node));
+        expect(assignment.name.name, 'cascadedProp');
+        expect(assignment.target, hasSource('Foo()'));
+        expect(assignment.leftHandSide, hasSource('..cascadedProp'));
+        expect(assignment.rightHandSide, hasSource('null'));
+        expect(assignment.isInCascade, isTrue);
+        expect(assignment.parentCascade, isNotNull);
+      });
+
+      // FIXME is this the desired behavior for this case?
+      test('for a prefixed prop', () async {
+        final assignment = getComponentUsage(await parseInvocation('''
+            (Foo()..dom.role = null)()
+        '''))!.cascadedProps.single;
+
+        expect(assignment.node, hasSource('..dom.role = null'));
+        expect(assignment.assignment, same(assignment.node));
+        expect(assignment.name.name, 'role');
+        expect(assignment.target, hasSource('..dom'));
+        expect(assignment.leftHandSide, hasSource('..dom.role'));
+        expect(assignment.rightHandSide, hasSource('null'));
+        expect(assignment.isInCascade, isTrue);
+        expect(assignment.parentCascade, isNotNull);
+      });
+    });
+
+    group('PropAccess getters return the correct values', () {
+      test('for a simple access', () async {
+        final getter = getComponentUsage(await parseInvocation('''
+            (Foo()..bar)()
+        '''))!.cascadedGetters.single;
+
+        expect(getter.node, hasSource('..bar'));
+        expect(getter.name, hasSource('bar'));
+      });
+
+      test('for a prefixed access', () async {
+        final getter = getComponentUsage(await parseInvocation('''
+            (Foo()..bar.baz)()
+        '''))!.cascadedGetters.single;
+
+        expect(getter.node, hasSource('..bar.baz'));
+        expect(getter.name, hasSource('bar'));
+      });
+    });
+
+    test('IndexPropAssignment getters return the correct values', () async {
+      final indexAssignment = getComponentUsage(await parseInvocation('''
+          (Foo()..["bar"] = null)()
+      '''))!.cascadedIndexAssignments.single;
+
+      expect(indexAssignment.node, hasSource('..["bar"] = null'));
+      expect(indexAssignment.leftHandSide, hasSource('..["bar"]'));
+      expect(indexAssignment.index, hasSource('"bar"'));
+      expect(indexAssignment.rightHandSide, hasSource('null'));
+    });
+
+    test('BuilderMethodInvocation getters return the correct values', () async {
+      final invocation = getComponentUsage(await parseInvocation('''
+          (Foo()..bar())()
+      '''))!.cascadedMethodInvocations.single;
+
+      expect(invocation.node, hasSource('..bar()'));
+      expect(invocation.methodName, hasSource('bar'));
+    });
   });
+}
+
+Matcher hasSource(dynamic source) => isA<AstNode>().havingSource(source);
+
+extension on TypeMatcher<AstNode> {
+  Matcher havingSource(dynamic matcher) =>
+      having((node) => node.toSource(), 'node.toSource()', matcher);
 }
 
 extension on TypeMatcher<BuilderMemberAccess> {
