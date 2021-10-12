@@ -448,9 +448,9 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   }
 }
 
-void migratePropsByName(
-  FluentComponentUsage usage, {
-  required Map<String, void Function(PropAssignment)> migratorsByName,
+void handleCascadedPropsByName(
+  FluentComponentUsage usage,
+  Map<String, void Function(PropAssignment)> propHandlersByName, {
   void Function(PropAssignment)? catchAll,
 }) {
   // Validate that there aren't typos in they keys to `migratorsByName`.
@@ -467,7 +467,7 @@ void migratePropsByName(
           ?.declaredElement!
           .library;
       if (library != null) {
-        final unknownPropNames = migratorsByName.keys
+        final unknownPropNames = propHandlersByName.keys
             .where((propName) =>
                 builderElement.lookUpSetter(propName, library) == null)
             .toList();
@@ -484,9 +484,9 @@ void migratePropsByName(
   }
 
   for (final prop in usage.cascadedProps) {
-    final propMigrator = migratorsByName[prop.name.name];
-    if (propMigrator != null) {
-      propMigrator(prop);
+    final handler = propHandlersByName[prop.name.name];
+    if (handler != null) {
+      handler(prop);
     } else if (catchAll != null) {
       catchAll(prop);
     }

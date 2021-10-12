@@ -16,7 +16,7 @@ class MuiButtonGroupMigrator with ClassSuggestor, ComponentUsageMigrator {
 
     yieldPatchOverNode('$muiNs.ButtonGroup', usage.factory!);
 
-    migratePropsByName(usage, migratorsByName: {
+    handleCascadedPropsByName(usage, {
       'isJustified': (p) => yieldPropPatch(p, newName: 'fullWidth'),
       'isVertical': migrateIsVertical,
       'size': migrateSize,

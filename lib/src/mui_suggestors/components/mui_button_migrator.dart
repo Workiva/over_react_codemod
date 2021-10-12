@@ -78,7 +78,7 @@ class MuiButtonMigrator
       propsClassHasHitareaMixin = true;
     }
 
-    migratePropsByName(usage, migratorsByName: {
+    handleCascadedPropsByName(usage, {
       // Simple replacements.
       'isActive': (p) => yieldPropPatch(p, newName: 'aria.pressed'),
       'isBlock': (p) => yieldPropPatch(p, newName: 'fullWidth'),

@@ -416,54 +416,6 @@ main() {
       });
     });
 
-    group('migratePropsByName', () {
-      test('runs the migrator for each prop with a matching name', () async {
-        final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
-          migratePropsByName(
-            usage,
-            migratorsByName: {
-              'onClick': boundExpectAsync1((p) {
-                expect(p.name.name, 'onClick');
-              }),
-              'href': boundExpectAsync1((p) {
-                expect(p.name.name, 'href');
-              }),
-              'target': boundExpectAsync1((_) {},
-                  count: 0,
-                  reason: 'should not call props that are not present'),
-            },
-            catchAll: boundExpectAsync1((p) {
-              expect(p.name.name, 'id');
-            }),
-          );
-        });
-        final source = withOverReactImport(/*language=dart*/ '''
-            content() => (Dom.div()
-              ..onClick = (_) {}
-              ..href = "example.com"
-              ..id = "foo"
-            )();
-        ''');
-        await sharedContext.getPatches(suggestor, source);
-      });
-
-      test('throws when a prop does not exist on the props class', () async {
-        final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
-          migratePropsByName(usage, migratorsByName: {
-            'notARealProp': (_) {},
-          });
-        });
-
-        final source = withOverReactImport('content() => Dom.div()();');
-        expect(
-            () async => await sharedContext.getPatches(suggestor, source),
-            throwsA(isArgumentError.havingMessage(allOf(
-              contains("'migratorsByName' contains unknown prop name"),
-              contains("notARealProp"),
-            ))));
-      });
-    });
-
     group('patch yielding utilities', () {
       group('yieldInsertionPatch', () {
         // fixme add tests
@@ -489,6 +441,49 @@ main() {
       });
 
       group('yieldRemoveChildPatch', yieldRemoveChildPatchTests);
+    });
+  });
+
+  group('handleCascadedPropsByName', () {
+    test('runs the migrator for each prop with a matching name', () async {
+      final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
+        handleCascadedPropsByName(usage, {
+          'onClick': boundExpectAsync1((p) {
+            expect(p.name.name, 'onClick');
+          }),
+          'href': boundExpectAsync1((p) {
+            expect(p.name.name, 'href');
+          }),
+          'target': boundExpectAsync1((_) {},
+              count: 0, reason: 'should not call props that are not present'),
+        }, catchAll: boundExpectAsync1((p) {
+          expect(p.name.name, 'id');
+        }));
+      });
+      final source = withOverReactImport(/*language=dart*/ '''
+          content() => (Dom.div()
+            ..onClick = (_) {}
+            ..href = "example.com"
+            ..id = "foo"
+          )();
+      ''');
+      await sharedContext.getPatches(suggestor, source);
+    });
+
+    test('throws when a prop does not exist on the props class', () async {
+      final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
+        handleCascadedPropsByName(usage, {
+          'notARealProp': (_) {},
+        });
+      });
+
+      final source = withOverReactImport('content() => Dom.div()();');
+      expect(
+          () async => await sharedContext.getPatches(suggestor, source),
+          throwsA(isArgumentError.havingMessage(allOf(
+            contains("'migratorsByName' contains unknown prop name"),
+            contains("notARealProp"),
+          ))));
     });
   });
 }
