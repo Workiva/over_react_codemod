@@ -87,7 +87,7 @@ class FluentComponentUsage {
       return propsName.replaceFirst(RegExp(r'(Component)?Props$'), '');
     }
 
-    return getUnresolvedComponentName(builder);
+    return _getUnresolvedComponentName(builder);
   }
 
   bool get isDom => const {'DomProps', 'SvgProps'}.contains(propsName);
@@ -511,7 +511,7 @@ FluentComponentUsage? getComponentUsage(InvocationExpression node) {
     isComponent = false;
 
     if (builder is MethodInvocation) {
-      final builderName = getUnresolvedComponentName(builder);
+      final builderName = _getUnresolvedComponentName(builder);
       if (builderName != null) {
         isComponent =
             RegExp(r'(?:^|\.)Dom\.[a-z0-9]+$').hasMatch(builderName) ||
@@ -534,7 +534,7 @@ FluentComponentUsage? getComponentUsageFromExpression(Expression node) {
   return node is InvocationExpression ? getComponentUsage(node) : null;
 }
 
-String? getUnresolvedComponentName(Expression builder) {
+String? _getUnresolvedComponentName(Expression builder) {
   if (builder is MethodInvocation) {
     String builderName;
     if (builder.target != null) {
@@ -548,7 +548,7 @@ String? getUnresolvedComponentName(Expression builder) {
 }
 
 /// A visitor that detects whether a given node is a [FluentComponentUsage].
-class ComponentDetector extends SimpleAstVisitor<void> {
+class _ComponentDetector extends SimpleAstVisitor<void> {
   bool detected = false;
 
   @override
@@ -582,7 +582,7 @@ class ComponentDetector extends SimpleAstVisitor<void> {
 ///
 /// Usages that aren't directly arguments (nested within other structures) are not detected.
 bool hasChildComponent(ArgumentList arguments) {
-  var detector = ComponentDetector();
+  var detector = _ComponentDetector();
   arguments.visitChildren(detector);
 
   return detector.detected;
