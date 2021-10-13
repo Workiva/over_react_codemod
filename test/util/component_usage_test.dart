@@ -461,6 +461,118 @@ void main() {
               reason: 'all cascade sections should map to a cascaded member');
         });
       });
+
+      group('children', () {
+        test('no arguments', () async {
+          final usage = getComponentUsage(await parseInvocation('''
+              Foo()()
+          '''))!;
+          expect(usage.children, isEmpty);
+        });
+
+        group('variadic children', () {
+          test('single argument', () async {
+            final usage = getComponentUsage(await parseInvocation('''
+                Foo()(Dom.h1()())
+            '''))!;
+            expect(usage.children, [
+              isA<ExpressionComponentChild>()
+                  .havingSource('Dom.h1()()')
+                  .havingIsVariadic(isTrue),
+            ]);
+          });
+
+          test('multiple arguments', () async {
+            final usage = getComponentUsage(await parseInvocation('''
+                Foo()(Dom.h1()(), 2, "3")
+            '''))!;
+            expect(usage.children, [
+              isA<ExpressionComponentChild>()
+                  .havingSource('Dom.h1()()')
+                  .havingIsVariadic(isTrue),
+              isA<ExpressionComponentChild>()
+                  .havingSource('2')
+                  .havingIsVariadic(isTrue),
+              isA<ExpressionComponentChild>()
+                  .havingSource('"3"')
+                  .havingIsVariadic(isTrue),
+            ]);
+          });
+        });
+
+        group('children within single list literal', () {
+          test('containing only expressions', () async {
+            final usage = getComponentUsage(await parseInvocation('''
+                Foo()([Dom.h1()(), 2, "3"])
+            '''))!;
+            expect(usage.children, [
+              isA<ExpressionComponentChild>()
+                  .havingSource('Dom.h1()()')
+                  .havingIsVariadic(isFalse),
+              isA<ExpressionComponentChild>()
+                  .havingSource('2')
+                  .havingIsVariadic(isFalse),
+              isA<ExpressionComponentChild>()
+                  .havingSource('"3"')
+                  .havingIsVariadic(isFalse),
+            ]);
+          });
+
+          test('containing expressions and collection elements', () async {
+            final usage = getComponentUsage(await parseInvocation('''
+                Foo()([
+                  "expression",
+                  ...someChildren,
+                  if (condition) someChild,
+                  if (condition) ...someChildren,
+                  for (final item in items) renderChild(child),
+                ])
+            '''))!;
+            expect(usage.children, [
+              isA<ExpressionComponentChild>()
+                  .havingSource('"expression"')
+                  .havingIsVariadic(isFalse),
+              isA<CollectionElementComponentChild>()
+                  .havingSource('...someChildren'),
+              isA<CollectionElementComponentChild>()
+                  .havingSource('if (condition) someChild'),
+              isA<CollectionElementComponentChild>()
+                  .havingSource('if (condition) ...someChildren'),
+              isA<CollectionElementComponentChild>()
+                  .havingSource('for (final item in items) renderChild(child)'),
+            ]);
+          });
+        });
+
+        test('children within multiple list literals', () async {
+          final usage = getComponentUsage(await parseInvocation('''
+              Foo()([1, 2], [3, 4])
+          '''))!;
+          expect(usage.children, [
+            isA<ExpressionComponentChild>()
+                .havingSource('[1, 2]')
+                .havingIsVariadic(isTrue),
+            isA<ExpressionComponentChild>()
+                .havingSource('[3, 4]')
+                .havingIsVariadic(isTrue),
+          ]);
+        });
+
+        test('children within multiple list literals within a list literal',
+            () async {
+          final usage = getComponentUsage(await parseInvocation('''
+              Foo()([[1, 2], [3, 4]])
+          '''))!;
+          expect(usage.children, [
+            isA<ExpressionComponentChild>()
+                .havingSource('[1, 2]')
+                .havingIsVariadic(isFalse),
+            isA<ExpressionComponentChild>()
+                .havingSource('[3, 4]')
+                .havingIsVariadic(isFalse),
+          ]);
+        });
+      });
     });
 
     // fixme run this for both resolved and unresolved cases; maybe the group above as well?
@@ -541,34 +653,44 @@ void main() {
 
 Matcher hasSource(dynamic source) => isA<AstNode>().havingSource(source);
 
-extension on TypeMatcher<AstNode> {
-  Matcher havingSource(dynamic matcher) =>
+extension<T extends AstNode> on TypeMatcher<T> {
+  TypeMatcher<T> havingSource(dynamic matcher) =>
       having((node) => node.toSource(), 'node.toSource()', matcher);
 }
 
-extension on TypeMatcher<BuilderMemberAccess> {
-  Matcher havingSource(dynamic matcher) =>
+extension<T extends BuilderMemberAccess> on TypeMatcher<T> {
+  TypeMatcher<T> havingSource(dynamic matcher) =>
       having((p) => p.node.toSource(), 'node.toSource()', matcher);
 }
 
-extension on TypeMatcher<PropAssignment> {
-  Matcher havingStringName(dynamic matcher) =>
+extension<T extends PropAssignment> on TypeMatcher<T> {
+  TypeMatcher<PropAssignment> havingStringName(dynamic matcher) =>
       having((p) => p.name.name, 'name.name', matcher);
 }
 
-extension on TypeMatcher<PropAccess> {
-  Matcher havingStringName(dynamic matcher) =>
+extension<T extends PropAccess> on TypeMatcher<T> {
+  TypeMatcher<T> havingStringName(dynamic matcher) =>
       having((p) => p.name.name, 'name.name', matcher);
 }
 
-extension on TypeMatcher<BuilderMethodInvocation> {
-  Matcher havingStringName(dynamic matcher) =>
+extension<T extends BuilderMethodInvocation> on TypeMatcher<T> {
+  TypeMatcher<T> havingStringName(dynamic matcher) =>
       having((p) => p.methodName.name, 'methodName.name', matcher);
 }
 
-extension on TypeMatcher<IndexPropAssignment> {
-  Matcher havingIndexValueSource(dynamic matcher) =>
+extension<T extends IndexPropAssignment> on TypeMatcher<T> {
+  TypeMatcher<T> havingIndexValueSource(dynamic matcher) =>
       having((p) => p.index.toSource(), 'index.toSource', matcher);
+}
+
+extension<T extends ComponentChild> on TypeMatcher<T> {
+  TypeMatcher<T> havingSource(dynamic matcher) =>
+      having((c) => c.node.toSource(), 'node.toSource()', matcher);
+}
+
+extension<T extends ExpressionComponentChild> on TypeMatcher<T> {
+  TypeMatcher<T> havingIsVariadic(dynamic matcher) =>
+      having((c) => c.isVariadic, 'isVariadic', matcher);
 }
 
 void checkComponentUsage(FluentComponentUsage? componentUsage,
