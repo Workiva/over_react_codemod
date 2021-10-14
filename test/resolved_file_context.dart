@@ -84,10 +84,8 @@ class SharedAnalysisContext {
   /// important, or if the first test might have a short timeout).
   Future<void> warmUpAnalysis() async {
     await _initIfNeeded();
-    print('Warming up the AnalysisContextCollection...');
     final path = p.join(projectRoot, 'lib/analysis_warmup.dart');
     await collection.contextFor(path).currentSession.getResolvedLibrary2(path);
-    print('Done.');
     _shouldPrintFirstFileWarning = false;
   }
 
@@ -186,7 +184,7 @@ class SharedAnalysisContext {
 
     if (shouldPrint) {
       final contextName = p.basename(projectRoot);
-      print('Resolving a file for the first time context "${contextName}";'
+      print('Resolving a file for the first time in context "${contextName}";'
           ' this will take a few seconds...');
     }
     final result = await callback();
