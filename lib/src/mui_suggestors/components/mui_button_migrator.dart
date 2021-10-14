@@ -24,6 +24,11 @@ class MuiButtonMigrator
 
   @override
   MigrationDecision shouldMigrateUsage(FluentComponentUsage usage) {
+    // Don't migrate WSD toolbar components (for now)
+    if (usesWsdToolbarFactory(usage)) {
+      return MigrationDecision.notApplicable;
+    }
+
     if (usesWsdFactory(usage, 'Button')) {
       return MigrationDecision.shouldMigrate;
     }

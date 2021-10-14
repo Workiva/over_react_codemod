@@ -580,6 +580,7 @@ extension on MethodInvocation {
 
 enum MigrationDecision {
   shouldMigrate,
+  // FIXME remove this?
   needsManualIntervention,
   notApplicable,
 }
@@ -655,6 +656,22 @@ bool usesWsdFactory(FluentComponentUsage usage, String wsdFactoryName) {
 
   return factoryElement.name == wsdFactoryName &&
       factoryElement.isDeclaredInWsd;
+}
+
+const _wsdToolbarPathPatterns = {
+  '/src/toolbars/',
+  '/src/_deprecated/toolbars_v1/',
+};
+
+bool usesWsdToolbarFactory(FluentComponentUsage usage) {
+  final factoryElement = usage.factoryTopLevelVariableElement;
+  if (factoryElement == null) return false;
+
+  if (!factoryElement.isDeclaredInWsd) return false;
+
+  // isDeclaredInWsd implies non-null source
+  final uri = factoryElement.source!.uri;
+  return _wsdToolbarPathPatterns.any(uri.path.contains);
 }
 
 bool usesWsdPropsClass(FluentComponentUsage usage, String wsdPropsName) {

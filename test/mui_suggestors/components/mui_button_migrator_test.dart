@@ -13,8 +13,8 @@ void main() {
     );
 
     test(
-        'does not migrate non-WSD Button/FormSubmitInput/FormResetInput factories'
-        ' or other components', () async {
+        'does not migrate non-WSD Button/FormSubmitInput/FormResetInput factories,'
+        ' toolbar factories, or other components', () async {
       await testSuggestor(
         input: withOverReactAndWsdImports(/*language=dart*/ '''
             // Shadows the WSD factories
@@ -23,11 +23,17 @@ void main() {
             UiFactory FormResetInput;
             
             content() {
-              // Non-WSD
+              // Non-WSD (shadowed)
               Button()();
               FormSubmitInput()();
               FormResetInput()();
               
+              // Toolbars
+              // (There are no toolbars versions of FormSubmitInput/FormResetInput)
+              toolbars_v1.Button()();
+              toolbars_v2.Button()();
+              
+              // Other components
               Tooltip()();
               Dom.div()();
             }
