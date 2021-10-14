@@ -185,7 +185,8 @@ class SharedAnalysisContext {
     }
 
     if (shouldPrint) {
-      print('Resolving a file for the first time in this context;'
+      final contextName = p.basename(projectRoot);
+      print('Resolving a file for the first time context "${contextName}";'
           ' this will take a few seconds...');
     }
     final result = await callback();

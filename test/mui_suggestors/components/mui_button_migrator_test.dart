@@ -6,10 +6,16 @@ import '../../util.dart';
 import 'shared.dart';
 
 void main() {
+  final resolvedContext = SharedAnalysisContext.wsd;
+
+  // Warm up analysis in a setUpAll so that if it times out, the root cause is
+  // more obvious than the first test timing out.
+  setUpAll(resolvedContext.warmUpAnalysis);
+
   group('MuiButtonMigrator', () {
     final testSuggestor = getSuggestorTester(
       MuiButtonMigrator(),
-      resolvedContext: SharedAnalysisContext.wsd,
+      resolvedContext: resolvedContext,
     );
 
     test(
