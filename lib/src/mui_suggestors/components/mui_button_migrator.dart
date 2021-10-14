@@ -165,22 +165,15 @@ class MuiButtonMigrator
       }
 
       // Of the ReactElement children, if any aren't inline component usages
-      // using factories directly, flag for manual verification since we
+      // using top-level factories directly, flag for manual verification since we
       // can't tell for sure what component type they are.
       final childAsUsage = getComponentUsageFromExpression(child.node);
-      if (childAsUsage == null || childAsUsage.factory == null) {
+      if (childAsUsage == null ||
+          childAsUsage.factoryTopLevelVariableElement == null) {
         flagChild();
         return;
       }
 
-      if (childAsUsage.factoryTopLevelVariableElement == null) {
-        flagChild();
-        return;
-      }
-
-      // fixme what about something like props.iconFactory()()?
-      // Perhaps this should check for the props class in the inheritance instead.
-      // Handle any icon children and move them.
       if (usesWsdFactory(childAsUsage, 'Icon')) {
         yieldAddPropPatch(
             usage, '..$iconPropName = ${context.sourceFor(child.node)}');
