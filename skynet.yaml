@@ -12,6 +12,7 @@ scripts:
   - pub get
   - RESULT=0
   - echo 'Running only the tests with the "wsd" tag'
+  # TODO think about using an aggregated test suite for these so that we can reuse the same SharedAnalysisContext/AnalysisContextCollection instances and run tests faster.
   - pub run test --tags=wsd --file-reporter=json:test-reports/wsd.json || RESULT=1
   - pub global run w_test_tools:xunit_parser -j test-reports/wsd.json -t test-reports/wsd.xml
   - exit $RESULT
