@@ -23,24 +23,24 @@ class MuiButtonMigrator
       _linkButtonSkins.any((linkSkin) => isWsdStaticConstant(expr, linkSkin));
 
   @override
-  MigrationDecision shouldMigrateUsage(FluentComponentUsage usage) {
+  ShouldMigrateDecision shouldMigrateUsage(FluentComponentUsage usage) {
     // Don't migrate WSD toolbar components (for now)
     if (usesWsdToolbarFactory(usage)) {
-      return MigrationDecision.notApplicable;
+      return ShouldMigrateDecision.no;
     }
 
     if (usesWsdFactory(usage, 'Button')) {
-      return MigrationDecision.shouldMigrate;
+      return ShouldMigrateDecision.yes;
     }
 
     if (usesWsdFactory(usage, 'FormSubmitInput') ||
         usesWsdFactory(usage, 'FormResetInput')) {
       return hasLinkButtonSkin(usage)
-          ? MigrationDecision.needsManualIntervention
-          : MigrationDecision.shouldMigrate;
+          ? ShouldMigrateDecision.needsManualIntervention
+          : ShouldMigrateDecision.yes;
     }
 
-    return MigrationDecision.notApplicable;
+    return ShouldMigrateDecision.no;
   }
 
   @override

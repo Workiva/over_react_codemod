@@ -89,7 +89,7 @@ main() {
           final calls = <FluentComponentUsage>[];
           final migrator = GenericMigrator(shouldMigrateUsage: (_, usage) {
             calls.add(usage);
-            return MigrationDecision.notApplicable;
+            return ShouldMigrateDecision.no;
           });
           await sharedContext.getPatches(migrator, source);
           return calls;
@@ -223,11 +223,11 @@ main() {
             shouldMigrateUsage: (_, usage) {
               switch (usage.builder.toSource()) {
                 case 'Dom.div()':
-                  return MigrationDecision.notApplicable;
+                  return ShouldMigrateDecision.no;
                 case 'Dom.span()':
-                  return MigrationDecision.shouldMigrate;
+                  return ShouldMigrateDecision.yes;
                 case 'Dom.a()':
-                  return MigrationDecision.needsManualIntervention;
+                  return ShouldMigrateDecision.needsManualIntervention;
               }
               throw ArgumentError('Unexpected builder');
             },
@@ -895,7 +895,7 @@ extension on TypeMatcher<Object> {
 
 typedef OnMigrateUsage = void Function(
     GenericMigrator migrator, FluentComponentUsage usage);
-typedef OnShouldMigrateUsage = MigrationDecision Function(
+typedef OnShouldMigrateUsage = ShouldMigrateDecision Function(
     GenericMigrator migrator, FluentComponentUsage usage);
 
 class GenericMigrator with ClassSuggestor, ComponentUsageMigrator {
@@ -909,9 +909,8 @@ class GenericMigrator with ClassSuggestor, ComponentUsageMigrator {
         _onShouldMigrateUsage = shouldMigrateUsage;
 
   @override
-  MigrationDecision shouldMigrateUsage(usage) =>
-      _onShouldMigrateUsage?.call(this, usage) ??
-      MigrationDecision.shouldMigrate;
+  ShouldMigrateDecision shouldMigrateUsage(usage) =>
+      _onShouldMigrateUsage?.call(this, usage) ?? ShouldMigrateDecision.yes;
 
   @override
   void migrateUsage(usage) {

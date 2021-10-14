@@ -5,10 +5,10 @@ import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
 class MuiButtonGroupMigrator with ClassSuggestor, ComponentUsageMigrator {
   @override
-  MigrationDecision shouldMigrateUsage(FluentComponentUsage usage) =>
+  ShouldMigrateDecision shouldMigrateUsage(FluentComponentUsage usage) =>
       usesWsdFactory(usage, 'ButtonGroup')
-          ? MigrationDecision.shouldMigrate
-          : MigrationDecision.notApplicable;
+          ? ShouldMigrateDecision.yes
+          : ShouldMigrateDecision.no;
 
   @override
   void migrateUsage(FluentComponentUsage usage) {

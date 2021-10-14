@@ -5,10 +5,10 @@ import '../constants.dart';
 
 class MuiButtonToolbarMigrator with ClassSuggestor, ComponentUsageMigrator {
   @override
-  MigrationDecision shouldMigrateUsage(FluentComponentUsage usage) =>
+  ShouldMigrateDecision shouldMigrateUsage(FluentComponentUsage usage) =>
       usesWsdFactory(usage, 'ButtonToolbar')
-          ? MigrationDecision.shouldMigrate
-          : MigrationDecision.notApplicable;
+          ? ShouldMigrateDecision.yes
+          : ShouldMigrateDecision.no;
 
   @override
   void migrateUsage(FluentComponentUsage usage) {

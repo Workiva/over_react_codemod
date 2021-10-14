@@ -64,7 +64,7 @@ final isValidSimpleIdentifier = RegExp(r'[_$a-zA-Z][_$a-zA-Z0-9]*').hasMatch;
 mixin ComponentUsageMigrator on ClassSuggestor {
   static final _log = Logger('ComponentUsageMigrator');
 
-  MigrationDecision shouldMigrateUsage(FluentComponentUsage usage);
+  ShouldMigrateDecision shouldMigrateUsage(FluentComponentUsage usage);
 
   @mustCallSuper
   void migrateUsage(FluentComponentUsage usage) {
@@ -118,12 +118,12 @@ mixin ComponentUsageMigrator on ClassSuggestor {
 
       final decision = shouldMigrateUsage(usage);
       switch (decision) {
-        case MigrationDecision.notApplicable:
+        case ShouldMigrateDecision.no:
           break;
-        case MigrationDecision.shouldMigrate:
+        case ShouldMigrateDecision.yes:
           migrateUsage(usage);
           break;
-        case MigrationDecision.needsManualIntervention:
+        case ShouldMigrateDecision.needsManualIntervention:
           flagUsageWithManualIntervention(usage);
           break;
       }
@@ -578,11 +578,16 @@ extension on MethodInvocation {
       methodName.staticElement?.isExtensionMethod ?? false;
 }
 
-enum MigrationDecision {
-  shouldMigrate,
-  // FIXME remove this?
+enum ShouldMigrateDecision {
+  /// A component usage should be migrated.
+  yes,
+
+  /// A component usage should not be migrated.
+  no,
+
+  /// A component usage should be migrated, but requires manual intervention
+  /// and will get a fix-me comment but not any other automated migration logic.
   needsManualIntervention,
-  notApplicable,
 }
 
 extension FileContextSourceHelper on FileContext {
