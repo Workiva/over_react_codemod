@@ -625,7 +625,7 @@ void main() {
         '''))!.cascadedGetters.single;
 
         expect(getter.node, hasSource('..bar.baz'));
-        expect(getter.name, hasSource('bar'));
+        expect(getter.name, hasSource('baz'));
       });
     });
 
