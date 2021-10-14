@@ -182,7 +182,7 @@ void checkResolvedResultForErrors(
   const sharedMessage =
       'If analysis errors are expected for this test, set `throwOnAnalysisErrors: false`,'
       ' and use `checkResolvedResultForErrors` with `isExpectedError`'
-      ' to verify only the expected errors are present.';
+      ' to verify that only the expected errors are present.';
 
   if (result is! ResolvedLibraryResult) {
     throw ArgumentError([
@@ -199,18 +199,24 @@ void checkResolvedResultForErrors(
     ].join(' '));
   }
 
-  final severeErrors = units
+  bool isUnusedError(AnalysisError error) => const {
+        'unused_element',
+        'unused_local_variable'
+      }.contains(error.errorCode.name.toLowerCase());
+
+  final unexpectedErrors = units
       .expand((unit) => unit.errors)
-      .where((error) => error.severity == Severity.error)
+      .where(
+          (error) => error.severity == Severity.error || isUnusedError(error))
       .where((error) => !isExpectedError(error))
       .toList();
-  if (severeErrors.isNotEmpty) {
+  if (unexpectedErrors.isNotEmpty) {
     throw ArgumentError([
       // ignore: no_adjacent_strings_in_list
-      'File had analysis errors, which may indicate that the test file is set up improperly,'
+      'File had analysis errors or unused element hints, which likely indicate that the test file is set up improperly,'
           ' potentially resulting in false positives in your test.',
       sharedMessage,
-      'Errors:\n${prettyPrintErrors(severeErrors)}.'
+      'Errors:\n${prettyPrintErrors(unexpectedErrors)}.'
     ].join(' '));
   }
 }
