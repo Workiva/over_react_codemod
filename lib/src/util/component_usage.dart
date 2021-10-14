@@ -202,8 +202,10 @@ class ExpressionComponentChild implements ComponentChild {
 
     if (staticType.isDartCoreString ||
         staticType.isDartCoreBool ||
+        staticType.isDartCoreNum ||
         staticType.isDartCoreInt ||
-        staticType.isDartCoreNum) {
+        staticType.isDartCoreDouble ||
+        staticType.isDartCoreNull) {
       return SimpleChildType.primitive;
     }
 

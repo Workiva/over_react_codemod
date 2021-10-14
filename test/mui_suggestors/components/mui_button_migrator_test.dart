@@ -431,5 +431,120 @@ void main() {
         sharedTest('tooltipContent', rhs: '""');
       });
     });
+
+    group('handles icon children', () {
+      test('flagging when there is an ambiguous child', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              mixin FooProps on UiProps {}
+          
+              content(
+                dynamic dynamicChild,
+                Object arbitraryObjectChild,
+                UiProps untypedBuilder,
+                FooProps typedBuilder,
+                UiFactory untypedLocalFactory,
+                UiFactory<FooProps> typedLocalFactory,
+              ) {
+                Button()('dynamicChild', dynamicChild);
+                Button()('arbitraryObjectChild', arbitraryObjectChild);
+                Button()([
+                  'collectionElementChild',
+                  if (true) 'collectionElementChild',
+                ]);
+                Button()('untypedBuilder', untypedBuilder());
+                Button()('typedBuilder', typedBuilder());
+                Button()('untypedLocalFactory', untypedLocalFactory()());
+                Button()('typedLocalFactory', typedLocalFactory()());
+                Button()(['nonVariadic', dynamicChild]);
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              mixin FooProps on UiProps {}
+          
+              content(
+                dynamic dynamicChild,
+                Object arbitraryObjectChild,
+                UiProps untypedBuilder,
+                FooProps typedBuilder,
+                UiFactory untypedLocalFactory,
+                UiFactory<FooProps> typedLocalFactory,
+              ) {
+                mui.Button()('dynamicChild',
+                    // FIXME(mui_migration) - Button child - manually verify that this child is not an icon that should be moved to `endIcon` 
+                    dynamicChild);
+                mui.Button()('arbitraryObjectChild',
+                    // FIXME(mui_migration) - Button child - manually verify that this child is not an icon that should be moved to `endIcon` 
+                    arbitraryObjectChild);
+                mui.Button()([
+                  'collectionElementChild',
+                  // FIXME(mui_migration) - Button child - manually verify that this child is not an icon that should be moved to `endIcon`
+                  if (true) 'collectionElementChild',
+                ]);
+                mui.Button()('untypedBuilder',
+                    // FIXME(mui_migration) - Button child - manually verify that this child is not an icon that should be moved to `endIcon` 
+                    untypedBuilder());
+                mui.Button()('typedBuilder',
+                    // FIXME(mui_migration) - Button child - manually verify that this child is not an icon that should be moved to `endIcon` 
+                    typedBuilder());
+                mui.Button()('untypedLocalFactory',
+                    // FIXME(mui_migration) - Button child - manually verify that this child is not an icon that should be moved to `endIcon` 
+                    untypedLocalFactory()());
+                mui.Button()('typedLocalFactory',
+                    // FIXME(mui_migration) - Button child - manually verify that this child is not an icon that should be moved to `endIcon` 
+                    typedLocalFactory()());
+                mui.Button()(['nonVariadic',
+                    // FIXME(mui_migration) - Button child - manually verify that this child is not an icon that should be moved to `endIcon` 
+                    dynamicChild]);
+              }
+          '''),
+        );
+      });
+
+      test('not flagging for unambiguous non-Icon children', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              UiFactory<FooProps> Foo;
+              mixin FooProps on UiProps {}
+          
+              content() {
+                // Primitive children
+                Button()('int', 1);
+                Button()('double', 1.0);
+                Button()('num', 1 as num);
+                Button()('string', '');
+                Button()('bool', false);
+                Button()('null', null);
+                
+                // Resolved, non-Icon top-level factories
+                Button()('otherFactory', Foo()());
+                
+                // Non-variadic
+                Button()(['otherFactory', Foo()()]);
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              UiFactory<FooProps> Foo;
+              mixin FooProps on UiProps {}
+          
+              content() {
+                // Primitive children
+                mui.Button()('int', 1);
+                mui.Button()('double', 1.0);
+                mui.Button()('num', 1 as num);
+                mui.Button()('string', '');
+                mui.Button()('bool', false);
+                mui.Button()('null', null);
+                
+                // Resolved, non-Icon top-level factories
+                mui.Button()('otherFactory', Foo()());
+                
+                // Non-variadic
+                mui.Button()(['otherFactory', Foo()()]);
+              }
+          '''),
+        );
+      });
+    });
   });
 }

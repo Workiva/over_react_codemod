@@ -411,15 +411,36 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   }
 
   void yieldPropFixmePatch(PropAssignment prop, String message) {
+    // Add an extra newline beforehand so that the comment doesn't end up on
+    // the same line as the cascade target (the builder) in single-prop cascades.
+    // Add a space so that dartfmt indents comment with the next line as opposed to
+    // keeping it at the beginning of the line.
+    // This formatting makes the output nicer, but more importantly it keeps
+    // formatting of expected output in tests more consistent and easier to predict.
+    final needsLeadingNewline = prop.parentCascade != null &&
+        context.sourceFile.getLine(prop.parentCascade!.target.end) ==
+            context.sourceFile.getLine(prop.assignment.offset);
     yieldInsertionPatch(
-        // Add an extra newline beforehand so that the comment doesn't end up on
-        // the same line as the cascade target (the builder) in single-prop cascades.
-        // Add a space so that dartfmt indents comment with the next line as opposed to
-        //  keeping it at the beginning of the line
-        '\n ' +
+        (needsLeadingNewline ? '\n ' : '') +
             lineComment(
                 'FIXME(mui_migration) - ${prop.name.name} prop - $message'),
         prop.assignment.offset);
+  }
+
+  void yieldChildFixmePatch(ComponentChild child, String message) {
+    // Add a leading newline so that, when children are all on the same line,
+    // the comment doesn't get stuck to the previous child or invocation opening parens
+    // Add a space so that dartfmt indents comment with the next line as opposed to
+    // keeping it at the beginning of the line.
+    // This formatting makes the output nicer, but more importantly it keeps
+    // formatting of expected output in tests more consistent and easier to predict.
+    final needsLeadingNewline =
+        context.sourceFile.getLine(child.node.parent!.end) ==
+            context.sourceFile.getLine(child.node.offset);
+    yieldInsertionPatch(
+        (needsLeadingNewline ? '\n ' : '') +
+            lineComment('FIXME(mui_migration) - $message'),
+        child.node.beginToken.offset);
   }
 
   static final _ignoreInfoForUnitCache = Expando<OrcmIgnoreInfo>();

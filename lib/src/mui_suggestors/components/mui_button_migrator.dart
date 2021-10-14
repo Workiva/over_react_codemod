@@ -144,10 +144,10 @@ class MuiButtonMigrator
     void handleEndChild(ComponentChild child, {required bool isFirst}) {
       final iconPropName = isFirst ? 'startIcon' : 'endIcon';
 
-      void flagChild() => yieldInsertionPatch(
-          lineComment('FIXME(mui_migration) - Button child'
-              ' - manually verify that this child is not an icon that should be moved to `$iconPropName`'),
-          child.node.offset);
+      void flagChild() => yieldChildFixmePatch(
+          child,
+          'Button child - manually verify that this child'
+          ' is not an icon that should be moved to `$iconPropName`');
 
       // Don't try to handle non-expression (collection element) children.
       if (child is! ExpressionComponentChild) {
@@ -169,6 +169,11 @@ class MuiButtonMigrator
       // can't tell for sure what component type they are.
       final childAsUsage = getComponentUsageFromExpression(child.node);
       if (childAsUsage == null || childAsUsage.factory == null) {
+        flagChild();
+        return;
+      }
+
+      if (childAsUsage.factoryTopLevelVariableElement == null) {
         flagChild();
         return;
       }
