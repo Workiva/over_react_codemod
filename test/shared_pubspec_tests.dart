@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/constants.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -132,6 +133,74 @@ void sharedPubspecTest({
           '',
     );
   });
+
+  if (shouldAddDependencies) {
+    group('adds the dependency, if missing, in correct alphabetical order', () {
+      final expectedAddedDep = (hostedUrl == null
+                  ? getDependencyRegExp(dependency)
+                  : getHostedDependencyRegExp(dependency))
+              .firstMatch(getExpectedOutput(hostedUrl: hostedUrl))
+              ?.group(0) ??
+          '';
+
+      test('when the dependency should be first', () async {
+        await testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          validateContents: validatePubspecYaml,
+          input: ''
+              '$key:\n'
+              '  z: 1.5.1\n'
+              '',
+          expectedOutput: ''
+              '$key:\n'
+              '  $expectedAddedDep\n'
+              '  z: 1.5.1\n'
+              '',
+        );
+      });
+
+      test('when the dependency should be last', () async {
+        await testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          validateContents: validatePubspecYaml,
+          input: ''
+              '$key:\n'
+              '  a: 1.5.1\n'
+              '  c: 1.5.1\n'
+              '',
+          expectedOutput: ''
+              '$key:\n'
+              '  a: 1.5.1\n'
+              '  c: 1.5.1\n'
+              '  $expectedAddedDep\n'
+              '',
+        );
+      });
+
+      test('when the dependency should be in the middle', () async {
+        await testSuggestor(
+          expectedPatchCount: 1,
+          shouldDartfmtOutput: false,
+          validateContents: validatePubspecYaml,
+          input: ''
+              '$key:\n'
+              '  a: 1.5.1\n'
+              '  b: 1.5.1\n'
+              '  x: 1.5.1\n'
+              '',
+          expectedOutput: ''
+              '$key:\n'
+              '  a: 1.5.1\n'
+              '  b: 1.5.1\n'
+              '  $expectedAddedDep\n'
+              '  x: 1.5.1\n'
+              '',
+        );
+      });
+    });
+  }
 
   group('updates the caret syntax', () {
     test('', () async {
