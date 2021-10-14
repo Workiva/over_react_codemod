@@ -457,6 +457,7 @@ void main() {
                 Button()('untypedLocalFactory', untypedLocalFactory()());
                 Button()('typedLocalFactory', typedLocalFactory()());
                 Button()(['nonVariadic', dynamicChild]);
+                Button()(dynamicChild, 'dynamicChildAsStart');
               }
           '''),
           expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
@@ -496,6 +497,9 @@ void main() {
                 mui.Button()(['nonVariadic',
                     // FIXME(mui_migration) - Button child - manually verify that this child is not an icon that should be moved to `endIcon` 
                     dynamicChild]);
+                mui.Button()(
+                    // FIXME(mui_migration) - Button child - manually verify that this child is not an icon that should be moved to `startIcon`
+                    dynamicChild, 'dynamicChildAsStart');
               }
           '''),
         );
@@ -541,6 +545,192 @@ void main() {
                 
                 // Non-variadic
                 mui.Button()(['otherFactory', Foo()()]);
+              }
+          '''),
+        );
+      });
+
+      test('moving Icons in the first child position to startIcon', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                Button()(
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                  'other child',
+                );
+                Button()(
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                  'other child',
+                  'one more child',
+                );
+                // non-variadic
+                Button()([
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                  'other child',
+                ]);
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (mui.Button()
+                  ..startIcon = (Icon()..glyph = IconGlyph.STAR)()
+                )(
+                  'other child',
+                );
+                (mui.Button()
+                  ..startIcon = (Icon()..glyph = IconGlyph.STAR)()
+                )(
+                  'other child',
+                  'one more child',
+                );
+                // non-variadic
+                (mui.Button()
+                  ..startIcon = (Icon()..glyph = IconGlyph.STAR)()
+                )([
+                  'other child',
+                ]);
+              }
+          '''),
+        );
+      });
+
+      test('moving Icons in the last child position to endIcon', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                Button()(
+                  'other child',
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                );
+                // non-variadic
+                Button()([
+                  'other child',
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                ]);
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (mui.Button()
+                  ..endIcon = (Icon()..glyph = IconGlyph.STAR)()
+                )(
+                  'other child',
+                );
+                // non-variadic
+                (mui.Button()
+                  ..endIcon = (Icon()..glyph = IconGlyph.STAR)()
+                )([
+                  'other child',
+                ]);
+              }
+          '''),
+        );
+      });
+
+      test('not moving Icons that are not the first or last child', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                Button()(
+                  'other child',
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                  'one more child',
+                );
+                // non-variadic
+                Button()([
+                  'other child',
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                  'one more child',
+                ]);
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                mui.Button()(
+                  'other child',
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                  'one more child',
+                );
+                // non-variadic
+                mui.Button()([
+                  'other child',
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                  'one more child',
+                ]);
+              }
+          '''),
+        );
+      });
+
+      test('not moving Icons that are the single child', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                Button()(
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                );
+                // non-variadic
+                Button()([
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                ]);
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                mui.Button()(
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                );
+                // non-variadic
+                mui.Button()([
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                ]);
+              }
+          '''),
+        );
+      });
+
+      test('not moving Icons when `noText = true`', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content(bool otherValue) {
+                // Should not be moved:
+                (Button()..noText = true)(
+                  'other child',
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                );
+                
+                // Should be moved:
+                (Button()..noText = false)(
+                  'other child',
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                );
+                (Button()..noText = otherValue)(
+                  'other child',
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                );
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content(bool otherValue) {
+                // Should not be moved:
+                (mui.Button()..noText = true)(
+                  'other child',
+                  (Icon()..glyph = IconGlyph.STAR)(),
+                );
+                
+                // Should be moved:
+                (mui.Button()
+                  ..noText = false
+                  ..endIcon = (Icon()..glyph = IconGlyph.STAR)()
+                )(
+                  'other child',
+                );
+                (mui.Button()
+                  ..noText = otherValue
+                  ..endIcon = (Icon()..glyph = IconGlyph.STAR)()
+                )(
+                  'other child',
+                );
               }
           '''),
         );
