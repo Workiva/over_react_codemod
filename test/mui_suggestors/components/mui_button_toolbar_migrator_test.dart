@@ -31,7 +31,6 @@ void main() {
           '''),
           expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
               content() {
-                // unexpected comment that should fail this test
                 mui.ButtonToolbar()();
                 mui.ButtonToolbar()();
                 mui.ButtonToolbar()();
