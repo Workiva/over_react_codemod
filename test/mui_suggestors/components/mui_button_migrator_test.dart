@@ -736,5 +736,24 @@ void main() {
         );
       });
     });
+
+    test('flags buttons when `DialogFooter` occurs somewhere in the same file',
+        () async {
+      await testSuggestor(
+        input: withOverReactAndWsdImports(/*language=dart*/ '''
+            renderFooter() => DialogFooter()();
+            content() {   
+              Button()();
+            }
+        '''),
+        expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+            renderFooter() => DialogFooter()();
+            content() {
+              // FIXME(mui_migration) check whether this button is nested inside a DialogFooter. If so, wrap it in a mui.ButtonToolbar with `..sx = {'float': 'right'}`.
+              mui.Button()();
+            }
+        '''),
+      );
+    });
   });
 }
