@@ -1,0 +1,18 @@
+name: private-unit-tests
+description: Unit tests that require access to our private Pub server.
+contact: 'CPLAT / #support-client-plat'
+image: drydock.workiva.net/workiva/dart_unit_test_image:1
+size: large
+timeout: eternal
+
+artifacts: /testing/test-reports
+test-reports: /testing/test-reports
+
+scripts:
+  - pub get
+  - RESULT=0
+  - echo 'Running only the tests with the "wsd" tag'
+  - pub run test --tags=wsd --file-reporter=json:test-reports/wsd.json || RESULT=1
+  - pub global run w_test_tools:xunit_parser -j test-reports/wsd.json -t test-reports/wsd.xml
+  - exit $RESULT
+

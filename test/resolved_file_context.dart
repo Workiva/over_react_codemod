@@ -14,6 +14,7 @@ import 'package:path/path.dart' as p;
 // This isn't strictly required for anything, so if the import becomes invalid,
 // just comment it and related code out.
 import 'package:test_api/src/backend/invoker.dart' show Invoker;
+import 'package:uuid/uuid.dart';
 
 final _testFixturePath =
     p.join(findPackageRootFor(p.current), 'test/test_fixtures');
@@ -22,28 +23,50 @@ class SharedAnalysisContext {
   static final overReact =
       SharedAnalysisContext(p.join(_testFixturePath, 'over_react_project'));
 
-  static final wsd =
-      SharedAnalysisContext(p.join(_testFixturePath, 'wsd_project'));
+  static final wsd = SharedAnalysisContext(
+      p.join(_testFixturePath, 'wsd_project'),
+      customPubGetErrorMessage:
+          'If this fails to resolve in GitHub Actions, make sure your test or'
+          ' test group is tagged with "wsd" so that it\'s only run in Skynet.');
 
   final String projectRoot;
   late final AnalysisContextCollection collection;
-  bool _isInitialized = false;
+  final String? customPubGetErrorMessage;
 
-  SharedAnalysisContext(this.projectRoot) {
+  SharedAnalysisContext(this.projectRoot, {this.customPubGetErrorMessage}) {
     if (!p.isAbsolute(projectRoot)) {
       throw ArgumentError.value(projectRoot, 'projectRoot', 'must be absolute');
     }
   }
 
-  static const _testFileSubpath = 'lib/dynamic_test_files';
+  final String _uuid = Uuid().v4();
+
+  // Namespace the test path using a UUID so that concurrent runs
+  // don't try to output the same filename, making it so that we can
+  // easily create new filenames by counting synchronously [nextFilename]
+  // without coordinating with other test processes.
+  //
+  // This also allows us to keep using the same project directory among concurrent tests
+  // and across test runs, which means the Dart analysis server can use cached
+  // analysis results (meaning faster test runs).
+  String get _testFileSubpath => 'lib/dynamic_test_files/$_uuid';
+
+  bool _isInitialized = false;
 
   Future<void> _initIfNeeded() async {
     if (!_isInitialized) {
-      print('Cleaning up files from previous runs...');
-      Directory(p.join(projectRoot, _testFileSubpath))
-          .deleteSyncIfExists(recursive: true);
-
-      await runPubGetIfNeeded(projectRoot);
+      // Note that if tests are run concurrently, then concurrent pub gets will be run.
+      // This is hard to avoid (trying to avoid it using a filesystem lock in
+      // macOS/Linux doesn't work due to advisory lock behavior),
+      // and it **shouldn't** cause any issues, so for now we'll just let that happen.
+      try {
+        await runPubGetIfNeeded(projectRoot);
+      } catch (_) {
+        if (customPubGetErrorMessage != null) {
+          print(customPubGetErrorMessage);
+        }
+        rethrow;
+      }
 
       collection = AnalysisContextCollection(
         includedPaths: [projectRoot],

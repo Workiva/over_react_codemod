@@ -61,7 +61,7 @@ jobs:
         run: pub get --no-precompile
 
       - name: Run tests
-        run: pub run test --file-reporter json:reports/${{ matrix.sdk }}/test-results.json
+        run: pub run test --exclude-tags=wsd --file-reporter json:reports/${{ matrix.sdk }}/test-results.json
 
       - name: Upload Unit Test Results
         uses: actions/upload-artifact@v2

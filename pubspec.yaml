@@ -32,6 +32,7 @@ dev_dependencies:
   mockito: ^5.0.14
   test: ^1.17.10
   test_descriptor: ^2.0.0
+  uuid: ^3.0.5
   workiva_analysis_options: ^1.2.2
 
 executables:
