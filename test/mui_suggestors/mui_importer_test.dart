@@ -17,19 +17,241 @@ void main() {
       resolvedContext: resolvedContext,
     );
 
-    test(
+    group(
         'adds a RMUI import when there is an undefined `mui` identifier in the file',
-        () async {
-      await testSuggestor(
-        input: /*language=dart*/ '''
-            content() => mui.Button();
-        ''',
-        isExpectedError: isUndefinedMuiError,
-        expectedOutput: /*language=dart*/ '''
-            import 'package:react_material_ui/react_material_ui.dart' as mui;
-            content() => mui.Button();
-        ''',
-      );
+        () {
+      bool isFakeUriError(AnalysisError error) =>
+          error.errorCode.name.toLowerCase() == 'uri_does_not_exist' &&
+          error.message.contains('fake');
+
+      test('when there are no other imports', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+              content() => mui.Button();
+          ''',
+          isExpectedError: isUndefinedMuiError,
+          expectedOutput: /*language=dart*/ '''
+              import 'package:react_material_ui/react_material_ui.dart' as mui;
+              content() => mui.Button();
+          ''',
+        );
+      });
+
+      group('when there are other imports', () {
+        test('(alphabetized before RMUI)', () async {
+          await testSuggestor(
+            input: /*language=dart*/ '''
+                import 'package:over_react/over_react.dart';
+            
+                content() => mui.Button();
+            ''',
+            isExpectedError: isUndefinedMuiError,
+            expectedOutput: /*language=dart*/ '''
+                import 'package:over_react/over_react.dart';
+                import 'package:react_material_ui/react_material_ui.dart' as mui;
+                
+                content() => mui.Button();
+            ''',
+          );
+        });
+
+        test('(alphabetized after RMUI)', () async {
+          await testSuggestor(
+            input: /*language=dart*/ '''
+                import 'package:z_fake_package/z_fake_package.dart';
+            
+                content() => mui.Button();
+            ''',
+            isExpectedError: (e) => isUndefinedMuiError(e) || isFakeUriError(e),
+            expectedOutput: /*language=dart*/ '''
+                import 'package:react_material_ui/react_material_ui.dart' as mui;
+                import 'package:z_fake_package/z_fake_package.dart';
+                
+                content() => mui.Button();
+            ''',
+          );
+        });
+
+        test('(alphabetized before and after RMUI)', () async {
+          await testSuggestor(
+            input: /*language=dart*/ '''
+                import 'package:over_react/over_react.dart';
+                import 'package:z_fake_package/z_fake_package.dart';
+            
+                content() => mui.Button();
+            ''',
+            isExpectedError: (e) => isUndefinedMuiError(e) || isFakeUriError(e),
+            expectedOutput: /*language=dart*/ '''
+                import 'package:over_react/over_react.dart';
+                import 'package:react_material_ui/react_material_ui.dart' as mui;
+                import 'package:z_fake_package/z_fake_package.dart';
+                
+                content() => mui.Button();
+            ''',
+          );
+        });
+
+        test('(a relative import, alphabetized before RMUI)', () async {
+          await testSuggestor(
+            input: /*language=dart*/ '''
+                import 'package:over_react/over_react.dart';
+                
+                import 'a/fake_relative_file.dart';
+            
+                content() => mui.Button();
+            ''',
+            isExpectedError: (e) => isUndefinedMuiError(e) || isFakeUriError(e),
+            expectedOutput: /*language=dart*/ '''
+                import 'package:over_react/over_react.dart';
+                import 'package:react_material_ui/react_material_ui.dart' as mui;
+                
+                import 'a/fake_relative_file.dart';
+                
+                content() => mui.Button();
+            ''',
+          );
+        });
+
+        test('(a dart import)', () async {
+          await testSuggestor(
+            input: /*language=dart*/ '''
+                import 'dart:html';
+            
+                content() => mui.Button();
+            ''',
+            isExpectedError: (e) => isUndefinedMuiError(e) || isFakeUriError(e),
+            expectedOutput: /*language=dart*/ '''
+                import 'dart:html';
+                
+                import 'package:react_material_ui/react_material_ui.dart' as mui;
+                
+                content() => mui.Button();
+            ''',
+          );
+        });
+      });
+
+      test('when there is just a library declaration', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+              library lib;
+          
+              content() => mui.Button();
+          ''',
+          isExpectedError: (e) => isUndefinedMuiError(e) || isFakeUriError(e),
+          expectedOutput: /*language=dart*/ '''
+              library lib;
+          
+              import 'package:react_material_ui/react_material_ui.dart' as mui;
+              
+              content() => mui.Button();
+          ''',
+        );
+      });
+
+      test('when there are only parts', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+              part 'fake_part.dart';
+          
+              content() => mui.Button();
+          ''',
+          isExpectedError: (e) => isUndefinedMuiError(e) || isFakeUriError(e),
+          expectedOutput: /*language=dart*/ '''
+              import 'package:react_material_ui/react_material_ui.dart' as mui;
+              
+              part 'fake_part.dart';
+              
+              content() => mui.Button();
+          ''',
+        );
+      });
+
+      test('when there are only exports', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+              export 'package:over_react/over_react.dart';
+          
+              content() => mui.Button();
+          ''',
+          isExpectedError: isUndefinedMuiError,
+          expectedOutput: /*language=dart*/ '''
+              import 'package:react_material_ui/react_material_ui.dart' as mui;
+              
+              export 'package:over_react/over_react.dart';
+              
+              content() => mui.Button();
+          ''',
+        );
+      });
+
+      test('when there are imports and parts', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+              import 'package:over_react/over_react.dart';
+              
+              part 'fake_part.dart';
+          
+              content() => mui.Button();
+          ''',
+          isExpectedError: (e) => isUndefinedMuiError(e) || isFakeUriError(e),
+          expectedOutput: /*language=dart*/ '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react_material_ui/react_material_ui.dart' as mui;
+              
+              part 'fake_part.dart';
+              
+              content() => mui.Button();
+          ''',
+        );
+      });
+
+      test('when there are exports and parts', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+              export 'package:over_react/over_react.dart';
+              
+              part 'fake_part.dart';
+          
+              content() => mui.Button();
+          ''',
+          isExpectedError: (e) => isUndefinedMuiError(e) || isFakeUriError(e),
+          expectedOutput: /*language=dart*/ '''
+              import 'package:react_material_ui/react_material_ui.dart' as mui;
+              
+              export 'package:over_react/over_react.dart';
+              
+              part 'fake_part.dart';
+              
+              content() => mui.Button();
+          ''',
+        );
+      });
+
+      test('when there are imports, exports, and parts', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+              import 'package:over_react/over_react.dart';
+          
+              export 'package:over_react/over_react.dart';
+              
+              part 'fake_part.dart';
+          
+              content() => mui.Button();
+          ''',
+          isExpectedError: (e) => isUndefinedMuiError(e) || isFakeUriError(e),
+          expectedOutput: /*language=dart*/ '''
+              import 'package:over_react/over_react.dart';
+              import 'package:react_material_ui/react_material_ui.dart' as mui;
+          
+              export 'package:over_react/over_react.dart';
+              
+              part 'fake_part.dart';
+              
+              content() => mui.Button();
+          ''',
+        );
+      });
     });
 
     test(

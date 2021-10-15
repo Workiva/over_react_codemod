@@ -46,55 +46,93 @@ Stream<Patch> muiImporter(FileContext context) async* {
 
   const rmuiImportUri = 'package:react_material_ui/react_material_ui.dart';
 
-  final importOffset = _findImportInsertionLocation(rmuiImportUri,
+  final insertInfo = _insertionLocationForPackageImport(rmuiImportUri,
       mainLibraryUnitResult.unit!, mainLibraryUnitResult.lineInfo);
   yield Patch(
-      "import '$rmuiImportUri' as $muiNs;\n", importOffset, importOffset);
+      insertInfo.leadingNewlines +
+          "import '$rmuiImportUri' as $muiNs;" +
+          insertInfo.trailingNewlines,
+      insertInfo.offset,
+      insertInfo.offset);
 }
 
-// TODO suboptimal case:
-//
-// import 'dart:async';
-// import 'dart:html';
-// >>> import 'package:react_material_ui/react_material_ui.dart' as mui;
-//
-// import 'package:w_common/disposable.dart';
+class _InsertionInfo {
+  final int offset;
+  final int leadingNewlineCount;
+  final int trailingNewlineCount;
 
-int _findImportInsertionLocation(
+  _InsertionInfo(
+    this.offset, {
+    this.leadingNewlineCount = 0,
+    this.trailingNewlineCount = 0,
+  });
+
+  String get leadingNewlines => '\n' * leadingNewlineCount;
+
+  String get trailingNewlines => '\n' * trailingNewlineCount;
+}
+
+/// Finds an insertion location for a `packageL` import, trying to
+/// insert it alongside other `package:` imports in alphabetical order,
+/// otherwise inserting it in a new section relative to other imports
+/// or other directives.
+_InsertionInfo _insertionLocationForPackageImport(
     String importUri, CompilationUnit unit, LineInfo lineInfo) {
-  int importOffset;
-  if (unit.directives.isEmpty) {
-    importOffset = unit.declarations.firstOrNull?.offset ?? 0;
-  } else {
-    // Insert the import in the right spot alphabetically.
-    importOffset = 0;
-    for (final directive in unit.directives) {
-      if (directive is LibraryDirective) {
-        importOffset = lineInfo.getOffsetOfLineAfter(directive.end);
-      } else if (directive is ImportDirective) {
-        final importString = directive.uri.stringValue;
-        if (importString != null) {
-          if (importUri.compareTo(importString) > 0) {
-            importOffset = lineInfo.getOffsetOfLineAfter(directive.end);
-          } else {
-            break;
-          }
-        }
-      } else if (directive is ExportDirective) {
-        // Exports typically always come after imports.
-        break;
-      } else if (directive is PartDirective) {
-        // Imports can't come after parts
-        break;
-      } else if (directive is PartOfDirective) {
-        throw ArgumentError.value(
-            unit, 'unit', 'must not be a unit representing a part file');
-      } else {
-        assert(false, 'Unhandled directive type: ${directive}');
-        // Bail out to be safe when running without assertions.
-        break;
-      }
+  AstNode? relativeNode;
+  bool? insertAfter;
+  bool? inOwnSection;
+
+  for (final directive in unit.directives) {
+    if (directive is! ImportDirective) continue;
+    final uriContent = directive.uriContent;
+    if (uriContent == null) continue;
+
+    if (uriContent.startsWith('package:')) {
+      relativeNode = directive;
+      insertAfter = importUri.compareTo(uriContent) > 0;
+      inOwnSection = false;
+    } else if (uriContent.startsWith('dart:')) {
+      relativeNode = directive;
+      insertAfter = true;
+      inOwnSection = true;
+    } else {
+      // If we've already picked up a package/dart import,
+      // we want to insert relative to that.
+      if (relativeNode != null) continue;
+
+      relativeNode = directive;
+      insertAfter = false;
+      inOwnSection = true;
     }
   }
-  return importOffset;
+
+  // No imports to insert relative to; try to insert relative to another directive.
+  if (relativeNode == null) {
+    final firstDirective =
+        unit.directives.where((d) => d is! ImportDirective).firstOrNull;
+    if (firstDirective != null) {
+      relativeNode = firstDirective;
+      // Imports must come after libraries, and should come
+      // before non-import directives (they also must come before parts).
+      insertAfter = firstDirective is LibraryDirective;
+      inOwnSection = true;
+    }
+  }
+
+  // No directive to insert relative to; insert before the first member or
+  // at the beginning of the file.
+  if (relativeNode == null) {
+    return _InsertionInfo(unit.declarations.firstOrNull?.offset ?? 0,
+        trailingNewlineCount: 2);
+  }
+
+  // iIf relativeNode is not null, these will be non-null as well.
+  insertAfter!;
+  inOwnSection!;
+
+  return _InsertionInfo(
+    insertAfter ? relativeNode.end : relativeNode.offset,
+    leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
+    trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
+  );
 }
