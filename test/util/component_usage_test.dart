@@ -823,7 +823,7 @@ Future<InvocationExpression> parseInvocation(
       await SharedAnalysisContext.overReact.resolvedFileContextForTest(source,
           // We don't want to get the resolved unit if `isResolve = false`,
           // since it may fail.
-          preResolveFile: false,
+          preResolveLibrary: false,
           throwOnAnalysisErrors: false);
   if (isResolved) {
     final result = await fileContext.getResolvedUnit();

@@ -158,6 +158,7 @@ typedef SuggestorTester = Future<void> Function({
   bool shouldDartfmtOutput,
   bool testIdempotency,
   SharedAnalysisContext? resolvedContext,
+  IsExpectedError? isExpectedError,
   void Function(String contents)? validateContents,
 });
 
@@ -177,6 +178,7 @@ SuggestorTester getSuggestorTester(
     bool shouldDartfmtOutput = true,
     bool testIdempotency = true,
     SharedAnalysisContext? resolvedContext,
+    IsExpectedError? isExpectedError,
     void Function(String contents)? validateContents,
   }) =>
       testSuggestor(
@@ -187,6 +189,7 @@ SuggestorTester getSuggestorTester(
         shouldDartfmtOutput: shouldDartfmtOutput,
         testIdempotency: testIdempotency,
         resolvedContext: resolvedContext ?? defaultResolvedContext,
+        isExpectedError: isExpectedError,
         validateContents: validateContents,
         inputUrl: inputUrl,
       );
@@ -209,6 +212,7 @@ Future<void> testSuggestor({
   bool shouldDartfmtOutput = true,
   bool testIdempotency = true,
   SharedAnalysisContext? resolvedContext,
+  IsExpectedError? isExpectedError,
   void Function(String contents)? validateContents,
   String? inputUrl,
 }) async {
@@ -216,13 +220,20 @@ Future<void> testSuggestor({
       resolvedContext?.nextFilename() ?? defaultSuggestorTesterInputUrl;
   expectedOutput ??= input;
 
+  if (isExpectedError != null && resolvedContext == null) {
+    throw ArgumentError(
+        'resolvedContext must be non-null to specify isExpectedError');
+  }
+
   Future<FileContext> getFileContext({
     required String contents,
     required String path,
   }) =>
       resolvedContext != null
           ? resolvedContext.resolvedFileContextForTest(contents,
-              filename: path, includeTestDescription: false)
+              filename: path,
+              includeTestDescription: false,
+              isExpectedError: isExpectedError)
           : fileContextForTest(path, contents);
 
   if (validateContents != null) {
@@ -303,4 +314,34 @@ void validatePubspecYaml(String yaml) {
   expect(extraTopLevelKeys, isEmpty,
       reason: 'unexpected top-level keys in pubspec.yaml;'
           ' could the dependencies be missing indentation?');
+}
+
+Func1<T, A> boundExpectAsync1<T, A>(T Function(A) callback,
+        {int count = 1, int max = 0, String? id, String? reason}) =>
+    expectAsync1(callback, count: count, max: max, id: id, reason: reason);
+
+Func2<T, A, B> boundExpectAsync2<T, A, B>(T Function(A, B) callback,
+        {int count = 1, int max = 0, String? id, String? reason}) =>
+    expectAsync2(callback, count: count, max: max, id: id, reason: reason);
+
+extension PatchMatchers on TypeMatcher<Patch> {
+  Matcher havingText(dynamic matcher) =>
+      having((p) => p.updatedText, 'updatedText', matcher);
+}
+
+Matcher hasPatchText(dynamic matcher) => isA<Patch>().havingText(matcher);
+
+Matcher isMuiMigrationFixmeCommentPatch({String withMessage = ''}) =>
+    hasPatchText(matches(
+      RegExp(r'// FIXME\(mui_migration\) - .+ - ' + RegExp.escape(withMessage)),
+    ));
+
+extension ObjectMatchers on TypeMatcher<Object> {
+  Matcher havingToStringValue(dynamic matcher) =>
+      having((p) => p.toString(), 'toString() value', matcher);
+}
+
+extension ArgumentErrorMatchers on TypeMatcher<ArgumentError> {
+  Matcher havingMessage(dynamic matcher) =>
+      having((e) => e.message, 'message', matcher);
 }

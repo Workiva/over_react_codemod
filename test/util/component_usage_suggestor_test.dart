@@ -1,4 +1,3 @@
-import 'package:codemod/codemod.dart';
 import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
@@ -37,7 +36,7 @@ main() {
             // Don't pre-resolve, otherwise resolvedFileContextForTest might throw.
             // We want to see how the migrator handles it when it's the first
             // thing that resolves a file.
-            preResolveFile: false,
+            preResolveLibrary: false,
             throwOnAnalysisErrors: false,
           );
           await expectLater(
@@ -861,36 +860,6 @@ void yieldPropPatchTests() {
       '''),
     );
   });
-}
-
-Func1<T, A> boundExpectAsync1<T, A>(T Function(A) callback,
-        {int count = 1, int max = 0, String? id, String? reason}) =>
-    expectAsync1(callback, count: count, max: max, id: id, reason: reason);
-
-Func2<T, A, B> boundExpectAsync2<T, A, B>(T Function(A, B) callback,
-        {int count = 1, int max = 0, String? id, String? reason}) =>
-    expectAsync2(callback, count: count, max: max, id: id, reason: reason);
-
-extension on TypeMatcher<ArgumentError> {
-  Matcher havingMessage(dynamic matcher) =>
-      having((e) => e.message, 'message', matcher);
-}
-
-Matcher hasPatchText(dynamic matcher) => isA<Patch>().havingText(matcher);
-
-Matcher isMuiMigrationFixmeCommentPatch({String withMessage = ''}) =>
-    hasPatchText(matches(
-      RegExp(r'// FIXME\(mui_migration\) - .+ - ' + RegExp.escape(withMessage)),
-    ));
-
-extension on TypeMatcher<Patch> {
-  Matcher havingText(dynamic matcher) =>
-      having((p) => p.updatedText, 'updatedText', matcher);
-}
-
-extension on TypeMatcher<Object> {
-  Matcher havingToStringValue(dynamic matcher) =>
-      having((p) => p.toString(), 'toString() value', matcher);
 }
 
 typedef OnMigrateUsage = void Function(

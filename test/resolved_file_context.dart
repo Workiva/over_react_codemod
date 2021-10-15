@@ -93,12 +93,12 @@ class SharedAnalysisContext {
     Suggestor suggestor,
     String sourceText, {
     String? filename,
-    bool preResolveFile = true,
+    bool preResolveLibrary = true,
     bool throwOnAnalysisErrors = true,
   }) async {
     final context = await resolvedFileContextForTest(
       sourceText,
-      preResolveFile: preResolveFile,
+      preResolveLibrary: preResolveLibrary,
       throwOnAnalysisErrors: throwOnAnalysisErrors,
       filename: filename,
     );
@@ -109,8 +109,9 @@ class SharedAnalysisContext {
     String sourceText, {
     String? filename,
     bool includeTestDescription = true,
-    bool preResolveFile = true,
+    bool preResolveLibrary = true,
     bool throwOnAnalysisErrors = true,
+    IsExpectedError? isExpectedError,
   }) async {
     await _initIfNeeded();
 
@@ -138,7 +139,7 @@ class SharedAnalysisContext {
           ' to update a file within a AnalysisContextCollection.'
           ' Make sure you\'re using a unique filename each time.'
           // fixme implement some sort of file lock/mutex to avoid this?
-          ' This error can also occcur if there are concurrent test runs');
+          ' This error can also occur if there are concurrent test runs');
     }
     file.parent.createSync(recursive: true);
     file.writeAsStringSync(sourceText);
@@ -146,15 +147,15 @@ class SharedAnalysisContext {
     final context = collection.contexts
         .singleWhere((c) => c.contextRoot.root.path == projectRoot);
 
-    if (throwOnAnalysisErrors && !preResolveFile) {
+    if (throwOnAnalysisErrors && !preResolveLibrary) {
       throw ArgumentError(
-          'If throwOnAnalysisErrors is false, preResolveFile must be true');
+          'If throwOnAnalysisErrors is true, preResolveFile must be false');
     }
-    if (preResolveFile) {
+    if (preResolveLibrary) {
       final result = await _printAboutFirstFile(
           () => context.currentSession.getResolvedLibrary2(path));
       if (throwOnAnalysisErrors) {
-        checkResolvedResultForErrors(result);
+        checkResolvedResultForErrors(result, isExpectedError: isExpectedError);
       }
     }
 
@@ -195,14 +196,17 @@ class SharedAnalysisContext {
   }
 }
 
-bool _defaultIsExpectedError(_) => false;
+typedef IsExpectedError = bool Function(AnalysisError);
 
 void checkResolvedResultForErrors(
   SomeResolvedLibraryResult result, {
-  bool Function(AnalysisError) isExpectedError = _defaultIsExpectedError,
+  IsExpectedError? isExpectedError,
 }) {
-  const sharedMessage =
-      'If analysis errors are expected for this test, set `throwOnAnalysisErrors: false`,'
+  isExpectedError ??= (_) => false;
+
+  const sharedMessage = 'If analysis errors are expected for this test, either:'
+      '\n1. use an `ignore:` comment to silence them'
+      '\n2. set `throwOnAnalysisErrors: false`,'
       ' and use `checkResolvedResultForErrors` with `isExpectedError`'
       ' to verify that only the expected errors are present.';
 
@@ -230,7 +234,8 @@ void checkResolvedResultForErrors(
       .expand((unit) => unit.errors)
       .where(
           (error) => error.severity == Severity.error || isUnusedError(error))
-      .where((error) => !isExpectedError(error))
+      // We need a non-null-assertion here due to https://github.com/dart-lang/sdk/issues/40790
+      .where((error) => !isExpectedError!(error))
       .toList();
   if (unexpectedErrors.isNotEmpty) {
     throw ArgumentError([
