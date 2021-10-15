@@ -29,11 +29,14 @@ Stream<Patch> unusedWsdImportRemover(FileContext context) async* {
         allImports.singleWhere((import) => import.containsOffset(error.offset));
     final importUri = matchingImport.uriContent;
     if (importUri != null && importUri.startsWith('package:web_skin_dart/')) {
-      yield Patch(
-          '',
-          // Try to take the newline before the import
-          matchingImport.beginToken.previous?.end ?? matchingImport.offset,
-          matchingImport.end);
+      final prevTokenEnd = matchingImport.beginToken.previous?.end;
+      // Try to take the newline before the import, but watch out
+      // for prevToken's offset/end being -1 if it's this import has the
+      // first token in the file.
+      final startOffset = prevTokenEnd != null && prevTokenEnd != -1
+          ? prevTokenEnd
+          : matchingImport.offset;
+      yield Patch('', startOffset, matchingImport.end);
     }
   }
 }
