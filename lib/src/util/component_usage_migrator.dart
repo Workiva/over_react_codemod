@@ -167,8 +167,8 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   // Common migration flagging
 
   /// Whether [flagCommon] (called by [migrateUsage]) should flag
-  /// unsafe method calls (names not in [safeMethodCallNames] or [_methodsWithCustomHandling])
-  ///on component usages.
+  /// unsafe method calls (names not in [safeMethodCallNames] or [methodsWithCustomHandling])
+  /// on component usages.
   bool get shouldFlagUnsafeMethodCalls => true;
 
   Set get methodsWithCustomHandling => const {'addProp'};
@@ -180,6 +180,13 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   /// Whether [flagCommon] (called by [migrateUsage]) should flag
   /// static extension methods/accessors on component usages.
   bool get shouldFlagExtensionMembers => true;
+
+  /// Whether [flagCommon] (called by [migrateUsage]) should flag
+  /// prop prefixes (not in [safePropPrefixes])
+  /// on component usages.
+  bool get shouldFlagPrefixedProps => true;
+
+  Set get safePropPrefixes => const {'dom', 'aria'};
 
   /// Whether [flagCommon] (called by [migrateUsage]) should flag
   /// the `ref` prop component usages.
@@ -202,60 +209,48 @@ mixin ComponentUsageMigrator on ClassSuggestor {
           case 'addProp':
             final expression = method.node.argumentList.arguments.firstOrNull;
             if (expression != null && !isDataAttributePropKey(expression)) {
-              yieldPatch(
-                  lineComment(
-                      'FIXME(mui_migration) - ${name} - manually verify prop key'),
-                  method.node.offset,
-                  method.node.offset);
+              yieldBuilderMemberFixmePatch(
+                  method, '$name - manually verify prop key');
             }
             break;
         }
       } else if ((shouldFlagUnsafeMethodCalls &&
               !safeMethodCallNames.contains(name)) ||
           (shouldFlagExtensionMembers && method.node.isExtensionMethod)) {
-        yieldInsertionPatch(
-            lineComment(
-                'FIXME(mui_migration) - ${name} call - manually verify'),
-            method.node.offset);
+        yieldBuilderMemberFixmePatch(method, '$name call - manually verify');
       }
     }
 
     for (final prop in usage.cascadedProps) {
       if (shouldFlagExtensionMembers && prop.isExtensionMethod) {
         // Flag extension methods, since they could do anything.
-        yieldInsertionPatch(
-            lineComment(
-                'FIXME(mui_migration) - ${prop.name.name} (extension) - manually verify'),
-            prop.assignment.offset);
+        yieldBuilderMemberFixmePatch(
+            prop, '${prop.name.name} (extension) - manually verify');
       } else if (shouldFlagRefProp && prop.name.name == 'ref') {
         // Flag refs, since their type is likely to change.
-        yieldInsertionPatch(
-            lineComment(
-                'FIXME(mui_migration) - ref - manually verify ref type is correct'),
-            prop.assignment.offset);
+        yieldPropFixmePatch(prop, 'manually verify ref type is correct');
       } else if (shouldFlagClassName && prop.name.name == 'className') {
-        yieldInsertionPatch(
-            lineComment('FIXME(mui_migration) - className - manually verify'),
-            prop.assignment.offset);
+        yieldPropFixmePatch(prop, 'manually verify');
+      } else if (shouldFlagPrefixedProps &&
+          prop.prefix != null &&
+          !safePropPrefixes.contains(prop.prefix!.name)) {
+        yieldBuilderMemberFixmePatch(
+            prop, '${prop.prefix!.name} (prefix) - manually verify');
       }
     }
 
     for (final prop in usage.cascadedIndexAssignments) {
       if (!isDataAttributePropKey(prop.index)) {
-        yieldInsertionPatch(
-            lineComment(
-                'FIXME(mui_migration) - operator[]= - manually verify prop key'),
-            prop.node.offset);
+        yieldBuilderMemberFixmePatch(
+            prop, 'operator[]= - manually verify prop key');
       }
     }
 
     for (final prop in usage.cascadedGetters) {
       if (shouldFlagExtensionMembers && prop.isExtensionMethod) {
         // Flag extension methods, since they could do anything.
-        yieldInsertionPatch(
-            lineComment(
-                'FIXME(mui_migration) - ${prop.name.name} (extension) - manually verify'),
-            prop.node.offset);
+        yieldBuilderMemberFixmePatch(
+            prop, '${prop.name.name} (extension) - manually verify');
       }
     }
   }
@@ -411,20 +406,24 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   }
 
   void yieldPropFixmePatch(PropAssignment prop, String message) {
+    yieldBuilderMemberFixmePatch(prop, '${prop.name.name} prop - $message');
+  }
+
+  void yieldBuilderMemberFixmePatch(
+      BuilderMemberAccess access, String message) {
     // Add an extra newline beforehand so that the comment doesn't end up on
     // the same line as the cascade target (the builder) in single-prop cascades.
     // Add a space so that dartfmt indents comment with the next line as opposed to
     // keeping it at the beginning of the line.
     // This formatting makes the output nicer, but more importantly it keeps
     // formatting of expected output in tests more consistent and easier to predict.
-    final needsLeadingNewline = prop.parentCascade != null &&
-        context.sourceFile.getLine(prop.parentCascade!.target.end) ==
-            context.sourceFile.getLine(prop.assignment.offset);
+    final needsLeadingNewline = access.parentCascade != null &&
+        context.sourceFile.getLine(access.parentCascade!.target.end) ==
+            context.sourceFile.getLine(access.node.offset);
     yieldInsertionPatch(
         (needsLeadingNewline ? '\n ' : '') +
-            lineComment(
-                'FIXME(mui_migration) - ${prop.name.name} prop - $message'),
-        prop.assignment.offset);
+            lineComment('FIXME(mui_migration) - $message'),
+        access.node.offset);
   }
 
   void yieldChildFixmePatch(ComponentChild child, String message) {

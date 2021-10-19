@@ -2,12 +2,9 @@
 // TODO consolidate these into a single library; perhaps in over_react?
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/source/source_range.dart';
-import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/element_type_helpers.dart';
 import 'package:over_react_codemod/src/util.dart';
 
@@ -254,18 +251,22 @@ PropAssignment? getPropAssignment(AssignmentExpression node) {
 
 abstract class BuilderMemberAccess {
   Expression get node;
+
+  bool get isInCascade => parentCascade != null;
+
+  CascadeExpression? get parentCascade => node.parent.tryCast();
 }
 
 /// An access of a builder member whose expression type is not explicitly handled
 /// by another BuilderMemberAccess subtype.
-class OtherBuilderMemberAccess implements BuilderMemberAccess {
+class OtherBuilderMemberAccess extends BuilderMemberAccess {
   @override
   final Expression node;
 
   OtherBuilderMemberAccess(this.node);
 }
 
-class PropAccess implements BuilderMemberAccess {
+class PropAccess extends BuilderMemberAccess {
   @override
   final PropertyAccess node;
 
@@ -274,7 +275,7 @@ class PropAccess implements BuilderMemberAccess {
   Identifier get name => node.propertyName;
 }
 
-class BuilderMethodInvocation implements BuilderMemberAccess {
+class BuilderMethodInvocation extends BuilderMemberAccess {
   @override
   final MethodInvocation node;
 
@@ -283,30 +284,20 @@ class BuilderMethodInvocation implements BuilderMemberAccess {
   Identifier get methodName => node.methodName;
 }
 
-// Fixme write hella test cases for this, including `.aria.label`
-// TODO what about indexed prop assignments?
-abstract class PropAssignment implements BuilderMemberAccess {
+abstract class PropAssignment extends BuilderMemberAccess {
   factory PropAssignment(AssignmentExpression node) {
     if (node.leftHandSide is PropertyAccess) {
       return _PropertyAccessPropAssignment(node);
-    } else if (node.leftHandSide is PrefixedIdentifier) {
-      return _PrefixedIdentifierPropAssignment(node);
-    } else {
-      throw ArgumentError.value(
-        node.leftHandSide,
-        'node.leftHandSide',
-        'Unhandled LHS node type',
-      );
     }
+
+    throw ArgumentError.value(
+      node.leftHandSide,
+      'node.leftHandSide',
+      'Unhandled LHS node type',
+    );
   }
 
-  /// The object on which a property is being assigned.
-  ///
-  /// Could be:
-  /// - a factory invocation expression (`Foo()` in `Foo()..prop = ...`)
-  /// - a builder expression (`builder` in `builder..prop = ...`)
-  /// - a prop being assigned to (`..dom` in `Foo()..dom.id = ...`)
-  Expression get target;
+  PropAssignment._();
 
   /// The name of the prop being assigned,
   /// or of the property on a prop being assigned.
@@ -314,7 +305,32 @@ abstract class PropAssignment implements BuilderMemberAccess {
   /// For example:
   /// - `prop` for `Foo()..prop = ...`
   /// - `id` for `Foo()..dom.id = ...`
-  Identifier get name;
+  ///
+  /// See also: [prefix], [target]
+  SimpleIdentifier get name;
+
+  /// The prefix of this prop assignment.
+  ///
+  /// For example, the value of `targetName.name` in the expression below is "aria":
+  ///
+  /// ```dart
+  /// ..aria.label = 'foo'
+  /// ```
+  ///
+  /// See also: [name], [target]
+  SimpleIdentifier? get prefix;
+
+  bool get isPrefixed => prefix != null;
+
+  /// The object on which a property is being assigned.
+  ///
+  /// Could be:
+  /// - a factory invocation expression (`Foo()` in `Foo()..prop = ...`)
+  /// - a builder expression (`builder` in `builder..prop = ...`)
+  /// - a prop being assigned to (`..dom` in `Foo()..dom.id = ...`)
+  ///
+  /// See also: [name], [prefix]
+  Expression get target;
 
   /// The cascaded assignment expression that backs this assignment.
   AssignmentExpression get assignment;
@@ -328,75 +344,33 @@ abstract class PropAssignment implements BuilderMemberAccess {
 
   /// The expression for the right hand side of this assignment.
   Expression get rightHandSide => assignment.rightHandSide;
-
-  //
-  // /// The "target" of the [name].
-  // ///
-  // /// For example, the value of `targetName.name` in the expression below is "aria":
-  // ///
-  // /// ```dart
-  // /// ..aria.label = 'foo'
-  // /// ```
-  // Identifier? get targetName => leftHandSide.tryCast<PropertyAccess>()?.target?.tryCast<PropertyAccess>()?.propertyName;
-
-  bool get isInCascade;
-
-  CascadeExpression? get parentCascade;
 }
 
-class _PropertyAccessPropAssignment with PropAssignment {
+class _PropertyAccessPropAssignment extends PropAssignment {
   /// The cascaded assignment expression that backs this assignment.
   @override
   final AssignmentExpression assignment;
 
   _PropertyAccessPropAssignment(this.assignment)
-      : assert(assignment.leftHandSide is PropertyAccess);
+      : assert(assignment.leftHandSide is PropertyAccess),
+        super._();
 
   /// The property access representing the left hand side of this assignment.
   @override
   PropertyAccess get leftHandSide => assignment.leftHandSide as PropertyAccess;
 
   @override
-  Identifier get name => leftHandSide.propertyName;
+  SimpleIdentifier get name => leftHandSide.propertyName;
 
   @override
   Expression get target => leftHandSide.realTarget;
 
   @override
-  bool get isInCascade => parentCascade != null;
-
-  @override
-  CascadeExpression? get parentCascade => assignment.parent.tryCast();
+  SimpleIdentifier? get prefix =>
+      leftHandSide.target?.tryCast<PropertyAccess>()?.propertyName;
 }
 
-class _PrefixedIdentifierPropAssignment with PropAssignment {
-  /// The cascaded assignment expression that backs this assignment.
-  @override
-  final AssignmentExpression assignment;
-
-  _PrefixedIdentifierPropAssignment(this.assignment)
-      : assert(assignment.leftHandSide is PrefixedIdentifier);
-
-  /// The property access representing the left hand side of this assignment.
-  @override
-  PrefixedIdentifier get leftHandSide =>
-      assignment.leftHandSide as PrefixedIdentifier;
-
-  @override
-  Identifier get name => leftHandSide.identifier;
-
-  @override
-  Expression get target => leftHandSide.prefix;
-
-  // Fixme is this implementation correct?
-  @override
-  bool get isInCascade => false;
-
-  @override
-  get parentCascade => null;
-}
-
-class IndexPropAssignment implements BuilderMemberAccess {
+class IndexPropAssignment extends BuilderMemberAccess {
   /// The cascaded assignment expression that backs this assignment.
   @override
   final AssignmentExpression node;

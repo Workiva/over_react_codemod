@@ -585,6 +585,7 @@ void main() {
         expect(assignment.node, hasSource('..cascadedProp = null'));
         expect(assignment.assignment, same(assignment.node));
         expect(assignment.name.name, 'cascadedProp');
+        expect(assignment.prefix, isNull);
         expect(assignment.target, hasSource('Foo()'));
         expect(assignment.leftHandSide, hasSource('..cascadedProp'));
         expect(assignment.rightHandSide, hasSource('null'));
@@ -592,7 +593,6 @@ void main() {
         expect(assignment.parentCascade, isNotNull);
       });
 
-      // FIXME is this the desired behavior for this case?
       test('for a prefixed prop', () async {
         final assignment = getComponentUsage(await parseInvocation('''
             (Foo()..dom.role = null)()
@@ -601,6 +601,7 @@ void main() {
         expect(assignment.node, hasSource('..dom.role = null'));
         expect(assignment.assignment, same(assignment.node));
         expect(assignment.name.name, 'role');
+        expect(assignment.prefix, hasSource('dom'));
         expect(assignment.target, hasSource('..dom'));
         expect(assignment.leftHandSide, hasSource('..dom.role'));
         expect(assignment.rightHandSide, hasSource('null'));

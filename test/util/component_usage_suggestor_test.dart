@@ -277,6 +277,82 @@ main() {
     });
 
     group('common usage flagging', () {
+      test('flags the ref prop', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              content() {
+                (Dom.div()..ref = (ref) {})();
+              }
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() {
+                (Dom.div()
+                  // FIXME(mui_migration) - ref prop - manually verify ref type is correct
+                  ..ref = (ref) {}
+                )();
+              }
+          '''),
+        );
+      });
+
+      test('flags the className prop', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              content() {
+                (Dom.div()..className = 'foo')();
+              }
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() {
+                (Dom.div()
+                  // FIXME(mui_migration) - className prop - manually verify
+                  ..className = 'foo'
+                )();
+              }
+          '''),
+        );
+      });
+
+      test('flags prefixed props (except DOM and aria ones)', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              UiFactory<FooProps> Foo;
+              mixin FooProps on UiProps {
+                dynamic otherPrefix;
+              }
+          
+              content() {
+                (Foo()
+                  ..dom.id = 'id'
+                  ..aria.label = 'label'
+                  ..otherPrefix.something = 'foo'
+                )();
+              }
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              UiFactory<FooProps> Foo;
+              mixin FooProps on UiProps {
+                dynamic otherPrefix;
+              }
+          
+              content() {
+                (Foo()
+                  ..dom.id = 'id'
+                  ..aria.label = 'label'
+                  // FIXME(mui_migration) - otherPrefix (prefix) - manually verify
+                  ..otherPrefix.something = 'foo'
+                )();
+              }
+          '''),
+        );
+      });
+
       group('of untyped props:', () {
         const constantsSource = /*language=dart*/ '''
 
