@@ -72,90 +72,67 @@ class _InsertionLocation {
   String get trailingNewlines => '\n' * trailingNewlineCount;
 }
 
-class _RelativeInsertion {
-  final AstNode relativeNode;
-  final bool insertAfter;
-  final bool inOwnSection;
-
-  _RelativeInsertion({
-    required this.relativeNode,
-    required this.insertAfter,
-    required this.inOwnSection,
-  });
-}
-
 /// Finds an insertion location for a `packageL` import, trying to
 /// insert it alongside other `package:` imports in alphabetical order,
 /// otherwise inserting it in a new section relative to other imports
 /// or other directives.
 _InsertionLocation _insertionLocationForPackageImport(
     String importUri, CompilationUnit unit, LineInfo lineInfo) {
-  _RelativeInsertion? relative;
+  final imports = unit.directives.whereType<ImportDirective>();
+  final firstImport = imports.firstOrNull;
 
-  for (final directive in unit.directives) {
-    if (directive is! ImportDirective) continue;
-    final uriContent = directive.uriContent;
-    if (uriContent == null) continue;
+  final dartImports =
+      imports.where((i) => i.uriContent?.startsWith('dart:') ?? false);
+  final lastDartImport = dartImports.lastOrNull;
 
-    if (uriContent.startsWith('package:')) {
-      final insertAfter = importUri.compareTo(uriContent) > 0;
-      // Stop once we've found the last node we should insert after.
-      if (relative != null && relative.insertAfter && !insertAfter) {
-        break;
-      }
-      relative = _RelativeInsertion(
-        relativeNode: directive,
-        insertAfter: insertAfter,
-        inOwnSection: false,
-      );
-    } else if (uriContent.startsWith('dart:')) {
-      relative = _RelativeInsertion(
-        relativeNode: directive,
-        insertAfter: true,
-        inOwnSection: true,
-      );
-    } else {
-      // If we've already picked up a package/dart import,
-      // we want to insert relative to that.
-      if (relative != null) continue;
+  final packageImports =
+      imports.where((i) => i.uriContent?.startsWith('package:') ?? false);
+  final firstPackageImportSortedAfterNewImport = packageImports
+      .where((i) => i.uriContent!.compareTo(importUri) > 0)
+      .firstOrNull;
+  final lastPackageImportSortedBeforeNewImport = packageImports
+      .where((i) => i.uriContent!.compareTo(importUri) < 0)
+      .lastOrNull;
 
-      relative = _RelativeInsertion(
-        relativeNode: directive,
-        insertAfter: false,
-        inOwnSection: true,
-      );
-    }
-  }
+  final firstNonImportDirective =
+      unit.directives.where((d) => d is! ImportDirective).firstOrNull;
 
-  // No imports to insert relative to; try to insert relative to another directive.
-  if (relative == null) {
-    final firstDirective =
-        unit.directives.where((d) => d is! ImportDirective).firstOrNull;
-    if (firstDirective != null) {
-      relative = _RelativeInsertion(
-        relativeNode: firstDirective,
-        // Imports must come after libraries, and should come
-        // before non-import directives (they also must come before parts).
-        insertAfter: firstDirective is LibraryDirective,
-        inOwnSection: true,
-      );
-    }
-  }
-
-  // No directive to insert relative to; insert before the first member or
-  // at the beginning of the file.
-  if (relative == null) {
+  final AstNode relativeNode;
+  final bool insertAfter;
+  final bool inOwnSection;
+  if (firstPackageImportSortedAfterNewImport != null) {
+    relativeNode = firstPackageImportSortedAfterNewImport;
+    insertAfter = false;
+    inOwnSection = false;
+  } else if (lastPackageImportSortedBeforeNewImport != null) {
+    relativeNode = lastPackageImportSortedBeforeNewImport;
+    insertAfter = true;
+    inOwnSection = false;
+  } else if (lastDartImport != null) {
+    relativeNode = lastDartImport;
+    insertAfter = true;
+    inOwnSection = true;
+  } else if (firstImport != null) {
+    relativeNode = firstImport;
+    insertAfter = false;
+    inOwnSection = true;
+  } else if (firstNonImportDirective != null) {
+    // No imports to insert relative to; try to insert relative to another directive.
+    relativeNode = firstNonImportDirective;
+    // Imports must come after libraries, and should come
+    // before non-import directives (they also must come before parts).
+    insertAfter = firstNonImportDirective is LibraryDirective;
+    inOwnSection = true;
+  } else {
+    // No directive to insert relative to; insert before the first member or
+    // at the beginning of the file.
     return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0,
         trailingNewlineCount: 2);
   }
 
   return _InsertionLocation(
-    relative.insertAfter
-        ? relative.relativeNode.end
-        : relative.relativeNode.offset,
-    leadingNewlineCount:
-        relative.insertAfter ? (relative.inOwnSection ? 2 : 1) : 0,
-    trailingNewlineCount:
-        !relative.insertAfter ? (relative.inOwnSection ? 2 : 1) : 0,
+    insertAfter ? relativeNode.end : relativeNode.offset,
+    leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
+    trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
   );
 }
