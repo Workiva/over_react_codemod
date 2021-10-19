@@ -87,7 +87,11 @@ class MuiButtonMigrator
       // Simple replacements.
       'isActive': (p) => yieldPropPatch(p, newName: 'aria.pressed'),
       'isBlock': (p) => yieldPropPatch(p, newName: 'fullWidth'),
-      'isDisabled': (p) => yieldPropPatch(p, newName: 'disabled'),
+      'isDisabled': (p) {
+        yieldPropFixmePatch(p,
+            'if this button needs to show a tooltip/overlay when disabled, add a wrapper element');
+        yieldPropPatch(p, newName: 'disabled');
+      },
       'isFlat': (p) => yieldPropPatch(p, newName: 'disableElevation'),
 
       // Lengthier migration code; split out into methods.
