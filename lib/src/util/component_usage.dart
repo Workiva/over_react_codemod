@@ -333,31 +333,28 @@ abstract class PropAssignment extends BuilderMemberAccess {
   Expression get target;
 
   /// The cascaded assignment expression that backs this assignment.
-  AssignmentExpression get assignment;
-
-  // todo remove assignment in favor of node
   @override
-  AssignmentExpression get node => assignment;
+  AssignmentExpression get node;
 
   /// The property access representing the left hand side of this assignment.
-  Expression get leftHandSide => assignment.leftHandSide;
+  Expression get leftHandSide => node.leftHandSide;
 
   /// The expression for the right hand side of this assignment.
-  Expression get rightHandSide => assignment.rightHandSide;
+  Expression get rightHandSide => node.rightHandSide;
 }
 
 class _PropertyAccessPropAssignment extends PropAssignment {
   /// The cascaded assignment expression that backs this assignment.
   @override
-  final AssignmentExpression assignment;
+  final AssignmentExpression node;
 
-  _PropertyAccessPropAssignment(this.assignment)
-      : assert(assignment.leftHandSide is PropertyAccess),
+  _PropertyAccessPropAssignment(this.node)
+      : assert(node.leftHandSide is PropertyAccess),
         super._();
 
   /// The property access representing the left hand side of this assignment.
   @override
-  PropertyAccess get leftHandSide => assignment.leftHandSide as PropertyAccess;
+  PropertyAccess get leftHandSide => node.leftHandSide as PropertyAccess;
 
   @override
   SimpleIdentifier get name => leftHandSide.propertyName;

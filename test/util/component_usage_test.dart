@@ -583,7 +583,6 @@ void main() {
         '''))!.cascadedProps.single;
 
         expect(assignment.node, hasSource('..cascadedProp = null'));
-        expect(assignment.assignment, same(assignment.node));
         expect(assignment.name.name, 'cascadedProp');
         expect(assignment.prefix, isNull);
         expect(assignment.target, hasSource('Foo()'));
@@ -599,7 +598,6 @@ void main() {
         '''))!.cascadedProps.single;
 
         expect(assignment.node, hasSource('..dom.role = null'));
-        expect(assignment.assignment, same(assignment.node));
         expect(assignment.name.name, 'role');
         expect(assignment.prefix, hasSource('dom'));
         expect(assignment.target, hasSource('..dom'));

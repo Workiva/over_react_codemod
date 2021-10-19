@@ -274,7 +274,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   }
 
   void yieldRemovePropPatch(PropAssignment prop) {
-    yieldPatchOverNode('', prop.assignment);
+    yieldPatchOverNode('', prop.node);
   }
 
   void yieldAddPropPatch(FluentComponentUsage usage, String newPropCascade,
@@ -588,7 +588,7 @@ extension on PropAssignment {
   bool get isExtensionMethod {
     // For some reason staticElement on extensions is null, and we need to use
     // writeElement instead. TODO report this as an analyzer bug?
-    final staticElement = assignment.staticElement ?? assignment.writeElement;
+    final staticElement = node.staticElement ?? node.writeElement;
     return staticElement?.isExtensionMethod ?? false;
   }
 }
