@@ -87,6 +87,8 @@ class FluentComponentUsage {
     return _getUnresolvedComponentName(builder);
   }
 
+  bool get isBuilderResolved => isFullyResolved(builder);
+
   bool get isDom => const {'DomProps', 'SvgProps'}.contains(propsName);
 
   bool get isSvg => const {'SvgProps'}.contains(propsName);

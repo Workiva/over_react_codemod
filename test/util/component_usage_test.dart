@@ -11,139 +11,151 @@ import '../resolved_file_context.dart';
 void main() {
   group('component_usage', () {
     group('getComponentUsage', () {
-      group(
-          'accurately detects and collects information on usages of OverReact components:',
-          () {
-        group('components with no cascades:', () {
-          buildersToTest.forEach((name, builderSource) {
-            test('$name', () async {
-              final source = '${builderSource.source}()';
+      void sharedTests(bool isResolved) {
+        group(
+            'accurately detects and collects information on usages of OverReact components:',
+            () {
+          group('components with no cascades:', () {
+            buildersToTest.forEach((name, builderSource) {
+              test('$name', () async {
+                final source = '${builderSource.source}()';
 
-              final expressionNode = await parseInvocation(source,
-                  imports: builderSource.imports, isResolved: true);
-              final componentUsage = getComponentUsage(expressionNode);
+                final expressionNode = await parseInvocation(source,
+                    imports: builderSource.imports, isResolved: isResolved);
+                final componentUsage = getComponentUsage(expressionNode);
 
-              checkComponentUsage(componentUsage, builderSource, source);
+                checkComponentUsage(componentUsage, builderSource, source);
+              });
+            });
+          });
+
+          group('components with cascades:', () {
+            buildersToTest.forEach((name, builderSource) {
+              test('$name', () async {
+                var cascadeSource = '${builderSource.source}..id = \'123\'';
+                var source = '($cascadeSource)()';
+
+                var expressionNode = await parseInvocation(source,
+                    imports: builderSource.imports, isResolved: isResolved);
+                var componentUsage = getComponentUsage(expressionNode);
+
+                checkComponentUsage(
+                    componentUsage, builderSource, source, cascadeSource);
+              });
+            });
+          });
+
+          group('components with no cascade but extra parens:', () {
+            buildersToTest.forEach((name, builderSource) {
+              test('$name', () async {
+                var source = '(${builderSource.source})()';
+
+                var expressionNode = await parseInvocation(source,
+                    imports: builderSource.imports, isResolved: isResolved);
+                var componentUsage = getComponentUsage(expressionNode);
+
+                checkComponentUsage(componentUsage, builderSource, source);
+              });
+            });
+          });
+
+          group('components with no children:', () {
+            buildersToTest.forEach((name, builderSource) {
+              test('$name', () async {
+                var source = '${builderSource.source}()';
+
+                var expressionNode = await parseInvocation(source,
+                    imports: builderSource.imports, isResolved: isResolved);
+                var componentUsage = getComponentUsage(expressionNode);
+
+                checkComponentUsage(componentUsage, builderSource, source);
+
+                expect(componentUsage!.childArgumentCount, 0);
+                expect(componentUsage.hasVariadicChildren, false);
+              });
+            });
+          });
+
+          group('components with a single child:', () {
+            buildersToTest.forEach((name, builderSource) {
+              test('$name', () async {
+                var source = '${builderSource.source}("foo")';
+
+                var expressionNode = await parseInvocation(source,
+                    imports: builderSource.imports, isResolved: isResolved);
+                var componentUsage = getComponentUsage(expressionNode);
+
+                checkComponentUsage(componentUsage, builderSource, source);
+
+                expect(componentUsage!.childArgumentCount, 1);
+                expect(componentUsage.hasVariadicChildren, true);
+              });
+            });
+          });
+
+          group('components with more than one child:', () {
+            buildersToTest.forEach((name, builderSource) {
+              test('$name', () async {
+                var source = '${builderSource.source}("foo", "bar")';
+
+                var expressionNode = await parseInvocation(source,
+                    imports: builderSource.imports, isResolved: isResolved);
+                var componentUsage = getComponentUsage(expressionNode);
+
+                checkComponentUsage(componentUsage, builderSource, source);
+
+                expect(componentUsage!.childArgumentCount, 2);
+                expect(componentUsage.hasVariadicChildren, true);
+              });
+            });
+          });
+
+          group('components with list literal children:', () {
+            buildersToTest.forEach((name, builderSource) {
+              test('$name', () async {
+                var source = '${builderSource.source}(["foo", "bar"])';
+
+                var expressionNode = await parseInvocation(source,
+                    imports: builderSource.imports, isResolved: isResolved);
+                var componentUsage = getComponentUsage(expressionNode);
+
+                checkComponentUsage(componentUsage, builderSource, source);
+
+                expect(componentUsage!.childArgumentCount, 1);
+                expect(componentUsage.hasVariadicChildren, false);
+              });
             });
           });
         });
 
-        group('components with cascades:', () {
-          buildersToTest.forEach((name, builderSource) {
-            test('$name', () async {
-              var cascadeSource = '${builderSource.source}..id = \'123\'';
-              var source = '($cascadeSource)()';
+        test(
+            'returns null for invocations that aren\'t fluent interface usages',
+            () {
+          Future<void> verifyUsage(String source, String reason) async {
+            final expressionNode =
+                await parseInvocation(source, isResolved: isResolved);
+            var componentUsage = getComponentUsage(expressionNode);
+            expect(componentUsage, isNull, reason: '$source is $reason');
+          }
 
-              var expressionNode = await parseInvocation(source,
-                  imports: builderSource.imports, isResolved: true);
-              var componentUsage = getComponentUsage(expressionNode);
-
-              checkComponentUsage(
-                  componentUsage, builderSource, source, cascadeSource);
-            });
-          });
+          const {
+            'Dom.h1()': 'not full invocation',
+            'Foo()': 'not full invocation',
+            'fooFactory()': 'not full invocation',
+            'foo()': 'not a valid builder',
+            'foo.bar()': 'not a valid builder',
+            'foo()()': 'not a valid builder',
+            '_foo()()': 'not a valid builder',
+          }.forEach(verifyUsage);
         });
+      }
 
-        group('components with no cascade but extra parens:', () {
-          buildersToTest.forEach((name, builderSource) {
-            test('$name', () async {
-              var source = '(${builderSource.source})()';
-
-              var expressionNode = await parseInvocation(source,
-                  imports: builderSource.imports, isResolved: true);
-              var componentUsage = getComponentUsage(expressionNode);
-
-              checkComponentUsage(componentUsage, builderSource, source);
-            });
-          });
-        });
-
-        group('components with no children:', () {
-          buildersToTest.forEach((name, builderSource) {
-            test('$name', () async {
-              var source = '${builderSource.source}()';
-
-              var expressionNode = await parseInvocation(source,
-                  imports: builderSource.imports, isResolved: true);
-              var componentUsage = getComponentUsage(expressionNode);
-
-              checkComponentUsage(componentUsage, builderSource, source);
-
-              expect(componentUsage!.childArgumentCount, 0);
-              expect(componentUsage.hasVariadicChildren, false);
-            });
-          });
-        });
-
-        group('components with a single child:', () {
-          buildersToTest.forEach((name, builderSource) {
-            test('$name', () async {
-              var source = '${builderSource.source}("foo")';
-
-              var expressionNode = await parseInvocation(source,
-                  imports: builderSource.imports, isResolved: true);
-              var componentUsage = getComponentUsage(expressionNode);
-
-              checkComponentUsage(componentUsage, builderSource, source);
-
-              expect(componentUsage!.childArgumentCount, 1);
-              expect(componentUsage.hasVariadicChildren, true);
-            });
-          });
-        });
-
-        group('components with more than one child:', () {
-          buildersToTest.forEach((name, builderSource) {
-            test('$name', () async {
-              var source = '${builderSource.source}("foo", "bar")';
-
-              var expressionNode = await parseInvocation(source,
-                  imports: builderSource.imports, isResolved: true);
-              var componentUsage = getComponentUsage(expressionNode);
-
-              checkComponentUsage(componentUsage, builderSource, source);
-
-              expect(componentUsage!.childArgumentCount, 2);
-              expect(componentUsage.hasVariadicChildren, true);
-            });
-          });
-        });
-
-        group('components with list literal children:', () {
-          buildersToTest.forEach((name, builderSource) {
-            test('$name', () async {
-              var source = '${builderSource.source}(["foo", "bar"])';
-
-              var expressionNode = await parseInvocation(source,
-                  imports: builderSource.imports, isResolved: true);
-              var componentUsage = getComponentUsage(expressionNode);
-
-              checkComponentUsage(componentUsage, builderSource, source);
-
-              expect(componentUsage!.childArgumentCount, 1);
-              expect(componentUsage.hasVariadicChildren, false);
-            });
-          });
-        });
+      group('when the AST is resolved', () {
+        sharedTests(true);
       });
 
-      test('returns null for invocations that aren\'t fluent interface usages',
-          () {
-        Future<void> verifyUsage(String source, String reason) async {
-          final expressionNode = await parseInvocation(source);
-          var componentUsage = getComponentUsage(expressionNode);
-          expect(componentUsage, isNull, reason: '$source is $reason');
-        }
-
-        const {
-          'Dom.h1()': 'not full invocation',
-          'Foo()': 'not full invocation',
-          'fooFactory()': 'not full invocation',
-          'foo()': 'not a valid builder',
-          'foo.bar()': 'not a valid builder',
-          'foo()()': 'not a valid builder',
-          '_foo()()': 'not a valid builder',
-        }.forEach(verifyUsage);
+      group('when the AST is not resolved', () {
+        sharedTests(false);
       });
     });
 
@@ -282,6 +294,7 @@ void main() {
                     source: 'Bar()',
                     imports: '',
                     componentName: 'Bar',
+                    unresolvedComponentName: 'Bar',
                     isDom: false,
                     isSvg: false,
                   ),
@@ -699,7 +712,11 @@ void checkComponentUsage(FluentComponentUsage? componentUsage,
   componentUsage!;
   expect(componentUsage.builder.toSource(), builderSource.source);
   expect(componentUsage.node.toSource(), source);
-  expect(componentUsage.componentName, builderSource.componentName);
+  expect(
+      componentUsage.componentName,
+      componentUsage.isBuilderResolved
+          ? builderSource.componentName
+          : builderSource.unresolvedComponentName);
   expect(componentUsage.isDom, builderSource.isDom);
   expect(componentUsage.isSvg, builderSource.isSvg);
   expect(componentUsage.cascadeExpression?.toSource(), cascadeSource ?? isNull);
@@ -709,6 +726,7 @@ class BuilderTestCase {
   String source;
   String imports;
   String componentName;
+  String? unresolvedComponentName;
   bool isDom;
   bool isSvg;
 
@@ -716,6 +734,7 @@ class BuilderTestCase {
     required this.source,
     required this.imports,
     required this.componentName,
+    required this.unresolvedComponentName,
     required this.isDom,
     required this.isSvg,
   });
@@ -748,6 +767,7 @@ final buildersToTest = {
     source: 'Dom.h1()',
     imports: fooComponents,
     componentName: 'Dom.h1',
+    unresolvedComponentName: 'Dom.h1',
     isDom: true,
     isSvg: false,
   ),
@@ -755,6 +775,7 @@ final buildersToTest = {
     source: 'Dom.circle()',
     imports: fooComponents,
     componentName: 'Dom.circle',
+    unresolvedComponentName: 'Dom.circle',
     isDom: true,
     isSvg: true,
   ),
@@ -763,6 +784,7 @@ final buildersToTest = {
     imports:
         'import \'package:over_react/over_react.dart\' as foo_bar;$fooComponents',
     componentName: 'Dom.h1',
+    unresolvedComponentName: 'foo_bar.Dom.h1',
     isDom: true,
     isSvg: false,
   ),
@@ -770,6 +792,7 @@ final buildersToTest = {
     source: 'Foo()',
     imports: fooComponents,
     componentName: 'Foo',
+    unresolvedComponentName: 'Foo',
     isDom: false,
     isSvg: false,
   ),
@@ -778,6 +801,7 @@ final buildersToTest = {
     imports:
         'import \'package:over_react/components.dart\' as foo_bar;$fooComponents',
     componentName: 'ErrorBoundary',
+    unresolvedComponentName: 'foo_bar.ErrorBoundary',
     isDom: false,
     isSvg: false,
   ),
@@ -785,6 +809,7 @@ final buildersToTest = {
     source: 'getFooBuilder()',
     imports: fooComponents,
     componentName: 'Foo',
+    unresolvedComponentName: 'getFooBuilder',
     isDom: false,
     isSvg: false,
   ),
@@ -792,6 +817,7 @@ final buildersToTest = {
     source: 'getBuilderForFoo()',
     imports: fooComponents,
     componentName: 'Foo',
+    unresolvedComponentName: 'getBuilderForFoo',
     isDom: false,
     isSvg: false,
   ),
