@@ -433,9 +433,12 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     // keeping it at the beginning of the line.
     // This formatting makes the output nicer, but more importantly it keeps
     // formatting of expected output in tests more consistent and easier to predict.
-    final needsLeadingNewline =
-        context.sourceFile.getLine(child.node.parent!.end) ==
-            context.sourceFile.getLine(child.node.offset);
+    final needsLeadingNewline = context.sourceFile.getLine(child.node.parent!
+            .thisOrAncestorOfType<InvocationExpression>()!
+            .argumentList
+            .leftParenthesis
+            .end) ==
+        context.sourceFile.getLine(child.node.offset);
     yieldInsertionPatch(
         (needsLeadingNewline ? '\n ' : '') +
             lineComment('FIXME(mui_migration) - $message'),

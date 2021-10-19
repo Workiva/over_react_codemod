@@ -493,25 +493,54 @@ main() {
 
     group('patch yielding utilities', () {
       group('yieldInsertionPatch', () {
-        // fixme add tests
+        test('yields a patch with the same start and end location', () async {
+          await testSuggestor(
+            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+              migrator.yieldInsertionPatch('/*insertion*/', usage.node.offset);
+            }),
+            resolvedContext: sharedContext,
+            input: withOverReactImport(/*language=dart*/ '''
+                content() => Dom.div()();
+            '''),
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
+                content() => /*insertion*/Dom.div()();
+            '''),
+          );
+        });
       });
+
       group('yieldPatchOverNode', () {
-        // fixme add tests
+        test(
+            'yields a patch with the same start and end position as the given node',
+            () async {
+          await testSuggestor(
+            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+              migrator.yieldPatchOverNode('newBuilder', usage.builder);
+            }),
+            resolvedContext: sharedContext,
+            input: withOverReactImport(/*language=dart*/ '''
+                content() => Dom.div()();
+            '''),
+            expectedOutput: withOverReactImport(/*language=dart*/ '''
+                content() => newBuilder();
+            '''),
+          );
+        });
       });
 
       group('yieldAddPropPatch', yieldAddPropPatchTests);
       group('yieldRemovePropPatch', yieldRemovePropPatchTests);
       group('yieldPropPatch', yieldPropPatchTests);
 
+      group('yieldBuilderMemberFixmePatch', yieldBuilderMemberFixmePatchTests);
+      group('yieldPropFixmePatch', yieldPropFixmePatchTests);
+      group('yieldChildFixmePatch', yieldChildFixmePatchTests);
+
       group('yieldPropManualVerificationPatch', () {
         // fixme add tests
       });
 
       group('yieldPropManualMigratePatch', () {
-        // fixme add tests
-      });
-
-      group('yieldPropFixmePatch', () {
         // fixme add tests
       });
 
@@ -786,6 +815,289 @@ void yieldRemovePropPatchTests() {
           content() => (Dom.div())();
       '''),
     );
+  });
+}
+
+@isTestGroup
+void yieldBuilderMemberFixmePatchTests() {
+  group(
+      'adds a FIXME comment to a cascaded member with a custom message,'
+      ' placing newlines properly so that the comment stays attached to the node after formatting',
+      () {
+    test('for the first cascade section', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldBuilderMemberFixmePatch(
+              usage.cascadedMembers.first, 'custom comment');
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+            content() {
+              // Same line as builder
+              (Dom.div()..id = '')();
+              
+              // Multiline, starts on same line as builder
+              (Dom.div()..onClick = (_) {
+                print("hi");
+              })();
+              
+              // On separate line
+              (Dom.div()
+                ..id = ''
+                ..title = ''
+              )();
+            }
+        '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() {
+              // Same line as builder
+              (Dom.div()
+                // FIXME(mui_migration) - custom comment
+                ..id = ''
+              )();
+              
+              // Multiline, starts on same line as builder
+              (Dom.div()
+                // FIXME(mui_migration) - custom comment
+                ..onClick = (_) {
+                  print("hi");
+                }
+              )();
+              
+              // On separate line
+              (Dom.div()
+                // FIXME(mui_migration) - custom comment
+                ..id = ''
+                ..title = ''
+              )();
+            }
+        '''),
+      );
+    });
+
+    test('for other cascade sections', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldBuilderMemberFixmePatch(
+              usage.cascadedMembers.last, 'custom comment');
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+            content() {
+              (Dom.div()
+                ..id = ''
+                ..title = ''
+              )();
+            }
+        '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() {
+              (Dom.div()
+                ..id = ''
+                // FIXME(mui_migration) - custom comment
+                ..title = ''
+              )();
+            }
+        '''),
+      );
+    });
+  });
+}
+
+@isTestGroup
+void yieldPropFixmePatchTests() {
+  group(
+      'adds a FIXME comment to a cascaded prop with the prop name and a custom message,'
+      ' placing newlines properly so that the comment stays attached to the node after formatting',
+      () {
+    test('for the first prop', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldPropFixmePatch(
+              usage.cascadedProps.first, 'custom comment');
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+            content() {
+              // Same line as builder
+              (Dom.div()..id = '')();
+              
+              // Multiline, starts on same line as builder
+              (Dom.div()..onClick = (_) {
+                print("hi");
+              })();
+              
+              // On separate line
+              (Dom.div()
+                ..id = ''
+                ..title = ''
+              )();
+            }
+        '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() {
+              // Same line as builder
+              (Dom.div()
+                // FIXME(mui_migration) - id prop - custom comment
+                ..id = ''
+              )();
+              
+              // Multiline, starts on same line as builder
+              (Dom.div()
+                // FIXME(mui_migration) - onClick prop - custom comment
+                ..onClick = (_) {
+                  print("hi");
+                }
+              )();
+              
+              // On separate line
+              (Dom.div()
+                // FIXME(mui_migration) - id prop - custom comment
+                ..id = ''
+                ..title = ''
+              )();
+            }
+        '''),
+      );
+    });
+
+    test('for other props', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldPropFixmePatch(
+              usage.cascadedProps.last, 'custom comment');
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+            content() {
+              (Dom.div()
+                ..id = ''
+                ..title = ''
+              )();
+            }
+        '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() {
+              (Dom.div()
+                ..id = ''
+                // FIXME(mui_migration) - title prop - custom comment
+                ..title = ''
+              )();
+            }
+        '''),
+      );
+    });
+  });
+}
+
+@isTestGroup
+void yieldChildFixmePatchTests() {
+  group(
+      'adds a FIXME comment to a cascaded member with a custom message,'
+      ' placing newlines properly so that the comment stays attached to the node after formatting',
+      () {
+    test('for the first child', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldChildFixmePatch(usage.children.first, 'custom comment');
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+            content() {
+              // Same line as builder
+              Dom.div()('child');
+              
+              // Same line as builder, non-variadic
+              Dom.div()(['child']);
+              
+              // Multiline, starts on same line as builder
+              Dom.div()([].map((child) {
+                return child;
+              }));
+              
+              // On separate line
+              Dom.div()(
+                'child',
+              );
+              
+              // On separate line, non-variadic
+              Dom.div()([
+                'child',
+              ]);
+            }
+        '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() {
+              // Same line as builder
+              Dom.div()(
+                  // FIXME(mui_migration) - custom comment
+                  'child');
+              
+              // Same line as builder, non-variadic
+              Dom.div()([
+                // FIXME(mui_migration) - custom comment
+                'child'
+              ]);
+              
+              // Multiline, starts on same line as builder
+              Dom.div()(
+                  // FIXME(mui_migration) - custom comment
+                  [].map((child) {
+                    return child;
+                  }));
+              
+              // On separate line
+              Dom.div()(
+                // FIXME(mui_migration) - custom comment
+                'child',
+              );
+              
+              // On separate line, non-variadic
+              Dom.div()([
+                // FIXME(mui_migration) - custom comment
+                'child',
+              ]);
+            }
+        '''),
+      );
+    });
+
+    test('for other children', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldChildFixmePatch(usage.children.last, 'custom comment');
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+            content() {
+              // Same line as builder
+              Dom.div()(1, 2);
+              
+              // Different lines
+              Dom.div()(
+                1,
+                2,
+              );
+            }
+        '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() {
+              // Same line as builder
+              Dom.div()(
+                  1, 
+                  // FIXME(mui_migration) - custom comment
+                  2);
+              
+              // Different lines
+              Dom.div()(
+                1,
+                // FIXME(mui_migration) - custom comment
+                2,
+              );
+            }
+        '''),
+      );
+    });
   });
 }
 
