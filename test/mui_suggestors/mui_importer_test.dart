@@ -72,7 +72,7 @@ void main() {
           );
         });
 
-        test('(alphabetized before and after RMUI)', () async {
+        test('(one alphabetized before and after RMUI)', () async {
           await testSuggestor(
             input: /*language=dart*/ '''
                 import 'package:over_react/over_react.dart';
@@ -85,6 +85,29 @@ void main() {
                 import 'package:over_react/over_react.dart';
                 import 'package:react_material_ui/react_material_ui.dart' as mui;
                 import 'package:z_fake_package/z_fake_package.dart';
+                
+                content() => mui.Button();
+            ''',
+          );
+        });
+
+        test('(more than one alphabetized before and after RMUI)', () async {
+          await testSuggestor(
+            input: /*language=dart*/ '''
+                import 'package:over_react/over_react.dart';
+                import 'package:over_react/components.dart';
+                import 'package:z_fake_package/z_fake_package_1.dart';
+                import 'package:z_fake_package/z_fake_package_2.dart';
+            
+                content() => mui.Button();
+            ''',
+            isExpectedError: (e) => isUndefinedMuiError(e) || isFakeUriError(e),
+            expectedOutput: /*language=dart*/ '''
+                import 'package:over_react/over_react.dart';
+                import 'package:over_react/components.dart';
+                import 'package:react_material_ui/react_material_ui.dart' as mui;
+                import 'package:z_fake_package/z_fake_package_1.dart';
+                import 'package:z_fake_package/z_fake_package_2.dart';
                 
                 content() => mui.Button();
             ''',

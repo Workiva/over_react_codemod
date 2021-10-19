@@ -56,12 +56,12 @@ Stream<Patch> muiImporter(FileContext context) async* {
       insertInfo.offset);
 }
 
-class _InsertionInfo {
+class _InsertionLocation {
   final int offset;
   final int leadingNewlineCount;
   final int trailingNewlineCount;
 
-  _InsertionInfo(
+  _InsertionLocation(
     this.offset, {
     this.leadingNewlineCount = 0,
     this.trailingNewlineCount = 0,
@@ -72,15 +72,25 @@ class _InsertionInfo {
   String get trailingNewlines => '\n' * trailingNewlineCount;
 }
 
+class _RelativeInsertion {
+  final AstNode relativeNode;
+  final bool insertAfter;
+  final bool inOwnSection;
+
+  _RelativeInsertion({
+    required this.relativeNode,
+    required this.insertAfter,
+    required this.inOwnSection,
+  });
+}
+
 /// Finds an insertion location for a `packageL` import, trying to
 /// insert it alongside other `package:` imports in alphabetical order,
 /// otherwise inserting it in a new section relative to other imports
 /// or other directives.
-_InsertionInfo _insertionLocationForPackageImport(
+_InsertionLocation _insertionLocationForPackageImport(
     String importUri, CompilationUnit unit, LineInfo lineInfo) {
-  AstNode? relativeNode;
-  bool? insertAfter;
-  bool? inOwnSection;
+  _RelativeInsertion? relative;
 
   for (final directive in unit.directives) {
     if (directive is! ImportDirective) continue;
@@ -88,51 +98,64 @@ _InsertionInfo _insertionLocationForPackageImport(
     if (uriContent == null) continue;
 
     if (uriContent.startsWith('package:')) {
-      relativeNode = directive;
-      insertAfter = importUri.compareTo(uriContent) > 0;
-      inOwnSection = false;
+      final insertAfter = importUri.compareTo(uriContent) > 0;
+      // Stop once we've found the last node we should insert after.
+      if (relative != null && relative.insertAfter && !insertAfter) {
+        break;
+      }
+      relative = _RelativeInsertion(
+        relativeNode: directive,
+        insertAfter: insertAfter,
+        inOwnSection: false,
+      );
     } else if (uriContent.startsWith('dart:')) {
-      relativeNode = directive;
-      insertAfter = true;
-      inOwnSection = true;
+      relative = _RelativeInsertion(
+        relativeNode: directive,
+        insertAfter: true,
+        inOwnSection: true,
+      );
     } else {
       // If we've already picked up a package/dart import,
       // we want to insert relative to that.
-      if (relativeNode != null) continue;
+      if (relative != null) continue;
 
-      relativeNode = directive;
-      insertAfter = false;
-      inOwnSection = true;
+      relative = _RelativeInsertion(
+        relativeNode: directive,
+        insertAfter: false,
+        inOwnSection: true,
+      );
     }
   }
 
   // No imports to insert relative to; try to insert relative to another directive.
-  if (relativeNode == null) {
+  if (relative == null) {
     final firstDirective =
         unit.directives.where((d) => d is! ImportDirective).firstOrNull;
     if (firstDirective != null) {
-      relativeNode = firstDirective;
-      // Imports must come after libraries, and should come
-      // before non-import directives (they also must come before parts).
-      insertAfter = firstDirective is LibraryDirective;
-      inOwnSection = true;
+      relative = _RelativeInsertion(
+        relativeNode: firstDirective,
+        // Imports must come after libraries, and should come
+        // before non-import directives (they also must come before parts).
+        insertAfter: firstDirective is LibraryDirective,
+        inOwnSection: true,
+      );
     }
   }
 
   // No directive to insert relative to; insert before the first member or
   // at the beginning of the file.
-  if (relativeNode == null) {
-    return _InsertionInfo(unit.declarations.firstOrNull?.offset ?? 0,
+  if (relative == null) {
+    return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0,
         trailingNewlineCount: 2);
   }
 
-  // iIf relativeNode is not null, these will be non-null as well.
-  insertAfter!;
-  inOwnSection!;
-
-  return _InsertionInfo(
-    insertAfter ? relativeNode.end : relativeNode.offset,
-    leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
-    trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
+  return _InsertionLocation(
+    relative.insertAfter
+        ? relative.relativeNode.end
+        : relative.relativeNode.offset,
+    leadingNewlineCount:
+        relative.insertAfter ? (relative.inOwnSection ? 2 : 1) : 0,
+    trailingNewlineCount:
+        !relative.insertAfter ? (relative.inOwnSection ? 2 : 1) : 0,
   );
 }
