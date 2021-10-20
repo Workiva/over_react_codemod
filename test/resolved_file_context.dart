@@ -279,12 +279,12 @@ extension ParseHelpers on SharedAnalysisContext {
   }) async {
     CompilationUnit unit;
     final source = '''
-    $imports
-    void wrapperFunction() {
-      $expression;
-    }
-    $otherSource
-  ''';
+      $imports
+      void wrapperFunction() {
+        $expression;
+      }
+      $otherSource
+    ''';
     final fileContext = await resolvedFileContextForTest(source,
         // We don't want to get the resolved unit if `isResolve = false`,
         // since it may fail.
