@@ -138,8 +138,8 @@ class SharedAnalysisContext {
           ' Cannot use an existing file, since there is no public API'
           ' to update a file within a AnalysisContextCollection.'
           ' Make sure you\'re using a unique filename each time.'
-          // fixme implement some sort of file lock/mutex to avoid this?
-          ' This error can also occur if there are concurrent test runs');
+          ' This error can also occur if there are concurrent test runs'
+          ' and `_testFileSubpath` is not namespaced.');
     }
     file.parent.createSync(recursive: true);
     file.writeAsStringSync(sourceText);

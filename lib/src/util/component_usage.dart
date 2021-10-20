@@ -135,7 +135,6 @@ class FluentComponentUsage {
       .where((assignment) => assignment.leftHandSide is PropertyAccess)
       .map((assignment) => PropAssignment(assignment));
 
-  // fixme tests for how `..dom.id = ''` works
   Iterable<PropAccess> get cascadedGetters =>
       cascadeSections.whereType<PropertyAccess>().map((p) => PropAccess(p));
 
@@ -219,37 +218,6 @@ enum SimpleChildType {
   reactElement,
   other,
 }
-
-PropAssignment? getPropAssignment(AssignmentExpression node) {
-  final lhs = node.leftHandSide;
-  // fixme cleanup move into factory
-  if (lhs is! PropertyAccess && lhs is! PrefixedIdentifier) {
-    return null;
-  }
-
-  final assignment = PropAssignment(node);
-  if (assignment.target.staticType?.isPropsClass ?? false) {
-    return assignment;
-  }
-
-  return null;
-}
-
-//
-// class Foo {
-//   var bar;
-// }
-// // fixme document this
-// main() {
-//   Foo foo = Foo(XZ);
-//
-//   // AssignmentExpressionImpl PrefixedIdentifierImpl
-//   foo.bar = '';
-//   // AssignmentExpressionImpl PropertyAccessImpl
-//   foo?.bar = '';
-//   // CascadeExpressionImpl AssignmentExpressionImpl PropertyAccessImpl
-//   foo..bar = '';
-// }
 
 abstract class BuilderMemberAccess {
   Expression get node;

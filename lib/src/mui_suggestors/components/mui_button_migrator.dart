@@ -215,7 +215,6 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
     }
 
     if (isWsdStaticConstant(rhs, 'ButtonSkin.VANILLA')) {
-      // todo play around with removing props and adding them vs modifying them
       yieldPropPatch(prop,
           newName: 'color',
           newRhs: '$muiNs.ButtonColor.inherit',

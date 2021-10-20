@@ -381,7 +381,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     }
 
     if (additionalCascadeSection != null) {
-      // Add spaces so that dartfmt has a better time // todo is this necessary?
+      // Add spaces so that dartfmt has a better time in case the cascade section has leading line comments
       yieldInsertionPatch(
           '\n  $additionalCascadeSection', prop.rightHandSide.end);
     }
