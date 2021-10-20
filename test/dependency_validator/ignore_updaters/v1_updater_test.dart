@@ -17,7 +17,7 @@ import 'package:test/test.dart';
 
 import '../../util.dart';
 
-const depValidatorCommand = 'pub run dependency_validator';
+const depValidatorCommand = 'dart run dependency_validator
 
 Map<String, String Function(String command)> contexts = {
   'basic-dockerfile': basicDockerFile,

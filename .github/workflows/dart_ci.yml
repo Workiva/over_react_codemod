@@ -30,7 +30,7 @@ jobs:
         run: pub get --no-precompile
 
       - name: Validate dependencies
-        run: pub run dependency_validator -i dart_style,meta,over_react,pedantic
+        run: dart run dependency_validator
         if: always() && steps.install.outcome == 'success'
 
       - name: Validate formatting

@@ -22,7 +22,7 @@ import 'package:codemod/codemod.dart';
 /// pub run dependency validator
 ///
 /// // After (with `dependency` equal to "a_dependency")
-/// pub run dependency_validator -i a_dependency
+/// dart run dependency_validator
 /// ```
 ///
 /// See: [dependency_validator V1](https://github.com/Workiva/dependency_validator/blob/9554150b6473a7f822be65c863642b94653ea0d0/README.md)
@@ -34,7 +34,7 @@ class V1DependencyValidatorUpdater {
   Stream<Patch> call(FileContext context) async* {
     final fileContent = context.sourceText;
 
-    const command = 'pub run dependency_validator';
+    const command = 'dart run dependency_validator
 
     final commandPattern = RegExp('${RegExp.escape(command)}(.*)');
     final ignoreArgPattern = RegExp(r"(?:-i ?|--ignore[= ])([^ ']+)");
