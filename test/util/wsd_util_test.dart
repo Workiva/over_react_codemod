@@ -143,4 +143,55 @@ void main() {
       }, throwsExpectedError);
     });
   });
+
+  group('mapWsdConstant', () {
+    test(
+        'returns the correct value for the WSD constant key matching the given expression',
+        () async {
+      final expression = await getResolvedExpression('ButtonSize.DEFAULT');
+      final mapped = mapWsdConstant(expression, {
+        'ButtonSize.SMALL': 'small',
+        'ButtonSize.DEFAULT': 'default',
+        'ButtonSize.LARGE': 'large',
+      });
+      expect(mapped, 'default');
+    });
+
+    test('returns null if there is no matching value', () async {
+      final expression = await getResolvedExpression('ButtonSize.DEFAULT');
+      final mapped = mapWsdConstant(expression, {
+        'ButtonSize.SMALL': 'small',
+        'ButtonSize.LARGE': 'large',
+      });
+      expect(mapped, isNull);
+    });
+
+    test('returns null if the matching value is not a constant declared in WSD',
+        () async {
+      const constantSource = 'MyClass.staticConstant';
+      final expression = await getResolvedExpression(constantSource,
+          otherSource: /*language=dart*/ '''
+              abstract class MyClass {
+                static const staticConstant = null;
+              }
+          ''');
+      final mapped = mapWsdConstant(expression, {
+        constantSource: 'mapped',
+      });
+      expect(mapped, isNull);
+    });
+
+    test(
+        'returns null if the value is another expression that is not a WSD constant',
+        () async {
+      final expression = await getResolvedExpression('identifier',
+          otherSource: 'dynamic identifier;');
+      final mapped = mapWsdConstant(expression, {
+        'ButtonSize.SMALL': 'small',
+        'ButtonSize.DEFAULT': 'default',
+        'ButtonSize.LARGE': 'large',
+      });
+      expect(mapped, isNull);
+    });
+  });
 }
