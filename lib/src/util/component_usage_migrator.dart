@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart' as collection;
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
@@ -207,7 +206,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         switch (name) {
           case 'addProp':
             final expression = method.node.argumentList.arguments.firstOrNull;
-            if (expression != null && !isDataAttributePropKey(expression)) {
+            if (expression != null && !_isDataAttributePropKey(expression)) {
               yieldBuilderMemberFixmePatch(
                   method, '$name - manually verify prop key');
             }
@@ -239,7 +238,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     }
 
     for (final prop in usage.cascadedIndexAssignments) {
-      if (!isDataAttributePropKey(prop.index)) {
+      if (!_isDataAttributePropKey(prop.index)) {
         yieldBuilderMemberFixmePatch(
             prop, 'operator[]= - manually verify prop key');
       }
@@ -470,6 +469,24 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   }
 }
 
+enum ShouldMigrateDecision {
+  /// A component usage should be migrated.
+  yes,
+
+  /// A component usage should not be migrated.
+  no,
+
+  /// A component usage should be migrated, but requires manual intervention
+  /// and will get a fix-me comment but not any other automated migration logic.
+  needsManualIntervention,
+}
+
+enum NewPropPlacement {
+  auto,
+  start,
+  end,
+}
+
 void handleCascadedPropsByName(
   FluentComponentUsage usage,
   Map<String, void Function(PropAssignment)> propHandlersByName, {
@@ -516,23 +533,13 @@ void handleCascadedPropsByName(
 }
 
 extension on SourceFile {
-  FileSpan spanFor(SyntacticEntity entity) => span(entity.offset, entity.end);
-}
-
-enum NewPropPlacement {
-  auto,
-  start,
-  end,
-}
-
-extension on SourceFile {
   /// Return the offset of the first character on the line following the line
   /// containing the given [offset].
   int getOffsetOfLineAfter(int offset) => getOffset(getLine(offset) + 1);
 }
 
-bool isDataAttributePropKey(Expression expression) {
-  final keyValue = getStringConstantValue(expression);
+bool _isDataAttributePropKey(Expression expression) {
+  final keyValue = _getStringConstantValue(expression);
   return keyValue != null && keyValue.startsWith('data-');
 }
 
@@ -542,7 +549,7 @@ bool isDataAttributePropKey(Expression expression) {
 ///
 /// This implementation may not be able to resolve all references, so a null
 /// return value doesn't mean it's definitely not a string constant.
-String? getStringConstantValue(Expression expression) {
+String? _getStringConstantValue(Expression expression) {
   if (expression is SimpleStringLiteral) {
     return expression.value;
   }
@@ -599,29 +606,6 @@ extension on MethodInvocation {
   bool get isExtensionMethod =>
       methodName.staticElement?.isExtensionMethod ?? false;
 }
-
-enum ShouldMigrateDecision {
-  /// A component usage should be migrated.
-  yes,
-
-  /// A component usage should not be migrated.
-  no,
-
-  /// A component usage should be migrated, but requires manual intervention
-  /// and will get a fix-me comment but not any other automated migration logic.
-  needsManualIntervention,
-}
-
-extension FileContextSourceHelper on FileContext {
-  String sourceFor(SyntacticEntity entity) =>
-      sourceText.substring(entity.offset, entity.end);
-}
-
-// todo properly escape
-String blockComment(String contents) => '/*$contents*/';
-
-String lineComment(String contents) =>
-    contents.split('\n').map((line) => '// $line\n').join('');
 
 // fixme implement
 bool hasFlaggedComment(AstNode node) => false;

@@ -20,16 +20,19 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:collection/collection.dart' as collection;
 import 'package:glob/glob.dart';
 import 'package:over_react_codemod/src/boilerplate_suggestors/boilerplate_utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
+import 'package:source_span/source_span.dart';
 
 import 'constants.dart';
 
@@ -455,6 +458,18 @@ extension IterableCastHelpers<T> on Iterable<T?> {
   Iterable<T> castNotNull() => cast();
 }
 
+extension IterableGroupBy<E> on Iterable<E> {
+  /// Groups the elements in this iterable by the value returned by [key].
+  ///
+  /// Returns a map from keys computed by [key] to a list of all values for which
+  /// [key] returns that key. The values appear in the list in the same relative
+  /// order as in [values].
+  ///
+  /// Extension version of [collection.groupBy], for better inference of generics.
+  Map<T, List<E>> groupBy<T>(T Function(E) key) =>
+      collection.groupBy(this, key);
+}
+
 String prettyPrintErrors(Iterable<AnalysisError> errors,
     {LineInfo? lineInfo, bool includeFilename = true}) {
   return errors.map((e) {
@@ -467,3 +482,17 @@ String prettyPrintErrors(Iterable<AnalysisError> errors,
     return " - [$severity] ${e.message} ($errorCode at${includeFilename ? ' $filename' : ''} $location)";
   }).join('\n');
 }
+
+extension SpanForEntity on SourceFile {
+  FileSpan spanFor(SyntacticEntity entity) => span(entity.offset, entity.end);
+}
+
+extension FileContextSourceHelper on FileContext {
+  String sourceFor(SyntacticEntity entity) =>
+      sourceText.substring(entity.offset, entity.end);
+}
+
+String blockComment(String contents) => '/*$contents*/';
+
+String lineComment(String contents) =>
+    contents.split('\n').map((line) => '// $line\n').join('');

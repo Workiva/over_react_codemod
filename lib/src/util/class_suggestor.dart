@@ -1,5 +1,5 @@
 import 'package:codemod/codemod.dart';
-import 'package:collection/collection.dart' as collection;
+import 'package:over_react_codemod/src/util.dart' show IterableGroupBy;
 
 mixin ClassSuggestor {
   // This should be a List and not a Set to avoid patches in the same location getting mysteriously dropped.
@@ -92,18 +92,6 @@ mixin ClassSuggestor {
   void yieldInsertionPatch(String updatedText, int offset) {
     _patches.add(Patch(updatedText, offset, offset));
   }
-}
-
-extension<E> on Iterable<E> {
-  /// Groups the elements in this iterable by the value returned by [key].
-  ///
-  /// Returns a map from keys computed by [key] to a list of all values for which
-  /// [key] returns that key. The values appear in the list in the same relative
-  /// order as in [values].
-  ///
-  /// Extension version of [collection.groupBy], for better inference of generics.
-  Map<T, List<E>> groupBy<T>(T Function(E) key) =>
-      collection.groupBy(this, key);
 }
 
 extension on Patch {
