@@ -1,4 +1,7 @@
+import 'package:collection/collection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:over_react_codemod/src/util.dart';
+import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 import 'package:test/test.dart';
 
@@ -13,13 +16,6 @@ void main() {
   // (which is more common for the WSD context), it fails here instead of failing the first test.
   setUpAll(resolvedContext.warmUpAnalysis);
 
-  // Future<T> getResolvedNodeWithSource<T extends AstNode>(String source,
-  //     String file) async {
-  //   final context = await sharedContext.resolvedFileContextForTest(file);
-  //   final unit = (await context.getResolvedUnit())!.unit!;
-  //   return allDescendantsOfType<T>(unit).firstWhere((node) =>
-  //   node.toSource() == source);
-  // }
   Future<Expression> getResolvedExpression(
     String expression, {
     String? imports,
@@ -32,6 +28,16 @@ void main() {
       otherSource: otherSource,
       isResolved: true,
     );
+  }
+
+  Future<FluentComponentUsage> parseAndGetSingleUsage(String source) async {
+    final context = await resolvedContext
+        .resolvedFileContextForTest(withOverReactAndWsdImports(source));
+    final result = await context.getResolvedUnit();
+    return allDescendantsOfType<InvocationExpression>(result!.unit!)
+        .map(getComponentUsage)
+        .whereNotNull()
+        .single;
   }
 
   group('isWsdStaticConstant', () {
@@ -192,6 +198,256 @@ void main() {
         'ButtonSize.LARGE': 'large',
       });
       expect(mapped, isNull);
+    });
+  });
+
+  group('usesWsdFactory', () {
+    test(
+        'returns true for usages of WSD components with matching factory names',
+        () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => Button()();
+      ''');
+      expect(usesWsdFactory(usage, 'Button'), isTrue);
+    });
+
+    test(
+        'returns true for namespaced usages of WSD components with matching factory names',
+        () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => wsd_v2.Button()();
+      ''');
+      expect(usesWsdFactory(usage, 'Button'), isTrue);
+    });
+
+    test(
+        'returns true for both v1 and v2 WSD components with matching factory names',
+        () async {
+      final v1Usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => wsd_v1.Button()();
+      ''');
+      final v2usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => wsd_v2.Button()();
+      ''');
+      expect(usesWsdFactory(v1Usage, 'Button'), isTrue);
+      expect(usesWsdFactory(v2usage, 'Button'), isTrue);
+    });
+
+    group('returns false for builders not directly using the factory', () {
+      test('and instead using a factory variable', () async {
+        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            content(UiFactory<ButtonProps> buttonFactory) => buttonFactory()();
+        ''');
+        expect(usesWsdFactory(usage, 'Button'), isFalse);
+      });
+
+      test('and instead using a builder', () async {
+        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            content(ButtonProps buttonBuilder) => buttonBuilder();
+        ''');
+        expect(usesWsdFactory(usage, 'Button'), isFalse);
+      });
+    });
+
+    test('returns false for WSD components with different names', () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => Button()();
+      ''');
+      expect(usesWsdFactory(usage, 'Tooltip'), isFalse);
+    });
+
+    test('returns false for non-WSD components with matching factory names',
+        () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          // Shadows the WSD Button
+          UiFactory Button;
+          content() => Button()();
+      ''');
+      expect(usesWsdFactory(usage, 'Button'), isFalse);
+    });
+  });
+
+  group('usesWsdPropsClass', () {
+    test('returns true for usages of WSD components with matching props names',
+        () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => Button()();
+      ''');
+      expect(usesWsdPropsClass(usage, 'ButtonProps'), isTrue);
+    });
+
+    test(
+        'returns true for namespaced usages of WSD components with matching props names',
+        () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => wsd_v2.Button()();
+      ''');
+      expect(usesWsdPropsClass(usage, 'ButtonProps'), isTrue);
+    });
+
+    test(
+        'returns true for both v1 and v2 WSD components with matching props names',
+        () async {
+      final v1Usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => wsd_v1.Button()();
+      ''');
+      final v2usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => wsd_v2.Button()();
+      ''');
+      expect(usesWsdPropsClass(v1Usage, 'ButtonProps'), isTrue);
+      expect(usesWsdPropsClass(v2usage, 'ButtonProps'), isTrue);
+    });
+
+    group('returns true for indirect usages of WSD props classes', () {
+      test('via factory variables', () async {
+        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            content(UiFactory<ButtonProps> buttonFactory) => buttonFactory()();
+        ''');
+        expect(usesWsdPropsClass(usage, 'ButtonProps'), isTrue);
+      });
+
+      test('via builders', () async {
+        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            content(ButtonProps buttonBuilder) => buttonBuilder();
+        ''');
+        expect(usesWsdPropsClass(usage, 'ButtonProps'), isTrue);
+      });
+    });
+
+    test('returns false for WSD components with different props names',
+        () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            content() => Button()();
+        ''');
+      expect(usesWsdPropsClass(usage, 'TooltipProps'), isFalse);
+    });
+
+    group(
+        'returns false for usages of non-WSD components with matching props names',
+        () {
+      test('via top-level factories', () async {
+        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            // Shadows the WSD Button/ButtonProps
+            UiFactory<ButtonProps> Button;
+            mixin ButtonProps on UiProps {}
+            content() => Button()();
+        ''');
+        expect(usesWsdPropsClass(usage, 'ButtonProps'), isFalse);
+      });
+
+      test('via factory variables', () async {
+        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            // Shadows the WSD ButtonProps
+            mixin ButtonProps on UiProps {}
+            content(UiFactory<ButtonProps> buttonFactory) => buttonFactory()();
+        ''');
+        expect(usesWsdPropsClass(usage, 'ButtonProps'), isFalse);
+      });
+
+      test('via builders', () async {
+        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            // Shadows the WSD ButtonProps
+            mixin ButtonProps on UiProps {}
+            content(ButtonProps buttonBuilder) => buttonBuilder();
+        ''');
+        expect(usesWsdPropsClass(usage, 'ButtonProps'), isFalse);
+      });
+    });
+  });
+
+  group('usesWsdToolbarFactory', () {
+    test('returns false for non-toolbar WSD v1 components', () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => wsd_v1.Button()();
+      ''');
+      expect(usesWsdToolbarFactory(usage), isFalse);
+    });
+
+    test('returns false for non-toolbar WSD v2 components', () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => wsd_v2.Button()();
+      ''');
+      expect(usesWsdToolbarFactory(usage), isFalse);
+    });
+
+    test('returns false for toolbar WSD v1 components', () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => toolbars_v1.Button()();
+      ''');
+      expect(usesWsdToolbarFactory(usage), isTrue);
+    });
+
+    test('returns false for toolbar WSD v2 components', () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => toolbars_v2.Button()();
+      ''');
+      expect(usesWsdToolbarFactory(usage), isTrue);
+    });
+
+    test('returns false for non-WSD components', () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          UiFactory Foo;
+          content() => Foo()();
+      ''');
+      expect(usesWsdToolbarFactory(usage), isFalse);
+    });
+  });
+
+  group('wsdComponentVersionForFactory', () {
+    test('returns the correct version for non-toolbar WSD v1 components',
+        () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => wsd_v1.Button()();
+      ''');
+      expect(wsdComponentVersionForFactory(usage), WsdComponentVersion.v1);
+    });
+
+    test('returns the correct version for non-toolbar WSD v2 components',
+        () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => wsd_v2.Button()();
+      ''');
+      expect(wsdComponentVersionForFactory(usage), WsdComponentVersion.v2);
+    });
+
+    test('returns the correct version for toolbar WSD v1 components', () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => toolbars_v1.Button()();
+      ''');
+      expect(wsdComponentVersionForFactory(usage), WsdComponentVersion.v1);
+    });
+
+    test('returns the correct version for toolbar WSD v2 components', () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          content() => toolbars_v2.Button()();
+      ''');
+      expect(wsdComponentVersionForFactory(usage), WsdComponentVersion.v2);
+    });
+
+    test('returns `notWsd` for non-WSD components', () async {
+      final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+          UiFactory Foo;
+          content() => Foo()();
+      ''');
+      expect(wsdComponentVersionForFactory(usage), WsdComponentVersion.notWsd);
+    });
+
+    group('returns `notResolved` for usages that', () {
+      test('have non-factory builders', () async {
+        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            content(UiProps builder) => builder();
+        ''');
+        expect(wsdComponentVersionForFactory(usage),
+            WsdComponentVersion.notResolved);
+      });
+
+      test('use non-top-level factories', () async {
+        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            content(UiFactory factory) => factory()();
+        ''');
+        expect(wsdComponentVersionForFactory(usage),
+            WsdComponentVersion.notResolved);
+      });
     });
   });
 }
