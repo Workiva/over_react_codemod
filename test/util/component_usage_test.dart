@@ -837,36 +837,13 @@ Future<InvocationExpression> parseInvocation(
   String imports = '',
   bool isResolved = false,
 }) async {
-  CompilationUnit unit;
-  final source = '''
-    $imports
-    void wrapperFunction() {
-      $expression;
-    }
-  ''';
-  final fileContext =
-      await SharedAnalysisContext.overReact.resolvedFileContextForTest(source,
-          // We don't want to get the resolved unit if `isResolve = false`,
-          // since it may fail.
-          preResolveLibrary: false,
-          throwOnAnalysisErrors: false);
-  if (isResolved) {
-    final result = await fileContext.getResolvedUnit();
-    unit = result!.unit!;
-  } else {
-    unit = fileContext.getUnresolvedUnit();
+  final parsedExpression = await SharedAnalysisContext.overReact
+      .parseExpression(expression, imports: imports, isResolved: isResolved);
+  if (parsedExpression is InvocationExpression) {
+    return parsedExpression;
   }
-  final parsedFunction =
-      unit.childEntities.whereType<FunctionDeclaration>().last;
-  final body = parsedFunction.functionExpression.body as BlockFunctionBody;
-  final statement = body.block.statements.single as ExpressionStatement;
-  final invocationExpression = statement.expression;
-  if (invocationExpression is InvocationExpression) {
-    return invocationExpression;
-  } else {
-    throw ArgumentError.value(expression, 'expression',
-        'was not a InvocationExpression; was $invocationExpression');
-  }
+  throw ArgumentError.value(expression, 'expression',
+      'was not a InvocationExpression; was $parsedExpression');
 }
 
 /// Parses [dartSource] and returns the unresolved AST, throwing if there are any syntax errors.

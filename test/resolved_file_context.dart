@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:codemod/codemod.dart';
@@ -259,5 +260,47 @@ extension FileSystemDeleteIfExistExtension on FileSystemEntity {
     if (existsSync()) {
       await delete(recursive: recursive);
     }
+  }
+}
+
+extension ParseHelpers on SharedAnalysisContext {
+  /// Returns [expression] parsed as AST.
+  ///
+  /// This is accomplished it by including the [expression] as a statement within a wrapper function
+  /// with any necessary [imports] at the top of the source. As a result, the offset of the
+  /// returned expression will not be 0.
+  ///
+  /// To return resolved AST, set [isResolved] to true.
+  Future<Expression> parseExpression(
+    String expression, {
+    String imports = '',
+    String otherSource = '',
+    bool isResolved = false,
+  }) async {
+    CompilationUnit unit;
+    final source = '''
+    $imports
+    void wrapperFunction() {
+      $expression;
+    }
+    $otherSource
+  ''';
+    final fileContext = await resolvedFileContextForTest(source,
+        // We don't want to get the resolved unit if `isResolve = false`,
+        // since it may fail.
+        preResolveLibrary: false,
+        throwOnAnalysisErrors: false);
+    if (isResolved) {
+      final result = await fileContext.getResolvedUnit();
+      unit = result!.unit!;
+    } else {
+      unit = fileContext.getUnresolvedUnit();
+    }
+    final parsedFunction = unit.childEntities
+        .whereType<FunctionDeclaration>()
+        .singleWhere((function) => function.name.name == 'wrapperFunction');
+    final body = parsedFunction.functionExpression.body as BlockFunctionBody;
+    final statement = body.block.statements.single as ExpressionStatement;
+    return statement.expression;
   }
 }
