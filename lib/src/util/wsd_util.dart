@@ -31,18 +31,26 @@ bool _isStaticConstant(Expression expression, String constant,
   final className = constantParts[0];
   final staticFieldName = constantParts[1];
 
-  Element? staticElement;
-  if (expression is PropertyAccess && !expression.isCascaded) {
-    staticElement = expression.propertyName.staticElement;
-  } else if (expression is PrefixedIdentifier) {
-    staticElement = expression.identifier.staticElement;
+  VariableElement? variableElement;
+  {
+    Element? staticElement;
+    if (expression is PropertyAccess && !expression.isCascaded) {
+      staticElement = expression.propertyName.staticElement;
+    } else if (expression is PrefixedIdentifier) {
+      staticElement = expression.identifier.staticElement;
+    }
+    if (staticElement is VariableElement) {
+      variableElement = staticElement;
+    } else if (staticElement is PropertyAccessorElement) {
+      variableElement = staticElement.variable;
+    }
   }
-  if (staticElement is! ClassMemberElement) return false;
+  if (variableElement == null) return false;
 
-  return staticElement.name == staticFieldName &&
-      staticElement.enclosingElement.name == className &&
-      staticElement.isStatic &&
-      (fromPackage == null || staticElement.isDeclaredInPackage(fromPackage));
+  return variableElement.name == staticFieldName &&
+      variableElement.enclosingElement?.name == className &&
+      variableElement.isStatic &&
+      (fromPackage == null || variableElement.isDeclaredInPackage(fromPackage));
 }
 
 bool usesWsdFactory(FluentComponentUsage usage, String wsdFactoryName) {
