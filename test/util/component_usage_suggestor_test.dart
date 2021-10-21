@@ -590,6 +590,54 @@ main() {
           ))));
     });
   });
+
+  group('getFirstPropByName', () {
+    test('returns the first prop with a matching name', () async {
+      final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
+        final prop = getFirstPropWithName(usage, 'href');
+        expect(prop, isNotNull);
+        expect(prop!.name.name, 'href');
+        expect(prop.rightHandSide.toSource(), '"example.com/1"');
+      });
+      final source = withOverReactImport(/*language=dart*/ '''
+          content() => (Dom.div()
+            ..onClick = (_) {}
+            ..href = "example.com/1"
+            ..href = "example.com/2"
+            ..id = "foo"
+          )();
+      ''');
+      await sharedContext.getPatches(suggestor, source);
+    });
+
+    test('returns null when no prop matches the given name', () async {
+      final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
+        final prop = getFirstPropWithName(usage, 'href');
+        expect(prop, isNull);
+      });
+      final source = withOverReactImport(/*language=dart*/ '''
+          content() => (Dom.div()
+            ..onClick = (_) {}
+            ..id = "foo"
+          )();
+      ''');
+      await sharedContext.getPatches(suggestor, source);
+    });
+
+    test('throws when a prop does not exist on the props class', () async {
+      final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
+        getFirstPropWithName(usage, 'notARealProp');
+      });
+
+      final source = withOverReactImport('content() => Dom.div()();');
+      expect(
+          () async => await sharedContext.getPatches(suggestor, source),
+          throwsA(isArgumentError.havingMessage(allOf(
+            contains("not statically available"),
+            contains("notARealProp"),
+          ))));
+    });
+  });
 }
 
 @isTestGroup
