@@ -12,6 +12,10 @@ void main() {
   group('component_usage', () {
     group('getComponentUsage', () {
       void sharedTests(bool isResolved) {
+        setUpAll(() async {
+          await SharedAnalysisContext.overReact.warmUpAnalysis();
+        });
+
         group(
             'accurately detects and collects information on usages of OverReact components:',
             () {

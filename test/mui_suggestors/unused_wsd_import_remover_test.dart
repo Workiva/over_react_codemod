@@ -5,13 +5,13 @@ import '../resolved_file_context.dart';
 import '../util.dart';
 
 void main() {
-  final resolvedContext = SharedAnalysisContext.wsd;
-
-  // Warm up analysis in a setUpAll so that if getting the resolved AST times out
-  // (which is more common for the WSD context), it fails here instead of failing the first test.
-  setUpAll(resolvedContext.warmUpAnalysis);
-
   group('unusedWsdImportRemover', () {
+    final resolvedContext = SharedAnalysisContext.wsd;
+
+    // Warm up analysis in a setUpAll so that if getting the resolved AST times out
+    // (which is more common for the WSD context), it fails here instead of failing the first test.
+    setUpAll(resolvedContext.warmUpAnalysis);
+  
     final testSuggestor = getSuggestorTester(
       unusedWsdImportRemover,
       resolvedContext: resolvedContext,
@@ -111,5 +111,5 @@ void main() {
         );
       });
     });
-  });
+  }, tags: 'wsd');
 }
