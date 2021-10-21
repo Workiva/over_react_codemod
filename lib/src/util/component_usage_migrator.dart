@@ -5,7 +5,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart' as collection;
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
@@ -487,39 +486,56 @@ enum NewPropPlacement {
   end,
 }
 
+Iterable<String> _getUnknownPropNames(
+    FluentComponentUsage usage, Iterable<String> propNames) {
+  final propsClassElement = usage.propsClassElement;
+  if (propsClassElement != null) {
+    final library =
+        usage.builder.root.tryCast<CompilationUnit>()?.declaredElement!.library;
+    if (library != null) {
+      return propNames
+          .where((propName) =>
+              propsClassElement.lookUpSetter(propName, library) == null)
+          .toList();
+    }
+  }
+
+  return [];
+}
+
+PropAssignment? getFirstPropWithName(FluentComponentUsage usage, String name) {
+  // Validate that there aren't typos in `name`.
+  // This has negligible perf overhead and is extremely valuable when
+  // authoring migrations.
+  final unknownPropNames = _getUnknownPropNames(usage, [name]);
+  if (unknownPropNames.isNotEmpty) {
+    throw ArgumentError("prop '$name' is"
+        " not statically available on builder class '${usage.propsClassElement?.name}'"
+        " (declared in ${usage.propsClassElement?.enclosingElement.source.uri})."
+        " Double-check that that prop exists in that props class"
+        " and that the key in 'migratorsByName' does not have any typos.");
+  }
+
+  return usage.cascadedProps
+      .firstWhereOrNull((element) => element.name.name == name);
+}
+
 void handleCascadedPropsByName(
   FluentComponentUsage usage,
   Map<String, void Function(PropAssignment)> propHandlersByName, {
   void Function(PropAssignment)? catchAll,
 }) {
-  // Validate that there aren't typos in they keys to `migratorsByName`.
+  // Validate that there aren't typos in the keys to `migratorsByName`.
   // This has negligible perf overhead and is extremely valuable when
   // authoring migrations.
-  {
-    final builderStaticType =
-        usage.builder.staticType?.typeOrBounds.tryCast<InterfaceType>();
-    if (builderStaticType != null) {
-      final builderElement = builderStaticType.element;
-      final builderClassName = builderElement.name;
-      final library = usage.builder.root
-          .tryCast<CompilationUnit>()
-          ?.declaredElement!
-          .library;
-      if (library != null) {
-        final unknownPropNames = propHandlersByName.keys
-            .where((propName) =>
-                builderElement.lookUpSetter(propName, library) == null)
-            .toList();
-        if (unknownPropNames.isNotEmpty) {
-          throw ArgumentError(
-              "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
-              " not statically available on builder class '$builderClassName'"
-              " (declared in ${builderElement.enclosingElement.source.uri})."
-              " Double-check that that prop exists in that props class"
-              " and that the key in 'migratorsByName' does not have any typos.");
-        }
-      }
-    }
+  final unknownPropNames = _getUnknownPropNames(usage, propHandlersByName.keys);
+  if (unknownPropNames.isNotEmpty) {
+    throw ArgumentError(
+        "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
+        " not statically available on builder class '${usage.propsClassElement?.name}'"
+        " (declared in ${usage.propsClassElement?.enclosingElement.source.uri})."
+        " Double-check that that prop exists in that props class"
+        " and that the key in 'migratorsByName' does not have any typos.");
   }
 
   for (final prop in usage.cascadedProps) {
@@ -609,10 +625,3 @@ extension on MethodInvocation {
 
 // fixme implement
 bool hasFlaggedComment(AstNode node) => false;
-
-extension on DartType {
-  DartType get typeOrBounds {
-    final self = this;
-    return self is TypeParameterType ? self.bound.typeOrBounds : self;
-  }
-}
