@@ -22,12 +22,12 @@ import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
 import 'package:path/path.dart' as p;
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 import 'package:over_react_codemod/src/mui_suggestors/components.dart';
 import 'package:over_react_codemod/src/mui_suggestors/unused_wsd_import_remover.dart';
-import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
@@ -166,7 +166,7 @@ void main(List<String> args) async {
     // FIXME use allPubsepcYamlPaths()
     ['./pubspec.yaml'],
     aggregate([
-      PubspecUpgrader('react_material_ui', parseVersionRange('^0.3.0'),
+      PubspecUpgrader('react_material_ui', rmuiVersionRange,
           hostedUrl: 'https://pub.workiva.org'),
     ].map((s) => ignoreable(s))),
     defaultYes: true,

@@ -26,6 +26,7 @@ dependencies:
   yaml_edit: ^2.0.0
 
 dev_dependencies:
+  async: ^2.0.0
   build_runner: ^2.1.1
   build_test: ^2.1.3
   dart_style: ^2.0.3
