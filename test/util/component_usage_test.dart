@@ -717,8 +717,10 @@ void checkComponentUsage(FluentComponentUsage? componentUsage,
       componentUsage.isBuilderResolved
           ? builderSource.componentName
           : builderSource.unresolvedComponentName);
-  expect(componentUsage.isDom, builderSource.isDom);
-  expect(componentUsage.isSvg, builderSource.isSvg);
+  if (componentUsage.isBuilderResolved) {
+    expect(componentUsage.isDom, builderSource.isDom);
+    expect(componentUsage.isSvg, builderSource.isSvg);
+  }
   expect(componentUsage.cascadeExpression?.toSource(), cascadeSource ?? isNull);
 }
 
