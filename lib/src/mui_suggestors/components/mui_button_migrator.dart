@@ -108,7 +108,7 @@ class MuiButtonMigrator
       if (propsClassHasHitareaMixin) ...{
         'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
         'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
-        // TODO follow up on how we want to handle this; maybe add tooltipContent?
+        // FIXME instruct to wrap with OverlayTrigger; maybe attempt to do that in the codemod?
         'overlayTriggerProps': yieldPropManualMigratePatch,
         'tooltipContent': yieldPropManualMigratePatch,
       }

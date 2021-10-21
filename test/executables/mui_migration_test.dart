@@ -80,6 +80,12 @@ dependencies:'''),
       expect(err, contains('Builder static type could not be resolved'));
     });
 
+    // FIXME add tests for:
+    // - part files being resolved before library files
+    // - component flags
+    // - nested pub gets (make sure root dir's aren't being used for nested dir, like maybe have nested depend on something root dir does not)
+    // - failing when pub get fails
+
     // Set a longer timeout since some of these need to `pub get` and resolve WSD.
     // Even with a primed pub cache, the longest of these tests take ~35 seconds locally.
   }, tags: 'wsd', timeout: Timeout(Duration(minutes: 2)));
