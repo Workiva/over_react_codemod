@@ -51,6 +51,8 @@ class MuiButtonMigrator
         hasLinkButtonSkin(usage) ? '$muiNs.LinkButton' : '$muiNs.Button';
     yieldPatchOverNode(newFactory, usage.factory!);
 
+    // Needed so we can  only attempt to migrate certain props if they're
+    // declared on the props class, so that handleCascadedPropsByName/getFirstPropWithName doesn't throw.
     bool propsClassHasHitareaMixin;
     if (usesWsdFactory(usage, 'FormSubmitInput')) {
       // Avoid adding two props separately at the same time when there are no
@@ -87,12 +89,20 @@ class MuiButtonMigrator
       // Simple replacements.
       'isActive': (p) => yieldPropPatch(p, newName: 'aria.pressed'),
       'isBlock': (p) => yieldPropPatch(p, newName: 'fullWidth'),
+      'isFlat': (p) => yieldPropPatch(p, newName: 'disableElevation'),
+      if (propsClassHasHitareaMixin) ...{
+        'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
+        'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
+      },
+
+      // Related to disabled state
       'isDisabled': (p) {
         yieldPropFixmePatch(p,
-            'if this button needs to show a tooltip/overlay when disabled, add a wrapper element');
+            'if this button has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element');
         yieldPropPatch(p, newName: 'disabled');
       },
-      'isFlat': (p) => yieldPropPatch(p, newName: 'disableElevation'),
+      if (propsClassHasHitareaMixin)
+        'allowedHandlersWhenDisabled': yieldPropManualMigratePatch,
 
       // Lengthier migration code; split out into methods.
       'skin': (p) => migrateButtonSkin(p, handleLinkVariants: true),
@@ -102,13 +112,6 @@ class MuiButtonMigrator
       // TODO for these point to migration guide or hint at what to do
       'isCallout': yieldPropManualMigratePatch,
       'pullRight': yieldPropManualMigratePatch,
-
-      // Only attempt to migrate these props if they're declared on the props class
-      // (since we'll get errors otherwise).
-      if (propsClassHasHitareaMixin) ...{
-        'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
-        'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
-      }
     });
 
     // Only attempt to migrate these props if they're declared on the props class
