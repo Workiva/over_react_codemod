@@ -175,7 +175,6 @@ void main() {
                 content() {
                   (mui.Button()
                     ..color = mui.ButtonColor.primary
-                    
                     // `color` should go before existing cascades, and `type` afterwards
                     ..id = 'id'
                     ..type = 'submit'
