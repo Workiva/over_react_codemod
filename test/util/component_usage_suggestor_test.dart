@@ -53,7 +53,7 @@ main() {
           'but not for resolved dynamic calls might look like unresolved usages',
           () async {
         // Valid dynamic calls that are resolved and just looks like usages
-        const source = /*language=dart*/ r'''
+        const source = /*language=dart*/ '''
             // Dynamic first and second invocation
             dynamic Foo1;
             usage1() => Foo1()();
@@ -65,9 +65,7 @@ main() {
             usage2_2() => builder2();
             
             // Static first/second invocation, dynamic return value
-            dynamic Function() Foo3() {
-              return () => true;
-            }
+            dynamic Function() Foo3() {}
             dynamic builder3() {}
             usage3_1() => Foo3()();
             usage3_2() => builder3();
@@ -128,7 +126,7 @@ main() {
 
         test('via a orcm_ignore comment with args on the usage', () async {
           final source = withOverReactImport(/*language=dart*/ r'''
-              UiFactory<FooProps> Foo = castUiFactory(_$Foo); // ignore: undefined_identifier
+              UiFactory<FooProps> Foo;
               mixin FooProps on UiProps {}
               
               usage() {
@@ -180,15 +178,15 @@ main() {
               // (Verify that that no args does not ignore everything)
               // orcm_ignore_for_file:
           
-              UiFactory<FooProps> Foo = castUiFactory(_$Foo); // ignore: undefined_identifier
+              UiFactory<FooProps> Foo;
               mixin FooProps on UiProps {}
               
-              UiFactory<BarProps> Bar = castUiFactory(_$Bar); // ignore: undefined_identifier
+              UiFactory<BarProps> Bar;
               mixin BarProps on UiProps {}
               
-              UiFactory<BarProps> BarHoc = castUiFactory(_$BarHoc); // ignore: undefined_identifier
+              UiFactory<BarProps> BarHoc;
               
-              UiFactory<QuxProps> Qux = castUiFactory(_$Qux); // ignore: undefined_identifier
+              UiFactory<QuxProps> Qux;
               mixin QuxProps on UiProps {}
               
               usage() {
@@ -252,10 +250,10 @@ main() {
           GenericMigrator(
             migrateUsage: (_, usage) => migrateUsageCalls.add(usage),
           ),
-          withOverReactImport(/*language=dart*/ r'''
-              UiFactory Foo = castUiFactory(_$Foo); // ignore: undefined_identifier
-              UiFactory Bar = castUiFactory(_$Bar); // ignore: undefined_identifier
-              UiProps builder = Dom.div();
+          withOverReactImport(/*language=dart*/ '''
+              UiFactory Foo;
+              UiFactory Bar;
+              UiProps builder;
               dynamic notAUsage() {}
               dynamic alsoNotAUsage;
                         
@@ -323,8 +321,8 @@ main() {
         await testSuggestor(
           suggestor: GenericMigrator(),
           resolvedContext: sharedContext,
-          input: withOverReactImport(/*language=dart*/ r'''
-              UiFactory<FooProps> Foo = castUiFactory(_$Foo); // ignore: undefined_identifier
+          input: withOverReactImport(/*language=dart*/ '''
+              UiFactory<FooProps> Foo;
               mixin FooProps on UiProps {
                 dynamic otherPrefix;
               }
@@ -337,8 +335,8 @@ main() {
                 )();
               }
           '''),
-          expectedOutput: withOverReactImport(/*language=dart*/ r'''
-              UiFactory<FooProps> Foo = castUiFactory(_$Foo); // ignore: undefined_identifier
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              UiFactory<FooProps> Foo;
               mixin FooProps on UiProps {
                 dynamic otherPrefix;
               }
@@ -397,7 +395,7 @@ main() {
             suggestor: GenericMigrator(),
             resolvedContext: sharedContext,
             input: withOverReactImport(/*language=dart*/ '''
-                final condition = false;
+                bool condition;
             
                 contents() => (Dom.div()
                   ..addProp('somethingElse', '')
@@ -411,7 +409,7 @@ main() {
                 $constantsSource
             '''),
             expectedOutput: withOverReactImport(/*language=dart*/ '''
-                final condition = false;
+                bool condition;
                 
                 contents() => (Dom.div()
                   // FIXME(mui_migration) - addProp - manually verify prop key
