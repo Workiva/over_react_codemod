@@ -23,6 +23,7 @@ import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:path/path.dart' as p;
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
@@ -163,8 +164,7 @@ void main(List<String> args) async {
   if (exitCode != 0) return;
 
   exitCode = await runInteractiveCodemod(
-    // FIXME use allPubsepcYamlPaths()
-    ['./pubspec.yaml'],
+    pubspecYamlPaths(),
     aggregate([
       PubspecUpgrader('react_material_ui', rmuiVersionRange,
           hostedUrl: 'https://pub.workiva.org'),
