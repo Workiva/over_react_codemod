@@ -398,18 +398,6 @@ class ResolvedExpressionVisitor extends GeneralizingAstVisitor<void> {
   }
 }
 
-Expression unrwapCascadesAndParens(Expression expression) {
-  if (expression is ParenthesizedExpression) {
-    return unrwapCascadesAndParens(expression.unParenthesized);
-  }
-
-  if (expression is CascadeExpression) {
-    return unrwapCascadesAndParens(expression.target);
-  }
-
-  return expression;
-}
-
 /// Returns the OverReact fluent interface component for the invocation expression [node],
 /// or `null` if it doesn't represent one.
 ///

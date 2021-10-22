@@ -283,10 +283,12 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
       if (methodsWithCustomHandling.contains(name)) {
         switch (name) {
           case 'addProp':
-            final expression = method.node.argumentList.arguments.firstOrNull;
-            if (expression != null && !_isDataAttributePropKey(expression)) {
-              yieldBuilderMemberFixmePatch(
-                  method, '$name - manually verify prop key');
+            if (shouldFlagUntypedSingleProp) {
+              final expression = method.node.argumentList.arguments.firstOrNull;
+              if (expression != null && !_isDataAttributePropKey(expression)) {
+                yieldBuilderMemberFixmePatch(
+                    method, '$name - manually verify prop key');
+              }
             }
             break;
         }
@@ -316,7 +318,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     }
 
     for (final prop in usage.cascadedIndexAssignments) {
-      if (!_isDataAttributePropKey(prop.index)) {
+      if (shouldFlagUntypedSingleProp && !_isDataAttributePropKey(prop.index)) {
         yieldBuilderMemberFixmePatch(
             prop, 'operator[]= - manually verify prop key');
       }
