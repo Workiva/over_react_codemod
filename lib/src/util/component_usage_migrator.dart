@@ -5,7 +5,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart' as collection;
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
@@ -20,6 +19,46 @@ import 'class_suggestor.dart';
 export 'class_suggestor.dart' show ClassSuggestor;
 export 'wsd_util.dart';
 
+/// A base class/mixin for a suggestor that resolves each file, identifies all
+/// OverReact component usages, and iterates through each of them.
+///
+/// Throws if any file cannot be resolve or if any of the OverReact component
+/// usages could not be fully resolved.
+///
+/// Consumers should override:
+/// - [shouldMigrateUsage] to determine whether a usage should be migrated
+/// - [migrateUsage] to preform migration logic.
+///
+/// [migrateUsage] also always calls [flagCommon], which flags common cascaded
+/// members with fix-me comments indicating manual migration is necessary.
+/// See [flagCommon]'s doc comment for more information.
+///
+/// For example:
+///
+/// ```dart
+/// class MuiButtonToolbarMigrator with ClassSuggestor, ComponentUsageMigrator {
+///   @override
+///   shouldMigrateUsage(FluentComponentUsage usage) =>
+///       // Only migrate certain factories
+///       usesWsdFactory(usage, 'OldFactory')
+///           ? ShouldMigrateDecision.yes
+///           : ShouldMigrateDecision.no;
+///
+///   @override
+///   void migrateUsage(FluentComponentUsage usage) {
+///     super.migrateUsage(usage);
+///
+///     // Update the factory
+///     yieldPatchOverNode('NewFactory', usage.factory!);
+///
+///     // Update props
+///     handleCascadedPropsByName(usage, {
+///       'oldProp': (p) => yieldPropPatch(p, newName: 'newProp'),
+///     })
+///   }
+/// }
+/// ```
+///
 /// Component usages can be ignored via comments, resulting in this migrator
 /// not calling [shouldMigrateUsage]/[migrateUsage] for them.
 ///
@@ -62,8 +101,27 @@ export 'wsd_util.dart';
 mixin ComponentUsageMigrator on ClassSuggestor {
   static final _log = Logger('ComponentUsageMigrator');
 
+  /// Returns a decision around whether a specific [usage] should be migrated.
+  ///
+  /// If [ShouldMigrateDecision.yes] is returned, then [migrateUsage]
+  /// will be be called with this usage.
+  ///
+  /// If [ShouldMigrateDecision.no] is returned, then [migrateUsage]
+  /// will not be called with this usage.
+  ///
+  /// If [ShouldMigrateDecision.needsManualIntervention] is returned, this usage
+  /// will be flagged with a fix-me comment, and [migrateUsage] will not be called
+  /// with this usage.
   ShouldMigrateDecision shouldMigrateUsage(FluentComponentUsage usage);
 
+  /// Migrates a given [usage] if [shouldMigrateUsage] returned `yes` for it.
+  ///
+  /// This method should typically be overridden and used to perform custom
+  /// migration of a usage (e.g., update its factory and/or props).
+  ///
+  /// This also calls [flagCommon], which flags common cascaded members with
+  /// fix-me comments indicating manual migration is necessary.
+  /// See that method's doc comment for more info.
   @mustCallSuper
   void migrateUsage(FluentComponentUsage usage) {
     flagCommon(usage);
@@ -111,7 +169,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
       // about it so the component isn't skipped over silently (since the checks
       // to see what component it is often rely on resolved AST).
       if (_fatalUnresolvedUsages) {
-        verifyUsageIsResolved(usage, result);
+        _verifyUsageIsResolved(usage, result);
       }
 
       final decision = shouldMigrateUsage(usage);
@@ -122,7 +180,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
           migrateUsage(usage);
           break;
         case ShouldMigrateDecision.needsManualIntervention:
-          flagUsageWithManualIntervention(usage);
+          yieldUsageManualInterventionPatch(usage);
           break;
       }
     }
@@ -135,7 +193,11 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     return Exception(span.message('$message$commonMessage'));
   }
 
-  void verifyUsageIsResolved(
+  /// Verifies a given usage's builder is fully resolved, throwing a helpful error message if not.
+  ///
+  /// This allows custom migration code to assume that all usages are fully resolved,
+  /// and thus can rely on static typing and other static information being available.
+  void _verifyUsageIsResolved(
       FluentComponentUsage usage, ResolvedUnitResult result) {
     String errorsMessage() => result.errors.isEmpty
         ? ''
@@ -195,6 +257,22 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   // FIXME CPLAT-15321 also flag WS classes in custom CSS selectors
   bool get shouldFlagClassName => true;
 
+  /// Flags common cascaded members with fix-me comments indicating manual
+  /// migration is necessary.
+  ///
+  /// This includes:
+  /// - unsafe method calls, which could perform unknown mutations to a builder's props map
+  ///     - Examples: `..addProps(somePropsMap)`, `..modifyProps(someFunction)`
+  /// - setting untyped props (excluding data-attributes)
+  ///     - Examples: `..addProp('someProp', value)`, `..['someProp'] = value`
+  /// - prefixed props (excluding `dom` and `aria` props)
+  ///     - Example: `..foo.bar = value`
+  /// - extension getters/setters, which could perform unknown mutations to a builder's props map
+  /// - ref props, whose typings almost always need to be updated when changing components
+  /// - className props, which may need to be manually verified when changing components
+  ///
+  /// To disable specific checks, override one of the `shouldFlag*` getters
+  /// in this class.
   void flagCommon(FluentComponentUsage usage) {
     // Flag things like addProps, addAll, modifyProps, which could be adding
     // props for the old component.
@@ -256,25 +334,24 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   //
   // Helpers
 
-  static const _manualInterventionMessage = 'needs manual intervention';
-
-  void flagUsageWithManualIntervention(FluentComponentUsage usage) {
-    flagUsageFixmeComment(usage, _manualInterventionMessage);
-  }
-
-  void flagUsageFixmeComment(FluentComponentUsage usage, String message) {
-    yieldInsertionPatch(
-        lineComment('FIXME(mui_migration) $message'), usage.node.offset);
-  }
-
+  /// Yields a patch that replaces a given [AstNode]/[Token] ([entityToReplace]),
+  /// for convenience.
   void yieldPatchOverNode(String updatedText, SyntacticEntity entityToReplace) {
     yieldPatch(updatedText, entityToReplace.offset, entityToReplace.end);
   }
 
+  /// Yields a patch that removes a given [prop].
   void yieldRemovePropPatch(PropAssignment prop) {
     yieldPatchOverNode('', prop.node);
   }
 
+  /// Yields a patch adds a prop (or any other cascade) to a given [usage]
+  /// with the given [placement].
+  ///
+  /// [newPropCascade] should include the leading `..`.
+  ///
+  /// Automatically adds parentheses around the builder if they don't already
+  /// exist.
   void yieldAddPropPatch(FluentComponentUsage usage, String newPropCascade,
       {NewPropPlacement placement = NewPropPlacement.auto}) {
     final function = usage.node.function;
@@ -333,13 +410,16 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     }
   }
 
+  /// Yields a patch that removes a given [child] from a usage, and also
+  /// conditionally removes commas so as to preserve trailing or non-trailing
+  /// commas in the parent argument list or list literal.
   void yieldRemoveChildPatch(AstNode child) {
     // This logic is a little extra, but isn't too much effort and helps keep things tidy.
 
     final int start;
     final int end;
 
-    // If there's a trailing comma, remove it with the child
+    // If there's a comma after the child, remove it with the child.
     final nextToken = child.endToken.next;
     if (nextToken != null && nextToken.type == TokenType.COMMA) {
       start = child.offset;
@@ -352,7 +432,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         start = prevToken.offset;
         end = child.end;
       } else {
-        // Otherwise, we're probably a single child. Just remove the child itself.
+        // There's no comma, and we probably have a single child. Just remove the child itself.
         start = child.offset;
         end = child.end;
       }
@@ -360,6 +440,11 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     yieldPatch('', start, end);
   }
 
+  /// Yields a patch that updates a prop, updating either its name ([newName]),
+  /// its right-hand side ([newRhs]), or both, and optionally adding an
+  /// [additionalCascadeSection].
+  ///
+  /// This method makes it convenient to update props without dealing with offsets.
   void yieldPropPatch(
     PropAssignment prop, {
     String? newName,
@@ -385,6 +470,19 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     }
   }
 
+  /// Yields a patch with a fix-me comment before a given component [usage]
+  /// with a message indicating the usage needs manual intervention to be migrated.
+  void yieldUsageManualInterventionPatch(FluentComponentUsage usage) {
+    yieldUsageFixmePatch(usage, 'needs manual intervention');
+  }
+
+  /// Yields a patch with a fix-me comment before a given component [usage]
+  /// with a custom [message].
+  void yieldUsageFixmePatch(FluentComponentUsage usage, String message) {
+    yieldInsertionPatch(
+        lineComment('FIXME(mui_migration) $message'), usage.node.offset);
+  }
+
   // fixme clean up comment
   // Unhandled cases need to be manually addressed; flag them as such.
   //
@@ -403,10 +501,53 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     yieldPropFixmePatch(prop, 'manually migrate');
   }
 
+  /// Yields a patch with a fix-me comment before a given [prop]
+  /// with a custom [message].
+  ///
+  /// Inserts extra newlines as necessary to avoid the comment getting "stuck"
+  /// to the previous line, or adding blank lines.
+  ///
+  /// For example:
+  /// ```dart
+  /// // Flagging "id" for this usage...
+  /// (Dom.div()..id = '')();
+  ///
+  /// // ...results in this...
+  /// (Dom.div()
+  ///   // FIXME ...
+  ///   ..id = ''
+  /// )();
+  ///
+  /// // ...and not this...
+  /// (Dom.div() // FIXME ...
+  ///   ..id = ''
+  /// )();
+  /// ```
   void yieldPropFixmePatch(PropAssignment prop, String message) {
     yieldBuilderMemberFixmePatch(prop, '${prop.name.name} prop - $message');
   }
 
+  /// Yields a patch with a fix-me comment before a given [access]
+  /// with a custom [message].
+  ///
+  /// Inserts extra newlines as necessary to avoid the comment getting "stuck"
+  /// to the previous line, or adding blank lines.
+  ///
+  /// For example:
+  /// ```dart
+  /// // Flagging "id" for this usage...
+  /// (Dom.div()..id = '')();
+  ///
+  /// // ...results in this...
+  /// (Dom.div()
+  ///   // FIXME ...
+  ///   ..id = ''
+  /// )();
+  ///
+  /// // ...and not this...
+  /// (Dom.div() // FIXME ...
+  ///   ..id = ''
+  /// )();
   void yieldBuilderMemberFixmePatch(
       BuilderMemberAccess access, String message) {
     // Add an extra newline beforehand so that the comment doesn't end up on
@@ -424,6 +565,27 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         access.node.offset);
   }
 
+  /// Yields a patch with a fix-me comment before a given [child]
+  /// with a custom [message].
+  ///
+  /// Inserts extra newlines as necessary to avoid the comment getting "stuck"
+  /// to the previous line, or adding blank lines.
+  ///
+  /// For example:
+  /// ```dart
+  /// // Flagging the single child for this usage...
+  /// Dom.div()('child');
+  ///
+  /// // ...results in this...
+  /// Dom.div()(
+  ///   // FIXME
+  ///   'child'
+  /// );
+  ///
+  /// // ...and not this...
+  /// Dom.div()( // FIXME ...
+  ///   'child'
+  /// );
   void yieldChildFixmePatch(ComponentChild child, String message) {
     // Add a leading newline so that, when children are all on the same line,
     // the comment doesn't get stuck to the previous child or invocation opening parens
@@ -469,6 +631,9 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   }
 }
 
+/// A decision on whether a component should be migrated.
+///
+/// See [ComponentUsageMigrator.shouldMigrateUsage].
 enum ShouldMigrateDecision {
   /// A component usage should be migrated.
   yes,
@@ -481,45 +646,92 @@ enum ShouldMigrateDecision {
   needsManualIntervention,
 }
 
+/// Where to place a newly-inserted prop.
+///
+/// See [ComponentUsageMigrator.yieldAddPropPatch].
 enum NewPropPlacement {
+  /// Automatically place the prop in the best position, based on conventions
+  /// (after cascaded method calls like `modifyProps`/`addProps` and before
+  /// props like `key` and `addTestId`).
   auto,
+
+  /// Place the prop at the beginning of the cascade.
   start,
+
+  /// Place the prop at the end of the cascade.
   end,
 }
 
+/// Returns the values in [propNames] that do not correspond to the names of
+/// statically declared props in [usage]'s static type.
+Iterable<String> _getUnknownPropNames(
+    FluentComponentUsage usage, Iterable<String> propNames) {
+  final propsClassElement = usage.propsClassElement;
+  if (propsClassElement != null) {
+    final library =
+        usage.builder.root.tryCast<CompilationUnit>()?.declaredElement!.library;
+    if (library != null) {
+      return propNames
+          .where((propName) =>
+              propsClassElement.lookUpSetter(propName, library) == null)
+          .toList();
+    }
+  }
+
+  return [];
+}
+
+/// Returns the first cascaded prop assignment in [usage] whose name matches [name].
+///
+/// Throws if [name] is not statically declared in [usage]'s static type,
+/// to help guard against typos in props names that could cause silent failures
+/// (or more likely, frustration while authoring/debugging codemods).
+PropAssignment? getFirstPropWithName(FluentComponentUsage usage, String name) {
+  final unknownPropNames = _getUnknownPropNames(usage, [name]);
+  if (unknownPropNames.isNotEmpty) {
+    throw ArgumentError("prop '$name' is"
+        " not statically available on builder class '${usage.propsClassElement?.name}'"
+        " (declared in ${usage.propsClassElement?.enclosingElement.source.uri})."
+        " Double-check that that prop exists in that props class"
+        " and that the key in 'migratorsByName' does not have any typos.");
+  }
+
+  return usage.cascadedProps
+      .firstWhereOrNull((element) => element.name.name == name);
+}
+
+/// Iterates over the cascaded prop assignments in [usage] and calls the matching
+/// handler functions in [propHandlersByName], where keys are prop names and values
+/// are the handler functions.
+///
+/// If there is no handler for a given prop name, [catchAll] is called instead.
+///
+/// This makes writing migration logic for multiple props easier. For example:
+/// ```dart
+/// handleCascadedPropsByName(usage, {
+///   'isDisabled': (p) => yieldPropPatch(p, newName: 'disabled'),
+///   'isVertical': migrateIsVertical,
+///   'size': migrateSize,
+/// });
+/// ```
+///
+/// Throws if any of the names in [propHandlersByName] are not
+/// statically declared in [usage]'s static type,
+/// to help guard against typos in props names that could cause silent failures
+/// (or more likely, frustration while authoring/debugging codemods).
 void handleCascadedPropsByName(
   FluentComponentUsage usage,
   Map<String, void Function(PropAssignment)> propHandlersByName, {
   void Function(PropAssignment)? catchAll,
 }) {
-  // Validate that there aren't typos in they keys to `migratorsByName`.
-  // This has negligible perf overhead and is extremely valuable when
-  // authoring migrations.
-  {
-    final builderStaticType =
-        usage.builder.staticType?.typeOrBounds.tryCast<InterfaceType>();
-    if (builderStaticType != null) {
-      final builderElement = builderStaticType.element;
-      final builderClassName = builderElement.name;
-      final library = usage.builder.root
-          .tryCast<CompilationUnit>()
-          ?.declaredElement!
-          .library;
-      if (library != null) {
-        final unknownPropNames = propHandlersByName.keys
-            .where((propName) =>
-                builderElement.lookUpSetter(propName, library) == null)
-            .toList();
-        if (unknownPropNames.isNotEmpty) {
-          throw ArgumentError(
-              "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
-              " not statically available on builder class '$builderClassName'"
-              " (declared in ${builderElement.enclosingElement.source.uri})."
-              " Double-check that that prop exists in that props class"
-              " and that the key in 'migratorsByName' does not have any typos.");
-        }
-      }
-    }
+  final unknownPropNames = _getUnknownPropNames(usage, propHandlersByName.keys);
+  if (unknownPropNames.isNotEmpty) {
+    throw ArgumentError(
+        "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
+        " not statically available on builder class '${usage.propsClassElement?.name}'"
+        " (declared in ${usage.propsClassElement?.enclosingElement.source.uri})."
+        " Double-check that that prop exists in that props class"
+        " and that the key in 'migratorsByName' does not have any typos.");
   }
 
   for (final prop in usage.cascadedProps) {
@@ -609,10 +821,3 @@ extension on MethodInvocation {
 
 // fixme implement
 bool hasFlaggedComment(AstNode node) => false;
-
-extension on DartType {
-  DartType get typeOrBounds {
-    final self = this;
-    return self is TypeParameterType ? self.bound.typeOrBounds : self;
-  }
-}

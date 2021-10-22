@@ -55,7 +55,8 @@ class FluentComponentUsage {
     return null;
   }
 
-  Element? get propsClassElement => propsType.tryCast<InterfaceType>()?.element;
+  ClassElement? get propsClassElement =>
+      propsType?.typeOrBounds.tryCast<InterfaceType>()?.element;
 
   String? get propsName => propsClassElement?.name;
 
@@ -570,5 +571,12 @@ class ComponentUsageVisitor extends RecursiveAstVisitor<void> {
     }
 
     node.visitChildren(this);
+  }
+}
+
+extension on DartType {
+  DartType get typeOrBounds {
+    final self = this;
+    return self is TypeParameterType ? self.bound.typeOrBounds : self;
   }
 }

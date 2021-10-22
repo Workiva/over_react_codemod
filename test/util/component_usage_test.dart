@@ -12,6 +12,10 @@ void main() {
   group('component_usage', () {
     group('getComponentUsage', () {
       void sharedTests(bool isResolved) {
+        setUpAll(() async {
+          await SharedAnalysisContext.overReact.warmUpAnalysis();
+        });
+
         group(
             'accurately detects and collects information on usages of OverReact components:',
             () {
@@ -717,8 +721,10 @@ void checkComponentUsage(FluentComponentUsage? componentUsage,
       componentUsage.isBuilderResolved
           ? builderSource.componentName
           : builderSource.unresolvedComponentName);
-  expect(componentUsage.isDom, builderSource.isDom);
-  expect(componentUsage.isSvg, builderSource.isSvg);
+  if (componentUsage.isBuilderResolved) {
+    expect(componentUsage.isDom, builderSource.isDom);
+    expect(componentUsage.isSvg, builderSource.isSvg);
+  }
   expect(componentUsage.cascadeExpression?.toSource(), cascadeSource ?? isNull);
 }
 

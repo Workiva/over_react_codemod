@@ -6,12 +6,15 @@ import '../resolved_file_context.dart';
 import '../util.dart';
 
 void main() {
-  final resolvedContext = SharedAnalysisContext.overReact;
-
-  // Don't forget that testSuggestor tests idempotency by default, which is
-  // especially important for this suggestor.
-
   group('muiImporter', () {
+    final resolvedContext = SharedAnalysisContext.overReact;
+
+    // Warm up analysis in a setUpAll so that if getting the resolved AST times out
+    // (which is more common for the WSD context), it fails here instead of failing the first test.
+    setUpAll(resolvedContext.warmUpAnalysis);
+
+    // Don't forget that testSuggestor tests idempotency by default, which is
+    // especially important for this suggestor.
     final testSuggestor = getSuggestorTester(
       muiImporter,
       resolvedContext: resolvedContext,

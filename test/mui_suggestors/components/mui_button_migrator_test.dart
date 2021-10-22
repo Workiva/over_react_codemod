@@ -217,6 +217,24 @@ void main() {
         );
       });
 
+      test('isDisabled', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content(bool value) {
+                (Button()..isDisabled = value)();
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content(bool value) {
+                (mui.Button()
+                  // FIXME(mui_migration) - isDisabled prop - if this button has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element
+                  ..disabled = value
+                )();
+              }
+          '''),
+        );
+      });
+
       test('isFlat', () async {
         await testSuggestor(
           input: withOverReactAndWsdImports(/*language=dart*/ '''
@@ -431,10 +449,243 @@ void main() {
           });
         }
 
+        sharedTest('allowedHandlersWhenDisabled', rhs: '[]');
         sharedTest('isCallout', rhs: 'true');
         sharedTest('pullRight', rhs: 'true');
-        sharedTest('overlayTriggerProps', rhs: '{}');
-        sharedTest('tooltipContent', rhs: '""');
+      });
+    });
+
+    group(
+        'migrates tooltipContent to use a wrapper OverlayTrigger,'
+        ' when the prop is', () {
+      test('by itself', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (Button()
+                  ..id = ''
+                  ..tooltipContent = 'content'
+                )();
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (OverlayTrigger()
+                  // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                  ..overlay2 = Tooltip()('content')
+                )(
+                  (mui.Button()..id = '')(),
+                );
+              }
+          '''),
+        );
+      });
+
+      group('with overlayTriggerProps', () {
+        test('as an OverlayTriggerProps map', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Button()
+                    ..tooltipContent = 'content'
+                    ..overlayTriggerProps = (OverlayTrigger()
+                      ..placement = OverlayPlacement.LEFT
+                      ..trigger = OverlayTriggerType.HOVER
+                    )
+                    ..id = ''
+                  )();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = Tooltip()('content')
+                    ..placement = OverlayPlacement.LEFT
+                    ..trigger = OverlayTriggerType.HOVER
+                  )(
+                    (mui.Button()
+                      ..id = ''
+                    )(),
+                  );
+                }
+            '''),
+          );
+        });
+
+        test('as an OverlayTriggerProps map (namespaced)', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Button()
+                    ..tooltipContent = 'content'
+                    ..overlayTriggerProps = (wsd_v2.OverlayTrigger()
+                      ..placement = OverlayPlacement.LEFT
+                      ..trigger = OverlayTriggerType.HOVER
+                    )
+                    ..id = ''
+                  )();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = Tooltip()('content')
+                    ..placement = OverlayPlacement.LEFT
+                    ..trigger = OverlayTriggerType.HOVER
+                  )(
+                    (mui.Button()..id = '')(),
+                  );
+                }
+            '''),
+          );
+        });
+
+        test('as another expression', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(Function getProps) {
+                  (Button()
+                    ..tooltipContent = 'content'
+                    ..overlayTriggerProps = getProps()
+                    ..id = ''
+                  )();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(Function getProps) {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = Tooltip()('content')
+                    ..addProps(getProps())
+                  )(
+                    (mui.Button()..id = '')(),
+                  );
+                }
+            '''),
+          );
+        });
+      });
+
+      group('with tooltipProps', () {
+        test('as a TooltipProps map', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Button()
+                    ..tooltipContent = 'content'
+                    ..tooltipProps = (Tooltip()
+                      ..className = 'my-tooltip'
+                    )
+                    ..id = ''
+                  )();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = (Tooltip()
+                      ..className = 'my-tooltip'
+                    )('content')
+                  )(
+                    (mui.Button()
+                      ..id = ''
+                    )(),
+                  );
+                }
+            '''),
+          );
+        });
+
+        test('as a TooltipProps map (namespaced)', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Button()
+                    ..tooltipContent = 'content'
+                    ..tooltipProps = (wsd_v2.Tooltip()
+                      ..className = 'my-tooltip'
+                    )
+                    ..id = ''
+                  )();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = (Tooltip()
+                      ..className = 'my-tooltip'
+                    )('content')
+                  )(
+                    (mui.Button()
+                      ..id = ''
+                    )(),
+                  );
+                }
+            '''),
+          );
+        });
+
+        test('as another expression', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(Function getProps) {
+                  (Button()
+                    ..tooltipContent = 'content'
+                    ..tooltipProps = getProps()
+                    ..id = ''
+                  )();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(Function getProps) {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = (Tooltip()
+                      ..addProps(getProps())
+                    )('content')
+                  )(
+                    (mui.Button()..id = '')(),
+                  );
+                }
+            '''),
+          );
+        });
+      });
+
+      test('with overlayTriggerProps and tooltipProps', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (Button()
+                  ..tooltipContent = 'content'
+                  ..overlayTriggerProps = (OverlayTrigger()
+                    ..placement = OverlayPlacement.LEFT
+                    ..trigger = OverlayTriggerType.HOVER
+                  )
+                  ..tooltipProps = (Tooltip()..className = 'my-tooltip')
+                  ..id = ''
+                )();
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (OverlayTrigger()
+                  // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                  ..overlay2 = (Tooltip()..className = 'my-tooltip')('content')
+                  ..placement = OverlayPlacement.LEFT
+                  ..trigger = OverlayTriggerType.HOVER
+                )(
+                  (mui.Button()
+                    ..id = ''
+                  )(),
+                );
+              }
+          '''),
+        );
       });
     });
 
