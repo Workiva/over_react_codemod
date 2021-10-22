@@ -1,9 +1,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
-import 'package:over_react_codemod/src/util.dart';
 
 import '../constants.dart';
+import 'mui_migrator.dart';
 
 const _linkButtonSkin = 'ButtonSkin.LINK';
 const _outlineLinkButtonSkin = 'ButtonSkin.OUTLINE_LINK';
@@ -13,8 +14,8 @@ const _linkButtonSkins = {
   _outlineLinkButtonSkin,
 };
 
-class MuiButtonMigrator
-    with ClassSuggestor, ComponentUsageMigrator, ButtonDisplayPropsMigrator {
+class MuiButtonMigrator extends ComponentUsageMigrator
+    with MuiMigrator, ButtonDisplayPropsMigrator {
   static bool hasLinkButtonSkin(FluentComponentUsage usage) => usage
       .cascadedProps
       .any((p) => p.name.name == 'skin' && isLinkButtonSkin(p.rightHandSide));
@@ -186,8 +187,7 @@ class MuiButtonMigrator
     yieldInsertionPatch(
         '(OverlayTrigger()\n'
         // Put this comment here instead of on OverlayTrigger since that might not format nicely
-        '  ${lineComment('FIXME(mui_migration) - tooltip props'
-            ' - manually verify this new Tooltip and wrapper OverlayTrigger')}'
+        '  ${lineComment('$fixmePrefix - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger')}'
         '..overlay2 = $overlaySource'
         '$overlayTriggerCascadeToAdd'
         ')(',

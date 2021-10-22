@@ -289,7 +289,7 @@ main() {
           expectedOutput: withOverReactImport(/*language=dart*/ '''
               content() {
                 (Dom.div()
-                  // FIXME(mui_migration) - ref prop - manually verify ref type is correct
+                  // FIXME(generic_migrator) - ref prop - manually verify ref type is correct
                   ..ref = (ref) {}
                 )();
               }
@@ -309,7 +309,7 @@ main() {
           expectedOutput: withOverReactImport(/*language=dart*/ '''
               content() {
                 (Dom.div()
-                  // FIXME(mui_migration) - className prop - manually verify
+                  // FIXME(generic_migrator) - className prop - manually verify
                   ..className = 'foo'
                 )();
               }
@@ -345,7 +345,7 @@ main() {
                 (Foo()
                   ..dom.id = 'id'
                   ..aria.label = 'label'
-                  // FIXME(mui_migration) - otherPrefix (prefix) - manually verify
+                  // FIXME(generic_migrator) - otherPrefix (prefix) - manually verify
                   ..otherPrefix.something = 'foo'
                 )();
               }
@@ -412,19 +412,19 @@ main() {
                 bool condition;
                 
                 contents() => (Dom.div()
-                  // FIXME(mui_migration) - addProp - manually verify prop key
+                  // FIXME(generic_migrator) - addProp - manually verify prop key
                   ..addProp('somethingElse', '')
-                  // FIXME(mui_migration) - addProp - manually verify prop key
+                  // FIXME(generic_migrator) - addProp - manually verify prop key
                   ..addProp(somethingElseConst, '')
-                  // FIXME(mui_migration) - addProp - manually verify prop key
+                  // FIXME(generic_migrator) - addProp - manually verify prop key
                   ..addProp(Foo.somethingElseConst, '')
-                  // FIXME(mui_migration) - operator[]= - manually verify prop key
+                  // FIXME(generic_migrator) - operator[]= - manually verify prop key
                   ..['somethingElse'] = ''
-                  // FIXME(mui_migration) - operator[]= - manually verify prop key
+                  // FIXME(generic_migrator) - operator[]= - manually verify prop key
                   ..[somethingElseConst] = ''
-                  // FIXME(mui_migration) - operator[]= - manually verify prop key
+                  // FIXME(generic_migrator) - operator[]= - manually verify prop key
                   ..[Foo.somethingElseConst] = ''
-                  // FIXME(mui_migration) - operator[]= - manually verify prop key
+                  // FIXME(generic_migrator) - operator[]= - manually verify prop key
                   ..[condition ? 'data-foo' : 'data-bar'] = ''
                 )();
                 $constantsSource
@@ -447,9 +447,9 @@ main() {
             '''),
             expectedOutput: withOverReactImport(/*language=dart*/ '''
                 content() => (Dom.div()
-                  // FIXME(mui_migration) - addProps call - manually verify
+                  // FIXME(generic_migrator) - addProps call - manually verify
                   ..addProps({})
-                  // FIXME(mui_migration) - modifyProps call - manually verify
+                  // FIXME(generic_migrator) - modifyProps call - manually verify
                   ..modifyProps((_) {})
                   ..addTestId("foo")
                 )();
@@ -479,9 +479,9 @@ main() {
           '''),
           expectedOutput: withOverReactImport(/*language=dart*/ '''
               content() => (Dom.div()
-                // FIXME(mui_migration) - extensionGetter (extension) - manually verify
+                // FIXME(generic_migrator) - extensionGetter (extension) - manually verify
                 ..extensionGetter
-                // FIXME(mui_migration) - extensionSetter (extension) - manually verify
+                // FIXME(generic_migrator) - extensionSetter (extension) - manually verify
                 ..extensionSetter = 'foo'
               )();
               
@@ -900,13 +900,13 @@ void yieldBuilderMemberFixmePatchTests() {
             content() {
               // Same line as builder
               (Dom.div()
-                // FIXME(mui_migration) - custom comment
+                // FIXME(generic_migrator) - custom comment
                 ..id = ''
               )();
               
               // Multiline, starts on same line as builder
               (Dom.div()
-                // FIXME(mui_migration) - custom comment
+                // FIXME(generic_migrator) - custom comment
                 ..onClick = (_) {
                   print("hi");
                 }
@@ -914,7 +914,7 @@ void yieldBuilderMemberFixmePatchTests() {
               
               // On separate line
               (Dom.div()
-                // FIXME(mui_migration) - custom comment
+                // FIXME(generic_migrator) - custom comment
                 ..id = ''
                 ..title = ''
               )();
@@ -942,7 +942,7 @@ void yieldBuilderMemberFixmePatchTests() {
             content() {
               (Dom.div()
                 ..id = ''
-                // FIXME(mui_migration) - custom comment
+                // FIXME(generic_migrator) - custom comment
                 ..title = ''
               )();
             }
@@ -986,13 +986,13 @@ void yieldPropFixmePatchTests() {
             content() {
               // Same line as builder
               (Dom.div()
-                // FIXME(mui_migration) - id prop - custom comment
+                // FIXME(generic_migrator) - id prop - custom comment
                 ..id = ''
               )();
               
               // Multiline, starts on same line as builder
               (Dom.div()
-                // FIXME(mui_migration) - onClick prop - custom comment
+                // FIXME(generic_migrator) - onClick prop - custom comment
                 ..onClick = (_) {
                   print("hi");
                 }
@@ -1000,7 +1000,7 @@ void yieldPropFixmePatchTests() {
               
               // On separate line
               (Dom.div()
-                // FIXME(mui_migration) - id prop - custom comment
+                // FIXME(generic_migrator) - id prop - custom comment
                 ..id = ''
                 ..title = ''
               )();
@@ -1028,7 +1028,7 @@ void yieldPropFixmePatchTests() {
             content() {
               (Dom.div()
                 ..id = ''
-                // FIXME(mui_migration) - title prop - custom comment
+                // FIXME(generic_migrator) - title prop - custom comment
                 ..title = ''
               )();
             }
@@ -1078,31 +1078,31 @@ void yieldChildFixmePatchTests() {
             content() {
               // Same line as builder
               Dom.div()(
-                  // FIXME(mui_migration) - custom comment
+                  // FIXME(generic_migrator) - custom comment
                   'child');
               
               // Same line as builder, non-variadic
               Dom.div()([
-                // FIXME(mui_migration) - custom comment
+                // FIXME(generic_migrator) - custom comment
                 'child'
               ]);
               
               // Multiline, starts on same line as builder
               Dom.div()(
-                  // FIXME(mui_migration) - custom comment
+                  // FIXME(generic_migrator) - custom comment
                   [].map((child) {
                     return child;
                   }));
               
               // On separate line
               Dom.div()(
-                // FIXME(mui_migration) - custom comment
+                // FIXME(generic_migrator) - custom comment
                 'child',
               );
               
               // On separate line, non-variadic
               Dom.div()([
-                // FIXME(mui_migration) - custom comment
+                // FIXME(generic_migrator) - custom comment
                 'child',
               ]);
             }
@@ -1133,13 +1133,13 @@ void yieldChildFixmePatchTests() {
               // Same line as builder
               Dom.div()(
                   1, 
-                  // FIXME(mui_migration) - custom comment
+                  // FIXME(generic_migrator) - custom comment
                   2);
               
               // Different lines
               Dom.div()(
                 1,
-                // FIXME(mui_migration) - custom comment
+                // FIXME(generic_migrator) - custom comment
                 2,
               );
             }
@@ -1303,7 +1303,7 @@ typedef OnMigrateUsage = void Function(
 typedef OnShouldMigrateUsage = ShouldMigrateDecision Function(
     GenericMigrator migrator, FluentComponentUsage usage);
 
-class GenericMigrator with ClassSuggestor, ComponentUsageMigrator {
+class GenericMigrator extends ComponentUsageMigrator {
   final OnMigrateUsage? _onMigrateUsage;
   final OnShouldMigrateUsage? _onShouldMigrateUsage;
 
@@ -1322,6 +1322,9 @@ class GenericMigrator with ClassSuggestor, ComponentUsageMigrator {
     super.migrateUsage(usage);
     _onMigrateUsage?.call(this, usage);
   }
+
+  @override
+  String get fixmePrefix => 'generic_migrator';
 }
 
 const overReactImport = "import 'package:over_react/over_react.dart';";

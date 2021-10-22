@@ -98,7 +98,7 @@ export 'wsd_util.dart';
 ///     Bar()();
 ///     barFactory()();
 ///     ```
-mixin ComponentUsageMigrator on ClassSuggestor {
+abstract class ComponentUsageMigrator with ClassSuggestor {
   static final _log = Logger('ComponentUsageMigrator');
 
   /// Returns a decision around whether a specific [usage] should be migrated.
@@ -470,6 +470,11 @@ mixin ComponentUsageMigrator on ClassSuggestor {
     }
   }
 
+  /// The prefix for FIX-ME comments added in the various yield* methods in this class.
+  ///
+  /// E.g., `'FIXME'`, `'FIXME(something_more_specific)'`.
+  String get fixmePrefix;
+
   /// Yields a patch with a fix-me comment before a given component [usage]
   /// with a message indicating the usage needs manual intervention to be migrated.
   void yieldUsageManualInterventionPatch(FluentComponentUsage usage) {
@@ -480,7 +485,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
   /// with a custom [message].
   void yieldUsageFixmePatch(FluentComponentUsage usage, String message) {
     yieldInsertionPatch(
-        lineComment('FIXME(mui_migration) $message'), usage.node.offset);
+        lineComment('$fixmePrefix $message'), usage.node.offset);
   }
 
   // fixme clean up comment
@@ -561,7 +566,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
             context.sourceFile.getLine(access.node.offset);
     yieldInsertionPatch(
         (needsLeadingNewline ? '\n ' : '') +
-            lineComment('FIXME(mui_migration) - $message'),
+            lineComment('$fixmePrefix - $message'),
         access.node.offset);
   }
 
@@ -601,7 +606,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
         context.sourceFile.getLine(child.node.offset);
     yieldInsertionPatch(
         (needsLeadingNewline ? '\n ' : '') +
-            lineComment('FIXME(mui_migration) - $message'),
+            lineComment('$fixmePrefix - $message'),
         child.node.beginToken.offset);
   }
 
