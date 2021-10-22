@@ -277,6 +277,22 @@ void main() {
       ''');
         expect(usesWsdFactory(usage, 'Button'), isFalse);
       });
+
+      test('throws when the provided string is not a simple identifier',
+          () async {
+        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            content() => Button()();
+        ''');
+        final throwsExpectedError = throwsA(isArgumentError.havingToStringValue(
+            contains('must be a valid, non-namespaced identifier')));
+
+        expect(() {
+          usesWsdFactory(usage, 'prefixed.identifier');
+        }, throwsExpectedError);
+        expect(() {
+          usesWsdFactory(usage, 'not a valid identifier');
+        }, throwsExpectedError);
+      });
     });
 
     group('usesWsdPropsClass', () {
@@ -365,6 +381,22 @@ void main() {
         ''');
           expect(usesWsdPropsClass(usage, 'ButtonProps'), isFalse);
         });
+      });
+
+      test('throws when the provided string is not a simple identifier',
+          () async {
+        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
+            content() => Button()();
+        ''');
+        final throwsExpectedError = throwsA(isArgumentError.havingToStringValue(
+            contains('must be a valid, non-namespaced identifier')));
+
+        expect(() {
+          usesWsdPropsClass(usage, 'prefixed.identifier');
+        }, throwsExpectedError);
+        expect(() {
+          usesWsdPropsClass(usage, 'not a valid identifier');
+        }, throwsExpectedError);
       });
     });
 

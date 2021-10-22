@@ -224,4 +224,5 @@ Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
     .where(isNotHiddenFile)
     .where(isNotDartHiddenFile)
     .where(isNotWithinTopLevelBuildOutputDir)
+    .where(isNotWithinTopLevelToolDir)
     .map((e) => e.path);

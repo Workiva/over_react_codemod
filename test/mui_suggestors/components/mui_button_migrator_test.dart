@@ -47,6 +47,68 @@ void main() {
       );
     });
 
+    group('does not migrate Buttons within buttonBefore or buttonAfter', () {
+      test('directly assigned to', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+            content() {
+              (TextInput()..buttonBefore = Button()())();
+              (TextInput()..buttonAfter = Button()())();
+            }
+        '''),
+        );
+      });
+
+      test('nested within', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+            content(bool condition) {
+              (TextInput()..buttonBefore = condition ? Button()() : Button()())();
+              (TextInput()..buttonAfter = condition ? Button()() : Button()())();
+            }
+        '''),
+        );
+      });
+    });
+
+    group('flags Buttons that may be assigned to', () {
+      test('buttonBefore', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (TextInput()..buttonBefore = renderBefore())();
+              }
+              renderBefore() => Button()();
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (TextInput()..buttonBefore = renderBefore())();
+              }
+              renderBefore() => // FIXME(mui_migration) check whether this button is assigned to a buttonBefore or buttonAfter prop. If so, revert the changes to this usage and add an `orcm_ignore` comment to it.
+                  mui.Button()();
+          '''),
+        );
+      });
+
+      test('buttonAfter', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (TextInput()..buttonAfter = renderAfter())();
+              }
+              renderAfter() => Button()();
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (TextInput()..buttonAfter = renderAfter())();
+              }
+              renderAfter() => // FIXME(mui_migration) check whether this button is assigned to a buttonBefore or buttonAfter prop. If so, revert the changes to this usage and add an `orcm_ignore` comment to it.
+                  mui.Button()();
+          '''),
+        );
+      });
+    });
+
     group('updates the factory', () {
       test('for Button (potentially namespaced or v1/v2)', () async {
         await testSuggestor(
