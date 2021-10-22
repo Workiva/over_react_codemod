@@ -1324,7 +1324,7 @@ class GenericMigrator extends ComponentUsageMigrator {
   }
 
   @override
-  String get fixmePrefix => 'generic_migrator';
+  String get fixmePrefix => 'FIXME(generic_migrator)';
 }
 
 const overReactImport = "import 'package:over_react/over_react.dart';";
