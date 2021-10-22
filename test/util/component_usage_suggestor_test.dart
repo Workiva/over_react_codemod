@@ -539,11 +539,11 @@ main() {
       group('yieldChildFixmePatch', yieldChildFixmePatchTests);
 
       group('yieldPropManualVerificationPatch', () {
-        // fixme add tests
+        yieldPropFixmePatchTests(expectedMessage: 'manually verify');
       });
 
       group('yieldPropManualMigratePatch', () {
-        // fixme add tests
+        yieldPropFixmePatchTests(expectedMessage: 'manually migrate');
       });
 
       group('yieldRemoveChildPatch', yieldRemoveChildPatchTests);
@@ -1081,7 +1081,7 @@ void yieldBuilderMemberFixmePatchTests() {
 }
 
 @isTestGroup
-void yieldPropFixmePatchTests() {
+void yieldPropFixmePatchTests({String expectedMessage = 'custom comment'}) {
   group(
       'adds a FIXME comment to a cascaded prop with the prop name and a custom message,'
       ' placing newlines properly so that the comment stays attached to the node after formatting',
@@ -1089,8 +1089,14 @@ void yieldPropFixmePatchTests() {
     test('for the first prop', () async {
       await testSuggestor(
         suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldPropFixmePatch(
-              usage.cascadedProps.first, 'custom comment');
+          final prop = usage.cascadedProps.first;
+          if (expectedMessage == 'manually verify') {
+            migrator.yieldPropManualVerificationPatch(prop);
+          } else if (expectedMessage == 'manually migrate') {
+            migrator.yieldPropManualMigratePatch(prop);
+          } else {
+            migrator.yieldPropFixmePatch(prop, expectedMessage);
+          }
         }),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
@@ -1110,17 +1116,17 @@ void yieldPropFixmePatchTests() {
               )();
             }
         '''),
-        expectedOutput: withOverReactImport(/*language=dart*/ '''
+        expectedOutput: withOverReactImport('''
             content() {
               // Same line as builder
               (Dom.div()
-                // FIXME(mui_migration) - id prop - custom comment
+                // FIXME(mui_migration) - id prop - $expectedMessage
                 ..id = ''
               )();
               
               // Multiline, starts on same line as builder
               (Dom.div()
-                // FIXME(mui_migration) - onClick prop - custom comment
+                // FIXME(mui_migration) - onClick prop - $expectedMessage
                 ..onClick = (_) {
                   print("hi");
                 }
@@ -1128,7 +1134,7 @@ void yieldPropFixmePatchTests() {
               
               // On separate line
               (Dom.div()
-                // FIXME(mui_migration) - id prop - custom comment
+                // FIXME(mui_migration) - id prop - $expectedMessage
                 ..id = ''
                 ..title = ''
               )();
@@ -1140,8 +1146,14 @@ void yieldPropFixmePatchTests() {
     test('for other props', () async {
       await testSuggestor(
         suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldPropFixmePatch(
-              usage.cascadedProps.last, 'custom comment');
+          final prop = usage.cascadedProps.last;
+          if (expectedMessage == 'manually verify') {
+            migrator.yieldPropManualVerificationPatch(prop);
+          } else if (expectedMessage == 'manually migrate') {
+            migrator.yieldPropManualMigratePatch(prop);
+          } else {
+            migrator.yieldPropFixmePatch(prop, expectedMessage);
+          }
         }),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
@@ -1152,17 +1164,76 @@ void yieldPropFixmePatchTests() {
               )();
             }
         '''),
-        expectedOutput: withOverReactImport(/*language=dart*/ '''
+        expectedOutput: withOverReactImport('''
             content() {
               (Dom.div()
                 ..id = ''
-                // FIXME(mui_migration) - title prop - custom comment
+                // FIXME(mui_migration) - title prop - $expectedMessage
                 ..title = ''
               )();
             }
         '''),
       );
     });
+  });
+}
+
+@isTestGroup
+void yieldPropManualFixmePatchTests(
+    {String expectedMessage = 'manually verify'}) {
+  test(
+      'adds a FIXME comment to a cascaded prop with the prop name and a $expectedMessage message,'
+      ' placing newlines properly so that the comment stays attached to the node after formatting',
+      () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        if (expectedMessage == 'manually verify') {
+          migrator.yieldPropManualVerificationPatch(usage.cascadedProps.first);
+        } else if (expectedMessage == 'manually migrate') {}
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+          content() {
+            // Same line as builder
+            (Dom.div()..id = '')();
+            
+            // Multiline, starts on same line as builder
+            (Dom.div()..onClick = (_) {
+              print("hi");
+            })();
+            
+            // On separate line
+            (Dom.div()
+              ..id = ''
+              ..title = ''
+            )();
+          }
+      '''),
+      expectedOutput: withOverReactImport('''
+          content() {
+            // Same line as builder
+            (Dom.div()
+              // FIXME(mui_migration) - id prop - $expectedMessage
+              ..id = ''
+            )();
+            
+            // Multiline, starts on same line as builder
+            (Dom.div()
+              // FIXME(mui_migration) - onClick prop - $expectedMessage
+              ..onClick = (_) {
+                print("hi");
+              }
+            )();
+            
+            // On separate line
+            (Dom.div()
+              // FIXME(mui_migration) - id prop - $expectedMessage
+              ..id = ''
+              ..title = ''
+            )();
+          }
+      '''),
+    );
   });
 }
 
