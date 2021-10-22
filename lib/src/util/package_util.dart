@@ -100,8 +100,12 @@ Iterable<String> ancestorsOfPath(String path) sync* {
 }
 
 bool isNotWithinTopLevelBuildOutputDir(File file) =>
-    !isWithinTopLevelBuildOutputDir(file);
+    !isWithinTopLevelDir(file, 'build');
 
-bool isWithinTopLevelBuildOutputDir(File file) => file.ancestors.any((dir) =>
-    p.basename(dir.path) == 'build' &&
+bool isNotWithinTopLevelToolDir(File file) =>
+    !isWithinTopLevelDir(file, 'tool');
+
+bool isWithinTopLevelDir(File file, String topLevelDir) =>
+    file.ancestors.any((dir) =>
+        p.basename(dir.path) == topLevelDir &&
     File(p.join(dir.parent.path, 'pubspec.yaml')).existsSync());
