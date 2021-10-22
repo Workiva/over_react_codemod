@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
@@ -23,10 +24,25 @@ class MuiButtonMigrator extends ComponentUsageMigrator
   static bool isLinkButtonSkin(Expression expr) =>
       _linkButtonSkins.any((linkSkin) => isWsdStaticConstant(expr, linkSkin));
 
+  static bool isLikelyAssignedToButtonAddonProp(FluentComponentUsage usage) =>
+      usage.node.ancestors.whereType<AssignmentExpression>().map((e) {
+        // Get the resolved name of the property being assigned so we don't have
+        // to handle as many unresolved AST cases.
+        final writeElement = e.writeElement;
+        if (writeElement == null) return null;
+        return writeElement is PropertyAccessorElement
+            // Use variable.name since PropertyAccessorElement's name has a trailing `=`
+            ? writeElement.variable.name
+            : writeElement.name;
+      }).any(const {'buttonBefore', 'buttonAfter'}.contains);
+
   @override
   ShouldMigrateDecision shouldMigrateUsage(FluentComponentUsage usage) {
     // Don't migrate WSD toolbar components (for now)
     if (usesWsdToolbarFactory(usage)) {
+      return ShouldMigrateDecision.no;
+    }
+    if (isLikelyAssignedToButtonAddonProp(usage)) {
       return ShouldMigrateDecision.no;
     }
 
@@ -132,6 +148,13 @@ class MuiButtonMigrator extends ComponentUsageMigrator
           usage,
           "check whether this button is nested inside a DialogFooter."
           " If so, wrap it in a $muiNs.ButtonToolbar with `..sx = {'float': 'right'}`.");
+    }
+    if (context.sourceText
+        .contains(RegExp(r'\b(?:buttonBefore|buttonAfter)\b'))) {
+      yieldUsageFixmePatch(
+          usage,
+          "check whether this button is assigned to a buttonBefore or buttonAfter prop."
+          " If so, revert the changes to this usage and add an `orcm_ignore` comment to it.");
     }
   }
 
@@ -350,6 +373,16 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
     }
 
     yieldPropManualMigratePatch(prop);
+  }
+}
+
+extension on AstNode {
+  Iterable<AstNode> get ancestors sync* {
+    final parent = this.parent;
+    if (parent != null) {
+      yield parent;
+      yield* parent.ancestors;
+    }
   }
 }
 
