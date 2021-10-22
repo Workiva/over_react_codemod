@@ -127,7 +127,7 @@ class MuiButtonMigrator
     // name in the file as a heuristic, and flag migrated buttons to be
     // manually checked.
     if (context.sourceText.contains('DialogFooter')) {
-      flagUsageFixmeComment(
+      yieldUsageFixmePatch(
           usage,
           "check whether this button is nested inside a DialogFooter."
           " If so, wrap it in a $muiNs.ButtonToolbar with `..sx = {'float': 'right'}`.");
