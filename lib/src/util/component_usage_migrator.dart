@@ -321,7 +321,7 @@ mixin ComponentUsageMigrator on ClassSuggestor {
           offset = function.rightParenthesis.offset;
           break;
       }
-      yieldInsertionPatch('\n' + newPropCascade, offset);
+      yieldInsertionPatch('\n$newPropCascade\n', offset);
     } else {
       assert(usage.cascadeExpression == null);
 

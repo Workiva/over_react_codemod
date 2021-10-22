@@ -720,16 +720,190 @@ void yieldAddPropPatchTests() {
   });
 
   group('automatically places a prop in the best location', () {
-    // fixme add tests
-    // various test cases
+    test('when there are no special case props', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..style = {"width": '25rem'}
+            )();
+        '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..style = {"width": '25rem'}
+              ..foo = "foo"
+            )();
+        '''),
+      );
+    });
+
+    group('when there are props that should remain last -', () {
+      test('index assignment prop', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+          }),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..props["data-test-id"] = "some_test_id"
+              )();
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..foo = "foo"
+                ..props["data-test-id"] = "some_test_id"
+              )();
+          '''),
+        );
+      });
+
+      test('method invocation prop', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+          }),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..addTestId('some_test_id')
+              )();
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..foo = "foo"
+                ..addTestId('some_test_id')
+              )();
+          '''),
+        );
+      });
+
+      test('key prop', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+          }),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..key = "1"
+              )();
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..foo = "foo"
+                ..key = "1"
+              )();
+          '''),
+        );
+      });
+
+      test('ref prop', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+          }),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              final ref = createRef();
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..ref = ref
+              )();
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              final ref = createRef();
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..foo = "foo"
+                // FIXME(mui_migration) - ref prop - manually verify ref type is correct
+                ..ref = ref
+              )();
+          '''),
+        );
+      });
+
+      test('but the prop is not last', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+          }),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..key = "1"
+                ..id = "some_id"
+              )();
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..key = "1"
+                ..id = "some_id"
+                ..foo = "foo"
+              )();
+          '''),
+        );
+      });
+    });
   });
 
-  test('when placement is placement is NewPropPlacement.start', () {
-    // fixme add tests
+  test('when placement is placement is NewPropPlacement.start', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        migrator.yieldAddPropPatch(usage, '..foo = "foo"',
+            placement: NewPropPlacement.start);
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+          content() => (Dom.div()
+            ..id = "some_id"
+            ..key = "abc"
+          )();
+      '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+          content() => (Dom.div()
+            ..foo = "foo"
+            ..id = "some_id"
+            ..key = "abc"
+          )();
+      '''),
+    );
   });
 
-  test('when placement is placement is NewPropPlacement.end', () {
-    // fixme add tests
+  test('when placement is placement is NewPropPlacement.end', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        migrator.yieldAddPropPatch(usage, '..foo = "foo"',
+            placement: NewPropPlacement.end);
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+          content() => (Dom.div()
+            ..id = "some_id"
+            ..key = "abc"
+            ..addTestId("some_test_id")
+          )();
+      '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+          content() => (Dom.div()
+            ..id = "some_id"
+            ..key = "abc"
+            ..addTestId("some_test_id")
+            ..foo = "foo"
+          )();
+      '''),
+    );
   });
 }
 
