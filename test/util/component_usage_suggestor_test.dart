@@ -537,11 +537,11 @@ main() {
       group('yieldChildFixmePatch', yieldChildFixmePatchTests);
 
       group('yieldPropManualVerificationPatch', () {
-        yieldPropFixmePatchTests(expectedMessage: 'manually verify');
+        yieldPropFixmePatchTests(fixmeType: PropFixmeType.manuallyVerify);
       });
 
       group('yieldPropManualMigratePatch', () {
-        yieldPropFixmePatchTests(expectedMessage: 'manually migrate');
+        yieldPropFixmePatchTests(fixmeType: PropFixmeType.manuallyMigrate);
       });
 
       group('yieldRemoveChildPatch', yieldRemoveChildPatchTests);
@@ -798,14 +798,14 @@ void yieldAddPropPatchTests() {
           input: withOverReactImport(/*language=dart*/ '''
               content() => (Dom.div()
                 ..id = "some_id"
-                ..props["data-test-id"] = "some_test_id"
+                ..["data-test-id"] = "some_test_id"
               )();
           '''),
           expectedOutput: withOverReactImport(/*language=dart*/ '''
               content() => (Dom.div()
                 ..id = "some_id"
                 ..foo = "foo"
-                ..props["data-test-id"] = "some_test_id"
+                ..["data-test-id"] = "some_test_id"
               )();
           '''),
         );
@@ -904,7 +904,7 @@ void yieldAddPropPatchTests() {
     });
   });
 
-  test('when placement is placement is NewPropPlacement.start', () async {
+  test('when placement is NewPropPlacement.start', () async {
     await testSuggestor(
       suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
         migrator.yieldAddPropPatch(usage, '..foo = "foo"',
@@ -927,7 +927,7 @@ void yieldAddPropPatchTests() {
     );
   });
 
-  test('when placement is placement is NewPropPlacement.end', () async {
+  test('when placement is NewPropPlacement.end', () async {
     await testSuggestor(
       suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
         migrator.yieldAddPropPatch(usage, '..foo = "foo"',
@@ -1126,8 +1126,29 @@ void yieldBuilderMemberFixmePatchTests() {
   });
 }
 
+/// The types of fix me comments that can be added to a particular prop.
+enum PropFixmeType {
+  /// Refers to fix me comments added by [yieldPropFixmePatch].
+  custom,
+
+  /// Refers to fix me comments added by [yieldPropManualVerificationPatch].
+  manuallyVerify,
+
+  /// Refers to fix me comments added by [yieldPropManualMigratePatch].
+  manuallyMigrate,
+}
+
+/// The fix me messages for those prop fixmes that have specific non-custom messages.
+const propFixmeMessage = <PropFixmeType, String>{
+  PropFixmeType.manuallyVerify: 'manually verify',
+  PropFixmeType.manuallyMigrate: 'manually migrate',
+};
+
 @isTestGroup
-void yieldPropFixmePatchTests({String expectedMessage = 'custom comment'}) {
+void yieldPropFixmePatchTests(
+    {PropFixmeType fixmeType = PropFixmeType.custom}) {
+  final expectedMessage = propFixmeMessage[fixmeType] ?? 'custom comment';
+
   group(
       'adds a FIXME comment to a cascaded prop with the prop name and a custom message,'
       ' placing newlines properly so that the comment stays attached to the node after formatting',
@@ -1136,12 +1157,16 @@ void yieldPropFixmePatchTests({String expectedMessage = 'custom comment'}) {
       await testSuggestor(
         suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
           final prop = usage.cascadedProps.first;
-          if (expectedMessage == 'manually verify') {
-            migrator.yieldPropManualVerificationPatch(prop);
-          } else if (expectedMessage == 'manually migrate') {
-            migrator.yieldPropManualMigratePatch(prop);
-          } else {
-            migrator.yieldPropFixmePatch(prop, expectedMessage);
+          switch (fixmeType) {
+            case PropFixmeType.custom:
+              migrator.yieldPropFixmePatch(prop, expectedMessage);
+              break;
+            case PropFixmeType.manuallyVerify:
+              migrator.yieldPropManualVerificationPatch(prop);
+              break;
+            case PropFixmeType.manuallyMigrate:
+              migrator.yieldPropManualMigratePatch(prop);
+              break;
           }
         }),
         resolvedContext: sharedContext,
@@ -1193,12 +1218,16 @@ void yieldPropFixmePatchTests({String expectedMessage = 'custom comment'}) {
       await testSuggestor(
         suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
           final prop = usage.cascadedProps.last;
-          if (expectedMessage == 'manually verify') {
-            migrator.yieldPropManualVerificationPatch(prop);
-          } else if (expectedMessage == 'manually migrate') {
-            migrator.yieldPropManualMigratePatch(prop);
-          } else {
-            migrator.yieldPropFixmePatch(prop, expectedMessage);
+          switch (fixmeType) {
+            case PropFixmeType.custom:
+              migrator.yieldPropFixmePatch(prop, expectedMessage);
+              break;
+            case PropFixmeType.manuallyVerify:
+              migrator.yieldPropManualVerificationPatch(prop);
+              break;
+            case PropFixmeType.manuallyMigrate:
+              migrator.yieldPropManualMigratePatch(prop);
+              break;
           }
         }),
         resolvedContext: sharedContext,

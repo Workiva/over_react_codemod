@@ -66,11 +66,11 @@ void main() {
         script: muiCodemodScript,
         input: d.dir('project', [
           // Use a pubspec without WSD so this runs a little faster
-          d.file('pubspec.yaml', '''
-            name: test_project
-            environment:
-              sdk: ">=2.11.0 <3.0.0"
-            dependencies:'''),
+          d.file('pubspec.yaml', /*language=yaml*/ '''
+name: test_project
+environment:
+  sdk: ">=2.11.0 <3.0.0"
+dependencies:'''),
           d.dir('lib', [
             d.file('usage.dart', /*language=dart*/ '''usage() => Button()();''')
           ]),
@@ -250,16 +250,16 @@ dependencies:
         script: muiCodemodScript,
         input: d.dir('project', [
           d.file('pubspec.yaml', /*language=yaml*/ '''
-            name: test_project
-            environment:
-              sdk: '>=2.11.0 <3.0.0'
-            dependencies:
-              does_not_exist: ^1.0.0
-              web_skin_dart:
-                hosted:
-                  name: web_skin_dart
-                  url: https://pub.workiva.org
-                version: ^2.56.0'''),
+name: test_project
+environment:
+  sdk: '>=2.11.0 <3.0.0'
+dependencies:
+  does_not_exist: ^1.0.0
+  web_skin_dart:
+    hosted:
+      name: web_skin_dart
+      url: https://pub.workiva.org
+    version: ^2.56.0'''),
           d.dir('lib', [
             d.file('usage.dart', /*language=dart*/ '''
           import 'package:web_skin_dart/component2/button.dart';
@@ -269,16 +269,16 @@ dependencies:
         ]),
         expectedOutput: d.dir('project', [
           d.file('pubspec.yaml', /*language=yaml*/ '''
-            name: test_project
-            environment:
-              sdk: '>=2.11.0 <3.0.0'
-            dependencies:
-              does_not_exist: ^1.0.0
-              web_skin_dart:
-                hosted:
-                  name: web_skin_dart
-                  url: https://pub.workiva.org
-                version: ^2.56.0'''),
+name: test_project
+environment:
+  sdk: '>=2.11.0 <3.0.0'
+dependencies:
+  does_not_exist: ^1.0.0
+  web_skin_dart:
+    hosted:
+      name: web_skin_dart
+      url: https://pub.workiva.org
+    version: ^2.56.0'''),
           d.dir('lib', [
             d.file('usage.dart', /*language=dart*/ '''
           import 'package:web_skin_dart/component2/button.dart';
