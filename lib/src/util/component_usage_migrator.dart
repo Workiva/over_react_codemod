@@ -38,11 +38,9 @@ export 'wsd_util.dart';
 /// ```dart
 /// class MuiButtonToolbarMigrator with ClassSuggestor, ComponentUsageMigrator {
 ///   @override
-///   shouldMigrateUsage(FluentComponentUsage usage) =>
+///   bool shouldMigrateUsage(FluentComponentUsage usage) =>
 ///       // Only migrate certain factories
-///       usesWsdFactory(usage, 'OldFactory')
-///           ? ShouldMigrateDecision.yes
-///           : ShouldMigrateDecision.no;
+///       usesWsdFactory(usage, 'OldFactory');
 ///
 ///   @override
 ///   void migrateUsage(FluentComponentUsage usage) {
@@ -101,20 +99,10 @@ export 'wsd_util.dart';
 abstract class ComponentUsageMigrator with ClassSuggestor {
   static final _log = Logger('ComponentUsageMigrator');
 
-  /// Returns a decision around whether a specific [usage] should be migrated.
-  ///
-  /// If [ShouldMigrateDecision.yes] is returned, then [migrateUsage]
-  /// will be be called with this usage.
-  ///
-  /// If [ShouldMigrateDecision.no] is returned, then [migrateUsage]
-  /// will not be called with this usage.
-  ///
-  /// If [ShouldMigrateDecision.needsManualIntervention] is returned, this usage
-  /// will be flagged with a fix-me comment, and [migrateUsage] will not be called
-  /// with this usage.
-  ShouldMigrateDecision shouldMigrateUsage(FluentComponentUsage usage);
+  /// Returns whether [migrateUsage] should be called for a specific [usage].
+  bool shouldMigrateUsage(FluentComponentUsage usage);
 
-  /// Migrates a given [usage] if [shouldMigrateUsage] returned `yes` for it.
+  /// Migrates a given [usage] if [shouldMigrateUsage] returned `true` for it.
   ///
   /// This method should typically be overridden and used to perform custom
   /// migration of a usage (e.g., update its factory and/or props).
@@ -126,8 +114,6 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   void migrateUsage(FluentComponentUsage usage) {
     flagCommon(usage);
   }
-
-  bool get ignoreAlreadyFlaggedUsages => true;
 
   static const _fatalUnresolvedUsages = true;
 
@@ -157,10 +143,6 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
         continue;
       }
 
-      if (ignoreAlreadyFlaggedUsages && hasFlaggedComment(usage.node)) {
-        continue;
-      }
-
       // If things aren't fully resolved, the unresolved branch of the FluentComponentUsage
       // detection will be used. Check for that here, since that probably means
       // the library declaring the component wasn't resolved, and we want to know
@@ -170,16 +152,8 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
         _verifyUsageIsResolved(usage, result);
       }
 
-      final decision = shouldMigrateUsage(usage);
-      switch (decision) {
-        case ShouldMigrateDecision.no:
-          break;
-        case ShouldMigrateDecision.yes:
-          migrateUsage(usage);
-          break;
-        case ShouldMigrateDecision.needsManualIntervention:
-          yieldUsageManualInterventionPatch(usage);
-          break;
+      if (shouldMigrateUsage(usage)) {
+        migrateUsage(usage);
       }
     }
   }
@@ -476,12 +450,6 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   String get fixmePrefix;
 
   /// Yields a patch with a fix-me comment before a given component [usage]
-  /// with a message indicating the usage needs manual intervention to be migrated.
-  void yieldUsageManualInterventionPatch(FluentComponentUsage usage) {
-    yieldUsageFixmePatch(usage, 'needs manual intervention');
-  }
-
-  /// Yields a patch with a fix-me comment before a given component [usage]
   /// with a custom [message].
   void yieldUsageFixmePatch(FluentComponentUsage usage, String message) {
     yieldInsertionPatch(
@@ -634,21 +602,6 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     ];
     return codes.any((code) => ignoreInfo.ignoredAt(code, line));
   }
-}
-
-/// A decision on whether a component should be migrated.
-///
-/// See [ComponentUsageMigrator.shouldMigrateUsage].
-enum ShouldMigrateDecision {
-  /// A component usage should be migrated.
-  yes,
-
-  /// A component usage should not be migrated.
-  no,
-
-  /// A component usage should be migrated, but requires manual intervention
-  /// and will get a fix-me comment but not any other automated migration logic.
-  needsManualIntervention,
 }
 
 /// Where to place a newly-inserted prop.
@@ -823,6 +776,3 @@ extension on MethodInvocation {
   bool get isExtensionMethod =>
       methodName.staticElement?.isExtensionMethod ?? false;
 }
-
-// fixme implement
-bool hasFlaggedComment(AstNode node) => false;

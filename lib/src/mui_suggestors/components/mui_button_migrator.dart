@@ -37,28 +37,14 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       }).any(const {'buttonBefore', 'buttonAfter'}.contains);
 
   @override
-  ShouldMigrateDecision shouldMigrateUsage(FluentComponentUsage usage) {
-    // Don't migrate WSD toolbar components (for now)
-    if (usesWsdToolbarFactory(usage)) {
-      return ShouldMigrateDecision.no;
-    }
-    if (isLikelyAssignedToButtonAddonProp(usage)) {
-      return ShouldMigrateDecision.no;
-    }
-
-    if (usesWsdFactory(usage, 'Button')) {
-      return ShouldMigrateDecision.yes;
-    }
-
-    if (usesWsdFactory(usage, 'FormSubmitInput') ||
-        usesWsdFactory(usage, 'FormResetInput')) {
-      return hasLinkButtonSkin(usage)
-          ? ShouldMigrateDecision.needsManualIntervention
-          : ShouldMigrateDecision.yes;
-    }
-
-    return ShouldMigrateDecision.no;
-  }
+  bool shouldMigrateUsage(FluentComponentUsage usage) =>
+      const {
+        'Button',
+        'FormSubmitInput',
+        'FormResetInput',
+      }.any((wsdFactory) => usesWsdFactory(usage, wsdFactory)) &&
+      !usesWsdToolbarFactory(usage) &&
+      !isLikelyAssignedToButtonAddonProp(usage);
 
   @override
   void migrateUsage(FluentComponentUsage usage) {
