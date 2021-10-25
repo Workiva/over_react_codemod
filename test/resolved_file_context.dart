@@ -72,15 +72,20 @@ class SharedAnalysisContext {
     if (!_isInitialized) {
       // Note that if tests are run concurrently, then concurrent pub gets will be run.
       // This is hard to avoid (trying to avoid it using a filesystem lock in
-      // macOS/Linux doesn't work due to advisory lock behavior),
-      // and it **shouldn't** cause any issues, so for now we'll just let that happen.
+      // macOS/Linux doesn't work due to advisory lock behavior), but intermittently
+      // causes issues, so message referencing exit code 66 and workaround below.
       try {
         await runPubGetIfNeeded(_path);
-      } catch (_) {
-        if (customPubGetErrorMessage != null) {
-          print(customPubGetErrorMessage);
-        }
-        rethrow;
+      } catch (e, st) {
+        var message = [
+          // ignore: no_adjacent_strings_in_list
+          'If the exit code is 66, the issue is likely concurrent `pub get`s on'
+              ' this directory from concurrent test entrypoints.'
+              ' Regardless of the exit code, if in CI, try running `pub get`'
+              ' in this directory before running any tests.',
+          if (customPubGetErrorMessage != null) customPubGetErrorMessage,
+        ].join(' ');
+        throw Exception('$message\nOriginal exception: $e$st');
       }
 
       collection = AnalysisContextCollection(
