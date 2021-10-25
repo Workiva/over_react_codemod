@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:async/async.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
@@ -71,35 +72,33 @@ class SharedAnalysisContext {
     }
   }
 
-  bool _isInitialized = false;
+  // This ensures the _initIfNeeded logic is only ever run once, and prevents
+  // race conditions if there are concurrent calls to it.
+  final _initMemo = AsyncMemoizer();
 
-  Future<void> _initIfNeeded() async {
-    if (!_isInitialized) {
-      // Note that if tests are run concurrently, then concurrent pub gets will be run.
-      // This is hard to avoid (trying to avoid it using a filesystem lock in
-      // macOS/Linux doesn't work due to advisory lock behavior), but intermittently
-      // causes issues, so message referencing exit code 66 and workaround below.
-      try {
-        await runPubGetIfNeeded(_path);
-      } catch (e, st) {
-        var message = [
-          // ignore: no_adjacent_strings_in_list
-          'If the exit code is 66, the issue is likely concurrent `pub get`s on'
-              ' this directory from concurrent test entrypoints.'
-              ' Regardless of the exit code, if in CI, try running `pub get`'
-              ' in this directory before running any tests.',
-          if (customPubGetErrorMessage != null) customPubGetErrorMessage,
-        ].join(' ');
-        throw Exception('$message\nOriginal exception: $e$st');
-      }
+  Future<void> _initIfNeeded() => _initMemo.runOnce(() async {
+        // Note that if tests are run concurrently, then concurrent pub gets will be run.
+        // This is hard to avoid (trying to avoid it using a filesystem lock in
+        // macOS/Linux doesn't work due to advisory lock behavior), but intermittently
+        // causes issues, so message referencing exit code 66 and workaround below.
+        try {
+          await runPubGetIfNeeded(_path);
+        } catch (e, st) {
+          var message = [
+            // ignore: no_adjacent_strings_in_list
+            'If the exit code is 66, the issue is likely concurrent `pub get`s on'
+                ' this directory from concurrent test entrypoints.'
+                ' Regardless of the exit code, if in CI, try running `pub get`'
+                ' in this directory before running any tests.',
+            if (customPubGetErrorMessage != null) customPubGetErrorMessage,
+          ].join(' ');
+          throw Exception('$message\nOriginal exception: $e$st');
+        }
 
-      collection = AnalysisContextCollection(
-        includedPaths: [_path],
-      );
-
-      _isInitialized = true;
-    }
-  }
+        collection = AnalysisContextCollection(
+          includedPaths: [_path],
+        );
+      });
 
   /// Warms up the AnalysisContextCollection by running `pub get` (if needed) and
   /// initializing [collection] if that hasn't been done yet, and getting the
