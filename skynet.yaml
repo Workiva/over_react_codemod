@@ -12,7 +12,7 @@ scripts:
   - pub get
   - RESULT=0
   - echo 'Running pub get in test fixtures beforehand to prevent concurrent `pub get`s in tests from failing'
-  - (cd test_fixtures/over_react && pub get)
+  - (cd test_fixtures/over_react_project && pub get)
   - (cd test_fixtures/wsd_project && pub get)
   - echo 'Running only the tests with the "wsd" tag'
   # TODO think about using an aggregated test suite for these so that we can reuse the same SharedAnalysisContext/AnalysisContextCollection instances and run tests faster.
