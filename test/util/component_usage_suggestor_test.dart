@@ -232,7 +232,6 @@ main() {
               usages() => [
                 Dom.div()(),
                 Dom.span()(),
-                Dom.a()(),
               ];
           '''),
         );
