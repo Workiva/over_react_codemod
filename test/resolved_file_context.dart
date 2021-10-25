@@ -23,6 +23,11 @@ import 'package:uuid/uuid.dart';
 /// - multiple tests to run without `pub get`-ing in a new package or spinning up
 ///   a new same [AnalysisContextCollection], which dramatically improves test run times
 ///   if there are many tests that rely on a resolved context.
+///
+/// Also, re-using a fixed directory instead of a new temporary directory each time
+/// means that `pub get`s from the previous run as well as any analysis cached
+/// within `~/.dartServer` can be reused between test runs, which means faster
+/// test runs during local development.
 class SharedAnalysisContext {
   /// A context root located at `test/test_fixtures/over_react_project`
   /// that depends on the `over_react` package.
