@@ -8,7 +8,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/util.dart';
-import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 
@@ -17,30 +16,44 @@ import 'package:path/path.dart' as p;
 import 'package:test_api/src/backend/invoker.dart' show Invoker;
 import 'package:uuid/uuid.dart';
 
-final _testFixturePath =
-    p.join(findPackageRootFor(p.current), 'test/test_fixtures');
-
+/// Provides a mechanism for getting resolved codemod [FileContext]s for test cases
+/// using a shared context root, allowing:
+///
+/// - the resolution of package imports (provided they're depended on in the context root's pubspec.yaml)
+/// - multiple tests to run without `pub get`-ing in a new package or spinning up
+///   a new same [AnalysisContextCollection], which dramatically improves test run times
+///   if there are many tests that rely on a resolved context.
+///
+/// Also, re-using a fixed directory instead of a new temporary directory each time
+/// means that `pub get`s from the previous run as well as any analysis cached
+/// within `~/.dartServer` can be reused between test runs, which means faster
+/// test runs during local development.
 class SharedAnalysisContext {
-  static final overReact =
-      SharedAnalysisContext(p.join(_testFixturePath, 'over_react_project'));
+  /// A context root located at `test/test_fixtures/over_react_project`
+  /// that depends on the `over_react` package.
+  ///
+  /// Use this when possible over [wsd], since it resolves much faster.
+  static final overReact = SharedAnalysisContext(p.join(
+      findPackageRootFor(p.current), 'test/test_fixtures/over_react_project'));
 
+  /// A context root located at `test/test_fixtures/over_react_project`
+  /// that depends on the internal `web_skin_dart` package (as well as `over_react`).
   static final wsd = SharedAnalysisContext(
-      p.join(_testFixturePath, 'wsd_project'),
+      p.join(findPackageRootFor(p.current), 'test/test_fixtures/wsd_project'),
       customPubGetErrorMessage:
           'If this fails to resolve in GitHub Actions, make sure your test or'
           ' test group is tagged with "wsd" so that it\'s only run in Skynet.');
 
-  final String projectRoot;
+  /// The path to the package root in which test files will be created
+  /// and resolved.
+  final String _path;
+
+  /// The analysis context collection for files within [_path], initialized
+  /// lazily.
   late final AnalysisContextCollection collection;
+
+  /// A custom error message to display if `pub get` fails.
   final String? customPubGetErrorMessage;
-
-  SharedAnalysisContext(this.projectRoot, {this.customPubGetErrorMessage}) {
-    if (!p.isAbsolute(projectRoot)) {
-      throw ArgumentError.value(projectRoot, 'projectRoot', 'must be absolute');
-    }
-  }
-
-  final String _uuid = Uuid().v4();
 
   // Namespace the test path using a UUID so that concurrent runs
   // don't try to output the same filename, making it so that we can
@@ -50,7 +63,13 @@ class SharedAnalysisContext {
   // This also allows us to keep using the same project directory among concurrent tests
   // and across test runs, which means the Dart analysis server can use cached
   // analysis results (meaning faster test runs).
-  String get _testFileSubpath => 'lib/dynamic_test_files/$_uuid';
+  final _testFileSubpath = 'lib/dynamic_test_files/${Uuid().v4()}';
+
+  SharedAnalysisContext(this._path, {this.customPubGetErrorMessage}) {
+    if (!p.isAbsolute(_path)) {
+      throw ArgumentError.value(_path, 'projectRoot', 'must be absolute');
+    }
+  }
 
   bool _isInitialized = false;
 
@@ -58,38 +77,49 @@ class SharedAnalysisContext {
     if (!_isInitialized) {
       // Note that if tests are run concurrently, then concurrent pub gets will be run.
       // This is hard to avoid (trying to avoid it using a filesystem lock in
-      // macOS/Linux doesn't work due to advisory lock behavior),
-      // and it **shouldn't** cause any issues, so for now we'll just let that happen.
+      // macOS/Linux doesn't work due to advisory lock behavior), but intermittently
+      // causes issues, so message referencing exit code 66 and workaround below.
       try {
-        await runPubGetIfNeeded(projectRoot);
-      } catch (_) {
-        if (customPubGetErrorMessage != null) {
-          print(customPubGetErrorMessage);
-        }
-        rethrow;
+        await runPubGetIfNeeded(_path);
+      } catch (e, st) {
+        var message = [
+          // ignore: no_adjacent_strings_in_list
+          'If the exit code is 66, the issue is likely concurrent `pub get`s on'
+              ' this directory from concurrent test entrypoints.'
+              ' Regardless of the exit code, if in CI, try running `pub get`'
+              ' in this directory before running any tests.',
+          if (customPubGetErrorMessage != null) customPubGetErrorMessage,
+        ].join(' ');
+        throw Exception('$message\nOriginal exception: $e$st');
       }
 
       collection = AnalysisContextCollection(
-        includedPaths: [projectRoot],
+        includedPaths: [_path],
       );
 
       _isInitialized = true;
     }
   }
 
-  /// Warms up the AnalysisContextCollection by getting the resolved library for
-  /// `lib/analysis_warmup.dart` in the project.
+  /// Warms up the AnalysisContextCollection by running `pub get` (if needed) and
+  /// initializing [collection] if that hasn't been done yet, and getting the
+  /// resolved library for `lib/analysis_warmup.dart` in the project.
   ///
-  /// This is useful to run in a setUpAll so that the first test resolving a file
+  /// This is useful to run in a `setUpAll` so that the first test resolving a file
   /// doesn't take abnormally long (e.g., if having consistent test times is
   /// important, or if the first test might have a short timeout).
   Future<void> warmUpAnalysis() async {
     await _initIfNeeded();
-    final path = p.join(projectRoot, 'lib/analysis_warmup.dart');
+    final path = p.join(_path, 'lib/analysis_warmup.dart');
     await collection.contextFor(path).currentSession.getResolvedLibrary2(path);
     _shouldPrintFirstFileWarning = false;
   }
 
+  /// A convenience method that creates a codemod [FileContext],
+  /// run [suggestor] on it, and returns the patches yielded.
+  ///
+  /// Most arguments are forwarded to [resolvedFileContextForTest];
+  /// see that method for more details.
   Future<List<Patch>> getPatches(
     Suggestor suggestor,
     String sourceText, {
@@ -106,6 +136,27 @@ class SharedAnalysisContext {
     return await suggestor(context).toList();
   }
 
+  /// Creates a new file within [_testFileSubpath] with the name [filename]
+  /// (or a generated filename if not specified) and the given [sourceText]
+  /// and returns a codemod FileContext for that file.
+  ///
+  /// Throws if [filename] has already been used before in this instance,
+  /// to prevent the wrong results from being returned.
+  /// Since there's no public analyzer API to get an updated result for a file
+  /// that has been modified, reusing a file name means that [collection] or
+  /// the returned context backed by [collection] could return results for a previous
+  /// call to this method, and not results containing the updated [sourceText].
+  /// And, even if there were a way to update it, reusing file names would be prone
+  /// to race conditions, so this restriction will likely never be removed.
+  ///
+  /// If [preResolveLibrary] is `true`, then the file will be resolved as a library
+  /// and checked for errors (if [throwOnAnalysisErrors] is `true`) to help
+  /// validate that there are no issues resolving the test file, which are likely
+  /// the result of a bad test file that could result in false positives or
+  /// confusing errors in your test.
+  ///
+  /// If you expect analysis errors in your test file, provide a [isExpectedError]
+  /// so that those errors can be ignored while others can be filtered out.
   Future<FileContext> resolvedFileContextForTest(
     String sourceText, {
     String? filename,
@@ -132,7 +183,7 @@ class SharedAnalysisContext {
       } catch (_) {}
     }
 
-    final path = p.join(projectRoot, _testFileSubpath, filename);
+    final path = p.join(_path, _testFileSubpath, filename);
     final file = File(path);
     if (file.existsSync()) {
       throw StateError('File already exists: ${filename}.'
@@ -146,11 +197,15 @@ class SharedAnalysisContext {
     file.writeAsStringSync(sourceText);
 
     final context = collection.contexts
-        .singleWhere((c) => c.contextRoot.root.path == projectRoot);
+        .singleWhere((c) => c.contextRoot.root.path == _path);
 
     if (throwOnAnalysisErrors && !preResolveLibrary) {
       throw ArgumentError(
           'If throwOnAnalysisErrors is true, preResolveFile must be false');
+    }
+    if (isExpectedError != null && !throwOnAnalysisErrors) {
+      throw ArgumentError(
+          'If isExpectedError is provided, throwOnAnalysisErrors must be true');
     }
     if (preResolveLibrary) {
       final result = await _printAboutFirstFile(
@@ -164,11 +219,12 @@ class SharedAnalysisContext {
     // existing in the context we've set up (which shouldn't ever happen).
     collection.contextFor(path);
 
-    return FileContext(path, collection, root: projectRoot);
+    return FileContext(path, collection, root: _path);
   }
 
   int _fileNameCounter = 0;
 
+  /// Returns a filename that hasn't been used before.
   String nextFilename() => 'test_${_fileNameCounter++}.dart';
 
   bool _shouldPrintFirstFileWarning = true;
@@ -185,7 +241,7 @@ class SharedAnalysisContext {
     }
 
     if (shouldPrint) {
-      final contextName = p.basename(projectRoot);
+      final contextName = p.basename(_path);
       print('Resolving a file for the first time in context "${contextName}";'
           ' this will take a few seconds...');
     }
@@ -197,8 +253,16 @@ class SharedAnalysisContext {
   }
 }
 
+/// A function that returns whether an error is expected and thus should be ignored
 typedef IsExpectedError = bool Function(AnalysisError);
 
+/// Checks [result] (usually the return value of a call to `AnalysisSession.getResolvedLibrary2`)
+/// and throws if:
+///
+/// - there were any issues getting the resolved result
+/// - there are analysis errors (other than those for which [isExpectedError] returns `true`)
+///   that are either have an `error` severity or are otherwise potentially problematic
+///   (e.g., unused members, which may mean there's a typo in the test)
 void checkResolvedResultForErrors(
   SomeResolvedLibraryResult result, {
   IsExpectedError? isExpectedError,
@@ -206,8 +270,10 @@ void checkResolvedResultForErrors(
   isExpectedError ??= (_) => false;
 
   const sharedMessage = 'If analysis errors are expected for this test, either:'
-      '\n1. use an `ignore:` comment to silence them'
-      '\n2. set `throwOnAnalysisErrors: false`,'
+      '\n1. specify `isExpectedError` with a function that returns true'
+      ' only for your expected error'
+      '\n2. use an `ignore:` comment to silence them'
+      '\n3. set `throwOnAnalysisErrors: false`,'
       ' and use `checkResolvedResultForErrors` with `isExpectedError`'
       ' to verify that only the expected errors are present.';
 
@@ -226,22 +292,22 @@ void checkResolvedResultForErrors(
     ].join(' '));
   }
 
-  bool isUnusedError(AnalysisError error) => const {
-        'unused_element',
-        'unused_local_variable'
-      }.contains(error.errorCode.name.toLowerCase());
-
   final unexpectedErrors = units
       .expand((unit) => unit.errors)
-      .where(
-          (error) => error.severity == Severity.error || isUnusedError(error))
+      .where((AnalysisError error) =>
+          error.severity == Severity.error ||
+          const {
+            'unused_element',
+            'unused_local_variable',
+          }.contains(error.errorCode.name.toLowerCase()))
       // We need a non-null-assertion here due to https://github.com/dart-lang/sdk/issues/40790
       .where((error) => !isExpectedError!(error))
       .toList();
   if (unexpectedErrors.isNotEmpty) {
     throw ArgumentError([
       // ignore: no_adjacent_strings_in_list
-      'File had analysis errors or unused element hints, which likely indicate that the test file is set up improperly,'
+      'File had analysis errors or unused element hints,'
+          ' which likely indicate that the test file is set up improperly,'
           ' potentially resulting in false positives in your test.',
       sharedMessage,
       'Errors:\n${prettyPrintErrors(unexpectedErrors)}.'

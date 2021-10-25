@@ -88,7 +88,7 @@ main() {
           final calls = <FluentComponentUsage>[];
           final migrator = GenericMigrator(shouldMigrateUsage: (_, usage) {
             calls.add(usage);
-            return ShouldMigrateDecision.no;
+            return false;
           });
           await sharedContext.getPatches(migrator, source);
           return calls;
@@ -213,8 +213,7 @@ main() {
     });
 
     group('calls migrateUsage for each component usage', () {
-      test('only if shouldMigrateUsage returns MigrationDecision.shouldMigrate',
-          () async {
+      test('only if shouldMigrateUsage returns true', () async {
         final migrateUsageCalls = <FluentComponentUsage>[];
         await sharedContext.getPatches(
           GenericMigrator(
@@ -222,11 +221,9 @@ main() {
             shouldMigrateUsage: (_, usage) {
               switch (usage.builder.toSource()) {
                 case 'Dom.div()':
-                  return ShouldMigrateDecision.no;
+                  return false;
                 case 'Dom.span()':
-                  return ShouldMigrateDecision.yes;
-                case 'Dom.a()':
-                  return ShouldMigrateDecision.needsManualIntervention;
+                  return true;
               }
               throw ArgumentError('Unexpected builder');
             },
@@ -235,7 +232,6 @@ main() {
               usages() => [
                 Dom.div()(),
                 Dom.span()(),
-                Dom.a()(),
               ];
           '''),
         );
@@ -309,7 +305,7 @@ main() {
           expectedOutput: withOverReactImport(/*language=dart*/ '''
               content() {
                 (Dom.div()
-                  // FIXME(generic_migrator) - className prop - manually verify
+                  // FIXME(generic_migrator) - className prop - manually verify (see doc for more details)
                   ..className = 'foo'
                 )();
               }
@@ -1515,7 +1511,7 @@ void yieldPropPatchTests() {
 
 typedef OnMigrateUsage = void Function(
     GenericMigrator migrator, FluentComponentUsage usage);
-typedef OnShouldMigrateUsage = ShouldMigrateDecision Function(
+typedef OnShouldMigrateUsage = bool Function(
     GenericMigrator migrator, FluentComponentUsage usage);
 
 class GenericMigrator extends ComponentUsageMigrator {
@@ -1529,8 +1525,8 @@ class GenericMigrator extends ComponentUsageMigrator {
         _onShouldMigrateUsage = shouldMigrateUsage;
 
   @override
-  ShouldMigrateDecision shouldMigrateUsage(usage) =>
-      _onShouldMigrateUsage?.call(this, usage) ?? ShouldMigrateDecision.yes;
+  bool shouldMigrateUsage(usage) =>
+      _onShouldMigrateUsage?.call(this, usage) ?? true;
 
   @override
   void migrateUsage(usage) {

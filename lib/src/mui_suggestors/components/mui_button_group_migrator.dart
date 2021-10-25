@@ -7,10 +7,8 @@ import 'mui_migrator.dart';
 
 class MuiButtonGroupMigrator extends ComponentUsageMigrator with MuiMigrator {
   @override
-  ShouldMigrateDecision shouldMigrateUsage(FluentComponentUsage usage) =>
-      usesWsdFactory(usage, 'ButtonGroup')
-          ? ShouldMigrateDecision.yes
-          : ShouldMigrateDecision.no;
+  bool shouldMigrateUsage(FluentComponentUsage usage) =>
+      usesWsdFactory(usage, 'ButtonGroup');
 
   @override
   void migrateUsage(FluentComponentUsage usage) {

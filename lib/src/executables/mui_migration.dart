@@ -14,20 +14,18 @@
 
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
-import 'package:path/path.dart' as p;
 import 'package:over_react_codemod/src/ignoreable.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 import 'package:over_react_codemod/src/mui_suggestors/components.dart';
+import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
+import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 import 'package:over_react_codemod/src/mui_suggestors/unused_wsd_import_remover.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
@@ -144,9 +142,8 @@ void main(List<String> args) async {
         }).toList();
 
   final dartPaths = dartFilesToMigrate().toList();
-  // A terrible hack to work around parts being unresolved if you resolve them
-  // before their libraries.
-  // FIXME improve this
+  // Work around parts being unresolved if you resolve them before their libraries.
+  // TODO - reference analyzer issue for this once it's created
   sortPartsLast(dartPaths);
 
   await pubGetForAllPackageRoots(dartPaths);
@@ -179,22 +176,13 @@ void main(List<String> args) async {
 
 void sortPartsLast(List<String> dartPaths) {
   _log.info('Sorting part files...');
-  final collection = AnalysisContextCollection(
-    // These paths must be absolute.
-    includedPaths: dartPaths.map(p.canonicalize).toList(),
-  );
 
   final isPartCache = <String, bool>{};
   bool isPart(String path) => isPartCache.putIfAbsent(path, () {
-        final canonicalPath = p.canonicalize(path);
-        final parsed = collection
-            .contextFor(canonicalPath)
-            .currentSession
-            .getParsedUnit2(canonicalPath);
-        if (parsed is ParsedUnitResult) {
-          return parsed.unit.directives.whereType<PartOfDirective>().isNotEmpty;
-        }
-        return false;
+        // parseString is much faster than using an AnalysisContextCollection
+        //  to get unresolved AST, at least in repos with many context roots.
+        final unit = parseString(content: File(path).readAsStringSync()).unit;
+        return unit.directives.whereType<PartOfDirective>().isNotEmpty;
       });
 
   dartPaths.sort((a, b) {

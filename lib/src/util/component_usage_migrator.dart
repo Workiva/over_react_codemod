@@ -38,11 +38,9 @@ export 'wsd_util.dart';
 /// ```dart
 /// class MuiButtonToolbarMigrator with ClassSuggestor, ComponentUsageMigrator {
 ///   @override
-///   shouldMigrateUsage(FluentComponentUsage usage) =>
+///   bool shouldMigrateUsage(FluentComponentUsage usage) =>
 ///       // Only migrate certain factories
-///       usesWsdFactory(usage, 'OldFactory')
-///           ? ShouldMigrateDecision.yes
-///           : ShouldMigrateDecision.no;
+///       usesWsdFactory(usage, 'OldFactory');
 ///
 ///   @override
 ///   void migrateUsage(FluentComponentUsage usage) {
@@ -101,20 +99,10 @@ export 'wsd_util.dart';
 abstract class ComponentUsageMigrator with ClassSuggestor {
   static final _log = Logger('ComponentUsageMigrator');
 
-  /// Returns a decision around whether a specific [usage] should be migrated.
-  ///
-  /// If [ShouldMigrateDecision.yes] is returned, then [migrateUsage]
-  /// will be be called with this usage.
-  ///
-  /// If [ShouldMigrateDecision.no] is returned, then [migrateUsage]
-  /// will not be called with this usage.
-  ///
-  /// If [ShouldMigrateDecision.needsManualIntervention] is returned, this usage
-  /// will be flagged with a fix-me comment, and [migrateUsage] will not be called
-  /// with this usage.
-  ShouldMigrateDecision shouldMigrateUsage(FluentComponentUsage usage);
+  /// Returns whether [migrateUsage] should be called for a specific [usage].
+  bool shouldMigrateUsage(FluentComponentUsage usage);
 
-  /// Migrates a given [usage] if [shouldMigrateUsage] returned `yes` for it.
+  /// Migrates a given [usage] if [shouldMigrateUsage] returned `true` for it.
   ///
   /// This method should typically be overridden and used to perform custom
   /// migration of a usage (e.g., update its factory and/or props).
@@ -127,15 +115,11 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     flagCommon(usage);
   }
 
-  bool get ignoreAlreadyFlaggedUsages => true;
-
   static const _fatalUnresolvedUsages = true;
 
   @override
   Future<void> generatePatches() async {
     _log.info('Resolving ${context.relativePath}...');
-
-    // fixme codemod apparently you have to resolve the main library before resolving a part??
 
     final result = await context.getResolvedUnit();
     if (result == null) {
@@ -159,10 +143,6 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
         continue;
       }
 
-      if (ignoreAlreadyFlaggedUsages && hasFlaggedComment(usage.node)) {
-        continue;
-      }
-
       // If things aren't fully resolved, the unresolved branch of the FluentComponentUsage
       // detection will be used. Check for that here, since that probably means
       // the library declaring the component wasn't resolved, and we want to know
@@ -172,16 +152,8 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
         _verifyUsageIsResolved(usage, result);
       }
 
-      final decision = shouldMigrateUsage(usage);
-      switch (decision) {
-        case ShouldMigrateDecision.no:
-          break;
-        case ShouldMigrateDecision.yes:
-          migrateUsage(usage);
-          break;
-        case ShouldMigrateDecision.needsManualIntervention:
-          yieldUsageManualInterventionPatch(usage);
-          break;
+      if (shouldMigrateUsage(usage)) {
+        migrateUsage(usage);
       }
     }
   }
@@ -202,6 +174,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     String errorsMessage() => result.errors.isEmpty
         ? ''
         : ' \nAnalysis errors in file:\n${prettyPrintErrors(result.errors)}\n'
+            // TODO - reference analyzer issue for this once it's created
             'If this is a part file and all of its imported members seem to be unresolved,'
             ' make sure its library is resolved first.';
     final staticType = usage.builder.staticType;
@@ -254,7 +227,6 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
 
   /// Whether [flagCommon] (called by [migrateUsage]) should flag
   /// the `className` prop on component usages.
-  // FIXME CPLAT-15321 also flag WS classes in custom CSS selectors
   bool get shouldFlagClassName => true;
 
   /// Flags common cascaded members with fix-me comments indicating manual
@@ -308,7 +280,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
         // Flag refs, since their type is likely to change.
         yieldPropFixmePatch(prop, 'manually verify ref type is correct');
       } else if (shouldFlagClassName && prop.name.name == 'className') {
-        yieldPropFixmePatch(prop, 'manually verify');
+        yieldPropFixmePatch(prop, 'manually verify (see doc for more details)');
       } else if (shouldFlagPrefixedProps &&
           prop.prefix != null &&
           !safePropPrefixes.contains(prop.prefix!.name)) {
@@ -483,12 +455,6 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   String get fixmePrefix;
 
   /// Yields a patch with a fix-me comment before a given component [usage]
-  /// with a message indicating the usage needs manual intervention to be migrated.
-  void yieldUsageManualInterventionPatch(FluentComponentUsage usage) {
-    yieldUsageFixmePatch(usage, 'needs manual intervention');
-  }
-
-  /// Yields a patch with a fix-me comment before a given component [usage]
   /// with a custom [message].
   void yieldUsageFixmePatch(FluentComponentUsage usage, String message) {
     yieldInsertionPatch(
@@ -641,21 +607,6 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     ];
     return codes.any((code) => ignoreInfo.ignoredAt(code, line));
   }
-}
-
-/// A decision on whether a component should be migrated.
-///
-/// See [ComponentUsageMigrator.shouldMigrateUsage].
-enum ShouldMigrateDecision {
-  /// A component usage should be migrated.
-  yes,
-
-  /// A component usage should not be migrated.
-  no,
-
-  /// A component usage should be migrated, but requires manual intervention
-  /// and will get a fix-me comment but not any other automated migration logic.
-  needsManualIntervention,
 }
 
 /// Where to place a newly-inserted prop.
@@ -830,6 +781,3 @@ extension on MethodInvocation {
   bool get isExtensionMethod =>
       methodName.staticElement?.isExtensionMethod ?? false;
 }
-
-// fixme implement
-bool hasFlaggedComment(AstNode node) => false;
