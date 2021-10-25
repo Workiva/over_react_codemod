@@ -21,6 +21,7 @@ import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/components.dart';
 import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
@@ -160,8 +161,7 @@ void main(List<String> args) async {
   if (exitCode != 0) return;
 
   exitCode = await runInteractiveCodemod(
-    // FIXME use allPubsepcYamlPaths()
-    ['./pubspec.yaml'],
+    pubspecYamlPaths(),
     aggregate([
       PubspecUpgrader('react_material_ui', rmuiVersionRange,
           hostedUrl: 'https://pub.workiva.org'),

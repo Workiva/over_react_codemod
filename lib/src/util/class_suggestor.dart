@@ -94,6 +94,6 @@ mixin ClassSuggestor {
   }
 }
 
-extension on Patch {
+extension InsertionPatchHelper on Patch {
   bool get isInsertionPatch => startOffset == endOffset;
 }

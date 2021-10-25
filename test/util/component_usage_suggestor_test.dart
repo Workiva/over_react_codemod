@@ -533,11 +533,11 @@ main() {
       group('yieldChildFixmePatch', yieldChildFixmePatchTests);
 
       group('yieldPropManualVerificationPatch', () {
-        // fixme add tests
+        yieldPropFixmePatchTests(fixmeType: PropFixmeType.manuallyVerify);
       });
 
       group('yieldPropManualMigratePatch', () {
-        // fixme add tests
+        yieldPropFixmePatchTests(fixmeType: PropFixmeType.manuallyMigrate);
       });
 
       group('yieldRemoveChildPatch', yieldRemoveChildPatchTests);
@@ -762,16 +762,190 @@ void yieldAddPropPatchTests() {
   });
 
   group('automatically places a prop in the best location', () {
-    // fixme add tests
-    // various test cases
+    test('when there are no special case props', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..style = {"width": '25rem'}
+            )();
+        '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() => (Dom.div()
+              ..id = "some_id"
+              ..style = {"width": '25rem'}
+              ..foo = "foo"
+            )();
+        '''),
+      );
+    });
+
+    group('when there are props that should remain last -', () {
+      test('index assignment prop', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+          }),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..["data-test-id"] = "some_test_id"
+              )();
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..foo = "foo"
+                ..["data-test-id"] = "some_test_id"
+              )();
+          '''),
+        );
+      });
+
+      test('method invocation prop', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+          }),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..addTestId('some_test_id')
+              )();
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..foo = "foo"
+                ..addTestId('some_test_id')
+              )();
+          '''),
+        );
+      });
+
+      test('key prop', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+          }),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..key = "1"
+              )();
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..foo = "foo"
+                ..key = "1"
+              )();
+          '''),
+        );
+      });
+
+      test('ref prop', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+          }),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              final ref = createRef();
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..ref = ref
+              )();
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              final ref = createRef();
+              content() => (Dom.div()
+                ..id = "some_id"
+                ..foo = "foo"
+                // FIXME(generic_migrator) - ref prop - manually verify ref type is correct
+                ..ref = ref
+              )();
+          '''),
+        );
+      });
+
+      test('but the prop is not last', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+          }),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..key = "1"
+                ..id = "some_id"
+              )();
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              content() => (Dom.div()
+                ..key = "1"
+                ..id = "some_id"
+                ..foo = "foo"
+              )();
+          '''),
+        );
+      });
+    });
   });
 
-  test('when placement is placement is NewPropPlacement.start', () {
-    // fixme add tests
+  test('when placement is NewPropPlacement.start', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        migrator.yieldAddPropPatch(usage, '..foo = "foo"',
+            placement: NewPropPlacement.start);
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+          content() => (Dom.div()
+            ..id = "some_id"
+            ..key = "abc"
+          )();
+      '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+          content() => (Dom.div()
+            ..foo = "foo"
+            ..id = "some_id"
+            ..key = "abc"
+          )();
+      '''),
+    );
   });
 
-  test('when placement is placement is NewPropPlacement.end', () {
-    // fixme add tests
+  test('when placement is NewPropPlacement.end', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        migrator.yieldAddPropPatch(usage, '..foo = "foo"',
+            placement: NewPropPlacement.end);
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+          content() => (Dom.div()
+            ..id = "some_id"
+            ..key = "abc"
+            ..addTestId("some_test_id")
+          )();
+      '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+          content() => (Dom.div()
+            ..id = "some_id"
+            ..key = "abc"
+            ..addTestId("some_test_id")
+            ..foo = "foo"
+          )();
+      '''),
+    );
   });
 }
 
@@ -948,8 +1122,29 @@ void yieldBuilderMemberFixmePatchTests() {
   });
 }
 
+/// The types of fix me comments that can be added to a particular prop.
+enum PropFixmeType {
+  /// Refers to fix me comments added by [yieldPropFixmePatch].
+  custom,
+
+  /// Refers to fix me comments added by [yieldPropManualVerificationPatch].
+  manuallyVerify,
+
+  /// Refers to fix me comments added by [yieldPropManualMigratePatch].
+  manuallyMigrate,
+}
+
+/// The fix me messages for those prop fixmes that have specific non-custom messages.
+const propFixmeMessage = <PropFixmeType, String>{
+  PropFixmeType.manuallyVerify: 'manually verify',
+  PropFixmeType.manuallyMigrate: 'manually migrate',
+};
+
 @isTestGroup
-void yieldPropFixmePatchTests() {
+void yieldPropFixmePatchTests(
+    {PropFixmeType fixmeType = PropFixmeType.custom}) {
+  final expectedMessage = propFixmeMessage[fixmeType] ?? 'custom comment';
+
   group(
       'adds a FIXME comment to a cascaded prop with the prop name and a custom message,'
       ' placing newlines properly so that the comment stays attached to the node after formatting',
@@ -957,8 +1152,18 @@ void yieldPropFixmePatchTests() {
     test('for the first prop', () async {
       await testSuggestor(
         suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldPropFixmePatch(
-              usage.cascadedProps.first, 'custom comment');
+          final prop = usage.cascadedProps.first;
+          switch (fixmeType) {
+            case PropFixmeType.custom:
+              migrator.yieldPropFixmePatch(prop, expectedMessage);
+              break;
+            case PropFixmeType.manuallyVerify:
+              migrator.yieldPropManualVerificationPatch(prop);
+              break;
+            case PropFixmeType.manuallyMigrate:
+              migrator.yieldPropManualMigratePatch(prop);
+              break;
+          }
         }),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
@@ -978,17 +1183,17 @@ void yieldPropFixmePatchTests() {
               )();
             }
         '''),
-        expectedOutput: withOverReactImport(/*language=dart*/ '''
+        expectedOutput: withOverReactImport('''
             content() {
               // Same line as builder
               (Dom.div()
-                // FIXME(generic_migrator) - id prop - custom comment
+                // FIXME(generic_migrator) - id prop - $expectedMessage
                 ..id = ''
               )();
               
               // Multiline, starts on same line as builder
               (Dom.div()
-                // FIXME(generic_migrator) - onClick prop - custom comment
+                // FIXME(generic_migrator) - onClick prop - $expectedMessage
                 ..onClick = (_) {
                   print("hi");
                 }
@@ -996,7 +1201,7 @@ void yieldPropFixmePatchTests() {
               
               // On separate line
               (Dom.div()
-                // FIXME(generic_migrator) - id prop - custom comment
+                // FIXME(generic_migrator) - id prop - $expectedMessage
                 ..id = ''
                 ..title = ''
               )();
@@ -1008,8 +1213,18 @@ void yieldPropFixmePatchTests() {
     test('for other props', () async {
       await testSuggestor(
         suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldPropFixmePatch(
-              usage.cascadedProps.last, 'custom comment');
+          final prop = usage.cascadedProps.last;
+          switch (fixmeType) {
+            case PropFixmeType.custom:
+              migrator.yieldPropFixmePatch(prop, expectedMessage);
+              break;
+            case PropFixmeType.manuallyVerify:
+              migrator.yieldPropManualVerificationPatch(prop);
+              break;
+            case PropFixmeType.manuallyMigrate:
+              migrator.yieldPropManualMigratePatch(prop);
+              break;
+          }
         }),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
@@ -1020,11 +1235,11 @@ void yieldPropFixmePatchTests() {
               )();
             }
         '''),
-        expectedOutput: withOverReactImport(/*language=dart*/ '''
+        expectedOutput: withOverReactImport('''
             content() {
               (Dom.div()
                 ..id = ''
-                // FIXME(generic_migrator) - title prop - custom comment
+                // FIXME(generic_migrator) - title prop - $expectedMessage
                 ..title = ''
               )();
             }

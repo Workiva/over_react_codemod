@@ -330,6 +330,14 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
       {NewPropPlacement placement = NewPropPlacement.auto}) {
     final function = usage.node.function;
     if (function is ParenthesizedExpression) {
+      int getInsertionOffsetWithinBuilderOnNextLineIfPossible(int offset) =>
+          min(
+            context.sourceFile.getOffsetOfLineAfter(offset),
+            // Ensure this position isn't outside of the cascade parens
+            // (e.g., single-line cascade, multiline cascade with non-aligned right paren).
+            function.rightParenthesis.offset,
+          );
+
       // If this is null, we default to right after the invocation.
       final int offset;
       switch (placement) {
@@ -353,26 +361,23 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
           // Insert at the beginning of the next line so that we're not fighting with
           // insertions at the beginning of that prop (e.g., fix-me comments).
           offset = propToInsertAfter != null
-              ? min(
-                  context.sourceFile
-                      .getOffsetOfLineAfter(propToInsertAfter.node.end),
-                  // Ensure this position isn't outside of the cascade parens
-                  // (e.g., single-line cascade, multiline cascade with non-aligned right paren).
-                  function.rightParenthesis.offset,
-                )
+              ? getInsertionOffsetWithinBuilderOnNextLineIfPossible(
+                  propToInsertAfter.node.end)
               : function.rightParenthesis.offset;
           break;
         case NewPropPlacement.start:
           // TODO would it be better formatting and insertion-wise to attempt to insert at the beginning of the line of the first prop (similar to above)?
-          offset = usage.cascadeExpression?.target.end ??
-              function.rightParenthesis.offset;
+          offset = usage.cascadeExpression != null
+              ? getInsertionOffsetWithinBuilderOnNextLineIfPossible(
+                  usage.cascadeExpression!.offset)
+              : function.rightParenthesis.offset;
           break;
         case NewPropPlacement.end:
           // TODO would it be better formatting and insertion-wise to attempt to insert at the beginning of the line after the last prop (similar to above)?
           offset = function.rightParenthesis.offset;
           break;
       }
-      yieldInsertionPatch('\n' + newPropCascade, offset);
+      yieldInsertionPatch('$newPropCascade\n', offset);
     } else {
       assert(usage.cascadeExpression == null);
 

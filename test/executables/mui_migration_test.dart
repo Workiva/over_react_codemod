@@ -66,7 +66,7 @@ void main() {
         script: muiCodemodScript,
         input: d.dir('project', [
           // Use a pubspec without WSD so this runs a little faster
-          d.file('pubspec.yaml', '''
+          d.file('pubspec.yaml', /*language=yaml*/ '''
 name: test_project
 environment:
   sdk: ">=2.11.0 <3.0.0"
@@ -80,18 +80,225 @@ dependencies:'''),
       expect(err, contains('Builder static type could not be resolved'));
     });
 
-    // FIXME add tests for:
-    // - part files being resolved before library files
-    // - component flags
-    // - nested pub gets (make sure root dir's aren't being used for nested dir, like maybe have nested depend on something root dir does not)
-    // - failing when pub get fails
+    testCodemod('resolves part files even when they come before library files',
+        script: muiCodemodScript,
+        input: inputFiles(additionalFilesInLib: [
+          d.file('a_part.dart', /*language=dart*/ '''
+            part of 'library.dart';
+
+            usage() => Button()();'''),
+          d.file('library.dart', /*language=dart*/ '''
+            import 'package:web_skin_dart/component2/button.dart';
+
+            part 'a_part.dart';'''),
+        ]),
+        expectedOutput: expectedOutputFiles(additionalFilesInLib: [
+          d.file('a_part.dart', /*language=dart*/ '''
+            part of 'library.dart';
+
+            usage() => mui.Button()();'''),
+          d.file('library.dart', /*language=dart*/ '''
+            import 'package:react_material_ui/react_material_ui.dart' as mui;
+
+            part 'a_part.dart';'''),
+        ]),
+        args: ['--yes-to-all']);
+
+    group('--component flag', () {
+      testCodemod('fails with no components given',
+          script: muiCodemodScript,
+          input: inputFiles(),
+          expectedOutput: inputFiles(),
+          args: ['--yes-to-all', '--component'],
+          expectedExitCode: 255, body: (out, err) {
+        expect(err, contains('Missing argument for "component"'));
+      });
+
+      testCodemod('for one component',
+          script: muiCodemodScript,
+          input: inputFiles(additionalFilesInLib: [
+            d.file('usage2.dart', /*language=dart*/ '''
+              import 'package:web_skin_dart/component2/all.dart';
+
+              usage() => ButtonToolbar()(
+                Button()(),
+                ButtonGroup()(
+                  Button()(),
+                  Button()(),
+                ),
+              );'''),
+          ]),
+          expectedOutput: expectedOutputFiles(additionalFilesInLib: [
+            d.file('usage2.dart', /*language=dart*/ '''
+              import 'package:react_material_ui/react_material_ui.dart' as mui;
+import 'package:web_skin_dart/component2/all.dart';
+
+              usage() => ButtonToolbar()(
+                mui.Button()(),
+                ButtonGroup()(
+                  mui.Button()(),
+                  mui.Button()(),
+                ),
+              );'''),
+          ]),
+          args: ['--yes-to-all', '--component=Button']);
+
+      testCodemod('for multiple components',
+          script: muiCodemodScript,
+          input: inputFiles(additionalFilesInLib: [
+            d.file('usage2.dart', /*language=dart*/ '''
+              import 'package:web_skin_dart/component2/all.dart';
+
+              usage() => ButtonToolbar()(
+                Button()(),
+                ButtonGroup()(
+                  Button()(),
+                  Button()(),
+                ),
+              );'''),
+          ]),
+          expectedOutput: expectedOutputFiles(additionalFilesInLib: [
+            d.file('usage2.dart', /*language=dart*/ '''
+              import 'package:react_material_ui/react_material_ui.dart' as mui;
+import 'package:web_skin_dart/component2/all.dart';
+
+              usage() => mui.ButtonToolbar()(
+                mui.Button()(),
+                ButtonGroup()(
+                  mui.Button()(),
+                  mui.Button()(),
+                ),
+              );'''),
+          ]),
+          args: ['--yes-to-all', '--component=Button,ButtonToolbar']);
+
+      testCodemod('fails if one of the components does not have a migrator',
+          script: muiCodemodScript,
+          input: inputFiles(),
+          expectedOutput: inputFiles(),
+          args: ['--yes-to-all', '--component=Button,DoesNotExist'],
+          expectedExitCode: 255, body: (out, err) {
+        expect(err, contains('is not an allowed value for option "component"'));
+      });
+
+      testCodemod('updates all components when the flag is not present',
+          script: muiCodemodScript,
+          input: inputFiles(additionalFilesInLib: [
+            d.file('usage2.dart', /*language=dart*/ '''
+              import 'package:web_skin_dart/component2/all.dart';
+
+              usage() => ButtonToolbar()(
+                Button()(),
+                ButtonGroup()(
+                  Button()(),
+                  Button()(),
+                ),
+              );'''),
+          ]),
+          expectedOutput: expectedOutputFiles(additionalFilesInLib: [
+            d.file('usage2.dart', /*language=dart*/ '''
+              import 'package:react_material_ui/react_material_ui.dart' as mui;
+
+              usage() => mui.ButtonToolbar()(
+                mui.Button()(),
+                mui.ButtonGroup()(
+                  mui.Button()(),
+                  mui.Button()(),
+                ),
+              );'''),
+          ]),
+          args: ['--yes-to-all']);
+    });
+
+    testCodemod('nested pubspecs',
+        script: muiCodemodScript,
+        input: d.dir('project', [
+          d.file('pubspec.yaml', /*language=yaml*/ '''
+name: test_project
+environment:
+  sdk: '>=2.11.0 <3.0.0'
+dependencies:
+  over_react: ^4.2.0
+  react: ^6.1.0'''),
+          d.dir('lib', [
+            inputFiles(),
+          ]),
+          inputFiles(),
+        ]),
+        expectedOutput: d.dir('project', [
+          d.file('pubspec.yaml', /*language=yaml*/ '''
+name: test_project
+environment:
+  sdk: '>=2.11.0 <3.0.0'
+dependencies:
+  over_react: ^4.2.0
+  react: ^6.1.0
+  react_material_ui:
+    hosted:
+      name: react_material_ui
+      url: https://pub.workiva.org
+    version: ${mightNeedYamlEscaping(rmuiVersionRange.toString()) ? '"$rmuiVersionRange"' : '$rmuiVersionRange'}
+'''),
+          d.dir('lib', [
+            expectedOutputFiles(),
+          ]),
+          expectedOutputFiles(),
+        ]),
+        args: ['--yes-to-all']);
+
+    testCodemod('fails when pub get fails',
+        script: muiCodemodScript,
+        input: d.dir('project', [
+          d.file('pubspec.yaml', /*language=yaml*/ '''
+name: test_project
+environment:
+  sdk: '>=2.11.0 <3.0.0'
+dependencies:
+  does_not_exist: ^1.0.0
+  web_skin_dart:
+    hosted:
+      name: web_skin_dart
+      url: https://pub.workiva.org
+    version: ^2.56.0'''),
+          d.dir('lib', [
+            d.file('usage.dart', /*language=dart*/ '''
+          import 'package:web_skin_dart/component2/button.dart';
+
+          usage() => Button()();''')
+          ]),
+        ]),
+        expectedOutput: d.dir('project', [
+          d.file('pubspec.yaml', /*language=yaml*/ '''
+name: test_project
+environment:
+  sdk: '>=2.11.0 <3.0.0'
+dependencies:
+  does_not_exist: ^1.0.0
+  web_skin_dart:
+    hosted:
+      name: web_skin_dart
+      url: https://pub.workiva.org
+    version: ^2.56.0'''),
+          d.dir('lib', [
+            d.file('usage.dart', /*language=dart*/ '''
+          import 'package:web_skin_dart/component2/button.dart';
+
+          usage() => Button()();''')
+          ]),
+        ]),
+        args: ['--yes-to-all'],
+        expectedExitCode: 255, body: (out, err) {
+      expect(err, contains('pub get failed'));
+    });
 
     // Set a longer timeout since some of these need to `pub get` and resolve WSD.
     // Even with a primed pub cache, the longest of these tests take ~35 seconds locally.
   }, tags: 'wsd', timeout: Timeout(Duration(minutes: 2)));
 }
 
-d.DirectoryDescriptor inputFiles() => d.dir('project', [
+d.DirectoryDescriptor inputFiles(
+        {Iterable<d.Descriptor> additionalFilesInLib = const []}) =>
+    d.dir('project', [
       d.file('pubspec.yaml', /*language=yaml*/ '''
 name: test_project
 environment:
@@ -103,14 +310,17 @@ dependencies:
       url: https://pub.workiva.org
     version: ^2.56.0'''),
       d.dir('lib', [
+        ...additionalFilesInLib,
         d.file('usage.dart', /*language=dart*/ '''
-import 'package:web_skin_dart/component2/button.dart';
-  
-usage() => Button()();''')
+          import 'package:web_skin_dart/component2/button.dart';
+            
+          usage() => Button()();''')
       ]),
     ]);
 
-d.DirectoryDescriptor expectedOutputFiles() => d.dir('project', [
+d.DirectoryDescriptor expectedOutputFiles(
+        {Iterable<d.Descriptor> additionalFilesInLib = const []}) =>
+    d.dir('project', [
       d.file('pubspec.yaml', /*language=yaml*/ '''
 name: test_project
 environment:
@@ -127,10 +337,11 @@ dependencies:
       url: https://pub.workiva.org
     version: ^2.56.0'''),
       d.dir('lib', [
+        ...additionalFilesInLib,
         d.file('usage.dart', /*language=dart*/ '''
-import 'package:react_material_ui/react_material_ui.dart' as mui;
-  
-usage() => mui.Button()();''')
+          import 'package:react_material_ui/react_material_ui.dart' as mui;
+            
+          usage() => mui.Button()();''')
       ]),
     ]);
 
