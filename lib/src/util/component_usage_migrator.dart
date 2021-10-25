@@ -135,8 +135,6 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   Future<void> generatePatches() async {
     _log.info('Resolving ${context.relativePath}...');
 
-    // fixme codemod apparently you have to resolve the main library before resolving a part??
-
     final result = await context.getResolvedUnit();
     if (result == null) {
       throw Exception(
@@ -202,6 +200,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     String errorsMessage() => result.errors.isEmpty
         ? ''
         : ' \nAnalysis errors in file:\n${prettyPrintErrors(result.errors)}\n'
+            // TODO - reference analyzer issue for this once it's created
             'If this is a part file and all of its imported members seem to be unresolved,'
             ' make sure its library is resolved first.';
     final staticType = usage.builder.staticType;
