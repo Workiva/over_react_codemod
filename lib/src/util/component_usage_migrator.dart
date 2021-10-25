@@ -253,7 +253,6 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
 
   /// Whether [flagCommon] (called by [migrateUsage]) should flag
   /// the `className` prop on component usages.
-  // FIXME CPLAT-15321 also flag WS classes in custom CSS selectors
   bool get shouldFlagClassName => true;
 
   /// Flags common cascaded members with fix-me comments indicating manual
@@ -307,7 +306,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
         // Flag refs, since their type is likely to change.
         yieldPropFixmePatch(prop, 'manually verify ref type is correct');
       } else if (shouldFlagClassName && prop.name.name == 'className') {
-        yieldPropFixmePatch(prop, 'manually verify');
+        yieldPropFixmePatch(prop, 'manually verify (see doc for more details)');
       } else if (shouldFlagPrefixedProps &&
           prop.prefix != null &&
           !safePropPrefixes.contains(prop.prefix!.name)) {

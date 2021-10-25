@@ -309,7 +309,7 @@ main() {
           expectedOutput: withOverReactImport(/*language=dart*/ '''
               content() {
                 (Dom.div()
-                  // FIXME(generic_migrator) - className prop - manually verify
+                  // FIXME(generic_migrator) - className prop - manually verify (see doc for more details)
                   ..className = 'foo'
                 )();
               }
