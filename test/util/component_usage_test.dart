@@ -299,8 +299,9 @@ void main() {
                     source: 'Bar()',
                     imports: '',
                     componentName: 'Bar',
-                    factoryName: 'Bar',
                     unresolvedComponentName: 'Bar',
+                    factoryName: 'Bar',
+                    propsName: 'BarProps',
                     isDom: false,
                     isSvg: false,
                   ),
@@ -414,6 +415,35 @@ void main() {
             '''))!;
 
           expect(usage.factoryTopLevelVariableElement, isNull);
+        });
+      });
+
+      group('propsClassElement', () {
+        group('when the AST is resolved', () {
+          buildersToTest.forEach((name, builderSource) {
+            test('$name', () async {
+              final expressionNode = await parseInvocation(
+                '${builderSource.source}()',
+                imports: builderSource.imports,
+                isResolved: true,
+              );
+              final componentUsage = getComponentUsage(expressionNode);
+
+              expect(
+                componentUsage?.propsClassElement,
+                isA<ClassElement>()
+                    .having((c) => c.name, 'name', builderSource.propsName),
+              );
+            });
+          });
+        });
+
+        test('when the AST is not resolved', () async {
+          final usage = getComponentUsage(await parseInvocation(r'''
+                Foo()()
+            '''))!;
+
+          expect(usage.propsClassElement, isNull);
         });
       });
 
@@ -760,6 +790,8 @@ void checkComponentUsage(FluentComponentUsage? componentUsage,
             : builderSource.factoryName.split('.').last)),
   );
   expect(componentUsage.factoryOrBuilder, equals(componentUsage.factory));
+  expect(componentUsage.propsName,
+      componentUsage.isBuilderResolved ? builderSource.propsName : isNull);
   expect(componentUsage.node.toSource(), source);
   expect(
       componentUsage.componentName,
@@ -777,8 +809,9 @@ class BuilderTestCase {
   String source;
   String imports;
   String componentName;
-  String factoryName;
   String? unresolvedComponentName;
+  String factoryName;
+  String propsName;
   bool isDom;
   bool isSvg;
 
@@ -786,8 +819,9 @@ class BuilderTestCase {
     required this.source,
     required this.imports,
     required this.componentName,
-    required this.factoryName,
     required this.unresolvedComponentName,
+    required this.factoryName,
+    required this.propsName,
     required this.isDom,
     required this.isSvg,
   });
@@ -820,8 +854,9 @@ final buildersToTest = {
     source: 'Dom.h1()',
     imports: fooComponents,
     componentName: 'Dom.h1',
-    factoryName: 'h1',
     unresolvedComponentName: 'Dom.h1',
+    factoryName: 'h1',
+    propsName: 'DomProps',
     isDom: true,
     isSvg: false,
   ),
@@ -829,8 +864,9 @@ final buildersToTest = {
     source: 'Dom.circle()',
     imports: fooComponents,
     componentName: 'Dom.circle',
-    factoryName: 'circle',
     unresolvedComponentName: 'Dom.circle',
+    factoryName: 'circle',
+    propsName: 'SvgProps',
     isDom: true,
     isSvg: true,
   ),
@@ -839,8 +875,9 @@ final buildersToTest = {
     imports:
         'import \'package:over_react/over_react.dart\' as foo_bar;$fooComponents',
     componentName: 'Dom.h1',
-    factoryName: 'h1',
     unresolvedComponentName: 'foo_bar.Dom.h1',
+    factoryName: 'h1',
+    propsName: 'DomProps',
     isDom: true,
     isSvg: false,
   ),
@@ -848,8 +885,9 @@ final buildersToTest = {
     source: 'Foo()',
     imports: fooComponents,
     componentName: 'Foo',
-    factoryName: 'Foo',
     unresolvedComponentName: 'Foo',
+    factoryName: 'Foo',
+    propsName: 'FooProps',
     isDom: false,
     isSvg: false,
   ),
@@ -858,8 +896,9 @@ final buildersToTest = {
     imports:
         'import \'package:over_react/components.dart\' as foo_bar;$fooComponents',
     componentName: 'ErrorBoundary',
-    factoryName: 'foo_bar.ErrorBoundary',
     unresolvedComponentName: 'foo_bar.ErrorBoundary',
+    factoryName: 'foo_bar.ErrorBoundary',
+    propsName: 'ErrorBoundaryProps',
     isDom: false,
     isSvg: false,
   ),
@@ -867,8 +906,9 @@ final buildersToTest = {
     source: 'getFooBuilder()',
     imports: fooComponents,
     componentName: 'Foo',
-    factoryName: 'getFooBuilder',
     unresolvedComponentName: 'getFooBuilder',
+    factoryName: 'getFooBuilder',
+    propsName: 'FooProps',
     isDom: false,
     isSvg: false,
   ),
@@ -876,8 +916,9 @@ final buildersToTest = {
     source: 'getBuilderForFoo()',
     imports: fooComponents,
     componentName: 'Foo',
-    factoryName: 'getBuilderForFoo',
     unresolvedComponentName: 'getBuilderForFoo',
+    factoryName: 'getBuilderForFoo',
+    propsName: 'FooProps',
     isDom: false,
     isSvg: false,
   ),
