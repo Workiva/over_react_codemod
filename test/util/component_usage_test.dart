@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
@@ -418,7 +419,7 @@ void main() {
         });
       });
 
-      group('propsClassElement', () {
+      group('propsClassElement and propsType', () {
         group('when the AST is resolved', () {
           buildersToTest.forEach((name, builderSource) {
             test('$name', () async {
@@ -427,12 +428,19 @@ void main() {
                 imports: builderSource.imports,
                 isResolved: true,
               );
-              final componentUsage = getComponentUsage(expressionNode);
+              final componentUsage = getComponentUsage(expressionNode)!;
 
               expect(
-                componentUsage?.propsClassElement,
+                componentUsage.propsClassElement,
                 isA<ClassElement>()
                     .having((c) => c.name, 'name', builderSource.propsName),
+              );
+              expect(
+                componentUsage.propsType,
+                isA<DartType>().having(
+                    (t) => t.getDisplayString(withNullability: false),
+                    'display name',
+                    builderSource.propsName),
               );
             });
           });
@@ -444,6 +452,7 @@ void main() {
             '''))!;
 
           expect(usage.propsClassElement, isNull);
+          expect(usage.propsType, isNull);
         });
       });
 
