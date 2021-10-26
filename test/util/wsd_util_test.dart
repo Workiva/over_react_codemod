@@ -480,21 +480,19 @@ void main() {
             wsdComponentVersionForFactory(usage), WsdComponentVersion.notWsd);
       });
 
-      group('returns `notResolved` for usages that', () {
+      group('returns null for usages that', () {
         test('have non-factory builders', () async {
           final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
             content(UiProps builder) => builder();
         ''');
-          expect(wsdComponentVersionForFactory(usage),
-              WsdComponentVersion.notResolved);
+          expect(wsdComponentVersionForFactory(usage), isNull);
         });
 
         test('use non-top-level factories', () async {
           final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
             content(UiFactory factory) => factory()();
         ''');
-          expect(wsdComponentVersionForFactory(usage),
-              WsdComponentVersion.notResolved);
+          expect(wsdComponentVersionForFactory(usage), isNull);
         });
       });
     });

@@ -753,7 +753,9 @@ String? _getStringConstantValue(Expression expression) {
 }
 
 extension on Element {
-  bool get isExtensionMethod {
+  /// Whether the member represented by this element
+  /// is declared in a static extension.
+  bool get isExtensionMember {
     final self = this;
     return enclosingElement is ExtensionElement &&
         self is ExecutableElement &&
@@ -762,22 +764,28 @@ extension on Element {
 }
 
 extension on PropAccess {
+  /// Whether the static element of the property being accessed
+  /// is declared in a static extension.
   bool get isExtensionMethod {
     final staticElement = node.propertyName.staticElement;
-    return staticElement?.isExtensionMethod ?? false;
+    return staticElement?.isExtensionMember ?? false;
   }
 }
 
 extension on PropAssignment {
+  /// Whether the static element of the prop being set
+  /// is declared in a static extension.
   bool get isExtensionMethod {
     // For some reason staticElement on extensions is null, and we need to use
     // writeElement instead. TODO report this as an analyzer bug?
     final staticElement = node.staticElement ?? node.writeElement;
-    return staticElement?.isExtensionMethod ?? false;
+    return staticElement?.isExtensionMember ?? false;
   }
 }
 
 extension on MethodInvocation {
+  /// Whether this method element of this invocation
+  /// is declared in a static extension.
   bool get isExtensionMethod =>
-      methodName.staticElement?.isExtensionMethod ?? false;
+      methodName.staticElement?.isExtensionMember ?? false;
 }
