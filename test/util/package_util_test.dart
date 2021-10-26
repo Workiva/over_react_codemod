@@ -63,14 +63,16 @@ void main() {
     });
 
     group('ancestorsOfPath', () {
-      // Determine the expected ancestors of the current path from root.
       final ancestorsOfPathFromRoot = [];
-      var tempCurrentPathFromRoot = currentPathFromRoot;
-      while (tempCurrentPathFromRoot.contains('/')) {
-        ancestorsOfPathFromRoot.add(tempCurrentPathFromRoot);
-        tempCurrentPathFromRoot = tempCurrentPathFromRoot.substring(
-            0, tempCurrentPathFromRoot.lastIndexOf('/'));
-      }
+
+      setUpAll(() {
+        // Determine the expected ancestors of the current path from root.
+        var tempCurrentPathFromRoot = currentPathFromRoot;
+        while (tempCurrentPathFromRoot != '/') {
+          ancestorsOfPathFromRoot.add(tempCurrentPathFromRoot);
+          tempCurrentPathFromRoot = p.dirname(tempCurrentPathFromRoot);
+        }
+      });
 
       test('for a nested file', () {
         expect(
@@ -128,78 +130,83 @@ void main() {
         ];
       }
 
+      tearDown(() {
+        filesInTopLevelDir = null;
+        filesNotInTopLevelBuildDir = null;
+      });
+
       group('isWithinTopLevelDir', () {
         final testDirectory = 'some_directory';
 
         test('for files in top-level dir input', () {
           _initializeTestCases(testDirectory);
-          filesInTopLevelDir!.forEach(
-            (file) => expect(
+          for (final file in filesInTopLevelDir!) {
+            expect(
               isWithinTopLevelDir(file, testDirectory),
               isTrue,
               reason: '${file.path} is in a top-level $testDirectory directory',
-            ),
-          );
+            );
+          }
         });
 
         test('for files not in top-level dir input', () {
           _initializeTestCases(testDirectory);
-          filesNotInTopLevelBuildDir!.forEach(
-            (file) => expect(
+          for (final file in filesNotInTopLevelBuildDir!) {
+            expect(
               isWithinTopLevelDir(file, testDirectory),
               isFalse,
               reason:
                   '${file.path} is not in a top-level $testDirectory directory',
-            ),
-          );
+            );
+          }
         });
       });
 
       group('isNotWithinTopLevelBuildOutputDir', () {
         test('for files in top-level build dir', () {
           _initializeTestCases('build');
-          filesInTopLevelDir!.forEach(
-            (file) => expect(
+          for (final file in filesInTopLevelDir!) {
+            expect(
               isNotWithinTopLevelBuildOutputDir(file),
               isFalse,
               reason: '${file.path} is in a top-level build directory',
-            ),
-          );
+            );
+          }
         });
 
         test('for files not in top-level build dir', () {
           _initializeTestCases('build');
-          filesNotInTopLevelBuildDir!.forEach(
-            (file) => expect(
+          for (final file in filesNotInTopLevelBuildDir!) {
+            expect(
               isNotWithinTopLevelBuildOutputDir(file),
               isTrue,
               reason: '${file.path} is not in a top-level build directory',
-            ),
-          );
+            );
+          }
         });
       });
 
       group('isNotWithinTopLevelToolDir', () {
         test('for files in top-level tool dir', () {
           _initializeTestCases('tool');
-          filesInTopLevelDir!.forEach(
-            (file) => expect(
+          for (final file in filesInTopLevelDir!) {
+            expect(
               isNotWithinTopLevelToolDir(file),
               isFalse,
               reason: '${file.path} is in a top-level tool directory',
-            ),
-          );
+            );
+          }
         });
 
         test('for files not in top-level tool dir', () {
           _initializeTestCases('tool');
-          filesNotInTopLevelBuildDir!.forEach(
-            (file) => expect(
+          for (final file in filesNotInTopLevelBuildDir!) {
+            expect(
               isNotWithinTopLevelToolDir(file),
               isTrue,
               reason: '${file.path} is not in a top-level tool directory',
-            ),
-          );
+            );
+          }
         });
       });
     });
