@@ -1,6 +1,8 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
@@ -228,7 +230,7 @@ void main() {
     });
 
     group('identifyUsage', () {
-      group('returns correct FluentComponentUsage usage when', () {
+      group('returns correct usage when', () {
         buildersToTest.forEach((name, builderSource) {
           group('', () {
             final cascadeSource = '${builderSource.source}..id = \'123\'';
@@ -299,6 +301,8 @@ void main() {
                     imports: '',
                     componentName: 'Bar',
                     unresolvedComponentName: 'Bar',
+                    factoryName: 'Bar',
+                    propsName: 'BarProps',
                     isDom: false,
                     isSvg: false,
                   ),
@@ -383,6 +387,75 @@ void main() {
     });
 
     group('FluentComponentUsage', () {
+      group('factoryTopLevelVariableElement', () {
+        group('when the AST is resolved', () {
+          buildersToTest.forEach((name, builderSource) {
+            test('$name', () async {
+              final expressionNode = await parseInvocation(
+                '${builderSource.source}()',
+                imports: builderSource.imports,
+                isResolved: true,
+              );
+              final componentUsage = getComponentUsage(expressionNode);
+
+              expect(
+                componentUsage?.factoryTopLevelVariableElement,
+                // Only resolved component factories will have `factoryTopLevelVariableElement`
+                name.contains('component factory')
+                    ? isA<TopLevelVariableElement>().having((f) => f.name,
+                        'name', equals(builderSource.componentName))
+                    : isNull,
+              );
+            });
+          });
+        });
+
+        test('when the AST is not resolved', () async {
+          final usage = getComponentUsage(await parseInvocation(r'''
+                Foo()()
+            '''))!;
+
+          expect(usage.factoryTopLevelVariableElement, isNull);
+        });
+      });
+
+      group('propsClassElement and propsType', () {
+        group('when the AST is resolved', () {
+          buildersToTest.forEach((name, builderSource) {
+            test('$name', () async {
+              final expressionNode = await parseInvocation(
+                '${builderSource.source}()',
+                imports: builderSource.imports,
+                isResolved: true,
+              );
+              final componentUsage = getComponentUsage(expressionNode)!;
+
+              expect(
+                componentUsage.propsClassElement,
+                isA<ClassElement>()
+                    .having((c) => c.name, 'name', builderSource.propsName),
+              );
+              expect(
+                componentUsage.propsType,
+                isA<DartType>().having(
+                    (t) => t.getDisplayString(withNullability: false),
+                    'display name',
+                    builderSource.propsName),
+              );
+            });
+          });
+        });
+
+        test('when the AST is not resolved', () async {
+          final usage = getComponentUsage(await parseInvocation(r'''
+                Foo()()
+            '''))!;
+
+          expect(usage.propsClassElement, isNull);
+          expect(usage.propsType, isNull);
+        });
+      });
+
       group('cascaded helpers', () {
         late FluentComponentUsage usage;
 
@@ -715,6 +788,19 @@ void checkComponentUsage(FluentComponentUsage? componentUsage,
   expect(componentUsage, isNotNull);
   componentUsage!;
   expect(componentUsage.builder.toSource(), builderSource.source);
+  expect(
+    componentUsage.factory,
+    isA<Identifier>().having(
+        (f) => f.name,
+        'name',
+        equals(componentUsage.isBuilderResolved
+            ? builderSource.factoryName
+            // Remove the import namespace for unresolved AST.
+            : builderSource.factoryName.split('.').last)),
+  );
+  expect(componentUsage.factoryOrBuilder, equals(componentUsage.factory));
+  expect(componentUsage.propsName,
+      componentUsage.isBuilderResolved ? builderSource.propsName : isNull);
   expect(componentUsage.node.toSource(), source);
   expect(
       componentUsage.componentName,
@@ -733,6 +819,8 @@ class BuilderTestCase {
   String imports;
   String componentName;
   String? unresolvedComponentName;
+  String factoryName;
+  String propsName;
   bool isDom;
   bool isSvg;
 
@@ -741,6 +829,8 @@ class BuilderTestCase {
     required this.imports,
     required this.componentName,
     required this.unresolvedComponentName,
+    required this.factoryName,
+    required this.propsName,
     required this.isDom,
     required this.isSvg,
   });
@@ -774,6 +864,8 @@ final buildersToTest = {
     imports: fooComponents,
     componentName: 'Dom.h1',
     unresolvedComponentName: 'Dom.h1',
+    factoryName: 'h1',
+    propsName: 'DomProps',
     isDom: true,
     isSvg: false,
   ),
@@ -782,6 +874,8 @@ final buildersToTest = {
     imports: fooComponents,
     componentName: 'Dom.circle',
     unresolvedComponentName: 'Dom.circle',
+    factoryName: 'circle',
+    propsName: 'SvgProps',
     isDom: true,
     isSvg: true,
   ),
@@ -791,6 +885,8 @@ final buildersToTest = {
         'import \'package:over_react/over_react.dart\' as foo_bar;$fooComponents',
     componentName: 'Dom.h1',
     unresolvedComponentName: 'foo_bar.Dom.h1',
+    factoryName: 'h1',
+    propsName: 'DomProps',
     isDom: true,
     isSvg: false,
   ),
@@ -799,6 +895,8 @@ final buildersToTest = {
     imports: fooComponents,
     componentName: 'Foo',
     unresolvedComponentName: 'Foo',
+    factoryName: 'Foo',
+    propsName: 'FooProps',
     isDom: false,
     isSvg: false,
   ),
@@ -808,6 +906,8 @@ final buildersToTest = {
         'import \'package:over_react/components.dart\' as foo_bar;$fooComponents',
     componentName: 'ErrorBoundary',
     unresolvedComponentName: 'foo_bar.ErrorBoundary',
+    factoryName: 'foo_bar.ErrorBoundary',
+    propsName: 'ErrorBoundaryProps',
     isDom: false,
     isSvg: false,
   ),
@@ -816,6 +916,8 @@ final buildersToTest = {
     imports: fooComponents,
     componentName: 'Foo',
     unresolvedComponentName: 'getFooBuilder',
+    factoryName: 'getFooBuilder',
+    propsName: 'FooProps',
     isDom: false,
     isSvg: false,
   ),
@@ -824,6 +926,8 @@ final buildersToTest = {
     imports: fooComponents,
     componentName: 'Foo',
     unresolvedComponentName: 'getBuilderForFoo',
+    factoryName: 'getBuilderForFoo',
+    propsName: 'FooProps',
     isDom: false,
     isSvg: false,
   ),

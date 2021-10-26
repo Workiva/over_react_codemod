@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@TestOn('vm')
-library codemod.test.ast_visiting_suggestor_test;
-
 import 'package:codemod/codemod.dart';
 import 'package:codemod/test.dart';
 import 'package:over_react_codemod/src/util/class_suggestor.dart';
