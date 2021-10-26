@@ -1,6 +1,14 @@
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/util.dart' show IterableGroupBy;
 
+/// Mixin that implements the [Suggestor] interface and makes it easier to write
+/// class-based suggestors.
+///
+/// Similar to [AstVisitingSuggestor], except it:
+///
+/// - does not necessarily operate on AST
+/// - does not get AST for a file by default
+/// - allows duplicate patches
 mixin ClassSuggestor {
   // This should be a List and not a Set to avoid patches in the same location getting mysteriously dropped.
   final _patches = <Patch>[];
@@ -77,6 +85,7 @@ mixin ClassSuggestor {
   ///
   bool get sortParenInsertionPatches => true;
 
+  /// Override with custom patch generation logic.
   Future<void> generatePatches();
 
   /// Whether the file represented by [context] should be parsed and visited.

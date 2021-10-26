@@ -64,74 +64,6 @@ void main() {
               });
             });
           });
-
-          group('components with no children:', () {
-            buildersToTest.forEach((name, builderSource) {
-              test('$name', () async {
-                var source = '${builderSource.source}()';
-
-                var expressionNode = await parseInvocation(source,
-                    imports: builderSource.imports, isResolved: isResolved);
-                var componentUsage = getComponentUsage(expressionNode);
-
-                checkComponentUsage(componentUsage, builderSource, source);
-
-                expect(componentUsage!.childArgumentCount, 0);
-                expect(componentUsage.hasVariadicChildren, false);
-              });
-            });
-          });
-
-          group('components with a single child:', () {
-            buildersToTest.forEach((name, builderSource) {
-              test('$name', () async {
-                var source = '${builderSource.source}("foo")';
-
-                var expressionNode = await parseInvocation(source,
-                    imports: builderSource.imports, isResolved: isResolved);
-                var componentUsage = getComponentUsage(expressionNode);
-
-                checkComponentUsage(componentUsage, builderSource, source);
-
-                expect(componentUsage!.childArgumentCount, 1);
-                expect(componentUsage.hasVariadicChildren, true);
-              });
-            });
-          });
-
-          group('components with more than one child:', () {
-            buildersToTest.forEach((name, builderSource) {
-              test('$name', () async {
-                var source = '${builderSource.source}("foo", "bar")';
-
-                var expressionNode = await parseInvocation(source,
-                    imports: builderSource.imports, isResolved: isResolved);
-                var componentUsage = getComponentUsage(expressionNode);
-
-                checkComponentUsage(componentUsage, builderSource, source);
-
-                expect(componentUsage!.childArgumentCount, 2);
-                expect(componentUsage.hasVariadicChildren, true);
-              });
-            });
-          });
-
-          group('components with list literal children:', () {
-            buildersToTest.forEach((name, builderSource) {
-              test('$name', () async {
-                var source = '${builderSource.source}(["foo", "bar"])';
-
-                var expressionNode = await parseInvocation(source,
-                    imports: builderSource.imports, isResolved: isResolved);
-                var componentUsage = getComponentUsage(expressionNode);
-
-                checkComponentUsage(componentUsage, builderSource, source);
-
-                expect(componentUsage!.childArgumentCount, 1);
-                expect(componentUsage.hasVariadicChildren, false);
-              });
-            });
-          });
         });
 
         test(
@@ -436,7 +368,7 @@ void main() {
                     .having((c) => c.name, 'name', builderSource.propsName),
               );
               expect(
-                componentUsage.propsType,
+                componentUsage.builderType,
                 isA<DartType>().having(
                     (t) => t.getDisplayString(withNullability: false),
                     'display name',
@@ -452,7 +384,7 @@ void main() {
             '''))!;
 
           expect(usage.propsClassElement, isNull);
-          expect(usage.propsType, isNull);
+          expect(usage.builderType, isNull);
         });
       });
 
@@ -496,10 +428,10 @@ void main() {
 
           test('cascadedGetters', () {
             expect(usage.cascadedGetters, [
-              isA<PropAccess>().havingStringName('getter1'),
-              isA<PropAccess>().havingStringName('prefixedGetter1'),
-              isA<PropAccess>().havingStringName('getter2'),
-              isA<PropAccess>().havingStringName('prefixedGetter2'),
+              isA<PropRead>().havingStringName('getter1'),
+              isA<PropRead>().havingStringName('prefixedGetter1'),
+              isA<PropRead>().havingStringName('getter2'),
+              isA<PropRead>().havingStringName('prefixedGetter2'),
             ]);
           });
 
@@ -528,9 +460,9 @@ void main() {
           expect(usage.cascadedMembers, [
             // "1"s
             isA<PropAssignment>().havingStringName('setter1'),
-            isA<PropAccess>().havingStringName('getter1'),
+            isA<PropRead>().havingStringName('getter1'),
             isA<PropAssignment>().havingStringName('prefixedSetter1'),
-            isA<PropAccess>().havingStringName('prefixedGetter1'),
+            isA<PropRead>().havingStringName('prefixedGetter1'),
             isA<IndexPropAssignment>()
                 .havingIndexValueSource('"indexAssignment1"'),
             isA<BuilderMemberAccess>().havingSource('..["indexRead1"]'),
@@ -538,9 +470,9 @@ void main() {
                 .havingStringName('methodInvocation1'),
             // "2"s
             isA<PropAssignment>().havingStringName('setter2'),
-            isA<PropAccess>().havingStringName('getter2'),
+            isA<PropRead>().havingStringName('getter2'),
             isA<PropAssignment>().havingStringName('prefixedSetter2'),
-            isA<PropAccess>().havingStringName('prefixedGetter2'),
+            isA<PropRead>().havingStringName('prefixedGetter2'),
             isA<IndexPropAssignment>()
                 .havingIndexValueSource('"indexAssignment2"'),
             isA<BuilderMemberAccess>().havingSource('..["indexRead2"]'),
@@ -757,7 +689,7 @@ extension<T extends PropAssignment> on TypeMatcher<T> {
       having((p) => p.name.name, 'name.name', matcher);
 }
 
-extension<T extends PropAccess> on TypeMatcher<T> {
+extension<T extends PropRead> on TypeMatcher<T> {
   TypeMatcher<T> havingStringName(dynamic matcher) =>
       having((p) => p.name.name, 'name.name', matcher);
 }
@@ -798,7 +730,6 @@ void checkComponentUsage(FluentComponentUsage? componentUsage,
             // Remove the import namespace for unresolved AST.
             : builderSource.factoryName.split('.').last)),
   );
-  expect(componentUsage.factoryOrBuilder, equals(componentUsage.factory));
   expect(componentUsage.propsName,
       componentUsage.isBuilderResolved ? builderSource.propsName : isNull);
   expect(componentUsage.node.toSource(), source);

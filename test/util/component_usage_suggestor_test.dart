@@ -10,8 +10,6 @@ final sharedContext = SharedAnalysisContext.overReact;
 
 main() {
   group('ComponentUsageMigrator', () {
-    group('identifies web_skin_dart component usages', () {});
-
     group('throws when a component usage is not resolved', () {
       test('', () async {
         const unresolvedUsages = [

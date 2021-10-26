@@ -236,10 +236,10 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       }
 
       // Ignore primitive children since we know they can't be components.
-      if (child.childType == SimpleChildType.primitive) return;
+      if (child.typeCategory == ReactNodeTypeCategory.primitive) return;
 
       // Flag for manual verification if children are of unknown types.
-      if (child.childType != SimpleChildType.reactElement) {
+      if (child.typeCategory != ReactNodeTypeCategory.reactElement) {
         flagChild();
         return;
       }

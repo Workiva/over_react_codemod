@@ -138,7 +138,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     for (final usage in allUsages) {
       if (_isIgnored(usage, unit)) {
         _log.finest(context.sourceFile
-            .spanFor(usage.factoryOrBuilder)
+            .spanFor(usage.factory ?? usage.builder)
             .message('Skipping ignored usage'));
         continue;
       }
@@ -763,7 +763,7 @@ extension on Element {
   }
 }
 
-extension on PropAccess {
+extension on PropRead {
   /// Whether the static element of the property being accessed
   /// is declared in a static extension.
   bool get isExtensionMethod {

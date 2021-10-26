@@ -26,10 +26,21 @@ class FluentComponentUsage {
   /// Usually a [MethodInvocation] or [Identifier].
   final Expression builder;
 
+  /// The factory of this usage, or `null` if it does not have one.
+  ///
+  /// E.g., `Dom.div` for `Dom.div()()`, `Button` for `Button()()`,
+  /// `null` for `builder()`
   Expression? get factory => builder.tryCast<InvocationExpression>()?.function;
 
-  Expression get factoryOrBuilder => factory ?? builder;
+  /// Whether this usage's builder and all descendant expressions (including the
+  /// factory, if it exists) have fully resolved static information available.
+  bool get isBuilderResolved => isFullyResolved(builder);
 
+  /// The top-level variable element for this usage's factory, or `null` if either:
+  ///
+  /// - the AST for this usage is not resolved
+  /// - there is no factory
+  /// - the factory's static element is either a reference to a non-top-level variable or another expression
   TopLevelVariableElement? get factoryTopLevelVariableElement {
     final factory = this.factory;
     if (factory is Identifier) {
@@ -48,18 +59,30 @@ class FluentComponentUsage {
     return null;
   }
 
-  DartType? get propsType {
+  /// The static type of this usage's builder, or `null` if this usage is not fully resolved.
+  DartType? get builderType {
     if (isFullyResolved(builder)) {
       return builder.staticType;
     }
     return null;
   }
 
+  /// The class element for the builder's props class (or, for parameterized types
+  /// the bound of that type), or `null` if this usage is not fully resolved.
   ClassElement? get propsClassElement =>
-      propsType?.typeOrBounds.tryCast<InterfaceType>()?.element;
+      builderType?.typeOrBounds.tryCast<InterfaceType>()?.element;
 
+  /// The name of the builder's props class (or, for parameterized types
+  /// the bound of that type), or `null` if this usage is not fully resolved.
   String? get propsName => propsClassElement?.name;
 
+  /// The name of the component, derived from either:
+  ///
+  /// - the static top-level factory variable (if applicable)
+  /// - the name of the builder's props class (if resolved)
+  /// - the unresolved source of the factory
+  ///
+  /// or `null` if this usage does not have a factory.
   String? get componentName {
     final factoryTopLevelVariableElement = this.factoryTopLevelVariableElement;
     if (factoryTopLevelVariableElement != null) {
@@ -88,20 +111,13 @@ class FluentComponentUsage {
     return _getUnresolvedComponentName(builder);
   }
 
-  bool get isBuilderResolved => isFullyResolved(builder);
-
+  /// Whether this usage is a DOM/SVG component.
   bool get isDom => const {'DomProps', 'SvgProps'}.contains(propsName);
 
+  /// Whether this usage is an SVG component.
   bool get isSvg => const {'SvgProps'}.contains(propsName);
 
-  /// Whether the invocation contains one or more children passed as arguments instead of a list.
-  bool get hasVariadicChildren =>
-      node.argumentList.arguments.isNotEmpty &&
-      node.argumentList.arguments.first is! ListLiteral;
-
-  /// The number of child arguments passed into the invocation.
-  int get childArgumentCount => node.argumentList.arguments.length;
-
+  /// The children of this usage.
   Iterable<ComponentChild> get children sync* {
     final arguments = node.argumentList.arguments;
 
@@ -128,28 +144,40 @@ class FluentComponentUsage {
   List<Expression> get cascadeSections =>
       cascadeExpression?.cascadeSections ?? const [];
 
-  /// Returns an iterable of all cascaded prop assignments in this usage.
+  /// The prop assignments cascaded on this usage's builder.
   ///
-  /// See also: [cascadedMethodInvocations]
+  /// See also: other `cascaded`* methods in this class.
   Iterable<PropAssignment> get cascadedProps => cascadeSections
       .whereType<AssignmentExpression>()
       .where((assignment) => assignment.leftHandSide is PropertyAccess)
       .map((assignment) => PropAssignment(assignment));
 
-  Iterable<PropAccess> get cascadedGetters =>
-      cascadeSections.whereType<PropertyAccess>().map((p) => PropAccess(p));
+  /// The prop reads cascaded on this usage's builder.
+  ///
+  /// See also: other `cascaded`* methods in this class.
+  Iterable<PropRead> get cascadedGetters =>
+      cascadeSections.whereType<PropertyAccess>().map((p) => PropRead(p));
 
+  /// The index prop assignments cascaded on this usage's builder.
+  ///
+  /// See also: other `cascaded`* methods in this class.
   Iterable<IndexPropAssignment> get cascadedIndexAssignments => cascadeSections
       .whereType<AssignmentExpression>()
       .where((assignment) => assignment.leftHandSide is IndexExpression)
       .map((assignment) => IndexPropAssignment(assignment));
 
-  /// Returns an iterable of all cascaded method calls in this usage.
+  /// The method calls cascaded on this usage's builder.
+  ///
+  /// See also: other `cascaded`* methods in this class.
   Iterable<BuilderMethodInvocation> get cascadedMethodInvocations =>
       cascadeSections
           .whereType<MethodInvocation>()
           .map((methodInvocation) => BuilderMethodInvocation(methodInvocation));
 
+  /// All the cascades on this usage's builder, each wrapped in one of the
+  /// [BuilderMemberAccess] subtypes.
+  ///
+  /// See also: other `cascaded`* methods in this class.
   List<BuilderMemberAccess> get cascadedMembers {
     final allHandledMembers = [
       ...cascadedProps,
@@ -172,10 +200,28 @@ class FluentComponentUsage {
   }
 }
 
+/// A child of a component usage.
+///
+/// Will be either an instance of:
+/// - [ExpressionComponentChild]
+/// - [CollectionElementComponentChild] (more of an edge case)
 abstract class ComponentChild {
+  /// The root node of the child.
   AstNode get node;
 }
 
+/// A child declared as a [CollectionElement] within a single list literal argument
+/// to a component usage.
+///
+/// Example:
+/// ```dart
+/// Dom.div()([
+///   // ExpressionComponentChild
+///   'foo',
+///   // CollectionElementComponentChild
+///   if (condition) 'bar',
+/// ])
+/// ```
 class CollectionElementComponentChild implements ComponentChild {
   @override
   final CollectionElement node;
@@ -183,53 +229,117 @@ class CollectionElementComponentChild implements ComponentChild {
   CollectionElementComponentChild(this.node);
 }
 
+/// A child declared as an expression either as a variadic argument to an invocation,
+/// or an item within a single list literal argument to a component usage.
+///
+/// Example:
+/// ```dart
+/// Dom.div()([
+///   // ExpressionComponentChild isVariadic=false
+///   'foo',
+///   // CollectionElementComponentChild
+///   if (condition) 'bar',
+/// ]);
+///
+/// Dom.div()(
+///   // ExpressionComponentChild isVariadic=true
+///   'foo',
+///   // ExpressionComponentChild isVariadic=true
+///   'bar',
+/// );
+/// ```
 class ExpressionComponentChild implements ComponentChild {
   @override
   final Expression node;
 
+  /// Whether this child is passed in as a direct argument to a component
+  /// usage invocation, as opposed to within a single list argument.
+  ///
+  /// Example:
+  /// ```dart
+  /// Dom.div()([
+  ///   // isVariadic=false
+  ///   'foo',
+  ///   // isVariadic=false
+  ///   'bar',
+  /// ]);
+  ///
+  /// Dom.div()(
+  ///   // isVariadic=true
+  ///   'foo',
+  ///   // isVariadic=true
+  ///   'bar',
+  /// );
+  /// ```
   final bool isVariadic;
 
-  SimpleChildType get childType {
-    final staticType = node.staticType;
-    if (staticType == null) {
-      return SimpleChildType.other;
-    }
-
-    if (staticType.isReactElement) {
-      return SimpleChildType.reactElement;
-    }
-
-    if (staticType.isDartCoreString ||
-        staticType.isDartCoreBool ||
-        staticType.isDartCoreNum ||
-        staticType.isDartCoreInt ||
-        staticType.isDartCoreDouble ||
-        staticType.isDartCoreNull) {
-      return SimpleChildType.primitive;
-    }
-
-    return SimpleChildType.other;
-  }
-
   ExpressionComponentChild(this.node, {required this.isVariadic});
+
+  /// The type category for this child based on its static type.
+  ReactNodeTypeCategory get typeCategory => typeCategoryForReactNode(node);
 }
 
-enum SimpleChildType {
+/// Returns the type category for an expression based on its static type.
+ReactNodeTypeCategory typeCategoryForReactNode(Expression node) {
+  final staticType = node.staticType;
+  if (staticType == null) {
+    return ReactNodeTypeCategory.unknown;
+  }
+
+  if (staticType.isReactElement) {
+    return ReactNodeTypeCategory.reactElement;
+  }
+
+  if (staticType.isDartCoreString ||
+      staticType.isDartCoreBool ||
+      staticType.isDartCoreNum ||
+      staticType.isDartCoreInt ||
+      staticType.isDartCoreDouble ||
+      staticType.isDartCoreNull) {
+    return ReactNodeTypeCategory.primitive;
+  }
+
+  return ReactNodeTypeCategory.other;
+}
+
+/// A category of types that make up `ReactNode` (the union type of values
+/// that can be returned from `render` in React components, passed as children,
+/// or passed into top-level `react_dom.render` calls).
+enum ReactNodeTypeCategory {
+  /// The static type is not available.
+  unknown,
+
+  /// The type is a primitive Dart type: string, boolean, number, or null.
   primitive,
+
+  /// The type is `ReactElement`.
   reactElement,
+
+  /// The type is some other type.
   other,
 }
 
+/// An access of a member on a [FluentComponentUsage] builder,
+/// typically cascaded.
+///
+/// Will be one of the following subtypes:
+/// - [PropAssignment]
+/// - [IndexPropAssignment]
+/// - [PropRead]
+/// - [BuilderMethodInvocation]
+/// - [OtherBuilderMemberAccess]
 abstract class BuilderMemberAccess {
   Expression get node;
 
+  /// Whether this access is part of a cascade on the builder.
   bool get isInCascade => parentCascade != null;
 
+  /// The parent cascade on the builder, if it exists.
   CascadeExpression? get parentCascade => node.parent.tryCast();
 }
 
-/// An access of a builder member whose expression type is not explicitly handled
-/// by another BuilderMemberAccess subtype.
+/// An access of a [FluentComponentUsage] builder member whose expression type
+/// is not explicitly handled by another BuilderMemberAccess subtype.
 class OtherBuilderMemberAccess extends BuilderMemberAccess {
   @override
   final Expression node;
@@ -237,24 +347,29 @@ class OtherBuilderMemberAccess extends BuilderMemberAccess {
   OtherBuilderMemberAccess(this.node);
 }
 
-class PropAccess extends BuilderMemberAccess {
+/// A read of a property (usually a prop) on a [FluentComponentUsage] builder.
+class PropRead extends BuilderMemberAccess {
   @override
   final PropertyAccess node;
 
-  PropAccess(this.node);
+  PropRead(this.node);
 
+  /// The name of the property being read.
   Identifier get name => node.propertyName;
 }
 
+/// A method invocation on a [FluentComponentUsage] builder.
 class BuilderMethodInvocation extends BuilderMemberAccess {
   @override
   final MethodInvocation node;
 
   BuilderMethodInvocation(this.node);
 
+  /// The name of the method being invoked.
   Identifier get methodName => node.methodName;
 }
 
+/// An assignment of a property (usually a prop) on a [FluentComponentUsage] builder.
 abstract class PropAssignment extends BuilderMemberAccess {
   factory PropAssignment(AssignmentExpression node) {
     if (node.leftHandSide is PropertyAccess) {
@@ -291,6 +406,7 @@ abstract class PropAssignment extends BuilderMemberAccess {
   /// See also: [name], [target]
   SimpleIdentifier? get prefix;
 
+  /// Whether the prop assignment is prefixed.
   bool get isPrefixed => prefix != null;
 
   /// The object on which a property is being assigned.
@@ -338,6 +454,9 @@ class _PropertyAccessPropAssignment extends PropAssignment {
       leftHandSide.target?.tryCast<PropertyAccess>()?.propertyName;
 }
 
+/// An assignment of a property using `operator[]=` on a [FluentComponentUsage] builder.
+///
+/// For example, `..['data-foo'] = 'bar'`
 class IndexPropAssignment extends BuilderMemberAccess {
   /// The cascaded assignment expression that backs this assignment.
   @override
@@ -356,6 +475,7 @@ class IndexPropAssignment extends BuilderMemberAccess {
   /// The property access representing the left hand side of this assignment.
   IndexExpression get leftHandSide => node.leftHandSide as IndexExpression;
 
+  /// The index being assigned to.
   Expression get index => leftHandSide.index;
 
   /// The expression for the right hand side of this assignment.
@@ -371,12 +491,12 @@ class IndexPropAssignment extends BuilderMemberAccess {
 bool isFullyResolved(Expression expression) {
   if (expression.staticType == null) return false;
 
-  final visitor = ResolvedExpressionVisitor();
+  final visitor = _ResolvedExpressionVisitor();
   expression.accept(visitor);
   return visitor.isFullyResolved;
 }
 
-class ResolvedExpressionVisitor extends GeneralizingAstVisitor<void> {
+class _ResolvedExpressionVisitor extends GeneralizingAstVisitor<void> {
   var isFullyResolved = true;
 
   @override
