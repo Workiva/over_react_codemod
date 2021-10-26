@@ -143,9 +143,9 @@ void main() {
             '''),
             expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
                 content() {
-                  (mui.Button()..type = 'reset')();
-                  (mui.Button()..type = 'reset')();
-                  (mui.Button()..type = 'reset')();
+                  (mui.Button()..dom.type = 'reset')();
+                  (mui.Button()..dom.type = 'reset')();
+                  (mui.Button()..dom.type = 'reset')();
                 }
             '''),
           );
@@ -166,7 +166,7 @@ void main() {
                   (mui.Button()
                     // `type` should go after all existing cascades
                     ..id = 'id'
-                    ..type = 'reset'
+                    ..dom.type = 'reset'
                   )();
                 }
             '''),
@@ -190,15 +190,15 @@ void main() {
                 content() {
                   (mui.Button()
                     ..color = mui.ButtonColor.primary
-                    ..type = 'submit'
+                    ..dom.type = 'submit'
                   )();
                   (mui.Button()
                     ..color = mui.ButtonColor.primary
-                    ..type = 'submit'
+                    ..dom.type = 'submit'
                   )();
                   (mui.Button()
                     ..color = mui.ButtonColor.primary
-                    ..type = 'submit'
+                    ..dom.type = 'submit'
                   )();
                 }
             '''),
@@ -216,7 +216,7 @@ void main() {
                 content() {
                   (mui.Button()
                     ..color = mui.ButtonColor.primary
-                    ..type = 'submit'
+                    ..dom.type = 'submit'
                   )();
                 }
             '''),
@@ -239,7 +239,7 @@ void main() {
                     ..color = mui.ButtonColor.primary
                     // `color` should go before existing cascades, and `type` afterwards
                     ..id = 'id'
-                    ..type = 'submit'
+                    ..dom.type = 'submit'
                   )();
                 }
             '''),

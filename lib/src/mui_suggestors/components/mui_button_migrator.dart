@@ -66,7 +66,7 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       // factory it's really common to not have any parens/props.
 
       final colorPatch = '..color = $muiPrimaryColor';
-      const typePatch = "..type = 'submit'";
+      const typePatch = "..dom.type = 'submit'";
 
       if (usage.node.function is! ParenthesizedExpression) {
         yieldAddPropPatch(usage, colorPatch + typePatch);
@@ -78,7 +78,7 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       propsClassHasHitareaMixin =
           wsdComponentVersionForFactory(usage) != WsdComponentVersion.v1;
     } else if (usesWsdFactory(usage, 'FormResetInput')) {
-      yieldAddPropPatch(usage, "..type = 'reset'",
+      yieldAddPropPatch(usage, "..dom.type = 'reset'",
           placement: NewPropPlacement.end);
 
       propsClassHasHitareaMixin =
