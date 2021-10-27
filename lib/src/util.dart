@@ -420,6 +420,17 @@ bool hasParseErrors(String sourceText) {
   return parsed.errors.isNotEmpty;
 }
 
+extension AstNodeAncestors on AstNode {
+  /// A lazy iterable of all ancestors of this node.
+  Iterable<AstNode> get ancestors sync* {
+    final parent = this.parent;
+    if (parent != null) {
+      yield parent;
+      yield* parent.ancestors;
+    }
+  }
+}
+
 /// Returns a lazy iterable of all descendants of [node], in breadth-first order.
 Iterable<AstNode> allDescendants(AstNode node) sync* {
   final nodesQueue = Queue<AstNode>()..add(node);

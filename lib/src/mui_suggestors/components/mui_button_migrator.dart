@@ -369,16 +369,6 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
   }
 }
 
-extension on AstNode {
-  Iterable<AstNode> get ancestors sync* {
-    final parent = this.parent;
-    if (parent != null) {
-      yield parent;
-      yield* parent.ancestors;
-    }
-  }
-}
-
 // fixme document decisions / guidelines
 // - Don't operate on unhandled cases; either they'll result in an analysis error or be fine (e.g., onClick)
 // - When in doubt, flag for manual verification; even if you were able to migrate
