@@ -139,11 +139,11 @@ void main() {
             '''),
             expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
                 content() {
-                  (mui.ButtonGroup()..size = mui.ButtonSize.xxsmall)();
-                  (mui.ButtonGroup()..size = mui.ButtonSize.xsmall)();
-                  (mui.ButtonGroup()..size = mui.ButtonSize.small)();
-                  (mui.ButtonGroup()..size = mui.ButtonSize.medium)();
-                  (mui.ButtonGroup()..size = mui.ButtonSize.large)();
+                  (mui.ButtonGroup()..size = mui.ButtonGroupSize.xxsmall)();
+                  (mui.ButtonGroup()..size = mui.ButtonGroupSize.xsmall)();
+                  (mui.ButtonGroup()..size = mui.ButtonGroupSize.small)();
+                  (mui.ButtonGroup()..size = mui.ButtonGroupSize.medium)();
+                  (mui.ButtonGroup()..size = mui.ButtonGroupSize.large)();
                 }
             '''),
           );

@@ -490,30 +490,75 @@ void main() {
         );
       });
 
-      group('always flagging for manual migration:', () {
-        void sharedTest(String propName, {required String rhs}) async {
-          test(propName, () async {
-            await testSuggestor(
-              input: withOverReactAndWsdImports('''
-                  content() {
-                    (Button()..$propName = $rhs)();
-                  }
-              '''),
-              expectedOutput: withOverReactAndWsdImports('''
-                  content() {
-                    (mui.Button()
-                      // FIXME(mui_migration) - $propName prop - manually migrate
-                      ..$propName = $rhs
-                    )();
-                  }
-              '''),
-            );
-          });
-        }
+      test('type', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (Button()..type = 'foo')();
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                (mui.Button()..dom.type = 'foo')();
+              }
+          '''),
+        );
+      });
 
-        sharedTest('allowedHandlersWhenDisabled', rhs: '[]');
-        sharedTest('isCallout', rhs: 'true');
-        sharedTest('pullRight', rhs: 'true');
+      group('always flagging for manual migration:', () {
+        test('allowedHandlersWhenDisabled', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Button()..allowedHandlersWhenDisabled = [])();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Button()
+                    // FIXME(mui_migration) - allowedHandlersWhenDisabled prop - manually migrate
+                    ..allowedHandlersWhenDisabled = []
+                  )();
+                }
+            '''),
+          );
+        });
+
+        test('isCallout', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Button()..isCallout = true)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Button()
+                    // FIXME(mui_migration) - isCallout prop - this styling can be recreated using `..sx = const {'textTransform': 'uppercase', 'fontWeight': 'bold'}`
+                    ..isCallout = true
+                  )();
+                }
+            '''),
+          );
+        });
+
+        test('pullRight', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Button()..pullRight = true)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Button()
+                    // FIXME(mui_migration) - pullRight prop - this styling can be recreated using `..sx = const {'float': 'right'}` (or by adjusting the parent layout)
+                    ..pullRight = true
+                  )();
+                }
+            '''),
+          );
+        });
       });
     });
 

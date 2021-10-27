@@ -96,6 +96,7 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       if (propsClassHasHitareaMixin) ...{
         'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
         'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
+        'type': (p) => yieldPropPatch(p, newName: 'dom.type'),
       },
 
       // Related to disabled state
@@ -112,9 +113,15 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       'size': migrateButtonSize,
 
       // Props that always need manual intervention.
-      // TODO for these point to migration guide or hint at what to do
-      'isCallout': yieldPropManualMigratePatch,
-      'pullRight': yieldPropManualMigratePatch,
+      'isCallout': (p) => yieldPropFixmePatch(
+          p,
+          "this styling can be recreated using"
+          " `..sx = const {'textTransform': 'uppercase', 'fontWeight': 'bold'}`"),
+      'pullRight': (p) => yieldPropFixmePatch(
+          p,
+          "this styling can be recreated using"
+          " `..sx = const {'float': 'right'}`"
+          " (or by adjusting the parent layout)"),
     });
 
     // Only attempt to migrate these props if they're declared on the props class

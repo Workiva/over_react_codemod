@@ -45,11 +45,11 @@ class MuiButtonGroupMigrator extends ComponentUsageMigrator with MuiMigrator {
 
   void migrateSize(PropAssignment prop) {
     final sizeFromWsdSize = mapWsdConstant(prop.rightHandSide, const {
-      'ButtonGroupSize.XXSMALL': '$muiNs.ButtonSize.xxsmall',
-      'ButtonGroupSize.XSMALL': '$muiNs.ButtonSize.xsmall',
-      'ButtonGroupSize.SMALL': '$muiNs.ButtonSize.small',
-      'ButtonGroupSize.DEFAULT': '$muiNs.ButtonSize.medium',
-      'ButtonGroupSize.LARGE': '$muiNs.ButtonSize.large',
+      'ButtonGroupSize.XXSMALL': '$muiNs.ButtonGroupSize.xxsmall',
+      'ButtonGroupSize.XSMALL': '$muiNs.ButtonGroupSize.xsmall',
+      'ButtonGroupSize.SMALL': '$muiNs.ButtonGroupSize.small',
+      'ButtonGroupSize.DEFAULT': '$muiNs.ButtonGroupSize.medium',
+      'ButtonGroupSize.LARGE': '$muiNs.ButtonGroupSize.large',
     });
     if (sizeFromWsdSize != null) {
       yieldPropPatch(prop, newRhs: sizeFromWsdSize);
