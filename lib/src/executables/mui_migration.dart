@@ -122,7 +122,7 @@ void main(List<String> args) async {
   // We could set up logging too, but we can't disable codemod's log handler,
   // so we'd have to disable our own logging before calling into codemod.
   // While hackier, this is easier.
-  // FIXME each time we call runInteractiveCodemod, all subsequent logs are forwarded to the console an extra time. Update codemod package to prevent this (maybe a flag to disable automatic global logging?)
+  // TODO each time we call runInteractiveCodemod, all subsequent logs are forwarded to the console an extra time. Update codemod package to prevent this (maybe a flag to disable automatic global logging?)
   exitCode = await runInteractiveCodemod(
     [],
     (_) async* {},
@@ -180,13 +180,13 @@ void main(List<String> args) async {
 
   await pubGetForAllPackageRoots(dartPaths);
   exitCode = await runCodemodSequences(dartPaths, [
-    [
-      // It should generally be safe to aggregate these since each component usage
-      // should only be handled by a single migrator, and shouldn't depend on the
-      // output of previous migrators.
-      // fixme is there any benefit to aggregating these?
-      aggregate(migratorsToRun),
-    ],
+    // Aggregate these so we don't have to spin up a new analysis context
+    // for each codemod.
+    //
+    // It should generally be safe to aggregate these since each component usage
+    // should only be handled by a single migrator, and shouldn't depend on the
+    // output of previous migrators.
+    [aggregate(migratorsToRun)],
     [muiImporter],
     [unusedWsdImportRemover],
   ]);

@@ -461,20 +461,6 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
         lineComment('$fixmePrefix $message'), usage.node.offset);
   }
 
-  // fixme clean up comment
-  // Unhandled cases need to be manually addressed; flag them as such.
-  //
-  // While we could handle more cases in the codemod (e.g., ternaries)
-  // it's not worth the additional effort since they're so uncommon.
-  //
-  // And while, for some cases, it will be be obvious that they need to be manually addressed
-  // since they'll result in analysis errors (e.g., variables, method calls that reference a ButtonSkin),
-  // some cases (e.g., expressions with type `dynamic`) will NOT cause analysis errors
-  // and will need to be checked manually.
-  void yieldPropManualVerificationPatch(PropAssignment prop) {
-    yieldPropFixmePatch(prop, 'manually verify');
-  }
-
   void yieldPropManualMigratePatch(PropAssignment prop) {
     yieldPropFixmePatch(prop, 'manually migrate');
   }

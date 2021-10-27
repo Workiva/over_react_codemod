@@ -388,286 +388,293 @@ void main() {
         });
       });
 
-      group('cascaded helpers', () {
-        late FluentComponentUsage usage;
+      void sharedTests({required bool isResolved}) {
+        group('cascaded helpers', () {
+          late FluentComponentUsage usage;
 
-        setUpAll(() async {
-          usage = getComponentUsage(await parseInvocation('''
-              (Foo()
-                ..setter1 = null
-                ..getter1
-                ..prefix.prefixedSetter1 = null
-                ..prefix.prefixedGetter1
-                ..["indexAssignment1"] = null
-                ..["indexRead1"]
-                ..methodInvocation1()
-                
-                // Don't group the same types of nodes together so that 
-                // we can verify the order in cascadedMembers (i.e., put all
-                // the "2"s together instead of right next to their "1"s).
-                ..setter2 = null
-                ..getter2
-                ..prefix.prefixedSetter2 = null
-                ..prefix.prefixedGetter2
-                ..["indexAssignment2"] = null
-                ..["indexRead2"]
-                ..methodInvocation2(null)
-              )()
-          '''))!;
-        });
+          setUpAll(() async {
+            usage = getComponentUsage(await parseInvocation('''
+                (Foo()
+                  ..setter1 = null
+                  ..getter1
+                  ..prefix.prefixedSetter1 = null
+                  ..prefix.prefixedGetter1
+                  ..["indexAssignment1"] = null
+                  ..["indexRead1"]
+                  ..methodInvocation1()
+                  
+                  // Don't group the same types of nodes together so that 
+                  // we can verify the order in cascadedMembers (i.e., put all
+                  // the "2"s together instead of right next to their "1"s).
+                  ..setter2 = null
+                  ..getter2
+                  ..prefix.prefixedSetter2 = null
+                  ..prefix.prefixedGetter2
+                  ..["indexAssignment2"] = null
+                  ..["indexRead2"]
+                  ..methodInvocation2(null)
+                )()
+            ''', isResolved: isResolved))!;
+          });
 
-        group('return the expected values for different types of cascades', () {
-          test('cascadedSetters', () {
-            expect(usage.cascadedProps, [
+          group('return the expected values for different types of cascades',
+              () {
+            test('cascadedSetters', () {
+              expect(usage.cascadedProps, [
+                isA<PropAssignment>().havingStringName('setter1'),
+                isA<PropAssignment>().havingStringName('prefixedSetter1'),
+                isA<PropAssignment>().havingStringName('setter2'),
+                isA<PropAssignment>().havingStringName('prefixedSetter2'),
+              ]);
+            });
+
+            test('cascadedGetters', () {
+              expect(usage.cascadedGetters, [
+                isA<PropRead>().havingStringName('getter1'),
+                isA<PropRead>().havingStringName('prefixedGetter1'),
+                isA<PropRead>().havingStringName('getter2'),
+                isA<PropRead>().havingStringName('prefixedGetter2'),
+              ]);
+            });
+
+            test('cascadedIndexAssignments', () {
+              expect(usage.cascadedIndexAssignments, [
+                isA<IndexPropAssignment>()
+                    .havingIndexValueSource('"indexAssignment1"'),
+                isA<IndexPropAssignment>()
+                    .havingIndexValueSource('"indexAssignment2"'),
+              ]);
+            });
+
+            test('cascadedMethodInvocations', () {
+              expect(usage.cascadedMethodInvocations, [
+                isA<BuilderMethodInvocation>()
+                    .havingStringName('methodInvocation1'),
+                isA<BuilderMethodInvocation>()
+                    .havingStringName('methodInvocation2'),
+              ]);
+            });
+          });
+
+          test(
+              'cascadedMembers returns all values for different types of cascades,'
+              ' in the order they appeared in the original source', () {
+            expect(usage.cascadedMembers, [
+              // "1"s
               isA<PropAssignment>().havingStringName('setter1'),
-              isA<PropAssignment>().havingStringName('prefixedSetter1'),
-              isA<PropAssignment>().havingStringName('setter2'),
-              isA<PropAssignment>().havingStringName('prefixedSetter2'),
-            ]);
-          });
-
-          test('cascadedGetters', () {
-            expect(usage.cascadedGetters, [
               isA<PropRead>().havingStringName('getter1'),
+              isA<PropAssignment>().havingStringName('prefixedSetter1'),
               isA<PropRead>().havingStringName('prefixedGetter1'),
-              isA<PropRead>().havingStringName('getter2'),
-              isA<PropRead>().havingStringName('prefixedGetter2'),
-            ]);
-          });
-
-          test('cascadedIndexAssignments', () {
-            expect(usage.cascadedIndexAssignments, [
               isA<IndexPropAssignment>()
                   .havingIndexValueSource('"indexAssignment1"'),
-              isA<IndexPropAssignment>()
-                  .havingIndexValueSource('"indexAssignment2"'),
-            ]);
-          });
-
-          test('cascadedMethodInvocations', () {
-            expect(usage.cascadedMethodInvocations, [
+              isA<BuilderMemberAccess>().havingSource('..["indexRead1"]'),
               isA<BuilderMethodInvocation>()
                   .havingStringName('methodInvocation1'),
+              // "2"s
+              isA<PropAssignment>().havingStringName('setter2'),
+              isA<PropRead>().havingStringName('getter2'),
+              isA<PropAssignment>().havingStringName('prefixedSetter2'),
+              isA<PropRead>().havingStringName('prefixedGetter2'),
+              isA<IndexPropAssignment>()
+                  .havingIndexValueSource('"indexAssignment2"'),
+              isA<BuilderMemberAccess>().havingSource('..["indexRead2"]'),
               isA<BuilderMethodInvocation>()
                   .havingStringName('methodInvocation2'),
             ]);
+            expect(
+                usage.cascadedMembers, hasLength(usage.cascadeSections.length),
+                reason: 'all cascade sections should map to a cascaded member');
           });
         });
 
-        test(
-            'cascadedMembers returns all values for different types of cascades,'
-            ' in the order they appeared in the original source', () {
-          expect(usage.cascadedMembers, [
-            // "1"s
-            isA<PropAssignment>().havingStringName('setter1'),
-            isA<PropRead>().havingStringName('getter1'),
-            isA<PropAssignment>().havingStringName('prefixedSetter1'),
-            isA<PropRead>().havingStringName('prefixedGetter1'),
-            isA<IndexPropAssignment>()
-                .havingIndexValueSource('"indexAssignment1"'),
-            isA<BuilderMemberAccess>().havingSource('..["indexRead1"]'),
-            isA<BuilderMethodInvocation>()
-                .havingStringName('methodInvocation1'),
-            // "2"s
-            isA<PropAssignment>().havingStringName('setter2'),
-            isA<PropRead>().havingStringName('getter2'),
-            isA<PropAssignment>().havingStringName('prefixedSetter2'),
-            isA<PropRead>().havingStringName('prefixedGetter2'),
-            isA<IndexPropAssignment>()
-                .havingIndexValueSource('"indexAssignment2"'),
-            isA<BuilderMemberAccess>().havingSource('..["indexRead2"]'),
-            isA<BuilderMethodInvocation>()
-                .havingStringName('methodInvocation2'),
-          ]);
-          expect(usage.cascadedMembers, hasLength(usage.cascadeSections.length),
-              reason: 'all cascade sections should map to a cascaded member');
-        });
-      });
-
-      group('children', () {
-        test('no arguments', () async {
-          final usage = getComponentUsage(await parseInvocation('''
-              Foo()()
-          '''))!;
-          expect(usage.children, isEmpty);
-        });
-
-        group('variadic children', () {
-          test('single argument', () async {
+        group('children', () {
+          test('no arguments', () async {
             final usage = getComponentUsage(await parseInvocation('''
-                Foo()(Dom.h1()())
-            '''))!;
+                Foo()()
+            ''', isResolved: isResolved))!;
+            expect(usage.children, isEmpty);
+          });
+
+          group('variadic children', () {
+            test('single argument', () async {
+              final usage = getComponentUsage(await parseInvocation('''
+                  Foo()(Dom.h1()())
+              ''', isResolved: isResolved))!;
+              expect(usage.children, [
+                isA<ExpressionComponentChild>()
+                    .havingSource('Dom.h1()()')
+                    .havingIsVariadic(isTrue),
+              ]);
+            });
+
+            test('multiple arguments', () async {
+              final usage = getComponentUsage(await parseInvocation('''
+                  Foo()(Dom.h1()(), 2, "3")
+              ''', isResolved: isResolved))!;
+              expect(usage.children, [
+                isA<ExpressionComponentChild>()
+                    .havingSource('Dom.h1()()')
+                    .havingIsVariadic(isTrue),
+                isA<ExpressionComponentChild>()
+                    .havingSource('2')
+                    .havingIsVariadic(isTrue),
+                isA<ExpressionComponentChild>()
+                    .havingSource('"3"')
+                    .havingIsVariadic(isTrue),
+              ]);
+            });
+          });
+
+          group('children within single list literal', () {
+            test('containing only expressions', () async {
+              final usage = getComponentUsage(await parseInvocation('''
+                  Foo()([Dom.h1()(), 2, "3"])
+              ''', isResolved: isResolved))!;
+              expect(usage.children, [
+                isA<ExpressionComponentChild>()
+                    .havingSource('Dom.h1()()')
+                    .havingIsVariadic(isFalse),
+                isA<ExpressionComponentChild>()
+                    .havingSource('2')
+                    .havingIsVariadic(isFalse),
+                isA<ExpressionComponentChild>()
+                    .havingSource('"3"')
+                    .havingIsVariadic(isFalse),
+              ]);
+            });
+
+            test('containing expressions and collection elements', () async {
+              final usage = getComponentUsage(await parseInvocation('''
+                  Foo()([
+                    "expression",
+                    ...someChildren,
+                    if (condition) someChild,
+                    if (condition) ...someChildren,
+                    for (final item in items) renderChild(child),
+                  ])
+              ''', isResolved: isResolved))!;
+              expect(usage.children, [
+                isA<ExpressionComponentChild>()
+                    .havingSource('"expression"')
+                    .havingIsVariadic(isFalse),
+                isA<CollectionElementComponentChild>()
+                    .havingSource('...someChildren'),
+                isA<CollectionElementComponentChild>()
+                    .havingSource('if (condition) someChild'),
+                isA<CollectionElementComponentChild>()
+                    .havingSource('if (condition) ...someChildren'),
+                isA<CollectionElementComponentChild>().havingSource(
+                    'for (final item in items) renderChild(child)'),
+              ]);
+            });
+          });
+
+          test('children within multiple list literals', () async {
+            final usage = getComponentUsage(await parseInvocation('''
+                Foo()([1, 2], [3, 4])
+            ''', isResolved: isResolved))!;
             expect(usage.children, [
               isA<ExpressionComponentChild>()
-                  .havingSource('Dom.h1()()')
+                  .havingSource('[1, 2]')
+                  .havingIsVariadic(isTrue),
+              isA<ExpressionComponentChild>()
+                  .havingSource('[3, 4]')
                   .havingIsVariadic(isTrue),
             ]);
           });
 
-          test('multiple arguments', () async {
+          test('children within multiple list literals within a list literal',
+              () async {
             final usage = getComponentUsage(await parseInvocation('''
-                Foo()(Dom.h1()(), 2, "3")
-            '''))!;
+                Foo()([[1, 2], [3, 4]])
+            ''', isResolved: isResolved))!;
             expect(usage.children, [
               isA<ExpressionComponentChild>()
-                  .havingSource('Dom.h1()()')
-                  .havingIsVariadic(isTrue),
+                  .havingSource('[1, 2]')
+                  .havingIsVariadic(isFalse),
               isA<ExpressionComponentChild>()
-                  .havingSource('2')
-                  .havingIsVariadic(isTrue),
-              isA<ExpressionComponentChild>()
-                  .havingSource('"3"')
-                  .havingIsVariadic(isTrue),
+                  .havingSource('[3, 4]')
+                  .havingIsVariadic(isFalse),
             ]);
           });
         });
 
-        group('children within single list literal', () {
-          test('containing only expressions', () async {
-            final usage = getComponentUsage(await parseInvocation('''
-                Foo()([Dom.h1()(), 2, "3"])
-            '''))!;
-            expect(usage.children, [
-              isA<ExpressionComponentChild>()
-                  .havingSource('Dom.h1()()')
-                  .havingIsVariadic(isFalse),
-              isA<ExpressionComponentChild>()
-                  .havingSource('2')
-                  .havingIsVariadic(isFalse),
-              isA<ExpressionComponentChild>()
-                  .havingSource('"3"')
-                  .havingIsVariadic(isFalse),
-            ]);
+        group('PropAssignment getters return the correct values', () {
+          test('for a simple prop', () async {
+            final assignment = getComponentUsage(await parseInvocation('''
+                (Foo()..cascadedProp = null)()
+            ''', isResolved: isResolved))!.cascadedProps.single;
+
+            expect(assignment.node, hasSource('..cascadedProp = null'));
+            expect(assignment.name.name, 'cascadedProp');
+            expect(assignment.prefix, isNull);
+            expect(assignment.target, hasSource('Foo()'));
+            expect(assignment.leftHandSide, hasSource('..cascadedProp'));
+            expect(assignment.rightHandSide, hasSource('null'));
+            expect(assignment.isInCascade, isTrue);
+            expect(assignment.parentCascade, isNotNull);
           });
 
-          test('containing expressions and collection elements', () async {
-            final usage = getComponentUsage(await parseInvocation('''
-                Foo()([
-                  "expression",
-                  ...someChildren,
-                  if (condition) someChild,
-                  if (condition) ...someChildren,
-                  for (final item in items) renderChild(child),
-                ])
-            '''))!;
-            expect(usage.children, [
-              isA<ExpressionComponentChild>()
-                  .havingSource('"expression"')
-                  .havingIsVariadic(isFalse),
-              isA<CollectionElementComponentChild>()
-                  .havingSource('...someChildren'),
-              isA<CollectionElementComponentChild>()
-                  .havingSource('if (condition) someChild'),
-              isA<CollectionElementComponentChild>()
-                  .havingSource('if (condition) ...someChildren'),
-              isA<CollectionElementComponentChild>()
-                  .havingSource('for (final item in items) renderChild(child)'),
-            ]);
+          test('for a prefixed prop', () async {
+            final assignment = getComponentUsage(await parseInvocation('''
+                (Foo()..dom.role = null)()
+            ''', isResolved: isResolved))!.cascadedProps.single;
+
+            expect(assignment.node, hasSource('..dom.role = null'));
+            expect(assignment.name.name, 'role');
+            expect(assignment.prefix, hasSource('dom'));
+            expect(assignment.target, hasSource('..dom'));
+            expect(assignment.leftHandSide, hasSource('..dom.role'));
+            expect(assignment.rightHandSide, hasSource('null'));
+            expect(assignment.isInCascade, isTrue);
+            expect(assignment.parentCascade, isNotNull);
           });
         });
 
-        test('children within multiple list literals', () async {
-          final usage = getComponentUsage(await parseInvocation('''
-              Foo()([1, 2], [3, 4])
-          '''))!;
-          expect(usage.children, [
-            isA<ExpressionComponentChild>()
-                .havingSource('[1, 2]')
-                .havingIsVariadic(isTrue),
-            isA<ExpressionComponentChild>()
-                .havingSource('[3, 4]')
-                .havingIsVariadic(isTrue),
-          ]);
+        group('PropAccess getters return the correct values', () {
+          test('for a simple access', () async {
+            final getter = getComponentUsage(await parseInvocation('''
+                (Foo()..bar)()
+            ''', isResolved: isResolved))!.cascadedGetters.single;
+
+            expect(getter.node, hasSource('..bar'));
+            expect(getter.name, hasSource('bar'));
+          });
+
+          test('for a prefixed access', () async {
+            final getter = getComponentUsage(await parseInvocation('''
+                (Foo()..bar.baz)()
+            ''', isResolved: isResolved))!.cascadedGetters.single;
+
+            expect(getter.node, hasSource('..bar.baz'));
+            expect(getter.name, hasSource('baz'));
+          });
         });
 
-        test('children within multiple list literals within a list literal',
+        test('IndexPropAssignment getters return the correct values', () async {
+          final indexAssignment = getComponentUsage(await parseInvocation('''
+              (Foo()..["bar"] = null)()
+          ''', isResolved: isResolved))!.cascadedIndexAssignments.single;
+
+          expect(indexAssignment.node, hasSource('..["bar"] = null'));
+          expect(indexAssignment.leftHandSide, hasSource('..["bar"]'));
+          expect(indexAssignment.index, hasSource('"bar"'));
+          expect(indexAssignment.rightHandSide, hasSource('null'));
+        });
+
+        test('BuilderMethodInvocation getters return the correct values',
             () async {
-          final usage = getComponentUsage(await parseInvocation('''
-              Foo()([[1, 2], [3, 4]])
-          '''))!;
-          expect(usage.children, [
-            isA<ExpressionComponentChild>()
-                .havingSource('[1, 2]')
-                .havingIsVariadic(isFalse),
-            isA<ExpressionComponentChild>()
-                .havingSource('[3, 4]')
-                .havingIsVariadic(isFalse),
-          ]);
+          final invocation = getComponentUsage(await parseInvocation('''
+              (Foo()..bar())()
+          ''', isResolved: isResolved))!.cascadedMethodInvocations.single;
+
+          expect(invocation.node, hasSource('..bar()'));
+          expect(invocation.methodName, hasSource('bar'));
         });
-      });
-    });
+      }
 
-    // fixme run this for both resolved and unresolved cases; maybe the group above as well?
-    group('PropAssignment getters return the correct values', () {
-      test('for a simple prop', () async {
-        final assignment = getComponentUsage(await parseInvocation('''
-            (Foo()..cascadedProp = null)()
-        '''))!.cascadedProps.single;
-
-        expect(assignment.node, hasSource('..cascadedProp = null'));
-        expect(assignment.name.name, 'cascadedProp');
-        expect(assignment.prefix, isNull);
-        expect(assignment.target, hasSource('Foo()'));
-        expect(assignment.leftHandSide, hasSource('..cascadedProp'));
-        expect(assignment.rightHandSide, hasSource('null'));
-        expect(assignment.isInCascade, isTrue);
-        expect(assignment.parentCascade, isNotNull);
-      });
-
-      test('for a prefixed prop', () async {
-        final assignment = getComponentUsage(await parseInvocation('''
-            (Foo()..dom.role = null)()
-        '''))!.cascadedProps.single;
-
-        expect(assignment.node, hasSource('..dom.role = null'));
-        expect(assignment.name.name, 'role');
-        expect(assignment.prefix, hasSource('dom'));
-        expect(assignment.target, hasSource('..dom'));
-        expect(assignment.leftHandSide, hasSource('..dom.role'));
-        expect(assignment.rightHandSide, hasSource('null'));
-        expect(assignment.isInCascade, isTrue);
-        expect(assignment.parentCascade, isNotNull);
-      });
-    });
-
-    group('PropAccess getters return the correct values', () {
-      test('for a simple access', () async {
-        final getter = getComponentUsage(await parseInvocation('''
-            (Foo()..bar)()
-        '''))!.cascadedGetters.single;
-
-        expect(getter.node, hasSource('..bar'));
-        expect(getter.name, hasSource('bar'));
-      });
-
-      test('for a prefixed access', () async {
-        final getter = getComponentUsage(await parseInvocation('''
-            (Foo()..bar.baz)()
-        '''))!.cascadedGetters.single;
-
-        expect(getter.node, hasSource('..bar.baz'));
-        expect(getter.name, hasSource('baz'));
-      });
-    });
-
-    test('IndexPropAssignment getters return the correct values', () async {
-      final indexAssignment = getComponentUsage(await parseInvocation('''
-          (Foo()..["bar"] = null)()
-      '''))!.cascadedIndexAssignments.single;
-
-      expect(indexAssignment.node, hasSource('..["bar"] = null'));
-      expect(indexAssignment.leftHandSide, hasSource('..["bar"]'));
-      expect(indexAssignment.index, hasSource('"bar"'));
-      expect(indexAssignment.rightHandSide, hasSource('null'));
-    });
-
-    test('BuilderMethodInvocation getters return the correct values', () async {
-      final invocation = getComponentUsage(await parseInvocation('''
-          (Foo()..bar())()
-      '''))!.cascadedMethodInvocations.single;
-
-      expect(invocation.node, hasSource('..bar()'));
-      expect(invocation.methodName, hasSource('bar'));
+      group('when AST is not resolved', () => sharedTests(isResolved: false));
+      group('when AST is resolved', () => sharedTests(isResolved: true));
     });
   });
 }

@@ -348,7 +348,7 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
       return;
     }
 
-    // fixme make it obvious why we're calling this everywhere without having to copy-paste a huge comment every time.
+    // For other values, manual migration is safest.
     yieldPropManualMigratePatch(prop);
   }
 
@@ -365,6 +365,7 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
       return;
     }
 
+    // For other values, manual migration is safest.
     yieldPropManualMigratePatch(prop);
   }
 }

@@ -530,10 +530,6 @@ main() {
       group('yieldPropFixmePatch', yieldPropFixmePatchTests);
       group('yieldChildFixmePatch', yieldChildFixmePatchTests);
 
-      group('yieldPropManualVerificationPatch', () {
-        yieldPropFixmePatchTests(fixmeType: PropFixmeType.manuallyVerify);
-      });
-
       group('yieldPropManualMigratePatch', () {
         yieldPropFixmePatchTests(fixmeType: PropFixmeType.manuallyMigrate);
       });
@@ -1125,16 +1121,12 @@ enum PropFixmeType {
   /// Refers to fix me comments added by [yieldPropFixmePatch].
   custom,
 
-  /// Refers to fix me comments added by [yieldPropManualVerificationPatch].
-  manuallyVerify,
-
   /// Refers to fix me comments added by [yieldPropManualMigratePatch].
   manuallyMigrate,
 }
 
 /// The fix me messages for those prop fixmes that have specific non-custom messages.
 const propFixmeMessage = <PropFixmeType, String>{
-  PropFixmeType.manuallyVerify: 'manually verify',
   PropFixmeType.manuallyMigrate: 'manually migrate',
 };
 
@@ -1154,9 +1146,6 @@ void yieldPropFixmePatchTests(
           switch (fixmeType) {
             case PropFixmeType.custom:
               migrator.yieldPropFixmePatch(prop, expectedMessage);
-              break;
-            case PropFixmeType.manuallyVerify:
-              migrator.yieldPropManualVerificationPatch(prop);
               break;
             case PropFixmeType.manuallyMigrate:
               migrator.yieldPropManualMigratePatch(prop);
@@ -1215,9 +1204,6 @@ void yieldPropFixmePatchTests(
           switch (fixmeType) {
             case PropFixmeType.custom:
               migrator.yieldPropFixmePatch(prop, expectedMessage);
-              break;
-            case PropFixmeType.manuallyVerify:
-              migrator.yieldPropManualVerificationPatch(prop);
               break;
             case PropFixmeType.manuallyMigrate:
               migrator.yieldPropManualMigratePatch(prop);

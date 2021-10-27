@@ -56,6 +56,7 @@ class MuiButtonGroupMigrator extends ComponentUsageMigrator with MuiMigrator {
       return;
     }
 
+    // For other values, manual migration is safest.
     yieldPropManualMigratePatch(prop);
   }
 }
