@@ -24,14 +24,26 @@ import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/components.dart';
-import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
 import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 import 'package:over_react_codemod/src/mui_suggestors/unused_wsd_import_remover.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
 final _log = Logger('orcm.mui_migration');
-const _componentFlag = 'component';
+
+const _componentOption = 'component';
+const _rmuiVersionOption = 'rmui-version';
+
+const _verboseFlag = 'verbose';
+const _yesToAllFlag = 'yes-to-all';
+const _failOnChangesFlag = 'fail-on-changes';
+const _stderrAssumeTtyFlag = 'stderr-assume-tty';
+const _allCodemodFlags = {
+  _verboseFlag,
+  _yesToAllFlag,
+  _failOnChangesFlag,
+  _stderrAssumeTtyFlag,
+};
 
 void main(List<String> args) async {
   final parser = ArgParser()
@@ -48,25 +60,31 @@ void main(List<String> args) async {
       help: 'Outputs all logging to stdout/stderr.',
     )
     ..addFlag(
-      'yes-to-all',
+      _yesToAllFlag,
       negatable: false,
       help: 'Forces all patches accepted without prompting the user. '
           'Useful for scripts.',
     )
     ..addFlag(
-      'fail-on-changes',
+      _failOnChangesFlag,
       negatable: false,
       help: 'Returns a non-zero exit code if there are changes to be made. '
           'Will not make any changes (i.e. this is a dry-run).',
     )
     ..addFlag(
-      'stderr-assume-tty',
+      _stderrAssumeTtyFlag,
       negatable: false,
       help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
     )
     ..addSeparator('MUI Migration Options:')
+    ..addOption(
+      _rmuiVersionOption,
+      defaultsTo: '1.1.1',
+      help: 'The react_material_ui version to use when adding it as'
+          ' a dependency via a "^" version constraint.',
+    )
     ..addMultiOption(
-      _componentFlag,
+      _componentOption,
       allowed: componentMigratorsByName.keys,
       help: 'Choose which component migrators should be run. '
           'If no components are specified, all component migrators will be run.',
@@ -74,10 +92,29 @@ void main(List<String> args) async {
 
   final parsedArgs = parser.parse(args);
 
-  if (parsedArgs['help'] == true) {
+  if (parsedArgs['help'] as bool) {
+    stderr.writeln(
+        'Migrates web_skin_dart component usages to react_material_ui.');
+    stderr.writeln();
+    stderr.writeln('Usage:');
+    stderr.writeln('    mui_migration [arguments]');
+    stderr.writeln();
+    stderr.writeln('Options:');
     stderr.writeln(parser.usage);
     return;
   }
+
+  // It's easier to only pass through codemod flags than it is to try to strip
+  // out our custom flags/options (since they can take several forms due to
+  // abbreviations and the different syntaxes for providing an option value,
+  // especially the two-arg `--option value` syntax).
+  //
+  // An alternative would be to use `--` and `arguments.rest` to pass along codemod
+  // args, but that's not as convenient to the user and makes showing help a bit more complicated.
+  final codemodArgs = _allCodemodFlags
+      .where((name) => parsedArgs[name] as bool)
+      .map((name) => '--$name')
+      .toList();
 
   // codemod sets up a global logging handler that forwards to the console, and
   // we want that set up before we do other non-codemodd things that might log.
@@ -85,15 +122,11 @@ void main(List<String> args) async {
   // We could set up logging too, but we can't disable codemod's log handler,
   // so we'd have to disable our own logging before calling into codemod.
   // While hackier, this is easier.
-  //
-  // This also lets us handle `--help` before we start doing other work.
-  //
   // FIXME each time we call runInteractiveCodemod, all subsequent logs are forwarded to the console an extra time. Update codemod package to prevent this (maybe a flag to disable automatic global logging?)
   exitCode = await runInteractiveCodemod(
     [],
     (_) async* {},
-    // Only pass valid low level codemod flags
-    args: args.where((arg) => !arg.contains(_componentFlag)),
+    args: codemodArgs,
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
@@ -118,8 +151,7 @@ void main(List<String> args) async {
         paths,
         sequence,
         defaultYes: true,
-        // Only pass valid low level codemod flags
-        args: args.where((arg) => !arg.contains(_componentFlag)),
+        args: codemodArgs,
         additionalHelpOutput: parser.usage,
       );
       if (exitCode != 0) return exitCode;
@@ -130,7 +162,7 @@ void main(List<String> args) async {
 
   // Only run the migrators for components that were specified in [args].
   // If no components were specified, run all migrators.
-  final componentsToMigrate = parsedArgs[_componentFlag] as List<String>;
+  final componentsToMigrate = parsedArgs[_componentOption] as List<String>;
   final migratorsToRun = componentsToMigrate.isEmpty
       ? componentMigratorsByName.values
       : componentsToMigrate.map((componentName) {
@@ -160,6 +192,8 @@ void main(List<String> args) async {
   ]);
   if (exitCode != 0) return;
 
+  final rmuiVersion = parsedArgs[_rmuiVersionOption] as String;
+  final rmuiVersionRange = parseVersionRange('^$rmuiVersion');
   exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
     aggregate([
@@ -167,8 +201,7 @@ void main(List<String> args) async {
           hostedUrl: 'https://pub.workiva.org'),
     ].map((s) => ignoreable(s))),
     defaultYes: true,
-    // Only pass valid low level codemod flags
-    args: args.where((arg) => !arg.contains(_componentFlag)),
+    args: codemodArgs,
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;

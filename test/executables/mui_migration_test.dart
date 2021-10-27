@@ -2,15 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:codemod/src/run_interactive_codemod.dart' show codemodArgParser;
 import 'package:meta/meta.dart';
-import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
-import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
-
-import 'package:codemod/src/run_interactive_codemod.dart' show codemodArgParser;
 
 // Change this to `true` and all of the functional tests in this file will print
 // the stdout/stderr of the codemod processes.
@@ -210,6 +207,13 @@ import 'package:web_skin_dart/component2/all.dart';
           args: ['--yes-to-all']);
     });
 
+    testCodemod(
+        '--rmui-version flag sets the version used in the react_material_ui version constraint',
+        script: muiCodemodScript,
+        input: inputFiles(),
+        expectedOutput: expectedOutputFiles(rmuiVersionConstraint: '^9.9.9'),
+        args: ['--yes-to-all', '--rmui-version=9.9.9']);
+
     testCodemod('nested pubspecs',
         script: muiCodemodScript,
         input: d.dir('project', [
@@ -237,7 +241,7 @@ dependencies:
     hosted:
       name: react_material_ui
       url: https://pub.workiva.org
-    version: ${mightNeedYamlEscaping(rmuiVersionRange.toString()) ? '"$rmuiVersionRange"' : '$rmuiVersionRange'}
+    version: ^1.1.1
 '''),
           d.dir('lib', [
             expectedOutputFiles(),
@@ -318,8 +322,10 @@ dependencies:
       ]),
     ]);
 
-d.DirectoryDescriptor expectedOutputFiles(
-        {Iterable<d.Descriptor> additionalFilesInLib = const []}) =>
+d.DirectoryDescriptor expectedOutputFiles({
+  Iterable<d.Descriptor> additionalFilesInLib = const [],
+  String rmuiVersionConstraint = '^1.1.1',
+}) =>
     d.dir('project', [
       d.file('pubspec.yaml', /*language=yaml*/ '''
 name: test_project
@@ -330,7 +336,7 @@ dependencies:
     hosted:
       name: react_material_ui
       url: https://pub.workiva.org
-    version: ${mightNeedYamlEscaping(rmuiVersionRange.toString()) ? '"$rmuiVersionRange"' : '$rmuiVersionRange'}
+    version: $rmuiVersionConstraint
   web_skin_dart:
     hosted:
       name: web_skin_dart

@@ -17,7 +17,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
-import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
 import 'package:over_react_codemod/src/rmui_preparation_suggestors/constants.dart';
 import 'package:over_react_codemod/src/rmui_preparation_suggestors/dart_script_adder.dart';
 import 'package:over_react_codemod/src/rmui_preparation_suggestors/html_script_adder.dart';
@@ -39,7 +38,7 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
     aggregate([
-      PubspecUpgrader('react_material_ui', rmuiVersionRange,
+      PubspecUpgrader('react_material_ui', parseVersionRange('^1.1.1'),
           hostedUrl: 'https://pub.workiva.org'),
     ].map((s) => ignoreable(s))),
     defaultYes: true,
