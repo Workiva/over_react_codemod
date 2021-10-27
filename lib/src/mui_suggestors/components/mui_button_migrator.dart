@@ -151,7 +151,49 @@ class MuiButtonMigrator extends ComponentUsageMigrator
     }
   }
 
-  String _rawCascadeOrAddPropsFromMapPropValue(PropAssignment? assignment,
+  /// Returns a string that can be used to add the props from the right-hand
+  /// side of [assignment] (assuming the prop is a Map prop) to a factory
+  /// matching [destinationFactoryName].
+  ///
+  /// If the map prop value is a typed map constructed from [destinationFactoryName],
+  /// then just the cascades will be returned.
+  ///
+  /// For example, for the assignment:
+  /// ```dart
+  /// ..fooProps = (Foo()
+  ///   ..bar = 'bar'
+  ///   ..id = foo
+  /// )
+  /// ```
+  /// then `_cascadeFromMapPropValue(assignment, 'Foo')`
+  /// would yield the string:
+  /// ```
+  /// ..bar = 'bar'
+  /// ..id = 'foo'
+  /// ```
+  ///
+  /// Non-matching values are handled using `.addProps`, so
+  /// `_cascadeFromMapPropValue(assignment, 'Bar')`
+  /// would yield the string:
+  /// ```
+  /// ..addProps(Foo()
+  ///   ..bar = 'bar'
+  ///   ..id = 'foo'
+  /// )
+  /// ```
+  ///
+  /// Non-typed-map values are also handled using `.addProps`.
+  ///
+  /// For example, for the assignment:
+  /// ```dart
+  /// ..fooProps = someValue
+  /// ```
+  /// then `_cascadeFromMapPropValue(assignment, 'Foo')`
+  /// would yield the string:
+  /// ```
+  /// ..addProps(someValue)
+  /// ```
+  String _cascadeFromMapPropValue(PropAssignment? assignment,
       {required String destinationFactoryName}) {
     if (assignment == null) return '';
 
@@ -182,7 +224,7 @@ class MuiButtonMigrator extends ComponentUsageMigrator
 
     final overlayTriggerPropsProp =
         getFirstPropWithName(usage, 'overlayTriggerProps');
-    final overlayTriggerCascadeToAdd = _rawCascadeOrAddPropsFromMapPropValue(
+    final overlayTriggerCascadeToAdd = _cascadeFromMapPropValue(
         overlayTriggerPropsProp,
         destinationFactoryName: 'OverlayTrigger');
     if (overlayTriggerPropsProp != null) {
@@ -190,8 +232,7 @@ class MuiButtonMigrator extends ComponentUsageMigrator
     }
 
     final tooltipPropsProp = getFirstPropWithName(usage, 'tooltipProps');
-    final tooltipCascadeToAdd = _rawCascadeOrAddPropsFromMapPropValue(
-        tooltipPropsProp,
+    final tooltipCascadeToAdd = _cascadeFromMapPropValue(tooltipPropsProp,
         destinationFactoryName: 'Tooltip');
     if (tooltipPropsProp != null) {
       yieldRemovePropPatch(tooltipPropsProp);
