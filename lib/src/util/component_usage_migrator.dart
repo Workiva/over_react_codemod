@@ -762,9 +762,9 @@ extension on PropAssignment {
   /// Whether the static element of the prop being set
   /// is declared in a static extension.
   bool get isExtensionMethod {
-    // For some reason staticElement on extensions is null, and we need to use
-    // writeElement instead. TODO report this as an analyzer bug?
-    final staticElement = node.staticElement ?? node.writeElement;
+    // Make sure to use `.writeElement` since `.staticElement` is null for assignments.
+    // https://github.com/dart-lang/sdk/issues/44415#issuecomment-740354773
+    final staticElement = node.writeElement;
     return staticElement?.isExtensionMember ?? false;
   }
 }
