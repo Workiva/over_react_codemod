@@ -411,13 +411,13 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
   }
 
   void migrateButtonType(PropAssignment prop) {
-    final sizeFromWsdSize = mapWsdConstant(prop.rightHandSide, const {
+    final typeFromWsdType = mapWsdConstant(prop.rightHandSide, const {
       'ButtonType.BUTTON': _MuiButtonType.button,
       'ButtonType.SUBMIT': _MuiButtonType.submit,
       'ButtonType.RESET': _MuiButtonType.reset,
     });
-    if (sizeFromWsdSize != null) {
-      yieldPropPatch(prop, newRhs: sizeFromWsdSize);
+    if (typeFromWsdType != null) {
+      yieldPropPatch(prop, newRhs: typeFromWsdType);
       return;
     }
 
