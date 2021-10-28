@@ -143,9 +143,9 @@ void main() {
             '''),
             expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
                 content() {
-                  (mui.Button()..dom.type = 'reset')();
-                  (mui.Button()..dom.type = 'reset')();
-                  (mui.Button()..dom.type = 'reset')();
+                  (mui.Button()..type = mui.ButtonType.reset)();
+                  (mui.Button()..type = mui.ButtonType.reset)();
+                  (mui.Button()..type = mui.ButtonType.reset)();
                 }
             '''),
           );
@@ -166,7 +166,7 @@ void main() {
                   (mui.Button()
                     // `type` should go after all existing cascades
                     ..id = 'id'
-                    ..dom.type = 'reset'
+                    ..type = mui.ButtonType.reset
                   )();
                 }
             '''),
@@ -190,15 +190,15 @@ void main() {
                 content() {
                   (mui.Button()
                     ..color = mui.ButtonColor.primary
-                    ..dom.type = 'submit'
+                    ..type = mui.ButtonType.submit
                   )();
                   (mui.Button()
                     ..color = mui.ButtonColor.primary
-                    ..dom.type = 'submit'
+                    ..type = mui.ButtonType.submit
                   )();
                   (mui.Button()
                     ..color = mui.ButtonColor.primary
-                    ..dom.type = 'submit'
+                    ..type = mui.ButtonType.submit
                   )();
                 }
             '''),
@@ -216,7 +216,7 @@ void main() {
                 content() {
                   (mui.Button()
                     ..color = mui.ButtonColor.primary
-                    ..dom.type = 'submit'
+                    ..type = mui.ButtonType.submit
                   )();
                 }
             '''),
@@ -239,7 +239,7 @@ void main() {
                     ..color = mui.ButtonColor.primary
                     // `color` should go before existing cascades, and `type` afterwards
                     ..id = 'id'
-                    ..dom.type = 'submit'
+                    ..type = mui.ButtonType.submit
                   )();
                 }
             '''),
@@ -490,19 +490,43 @@ void main() {
         );
       });
 
-      test('type', () async {
-        await testSuggestor(
-          input: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (Button()..type = 'foo')();
-              }
-          '''),
-          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (mui.Button()..dom.type = 'foo')();
-              }
-          '''),
-        );
+      group('type', () {
+        test('mapping type constants properly', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Button()..type = ButtonType.BUTTON)();
+                  (Button()..type = ButtonType.SUBMIT)();
+                  (Button()..type = ButtonType.RESET)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Button()..type = mui.ButtonType.button)();
+                  (mui.Button()..type = mui.ButtonType.submit)();
+                  (mui.Button()..type = mui.ButtonType.reset)();
+                }
+            '''),
+          );
+        });
+
+        test('flagging when the type is another expression', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(dynamic other) {
+                  (Button()..type = other)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(dynamic other) {
+                  (mui.Button()
+                    // FIXME(mui_migration) - type prop - manually migrate
+                    ..type = other
+                  )();
+                }
+            '''),
+          );
+        });
       });
 
       group('always flagging for manual migration:', () {

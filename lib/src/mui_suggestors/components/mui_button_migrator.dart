@@ -66,7 +66,7 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       // factory it's really common to not have any parens/props.
 
       final colorPatch = '..color = $muiPrimaryColor';
-      const typePatch = "..dom.type = 'submit'";
+      const typePatch = "..type = ${_MuiButtonType.submit}";
 
       if (usage.node.function is! ParenthesizedExpression) {
         yieldAddPropPatch(usage, colorPatch + typePatch);
@@ -78,7 +78,7 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       propsClassHasHitareaMixin =
           wsdComponentVersionForFactory(usage) != WsdComponentVersion.v1;
     } else if (usesWsdFactory(usage, 'FormResetInput')) {
-      yieldAddPropPatch(usage, "..dom.type = 'reset'",
+      yieldAddPropPatch(usage, "..type = ${_MuiButtonType.reset}",
           placement: NewPropPlacement.end);
 
       propsClassHasHitareaMixin =
@@ -96,7 +96,6 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       if (propsClassHasHitareaMixin) ...{
         'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
         'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
-        'type': (p) => yieldPropPatch(p, newName: 'dom.type'),
       },
 
       // Related to disabled state
@@ -111,6 +110,7 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       // Lengthier migration code; split out into methods.
       'skin': (p) => migrateButtonSkin(p, handleLinkVariants: true),
       'size': migrateButtonSize,
+      if (propsClassHasHitareaMixin) 'type': migrateButtonType,
 
       // Props that always need manual intervention.
       'isCallout': (p) => yieldPropFixmePatch(
@@ -409,4 +409,25 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
     // For other values, manual migration is safest.
     yieldPropManualMigratePatch(prop);
   }
+
+  void migrateButtonType(PropAssignment prop) {
+    final sizeFromWsdSize = mapWsdConstant(prop.rightHandSide, const {
+      'ButtonType.BUTTON': _MuiButtonType.button,
+      'ButtonType.SUBMIT': _MuiButtonType.submit,
+      'ButtonType.RESET': _MuiButtonType.reset,
+    });
+    if (sizeFromWsdSize != null) {
+      yieldPropPatch(prop, newRhs: sizeFromWsdSize);
+      return;
+    }
+
+    // For other values, manual migration is safest.
+    yieldPropManualMigratePatch(prop);
+  }
+}
+
+abstract class _MuiButtonType {
+  static const button = '$muiNs.ButtonType.button';
+  static const submit = '$muiNs.ButtonType.submit';
+  static const reset = '$muiNs.ButtonType.reset';
 }
