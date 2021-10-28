@@ -23,6 +23,7 @@ bool _isPubGetNecessary(String packageRoot) {
   return true;
 }
 
+/// Runs `pub get` in [packageRoot] unless running `pub get` would have no effect.
 Future<void> runPubGetIfNeeded(String packageRoot) async {
   if (_isPubGetNecessary(packageRoot)) {
     await runPubGet(packageRoot);
@@ -32,6 +33,11 @@ Future<void> runPubGetIfNeeded(String packageRoot) async {
   }
 }
 
+/// Runs `pub get` in [workingDirectory], and throws if the command completed
+/// with a non-zero exit code.
+///
+/// For convenience, tries running with `pub get --offline` if `pub get` fails,
+/// for a better experience when not authenticated to private pub servers.
 Future<void> runPubGet(String workingDirectory) async {
   _logger.info('Running `pub get` in `$workingDirectory`...');
 
@@ -57,28 +63,33 @@ Future<void> runPubGet(String workingDirectory) async {
   }
 }
 
+/// Returns a path to the closest Dart package root (i.e., a directory with a
+/// pubspec.yaml file) to [path], throwing if no package root can be found.
+///
+/// If [path] is itself a package root, it will be returned.
+///
+/// Example:
+///
+/// ```dart
+/// // All of these return a path to 'some_package'
+/// findPackageRootFor('some_package/lib/src/file.dart');
+/// findPackageRootFor('some_package/lib/');
+/// findPackageRootFor('some_package');
+///
+/// // Returns a path to 'some_package/subpackages/some_nested_package'
+/// findPackageRootFor('some_package/some_nested_package/lib/file.dart');
+/// ```
 String findPackageRootFor(String path) {
-  final packageRoot = _closestDirectoryContainingFile(path, 'pubspec.yaml');
+  final packageRoot = [
+    path,
+    ...ancestorsOfPath(path)
+  ].firstWhereOrNull((path) => File(p.join(path, 'pubspec.yaml')).existsSync());
+
   if (packageRoot == null) {
     throw Exception('Could not find package root for file `$path`');
   }
 
   return packageRoot;
-}
-
-String? _closestDirectoryContainingFile(String startingPath, String filename) {
-  if (p.basename(filename) != filename) {
-    throw ArgumentError.value(
-        filename, 'filename', 'must be a filename and not a path');
-  }
-
-  final directoriesToCheck = [
-    startingPath,
-    ...ancestorsOfPath(startingPath),
-  ];
-
-  return directoriesToCheck
-      .firstWhereOrNull((path) => File(p.join(path, filename)).existsSync());
 }
 
 /// Returns canonicalized paths for all the the ancestor directories of [path],
@@ -94,12 +105,16 @@ Iterable<String> ancestorsOfPath(String path) sync* {
   yield* ancestorsOfPath(parent);
 }
 
+/// Returns whether [file] is within a top-level `build` directory of a package root.
 bool isNotWithinTopLevelBuildOutputDir(File file) =>
     !isWithinTopLevelDir(file, 'build');
 
+/// Returns whether [file] is within a top-level `tool` directory of a package root.
 bool isNotWithinTopLevelToolDir(File file) =>
     !isWithinTopLevelDir(file, 'tool');
 
+/// Returns whether [file] is within a top-level [topLevelDir] directory
+/// (e.g., `bin`, `lib`, `web`) of a package root.
 bool isWithinTopLevelDir(File file, String topLevelDir) =>
     ancestorsOfPath(file.path).any((ancestor) =>
         p.basename(ancestor) == topLevelDir &&
