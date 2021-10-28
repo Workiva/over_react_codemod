@@ -81,22 +81,17 @@ String? _closestDirectoryContainingFile(String startingPath, String filename) {
       .firstWhereOrNull((path) => File(p.join(path, filename)).existsSync());
 }
 
-extension on FileSystemEntity {
-  Iterable<Directory> get ancestors sync* {
-    final parent = this.parent;
-    if (parent.path == path) return;
-
-    yield parent;
-    yield* parent.ancestors;
-  }
-}
-
+/// Returns canonicalized paths for all the the ancestor directories of [path],
+/// starting with its parent and working upwards.
 Iterable<String> ancestorsOfPath(String path) sync* {
-  for (var current = p.canonicalize(path);
-      current != p.dirname(current);
-      current = p.dirname(current)) {
-    yield current;
-  }
+  path = p.canonicalize(path);
+
+  // p.dirname of the root directory is the root directory, so if they're the same, stop.
+  final parent = p.dirname(path);
+  if (p.equals(path, parent)) return;
+
+  yield parent;
+  yield* ancestorsOfPath(parent);
 }
 
 bool isNotWithinTopLevelBuildOutputDir(File file) =>
@@ -106,6 +101,6 @@ bool isNotWithinTopLevelToolDir(File file) =>
     !isWithinTopLevelDir(file, 'tool');
 
 bool isWithinTopLevelDir(File file, String topLevelDir) =>
-    file.ancestors.any((dir) =>
-        p.basename(dir.path) == topLevelDir &&
-    File(p.join(dir.parent.path, 'pubspec.yaml')).existsSync());
+    ancestorsOfPath(file.path).any((ancestor) =>
+        p.basename(ancestor) == topLevelDir &&
+        File(p.join(p.dirname(ancestor), 'pubspec.yaml')).existsSync());

@@ -63,14 +63,14 @@ void main() {
     });
 
     group('ancestorsOfPath', () {
-      final ancestorsOfPathFromRoot = [];
+      final ancestorsOfPathFromRoot = <String>[];
 
       setUpAll(() {
         // Determine the expected ancestors of the current path from root.
-        var tempCurrentPathFromRoot = currentPathFromRoot;
-        while (tempCurrentPathFromRoot != '/') {
-          ancestorsOfPathFromRoot.add(tempCurrentPathFromRoot);
-          tempCurrentPathFromRoot = p.dirname(tempCurrentPathFromRoot);
+        final segments = p.split(currentPathFromRoot);
+        for (var i = 1; i < segments.length; i++) {
+          ancestorsOfPathFromRoot
+              .add(p.joinAll(segments.sublist(0, segments.length - i)));
         }
       });
 
@@ -79,11 +79,11 @@ void main() {
           ancestorsOfPath(
               'test/test_fixtures/wsd_project/lib/analysis_warmup.dart'),
           orderedEquals([
-            '$currentPathFromRoot/test/test_fixtures/wsd_project/lib/analysis_warmup.dart',
             '$currentPathFromRoot/test/test_fixtures/wsd_project/lib',
             '$currentPathFromRoot/test/test_fixtures/wsd_project',
             '$currentPathFromRoot/test/test_fixtures',
             '$currentPathFromRoot/test',
+            currentPathFromRoot,
             ...ancestorsOfPathFromRoot,
           ]),
         );
@@ -93,9 +93,9 @@ void main() {
         expect(
           ancestorsOfPath('lib/src/util'),
           orderedEquals([
-            '$currentPathFromRoot/lib/src/util',
             '$currentPathFromRoot/lib/src',
             '$currentPathFromRoot/lib',
+            currentPathFromRoot,
             ...ancestorsOfPathFromRoot,
           ]),
         );
