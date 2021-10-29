@@ -16,7 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart' as collection;
 import 'package:collection/collection.dart';
-import 'package:over_react_codemod/src/element_type_helpers.dart';
+import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 
 /// Takes in a mapping of WSD constant strings and returns the value
@@ -224,4 +224,9 @@ WsdComponentVersion? wsdComponentVersionForFactory(FluentComponentUsage usage) {
   return fileDeclaringFactory.path.contains('/src/_deprecated/')
       ? WsdComponentVersion.v1
       : WsdComponentVersion.v2;
+}
+
+extension on Element {
+  /// Whether an element is declared in the web_skin_dart package.
+  bool get isDeclaredInWsd => isDeclaredInPackage('web_skin_dart');
 }

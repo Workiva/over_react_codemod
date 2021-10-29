@@ -22,6 +22,7 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:args/args.dart';
@@ -428,6 +429,13 @@ extension AstNodeAncestors on AstNode {
       yield parent;
       yield* parent.ancestors;
     }
+  }
+}
+
+extension TypeOrBound on DartType {
+  DartType get typeOrBound {
+    final self = this;
+    return self is TypeParameterType ? self.bound.typeOrBound : self;
   }
 }
 

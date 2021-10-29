@@ -19,7 +19,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:over_react_codemod/src/element_type_helpers.dart';
+import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 import 'package:over_react_codemod/src/util.dart';
 
 /// A usage of an OverReact component via its fluent interface.
@@ -84,7 +84,7 @@ class FluentComponentUsage {
   /// The class element for the builder's props class (or, for parameterized types
   /// the bound of that type), or `null` if this usage is not fully resolved.
   ClassElement? get propsClassElement =>
-      builderType?.typeOrBounds.tryCast<InterfaceType>()?.element;
+      builderType?.typeOrBound.tryCast<InterfaceType>()?.element;
 
   /// The name of the builder's props class (or, for parameterized types
   /// the bound of that type), or `null` if this usage is not fully resolved.
@@ -693,12 +693,5 @@ class ComponentUsageVisitor extends RecursiveAstVisitor<void> {
     }
 
     node.visitChildren(this);
-  }
-}
-
-extension on DartType {
-  DartType get typeOrBounds {
-    final self = this;
-    return self is TypeParameterType ? self.bound.typeOrBounds : self;
   }
 }
