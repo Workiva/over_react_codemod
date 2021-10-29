@@ -45,18 +45,14 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 
-const _blanketIgnoreCode = '';
-
 /// Information about analysis `//orcm_ignore:` and `//orcm_ignore_for_file` comments
 /// within a source file.
 class OrcmIgnoreInfo {
-  /// A table mapping line numbers to the diagnostics that are ignored on that
-  /// line.
-  final Map<int, List<String>> _ignoredOnLine = {};
+  /// A table mapping line numbers to the ignores for that line.
+  final Map<int, List<_Ignore>> _ignoredOnLine = {};
 
-  /// A list containing all of the diagnostics that are ignored for the whole
-  /// file.
-  final List<String> _ignoredForFile = [];
+  /// A list containing all of the ignores for the whole file.
+  final List<_Ignore> _ignoredForFile = [];
 
   @override
   String toString() => 'OrcmIgnoreInfo ${{
@@ -70,7 +66,7 @@ class OrcmIgnoreInfo {
     var lineInfo = unit.lineInfo!;
     for (var ignoreComment in unit.ignoreComments) {
       if (ignoreComment.isForFile) {
-        _ignoredForFile.addAll(ignoreComment.diagnostics);
+        _ignoredForFile.addAll(ignoreComment.ignores);
       } else {
         final location = lineInfo.getLocation(ignoreComment.comment.offset);
         var lineNumber = location.lineNumber;
@@ -85,64 +81,96 @@ class OrcmIgnoreInfo {
         }
         _ignoredOnLine
             .putIfAbsent(lineNumber, () => [])
-            .addAll(ignoreComment.diagnostics);
+            .addAll(ignoreComment.ignores);
       }
     }
   }
 
-  /// Return `true` if the [errorCode] is ignored at the given [line].
-  bool ignoredAt(String errorCode, int line) {
-    if (_ignoredForFile.contains(errorCode)) {
-      return true;
-    }
-
-    final ignoredOnLine = _ignoredOnLine[line];
-    if (ignoredOnLine != null) {
-      return ignoredOnLine.contains(errorCode);
-    }
-    return false;
+  Iterable<_Ignore> _ignoresForLine(int line) sync* {
+    yield* _ignoredForFile;
+    yield* _ignoredOnLine[line] ?? const [];
   }
 
-  bool blanketIgnoredAt(int line) => ignoredAt(_blanketIgnoreCode, line);
+  /// Whether the [code] is ignored at the given [line].
+  bool ignoredAt(String code, int line) =>
+      _ignoresForLine(line).any((ignore) => ignore.ignoresCode(code));
+
+  /// Whether all codes is ignored at the given [line].
+  bool allCodesIgnoredAt(int line) =>
+      _ignoresForLine(line).any((ignore) => ignore.ignoresAllCodes);
+}
+
+/// An ignore for either a single code or for all codes.
+abstract class _Ignore {
+  /// Whether this ignore applies for the given [code].
+  bool ignoresCode(String code);
+
+  /// Whether this ignore everything.
+  bool get ignoresAllCodes;
+
+  factory _Ignore.forCode(String code) = _IgnoreForCode;
+
+  factory _Ignore.all() = _IgnoreForAll;
+}
+
+class _IgnoreForCode implements _Ignore {
+  final String code;
+
+  _IgnoreForCode(this.code);
+
+  @override
+  bool ignoresCode(String code) => code == this.code;
+
+  @override
+  bool get ignoresAllCodes => false;
+}
+
+class _IgnoreForAll implements _Ignore {
+  @override
+  bool ignoresCode(_) => true;
+
+  @override
+  bool get ignoresAllCodes => true;
 }
 
 class IgnoreComment {
   final Token comment;
-  final List<String> diagnostics;
+  final List<_Ignore> ignores;
   final bool isForFile;
 
-  IgnoreComment(this.comment, this.diagnostics) : this.isForFile = false;
+  IgnoreComment(this.comment, this.ignores) : this.isForFile = false;
 
-  IgnoreComment.forFile(this.comment, this.diagnostics) : this.isForFile = true;
+  IgnoreComment.forFile(this.comment, this.ignores) : this.isForFile = true;
 }
 
 extension on CompilationUnit {
   /// A regular expression for matching 'ignore' comments.  Produces matches
   /// containing 2 groups.  For example:
   ///
-  ///     * ['// orcm_ignore: error_code', 'error_code']
+  ///     * ['// orcm_ignore: code', 'code']
   ///
-  /// Resulting codes may be in a list ('error_code_1,error_code2').
+  /// Resulting codes may be in a list ('code_1,code2').
   static final RegExp _IGNORE_MATCHER =
       RegExp(r'//+[ ]*orcm_ignore(:(.*))?\s*$', multiLine: true);
 
   /// A regular expression for matching 'ignore_for_file' comments.  Produces
   /// matches containing 2 groups.  For example:
   ///
-  ///     * ['// orcm_ignore_for_file: error_code', 'error_code']
+  ///     * ['// orcm_ignore_for_file: code', 'code']
   ///
-  /// Resulting codes may be in a list ('error_code_1,error_code2').
+  /// Resulting codes may be in a list ('code_1,code2').
   static final RegExp _IGNORE_FOR_FILE_MATCHER =
       RegExp(r'//[ ]*orcm_ignore_for_file(:(.*))?\s*$', multiLine: true);
 
-  static List<String> _getDiagnosticNamesForMatch(Match match) {
-    if (match.group(1) == null) return [_blanketIgnoreCode];
+  static List<_Ignore> _getIgnoresForMatch(Match match) {
+    if (match.group(1) == null) return [_Ignore.all()];
 
     return match
         .group(2)!
         .split(',')
         .map((name) => name.trim())
         .where((name) => name.isNotEmpty)
+        .map((name) => _Ignore.forCode(name))
         .toList();
   }
 
@@ -154,12 +182,11 @@ extension on CompilationUnit {
       final lexeme = comment.lexeme;
       var match = _IGNORE_MATCHER.matchAsPrefix(lexeme);
       if (match != null) {
-        yield IgnoreComment(comment, _getDiagnosticNamesForMatch(match));
+        yield IgnoreComment(comment, _getIgnoresForMatch(match));
       } else {
         match = _IGNORE_FOR_FILE_MATCHER.matchAsPrefix(lexeme);
         if (match != null) {
-          yield IgnoreComment.forFile(
-              comment, _getDiagnosticNamesForMatch(match));
+          yield IgnoreComment.forFile(comment, _getIgnoresForMatch(match));
         }
       }
     }

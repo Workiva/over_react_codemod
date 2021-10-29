@@ -595,7 +595,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     // whereas SourceFile's are 0-based
     final line = context.sourceFile.getLine(usage.node.offset) + 1;
 
-    if (ignoreInfo.blanketIgnoredAt(line)) {
+    if (ignoreInfo.allCodesIgnoredAt(line)) {
       return true;
     }
 
