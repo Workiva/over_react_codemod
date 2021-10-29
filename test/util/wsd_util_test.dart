@@ -429,14 +429,14 @@ void main() {
         expect(usesWsdToolbarFactory(usage), isFalse);
       });
 
-      test('returns false for toolbar WSD v1 components', () async {
+      test('returns true for toolbar WSD v1 components', () async {
         final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
           content() => toolbars_v1.Button()();
       ''');
         expect(usesWsdToolbarFactory(usage), isTrue);
       });
 
-      test('returns false for toolbar WSD v2 components', () async {
+      test('returns true for toolbar WSD v2 components', () async {
         final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
           content() => toolbars_v2.Button()();
       ''');

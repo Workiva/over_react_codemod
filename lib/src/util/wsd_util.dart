@@ -173,9 +173,9 @@ final _isValidSimpleIdentifier = RegExp(r'^[_$a-zA-Z][_$a-zA-Z0-9]*$').hasMatch;
 ///
 /// Example:
 /// ```dart
-/// usesWsdPropsClass(parseResolvedUsage('Button()()'), 'ButtonProps); // true
-/// usesWsdPropsClass(parseResolvedUsage('wsd.Button()()'), 'ButtonProps); // true
-/// usesWsdPropsClass(parseResolvedUsage('buttonBuilder()'), 'ButtonProps); // true
+/// usesWsdPropsClass(parseResolvedUsage('Button()()'), 'ButtonProps'); // true
+/// usesWsdPropsClass(parseResolvedUsage('wsd.Button()()'), 'ButtonProps'); // true
+/// usesWsdPropsClass(parseResolvedUsage('buttonBuilder()'), 'ButtonProps'); // true
 /// usesWsdPropsClass(parseResolvedUsage('not_wsd.Button()()'), 'ButtonProps'); // false
 /// ```
 bool usesWsdPropsClass(FluentComponentUsage usage, String wsdPropsName) {
