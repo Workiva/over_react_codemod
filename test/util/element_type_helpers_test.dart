@@ -91,7 +91,7 @@ void main() {
             class CustomClass {}
             mixin CustomProps on UiProps {}
             
-            foo1(
+            foo0(
               UiProps uiProps,
               ReactElement reactElement,
               Element element,
