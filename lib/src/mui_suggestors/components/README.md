@@ -22,6 +22,7 @@ See [the "Authoring codemods" section][authoring-codemods] of the main readme.
 
     Other references to WSD components are less common and difficult to migrate automatically, so we won't attempt to migrate them with codemods. These cases include:
     - Creation of builders or map views
+
         For example:
         ```dart
         getButtonBuilder() => Button();
@@ -30,11 +31,13 @@ See [the "Authoring codemods" section][authoring-codemods] of the main readme.
         final buttonProps = Button(getProps(someElement));
         ```
     - Other usages of factories
+
         For example: 
         ```dart
         isComponentOfType(type, Button);
         ```
     - Invocation of builders not using factories
+
         For example: 
         ```dart
         buttonBuilder();
@@ -61,10 +64,10 @@ See [the "Authoring codemods" section][authoring-codemods] of the main readme.
     Some expressions, such as the value being assigned to a prop, may have a static type of `dynamic`, and may not cause analysis errors if they're assigned to different props.
 
     For instance, just changing
-        ```diff
-        -  ..skin = dynamicTypedSkinValue
-        +  ..color = dynamicTypedSkinValue
-        ```
+    ```diff
+    -  ..skin = dynamicTypedSkinValue
+    +  ..color = dynamicTypedSkinValue
+    ```
     for a `Button` component, without any other changes, would pass analysis but likely throw at runtime.
 
 [authoring-codemods]: ../../../../README.md#authoring-codemods
