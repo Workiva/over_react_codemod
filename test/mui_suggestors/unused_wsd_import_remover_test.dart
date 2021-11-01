@@ -25,7 +25,7 @@ void main() {
     // Warm up analysis in a setUpAll so that if getting the resolved AST times out
     // (which is more common for the WSD context), it fails here instead of failing the first test.
     setUpAll(resolvedContext.warmUpAnalysis);
-  
+
     final testSuggestor = getSuggestorTester(
       unusedWsdImportRemover,
       resolvedContext: resolvedContext,
