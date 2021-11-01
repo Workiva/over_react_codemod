@@ -137,7 +137,7 @@ package will try to suggest.
           - `tryCast()` and `ancestorOfType()` can be handy in certain cases. 
         - Prefer null-checks over `!`
     - The number of child nodes or other items in collections 
-        - When using `.first`/`.last`/.single` on iterables, either check the length of the iterable first, or switch to something more conditional like `.firstWhere()` or `.firstOrNull`
+        - When using `.first`/`.last`/`.single` on iterables, either check the length of the iterable first, or switch to something more conditional like `.firstWhere()` or `.firstOrNull`
         
 - Avoid using `childEntities`
 
@@ -149,7 +149,7 @@ package will try to suggest.
 
     - To identify relevant code. There may be different syntax variations (either current or in future Dart versions) of code that unintentionally wouldn't be a match.
 
-        For example, if we were doing `expression.toSource() == 'foo.bar()`, we would miss the following cases:
+        For example, if we were doing `expression.toSource() == 'foo.bar()'`, we would miss the following cases:
         ```dart
         foo..bar();
         foo?.bar();
@@ -182,7 +182,7 @@ package will try to suggest.
         final boolean = parseBooleanLiteral('false');
         boolean.value; // false
 
-        final import = parseImportDirectivve('import "package:foo/foo.dart";');
+        final import = parseImportDirective('import "package:foo/foo.dart";');
         import.uriContent; // 'package:foo/foo.dart'
         ```
 
