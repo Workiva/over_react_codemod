@@ -86,7 +86,7 @@ class _InsertionLocation {
   String get trailingNewlines => '\n' * trailingNewlineCount;
 }
 
-/// Finds an insertion location for a `packageL` import, trying to
+/// Finds an insertion location for a `package:` import, trying to
 /// insert it alongside other `package:` imports in alphabetical order,
 /// otherwise inserting it in a new section relative to other imports
 /// or other directives.

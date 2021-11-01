@@ -36,7 +36,7 @@ export 'wsd_util.dart';
 /// A base class/mixin for a suggestor that resolves each file, identifies all
 /// OverReact component usages, and iterates through each of them.
 ///
-/// Throws if any file cannot be resolve or if any of the OverReact component
+/// Throws if any file cannot be resolved or if any of the OverReact component
 /// usages could not be fully resolved.
 ///
 /// Consumers should override:
@@ -526,6 +526,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   /// (Dom.div() // FIXME ...
   ///   ..id = ''
   /// )();
+  /// ```
   void yieldBuilderMemberFixmePatch(
       BuilderMemberAccess access, String message) {
     // Add an extra newline beforehand so that the comment doesn't end up on
@@ -564,6 +565,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   /// Dom.div()( // FIXME ...
   ///   'child'
   /// );
+  /// ```
   void yieldChildFixmePatch(ComponentChild child, String message) {
     // Add a leading newline so that, when children are all on the same line,
     // the comment doesn't get stuck to the previous child or invocation opening parens
