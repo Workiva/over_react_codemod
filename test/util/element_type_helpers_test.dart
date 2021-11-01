@@ -141,13 +141,13 @@ void main() {
         });
 
         test('returns false for other types', () {
-          expect(parameterType('element').isReactElement, isFalse);
-          expect(parameterType('map').isReactElement, isFalse);
-          expect(parameterType('customClass').isReactElement, isFalse);
+          expect(parameterType('element').isPropsClass, isFalse);
+          expect(parameterType('map').isPropsClass, isFalse);
+          expect(parameterType('customClass').isPropsClass, isFalse);
         });
 
         test('returns false for dynamic', () {
-          expect(parameterType('dynamic_').isReactElement, isFalse);
+          expect(parameterType('dynamic_').isPropsClass, isFalse);
         });
       });
 
