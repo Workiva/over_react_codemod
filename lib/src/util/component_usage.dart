@@ -288,12 +288,11 @@ class ExpressionComponentChild implements ComponentChild {
   final bool isVariadic;
 
   ExpressionComponentChild(this.node, {required this.isVariadic});
-
-  /// The type category for this child based on its static type.
-  ReactNodeTypeCategory get typeCategory => typeCategoryForReactNode(node);
 }
 
 /// Returns the type category for an expression based on its static type.
+///
+/// See [ReactNodeTypeCategory] for more information.
 ReactNodeTypeCategory typeCategoryForReactNode(Expression node) {
   final staticType = node.staticType;
   if (staticType == null) {

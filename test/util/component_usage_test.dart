@@ -690,6 +690,62 @@ void main() {
       group('when AST is not resolved', () => sharedTests(isResolved: false));
       group('when AST is resolved', () => sharedTests(isResolved: true));
     });
+
+    group('typeCategoryForReactNode', () {
+      final sharedContext = SharedAnalysisContext.overReact;
+      Future<Expression> resolveExpression(String expression) =>
+          sharedContext.parseExpression(expression, isResolved: true);
+
+      group('returns `.primitive` for primitive-typed expressions:', () {
+        const testCasesByName = {
+          'bool': 'false',
+          'null': 'null',
+          'string': '""',
+          'int': '1',
+          'double': '1.0',
+          'num': '(1 as num)',
+        };
+
+        testCasesByName.forEach((name, source) {
+          test(name, () async {
+            expect(typeCategoryForReactNode(await resolveExpression(source)),
+                ReactNodeTypeCategory.primitive);
+          });
+        });
+      });
+
+      test('returns `.reactElement` for ReactElement-typed expressions:',
+          () async {
+        final expression = await sharedContext.parseExpression('Dom.div()()',
+            isResolved: true,
+            imports: 'import "package:over_react/over_react.dart"');
+        expect(typeCategoryForReactNode(expression),
+            ReactNodeTypeCategory.reactElement);
+      });
+
+      test('returns `.unknown` for expressions that could not be resolved:',
+          () async {
+        final expression = await sharedContext
+            .parseExpression('someUnresolvedIdentifier', isResolved: false);
+        expect(typeCategoryForReactNode(expression),
+            ReactNodeTypeCategory.unknown);
+      });
+
+      group('returns `.other` for other types:', () {
+        const testCasesByName = {
+          'dynamic': '(Object() as dynamic)',
+          'Object': 'Object()',
+          'another type (Map)': '{}',
+        };
+
+        testCasesByName.forEach((name, source) {
+          test(name, () async {
+            expect(typeCategoryForReactNode(await resolveExpression(source)),
+                ReactNodeTypeCategory.other);
+          });
+        });
+      });
+    });
   });
 }
 

@@ -357,10 +357,12 @@ extension ParseHelpers on SharedAnalysisContext {
     bool isResolved = false,
   }) async {
     CompilationUnit unit;
+    // Wrap the expression in parens to ensure this is interpreted as an expression
+    // for ambiguous cases (e.g, a map literal that could be interpreted as an empty block).
     final source = '''
       $imports
       void wrapperFunction() {
-        $expression;
+        ($expression);
       }
       $otherSource
     ''';
@@ -380,6 +382,6 @@ extension ParseHelpers on SharedAnalysisContext {
         .singleWhere((function) => function.name.name == 'wrapperFunction');
     final body = parsedFunction.functionExpression.body as BlockFunctionBody;
     final statement = body.block.statements.single as ExpressionStatement;
-    return statement.expression;
+    return (statement.expression as ParenthesizedExpression).expression;
   }
 }
