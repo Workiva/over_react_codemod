@@ -32,7 +32,7 @@ extension TypeHelpers on DartType {
   }
 }
 
-// Adapted from https://github.com/dart-lang/sdk/blob/279024d823707f1f4d5edc05c374ca813edbd73e/pkg/analysis_server/lib/src/utilities/flutter.dart#L279
+// Adapted from https://github.com/dart-lang/sdk/blob/279024d823707f1f4d5edc05c374ca813edbd73e/pkg/analysis_server/lib/src/utilities/flutter.dart#L560
 //
 // Copyright 2014, the Dart project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without

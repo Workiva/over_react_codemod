@@ -456,40 +456,44 @@ void main() {
       test('returns the correct version for non-toolbar WSD v1 components',
           () async {
         final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
-          content() => wsd_v1.Button()();
-      ''');
+            content() => wsd_v1.Button()();
+        ''');
         expect(wsdComponentVersionForFactory(usage), WsdComponentVersion.v1);
       });
 
       test('returns the correct version for non-toolbar WSD v2 components',
           () async {
-        final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
-          content() => wsd_v2.Button()();
-      ''');
-        expect(wsdComponentVersionForFactory(usage), WsdComponentVersion.v2);
+        final usage1 = await parseAndGetSingleUsage(/*language=dart*/ '''
+            content() => wsd_v2.Button()(); 
+        ''');
+        final usage2 = await parseAndGetSingleUsage(/*language=dart*/ '''
+            content() => Button()(); 
+        ''');
+        expect(wsdComponentVersionForFactory(usage1), WsdComponentVersion.v2);
+        expect(wsdComponentVersionForFactory(usage2), WsdComponentVersion.v2);
       });
 
       test('returns the correct version for toolbar WSD v1 components',
           () async {
         final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
-          content() => toolbars_v1.Button()();
-      ''');
+            content() => toolbars_v1.Button()();
+        ''');
         expect(wsdComponentVersionForFactory(usage), WsdComponentVersion.v1);
       });
 
       test('returns the correct version for toolbar WSD v2 components',
           () async {
         final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
-          content() => toolbars_v2.Button()();
-      ''');
+            content() => toolbars_v2.Button()();
+        ''');
         expect(wsdComponentVersionForFactory(usage), WsdComponentVersion.v2);
       });
 
       test('returns `notWsd` for non-WSD components', () async {
         final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
-          UiFactory Foo;
-          content() => Foo()();
-      ''');
+            UiFactory Foo;
+            content() => Foo()();
+        ''');
         expect(
             wsdComponentVersionForFactory(usage), WsdComponentVersion.notWsd);
       });
@@ -497,15 +501,15 @@ void main() {
       group('returns null for usages that', () {
         test('have non-factory builders', () async {
           final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
-            content(UiProps builder) => builder();
-        ''');
+              content(UiProps builder) => builder();
+          ''');
           expect(wsdComponentVersionForFactory(usage), isNull);
         });
 
         test('use non-top-level factories', () async {
           final usage = await parseAndGetSingleUsage(/*language=dart*/ '''
-            content(UiFactory factory) => factory()();
-        ''');
+              content(UiFactory factory) => factory()();
+          ''');
           expect(wsdComponentVersionForFactory(usage), isNull);
         });
       });
