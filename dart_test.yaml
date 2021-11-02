@@ -1,1 +1,7 @@
 concurrency: 8
+
+tags:
+  # Tests that fetch a web_skin_dart as a dependency,
+  # and thus require access to the private Pub server.
+  # In CI, these tests are run in Skynet.
+  wsd:

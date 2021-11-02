@@ -1,0 +1,10 @@
+name: wsd_project
+environment:
+  sdk: '>=2.11.0 <3.0.0'
+dependencies:
+  over_react: ^4.2.0
+  web_skin_dart:
+    hosted:
+      name: web_skin_dart
+      url: https://pub.workiva.org
+    version: ^2.56.0

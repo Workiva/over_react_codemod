@@ -109,6 +109,93 @@ class Foo extends Object
 This ignore mechanism works with any of the changes that the codemods in this
 package will try to suggest.
 
+
+## Authoring codemods
+
+### Resources
+
+- Analyzer package
+    - [AST documentation](https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/doc/tutorial/ast.md)
+    - [Element model documentation](https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/doc/tutorial/element.md)
+      - (the element model is only accessible from "resolved AST")
+    - In general, the various `AstNode` and `Element` subclasses are well-documented, and are very helpful in describing the relationships between different types of nodes/elements and pointing to other classes. Reading those and clicking through the references is a good way to learn about specific structures, and help get your bearings.
+    - 
+- [codemod][dart_codemod] package
+
+### Best practices
+
+- Code defensively for edge-cases, and avoid assumptions about the AST or Element model. 
+
+    Some codemods process a lot of code, especially when identifying code that should be operated on, and some of that code may have structures you don't expect.
+
+    That doesn't necessarily mean your codemod should handle every single edge-case, but generally it shouldn't break with uncaught exceptions when it encounters certain code.
+
+    Things to avoid assumptions about:
+  
+    - The types or nullability of child/parent nodes
+        - Prefer type checks over casts
+          - `tryCast()` and `ancestorOfType()` can be handy in certain cases. 
+        - Prefer null-checks over `!`
+    - The number of child nodes or other items in collections 
+        - When using `.first`/`.last`/`.single` on iterables, either check the length of the iterable first, or switch to something more conditional like `.firstWhere()` or `.firstOrNull`
+        
+- Avoid using `childEntities`
+
+    Most AST node classes have getters for their different child nodes. Using these helps make code easier to read, and also provide typing (and nullability) which helps with static analysis and autocomplete.
+
+    If you're manually traversing the AST trying to find a certain descendant, consider whether a visitor-based implementation would be better.
+
+- Avoid using `AstNode.toSource()` (or `.toString()`) outside of tests
+
+    - To identify relevant code. There may be different syntax variations (either current or in future Dart versions) of code that unintentionally wouldn't be a match.
+
+        For example, if we were doing `expression.toSource() == 'foo.bar()'`, we would miss the following cases:
+        ```dart
+        foo..bar();
+        foo?.bar();
+        namespaced_import.foo.bar();
+        foo.bar(optionalArgAddedInSubclass: true);
+        ```
+
+        Instead, we could check for the method name via:
+        ```dart
+        expression is MethodInvocation && expression.methodName.name == 'bar'
+        ```
+        and change the foo check to something else, depending on the use-case:
+        ```dart
+        // Check whether the target is a "foo" identifier 
+        // (though this doesn't handle prefixed cases)
+        expression.realTarget?.tryCast<Identifier>()?.name == 'foo'
+        // Check whether it statically points to a `foo` variable
+        expression.realTarget?.tryCast<Identifier>()?.staticElement?.name == 'foo');
+        // Or, Check whether it's a `Foo` object:
+        isFooType(expression.realTarget?.staticType);
+        // (Or, something else)
+        ```
+
+        For cases where the syntax seems simple enough where variations shouldn't be a problem, there are usually APIs that provide the value you're looking for.
+
+        ```dart
+        final identifier = parseIdentifier('foo');
+        identifier.name; // 'foo'
+
+        final boolean = parseBooleanLiteral('false');
+        boolean.value; // false
+
+        final import = parseImportDirective('import "package:foo/foo.dart";');
+        import.uriContent; // 'package:foo/foo.dart'
+        ```
+
+    - For building patch strings (such as when moving code from one place to another).
+
+        `toSource()` provides an approximation of the source, and may be missing comments or have different whitespace. If needed, use the `context.sourceFile` to get the original source for a given node.
+    
+- Don't make assumptions about existing whitespace and line breaks.
+
+    There are different ways code can be formatted with dartfmt, and some code may not be formatted at all, so it's unsafe to make assumptions. 
+
+    For instance, if you'd like to yield a patch that deletes a newline with some code, either check for its existence first by getting the source or line number of that offset in `context.sourceFile`. Or, instead of deleting from `node.offset`, delete from the end of the previous token (`node.prevToken?.end ?? node.offset`) to take any whitespace between those nodes with it.
+
 [dart_codemod]: https://github.com/Workiva/dart_codemod
 [over_react]: https://github.com/Workiva/over_react
 [over_react_dart2]: https://github.com/Workiva/over_react/blob/master/doc/dart2_migration.md

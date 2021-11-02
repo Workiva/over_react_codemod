@@ -105,7 +105,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
 
           if (cssPropertyValue is ConditionalExpression ||
               cssPropertyValue is BinaryExpression) {
-            late List<Expression> ternaryExpressions;
+            final List<Expression> ternaryExpressions;
 
             if (cssPropertyValue is ConditionalExpression) {
               ternaryExpressions = [
@@ -117,6 +117,8 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
                 cssPropertyValue.leftOperand,
                 cssPropertyValue.rightOperand
               ];
+            } else {
+              throw UnimplementedError('Unhandled type for cssPropertyValue');
             }
 
             for (var property in ternaryExpressions) {
