@@ -78,6 +78,35 @@ void main() {
               });
             });
           });
+
+          // The not-resolved test case for this test is slightly redundant with
+          // some of the cases in the next group, but the resolved case is important here.
+          test('when containing a blocked method name (unless unresolved)',
+              () async {
+            const testCase = BuilderTestCase(
+              source: 'toBuilder()',
+              imports: fooComponents,
+              componentName: 'Foo',
+              unresolvedComponentName: 'toBuilder',
+              factoryName: 'toBuilder',
+              propsName: 'FooProps',
+              isDom: false,
+              isSvg: false,
+            );
+            final source = '(${testCase.source})()';
+
+            final expressionNode = await parseInvocation(source,
+                imports: testCase.imports, isResolved: isResolved);
+            final componentUsage = getComponentUsage(expressionNode);
+
+            if (isResolved) {
+              checkComponentUsage(componentUsage, testCase, source);
+            } else {
+              expect(componentUsage, isNull,
+                  reason:
+                      'should not be detected as a usage when not resolved');
+            }
+          });
         });
 
         group(
@@ -830,16 +859,16 @@ void checkComponentUsage(FluentComponentUsage? componentUsage,
 }
 
 class BuilderTestCase {
-  String source;
-  String imports;
-  String componentName;
-  String? unresolvedComponentName;
-  String factoryName;
-  String propsName;
-  bool isDom;
-  bool isSvg;
+  final String source;
+  final String imports;
+  final String componentName;
+  final String? unresolvedComponentName;
+  final String factoryName;
+  final String propsName;
+  final bool isDom;
+  final bool isSvg;
 
-  BuilderTestCase({
+  const BuilderTestCase({
     required this.source,
     required this.imports,
     required this.componentName,
@@ -867,13 +896,14 @@ class BarComponent extends UiComponent2<BarProps> {
 }
 FooProps getFooBuilder() => Foo();
 FooProps getBuilderForFoo() => Foo();
+FooProps toBuilder() => Foo();
 ''';
 
 /// An enumeration of all the supported OverReact component builders that can be detected
 /// using [FluentComponentUsage], and used to target code when formatting.
 ///
 /// Keys are descriptions, and values are [BuilderTestCase]s.
-final buildersToTest = {
+const buildersToTest = {
   'DOM factory': BuilderTestCase(
     source: 'Dom.h1()',
     imports: fooComponents,
