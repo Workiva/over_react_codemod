@@ -24,6 +24,10 @@ final sharedContext = SharedAnalysisContext.overReact;
 
 main() {
   group('ComponentUsageMigrator', () {
+    setUpAll(() async {
+      await SharedAnalysisContext.overReact.warmUpAnalysis();
+    });
+
     group('throws when a component usage is not resolved', () {
       test('', () async {
         const unresolvedUsages = [
