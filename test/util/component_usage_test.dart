@@ -80,25 +80,32 @@ void main() {
           });
         });
 
-        test(
-            'returns null for invocations that aren\'t fluent interface usages',
+        group(
+            'returns null for invocations that are not fluent interface usages:',
             () {
-          Future<void> verifyUsage(String source, String reason) async {
-            final expressionNode =
-                await parseInvocation(source, isResolved: isResolved);
-            var componentUsage = getComponentUsage(expressionNode);
-            expect(componentUsage, isNull, reason: '$source is $reason');
-          }
-
           const {
             'Dom.h1()': 'not full invocation',
             'Foo()': 'not full invocation',
             'fooFactory()': 'not full invocation',
             'foo()': 'not a valid builder',
             'foo.bar()': 'not a valid builder',
+            'foo().bar()': 'not a valid builder',
+            'foo.bar.baz()': 'not a valid builder',
             'foo()()': 'not a valid builder',
             '_foo()()': 'not a valid builder',
-          }.forEach(verifyUsage);
+            'toBuilder()': 'blocked method name',
+            'toBuilder()()': 'blocked method name',
+            'foo.toBuilder()': 'blocked method name',
+            'foo().toBuilder()': 'blocked method name',
+            'foo.bar.toBuilder()': 'blocked method name',
+          }.forEach((source, reason) {
+            test('`$source`', () async {
+              final expressionNode =
+                  await parseInvocation(source, isResolved: isResolved);
+              var componentUsage = getComponentUsage(expressionNode);
+              expect(componentUsage, isNull, reason: '$source is $reason');
+            });
+          });
         });
       }
 

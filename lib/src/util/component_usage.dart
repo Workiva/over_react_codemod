@@ -48,7 +48,7 @@ class FluentComponentUsage {
 
   /// Whether this usage's builder and all descendant expressions (including the
   /// factory, if it exists) have fully resolved static information available.
-  bool get isBuilderResolved => isFullyResolved(builder);
+  bool get isBuilderResolved => !hasUnresolvedOrDynamicReferences(builder);
 
   /// The top-level variable element for this usage's factory, or `null` if either:
   ///
@@ -75,7 +75,7 @@ class FluentComponentUsage {
 
   /// The static type of this usage's builder, or `null` if this usage is not fully resolved.
   DartType? get builderType {
-    if (isFullyResolved(builder)) {
+    if (!hasUnresolvedOrDynamicReferences(builder)) {
       return builder.staticType;
     }
     return null;
@@ -495,29 +495,35 @@ class IndexPropAssignment extends BuilderMemberAccess {
   Expression get rightHandSide => node.rightHandSide;
 }
 
-/// Returns whether [expression] and all of its descendants are fully resolved
-/// by checking whether there are any unresolved identifiers or unresolved
-/// invocations.
+/// Returns whether [expression] or any of its descendants contain references
+/// that either:
 ///
-/// This is a more accurate alternative than just checking for [Expression.staticType],
-/// since that often shows up as `dynamic` in resolved contexts when something doesn't fully resolve.
-bool isFullyResolved(Expression expression) {
-  if (expression.staticType == null) return false;
+/// 1. are not fully resolved
+/// 2. represent members accessed on `dynamic` expressions (e.g., `dynamicVar.foo`)
+///
+/// Unfortunately, it's difficult to distinguish between the two and only detect
+/// unresolved references.
+///
+/// If dynamic member accesses are rare, this can a more accurate alternative
+/// than just checking for [Expression.staticType], since that often shows up
+/// as `dynamic` in resolved contexts when something doesn't fully resolve.
+bool hasUnresolvedOrDynamicReferences(Expression expression) {
+  if (expression.staticType == null) return true;
 
   final visitor = _ResolvedExpressionVisitor();
   expression.accept(visitor);
-  return visitor.isFullyResolved;
+  return visitor.hasUnresolvedOrDynamicReferences;
 }
 
 class _ResolvedExpressionVisitor extends GeneralizingAstVisitor<void> {
-  var isFullyResolved = true;
+  var hasUnresolvedOrDynamicReferences = false;
 
   @override
   visitIdentifier(Identifier node) {
     super.visitIdentifier(node);
 
     if (node.staticElement == null) {
-      isFullyResolved = false;
+      hasUnresolvedOrDynamicReferences = true;
     }
   }
 
@@ -526,7 +532,7 @@ class _ResolvedExpressionVisitor extends GeneralizingAstVisitor<void> {
     super.visitInvocationExpression(node);
 
     if (node.staticInvokeType == null) {
-      isFullyResolved = false;
+      hasUnresolvedOrDynamicReferences = true;
     }
   }
 }
@@ -564,29 +570,51 @@ FluentComponentUsage? getComponentUsage(InvocationExpression node) {
     builder = functionExpression;
   }
 
-  bool isComponent;
+  // Methods name that might look like builders to the name regexes, but we want to exclude.
+  // Excluding these known usages is easier than trying to differentiate unresolved calls
+  // from dynamic calls.
+  const methodNameBlockList = {
+    // built_value's `Built.toBuilder`
+    'toBuilder',
+  };
+
+  final bool isComponent;
 
   // Can't just check for staticType since if we're in an attempted-to-be-resolved AST
   // but something goes wrong, we'll get dynamic.
-  if (isFullyResolved(builder)) {
+  if (!hasUnresolvedOrDynamicReferences(builder)) {
     // Resolved AST
     isComponent = builder.staticType!.isPropsClass;
   } else {
     // Unresolved AST (or type wasn't available)
-    isComponent = false;
 
     if (builder is MethodInvocation) {
-      final builderName = _getUnresolvedComponentName(builder);
-      if (builderName != null) {
-        isComponent =
-            RegExp(r'(?:^|\.)Dom\.[a-z0-9]+$').hasMatch(builderName) ||
-                RegExp(r'factory|builder', caseSensitive: false)
-                    .hasMatch(builderName) ||
-                RegExp(r'(?:^|\.)[A-Z][^\.]*$').hasMatch(builderName);
+      if (methodNameBlockList.contains(builder.methodName.name)) {
+        isComponent = false;
+      } else {
+        final builderName = _getUnresolvedComponentName(builder);
+        if (builderName != null) {
+          isComponent =
+              RegExp(r'(?:^|\.)Dom\.[a-z0-9]+$').hasMatch(builderName) ||
+                  RegExp(r'factory|builder', caseSensitive: false)
+                      .hasMatch(builderName) ||
+                  RegExp(r'(?:^|\.)[A-Z][^\.]*$').hasMatch(builderName);
+        } else {
+          isComponent = false;
+        }
       }
     } else if (builder is Identifier) {
-      isComponent =
-          RegExp(r'builder', caseSensitive: false).hasMatch(builder.name);
+      final parent = builder.parent;
+      if (parent is MethodInvocation &&
+          parent.methodName == builder &&
+          methodNameBlockList.contains(builder.name)) {
+        isComponent = false;
+      } else {
+        isComponent =
+            RegExp(r'builder', caseSensitive: false).hasMatch(builder.name);
+      }
+    } else {
+      isComponent = false;
     }
   }
 
