@@ -570,7 +570,7 @@ FluentComponentUsage? getComponentUsage(InvocationExpression node) {
     builder = functionExpression;
   }
 
-  // Methods name that might look like builders to the name regexes, but we want to exclude.
+  // Method names that might look like builders to the name regexes, but we want to exclude.
   // Excluding these known usages is easier than trying to differentiate unresolved calls
   // from dynamic calls.
   const methodNameBlockList = {
