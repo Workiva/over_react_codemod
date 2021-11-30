@@ -1,0 +1,14 @@
+ignore:
+  - dart_style
+  - meta
+  - over_react
+  - pedantic
+  - dart_dev
+  - platform_detect
+  - react
+  - react_material_ui
+  - somewhere_else
+  - test_api
+  - web_skin
+  - web_skin_dart
+  - z_fake_package
