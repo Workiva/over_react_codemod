@@ -27,7 +27,7 @@ jobs:
 
       - id: install
         name: Install dependencies
-        run: pub get --no-precompile
+        run: dart pub get
 
       - name: Validate dependencies
         run: dart run dependency_validator
@@ -58,13 +58,13 @@ jobs:
 
       - id: install
         name: Install dependencies
-        run: pub get --no-precompile
+        run: dart pub get --no-precompile
 
       - name: Run tests
         run: |
           echo 'Running pub get in test fixtures beforehand to prevent concurrent `pub get`s in tests from failing'
-          (cd test/test_fixtures/over_react_project && pub get)
-          pub run test --exclude-tags=wsd --file-reporter json:reports/${{ matrix.sdk }}/test-results.json
+          (cd test/test_fixtures/over_react_project && dart pub get)
+          dart run test --exclude-tags=wsd --file-reporter json:reports/${{ matrix.sdk }}/test-results.json
 
       - name: Upload Unit Test Results
         uses: actions/upload-artifact@v2
