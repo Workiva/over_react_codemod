@@ -16,12 +16,14 @@ import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/mui_suggestors/components/mui_button_group_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/components/mui_button_migrator.dart';
 import 'package:over_react_codemod/src/mui_suggestors/components/mui_button_toolbar_migrator.dart';
+import 'package:over_react_codemod/src/mui_suggestors/components/mui_chip_migrator.dart';
 
 /// A map of component names to their respective migrators.
 ///
 /// Used to determine which migrators should be run when only a subset of
 /// components is being migrated at a time.
 final componentMigratorsByName = <String, Suggestor>{
+  'Badge': MuiChipMigrator(),
   'Button': MuiButtonMigrator(),
   'ButtonGroup': MuiButtonGroupMigrator(),
   'ButtonToolbar': MuiButtonToolbarMigrator(),
