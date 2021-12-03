@@ -261,12 +261,8 @@ String? parseAndRemoveCommentPrefixArg(List<String> args) {
         commentPrefixArgs.add(args[i]);
         args.removeAt(i);
       } else if (i + 1 < args.length) {
-        commentPrefixArgs
-          ..add(args[i])
-          ..add(args[i + 1]);
-        args
-          ..removeAt(i)
-          ..removeAt(i + 1);
+        commentPrefixArgs..add(args[i])..add(args[i + 1]);
+        args..removeAt(i)..removeAt(i + 1);
       }
       break;
     }
