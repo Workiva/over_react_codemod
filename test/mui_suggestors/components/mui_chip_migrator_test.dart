@@ -310,6 +310,17 @@ void main() {
       });
     });
 
-    group('updates props', () {});
+    group('updates props', () {
+      group('isDisabled', () {});
+      group('isOutline', () {});
+      group('backgroundColor', () {});
+      group('align', () {});
+    });
+
+    sharedHitAreaMixinTests(
+        startingFactoryName: 'Badge',
+        endingFactoryName: 'Chip',
+        testSuggestor: testSuggestor,
+        extraEndingProps: '..variant = mui.ChipVariant.wsdBadge');
   }, tags: 'wsd');
 }

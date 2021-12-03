@@ -474,35 +474,10 @@ void main() {
         });
       });
 
-      test('role', () async {
-        await testSuggestor(
-          input: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (Button()..role = 'foo')();
-              }
-          '''),
-          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (mui.Button()..dom.role = 'foo')();
-              }
-          '''),
-        );
-      });
-
-      test('target', () async {
-        await testSuggestor(
-          input: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (Button()..target = 'foo')();
-              }
-          '''),
-          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-              content() {
-                (mui.Button()..dom.target = 'foo')();
-              }
-          '''),
-        );
-      });
+      sharedHitAreaMixinTests(
+          startingFactoryName: 'Button',
+          testSuggestor: testSuggestor,
+          testsToSkip: [SharedHitAreaMixinTests.type]);
 
       group('type', () {
         test('mapping type constants properly', () async {
@@ -544,24 +519,6 @@ void main() {
       });
 
       group('always flagging for manual migration:', () {
-        test('allowedHandlersWhenDisabled', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (Button()..allowedHandlersWhenDisabled = [])();
-                }
-            '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (mui.Button()
-                    // FIXME(mui_migration) - allowedHandlersWhenDisabled prop - manually migrate
-                    ..allowedHandlersWhenDisabled = []
-                  )();
-                }
-            '''),
-          );
-        });
-
         test('isCallout', () async {
           await testSuggestor(
             input: withOverReactAndWsdImports(/*language=dart*/ '''
