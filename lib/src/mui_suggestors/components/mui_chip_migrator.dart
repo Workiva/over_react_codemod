@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/mui_suggestors/components/utils/hit_area.dart';
 import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
@@ -31,55 +32,88 @@ class MuiChipMigrator extends ComponentUsageMigrator
     super.migrateUsage(usage);
 
     yieldPatchOverNode('$muiNs.Chip', usage.factory!);
-    yieldAddPropPatch(usage, '..variant = $muiNs.ChipVariant.wsdBadge');
     migrateChildrenToLabel(usage);
 
     handleCascadedPropsByName(usage, {
+      'align': migrateBadgeAlignProp,
+      'backgroundColor': (p) => migrateBadgeAndLabelBackgroundColor(usage, p),
+      'borderColor': yieldPropManualMigratePatch,
       'isDisabled': (p) {
         yieldPropFixmePatch(p,
             'if this badge has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element');
         yieldPropPatch(p, newName: 'disabled');
       },
-      // TODO what to do with align?
       'isOutline': (p) => migrateBadgeOutlineProp(usage, p),
-      'backgroundColor': migrateBadgeBackgroundColor,
-      'align': migrateBadgeAlignProp,
+      'textColor': yieldPropManualMigratePatch,
 
       // HitArea Props
-      // TODO do we need logic to check if we should do this?
       'allowedHandlersWhenDisabled': yieldPropManualMigratePatch,
       'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
       'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
-      // TODO does `dom.type` work out of the box here?
       'type': (p) => yieldPropPatch(p, newName: 'dom.type'),
     });
 
     migrateTooltipProps(usage);
+    yieldAddPropPatch(usage, '..variant = $muiNs.ChipVariant.wsdBadge');
   }
 }
 
 mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
   void migrateBadgeOutlineProp(
       FluentComponentUsage usage, PropAssignment prop) {
-    yieldRemovePropPatch(prop);
-
-    yieldAddPropPatch(usage, '..color = $muiNs.ChipColor.wsdBadgeOutlined');
-  }
-
-  void migrateBadgeBackgroundColor(PropAssignment prop) {
     final rhs = prop.rightHandSide;
 
-    // TODO handle doc tpy colors
-    // final docTypeColors = ['DOC_TYPE_BLUE',
-    //   'DOC_TYPE_LIGHT_BLUE',
-    //   'DOC_TYPE_TEAL',
-    //   'DOC_TYPE_GRAY',
-    //   'DOC_TYPE_RED',
-    //   'DOC_TYPE_GREEN',
-    //   'DOC_TYPE_PURPLE',
-    //   'DOC_TYPE_ORANGE',
-    //   'DOC_TYPE_MAGENTA',
-    // ];
+    if (usage.cascadedProps
+        .any((prop) => prop.name.name == 'backgroundColor')) {
+      yieldUsageFixmePatch(usage,
+          'Both `isOutline` and `backgroundColor` attempt to set the `color` prop. This should be manually verified.');
+    }
+
+    if (rhs is BooleanLiteral) {
+      if (rhs.value) {
+        yieldPropPatch(prop,
+            newName: 'color', newRhs: '$muiNs.ChipColor.wsdBadgeOutlined');
+      } else {
+        yieldRemovePropPatch(prop);
+      }
+    } else {
+      // Change
+      //     ..isOutline = expression
+      // to
+      //     ..color = expression ? mui.ChipColor.wsdBadgeOutlined : mui.ChipColor.default_
+      yieldPropPatch(prop, newName: 'color');
+      yieldInsertionPatch(
+          ' ? $muiNs.ChipColor.wsdBadgeOutlined : $muiNs.ChipColor.default_',
+          rhs.end);
+    }
+  }
+
+  void migrateBadgeAndLabelBackgroundColor(
+      FluentComponentUsage usage, PropAssignment prop) {
+    final rhs = prop.rightHandSide;
+
+    const docTypeColors = [
+      'BackgroundColor.DOC_TYPE_BLUE',
+      'BackgroundColor.DOC_TYPE_LIGHT_BLUE',
+      'BackgroundColor.DOC_TYPE_TEAL',
+      'BackgroundColor.DOC_TYPE_GRAY',
+      'BackgroundColor.DOC_TYPE_RED',
+      'BackgroundColor.DOC_TYPE_GREEN',
+      'BackgroundColor.DOC_TYPE_PURPLE',
+      'BackgroundColor.DOC_TYPE_ORANGE',
+    ];
+
+    // Verify that a badge is not being set to a DOC_TYPE color.
+    //
+    // This may happen because a WSD badge _could_ be set to a DOC_TYPE color and
+    // the badge would be styled correctly. However, with a MUI chip, the component
+    // will not have a background color.
+    if (usesWsdFactory(usage, 'Badge') &&
+        docTypeColors.any((constant) => isWsdStaticConstant(rhs, constant))) {
+      yieldPropFixmePatch(prop,
+          'A MUI chip with the badge variant cannot be set to a DOC_TYPE color. Use the `sx` prop and theme palette instead.');
+      return;
+    }
 
     final colorFromWsdBackgroundColor = mapWsdConstant(rhs, const {
       'BackgroundColor.DANGER': '$muiNs.ChipColor.error',
@@ -87,6 +121,15 @@ mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
       'BackgroundColor.DEFAULT': '$muiNs.ChipColor.inherit',
       'BackgroundColor.SUCCESS': '$muiNs.ChipColor.success',
       'BackgroundColor.WARNING': '$muiNs.ChipColor.warning',
+      'BackgroundColor.DOC_TYPE_BLUE': '$muiNs.ChipColor.wsdLabelBlue',
+      'BackgroundColor.DOC_TYPE_LIGHT_BLUE':
+          '$muiNs.ChipColor.wsdLabelLightBlue',
+      'BackgroundColor.DOC_TYPE_TEAL': '$muiNs.ChipColor.wsdLabelTeal',
+      'BackgroundColor.DOC_TYPE_GRAY': '$muiNs.ChipColor.wsdLabelGray',
+      'BackgroundColor.DOC_TYPE_RED': '$muiNs.ChipColor.wsdLabelRed',
+      'BackgroundColor.DOC_TYPE_GREEN': '$muiNs.ChipColor.wsdLabelGreen',
+      'BackgroundColor.DOC_TYPE_PURPLE': '$muiNs.ChipColor.wsdLabelPurple',
+      'BackgroundColor.DOC_TYPE_ORANGE': '$muiNs.ChipColor.wsdLabelOrange',
     });
 
     if (colorFromWsdBackgroundColor != null) {
@@ -98,7 +141,43 @@ mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
       return;
     }
 
-    // For other values, manual migration is safest.
+    const mappableZestyCrayonColors = [
+      'BackgroundColor.GREEN',
+      'BackgroundColor.BLUE',
+      'BackgroundColor.ORANGE',
+      'BackgroundColor.RED',
+      'BackgroundColor.GRAY'
+    ];
+
+    if (mappableZestyCrayonColors
+        .any((constant) => isWsdStaticConstant(rhs, constant))) {
+      yieldRemovePropPatch(prop);
+      final sxFromColor = mapWsdConstant(rhs, {
+        'BackgroundColor.GREEN':
+            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.green.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
+        'BackgroundColor.BLUE':
+            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.blue.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
+        'BackgroundColor.ORANGE':
+            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.orange.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
+        'BackgroundColor.RED':
+            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.red.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
+        'BackgroundColor.GRAY':
+            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.gray.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
+      });
+
+      // `sxFromColor` should never be `null` because the `if` conditional asserts that
+      // a constant mapping will be found.
+      yieldAddPropPatch(usage, sxFromColor!);
+      return;
+    }
+
+    // This may be hit if a badge or label reference the alt green Zesty Crayon colors
+    // (https://github.com/Workiva/web_skin_dart/blob/845601bd8ccbcca44e4bcf354f5b4f8dc996d27a/lib/src/ui_components/shared/constants.dart#L123-L127)
+    //
+    // But because there are currently no usages of it (according to the SG query below),
+    // the manual migration comment is lazy and doesn't try to provide a solution.
+    //
+    // (https://sourcegraph.wk-dev.wdesk.org/search?q=BackgroundColor%5C.%28GREEN_ALT%7CGREEN_ALT_2%29+lang:dart+-repo:web_skin_dart+-repo:web_skin_docs+-repo:dart_storybook&patternType=regexp)
     yieldPropManualMigratePatch(prop);
   }
 
@@ -108,9 +187,9 @@ mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
 
     message = mapWsdConstant(rhs, const {
       'BadgeAlign.LEFT':
-          'Manually verify. BadgeAlign.LEFT is the default and may be able to be removed. Otherwise, `sx` can be used like so: ..sx = {\'marginRight\': \'.5em\'}',
+          'Manually verify. BadgeAlign.LEFT is the default and may be able to be removed. Otherwise, `sx` can be used like so: ..sx = {\'marginRight\': (mui.Theme theme) => mui.themeSpacingAsRem(.5, theme)}',
       'BadgeAlign.RIGHT':
-          'Instead of align, move the badge to be after its siblings and add `sx` like so: ..sx = {\'marginLeft\': \'.5em\', \'mr\': 0}',
+          'Instead of align, move the badge to be after its siblings and add `sx` like so: ..sx = {\'marginLeft\': (mui.Theme theme) => mui.themeSpacingAsRem(.5, theme), \'mr\': 0}',
       'BadgeAlign.PULL_RIGHT':
           'Instead of align, move the badge to be after its siblings and add `sx` like so: ..sx = {\'float\': \'right\', \'mr\': 0}',
       'BadgeAlign.PULL_LEFT':

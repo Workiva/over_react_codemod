@@ -28,7 +28,13 @@ String withOverReactAndWsdImports(String source) => /*language=dart*/ '''
     $source
 ''';
 
-enum SharedHitAreaMixinTests { role, target, type, allowedHandlersWhenDisabled }
+enum SharedHitAreaMixinTests {
+  role,
+  target,
+  type,
+  allowedHandlersWhenDisabled,
+  tooltips
+}
 
 /// Tests common assertions shared between WSD components that use `HitAreaMixin`.
 void sharedHitAreaMixinTests(
@@ -115,11 +121,251 @@ void sharedHitAreaMixinTests(
                 content() {
                   (mui.$endingFactoryName()
                     // FIXME(mui_migration) - allowedHandlersWhenDisabled prop - manually migrate
-                    ..allowedHandlersWhenDisabled = []
+                    ..allowedHandlersWhenDisabled = []$extraEndingProps
                   )();
                 }
             '''),
         );
+      });
+    }
+
+    if (!testsToSkip.contains(SharedHitAreaMixinTests.tooltips)) {
+      group(
+          'migrates tooltipContent to use a wrapper OverlayTrigger,'
+          ' when the prop is', () {
+        test('by itself', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports('''
+              content() {
+                ($startingFactoryName()
+                  ..id = ''
+                  ..tooltipContent = 'content'
+                )();
+              }
+          '''),
+            expectedOutput: withOverReactAndWsdImports('''
+              content() {
+                (OverlayTrigger()
+                  // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                  ..overlay2 = Tooltip()('content')
+                )(
+                  (mui.$endingFactoryName()..id = ''$extraEndingProps)(),
+                );
+              }
+          '''),
+          );
+        });
+
+        group('with overlayTriggerProps', () {
+          test('as an OverlayTriggerProps map', () async {
+            await testSuggestor(
+              input: withOverReactAndWsdImports('''
+                content() {
+                  ($startingFactoryName()
+                    ..tooltipContent = 'content'
+                    ..overlayTriggerProps = (OverlayTrigger()
+                      ..placement = OverlayPlacement.LEFT
+                      ..trigger = OverlayTriggerType.HOVER
+                    )
+                    ..id = ''
+                  )();
+                }
+            '''),
+              expectedOutput: withOverReactAndWsdImports('''
+                content() {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = Tooltip()('content')
+                    ..placement = OverlayPlacement.LEFT
+                    ..trigger = OverlayTriggerType.HOVER
+                  )(
+                    (mui.$endingFactoryName()
+                      ..id = ''
+                      $extraEndingProps
+                    )(),
+                  );
+                }
+            '''),
+            );
+          });
+
+          test('as an OverlayTriggerProps map (namespaced)', () async {
+            await testSuggestor(
+              input: withOverReactAndWsdImports('''
+                content() {
+                  ($startingFactoryName()
+                    ..tooltipContent = 'content'
+                    ..overlayTriggerProps = (wsd_v2.OverlayTrigger()
+                      ..placement = OverlayPlacement.LEFT
+                      ..trigger = OverlayTriggerType.HOVER
+                    )
+                    ..id = ''
+                  )();
+                }
+            '''),
+              expectedOutput: withOverReactAndWsdImports('''
+                content() {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = Tooltip()('content')
+                    ..placement = OverlayPlacement.LEFT
+                    ..trigger = OverlayTriggerType.HOVER
+                  )(
+                    (mui.$endingFactoryName()..id = ''$extraEndingProps)(),
+                  );
+                }
+            '''),
+            );
+          });
+
+          test('as another expression', () async {
+            await testSuggestor(
+              input: withOverReactAndWsdImports('''
+                content(Function getProps) {
+                  ($startingFactoryName()
+                    ..tooltipContent = 'content'
+                    ..overlayTriggerProps = getProps()
+                    ..id = ''
+                  )();
+                }
+            '''),
+              expectedOutput: withOverReactAndWsdImports('''
+                content(Function getProps) {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = Tooltip()('content')
+                    ..addProps(getProps())
+                  )(
+                    (mui.$endingFactoryName()..id = ''$extraEndingProps)(),
+                  );
+                }
+            '''),
+            );
+          });
+        });
+
+        group('with tooltipProps', () {
+          test('as a TooltipProps map', () async {
+            await testSuggestor(
+              input: withOverReactAndWsdImports('''
+                content() {
+                  ($startingFactoryName()
+                    ..tooltipContent = 'content'
+                    ..tooltipProps = (Tooltip()
+                      ..className = 'my-tooltip'
+                    )
+                    ..id = ''
+                  )();
+                }
+            '''),
+              expectedOutput: withOverReactAndWsdImports('''
+                content() {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = (Tooltip()
+                      ..className = 'my-tooltip'
+                    )('content')
+                  )(
+                    (mui.$endingFactoryName()
+                      ..id = ''
+                      $extraEndingProps
+                    )(),
+                  );
+                }
+            '''),
+            );
+          });
+
+          test('as a TooltipProps map (namespaced)', () async {
+            await testSuggestor(
+              input: withOverReactAndWsdImports('''
+                content() {
+                  ($startingFactoryName()
+                    ..tooltipContent = 'content'
+                    ..tooltipProps = (wsd_v2.Tooltip()
+                      ..className = 'my-tooltip'
+                    )
+                    ..id = ''
+                  )();
+                }
+            '''),
+              expectedOutput: withOverReactAndWsdImports('''
+                content() {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = (Tooltip()
+                      ..className = 'my-tooltip'
+                    )('content')
+                  )(
+                    (mui.$endingFactoryName()
+                      ..id = ''
+                      $extraEndingProps
+                    )(),
+                  );
+                }
+            '''),
+            );
+          });
+
+          test('as another expression', () async {
+            await testSuggestor(
+              input: withOverReactAndWsdImports('''
+                content(Function getProps) {
+                  ($startingFactoryName()
+                    ..tooltipContent = 'content'
+                    ..tooltipProps = getProps()
+                    ..id = ''
+                  )();
+                }
+            '''),
+              expectedOutput: withOverReactAndWsdImports('''
+                content(Function getProps) {
+                  (OverlayTrigger()
+                    // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                    ..overlay2 = (Tooltip()
+                      ..addProps(getProps())
+                    )('content')
+                  )(
+                    (mui.$endingFactoryName()..id = ''$extraEndingProps)(),
+                  );
+                }
+            '''),
+            );
+          });
+        });
+
+        test('with overlayTriggerProps and tooltipProps', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports('''
+              content() {
+                ($startingFactoryName()
+                  ..tooltipContent = 'content'
+                  ..overlayTriggerProps = (OverlayTrigger()
+                    ..placement = OverlayPlacement.LEFT
+                    ..trigger = OverlayTriggerType.HOVER
+                  )
+                  ..tooltipProps = (Tooltip()..className = 'my-tooltip')
+                  ..id = ''
+                )();
+              }
+          '''),
+            expectedOutput: withOverReactAndWsdImports('''
+              content() {
+                (OverlayTrigger()
+                  // FIXME(mui_migration) - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger
+                  ..overlay2 = (Tooltip()..className = 'my-tooltip')('content')
+                  ..placement = OverlayPlacement.LEFT
+                  ..trigger = OverlayTriggerType.HOVER
+                )(
+                  (mui.$endingFactoryName()
+                    ..id = ''
+                    $extraEndingProps
+                  )(),
+                );
+              }
+          '''),
+          );
+        });
       });
     }
   });

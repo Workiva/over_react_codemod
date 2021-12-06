@@ -26,7 +26,7 @@ void main() {
   // (which is more common for the WSD context), it fails here instead of failing the first test.
   setUpAll(resolvedContext.warmUpAnalysis);
 
-  group('MuiButtonGroupMigrator', () {
+  group('MuiChipMigrator', () {
     final testSuggestor = getSuggestorTester(
       MuiChipMigrator(),
       resolvedContext: resolvedContext,
@@ -97,8 +97,8 @@ void main() {
             expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
                 content() {
                   (mui.Chip()
-                    ..variant = mui.ChipVariant.wsdBadge
-                    ..label = Dom.span()('Badge Label'))();
+                    ..label = Dom.span()('Badge Label')
+                    ..variant = mui.ChipVariant.wsdBadge)();
                 }
             '''),
           );
@@ -114,8 +114,8 @@ void main() {
             expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
             content() {
               (mui.Chip()
-                ..variant = mui.ChipVariant.wsdBadge
-                ..label = 45)();
+                ..label = 45
+                ..variant = mui.ChipVariant.wsdBadge)();
             }
         '''),
           );
@@ -135,8 +135,8 @@ void main() {
               final label = 45;
             
               (mui.Chip()
-                ..variant = mui.ChipVariant.wsdBadge
                 ..label = label
+                ..variant = mui.ChipVariant.wsdBadge
               )();
             }
         '''),
@@ -157,8 +157,8 @@ void main() {
               final label = () => 45;
             
               (mui.Chip()
-                ..variant = mui.ChipVariant.wsdBadge
                 ..label = label()
+                ..variant = mui.ChipVariant.wsdBadge
               )();
             }
         '''),
@@ -183,8 +183,8 @@ void main() {
          
             content() {
               (mui.Chip()
-                ..variant = mui.ChipVariant.wsdBadge
                 ..label = BadgeLabel.label
+                ..variant = mui.ChipVariant.wsdBadge
               )();
             }
         '''),
@@ -311,10 +311,367 @@ void main() {
     });
 
     group('updates props', () {
-      group('isDisabled', () {});
-      group('isOutline', () {});
-      group('backgroundColor', () {});
-      group('align', () {});
+      group('isDisabled, when the RHS is a', () {
+        test('boolean literal', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()..isDisabled = true)();
+                  (Badge()..isDisabled = false)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Chip()
+                  // FIXME(mui_migration) - isDisabled prop - if this badge has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element
+                  ..disabled = true
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  // FIXME(mui_migration) - isDisabled prop - if this badge has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element
+                  ..disabled = false
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+
+        test('other expression', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(bool value) {
+                  (Badge()..isDisabled = value)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(bool value) {
+                  (mui.Chip()
+                    // FIXME(mui_migration) - isDisabled prop - if this badge has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element
+                    ..disabled = value 
+                    ..variant = mui.ChipVariant.wsdBadge
+                  )();
+                }
+            '''),
+          );
+        });
+      });
+
+      group('isOutline, when the RHS is a', () {
+        test('boolean literal', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()..isOutline = true)();
+                  (Badge()..isOutline = false)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Chip()
+                  ..color = mui.ChipColor.wsdBadgeOutlined
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+
+        test('other expression', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(bool value) {
+                  (Badge()..isOutline = value)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(bool value) {
+                  (mui.Chip()
+                    ..color = value ? mui.ChipColor.wsdBadgeOutlined : mui.ChipColor.default_
+                    ..variant = mui.ChipVariant.wsdBadge
+                  )();
+                }
+            '''),
+          );
+        });
+      });
+
+      group('backgroundColor', () {
+        test('maps non-DOC_TYPE color constants properly', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()..backgroundColor = BackgroundColor.DANGER)();
+                  (Badge()..backgroundColor = BackgroundColor.ALTERNATE)();
+                  (Badge()..backgroundColor = BackgroundColor.DEFAULT)();
+                  (Badge()..backgroundColor = BackgroundColor.SUCCESS)();
+                  (Badge()..backgroundColor = BackgroundColor.WARNING)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Chip()..color = mui.ChipColor.error..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()..color = mui.ChipColor.secondary..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()..color = mui.ChipColor.inherit..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()..color = mui.ChipColor.success..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()..color = mui.ChipColor.warning..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+
+        test('maps Zesty Crayon colors to the sx prop', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()..backgroundColor = BackgroundColor.GREEN)();
+                  (Badge()..backgroundColor = BackgroundColor.BLUE)();
+                  (Badge()..backgroundColor = BackgroundColor.ORANGE)();
+                  (Badge()..backgroundColor = BackgroundColor.RED)();
+                  (Badge()..backgroundColor = BackgroundColor.GRAY)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.green.main, 'color': (mui.Theme theme) => theme.palette.common.white,}..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.blue.main, 'color': (mui.Theme theme) => theme.palette.common.white,}..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.orange.main, 'color': (mui.Theme theme) => theme.palette.common.white,}..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.red.main, 'color': (mui.Theme theme) => theme.palette.common.white,}..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.gray.main, 'color': (mui.Theme theme) => theme.palette.common.white,}..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+
+        group('flagging when the backgroundColor', () {
+          test('is for a badge is a DOC_TYPE color', () async {
+            await testSuggestor(
+              input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()..backgroundColor = BackgroundColor.DOC_TYPE_BLUE)();
+                  (Badge()..backgroundColor = BackgroundColor.DOC_TYPE_LIGHT_BLUE)();
+                  (Badge()..backgroundColor = BackgroundColor.DOC_TYPE_TEAL)();
+                  (Badge()..backgroundColor = BackgroundColor.DOC_TYPE_GRAY)();
+                  (Badge()..backgroundColor = BackgroundColor.DOC_TYPE_RED)();
+                  (Badge()..backgroundColor = BackgroundColor.DOC_TYPE_GREEN)();
+                  (Badge()..backgroundColor = BackgroundColor.DOC_TYPE_PURPLE)();
+                  (Badge()..backgroundColor = BackgroundColor.DOC_TYPE_ORANGE)();
+                }
+            '''),
+              expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Chip()
+                  // FIXME(mui_migration) - backgroundColor prop - A MUI chip with the badge variant cannot be set to a DOC_TYPE color. Use the `sx` prop and theme palette instead.
+                  ..backgroundColor = BackgroundColor.DOC_TYPE_BLUE..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  // FIXME(mui_migration) - backgroundColor prop - A MUI chip with the badge variant cannot be set to a DOC_TYPE color. Use the `sx` prop and theme palette instead.
+                  ..backgroundColor = BackgroundColor.DOC_TYPE_LIGHT_BLUE..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  // FIXME(mui_migration) - backgroundColor prop - A MUI chip with the badge variant cannot be set to a DOC_TYPE color. Use the `sx` prop and theme palette instead.
+                  ..backgroundColor = BackgroundColor.DOC_TYPE_TEAL..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  // FIXME(mui_migration) - backgroundColor prop - A MUI chip with the badge variant cannot be set to a DOC_TYPE color. Use the `sx` prop and theme palette instead.
+                  ..backgroundColor = BackgroundColor.DOC_TYPE_GRAY..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  // FIXME(mui_migration) - backgroundColor prop - A MUI chip with the badge variant cannot be set to a DOC_TYPE color. Use the `sx` prop and theme palette instead.
+                  ..backgroundColor = BackgroundColor.DOC_TYPE_RED..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  // FIXME(mui_migration) - backgroundColor prop - A MUI chip with the badge variant cannot be set to a DOC_TYPE color. Use the `sx` prop and theme palette instead.
+                  ..backgroundColor = BackgroundColor.DOC_TYPE_GREEN..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  // FIXME(mui_migration) - backgroundColor prop - A MUI chip with the badge variant cannot be set to a DOC_TYPE color. Use the `sx` prop and theme palette instead.
+                  ..backgroundColor = BackgroundColor.DOC_TYPE_PURPLE..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  // FIXME(mui_migration) - backgroundColor prop - A MUI chip with the badge variant cannot be set to a DOC_TYPE color. Use the `sx` prop and theme palette instead.
+                  ..backgroundColor = BackgroundColor.DOC_TYPE_ORANGE..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+            );
+          });
+
+          test('is another expression', () async {
+            await testSuggestor(
+              input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(dynamic otherBackgroundColor) {
+                  (Badge()..backgroundColor = otherBackgroundColor)();
+                }
+            '''),
+              expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(dynamic otherBackgroundColor) {
+                  (mui.Chip()
+                    // FIXME(mui_migration) - backgroundColor prop - manually migrate
+                    ..backgroundColor = otherBackgroundColor
+                    ..variant = mui.ChipVariant.wsdBadge
+                  )();
+                }
+            '''),
+            );
+          });
+        });
+      });
+
+      group('borderColor', () {
+        test('gets flagged for manual migration', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()..borderColor = BorderColor.DANGER)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Chip()
+                  // FIXME(mui_migration) - borderColor prop - manually migrate
+                  ..borderColor = BorderColor.DANGER
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+      });
+
+      group('textColor', () {
+        test('gets flagged for manual migration', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()..textColor = TextColor.DANGER)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Chip()
+                  // FIXME(mui_migration) - textColor prop - manually migrate
+                  ..textColor = TextColor.DANGER
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+      });
+
+      group('align', () {
+        test('maps alignment values to specific fixme messages', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()..align = BadgeAlign.RIGHT)();
+                  (Badge()..align = BadgeAlign.PULL_RIGHT)();
+                  (Badge()..align = BadgeAlign.LEFT)();
+                  (Badge()..align = BadgeAlign.PULL_LEFT)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Chip()
+                  // FIXME(mui_migration) - align prop - Instead of align, move the badge to be after its siblings and add `sx` like so: ..sx = {\'marginLeft\': (mui.Theme theme) => mui.themeSpacingAsRem(.5, theme), \'mr\': 0}
+                  ..align = BadgeAlign.RIGHT
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  // FIXME(mui_migration) - align prop - Instead of align, move the badge to be after its siblings and add `sx` like so: ..sx = {\'float\': \'right\', \'mr\': 0}
+                  ..align = BadgeAlign.PULL_RIGHT
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  // FIXME(mui_migration) - align prop - Manually verify. BadgeAlign.LEFT is the default and may be able to be removed. Otherwise, `sx` can be used like so: ..sx = {\'marginRight\': (mui.Theme theme) => mui.themeSpacingAsRem(.5, theme)}
+                  ..align = BadgeAlign.LEFT
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                  (mui.Chip()
+                  // FIXME(mui_migration) - align prop - Instead of align, `sx` can be used like so: ..sx = {\'float\': \'left\', \'mr\': 0}
+                  ..align = BadgeAlign.PULL_LEFT
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+
+        test('handles other expressions', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                 content(dynamic alignment) {
+                  (Badge()..align = alignment)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                 content(dynamic alignment) {
+                  (mui.Chip()
+                  // FIXME(mui_migration) - align prop - Cannot migrate the `align` prop. Use `sx` instead.
+                  ..align = alignment
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+      });
+
+      group('when multiple props are used together', () {
+        test('all non-hit area props', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()
+                    ..backgroundColor = BackgroundColor.DANGER
+                    ..borderColor = BorderColor.DANGER
+                    ..textColor = TextColor.DANGER
+                    ..isOutline = true
+                    ..align = BadgeAlign.RIGHT
+                    )();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  // FIXME(mui_migration) Both `isOutline` and `backgroundColor` attempt to set the `color` prop. This should be manually verified.
+                  (mui.Chip()
+                  ..color = mui.ChipColor.error
+                  // FIXME(mui_migration) - borderColor prop - manually migrate
+                  ..borderColor = BorderColor.DANGER
+                  // FIXME(mui_migration) - textColor prop - manually migrate
+                  ..textColor = TextColor.DANGER
+                  ..color = mui.ChipColor.wsdBadgeOutlined
+                  // FIXME(mui_migration) - align prop - Instead of align, move the badge to be after its siblings and add `sx` like so: ..sx = {\'marginLeft\': (mui.Theme theme) => mui.themeSpacingAsRem(.5, theme), \'mr\': 0}
+                  ..align = BadgeAlign.RIGHT
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+
+        test('background color and isOutline', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()..backgroundColor = BackgroundColor.DANGER..isOutline = true)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  // FIXME(mui_migration) Both `isOutline` and `backgroundColor` attempt to set the `color` prop. This should be manually verified.
+                  (mui.Chip()
+                  ..color = mui.ChipColor.error
+                  ..color = mui.ChipColor.wsdBadgeOutlined
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+
+        test('background color (zesty crayon) and isOutline', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()..backgroundColor = BackgroundColor.GRAY..isOutline = true)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  // FIXME(mui_migration) Both `isOutline` and `backgroundColor` attempt to set the `color` prop. This should be manually verified.
+                  (mui.Chip()
+                  ..color = mui.ChipColor.wsdBadgeOutlined
+                  ..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.gray.main, 'color': (mui.Theme theme) => theme.palette.common.white,}
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+      });
     });
 
     sharedHitAreaMixinTests(
