@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:collection/collection.dart';
 import 'package:over_react_codemod/src/mui_suggestors/components/utils/hit_area.dart';
 import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
@@ -32,7 +33,7 @@ class MuiChipMigrator extends ComponentUsageMigrator
     super.migrateUsage(usage);
 
     yieldPatchOverNode('$muiNs.Chip', usage.factory!);
-    migrateChildrenToLabel(usage);
+    migrateChildrenToLabelProp(usage);
 
     handleCascadedPropsByName(usage, {
       'align': migrateBadgeAlignProp,
@@ -106,8 +107,8 @@ mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
     // Verify that a badge is not being set to a DOC_TYPE color.
     //
     // This may happen because a WSD badge _could_ be set to a DOC_TYPE color and
-    // the badge would be styled correctly. However, with a MUI chip, the component
-    // will not have a background color.
+    // the badge would be styled. However, with a MUI chip, the component
+    // will not have a background color at all.
     if (usesWsdFactory(usage, 'Badge') &&
         docTypeColors.any((constant) => isWsdStaticConstant(rhs, constant))) {
       yieldPropFixmePatch(prop,
@@ -141,6 +142,10 @@ mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
       return;
     }
 
+    /// A list of background colors that have a RMUI counterpart
+    ///
+    /// Note that GREEN_ALT and GREEN_ALT_2 are excluded because their hexcodes
+    /// are not attached to a publicly exported palette value.
     const mappableZestyCrayonColors = [
       'BackgroundColor.GREEN',
       'BackgroundColor.BLUE',
@@ -152,7 +157,7 @@ mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
     if (mappableZestyCrayonColors
         .any((constant) => isWsdStaticConstant(rhs, constant))) {
       yieldRemovePropPatch(prop);
-      final sxFromColor = mapWsdConstant(rhs, {
+      const colorToSxMapping = {
         'BackgroundColor.GREEN':
             "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.green.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
         'BackgroundColor.BLUE':
@@ -163,12 +168,19 @@ mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
             "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.red.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
         'BackgroundColor.GRAY':
             "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.gray.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
-      });
+      };
 
-      // `sxFromColor` should never be `null` because the `if` conditional asserts that
-      // a constant mapping will be found.
-      yieldAddPropPatch(usage, sxFromColor!);
-      return;
+      // Ensure the `colorToSxMapping` isn't missing a mappable color.
+      assert(ListEquality().equals(mappableZestyCrayonColors.sorted(),
+          colorToSxMapping.keys.toList().sorted()));
+      final sxFromColor = mapWsdConstant(rhs, colorToSxMapping);
+
+      // It's not expected for `sxFromColor` to ever be `null` because the `if` conditional
+      // is attempting to assert that a constant mapping will be found.
+      if (sxFromColor != null) {
+        yieldAddPropPatch(usage, sxFromColor);
+        return;
+      }
     }
 
     // This may be hit if a badge or label reference the alt green Zesty Crayon colors
@@ -203,7 +215,7 @@ mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
     yieldPropFixmePatch(prop, message);
   }
 
-  void migrateChildrenToLabel(FluentComponentUsage usage) {
+  void migrateChildrenToLabelProp(FluentComponentUsage usage) {
     final flagChildren = (String fixmePrefix) => yieldChildFixmePatch(
         usage.children.first,
         '$fixmePrefix Manually migrate the children into the `label` prop.');
