@@ -20,11 +20,11 @@ import '../shared.dart';
 
 /// Tests for logic shared between components that are migrating to the MUI chip
 /// component.
-void sharedMuiChipPropsMigratorTests(
-    {@required SuggestorTester? testSuggestor,
-    @required String? endingVariantName,
-    @required String? startingFactoryName,
-    String? extraEndingProps}) {
+void sharedMuiChipPropsMigratorTests({
+  @required SuggestorTester? testSuggestor,
+  @required String? startingFactoryName,
+  @required String? endingVariantName,
+}) {
   if (startingFactoryName == null ||
       endingVariantName == null ||
       testSuggestor == null) {

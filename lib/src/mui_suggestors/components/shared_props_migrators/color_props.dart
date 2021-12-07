@@ -18,6 +18,8 @@ import 'package:collection/collection.dart';
 
 import '../../constants.dart';
 
+/// Shared migrators for components that are migrating a component that mixes in
+/// `ColorPropsMixin`.
 mixin ColorPropMigrators on ComponentUsageMigrator {
   /// Migrator for props that have a RHS typing of `wsd.BackgroundColor`.
   void migrateColorPropsBackgroundColor(
@@ -38,8 +40,8 @@ mixin ColorPropMigrators on ComponentUsageMigrator {
     // Verify that a badge is not being set to a DOC_TYPE color.
     //
     // This may happen because a WSD badge _could_ be set to a DOC_TYPE color and
-    // the badge would be styled. However, with a MUI chip, the component
-    // will not have a background color at all.
+    // the badge would get some styling. However, with a MUI chip, adding a label color
+    // does not change the background color.
     if (usesWsdFactory(usage, 'Badge') &&
         docTypeColors.any((constant) => isWsdStaticConstant(rhs, constant))) {
       yieldPropFixmePatch(prop,
@@ -47,6 +49,8 @@ mixin ColorPropMigrators on ComponentUsageMigrator {
       return;
     }
 
+    // This excludes any of the Zesty Crayon colors because they do not have a
+    // named counterpart
     final colorFromWsdBackgroundColor = mapWsdConstant(rhs, const {
       'BackgroundColor.DANGER': '$muiNs.ChipColor.error',
       'BackgroundColor.ALTERNATE': '$muiNs.ChipColor.secondary',
@@ -73,7 +77,7 @@ mixin ColorPropMigrators on ComponentUsageMigrator {
       return;
     }
 
-    /// A list of background colors that have a RMUI counterpart
+    /// A list of Zesty Crayon background colors that have a RMUI counterpart
     ///
     /// Note that GREEN_ALT and GREEN_ALT_2 are excluded because their hexcodes
     /// are not attached to a publicly exported palette value.
@@ -101,7 +105,7 @@ mixin ColorPropMigrators on ComponentUsageMigrator {
             "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.gray.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
       };
 
-      // Ensure the `colorToSxMapping` isn't missing a mappable color.
+      // Ensure the `colorToSxMapping` isn't missing a mappable Zesty Crayon color.
       assert(ListEquality().equals(mappableZestyCrayonColors.sorted(),
           colorToSxMapping.keys.toList().sorted()));
       final sxFromColor = mapWsdConstant(rhs, colorToSxMapping);

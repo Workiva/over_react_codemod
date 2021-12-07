@@ -25,8 +25,8 @@ import 'package:over_react_codemod/src/mui_suggestors/components/chip/badge_to_m
 /// components is being migrated at a time.
 final componentMigratorsByName = <String, Suggestor>{
   'Badge': BadgeToMuiChipMigrator(),
-  'Label': LabelToMuiChipMigrator(),
   'Button': MuiButtonMigrator(),
   'ButtonGroup': MuiButtonGroupMigrator(),
   'ButtonToolbar': MuiButtonToolbarMigrator(),
+  'Label': LabelToMuiChipMigrator(),
 };

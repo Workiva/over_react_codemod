@@ -25,7 +25,7 @@ import '../mui_migrator.dart';
 class BadgeToMuiChipMigrator extends ComponentUsageMigrator
     with
         MuiMigrator,
-        ChipDisplayPropsMigrator,
+        BadgeToMuiChipPropsMigrator,
         MuiChipPropsMigrator,
         HitAreaPropMigrators,
         ColorPropMigrators {
@@ -44,16 +44,16 @@ class BadgeToMuiChipMigrator extends ComponentUsageMigrator
       'align': migrateBadgeAlignProp,
       'backgroundColor': (p) => migrateColorPropsBackgroundColor(usage, p),
       'borderColor': yieldUseSxFixmePatch,
-      'isDisabled': (p) {
-        yieldPropFixmePatch(p,
-            'if this badge has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element');
-        yieldPropPatch(p, newName: 'disabled');
-      },
       'isOutline': (p) => migrateBadgeOutlineProp(usage, p),
       'textColor': yieldUseSxFixmePatch,
 
       // HitArea Props
       'allowedHandlersWhenDisabled': yieldPropManualMigratePatch,
+      'isDisabled': (p) {
+        yieldPropFixmePatch(p,
+            'if this component has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element');
+        yieldPropPatch(p, newName: 'disabled');
+      },
       'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
       'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
       'type': (p) => yieldPropPatch(p, newName: 'dom.type'),
@@ -64,7 +64,7 @@ class BadgeToMuiChipMigrator extends ComponentUsageMigrator
   }
 }
 
-mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
+mixin BadgeToMuiChipPropsMigrator on ComponentUsageMigrator {
   void migrateBadgeOutlineProp(
       FluentComponentUsage usage, PropAssignment prop) {
     final rhs = prop.rightHandSide;

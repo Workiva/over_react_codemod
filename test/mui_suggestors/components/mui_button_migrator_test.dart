@@ -294,24 +294,6 @@ void main() {
         );
       });
 
-      test('isDisabled', () async {
-        await testSuggestor(
-          input: withOverReactAndWsdImports(/*language=dart*/ '''
-              content(bool value) {
-                (Button()..isDisabled = value)();
-              }
-          '''),
-          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-              content(bool value) {
-                (mui.Button()
-                  // FIXME(mui_migration) - isDisabled prop - if this button has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element
-                  ..disabled = value
-                )();
-              }
-          '''),
-        );
-      });
-
       test('isFlat', () async {
         await testSuggestor(
           input: withOverReactAndWsdImports(/*language=dart*/ '''

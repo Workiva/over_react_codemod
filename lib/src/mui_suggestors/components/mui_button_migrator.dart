@@ -116,7 +116,7 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       // Related to disabled state
       'isDisabled': (p) {
         yieldPropFixmePatch(p,
-            'if this button has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element');
+            'if this component has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element');
         yieldPropPatch(p, newName: 'disabled');
       },
       if (propsClassHasHitareaMixin)

@@ -61,7 +61,7 @@ void colorPropsMigratorTests(
         );
       });
 
-      if (testsToSkip.contains(
+      if (!testsToSkip.contains(
           ColorPropsMigratorSkippableTests.BACKGROUND_COLOR_DOC_TYPE_COLORS)) {
         test('maps DOC_TYPE color constants properly', () async {
           await testSuggestor(
@@ -131,6 +131,27 @@ void colorPropsMigratorTests(
                     ..backgroundColor = otherBackgroundColor
                     $extraEndingProps
                   )();
+                }
+            '''),
+          );
+        });
+
+        test('is an alternative green DOC_TYPE color', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports('''
+                content() {
+                  ($startingFactoryName()..backgroundColor = BackgroundColor.GREEN_ALT)();
+                  ($startingFactoryName()..backgroundColor = BackgroundColor.GREEN_ALT_2)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports('''
+                content() {
+                  (mui.Chip()
+                    // FIXME(mui_migration) - backgroundColor prop - manually migrate
+                    ..backgroundColor = BackgroundColor.GREEN_ALT$extraEndingProps)();
+                  (mui.Chip()
+                    // FIXME(mui_migration) - backgroundColor prop - manually migrate
+                    ..backgroundColor = BackgroundColor.GREEN_ALT_2$extraEndingProps)();
                 }
             '''),
           );

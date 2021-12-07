@@ -1,3 +1,17 @@
+// Copyright 2021 Workiva Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -30,6 +44,50 @@ Future<void> sharedHitAreaMixinTests(
   }
 
   group('(shared `HitAreaMixin` tests)', () {
+    group('isDisabled, when the RHS is a', () {
+      test('boolean literal', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports('''
+                content() {
+                  ($startingFactoryName()..isDisabled = true)();
+                  ($startingFactoryName()..isDisabled = false)();
+                }
+            '''),
+          expectedOutput: withOverReactAndWsdImports('''
+                content() {
+                  (mui.$endingFactoryName()
+                  // FIXME(mui_migration) - isDisabled prop - if this component has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element
+                  ..disabled = true
+                  $extraEndingProps)();
+                  (mui.$endingFactoryName()
+                  // FIXME(mui_migration) - isDisabled prop - if this component has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element
+                  ..disabled = false
+                  $extraEndingProps)();
+                }
+            '''),
+        );
+      });
+
+      test('other expression', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports('''
+                content(bool value) {
+                  ($startingFactoryName()..isDisabled = value)();
+                }
+            '''),
+          expectedOutput: withOverReactAndWsdImports('''
+                content(bool value) {
+                  (mui.$endingFactoryName()
+                    // FIXME(mui_migration) - isDisabled prop - if this component has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element
+                    ..disabled = value 
+                    $extraEndingProps
+                  )();
+                }
+            '''),
+        );
+      });
+    });
+
     test('role', () async {
       await testSuggestor(
         input: withOverReactAndWsdImports('''
@@ -60,7 +118,7 @@ Future<void> sharedHitAreaMixinTests(
       );
     });
 
-    if (testsToSkip.contains(HitAreaMixinSkippableTests.TYPE)) {
+    if (!testsToSkip.contains(HitAreaMixinSkippableTests.TYPE)) {
       test('type', () async {
         await testSuggestor(
           input: withOverReactAndWsdImports('''

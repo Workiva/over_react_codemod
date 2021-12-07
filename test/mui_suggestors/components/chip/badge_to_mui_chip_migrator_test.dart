@@ -89,50 +89,6 @@ void main() {
     });
 
     group('updates props', () {
-      group('isDisabled, when the RHS is a', () {
-        test('boolean literal', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (Badge()..isDisabled = true)();
-                  (Badge()..isDisabled = false)();
-                }
-            '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (mui.Chip()
-                  // FIXME(mui_migration) - isDisabled prop - if this badge has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element
-                  ..disabled = true
-                  ..variant = mui.ChipVariant.wsdBadge)();
-                  (mui.Chip()
-                  // FIXME(mui_migration) - isDisabled prop - if this badge has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element
-                  ..disabled = false
-                  ..variant = mui.ChipVariant.wsdBadge)();
-                }
-            '''),
-          );
-        });
-
-        test('other expression', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-                content(bool value) {
-                  (Badge()..isDisabled = value)();
-                }
-            '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-                content(bool value) {
-                  (mui.Chip()
-                    // FIXME(mui_migration) - isDisabled prop - if this badge has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element
-                    ..disabled = value 
-                    ..variant = mui.ChipVariant.wsdBadge
-                  )();
-                }
-            '''),
-          );
-        });
-      });
-
       group('isOutline, when the RHS is a', () {
         test('boolean literal', () async {
           await testSuggestor(
@@ -177,7 +133,10 @@ void main() {
         colorPropsMigratorTests(
             testSuggestor: testSuggestor,
             startingFactoryName: 'Badge',
-            extraEndingProps: '..variant = mui.ChipVariant.wsdBadge');
+            extraEndingProps: '..variant = mui.ChipVariant.wsdBadge',
+            testsToSkip: [
+              ColorPropsMigratorSkippableTests.BACKGROUND_COLOR_DOC_TYPE_COLORS
+            ]);
 
         group('backgroundColor', () {
           group('flagging when the backgroundColor', () {
