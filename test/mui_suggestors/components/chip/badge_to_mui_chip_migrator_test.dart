@@ -18,8 +18,8 @@ import 'package:test/test.dart';
 import '../../../resolved_file_context.dart';
 import '../../../util.dart';
 import '../shared.dart';
-import '../shared_props_migrators/color_props_test.dart';
-import '../shared_props_migrators/hit_area_test.dart';
+import '../shared_props_migrators/color_props.dart';
+import '../shared_props_migrators/hit_area.dart';
 import 'shared.dart';
 
 void main() {

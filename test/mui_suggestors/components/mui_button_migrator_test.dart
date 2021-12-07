@@ -18,7 +18,7 @@ import 'package:test/test.dart';
 import '../../resolved_file_context.dart';
 import '../../util.dart';
 import 'shared.dart';
-import 'shared_props_migrators/hit_area_test.dart';
+import 'shared_props_migrators/hit_area.dart';
 
 void main() {
   final resolvedContext = SharedAnalysisContext.wsd;
