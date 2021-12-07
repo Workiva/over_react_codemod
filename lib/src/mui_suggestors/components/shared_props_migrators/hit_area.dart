@@ -3,7 +3,7 @@ import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util.dart';
 
-mixin HitAreaPropsMigrators on ComponentUsageMigrator {
+mixin HitAreaPropMigrators on ComponentUsageMigrator {
   /// Returns a string that can be used to add the props from the right-hand
   /// side of [assignment] (assuming the prop is a Map prop) to a factory
   /// matching [destinationFactoryName].

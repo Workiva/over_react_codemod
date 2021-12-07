@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/mui_suggestors/components/mui_chip_migrator.dart';
+import 'package:over_react_codemod/src/mui_suggestors/components/chip/badge_to_mui_chip_migrator.dart';
 import 'package:test/test.dart';
 
-import '../../resolved_file_context.dart';
-import '../../util.dart';
+import '../../../resolved_file_context.dart';
+import '../../../util.dart';
+import '../shared.dart';
+import '../shared_props_migrators/color_props_test.dart';
+import '../shared_props_migrators/hit_area_test.dart';
 import 'shared.dart';
 
 void main() {
@@ -26,9 +29,9 @@ void main() {
   // (which is more common for the WSD context), it fails here instead of failing the first test.
   setUpAll(resolvedContext.warmUpAnalysis);
 
-  group('MuiChipMigrator', () {
+  group('BadgeToMuiChipMigrator', () {
     final testSuggestor = getSuggestorTester(
-      MuiChipMigrator(),
+      BadgeToMuiChipMigrator(),
       resolvedContext: resolvedContext,
     );
 
@@ -53,7 +56,7 @@ void main() {
         );
       });
 
-      test('and not non-WSD ButtonGroups or other components', () async {
+      test('and not non-WSD Badges or other components', () async {
         await testSuggestor(
           input: withOverReactAndWsdImports(/*language=dart*/ '''
               // Shadows the WSD ButtonGroup
@@ -83,231 +86,6 @@ void main() {
             }
         '''),
       );
-    });
-
-    group('moves the child to be the label prop', () {
-      group('when the child is', () {
-        test('a react node', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (Badge())(Dom.span()('Badge Label'));
-                }
-            '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (mui.Chip()
-                    ..label = Dom.span()('Badge Label')
-                    ..variant = mui.ChipVariant.wsdBadge)();
-                }
-            '''),
-          );
-        });
-
-        test('a primitive', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              (Badge())(45);
-            }
-        '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              (mui.Chip()
-                ..label = 45
-                ..variant = mui.ChipVariant.wsdBadge)();
-            }
-        '''),
-          );
-        });
-
-        test('a variable', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              final label = 45;
-            
-              (Badge())(label);
-            }
-        '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              final label = 45;
-            
-              (mui.Chip()
-                ..label = label
-                ..variant = mui.ChipVariant.wsdBadge
-              )();
-            }
-        '''),
-          );
-        });
-
-        test('a function call', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              final label = () => 45;
-            
-              (Badge())(label());
-            }
-        '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              final label = () => 45;
-            
-              (mui.Chip()
-                ..label = label()
-                ..variant = mui.ChipVariant.wsdBadge
-              )();
-            }
-        '''),
-          );
-        });
-
-        test('an accessor', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-             class BadgeLabel {
-                static int get label => 45;
-              }
-              
-            content() {
-              (Badge())(BadgeLabel.label);
-            }
-        '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-            class BadgeLabel {
-              static int get label => 45;
-            }
-         
-            content() {
-              (mui.Chip()
-                ..label = BadgeLabel.label
-                ..variant = mui.ChipVariant.wsdBadge
-              )();
-            }
-        '''),
-          );
-        });
-      });
-
-      group('unless', () {
-        test('the child is empty', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              Badge()();
-            }
-        '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              (mui.Chip()..variant = mui.ChipVariant.wsdBadge)();
-            }
-        '''),
-          );
-        });
-
-        test('there are multiple variadic children', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              Badge()('first child', 'second child');
-            }
-        '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              (mui.Chip()..variant = mui.ChipVariant.wsdBadge)(
-              // FIXME(mui_migration) - Multiple children detected. Manually migrate the children into the `label` prop.
-              'first child', 
-              'second child');
-            }
-        '''),
-          );
-        });
-
-        test('there are multiple non-variadic children', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              Badge()(['Badge Label', 'Suffix']);
-            }
-        '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              (mui.Chip()
-                ..variant = mui.ChipVariant.wsdBadge
-              )([
-                // FIXME(mui_migration) - Multiple children detected. Manually migrate the children into the `label` prop.
-                'Badge Label', 'Suffix'
-              ]);
-            }
-        '''),
-          );
-        });
-
-        test('the child is a CollectionElementComponentChild', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              Badge()([
-              if (true) 'badge'
-              ]);
-            }
-        '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              (mui.Chip()..variant = mui.ChipVariant.wsdBadge)([
-                // FIXME(mui_migration) - Complex expression logic detected. Manually migrate the children into the `label` prop.
-                if (true) 'badge'
-              ]);
-            }
-        '''),
-          );
-        });
-
-        test('the child is an unknown ReactNodeTypeCategory', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              dynamic unknown = Dom.span()('label');
-            
-              Badge()(unknown);
-            }
-        '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              dynamic unknown = Dom.span()('label');
-            
-              (mui.Chip()..variant = mui.ChipVariant.wsdBadge)(
-              // FIXME(mui_migration) - Unknown child type detected. Manually migrate the children into the `label` prop.
-              unknown);
-            }
-        '''),
-          );
-        });
-
-        test('the child is an `other` ReactNodeTypeCategory', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              final unknown = () async => 'a function';  
-            
-              Badge()(unknown);
-            }
-        '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-            content() {
-              final unknown = () async => 'a function';  
-            
-              (mui.Chip()..variant = mui.ChipVariant.wsdBadge)(
-              // FIXME(mui_migration) - Unknown child type detected. Manually migrate the children into the `label` prop.
-              unknown);
-            }
-        '''),
-          );
-        });
-      });
     });
 
     group('updates props', () {
@@ -395,57 +173,17 @@ void main() {
         });
       });
 
-      group('backgroundColor', () {
-        test('maps non-DOC_TYPE color constants properly', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (Badge()..backgroundColor = BackgroundColor.DANGER)();
-                  (Badge()..backgroundColor = BackgroundColor.ALTERNATE)();
-                  (Badge()..backgroundColor = BackgroundColor.DEFAULT)();
-                  (Badge()..backgroundColor = BackgroundColor.SUCCESS)();
-                  (Badge()..backgroundColor = BackgroundColor.WARNING)();
-                }
-            '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (mui.Chip()..color = mui.ChipColor.error..variant = mui.ChipVariant.wsdBadge)();
-                  (mui.Chip()..color = mui.ChipColor.secondary..variant = mui.ChipVariant.wsdBadge)();
-                  (mui.Chip()..color = mui.ChipColor.inherit..variant = mui.ChipVariant.wsdBadge)();
-                  (mui.Chip()..color = mui.ChipColor.success..variant = mui.ChipVariant.wsdBadge)();
-                  (mui.Chip()..color = mui.ChipColor.warning..variant = mui.ChipVariant.wsdBadge)();
-                }
-            '''),
-          );
-        });
+      group('color props', () {
+        colorPropsMigratorTests(
+            testSuggestor: testSuggestor,
+            startingFactoryName: 'Badge',
+            extraEndingProps: '..variant = mui.ChipVariant.wsdBadge');
 
-        test('maps Zesty Crayon colors to the sx prop', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (Badge()..backgroundColor = BackgroundColor.GREEN)();
-                  (Badge()..backgroundColor = BackgroundColor.BLUE)();
-                  (Badge()..backgroundColor = BackgroundColor.ORANGE)();
-                  (Badge()..backgroundColor = BackgroundColor.RED)();
-                  (Badge()..backgroundColor = BackgroundColor.GRAY)();
-                }
-            '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.green.main, 'color': (mui.Theme theme) => theme.palette.common.white,}..variant = mui.ChipVariant.wsdBadge)();
-                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.blue.main, 'color': (mui.Theme theme) => theme.palette.common.white,}..variant = mui.ChipVariant.wsdBadge)();
-                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.orange.main, 'color': (mui.Theme theme) => theme.palette.common.white,}..variant = mui.ChipVariant.wsdBadge)();
-                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.red.main, 'color': (mui.Theme theme) => theme.palette.common.white,}..variant = mui.ChipVariant.wsdBadge)();
-                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.gray.main, 'color': (mui.Theme theme) => theme.palette.common.white,}..variant = mui.ChipVariant.wsdBadge)();
-                }
-            '''),
-          );
-        });
-
-        group('flagging when the backgroundColor', () {
-          test('is for a badge is a DOC_TYPE color', () async {
-            await testSuggestor(
-              input: withOverReactAndWsdImports(/*language=dart*/ '''
+        group('backgroundColor', () {
+          group('flagging when the backgroundColor', () {
+            test('is for a badge is a DOC_TYPE color', () async {
+              await testSuggestor(
+                input: withOverReactAndWsdImports(/*language=dart*/ '''
                 content() {
                   (Badge()..backgroundColor = BackgroundColor.DOC_TYPE_BLUE)();
                   (Badge()..backgroundColor = BackgroundColor.DOC_TYPE_LIGHT_BLUE)();
@@ -457,7 +195,7 @@ void main() {
                   (Badge()..backgroundColor = BackgroundColor.DOC_TYPE_ORANGE)();
                 }
             '''),
-              expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
                 content() {
                   (mui.Chip()
                   // FIXME(mui_migration) - backgroundColor prop - A MUI chip with the badge variant cannot be set to a DOC_TYPE color. Use the `sx` prop and theme palette instead.
@@ -485,67 +223,9 @@ void main() {
                   ..backgroundColor = BackgroundColor.DOC_TYPE_ORANGE..variant = mui.ChipVariant.wsdBadge)();
                 }
             '''),
-            );
+              );
+            });
           });
-
-          test('is another expression', () async {
-            await testSuggestor(
-              input: withOverReactAndWsdImports(/*language=dart*/ '''
-                content(dynamic otherBackgroundColor) {
-                  (Badge()..backgroundColor = otherBackgroundColor)();
-                }
-            '''),
-              expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-                content(dynamic otherBackgroundColor) {
-                  (mui.Chip()
-                    // FIXME(mui_migration) - backgroundColor prop - manually migrate
-                    ..backgroundColor = otherBackgroundColor
-                    ..variant = mui.ChipVariant.wsdBadge
-                  )();
-                }
-            '''),
-            );
-          });
-        });
-      });
-
-      group('borderColor', () {
-        test('gets flagged for manual migration', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (Badge()..borderColor = BorderColor.DANGER)();
-                }
-            '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (mui.Chip()
-                  // FIXME(mui_migration) - borderColor prop - manually migrate
-                  ..borderColor = BorderColor.DANGER
-                  ..variant = mui.ChipVariant.wsdBadge)();
-                }
-            '''),
-          );
-        });
-      });
-
-      group('textColor', () {
-        test('gets flagged for manual migration', () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (Badge()..textColor = TextColor.DANGER)();
-                }
-            '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-                content() {
-                  (mui.Chip()
-                  // FIXME(mui_migration) - textColor prop - manually migrate
-                  ..textColor = TextColor.DANGER
-                  ..variant = mui.ChipVariant.wsdBadge)();
-                }
-            '''),
-          );
         });
       });
 
@@ -621,9 +301,9 @@ void main() {
                   // FIXME(mui_migration) Both `isOutline` and `backgroundColor` attempt to set the `color` prop. This should be manually verified.
                   (mui.Chip()
                   ..color = mui.ChipColor.error
-                  // FIXME(mui_migration) - borderColor prop - manually migrate
+                  // FIXME(mui_migration) - borderColor prop - this can be converted to the `sx` prop.
                   ..borderColor = BorderColor.DANGER
-                  // FIXME(mui_migration) - textColor prop - manually migrate
+                  // FIXME(mui_migration) - textColor prop - this can be converted to the `sx` prop.
                   ..textColor = TextColor.DANGER
                   ..color = mui.ChipColor.wsdBadgeOutlined
                   // FIXME(mui_migration) - align prop - Instead of align, move the badge to be after its siblings and add `sx` like so: ..sx = {\'marginLeft\': (mui.Theme theme) => mui.themeSpacingAsRem(.5, theme), \'mr\': 0}
@@ -679,5 +359,9 @@ void main() {
         endingFactoryName: 'Chip',
         testSuggestor: testSuggestor,
         extraEndingProps: '..variant = mui.ChipVariant.wsdBadge');
+    sharedMuiChipPropsMigratorTests(
+        startingFactoryName: 'Badge',
+        endingVariantName: 'wsdBadge',
+        testSuggestor: testSuggestor);
   }, tags: 'wsd');
 }

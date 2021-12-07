@@ -18,6 +18,7 @@ import 'package:test/test.dart';
 import '../../resolved_file_context.dart';
 import '../../util.dart';
 import 'shared.dart';
+import 'shared_props_migrators/hit_area_test.dart';
 
 void main() {
   final resolvedContext = SharedAnalysisContext.wsd;
@@ -477,7 +478,7 @@ void main() {
       sharedHitAreaMixinTests(
           startingFactoryName: 'Button',
           testSuggestor: testSuggestor,
-          testsToSkip: [SharedHitAreaMixinTests.type]);
+          testsToSkip: [HitAreaMixinSkippableTests.TYPE]);
 
       group('type', () {
         test('mapping type constants properly', () async {

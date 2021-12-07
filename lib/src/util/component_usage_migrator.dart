@@ -505,6 +505,19 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     yieldBuilderMemberFixmePatch(prop, '${prop.name.name} prop - $message');
   }
 
+  /// Yields a patch with a fix-me explaining to use the `sx` prop.
+  ///
+  /// This is helpful when a MUI equivalent of a prop does not exist and `sx` can
+  /// be used to the same effect.
+  ///
+  /// Built on top of and behaves like [yieldPropFixmePatch].
+  ///
+  /// Related: [yieldPropFixmePatch]
+  void yieldUseSxFixmePatch(PropAssignment prop) {
+    yieldBuilderMemberFixmePatch(prop,
+        '${prop.name.name} prop - this can be converted to the `sx` prop.');
+  }
+
   /// Yields a patch with a fix-me comment before a given [access]
   /// with a custom [message].
   ///

@@ -12,84 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:collection/collection.dart';
-import 'package:over_react_codemod/src/mui_suggestors/components/utils/hit_area.dart';
-import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
-import 'package:over_react_codemod/src/util.dart';
+import 'package:collection/collection.dart';
 
-import 'mui_migrator.dart';
+import '../../constants.dart';
 
-class MuiChipMigrator extends ComponentUsageMigrator
-    with MuiMigrator, ChipDisplayPropsMigrator, HitAreaPropsMigrators {
-  @override
-  bool shouldMigrateUsage(FluentComponentUsage usage) =>
-      usesWsdFactory(usage, 'Badge');
-
-  @override
-  void migrateUsage(FluentComponentUsage usage) {
-    super.migrateUsage(usage);
-
-    yieldPatchOverNode('$muiNs.Chip', usage.factory!);
-    migrateChildrenToLabelProp(usage);
-
-    handleCascadedPropsByName(usage, {
-      'align': migrateBadgeAlignProp,
-      'backgroundColor': (p) => migrateBadgeAndLabelBackgroundColor(usage, p),
-      'borderColor': yieldPropManualMigratePatch,
-      'isDisabled': (p) {
-        yieldPropFixmePatch(p,
-            'if this badge has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element');
-        yieldPropPatch(p, newName: 'disabled');
-      },
-      'isOutline': (p) => migrateBadgeOutlineProp(usage, p),
-      'textColor': yieldPropManualMigratePatch,
-
-      // HitArea Props
-      'allowedHandlersWhenDisabled': yieldPropManualMigratePatch,
-      'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
-      'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
-      'type': (p) => yieldPropPatch(p, newName: 'dom.type'),
-    });
-
-    migrateTooltipProps(usage);
-    yieldAddPropPatch(usage, '..variant = $muiNs.ChipVariant.wsdBadge');
-  }
-}
-
-mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
-  void migrateBadgeOutlineProp(
-      FluentComponentUsage usage, PropAssignment prop) {
-    final rhs = prop.rightHandSide;
-
-    if (usage.cascadedProps
-        .any((prop) => prop.name.name == 'backgroundColor')) {
-      yieldUsageFixmePatch(usage,
-          'Both `isOutline` and `backgroundColor` attempt to set the `color` prop. This should be manually verified.');
-    }
-
-    if (rhs is BooleanLiteral) {
-      if (rhs.value) {
-        yieldPropPatch(prop,
-            newName: 'color', newRhs: '$muiNs.ChipColor.wsdBadgeOutlined');
-      } else {
-        yieldRemovePropPatch(prop);
-      }
-    } else {
-      // Change
-      //     ..isOutline = expression
-      // to
-      //     ..color = expression ? mui.ChipColor.wsdBadgeOutlined : mui.ChipColor.default_
-      yieldPropPatch(prop, newName: 'color');
-      yieldInsertionPatch(
-          ' ? $muiNs.ChipColor.wsdBadgeOutlined : $muiNs.ChipColor.default_',
-          rhs.end);
-    }
-  }
-
-  void migrateBadgeAndLabelBackgroundColor(
+mixin ColorPropMigrators on ComponentUsageMigrator {
+  /// Migrator for props that have a RHS typing of `wsd.BackgroundColor`.
+  void migrateColorPropsBackgroundColor(
       FluentComponentUsage usage, PropAssignment prop) {
     final rhs = prop.rightHandSide;
 
@@ -191,57 +122,5 @@ mixin ChipDisplayPropsMigrator on ComponentUsageMigrator {
     //
     // (https://sourcegraph.wk-dev.wdesk.org/search?q=BackgroundColor%5C.%28GREEN_ALT%7CGREEN_ALT_2%29+lang:dart+-repo:web_skin_dart+-repo:web_skin_docs+-repo:dart_storybook&patternType=regexp)
     yieldPropManualMigratePatch(prop);
-  }
-
-  void migrateBadgeAlignProp(PropAssignment prop) {
-    final rhs = prop.rightHandSide;
-    String? message;
-
-    message = mapWsdConstant(rhs, const {
-      'BadgeAlign.LEFT':
-          'Manually verify. BadgeAlign.LEFT is the default and may be able to be removed. Otherwise, `sx` can be used like so: ..sx = {\'marginRight\': (mui.Theme theme) => mui.themeSpacingAsRem(.5, theme)}',
-      'BadgeAlign.RIGHT':
-          'Instead of align, move the badge to be after its siblings and add `sx` like so: ..sx = {\'marginLeft\': (mui.Theme theme) => mui.themeSpacingAsRem(.5, theme), \'mr\': 0}',
-      'BadgeAlign.PULL_RIGHT':
-          'Instead of align, move the badge to be after its siblings and add `sx` like so: ..sx = {\'float\': \'right\', \'mr\': 0}',
-      'BadgeAlign.PULL_LEFT':
-          'Instead of align, `sx` can be used like so: ..sx = {\'float\': \'left\', \'mr\': 0}',
-    });
-
-    if (message == null) {
-      message = 'Cannot migrate the `align` prop. Use `sx` instead.';
-    }
-
-    yieldPropFixmePatch(prop, message);
-  }
-
-  void migrateChildrenToLabelProp(FluentComponentUsage usage) {
-    final flagChildren = (String fixmePrefix) => yieldChildFixmePatch(
-        usage.children.first,
-        '$fixmePrefix Manually migrate the children into the `label` prop.');
-
-    if (usage.children.isEmpty) return;
-    if (usage.children.length > 1) {
-      flagChildren('Multiple children detected.');
-      return;
-    }
-
-    final child = usage.children.first;
-
-    if (child is! ExpressionComponentChild) {
-      flagChildren('Complex expression logic detected.');
-      return;
-    }
-
-    final typeCategory = typeCategoryForReactNode(child.node);
-
-    if (typeCategory == ReactNodeTypeCategory.unknown ||
-        typeCategory == ReactNodeTypeCategory.other) {
-      flagChildren('Unknown child type detected.');
-      return;
-    }
-
-    yieldAddPropPatch(usage, '..label = ${context.sourceFor(child.node)}');
-    yieldRemoveChildPatch(child.node);
   }
 }

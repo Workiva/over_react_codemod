@@ -14,7 +14,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:over_react_codemod/src/mui_suggestors/components/utils/hit_area.dart';
+import 'package:over_react_codemod/src/mui_suggestors/components/shared_props_migrators/hit_area.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
@@ -31,7 +31,7 @@ const _linkButtonSkins = {
 };
 
 class MuiButtonMigrator extends ComponentUsageMigrator
-    with MuiMigrator, ButtonDisplayPropsMigrator, HitAreaPropsMigrators {
+    with MuiMigrator, ButtonDisplayPropsMigrator, HitAreaPropMigrators {
   static bool hasLinkButtonSkin(FluentComponentUsage usage) => usage
       .cascadedProps
       .any((p) => p.name.name == 'skin' && isLinkButtonSkin(p.rightHandSide));
