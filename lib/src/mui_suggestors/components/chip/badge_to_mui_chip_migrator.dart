@@ -57,6 +57,7 @@ class BadgeToMuiChipMigrator extends ComponentUsageMigrator
       'role': (p) => yieldPropPatch(p, newName: 'dom.role'),
       'target': (p) => yieldPropPatch(p, newName: 'dom.target'),
       'type': (p) => yieldPropPatch(p, newName: 'dom.type'),
+      'href': (p) => migrateBadgeHref(usage, p),
     });
 
     migrateTooltipProps(usage);
@@ -114,5 +115,10 @@ mixin BadgeToMuiChipPropsMigrator on ComponentUsageMigrator {
     }
 
     yieldPropFixmePatch(prop, message);
+  }
+
+  void migrateBadgeHref(FluentComponentUsage usage, PropAssignment prop) {
+    yieldPropPatch(prop, newName: 'dom.href');
+    yieldAddPropPatch(usage, '..clickable = true');
   }
 }

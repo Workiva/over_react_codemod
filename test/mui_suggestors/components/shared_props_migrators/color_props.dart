@@ -106,11 +106,11 @@ void colorPropsMigratorTests(
             '''),
           expectedOutput: withOverReactAndWsdImports('''
                 content() {
-                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.green.main, 'color': (mui.Theme theme) => theme.palette.common.white,}$extraEndingProps)();
-                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.blue.main, 'color': (mui.Theme theme) => theme.palette.common.white,}$extraEndingProps)();
-                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.orange.main, 'color': (mui.Theme theme) => theme.palette.common.white,}$extraEndingProps)();
-                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.red.main, 'color': (mui.Theme theme) => theme.palette.common.white,}$extraEndingProps)();
-                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.gray.main, 'color': (mui.Theme theme) => theme.palette.common.white,}$extraEndingProps)();
+                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.green.main, 'color': '#fff'}$extraEndingProps)();
+                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.blue.main, 'color': '#fff'}$extraEndingProps)();
+                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.orange.main, 'color': '#fff'}$extraEndingProps)();
+                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.red.main, 'color': '#fff'}$extraEndingProps)();
+                  (mui.Chip()..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.gray.main, 'color': '#fff'}$extraEndingProps)();
                 }
             '''),
         );

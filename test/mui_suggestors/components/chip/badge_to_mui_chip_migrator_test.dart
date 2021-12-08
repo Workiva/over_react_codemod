@@ -59,7 +59,7 @@ void main() {
       test('and not non-WSD Badges or other components', () async {
         await testSuggestor(
           input: withOverReactAndWsdImports(/*language=dart*/ '''
-              // Shadows the WSD ButtonGroup
+              // Shadows the WSD Badge
               UiFactory Badge;
               content() {
                 // Non-WSD Badge
@@ -123,6 +123,44 @@ void main() {
                     ..color = value ? mui.ChipColor.wsdBadgeOutlined : mui.ChipColor.default_
                     ..variant = mui.ChipVariant.wsdBadge
                   )();
+                }
+            '''),
+          );
+        });
+      });
+
+      group('href, when the RHS is a', () {
+        test('a string literal', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Badge()..href = 'google.com')();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Chip()
+                  ..dom.href = 'google.com'
+                  ..clickable = true
+                  ..variant = mui.ChipVariant.wsdBadge)();
+                }
+            '''),
+          );
+        });
+
+        test('other expression', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(bool value) {
+                  (Badge()..href = value)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(bool value) {
+                  (mui.Chip()
+                  ..dom.href = value
+                  ..clickable = true
+                  ..variant = mui.ChipVariant.wsdBadge)();
                 }
             '''),
           );
@@ -304,7 +342,7 @@ void main() {
                   // FIXME(mui_migration) Both `isOutline` and `backgroundColor` attempt to set the `color` prop. This should be manually verified.
                   (mui.Chip()
                   ..color = mui.ChipColor.wsdBadgeOutlined
-                  ..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.gray.main, 'color': (mui.Theme theme) => theme.palette.common.white,}
+                  ..sx = {'backgroundColor': (mui.Theme theme) => theme.palette.gray.main, 'color': '#fff'}
                   ..variant = mui.ChipVariant.wsdBadge)();
                 }
             '''),

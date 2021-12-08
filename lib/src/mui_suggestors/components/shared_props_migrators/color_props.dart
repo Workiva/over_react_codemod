@@ -94,15 +94,15 @@ mixin ColorPropMigrators on ComponentUsageMigrator {
       yieldRemovePropPatch(prop);
       const colorToSxMapping = {
         'BackgroundColor.GREEN':
-            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.green.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
+            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.green.main, 'color': '#fff'}",
         'BackgroundColor.BLUE':
-            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.blue.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
+            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.blue.main, 'color': '#fff'}",
         'BackgroundColor.ORANGE':
-            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.orange.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
+            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.orange.main, 'color': '#fff'}",
         'BackgroundColor.RED':
-            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.red.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
+            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.red.main, 'color': '#fff'}",
         'BackgroundColor.GRAY':
-            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.gray.main, 'color': ($muiNs.Theme theme) => theme.palette.common.white,}",
+            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.gray.main, 'color': '#fff'}",
       };
 
       // Ensure the `colorToSxMapping` isn't missing a mappable Zesty Crayon color.
