@@ -102,7 +102,7 @@ mixin ColorPropMigrators on ComponentUsageMigrator {
         'BackgroundColor.RED':
             "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.red.main, 'color': '#fff'}",
         'BackgroundColor.GRAY':
-            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.gray.main, 'color': '#fff'}",
+            "..sx = {'backgroundColor': ($muiNs.Theme theme) => theme.palette.grey.main, 'color': '#fff'}",
       };
 
       // Ensure the `colorToSxMapping` isn't missing a mappable Zesty Crayon color.
