@@ -433,6 +433,25 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     yieldPatch('', start, end);
   }
 
+  /// Yields a patch that adds a given [child] to a usage, and also
+  /// conditionally adds commas so as to preserve trailing or non-trailing
+  /// commas in the parent argument list or list literal.
+  void yieldAddChildPatch(FluentComponentUsage usage, String child) {
+    final int start;
+
+    if (!child.endsWith(',')) {
+      child = child + ',';
+    }
+
+    if (usage.children.isNotEmpty) {
+      start = usage.children.first.node.offset;
+    } else {
+      start = usage.node.argumentList.offset + 1;
+    }
+
+    yieldPatch(child, start, start);
+  }
+
   /// Yields a patch that updates a prop, updating either its name ([newName]),
   /// its right-hand side ([newRhs]), or both, and optionally adding an
   /// [additionalCascadeSection].

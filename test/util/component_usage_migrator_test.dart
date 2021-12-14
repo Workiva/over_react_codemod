@@ -553,6 +553,7 @@ main() {
       });
 
       group('yieldRemoveChildPatch', yieldRemoveChildPatchTests);
+      group('yieldAddChildPatch', yieldAddChildPatchTests);
     });
   });
 
@@ -1456,6 +1457,147 @@ void yieldRemoveChildPatchTests() {
               ),
               Dom.div()(['second child in list']),
               Dom.div()([
+                'second child in list with trailing comma',
+              ]),
+            ];
+        '''),
+      );
+    });
+  });
+}
+
+void yieldAddChildPatchTests() {
+  test('when it is the only child', () async {
+    await testSuggestor(
+      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+        migrator.yieldAddChildPatch(usage, 'Dom.div()(\'A child\')');
+      }),
+      resolvedContext: sharedContext,
+      input: withOverReactImport(/*language=dart*/ '''
+          content() => [
+            Dom.div()(),
+          ];
+      '''),
+      expectedOutput: withOverReactImport(/*language=dart*/ '''
+          content() => [
+            Dom.div()(Dom.div()('A child'),),
+          ];
+      '''),
+    );
+  });
+
+  group('when there are multiple children', () {
+    test('and a string child is being added', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldAddChildPatch(usage, "'A child'");
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+            content() => [
+              Dom.div()('first child', 'second child'),
+              Dom.div()(
+                'first child',
+                'second child with trailing comma',
+              ),
+              Dom.div()(['first child in list', 'second child in list']),
+              Dom.div()([
+                'first child in list',
+                'second child in list with trailing comma',
+              ]),
+            ];
+        '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() => [
+              Dom.div()('A child', 'first child', 'second child'),
+              Dom.div()(
+              'A child',
+                'first child',
+                'second child with trailing comma',
+              ),
+              Dom.div()([ 'A child', 'first child in list', 'second child in list']),
+              Dom.div()([
+               'A child',
+                'first child in list',
+                'second child in list with trailing comma',
+              ]),
+            ];
+        '''),
+      );
+    });
+
+    test('and a basic component useage is being added', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldAddChildPatch(usage, 'Dom.div()(\'A child\')');
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+            content() => [
+              Dom.div()('first child', 'second child'),
+              Dom.div()(
+                'first child',
+                'second child with trailing comma',
+              ),
+              Dom.div()(['first child in list', 'second child in list']),
+              Dom.div()([
+                'first child in list',
+                'second child in list with trailing comma',
+              ]),
+            ];
+        '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content() => [
+              Dom.div()(Dom.div()('A child'), 'first child', 'second child'),
+              Dom.div()(
+              Dom.div()('A child'),
+                'first child',
+                'second child with trailing comma',
+              ),
+              Dom.div()([Dom.div()('A child'), 'first child in list', 'second child in list']),
+              Dom.div()([
+              Dom.div()('A child'),
+                'first child in list',
+                'second child in list with trailing comma',
+              ]),
+            ];
+        '''),
+      );
+    });
+
+    test('and a complicated component usage is being added', () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
+          migrator.yieldAddChildPatch(usage,
+              '(Dom.div()..dom.href = content..style = {\'color\': \'blue\'})(\'A child\')');
+        }),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
+            content(dynamic content) => [
+              Dom.div()('first child', 'second child'),
+              Dom.div()(
+                'first child',
+                'second child with trailing comma',
+              ),
+              Dom.div()(['first child in list', 'second child in list']),
+              Dom.div()([
+                'first child in list',
+                'second child in list with trailing comma',
+              ]),
+            ];
+        '''),
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
+            content(dynamic content) => [
+              Dom.div()((Dom.div()..dom.href = content..style = {'color': 'blue'})('A child'), 'first child', 'second child'),
+              Dom.div()(
+              (Dom.div()..dom.href = content..style = {'color': 'blue'})('A child'),
+                'first child',
+                'second child with trailing comma',
+              ),
+              Dom.div()([(Dom.div()..dom.href = content..style = {'color': 'blue'})('A child'), 'first child in list', 'second child in list']),
+              Dom.div()([
+              (Dom.div()..dom.href = content..style = {'color': 'blue'})('A child'),
+                'first child in list',
                 'second child in list with trailing comma',
               ]),
             ];

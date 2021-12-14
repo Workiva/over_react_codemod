@@ -19,7 +19,8 @@ import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
 import 'mui_migrator.dart';
 
-class MuiInlineAlertMigrator extends ComponentUsageMigrator with MuiMigrator {
+class MuiInlineAlertMigrator extends ComponentUsageMigrator
+    with MuiMigrator, AlertDisplayPropsMigrator {
   // TODO alphabetize these
   static const toastAlertProps = [
     'initiallyShown',
@@ -47,6 +48,81 @@ class MuiInlineAlertMigrator extends ComponentUsageMigrator with MuiMigrator {
 
     yieldPatchOverNode('$muiNs.Alert', usage.factory!);
 
-    handleCascadedPropsByName(usage, {});
+    handleCascadedPropsByName(usage, {
+      'heading': (p) => migrateAlertHeading(usage, p),
+      'skin': migrateAlertSkin,
+      'size': migrateAlertSize,
+    });
+  }
+}
+
+mixin AlertDisplayPropsMigrator on ComponentUsageMigrator {
+  void migrateAlertSkin(PropAssignment prop) {
+    final rhs = prop.rightHandSide;
+
+    final severityFromWsdSkin = mapWsdConstant(rhs, const {
+      'AlertSkin.DEFAULT': '$muiNs.AlertSeverity.info',
+      'AlertSkin.SUCCESS': '$muiNs.AlertSeverity.success',
+      'AlertSkin.WARNING': '$muiNs.AlertSeverity.warning',
+      'AlertSkin.DANGER': '$muiNs.AlertSeverity.error',
+    });
+    if (severityFromWsdSkin != null) {
+      yieldPropPatch(
+        prop,
+        newName: 'severity',
+        newRhs: severityFromWsdSkin,
+      );
+      return;
+    }
+
+    final variantFromWsdSkin = mapWsdConstant(rhs, const {
+      'AlertSkin.GRAY': '$muiNs.AlertVariant.wsdGray',
+    });
+
+    if (variantFromWsdSkin != null) {
+      yieldPropPatch(
+        prop,
+        newName: 'variant',
+        newRhs: variantFromWsdSkin,
+      );
+      return;
+    }
+
+    if (isWsdStaticConstant(prop.rightHandSide, 'AlertSkin.INVERSE')) {
+      yieldPropFixmePatch(prop,
+          'this prop was converted from the INVERSE skin and should be double checked');
+      yieldPropPatch(prop,
+          newName: 'variant', newRhs: '$muiNs.AlertVariant.wsdGray');
+      return;
+    }
+
+    yieldPropManualMigratePatch(prop);
+  }
+
+  void migrateAlertHeading(FluentComponentUsage usage, PropAssignment prop) {
+    final propValue = prop.rightHandSide;
+
+    yieldRemovePropPatch(prop);
+    yieldAddChildPatch(usage, '$muiNs.AlertTitle()($propValue)');
+  }
+
+  void migrateAlertSize(PropAssignment prop) {
+    final rhs = prop.rightHandSide;
+
+    final sizeFromWsdAlertSize = mapWsdConstant(rhs, const {
+      'AlertSize.DEFAULT': '$muiNs.AlertSize.medium',
+      'AlertSize.SMALL': '$muiNs.AlertSize.small',
+      'AlertSize.XSMALL': '$muiNs.AlertSize.xsmall',
+    });
+
+    if (sizeFromWsdAlertSize != null) {
+      yieldPropPatch(
+        prop,
+        newRhs: sizeFromWsdAlertSize,
+      );
+      return;
+    }
+
+    yieldPropManualMigratePatch(prop);
   }
 }

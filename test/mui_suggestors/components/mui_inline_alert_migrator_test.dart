@@ -99,6 +99,148 @@ void main() {
       );
     });
 
-    group('updates props', () {});
+    group('updates props', () {
+      group('skin', () {
+        test('maps basic skin constants properly', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Alert()..skin = AlertSkin.DEFAULT)();
+                  (Alert()..skin = AlertSkin.SUCCESS)();
+                  (Alert()..skin = AlertSkin.WARNING)();
+                  (Alert()..skin = AlertSkin.DANGER)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Alert()..severity = mui.AlertSeverity.info)();
+                  (mui.Alert()..severity = mui.AlertSeverity.success)();
+                  (mui.Alert()..severity = mui.AlertSeverity.warning)();
+                  (mui.Alert()..severity = mui.AlertSeverity.error)();
+                }
+            '''),
+          );
+        });
+
+        test('maps a gray skin to the correct variant', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Alert()..skin = AlertSkin.GRAY)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Alert()..variant = mui.AlertVariant.wsdGray)();
+                }
+            '''),
+          );
+        });
+
+        test('flags the inverse skin', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Alert()..skin = AlertSkin.INVERSE)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Alert()
+                    // FIXME(mui_migration) - skin prop - this prop was converted from the INVERSE skin and should be double checked
+                    ..variant = mui.AlertVariant.wsdGray)();
+                }
+            '''),
+          );
+        });
+
+        test('any other value', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(dynamic aValue) {
+                  (Alert()..skin = aValue)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(dynamic aValue) {
+                  (mui.Alert()
+                    // FIXME(mui_migration) - skin prop - manually migrate
+                    ..skin = aValue)();
+                }
+            '''),
+          );
+        });
+      });
+
+      group('heading', () {
+        test('is set to a string', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Alert()..heading = 'An alert title')();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Alert())(mui.AlertTitle()('An alert title'),);
+                }
+            '''),
+          );
+        });
+
+        test('is set to an expression', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(bool value) {
+                  (Alert()..heading = value ? 'An alert title' : 'An alternative title')();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(bool value) {
+                  (mui.Alert())(mui.AlertTitle()(value ? 'An alert title' : 'An alternative title'),);
+                }
+            '''),
+          );
+        });
+      });
+
+      group('size', () {
+        test('maps WSD AlertSize constants properly', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Alert()..size = AlertSize.DEFAULT)();
+                  (Alert()..size = AlertSize.SMALL)();
+                  (Alert()..size = AlertSize.XSMALL)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Alert()..size = mui.AlertSize.medium)();
+                  (mui.Alert()..size = mui.AlertSize.small)();
+                  (mui.Alert()..size = mui.AlertSize.xsmall)();
+                }
+            '''),
+          );
+        });
+
+        test('any other value', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(dynamic aValue) {
+                  (Alert()..size = aValue)();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(dynamic aValue) {
+                  (mui.Alert()
+                    // FIXME(mui_migration) - size prop - manually migrate
+                    ..size = aValue)();
+                }
+            '''),
+          );
+        });
+      });
+    });
   }, tags: 'wsd');
 }
