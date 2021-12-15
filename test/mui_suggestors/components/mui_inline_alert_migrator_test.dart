@@ -204,6 +204,50 @@ void main() {
         });
       });
 
+      group('headingProps', () {
+        test('is an inline props map', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (Alert()
+                    ..headingProps = (domProps()..className = 'a class')
+                    ..heading = 'An alert title'
+                    )();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content() {
+                  (mui.Alert()
+                  // FIXME(mui_migration) - headingProps prop - manually migrate
+                    ..headingProps = (domProps()..className = 'a class')
+                  )(mui.AlertTitle()('An alert title'),);
+                }
+            '''),
+          );
+        });
+
+        test('is set to an expression', () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(dynamic expression) {
+                  (Alert()
+                    ..headingProps = expression
+                    ..heading = 'An alert title'
+                    )();
+                }
+            '''),
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+                content(dynamic expression) {
+                  (mui.Alert()
+                    // FIXME(mui_migration) - headingProps prop - manually migrate
+                    ..headingProps = expression
+                  )(mui.AlertTitle()('An alert title'),);
+                }
+            '''),
+          );
+        });
+      });
+
       group('size', () {
         test('maps WSD AlertSize constants properly', () async {
           await testSuggestor(

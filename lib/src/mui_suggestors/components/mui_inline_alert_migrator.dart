@@ -50,6 +50,7 @@ class MuiInlineAlertMigrator extends ComponentUsageMigrator
 
     handleCascadedPropsByName(usage, {
       'heading': (p) => migrateAlertHeading(usage, p),
+      'headingProps': yieldPropManualMigratePatch,
       'skin': migrateAlertSkin,
       'size': migrateAlertSize,
     });
