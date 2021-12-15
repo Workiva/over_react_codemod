@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
@@ -21,24 +20,25 @@ import 'mui_migrator.dart';
 
 class MuiInlineAlertMigrator extends ComponentUsageMigrator
     with MuiMigrator, AlertDisplayPropsMigrator {
-  // TODO alphabetize these
   static const toastAlertProps = [
-    'initiallyShown',
     'dismissAfter',
+    'initiallyShown',
     'isDismissible',
+    'onDidHide',
+    'onDidShow',
+    'onWillHide',
+    'onWillShow',
     'transition',
     'transitionCount',
     'transitionInCount',
     'transitionOutCount',
-    'onWillHide',
-    'onDidHide',
-    'onWillShow',
-    'onDidShow',
   ];
 
   @override
   bool shouldMigrateUsage(FluentComponentUsage usage) =>
       usesWsdFactory(usage, 'Alert') &&
+      // If the alert has props related to the `toast` variant, don't try to
+      // migrate it.
       !usage.cascadedProps
           .any((prop) => toastAlertProps.contains(prop.name.name));
 
@@ -67,6 +67,7 @@ mixin AlertDisplayPropsMigrator on ComponentUsageMigrator {
       'AlertSkin.WARNING': '$muiNs.AlertSeverity.warning',
       'AlertSkin.DANGER': '$muiNs.AlertSeverity.error',
     });
+
     if (severityFromWsdSkin != null) {
       yieldPropPatch(
         prop,
@@ -76,24 +77,26 @@ mixin AlertDisplayPropsMigrator on ComponentUsageMigrator {
       return;
     }
 
-    final variantFromWsdSkin = mapWsdConstant(rhs, const {
+    final usesInverseSkin =
+        isWsdStaticConstant(prop.rightHandSide, 'AlertSkin.INVERSE');
+    var migrateVariantToGray = usesInverseSkin ||
+        isWsdStaticConstant(prop.rightHandSide, 'AlertSkin.GRAY');
+
+    mapWsdConstant(rhs, const {
       'AlertSkin.GRAY': '$muiNs.AlertVariant.wsdGray',
     });
 
-    if (variantFromWsdSkin != null) {
+    if (migrateVariantToGray) {
+      if (usesInverseSkin) {
+        yieldPropFixmePatch(prop,
+            'this prop was converted from the INVERSE skin and should be double checked');
+      }
+
       yieldPropPatch(
         prop,
         newName: 'variant',
-        newRhs: variantFromWsdSkin,
+        newRhs: '$muiNs.AlertVariant.wsdGray',
       );
-      return;
-    }
-
-    if (isWsdStaticConstant(prop.rightHandSide, 'AlertSkin.INVERSE')) {
-      yieldPropFixmePatch(prop,
-          'this prop was converted from the INVERSE skin and should be double checked');
-      yieldPropPatch(prop,
-          newName: 'variant', newRhs: '$muiNs.AlertVariant.wsdGray');
       return;
     }
 
