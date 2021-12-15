@@ -433,9 +433,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     yieldPatch('', start, end);
   }
 
-  /// Yields a patch that adds a given [child] to a usage, and also
-  /// conditionally adds commas so as to preserve trailing or non-trailing
-  /// commas in the parent argument list or list literal.
+  /// Yields a patch that adds a given [child] to a usage.
   void yieldAddChildPatch(FluentComponentUsage usage, String child) {
     final int start;
 
