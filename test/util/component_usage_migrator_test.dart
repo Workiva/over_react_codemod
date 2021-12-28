@@ -1467,7 +1467,7 @@ void yieldRemoveChildPatchTests() {
 }
 
 void yieldAddChildPatchTests() {
-  test('when it is the only child', () async {
+  test('when there are no existing children', () async {
     await testSuggestor(
       suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
         migrator.yieldAddChildPatch(usage, 'Dom.div()(\'A child\')');
@@ -1476,11 +1476,17 @@ void yieldAddChildPatchTests() {
       input: withOverReactImport(/*language=dart*/ '''
           content() => [
             Dom.div()(),
+            Dom.div()([]),
           ];
       '''),
       expectedOutput: withOverReactImport(/*language=dart*/ '''
           content() => [
-            Dom.div()(Dom.div()('A child'),),
+            Dom.div()(
+              Dom.div()('A child'),
+            ),
+            Dom.div()([
+              Dom.div()('A child'),
+            ]),
           ];
       '''),
     );
@@ -1526,7 +1532,7 @@ void yieldAddChildPatchTests() {
       );
     });
 
-    test('and a basic component useage is being added', () async {
+    test('and a basic component usage is being added', () async {
       await testSuggestor(
         suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
           migrator.yieldAddChildPatch(usage, 'Dom.div()(\'A child\')');

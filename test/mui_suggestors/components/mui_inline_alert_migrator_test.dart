@@ -182,7 +182,9 @@ void main() {
             '''),
             expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
                 content() {
-                  (mui.Alert())(mui.AlertTitle()('An alert title'),);
+                  (mui.Alert())(
+                    mui.AlertTitle()('An alert title'),
+                  );
                 }
             '''),
           );

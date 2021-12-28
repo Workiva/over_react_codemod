@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
@@ -82,10 +83,6 @@ mixin AlertDisplayPropsMigrator on ComponentUsageMigrator {
     var migrateVariantToGray = usesInverseSkin ||
         isWsdStaticConstant(prop.rightHandSide, 'AlertSkin.GRAY');
 
-    mapWsdConstant(rhs, const {
-      'AlertSkin.GRAY': '$muiNs.AlertVariant.wsdGray',
-    });
-
     if (migrateVariantToGray) {
       if (usesInverseSkin) {
         yieldPropFixmePatch(prop,
@@ -107,7 +104,8 @@ mixin AlertDisplayPropsMigrator on ComponentUsageMigrator {
     final propValue = prop.rightHandSide;
 
     yieldRemovePropPatch(prop);
-    yieldAddChildPatch(usage, '$muiNs.AlertTitle()($propValue)');
+    yieldAddChildPatch(
+        usage, '$muiNs.AlertTitle()(${context.sourceFor(propValue)})');
   }
 
   void migrateAlertSize(PropAssignment prop) {

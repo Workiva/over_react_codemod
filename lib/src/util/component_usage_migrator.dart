@@ -434,17 +434,26 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   }
 
   /// Yields a patch that adds a given [child] to a usage.
+  ///
+  /// If children are already present in the usage, the given [child] will be
+  /// become the first child of the usage.
   void yieldAddChildPatch(FluentComponentUsage usage, String child) {
     final int start;
 
-    if (!child.endsWith(',')) {
-      child = child + ',';
-    }
+    child = child + ',';
 
     if (usage.children.isNotEmpty) {
       start = usage.children.first.node.offset;
     } else {
-      start = usage.node.argumentList.offset + 1;
+      // If the usage's children is considered empty but its argument list is not,
+      // the usage has an empty list as its children.
+      if (usage.node.argumentList.arguments.length == 1) {
+        final childList = usage.node.argumentList.arguments.first;
+
+        start = childList.offset + 1;
+      } else {
+        start = usage.node.argumentList.offset + 1;
+      }
     }
 
     yieldPatch(child, start, start);
