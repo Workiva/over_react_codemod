@@ -435,7 +435,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
 
   /// Yields a patch that adds a given [child] to a usage.
   ///
-  /// If children are already present in the usage, the given [child] will be
+  /// If children are already present in the usage, the given [child] will 
   /// become the first child of the usage.
   void yieldAddChildPatch(FluentComponentUsage usage, String child) {
     final int start;
