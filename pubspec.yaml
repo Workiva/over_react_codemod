@@ -41,3 +41,6 @@ executables:
   dependency_validator_ignore:
   mui_migration:
   rmui_preparation:
+
+dependency_overrides:
+  yaml: 3.0.0
