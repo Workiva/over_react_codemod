@@ -309,8 +309,8 @@ void main() {
       });
     });
 
-    group('Child StringLiteral', () {
-      test('single child', () async {
+    group('Child', () {
+      test('StringLiteral single child', () async {
         await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
@@ -343,7 +343,7 @@ void main() {
         );
       });
 
-      test('two children', () async {
+      test('StringLiteral two children', () async {
         await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
@@ -373,6 +373,39 @@ void main() {
                     Intl.message('testString1'),
                     Intl.message('testString2'),
                   );
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              ); 
+              ''',
+        );
+      });
+
+      test('NonStringLiteral single child', () async {
+        await testSuggestor(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                  final testString = 'testString';
+                  
+                  return (Dom.div())(testString);
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              ); 
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                  final testString = 'testString';
+
+                  return (Dom.div())(testString);
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               ); 
