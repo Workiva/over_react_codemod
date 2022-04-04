@@ -340,6 +340,37 @@ void main() {
               ''',
         );
       });
+
+      test('two children', () async {
+        await testSuggestor(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                  
+                  return (Dom.div())('testString1', 'testString2');
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              ); 
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                  
+                  return (Dom.div())(Intl.message('testString'), Intl.message('testString'));
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              ); 
+              ''',
+        );
+      });
     });
   });
 }
