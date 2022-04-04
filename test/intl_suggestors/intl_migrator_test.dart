@@ -32,7 +32,7 @@ void main() {
     );
 
     group('StringLiteral', () {
-      test('label', () async {
+      test('uiFunction component', () async {
         await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
@@ -62,12 +62,45 @@ void main() {
               ''',
         );
       });
+
+      test('class based component', () async {
+        await testSuggestor(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+              
+              class Foo extends UiComponent<UiProps> {
+                  
+                @override
+                render() {
+                  return (Dom.div()
+                    ..label = 'testString')();
+                }
+              }
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+              
+              class Foo extends UiComponent<UiProps> {
+                  
+                @override
+                render() {
+                  return (Dom.div()
+                    ..label = Intl.message('testString'))();
+                }
+              }
+              ''',
+        );
+      });
     });
 
     group('StringInterpolation', () {
       test('one argument with top level accessor', () async {
         await testSuggestor(
-            input: '''
+          input: '''
               import 'package:over_react/over_react.dart';
 
               mixin FooProps on UiProps {}
@@ -82,7 +115,7 @@ void main() {
                 _\$FooConfig, //ignore: undefined_identifier
               ); 
               ''',
-            expectedOutput: '''
+          expectedOutput: '''
               import 'package:over_react/over_react.dart';
 
               mixin FooProps on UiProps {}
@@ -106,7 +139,7 @@ void main() {
       });
       test('one argument with top level accessor', () async {
         await testSuggestor(
-            input: '''
+          input: '''
               import 'package:over_react/over_react.dart';
 
               mixin FooProps on UiProps {}
@@ -121,7 +154,7 @@ void main() {
                 _\$FooConfig, //ignore: undefined_identifier
               ); 
               ''',
-            expectedOutput: '''
+          expectedOutput: '''
               import 'package:over_react/over_react.dart';
 
               mixin FooProps on UiProps {}
@@ -145,7 +178,7 @@ void main() {
       });
       test('one argument with top level accessor', () async {
         await testSuggestor(
-            input: '''
+          input: '''
               import 'package:over_react/over_react.dart';
 
               mixin FooProps on UiProps {}
@@ -160,7 +193,7 @@ void main() {
                 _\$FooConfig, //ignore: undefined_identifier
               ); 
               ''',
-            expectedOutput: '''
+          expectedOutput: '''
               import 'package:over_react/over_react.dart';
 
               mixin FooProps on UiProps {}
@@ -307,6 +340,87 @@ void main() {
               ''',
         );
       });
+      test('class based component', () async {
+        await testSuggestor(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+              
+              class Foo extends UiComponent<UiProps> {
+                final name = 'bob';
+
+                @override
+                render() {
+                  
+                  return (Dom.div()
+                    ..label = 'Interpolated \${name}')();
+                }
+              }
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+              
+              class Foo extends UiComponent<UiProps> {
+                final name = 'bob';
+ 
+              String tempFunctionName(String name) =>
+                Intl.message('Interpolated \$name',
+                  args: [name],
+                );
+                    
+                @override
+                render() {
+                  return (Dom.div()
+                    ..label = tempFunctionName(name))();
+                }
+              }
+              ''',
+        );
+      }, skip: true);
+      test('Nested uiFunction based component', () async {
+        await testSuggestor(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                  final name = 'bob';
+                  
+                  return Dom.div()(
+                    (Dom.div()..label = 'Interpolated \${name}')(),
+                  );
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              ); 
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                  final name = 'bob';
+ 
+                  String tempFunctionName(String name) =>
+                    Intl.message('Interpolated \$name',
+                    args: [name],
+                  );
+                    
+                  return Dom.div()(
+                    (Dom.div()..label = tmpFunctionName(name))(),
+                  );
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              ); 
+              ''',
+        );
+      }, skip: true);
     });
 
     group('Child', () {
