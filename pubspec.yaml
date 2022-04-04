@@ -23,6 +23,7 @@ dependencies:
   source_span: ^1.8.1
   yaml: ^3.1.0
   yaml_edit: ^2.0.0
+  intl: ^0.17.0
 
 dev_dependencies:
   async: ^2.0.0
@@ -41,3 +42,4 @@ executables:
   dependency_validator_ignore:
   mui_migration:
   rmui_preparation:
+  intl_message_migration:
