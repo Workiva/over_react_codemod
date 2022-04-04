@@ -34,10 +34,12 @@ class IntlMessageMigrator extends ComponentUsageMigrator {
 
   void migrateChildString(FluentComponentUsage usage) {
     usage.children
-        .whereType<ExpressionComponentChild>()
-        .where((child) => (child.node is SimpleStringLiteral))
-        .forEach((child) =>
-            yieldPatchOverNode('Intl.message(${(child.node)})', child.node));
+        .map((child) => child.node)
+        .whereType<SimpleStringLiteral>()
+        .forEach((node) {
+      yieldRemoveChildPatch(node);
+      yieldAddChildPatch(usage, 'Intl.message(${(node)})');
+    });
   }
 
   void migratePropString(FluentComponentUsage usage, PropAssignment prop) {

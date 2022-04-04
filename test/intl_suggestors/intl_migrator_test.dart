@@ -333,7 +333,9 @@ void main() {
               UiFactory<FooProps> Foo = uiFunction(
                 (props) {
                   
-                  return (Dom.div())(Intl.message('testString'));
+                  return (Dom.div())(
+                    Intl.message('testString'),
+                  );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               ); 
@@ -351,7 +353,10 @@ void main() {
               UiFactory<FooProps> Foo = uiFunction(
                 (props) {
                   
-                  return (Dom.div())('testString1', 'testString2');
+                  return (Dom.div())(
+                    'testString1',
+                    'testString2',
+                  );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               ); 
@@ -364,7 +369,10 @@ void main() {
               UiFactory<FooProps> Foo = uiFunction(
                 (props) {
                   
-                  return (Dom.div())(Intl.message('testString'), Intl.message('testString'));
+                  return (Dom.div())(
+                    Intl.message('testString1'),
+                    Intl.message('testString2'),
+                  );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               ); 
