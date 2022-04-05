@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 import 'package:intl/intl.dart';
@@ -37,8 +38,7 @@ class IntlMessageMigrator extends ComponentUsageMigrator {
         .map((child) => child.node)
         .whereType<SimpleStringLiteral>()
         .forEach((node) {
-      yieldRemoveChildPatch(node);
-      yieldAddChildPatch(usage, 'Intl.message(${(node)})');
+          yieldPatchOverNode('Intl.message(${(node)})', node);
     });
   }
 
@@ -73,7 +73,17 @@ class IntlMessageMigrator extends ComponentUsageMigrator {
       );\n
       ''';
 
-      var offset = usage.node.parent?.offset;
+      // Check if we are in a class component's render method.
+      final offset = usage.node
+              .thisOrAncestorMatching((node) =>
+                  (node is MethodDeclaration) && node.name.name == 'render')
+              ?.offset ??
+          // Otherwise attempt to insert it as a local function before the statement containing this usage
+          usage.node.thisOrAncestorOfType<Statement>()?.offset ??
+
+          // Otherwise, insert it as a top-level function before the top-level-declaration containing this usage
+          usage.node.thisOrAncestorOfType<CompilationUnitMember>()?.offset;
+
       yieldInsertionPatch(functionDef, offset ?? 0);
       yieldPropPatch(prop,
           newRhs:

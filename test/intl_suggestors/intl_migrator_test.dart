@@ -379,7 +379,7 @@ void main() {
               }
               ''',
         );
-      }, skip: true);
+      }, skip: false);
       test('Nested uiFunction based component', () async {
         await testSuggestor(
           input: '''
@@ -413,14 +413,14 @@ void main() {
                   );
                     
                   return Dom.div()(
-                    (Dom.div()..label = tmpFunctionName(name))(),
+                    (Dom.div()..label = tempFunctionName(name))(),
                   );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               ); 
               ''',
         );
-      }, skip: true);
+      });
     });
 
     group('Child', () {
@@ -447,9 +447,7 @@ void main() {
               UiFactory<FooProps> Foo = uiFunction(
                 (props) {
                   
-                  return (Dom.div())(
-                    Intl.message('testString'),
-                  );
+                  return (Dom.div())(Intl.message('testString'));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               ); 
