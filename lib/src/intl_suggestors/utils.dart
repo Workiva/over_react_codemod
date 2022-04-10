@@ -15,20 +15,14 @@ String literalTemplate(String name, String value) {
 
 String interpolationTemplate(
     String className, String functionName, String message, List<String> args) {
-  return '''
-    static String ${functionName}(${args.map((arg) => 'String ${arg}').toList().join(', ')}) =>
-      Intl.message(${message},
-        args: ${args},
-        name: '${className}_${functionName}',
-    );
-    ''';
+  return "static String ${functionName}(${args.map((arg) => 'String ${arg}').toList().join(', ')}) => Intl.message(${message},args: ${args},name: '${className}_${functionName}',);\n";
 }
 
 String generatePropValue(
-    String className,
-    String functionName,
-    Iterable<InterpolationExpression> args,
-    ) =>
+  String className,
+  String functionName,
+  Iterable<InterpolationExpression> args,
+) =>
     '$className.$functionName(${args.map((a) => '\'$a\'').toSet().join(', ')})';
 
 String toClassName(String str) =>
@@ -86,7 +80,6 @@ bool excludeExpressionsNotLikelyToNeedI18nTranslations<E extends Expression>(
           '')) return true;
   if (prop.rightHandSide.staticType?.getDisplayString(withNullability: false) ==
       'Iterable<ReactElement>') return true;
-
   final source = prop.rightHandSide.toSource();
   if (source == propKey ||
       source == 'props.$propKey' ||
@@ -148,8 +141,7 @@ extension ElementSubtypeUtils on Element /*?*/ {
 
   bool isTypeFromPackage(String typeName, String packageName,
           [PackageType packageType = PackageType.package]) =>
-      name == typeName &&
-      isDeclaredInPackage(packageName, packageType);
+      name == typeName && isDeclaredInPackage(packageName, packageType);
 }
 
 extension on Element {
@@ -203,4 +195,3 @@ class ComponentDetector extends SimpleAstVisitor<void> {
     }
   }
 }
-

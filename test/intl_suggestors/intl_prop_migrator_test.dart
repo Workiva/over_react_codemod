@@ -33,7 +33,8 @@ void main() {
     SuggestorTester? testSuggestor;
 
     setUp(() {
-      file = File('TestClassIntl')..createSync();
+      file = File('TestClassIntl')
+        ..createSync();
       testSuggestor = getSuggestorTester(
         IntlPropMigrator('TestClassIntl', file!),
         resolvedContext: resolvedContext,
@@ -41,7 +42,9 @@ void main() {
     });
 
     tearDown(() {
-      file?..exists()..deleteSync();
+      file
+        ?..exists()
+        ..deleteSync();
       file = null;
     });
 
@@ -672,8 +675,39 @@ void main() {
               ''',
         );
       });
+
+        test('single number string', () async {
+          await testSuggestor!(
+            input: '''
+              import 'package:over_react/over_react.dart';
+              
+              mixin FooProps on UiProps {}
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+
+                  return (Dom.div()
+                    ..label = '12')();
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+            expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+              
+              mixin FooProps on UiProps {}
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+
+                  return (Dom.div()
+                    ..label = '12')();
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+          );
+        });
+      });
     });
-
-
-  });
 }

@@ -31,6 +31,7 @@ class IntlPropMigrator extends ComponentUsageMigrator with IntlMigrator {
       if (propsToCheck.contains(element.name.name)) {
         final shouldExclude = excludeExpressionsNotLikelyToNeedI18nTranslations(
             element, element.name.name);
+        print(shouldExclude);
         if (shouldExclude) return;
         migratePropString(usage, element);
       }
@@ -42,6 +43,7 @@ class IntlPropMigrator extends ComponentUsageMigrator with IntlMigrator {
     final rhs = prop.rightHandSide;
 
     if (rhs is StringLiteral && rhs.stringValue != null) {
+      if (double.tryParse(rhs.stringValue!) != null) return;
       final name = convertNameCase(rhs.stringValue!);
       yieldPropPatch(prop,
           newRhs: '${_className}.${name}');
@@ -119,9 +121,6 @@ class IntlPropMigrator extends ComponentUsageMigrator with IntlMigrator {
       if (!_outputFile.readAsStringSync().contains(functionDef)) {
         _outputFile.writeAsStringSync(functionDef, mode: FileMode.append);
       }
-    } else {
-      yieldPropFixmePatch(
-          prop, 'manually verify this should not be internationalized');
     }
   }
 }

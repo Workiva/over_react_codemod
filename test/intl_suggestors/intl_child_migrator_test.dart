@@ -109,7 +109,7 @@ void main() {
         expect( '${expectedFileContent}${expectedFileContent2}', file!.readAsStringSync(),);
       });
 
-      test('NonStringLiteral single child', () async {
+      test('single number string', () async {
         await testSuggestor!(
           input: '''
             import 'package:over_react/over_react.dart';
@@ -118,9 +118,8 @@ void main() {
 
             UiFactory<FooProps> Foo = uiFunction(
               (props) {
-                final testString = 'testString';
 
-                return (Dom.div())('Interpolated \${testString}');
+                return (Dom.div())('12');
               },
               _\$FooConfig, //ignore: undefined_identifier
             );
@@ -132,16 +131,13 @@ void main() {
 
             UiFactory<FooProps> Foo = uiFunction(
               (props) {
-                final testString = 'testString';
 
-                return (Dom.div())(TestClassIntl.domDivChild0('\${testString}'));
+                return (Dom.div())('12');
               },
               _\$FooConfig, //ignore: undefined_identifier
             );
             ''',
         );
-        final expectedFileContent = interpolationTemplate('TestClassIntl', 'domDivChild0', "'Interpolated \$testString'", ['testString']);
-        expect(expectedFileContent,file!.readAsStringSync());
       });
     });
 

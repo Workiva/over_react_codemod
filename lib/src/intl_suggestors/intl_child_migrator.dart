@@ -33,6 +33,7 @@ class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
         .whereType<StringLiteral>()
         .forEachIndexed((index, node) {
       if (node is SimpleStringLiteral) {
+        if (double.tryParse(node.stringValue!) != null) return;
         if (quotedCamelCase(node.value)) return;
         final name = convertNameCase(node.value);
         yieldPatchOverNode(
