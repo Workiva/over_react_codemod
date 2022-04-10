@@ -13,7 +13,9 @@
 // limitations under the License.
 
 import 'dart:io';
-import 'package:path/path.dart' as p;
+import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_child_migrator.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_prop_migrator.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/args.dart';
@@ -21,7 +23,7 @@ import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_message.dart';
+import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 
 final _log = Logger('orcm.intl_message_migration');
@@ -67,16 +69,20 @@ void main(List<String> args) async {
       _stderrAssumeTtyFlag,
       negatable: false,
       help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
-    );
+    )
+    ..addOption('namespace',
+        valueHelp: '<namespce>',
+        mandatory: true,
+        help:
+            'The namespace of the package.  This will generate <namespace>Intl.dart to store strings in');
 
   final parsedArgs = parser.parse(args);
 
   if (parsedArgs['help'] as bool) {
-    stderr.writeln(
-        'Migrates string usage to wrap in Intl.message');
+    stderr.writeln('Migrates string usage to wrap in Intl.message');
     stderr.writeln();
     stderr.writeln('Usage:');
-    stderr.writeln('    mui_migration [arguments]');
+    stderr.writeln('    intl_migration [arguments]');
     stderr.writeln();
     stderr.writeln('Options:');
     stderr.writeln(parser.usage);
@@ -104,7 +110,7 @@ void main(List<String> args) async {
   // TODO each time we call runInteractiveCodemod, all subsequent logs are forwarded to the console an extra time. Update codemod package to prevent this (maybe a flag to disable automatic global logging?)
   exitCode = await runInteractiveCodemod(
     [],
-        (_) async* {},
+    (_) async* {},
     args: codemodArgs,
     additionalHelpOutput: parser.usage,
   );
@@ -121,10 +127,11 @@ void main(List<String> args) async {
   ///
   /// If any sequence fails, returns that exit code and short-circuits the other
   /// sequences.
+
   Future<int> runCodemodSequences(
-      Iterable<String> paths,
-      Iterable<Iterable<Suggestor>> sequences,
-      ) async {
+    Iterable<String> paths,
+    Iterable<Iterable<Suggestor>> sequences,
+  ) async {
     for (final sequence in sequences) {
       final exitCode = await runInteractiveCodemodSequence(
         paths,
@@ -139,18 +146,38 @@ void main(List<String> args) async {
     return 0;
   }
 
-  // Only run the migrators for components that were specified in [args].
-  // If no components were specified, run all migrators.
-  final migrator = IntlMessageMigrator();
-
   final dartPaths = dartFilesToMigrate().toList();
   // Work around parts being unresolved if you resolve them before their libraries.
   // TODO - reference analyzer issue for this once it's created
   sortPartsLast(dartPaths);
-
   await pubGetForAllPackageRoots(dartPaths);
-  exitCode = await runInteractiveCodemod(dartPaths, migrator);
-  if (exitCode != 0) return;
+
+
+  final outputFile = File('./lib/src/intl/${parsedArgs['namespace']}_intl.dart')
+    ..createSync(recursive: true);
+  final className = toClassName(parsedArgs['namespace']);
+  outputFile.writeAsStringSync('''
+  import 'package:intl/intl.dart';
+  
+  abstract class $className {
+  ''');
+
+  final intlPropMigrator = IntlPropMigrator(className, outputFile);
+  final intlChildMigrator = IntlChildMigrator(className, outputFile);
+
+  exitCode = await runCodemodSequences(dartPaths, [
+    [intlPropMigrator],
+    [intlChildMigrator],
+    [
+      (FileContext context) =>
+          intlImporter(context, parsedArgs['namespace'], className)
+    ],
+  ]);
+  if (exitCode != 0) {
+    outputFile.deleteSync();
+  } else {
+    outputFile.writeAsStringSync('}', mode: FileMode.append);
+  }
 }
 
 void sortPartsLast(List<String> dartPaths) {
@@ -158,11 +185,11 @@ void sortPartsLast(List<String> dartPaths) {
 
   final isPartCache = <String, bool>{};
   bool isPart(String path) => isPartCache.putIfAbsent(path, () {
-    // parseString is much faster than using an AnalysisContextCollection
-    //  to get unresolved AST, at least in repos with many context roots.
-    final unit = parseString(content: File(path).readAsStringSync()).unit;
-    return unit.directives.whereType<PartOfDirective>().isNotEmpty;
-  });
+        // parseString is much faster than using an AnalysisContextCollection
+        //  to get unresolved AST, at least in repos with many context roots.
+        final unit = parseString(content: File(path).readAsStringSync()).unit;
+        return unit.directives.whereType<PartOfDirective>().isNotEmpty;
+      });
 
   dartPaths.sort((a, b) {
     final isAPart = isPart(a);
@@ -189,6 +216,7 @@ Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
     .listSync()
     .whereType<File>()
     .where((file) => !file.path.contains('.sg'))
+    .where((file) => !file.path.endsWith('_test.dart'))
     .where(isNotHiddenFile)
     .where(isNotDartHiddenFile)
     .where(isNotWithinTopLevelBuildOutputDir)

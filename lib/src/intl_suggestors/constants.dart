@@ -1,0 +1,17 @@
+const propsToCheck = [
+  'addonAfter',
+  'children',
+  'defaultValue',
+  'displayText',
+  'formGroupTitle',
+  'fullName',
+  'groupLabel',
+  'header',
+  'helpText',
+  'label',
+  'placeholder',
+  'tabTitle',
+  'title',
+  'tooltipContent',
+  'value',
+];
