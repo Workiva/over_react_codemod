@@ -425,6 +425,174 @@ void main() {
             ['lastName']);
         expect(file!.readAsStringSync(), expectedFileContent);
       });
+      test('Interpolated with testId string', () async {
+        await testSuggestor!(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String version;
+              }
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+
+                  return (Dom.p()
+                    ..addTestId('truss.aboutWdeskModal.versionInfo')
+                  )(
+                    'Version \${props.version}',
+                  );
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String version;
+              }
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                                 
+                  return (Dom.p() 
+                    ..addTestId('truss.aboutWdeskModal.versionInfo')
+                    )(
+                      TestClassIntl.versionInfo('\${props.version}'),
+                    );
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+        );
+
+        String expectedFileContent = "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
+        expect(file!.readAsStringSync(), expectedFileContent);
+      });
+
+      test('Interpolated with testId', () async {
+        await testSuggestor!(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String version;
+              }
+
+              abstract class TestClassTestIds {
+                static String get versionInfo => 'truss.aboutWdeskModal.versionInfo';
+              }
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+
+                  return (Dom.p()
+                    ..addTestId(TestClassTestIds.versionInfo)
+                  )(  
+                    'Version \${props.version}',
+                  );
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String version;
+              }
+
+              abstract class TestClassTestIds {
+                static String get versionInfo => 'truss.aboutWdeskModal.versionInfo';
+              }
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                                 
+                  return (Dom.p() 
+                    ..addTestId(TestClassTestIds.versionInfo)
+                  )(
+                    TestClassIntl.versionInfo('\${props.version}'),
+                  );
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+        );
+
+        String expectedFileContent = "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
+        expect(file!.readAsStringSync(), expectedFileContent);
+      });
+
+      test('Interpolated with testId in a parent node', () async {
+        await testSuggestor!(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String displayName;
+              }
+
+              abstract class TestClassTestIds {
+                static String get emptyView => 'truss.aboutWdeskModal.emptyView';
+              }
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+
+                return (Dom.div()
+                  ..addTestId(TestClassTestIds.emptyView)
+                  )(
+                    (Dom.p()..addTestId('foo'))(
+                      'Create one from any \${props.displayName} by selecting Save As Template',
+                    ),
+                    (Dom.p()..addTestId('bar'))(
+                      (Dom.p())(
+                        'Create one from any \${props.displayName} by selecting Save As Template',
+                      ),
+                    ),
+                  );
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String displayName;
+              }
+
+              abstract class TestClassTestIds {
+                static String get emptyView => 'truss.aboutWdeskModal.emptyView';
+              }
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                                 
+                return (Dom.div()
+                  ..addTestId(TestClassTestIds.emptyView)
+                  )(
+                   (Dom.p()..addTestId('foo'))(
+                      TestClassIntl.foo('\${props.displayName}'),
+                    ),
+                    (Dom.p()..addTestId('bar'))(
+                      (Dom.p())(
+                        TestClassIntl.bar('\${props.displayName}'),
+                      ),
+                    ),
+                  );
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+        );
+
+        String expectedFileContent1 = "static String foo(String displayName) => Intl.message('Create one from any \$displayName by selecting Save As Template', args: [displayName], name: 'TestClassIntl_foo',);\n";
+        String expectedFileContent2 = "static String bar(String displayName) => Intl.message('Create one from any \$displayName by selecting Save As Template', args: [displayName], name: 'TestClassIntl_bar',);\n";
+        expect(file!.readAsStringSync(), [expectedFileContent1, expectedFileContent2].join(''));
+      });
     });
 
   });

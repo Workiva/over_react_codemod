@@ -69,12 +69,7 @@ void main(List<String> args) async {
       _stderrAssumeTtyFlag,
       negatable: false,
       help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
-    )
-    ..addOption('namespace',
-        valueHelp: '<namespce>',
-        mandatory: true,
-        help:
-            'The namespace of the package.  This will generate <namespace>Intl.dart to store strings in');
+    );
 
   final parsedArgs = parser.parse(args);
 
@@ -149,34 +144,69 @@ void main(List<String> args) async {
   final dartPaths = dartFilesToMigrate().toList();
   // Work around parts being unresolved if you resolve them before their libraries.
   // TODO - reference analyzer issue for this once it's created
-  sortPartsLast(dartPaths);
+  final packageRoots = dartPaths.map(findPackageRootFor).toSet().toList();
+  packageRoots.sort((packageA, packageB) =>
+      packageB.split('/').length - packageA.split('/').length);
+  final processedPackages = Set<String>();
   await pubGetForAllPackageRoots(dartPaths);
+  // final package = packageRoots.first;
+  // _log.info(package);
+  // final packageName = package.split('/').last;
+  // _log.info(packageName);
+  // final packageDartPath = dartFilesToMigrateForPackage(package, processedPackages).toList();
+  // _log.info(packageDartPath);
 
+  exitCode = await runInteractiveCodemod(
+    [],
+        (_) async* {},
+    args: codemodArgs,
+    additionalHelpOutput: parser.usage,
+  );
+  if (exitCode != 0) return;
+  print('^ Ignore the "codemod found no files" warning above for now.');
 
-  final outputFile = File('./lib/src/intl/${parsedArgs['namespace']}_intl.dart')
-    ..createSync(recursive: true);
-  final className = toClassName(parsedArgs['namespace']);
-  outputFile.writeAsStringSync('''
-  import 'package:intl/intl.dart';
-  
-  abstract class $className {
-  ''');
+  for (String package in packageRoots) {
+    _log.info('Starting migration for $package');
 
-  final intlPropMigrator = IntlPropMigrator(className, outputFile);
-  final intlChildMigrator = IntlChildMigrator(className, outputFile);
+    final packageName = package.split('/').last;
+    _log.info('Starting migration for $packageName');
+    final packageDartPath =
+        dartFilesToMigrateForPackage(package, processedPackages).toList();
+    sortPartsLast(packageDartPath);
+    // _log.info('Preparing to migrate files: ');
+    // packageDartPath.forEach((element) {
+    // _log.info(element);
+    // });
 
-  exitCode = await runCodemodSequences(dartPaths, [
-    [intlPropMigrator],
-    [intlChildMigrator],
-    [
-      (FileContext context) =>
-          intlImporter(context, parsedArgs['namespace'], className)
-    ],
-  ]);
-  if (exitCode != 0) {
-    outputFile.deleteSync();
-  } else {
-    outputFile.writeAsStringSync('}', mode: FileMode.append);
+    final outputFile = File('${package}/lib/src/intl/${packageName}_intl.dart')
+      ..createSync(recursive: true);
+    final className = toClassName('${packageName}');
+    _log.info('Writing Intl methods to $className at ${outputFile.path}');
+
+    outputFile.writeAsStringSync('''
+    import 'package:intl/intl.dart';
+
+    abstract class $className {
+    ''');
+
+    final intlPropMigrator = IntlPropMigrator(className, outputFile);
+    final intlChildMigrator = IntlChildMigrator(className, outputFile);
+
+    exitCode = await runCodemodSequences(packageDartPath, [
+      [intlPropMigrator],
+      [intlChildMigrator],
+      [(FileContext context) => intlImporter(context, packageName, className)],
+    ]);
+    processedPackages.add(package);
+    if (exitCode != 0) {
+      outputFile.deleteSync();
+    } else {
+      if (outputFile.readAsLinesSync().length == 3) {
+        outputFile.deleteSync();
+      } else {
+        outputFile.writeAsStringSync('}', mode: FileMode.append);
+      }
+    }
   }
 }
 
@@ -201,6 +231,14 @@ void sortPartsLast(List<String> dartPaths) {
   _log.info('Done.');
 }
 
+void sortDeepestFirst(Set<String> packageRoots) {
+  _log.info('Sorting package roots...');
+
+  packageRoots
+    ..toList().sort((packageA, packageB) => packageA.length - packageB.length)
+    ..toSet();
+}
+
 Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
   _log.info(
       'Running `pub get` if needed so that all Dart files can be resolved...');
@@ -222,3 +260,17 @@ Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
     .where(isNotWithinTopLevelBuildOutputDir)
     .where(isNotWithinTopLevelToolDir)
     .map((e) => e.path);
+
+Iterable<String> dartFilesToMigrateForPackage(
+        String package, Set<String> processedPackages) =>
+    Glob('/$package/lib/*/**.dart', recursive: true)
+        .listSync()
+        .whereType<File>()
+        .where((file) => !file.path.contains('.sg'))
+        .where((file) => !file.path.endsWith('_test.dart'))
+        .where(isNotHiddenFile)
+        .where(isNotDartHiddenFile)
+        .where(isNotWithinTopLevelBuildOutputDir)
+        .where(isNotWithinTopLevelToolDir)
+        .where((file) => !processedPackages.contains(file.path))
+        .map((e) => e.path);

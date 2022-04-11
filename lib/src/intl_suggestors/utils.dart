@@ -6,16 +6,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 
 String literalTemplate(String name, String value) {
-  bool isKeyWord = Keyword.keywords.values
-      .where((keywordValue) => keywordValue.lexeme == name)
-      .isNotEmpty;
-  final val = isKeyWord ? '${name}String' : name;
-  return 'static String get ${val} => Intl.message(${value});\n';
+  return 'static String get ${name} => Intl.message(${value});\n';
 }
 
 String interpolationTemplate(
     String className, String functionName, String message, List<String> args) {
-  return "static String ${functionName}(${args.map((arg) => 'String ${arg}').toList().join(', ')}) => Intl.message(${message},args: ${args},name: '${className}_${functionName}',);\n";
+  return "static String ${functionName}(${args.map((arg) => 'String ${arg}').toList().join(', ')}) => Intl.message(${message}, args: ${args}, name: '${className}_${functionName}',);\n";
 }
 
 String generatePropValue(
@@ -41,6 +37,18 @@ String removeInterpolationSyntax(String s) => s
     .replaceAll(RegExp(r'(\$[^a-zA-Z0-9.]|\s|}|\?.*|\$|\(\))'), '')
     .split('.')
     .last;
+
+String toVariableName(String str) {
+  String name = convertNameCase(toAlphaNumeric(
+      str.startsWith(RegExp(r'^[0-9]*'))
+          ? str.replaceFirst(RegExp(r'^[0-9]*'), '')
+          : str));
+
+  bool isKeyWord = Keyword.keywords.values
+      .where((keywordValue) => keywordValue.lexeme == name)
+      .isNotEmpty;
+  return isKeyWord ? '${name}String' : name;
+}
 
 String toAlphaNumeric(String str) =>
     str.replaceAll(RegExp(r'[^a-zA-Z0-9 ]'), '');

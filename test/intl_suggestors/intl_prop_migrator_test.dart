@@ -33,8 +33,7 @@ void main() {
     SuggestorTester? testSuggestor;
 
     setUp(() {
-      file = File('TestClassIntl')
-        ..createSync();
+      file = File('TestClassIntl')..createSync();
       testSuggestor = getSuggestorTester(
         IntlPropMigrator('TestClassIntl', file!),
         resolvedContext: resolvedContext,
@@ -393,11 +392,8 @@ void main() {
               ''',
         );
 
-        final expectedFileContent = interpolationTemplate(
-            'TestClassIntl',
-            'domDivLabel',
-            '\'His name was \$getName\'',
-            ['getName']);
+        final expectedFileContent = interpolationTemplate('TestClassIntl',
+            'domDivLabel', '\'His name was \$getName\'', ['getName']);
         expect(file!.readAsStringSync(), expectedFileContent);
       });
       test('Interpolated with apostrophe', () async {
@@ -436,14 +432,105 @@ void main() {
               ''',
         );
 
-        final expectedFileContent = interpolationTemplate(
-            'TestClassIntl',
-            'domDivLabel',
-            "\"Bob\'s last name was \$lastName\"",
-            ['lastName']);
+        final expectedFileContent = interpolationTemplate('TestClassIntl',
+            'domDivLabel', "\"Bob\'s last name was \$lastName\"", ['lastName']);
+        expect(file!.readAsStringSync(), expectedFileContent);
+      });
+      test('Interpolated with testId string', () async {
+        await testSuggestor!(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String version;
+              }
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+
+                  return (Dom.p()
+                    ..addTestId('truss.aboutWdeskModal.versionInfo')
+                    ..label = 'Version \${props.version}')();
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String version;
+              }
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                                 
+                  return (Dom.p() 
+                    ..addTestId('truss.aboutWdeskModal.versionInfo')
+                    ..label = TestClassIntl.versionInfo('\${props.version}'))();
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+        );
+
+        String expectedFileContent =
+            "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
+        expect(file!.readAsStringSync(), expectedFileContent);
+      });
+
+      test('Interpolated with testId', () async {
+        await testSuggestor!(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String version;
+              }
+
+              abstract class TestClassTestIds {
+                static String get versionInfo => 'truss.aboutWdeskModal.versionInfo';
+              }
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+
+                  return (Dom.p()
+                    ..addTestId(TestClassTestIds.versionInfo)
+                    ..label = 'Version \${props.version}')();
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String version;
+              }
+
+              abstract class TestClassTestIds {
+                static String get versionInfo => 'truss.aboutWdeskModal.versionInfo';
+              }
+              
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                                 
+                  return (Dom.p() 
+                    ..addTestId(TestClassTestIds.versionInfo)
+                    ..label = TestClassIntl.versionInfo('\${props.version}'))();
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+        );
+
+        String expectedFileContent =
+            "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
         expect(file!.readAsStringSync(), expectedFileContent);
       });
     });
+
 
     group('Values that we will not need i18n for', () {
       test('ReactElement', () async {
@@ -676,9 +763,9 @@ void main() {
         );
       });
 
-        test('single number string', () async {
-          await testSuggestor!(
-            input: '''
+      test('single number string', () async {
+        await testSuggestor!(
+          input: '''
               import 'package:over_react/over_react.dart';
               
               mixin FooProps on UiProps {}
@@ -692,7 +779,7 @@ void main() {
                 _\$FooConfig, //ignore: undefined_identifier
               );
               ''',
-            expectedOutput: '''
+          expectedOutput: '''
               import 'package:over_react/over_react.dart';
               
               mixin FooProps on UiProps {}
@@ -706,8 +793,8 @@ void main() {
                 _\$FooConfig, //ignore: undefined_identifier
               );
               ''',
-          );
-        });
+        );
       });
     });
+  });
 }

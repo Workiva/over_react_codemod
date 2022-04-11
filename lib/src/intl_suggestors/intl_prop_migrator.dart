@@ -44,7 +44,7 @@ class IntlPropMigrator extends ComponentUsageMigrator with IntlMigrator {
 
     if (rhs is StringLiteral && rhs.stringValue != null) {
       if (double.tryParse(rhs.stringValue!) != null) return;
-      final name = convertNameCase(rhs.stringValue!);
+      final name = toVariableName(rhs.stringValue!);
       yieldPropPatch(prop,
           newRhs: '${_className}.${name}');
       if (!_outputFile
@@ -70,12 +70,12 @@ class IntlPropMigrator extends ComponentUsageMigrator with IntlMigrator {
         if (method.methodName.name == 'addTestId') {
           final expression = method.node.argumentList.arguments.firstOrNull;
           if (expression != null) {
-            testId = expression
+            testId = toVariableName(expression
                 .toString()
+                .replaceAll("'", '')
                 .split('.')
                 .last
-                .replaceAll('TestId', '')
-                .replaceAll("'", '');
+                .replaceAll('TestId', ''));
           }
         }
       }

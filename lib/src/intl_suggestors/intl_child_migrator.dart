@@ -35,15 +35,18 @@ class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
       if (node is SimpleStringLiteral) {
         if (double.tryParse(node.stringValue!) != null) return;
         if (quotedCamelCase(node.value)) return;
-        final name = convertNameCase(node.value);
+        if (node.value.isEmpty) return;
+        if ([' / ', ' | ', '.'].contains(node.value)) return;
+        final name = toVariableName(node.value);
         yieldPatchOverNode(
-          '${_className}.${name}',
+          '${_className}.$name',
           node,
         );
         if (!_outputFile
             .readAsStringSync()
             .contains(literalTemplate(name, '\"${node.value}\"'))) {
-          _outputFile.writeAsStringSync(literalTemplate(name, '\"${node.value}\"'),
+          _outputFile.writeAsStringSync(
+              literalTemplate(name, '\"${node.value}\"'),
               mode: FileMode.append);
         }
       } else if (node is StringInterpolation) {
@@ -52,19 +55,32 @@ class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
         if (node.elements.first.toString() == node.elements.last.toString())
           return;
 
+        //Lets go up the AST looking for a test id before defaulting to generic component name
         var testId;
-        for (final method in usage.cascadedMethodInvocations) {
-          if (method.methodName.name == 'addTestId') {
-            final expression = method.node.argumentList.arguments.firstOrNull;
-            if (expression != null) {
-              testId = expression
-                  .toString()
-                  .split('.')
-                  .last
-                  .replaceAll('TestId', '');
+        AstNode? n = usage.node;
+        while (testId == null && n?.parent != null) {
+          if (n is InvocationExpression) {
+            var component = getComponentUsage(n);
+            if (component != null) {
+              for (final method in component.cascadedMethodInvocations) {
+                if (method.methodName.name == 'addTestId') {
+                  final expression =
+                      method.node.argumentList.arguments.firstOrNull;
+                  if (expression != null) {
+                    testId = toVariableName(expression
+                        .toString()
+                        .replaceAll("'", '')
+                        .split('.')
+                        .last
+                        .replaceAll('TestId', ''));
+                  }
+                }
+              }
             }
           }
+          n = n?.parent;
         }
+
 
         final functionName = testId ??
             toCamelCase(
@@ -75,7 +91,7 @@ class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
         var stringArgs = args
             .map((e) => removeInterpolationSyntax(e.toString()))
             .toSet()
-        .toList();
+            .toList();
 
         var messageWithArgs = node.elements
             .map((e) {
