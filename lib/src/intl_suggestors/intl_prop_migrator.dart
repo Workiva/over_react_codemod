@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/constants.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
@@ -31,9 +30,9 @@ class IntlPropMigrator extends ComponentUsageMigrator with IntlMigrator {
       if (propsToCheck.contains(element.name.name)) {
         final shouldExclude = excludeExpressionsNotLikelyToNeedI18nTranslations(
             element, element.name.name);
-        print(shouldExclude);
-        if (shouldExclude) return;
-        migratePropString(usage, element);
+        if (!shouldExclude) {
+          migratePropString(usage, element);
+        }
       }
     }).toList();
   }
@@ -45,8 +44,7 @@ class IntlPropMigrator extends ComponentUsageMigrator with IntlMigrator {
     if (rhs is StringLiteral && rhs.stringValue != null) {
       if (double.tryParse(rhs.stringValue!) != null) return;
       final name = toVariableName(rhs.stringValue!);
-      yieldPropPatch(prop,
-          newRhs: '${_className}.${name}');
+      yieldPropPatch(prop, newRhs: '${_className}.${name}');
       if (!_outputFile
           .readAsStringSync()
           .contains(literalTemplate(name, rhs.toString()))) {

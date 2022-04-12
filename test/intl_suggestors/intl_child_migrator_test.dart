@@ -1,5 +1,5 @@
-import 'dart:io';
-
+import 'package:file/file.dart';
+import 'package:file/memory.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_child_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:test/test.dart';
@@ -15,12 +15,13 @@ void main() {
   setUpAll(resolvedContext.warmUpAnalysis);
 
   group('IntlChildMigrator', () {
-    File? file;
+    late File file;
     SuggestorTester? testSuggestor;
 
-    setUp(() {
-      file = File('TestClassIntl')
-        ..createSync();
+    setUp(() async {
+      final FileSystem fs = MemoryFileSystem();
+      final Directory tmp = await fs.systemTempDirectory.createTemp();
+      file = tmp.childFile('TestClassIntl')..createSync(recursive: true);
       testSuggestor = getSuggestorTester(
         IntlChildMigrator('TestClassIntl', file!),
         resolvedContext: resolvedContext,
@@ -28,13 +29,7 @@ void main() {
     });
 
     tearDown(() {
-      file?.deleteSync();
-      file = null;
-    });
-    
-    tearDownAll(() {
-      file?.deleteSync();
-      file = null;
+      file.deleteSync();
     });
 
     group('StringLiteral', () {

@@ -12,8 +12,8 @@
 // // See the License for the specific language governing permissions and
 // // limitations under the License.
 
-import 'dart:io';
-
+import 'package:file/file.dart';
+import 'package:file/memory.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_prop_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:test/test.dart';
@@ -29,22 +29,21 @@ void main() {
   setUpAll(resolvedContext.warmUpAnalysis);
 
   group('IntlPropMigrator', () {
-    File? file;
+    late File file;
     SuggestorTester? testSuggestor;
 
-    setUp(() {
-      file = File('TestClassIntl')..createSync();
+    setUp(() async {
+      final FileSystem fs = MemoryFileSystem();
+      final Directory tmp = await fs.systemTempDirectory.createTemp();
+      file = tmp.childFile('TestClassIntl')..createSync(recursive: true);
       testSuggestor = getSuggestorTester(
-        IntlPropMigrator('TestClassIntl', file!),
+        IntlPropMigrator('TestClassIntl', file),
         resolvedContext: resolvedContext,
       );
     });
 
     tearDown(() {
-      file
-        ?..exists()
-        ..deleteSync();
-      file = null;
+      file..exists()..deleteSync();
     });
 
     group('StringLiteral', () {
@@ -530,7 +529,6 @@ void main() {
         expect(file!.readAsStringSync(), expectedFileContent);
       });
     });
-
 
     group('Values that we will not need i18n for', () {
       test('ReactElement', () async {

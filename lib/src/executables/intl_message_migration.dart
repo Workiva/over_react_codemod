@@ -13,6 +13,8 @@
 // limitations under the License.
 
 import 'dart:io';
+import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_child_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_prop_migrator.dart';
@@ -158,7 +160,7 @@ void main(List<String> args) async {
 
   exitCode = await runInteractiveCodemod(
     [],
-        (_) async* {},
+    (_) async* {},
     args: codemodArgs,
     additionalHelpOutput: parser.usage,
   );
@@ -178,16 +180,18 @@ void main(List<String> args) async {
     // _log.info(element);
     // });
 
-    final outputFile = File('${package}/lib/src/intl/${packageName}_intl.dart')
-      ..createSync(recursive: true);
+    final FileSystem fs = const LocalFileSystem();
+    final Directory dir =
+        fs.currentDirectory.childDirectory('${package}/lib/src/intl/');
+    final File outputFile = fs.currentDirectory
+        .childFile('${package}/lib/src/intl/${packageName}_intl.dart');
+    final bool existingOutputFile = outputFile.existsSync();
+
     final className = toClassName('${packageName}');
-    _log.info('Writing Intl methods to $className at ${outputFile.path}');
-
-    outputFile.writeAsStringSync('''
-    import 'package:intl/intl.dart';
-
-    abstract class $className {
-    ''');
+    if (!existingOutputFile) {
+      outputFile.createSync(recursive: true);
+      outputFile.writeAsStringSync("import 'package:intl/intl.dart';\n\nabstract class $className {");
+    }
 
     final intlPropMigrator = IntlPropMigrator(className, outputFile);
     final intlChildMigrator = IntlChildMigrator(className, outputFile);
@@ -217,7 +221,9 @@ void sortPartsLast(List<String> dartPaths) {
   bool isPart(String path) => isPartCache.putIfAbsent(path, () {
         // parseString is much faster than using an AnalysisContextCollection
         //  to get unresolved AST, at least in repos with many context roots.
-        final unit = parseString(content: File(path).readAsStringSync()).unit;
+        final unit = parseString(
+                content: LocalFileSystem().file(path).readAsStringSync())
+            .unit;
         return unit.directives.whereType<PartOfDirective>().isNotEmpty;
       });
 
