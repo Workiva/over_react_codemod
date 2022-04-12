@@ -23,7 +23,7 @@ void main() {
       final Directory tmp = await fs.systemTempDirectory.createTemp();
       file = tmp.childFile('TestClassIntl')..createSync(recursive: true);
       testSuggestor = getSuggestorTester(
-        IntlChildMigrator('TestClassIntl', file!),
+        IntlChildMigrator('TestClassIntl', file),
         resolvedContext: resolvedContext,
       );
     });
@@ -63,7 +63,7 @@ void main() {
             ''',
         );
         final expectedFileContent = literalTemplate('viewer', '"viewer"');
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('StringLiteral two children', () async {
@@ -101,7 +101,7 @@ void main() {
 
         final expectedFileContent = literalTemplate('testString1', '"testString1"');
         final expectedFileContent2 = literalTemplate('testString2', '"testString2"');
-        expect( '${expectedFileContent}${expectedFileContent2}', file!.readAsStringSync(),);
+        expect( '${expectedFileContent}${expectedFileContent2}', file.readAsStringSync(),);
       });
 
       test('single number string', () async {
@@ -171,7 +171,7 @@ void main() {
 
         final expectedFileContent = interpolationTemplate('TestClassIntl',
             'domDivChild0', '\'Interpolated \$name\'', ['name']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('two argument with top level accessors', () async {
@@ -212,7 +212,7 @@ void main() {
             'domDivChild0',
             '\'Interpolated \$name \$title\'',
             ['name', 'title']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('one argument with nested accessor', () async {
@@ -250,7 +250,7 @@ void main() {
         );
         final expectedFileContent = interpolationTemplate('TestClassIntl',
             'domDivChild0', '\'Interpolated \$name\'', ['name']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('two arguments with nested accessor', () async {
@@ -293,7 +293,7 @@ void main() {
             'domDivChild0',
             '\'Interpolated \$name \$title\'',
             ['name', 'title']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Single interpolated element', () async {
@@ -376,7 +376,7 @@ void main() {
             'domDivChild0',
             '\'His name was \$getName\'',
             ['getName']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Interpolated with apostrophe', () async {
@@ -418,7 +418,7 @@ void main() {
             'domDivChild0',
             "\"Bob\'s last name was \$lastName\"",
             ['lastName']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
       test('Interpolated with testId string', () async {
         await testSuggestor!(
@@ -463,7 +463,7 @@ void main() {
         );
 
         String expectedFileContent = "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Interpolated with testId', () async {
@@ -517,7 +517,7 @@ void main() {
         );
 
         String expectedFileContent = "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Interpolated with testId in a parent node', () async {
@@ -586,7 +586,7 @@ void main() {
 
         String expectedFileContent1 = "static String foo(String displayName) => Intl.message('Create one from any \$displayName by selecting Save As Template', args: [displayName], name: 'TestClassIntl_foo',);\n";
         String expectedFileContent2 = "static String bar(String displayName) => Intl.message('Create one from any \$displayName by selecting Save As Template', args: [displayName], name: 'TestClassIntl_bar',);\n";
-        expect(file!.readAsStringSync(), [expectedFileContent1, expectedFileContent2].join(''));
+        expect(file.readAsStringSync(), [expectedFileContent1, expectedFileContent2].join(''));
       });
     });
 

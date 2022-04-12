@@ -77,7 +77,7 @@ void main() {
               ''',
         );
 
-        expect(file!.readAsStringSync(),
+        expect(file.readAsStringSync(),
             'static String get TestString => Intl.message(\'Test String\');\n');
       });
 
@@ -112,7 +112,7 @@ void main() {
                }
               ''',
         );
-        expect(file!.readAsStringSync(),
+        expect(file.readAsStringSync(),
             'static String get TestString => Intl.message(\'Test String\');\n');
       });
 
@@ -141,7 +141,7 @@ void main() {
                 );
                 ''',
         );
-        expect(file!.readAsStringSync(),
+        expect(file.readAsStringSync(),
             'static String get TestString => Intl.message(\'Test String\');\n');
       });
     });
@@ -183,7 +183,7 @@ void main() {
 
         final expectedFileContent = interpolationTemplate('TestClassIntl',
             'domDivLabel', '\'Interpolated \$name\'', ['name']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('two argument with top level accessors', () async {
@@ -226,7 +226,7 @@ void main() {
             'domDivLabel',
             '\'Interpolated \$name \$title\'',
             ['name', 'title']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('one argument with nested accessor', () async {
@@ -266,7 +266,7 @@ void main() {
         );
         final expectedFileContent = interpolationTemplate('TestClassIntl',
             'domDivLabel', '\'Interpolated \$name\'', ['name']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('two arguments with nested accessor', () async {
@@ -311,7 +311,7 @@ void main() {
             'domDivLabel',
             '\'Interpolated \$name \$title\'',
             ['name', 'title']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Single interpolated element', () async {
@@ -393,7 +393,7 @@ void main() {
 
         final expectedFileContent = interpolationTemplate('TestClassIntl',
             'domDivLabel', '\'His name was \$getName\'', ['getName']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
       test('Interpolated with apostrophe', () async {
         await testSuggestor!(
@@ -433,7 +433,7 @@ void main() {
 
         final expectedFileContent = interpolationTemplate('TestClassIntl',
             'domDivLabel', "\"Bob\'s last name was \$lastName\"", ['lastName']);
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
       test('Interpolated with testId string', () async {
         await testSuggestor!(
@@ -475,7 +475,7 @@ void main() {
 
         String expectedFileContent =
             "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Interpolated with testId', () async {
@@ -526,7 +526,7 @@ void main() {
 
         String expectedFileContent =
             "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
-        expect(file!.readAsStringSync(), expectedFileContent);
+        expect(file.readAsStringSync(), expectedFileContent);
       });
     });
 

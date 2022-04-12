@@ -181,8 +181,6 @@ void main(List<String> args) async {
     // });
 
     final FileSystem fs = const LocalFileSystem();
-    final Directory dir =
-        fs.currentDirectory.childDirectory('${package}/lib/src/intl/');
     final File outputFile = fs.currentDirectory
         .childFile('${package}/lib/src/intl/${packageName}_intl.dart');
     final bool existingOutputFile = outputFile.existsSync();
