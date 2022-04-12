@@ -44,3 +44,6 @@ executables:
   mui_migration:
   rmui_preparation:
   intl_message_migration:
+
+dependency_validator:
+  ignore: test_project #this is just added for a test case
