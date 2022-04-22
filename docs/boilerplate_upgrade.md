@@ -10,14 +10,14 @@ This page contains detailed follow-up instructions for FIXMEs added by the `boil
 To address:
 1. Check on the boilerplate migration status of the library it comes from.
 2. Once the library has released a version that includes updated boilerplate,
-   bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `pub get`.
+   bump the lower bound of your dependency to that version in your `pubspec.yaml`, and run `dart pub get`.
 3. Re-run the migration script with the following flag:
    
-       pub global run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
+       dart pub global run over_react_codemod:boilerplate_upgrade --convert-classes-with-external-superclasses
 
        You can specify one or more paths or globs to run the codemod on only some files:
-       pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart --convert-classes-with-external-superclasses
-       pub global run over_react_codemod:boilerplate_upgrade lib/**.dart --convert-classes-with-external-superclasses
+       dart pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart --convert-classes-with-external-superclasses
+       dart pub global run over_react_codemod:boilerplate_upgrade lib/**.dart --convert-classes-with-external-superclasses
    
 4. Once the migration is complete, you should notice that $superclassName has been deprecated. 
    Follow the deprecation instructions to consume the replacement by either updating your usage to
@@ -44,11 +44,11 @@ To complete the migration (for instance, for a class named `FooProps`), you can:
 3. Replace all your current usage of the deprecated `FooProps` with `FooPropsV2`.
 4. Add a `hide FooPropsV2` clause to all places where it is exported, and then run:
      
-       pub global run over_react_codemod:boilerplate_upgrade
+       dart pub global run over_react_codemod:boilerplate_upgrade
 
        You can specify one or more paths or globs to run the codemod on only some files:
-       pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart
-       pub global run over_react_codemod:boilerplate_upgrade lib/**.dart
+       dart pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart
+       dart pub global run over_react_codemod:boilerplate_upgrade lib/**.dart
      
 5.
     1. If `FooProps` had consumers outside this repo, and it was intentionally made public, remove the `hide` clause you added in step 4 so that the new mixin created from `FooPropsV2` will be a viable replacement for `FooProps`.
@@ -64,11 +64,11 @@ However, it has the drawback of having to keep deprecated code up to date.
 To complete the migration (for instance, for a class named `FooProps`), you can: 
 1. Remove the fixme comment and perform the migration as if the component were private:     
 
-    pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
+    dart pub global run over_react_codemod:boilerplate_upgrade --treat-all-components-as-private
 
     You can specify one or more paths or globs to run the codemod on only some files:
-    pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart --treat-all-components-as-private
-    pub global run over_react_codemod:boilerplate_upgrade lib/**.dart --treat-all-components-as-private
+    dart pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart --treat-all-components-as-private
+    dart pub global run over_react_codemod:boilerplate_upgrade lib/**.dart --treat-all-components-as-private
 
 1. Make the concrete props class (`FooProps`) private, and make a public copy of it. In the public copy, mix in all generated classes, and expose the meta constant.
 
@@ -132,11 +132,11 @@ To complete the migration, you should:
    and follow the steps outlined there to complete the migration.
 2. Re-run the migration script:
    
-       pub global run over_react_codemod:boilerplate_upgrade
+       dart pub global run over_react_codemod:boilerplate_upgrade
 
        You can specify one or more paths or globs to run the codemod on only some files:
-       pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart
-       pub global run over_react_codemod:boilerplate_upgrade lib/**.dart
+       dart pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart
+       dart pub global run over_react_codemod:boilerplate_upgrade lib/**.dart
 
 ## Non-Component2
 > FIXME: `FooProps` could not be auto-migrated to the new over_react boilerplate because `FooComponent` does not extend from `UiComponent2`.
@@ -145,8 +145,8 @@ To complete the migration, you should:
 1. [Convert the component to extend from UiComponent2](https://github.com/Workiva/over_react/blob/master/doc/ui_component2_transition.md)
 1. Re-run the boilerplate migration script:
     
-       pub global run over_react_codemod:boilerplate_upgrade 
+       dart pub global run over_react_codemod:boilerplate_upgrade 
 
        You can specify one or more paths or globs to run the codemod on only some files:
-       pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart
-       pub global run over_react_codemod:boilerplate_upgrade lib/**.dart
+       dart pub global run over_react_codemod:boilerplate_upgrade path/to/your/file.dart another/file.dart
+       dart pub global run over_react_codemod:boilerplate_upgrade lib/**.dart
