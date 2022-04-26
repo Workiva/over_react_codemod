@@ -103,7 +103,7 @@ main() {
                 '  exclude:\n'
                 '    # a comment above an excluded directory\n'
                 '    - app\n'
-                '  ignore: \n'
+                '  ignore:\n'
                 '    - $addedDependency\n'
                 '');
       });
@@ -147,7 +147,7 @@ main() {
                 '  exclude:\n'
                 '    # a comment above an excluded directory\n'
                 '    - app\n'
-                '  ignore: \n'
+                '  ignore:\n'
                 '    - $addedDependency\n'
                 '\n'
                 'dependency_overrides:\n'
