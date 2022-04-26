@@ -25,7 +25,7 @@ RUN echo "$GIT_SSH_KEY" > "/root/.ssh/id_rsa"
 RUN chmod 700 /root/.ssh/
 RUN chmod 600 /root/.ssh/id_rsa
 
-RUN pub get
+RUN dart pub get
 
 ARG BUILD_ARTIFACTS_BUILD=/build/pubspec.lock
 FROM scratch
