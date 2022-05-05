@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
@@ -36,19 +35,12 @@ class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
         if (double.tryParse(node.stringValue!) != null) return;
         if (quotedCamelCase(node.value)) return;
         if (node.value.isEmpty) return;
-        if ([' / ', ' | ', '.'].contains(node.value)) return;
+        if (['/', ' / ', '|', ' | ', '.', ' . ', '', ' ', ' ? ', '?']
+            .contains(node.value)) return;
         final name = toVariableName(node.value);
-        yieldPatchOverNode(
-          '${_className}.$name',
-          node,
-        );
-        if (!_outputFile
-            .readAsStringSync()
-            .contains(literalTemplate(name, '\"${node.value}\"'))) {
-          _outputFile.writeAsStringSync(
-              literalTemplate(name, '\"${node.value}\"'),
-              mode: FileMode.append);
-        }
+        final invocation = '${_className}.$name';
+        yieldPatchOverNode(invocation, node,);
+        addMethodToClass(_outputFile, literalTemplate(_className, name, node.value));
       } else if (node is StringInterpolation) {
         //We do not need to localize single values.  This should be handled by the
         // variable being passed in.
@@ -81,7 +73,6 @@ class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
           n = n?.parent;
         }
 
-
         final functionName = testId ??
             toCamelCase(
                 '${usage.componentName?.split('.').join(' ')} Child $index');
@@ -109,11 +100,9 @@ class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
             _className, functionName, messageWithArgs, stringArgs);
 
         yieldPatchOverNode(
-            '$_className.$functionName(${args.map((a) => '\'$a\'').toSet().join(', ')})',
+            '$_className.$functionName(${args.map((a) => "'$a'").toSet().join(', ')})',
             node);
-        if (!_outputFile.readAsStringSync().contains(functionDef)) {
-          _outputFile.writeAsStringSync(functionDef, mode: FileMode.append);
-        }
+        addMethodToClass(_outputFile, functionDef);
       }
     });
   }

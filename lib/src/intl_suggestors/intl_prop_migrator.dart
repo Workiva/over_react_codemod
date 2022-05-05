@@ -45,12 +45,7 @@ class IntlPropMigrator extends ComponentUsageMigrator with IntlMigrator {
       if (double.tryParse(rhs.stringValue!) != null) return;
       final name = toVariableName(rhs.stringValue!);
       yieldPropPatch(prop, newRhs: '${_className}.${name}');
-      if (!_outputFile
-          .readAsStringSync()
-          .contains(literalTemplate(name, rhs.toString()))) {
-        _outputFile.writeAsStringSync(literalTemplate(name, rhs.toString()),
-            mode: FileMode.append);
-      }
+      addMethodToClass(_outputFile, literalTemplate(_className, name, rhs.stringValue!));
     } else if (rhs is StringInterpolation) {
       //We do not need to localize single values.  This should be handled by the
       // variable being passed in.
@@ -113,12 +108,7 @@ class IntlPropMigrator extends ComponentUsageMigrator with IntlMigrator {
       /// In the prop we want
       /// ..prop = ClassName.functionName(...[InterpolationExpression])
       yieldPropPatch(prop, newRhs: propValue);
-
-      /// In class we want
-      /// static String functionName(...[String stringArg]) => Intl.message('...message $stringArg...', args: [...stringArg], name: 'ClassName_functionName);
-      if (!_outputFile.readAsStringSync().contains(functionDef)) {
-        _outputFile.writeAsStringSync(functionDef, mode: FileMode.append);
-      }
+      addMethodToClass(_outputFile, functionDef);
     }
   }
 }

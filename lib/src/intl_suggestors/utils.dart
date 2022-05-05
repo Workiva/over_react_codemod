@@ -3,10 +3,18 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:codemod/codemod.dart';
+import 'package:file/file.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 
-String literalTemplate(String name, String value) {
-  return 'static String get ${name} => Intl.message(${value});\n';
+void addMethodToClass(File outputFile, String content) {
+  if (!outputFile.readAsStringSync().contains(content)) {
+    outputFile.writeAsStringSync(content, mode: FileMode.append);
+  }
+}
+
+String literalTemplate(String className, String variableName, String value) {
+  return "\nstatic String get ${variableName} => Intl.message('${value}', name: '${className}_${variableName}',);\n";
 }
 
 String interpolationTemplate(
@@ -175,31 +183,4 @@ bool isUriWithinPackage(Uri uri, String packageName,
 enum PackageType {
   dartCore,
   package,
-}
-
-/// A visitor that detects whether a given node is a [FluentComponentUsage].
-class ComponentDetector extends SimpleAstVisitor<void> {
-  bool detected = false;
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    visitInvocationExpression(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    visitInvocationExpression(node);
-  }
-
-  @override
-  void visitParenthesizedExpression(ParenthesizedExpression node) {
-    // Recursively traverse parentheses, in case there are extra parens on the component.
-    node.visitChildren(this);
-  }
-
-  void visitInvocationExpression(InvocationExpression node) {
-    if (getComponentUsage(node) != null) {
-      detected = true;
-    }
-  }
 }
