@@ -1,6 +1,6 @@
 name: private-unit-tests
 description: Unit tests that require access to our private Pub server.
-contact: 'CPLAT / #support-client-plat'
+contact: 'CPLAT / #support-ui-platform'
 image: drydock.workiva.net/workiva/dart_unit_test_image:1
 size: large
 timeout: eternal
