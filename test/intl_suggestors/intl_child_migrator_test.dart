@@ -62,7 +62,7 @@ void main() {
             );
             ''',
         );
-        final expectedFileContent = literalTemplate('viewer', '"viewer"');
+        final expectedFileContent = literalTemplate("TestClassIntl", 'viewer', 'viewer');
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -99,8 +99,8 @@ void main() {
             ''',
         );
 
-        final expectedFileContent = literalTemplate('testString1', '"testString1"');
-        final expectedFileContent2 = literalTemplate('testString2', '"testString2"');
+        final expectedFileContent = literalTemplate('TestClassIntl', 'testString1', 'testString1');
+        final expectedFileContent2 = literalTemplate('TestClassIntl', 'testString2', 'testString2');
         expect( '${expectedFileContent}${expectedFileContent2}', file.readAsStringSync(),);
       });
 

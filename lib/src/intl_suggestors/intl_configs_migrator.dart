@@ -14,6 +14,7 @@ class ConfigsMigrator extends RecursiveAstVisitor with AstVisitingSuggestor {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    super.visitMethodDeclaration(node);
     if (varsToCheck.contains(node.name.name)) {
       final body = (node.body as ExpressionFunctionBody).expression;
       if (body is SimpleStringLiteral) {
@@ -28,5 +29,5 @@ class ConfigsMigrator extends RecursiveAstVisitor with AstVisitingSuggestor {
 
   @override
   bool shouldSkip(FileContext context) =>
-      !context.path.contains('  _config.dart');
+      !context.path.contains('_config.dart');
 }

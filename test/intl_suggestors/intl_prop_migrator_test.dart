@@ -78,7 +78,7 @@ void main() {
         );
 
         expect(file.readAsStringSync(),
-            'static String get TestString => Intl.message(\'Test String\');\n');
+            '\nstatic String get TestString => Intl.message(\'Test String\', name: \'TestClassIntl_TestString\',);\n');
       });
 
       test('class string literal', () async {
@@ -113,7 +113,7 @@ void main() {
               ''',
         );
         expect(file.readAsStringSync(),
-            'static String get TestString => Intl.message(\'Test String\');\n');
+            '\nstatic String get TestString => Intl.message(\'Test String\', name: \'TestClassIntl_TestString\',);\n');
       });
 
       test('uiFunction props => component', () async {
@@ -142,7 +142,7 @@ void main() {
                 ''',
         );
         expect(file.readAsStringSync(),
-            'static String get TestString => Intl.message(\'Test String\');\n');
+            '\nstatic String get TestString => Intl.message(\'Test String\', name: \'TestClassIntl_TestString\',);\n');
       });
     });
 
