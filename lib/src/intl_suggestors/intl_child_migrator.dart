@@ -8,9 +8,9 @@ import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
 class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
   final File _outputFile;
-  final String _className;
+  final String _namespace;
 
-  IntlChildMigrator(this._className, this._outputFile);
+  IntlChildMigrator(this._namespace, this._outputFile);
 
   @override
   bool shouldMigrateUsage(FluentComponentUsage usage) => usage.children
@@ -27,6 +27,7 @@ class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
   }
 
   void migrateChildString(FluentComponentUsage usage) async {
+    final eofOffset = usage.node.thisOrAncestorOfType<CompilationUnit>()?.end ?? 0;
     usage.children
         .map((child) => child.node)
         .whereType<StringLiteral>()
@@ -38,9 +39,10 @@ class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
         if (['/', ' / ', '|', ' | ', '.', ' . ', '', ' ', ' ? ', '?']
             .contains(node.value)) return;
         final name = toVariableName(node.value);
-        final invocation = '${_className}.$name';
-        yieldPatchOverNode(invocation, node,);
-        addMethodToClass(_outputFile, literalTemplate(_className, name, node.value));
+        // final invocation = '${_namespace}.$name';
+        yieldPatchOverNode(name, node,);
+        yieldPatch(literalTemplate(_namespace, name, node.value), eofOffset);
+        // addMethodToClass(_outputFile, literalTemplate(_namespace, name, node.value));
       } else if (node is StringInterpolation) {
         //We do not need to localize single values.  This should be handled by the
         // variable being passed in.
@@ -97,12 +99,13 @@ class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
             .join('');
 
         String functionDef = interpolationTemplate(
-            _className, functionName, messageWithArgs, stringArgs);
+            _namespace, functionName, messageWithArgs, stringArgs);
 
         yieldPatchOverNode(
-            '$_className.$functionName(${args.map((a) => "'$a'").toSet().join(', ')})',
+            '$functionName(${args.map((a) => "'$a'").toSet().join(', ')})',
             node);
-        addMethodToClass(_outputFile, functionDef);
+        yieldPatch(functionDef, eofOffset);
+        // addMethodToClass(_outputFile, functionDef);
       }
     });
   }

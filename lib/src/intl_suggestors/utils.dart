@@ -11,13 +11,13 @@ void addMethodToClass(File outputFile, String content) {
   }
 }
 
-String literalTemplate(String className, String variableName, String value) {
-  return "\nstatic String get ${variableName} => Intl.message('${value}', name: '${className}_${variableName}',);\n";
+String literalTemplate(String namespace, String variableName, String value) {
+  return "Intl.message('${value}', name: '${namespace}_${variableName}',)";
 }
 
 String interpolationTemplate(
     String className, String functionName, String message, List<String> args) {
-  return "static String ${functionName}(${args.map((arg) => 'String ${arg}').toList().join(', ')}) => Intl.message(${message}, args: ${args}, name: '${className}_${functionName}',);\n";
+  return "\nString ${functionName}(${args.map((arg) => 'String ${arg}').toList().join(', ')}) => Intl.message(${message}, args: ${args}, name: '${className}_${functionName}',);";
 }
 
 String generatePropValue(

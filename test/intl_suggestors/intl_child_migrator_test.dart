@@ -23,7 +23,7 @@ void main() {
       final Directory tmp = await fs.systemTempDirectory.createTemp();
       file = tmp.childFile('TestClassIntl')..createSync(recursive: true);
       testSuggestor = getSuggestorTester(
-        IntlChildMigrator('TestClassIntl', file),
+        IntlChildMigrator('test_namespace', file),
         resolvedContext: resolvedContext,
       );
     });
@@ -56,14 +56,19 @@ void main() {
             UiFactory<FooProps> Foo = uiFunction(
               (props) {
 
-                return (Dom.div())(TestClassIntl.viewer);
+                return (Dom.div())(viewer);
               },
               _\$FooConfig, //ignore: undefined_identifier
             );
+            
+            String get viewer => Intl.message(
+                'viewer', 
+                name: 'test_namespace_viewer',
+              );
             ''',
         );
-        final expectedFileContent = literalTemplate("TestClassIntl", 'viewer', 'viewer');
-        expect(file.readAsStringSync(), expectedFileContent);
+        // final expectedFileContent = literalTemplate("test_namespace_viewer", 'viewer', 'viewer');
+        // expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('StringLiteral two children', () async {
@@ -92,16 +97,21 @@ void main() {
             UiFactory<FooProps> Foo = uiFunction(
               (props) {
 
-                return (Dom.div())(TestClassIntl.testString1, TestClassIntl.testString2,);
+                return (Dom.div())(testString1, testString2,);
               },
               _\$FooConfig, //ignore: undefined_identifier
             );
+            
+            String get testString1 => Intl.message(
+                  'testString1',
+                  name: 'test_namespace_testString1',
+                );
+            String get testString2 => Intl.message(
+                  'testString2',
+                  name: 'test_namespace_testString2',
+                );
             ''',
         );
-
-        final expectedFileContent = literalTemplate('TestClassIntl', 'testString1', 'testString1');
-        final expectedFileContent2 = literalTemplate('TestClassIntl', 'testString2', 'testString2');
-        expect( '${expectedFileContent}${expectedFileContent2}', file.readAsStringSync(),);
       });
 
       test('single number string', () async {
@@ -162,16 +172,18 @@ void main() {
                   (props) {
                     final name = 'bob';
 
-                    return (Dom.div())(TestClassIntl.domDivChild0('\${name}'));
+                    return (Dom.div())(domDivChild0('\${name}'));
                   },
                   _\$FooConfig, //ignore: undefined_identifier
                 );
+                
+                String domDivChild0(String name) => Intl.message(
+                    'Interpolated \$name',
+                    args: [name],
+                     name: 'test_namespace_domDivChild0',
+                   );
               ''',
         );
-
-        final expectedFileContent = interpolationTemplate('TestClassIntl',
-            'domDivChild0', '\'Interpolated \$name\'', ['name']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('two argument with top level accessors', () async {
@@ -201,18 +213,18 @@ void main() {
                   final name = 'bob';
                   final title = 'Test Title';
 
-                  return (Dom.div())(TestClassIntl.domDivChild0('\${name}', '\$title'));
+                  return (Dom.div())(domDivChild0('\${name}', '\$title'));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String domDivChild0(String name, String title) => Intl.message(
+                  'Interpolated \$name \$title',
+                  args: [name, title],
+                  name: 'test_namespace_domDivChild0',
+                );
               ''',
         );
-        final expectedFileContent = interpolationTemplate(
-            'TestClassIntl',
-            'domDivChild0',
-            '\'Interpolated \$name \$title\'',
-            ['name', 'title']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('one argument with nested accessor', () async {
@@ -242,15 +254,18 @@ void main() {
               UiFactory<FooProps> Foo = uiFunction(
                 (props) {
 
-                  return (Dom.div())(TestClassIntl.domDivChild0('\${props.name}'));
+                  return (Dom.div())(domDivChild0('\${props.name}'));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String domDivChild0(String name) => Intl.message(
+                  'Interpolated \$name',
+                  args: [name],
+                   name: 'test_namespace_domDivChild0',
+                 );
               ''',
         );
-        final expectedFileContent = interpolationTemplate('TestClassIntl',
-            'domDivChild0', '\'Interpolated \$name\'', ['name']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('two arguments with nested accessor', () async {
@@ -282,18 +297,18 @@ void main() {
               UiFactory<FooProps> Foo = uiFunction(
                 (props) {
 
-                  return (Dom.div())(TestClassIntl.domDivChild0('\${props.name}', '\${props.title}'));
+                  return (Dom.div())(domDivChild0('\${props.name}', '\${props.title}'));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String domDivChild0(String name, String title) => Intl.message(
+                  'Interpolated \$name \$title',
+                  args: [name, title],
+                  name: 'test_namespace_domDivChild0',
+                );
               ''',
         );
-        final expectedFileContent = interpolationTemplate(
-            'TestClassIntl',
-            'domDivChild0',
-            '\'Interpolated \$name \$title\'',
-            ['name', 'title']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Single interpolated element', () async {
@@ -333,7 +348,7 @@ void main() {
         );
       });
 
-      test('Interpolated functiona call', () async {
+      test('Interpolated function call', () async {
         await testSuggestor!(
           input: '''
               import 'package:over_react/over_react.dart';
@@ -364,19 +379,18 @@ void main() {
                     return 'test name';
                   }
                   
-                  return (Dom.div())( TestClassIntl.domDivChild0('\${getName()}'));
+                  return (Dom.div())(domDivChild0('\${getName()}'));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String domDivChild0(String getName) => Intl.message(
+                  'His name was \$getName',
+                  args: [getName],
+                  name: 'test_namespace_domDivChild0',
+                );
               ''',
         );
-
-        final expectedFileContent = interpolationTemplate(
-            'TestClassIntl',
-            'domDivChild0',
-            '\'His name was \$getName\'',
-            ['getName']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Interpolated with apostrophe', () async {
@@ -406,19 +420,19 @@ void main() {
                 
                   final lastName = 'Paulsen';
                   
-                  return (Dom.div())(TestClassIntl.domDivChild0('\${lastName}'));
+                  return (Dom.div())(domDivChild0('\${lastName}'));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String domDivChild0(String lastName) => Intl.message(
+                  "Bob\'s last name was \$lastName",
+                  args: [lastName],
+                  name: 'test_namespace_domDivChild0',
+                );
               ''',
         );
 
-        final expectedFileContent = interpolationTemplate(
-            'TestClassIntl',
-            'domDivChild0',
-            "\"Bob\'s last name was \$lastName\"",
-            ['lastName']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
       test('Interpolated with testId string', () async {
         await testSuggestor!(
@@ -454,16 +468,19 @@ void main() {
                   return (Dom.p() 
                     ..addTestId('truss.aboutWdeskModal.versionInfo')
                     )(
-                      TestClassIntl.versionInfo('\${props.version}'),
+                      versionInfo('\${props.version}'),
                     );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String versionInfo(String version) => Intl.message(
+                  'Version \$version',
+                  args: [version],
+                  name: 'test_namespace_versionInfo',
+                );
               ''',
         );
-
-        String expectedFileContent = "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Interpolated with testId', () async {
@@ -508,16 +525,19 @@ void main() {
                   return (Dom.p() 
                     ..addTestId(TestClassTestIds.versionInfo)
                   )(
-                    TestClassIntl.versionInfo('\${props.version}'),
+                    versionInfo('\${props.version}'),
                   );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String versionInfo(String version) => Intl.message(
+                  'Version \$version',
+                  args: [version],
+                  name: 'test_namespace_versionInfo',
+                );
               ''',
         );
-
-        String expectedFileContent = "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Interpolated with testId in a parent node', () async {
@@ -570,25 +590,31 @@ void main() {
                   ..addTestId(TestClassTestIds.emptyView)
                   )(
                    (Dom.p()..addTestId('foo'))(
-                      TestClassIntl.foo('\${props.displayName}'),
+                      foo('\${props.displayName}'),
                     ),
                     (Dom.p()..addTestId('bar'))(
                       (Dom.p())(
-                        TestClassIntl.bar('\${props.displayName}'),
+                        bar('\${props.displayName}'),
                       ),
                     ),
                   );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String foo(String displayName) => Intl.message(
+                  'Create one from any \$displayName by selecting Save As Template',
+                  args: [displayName],
+                  name: 'test_namespace_foo',
+                );
+              String bar(String displayName) => Intl.message(
+                  'Create one from any \$displayName by selecting Save As Template',
+                  args: [displayName],
+                  name: 'test_namespace_bar',
+                );
               ''',
         );
-
-        String expectedFileContent1 = "static String foo(String displayName) => Intl.message('Create one from any \$displayName by selecting Save As Template', args: [displayName], name: 'TestClassIntl_foo',);\n";
-        String expectedFileContent2 = "static String bar(String displayName) => Intl.message('Create one from any \$displayName by selecting Save As Template', args: [displayName], name: 'TestClassIntl_bar',);\n";
-        expect(file.readAsStringSync(), [expectedFileContent1, expectedFileContent2].join(''));
       });
     });
-
   });
 }
