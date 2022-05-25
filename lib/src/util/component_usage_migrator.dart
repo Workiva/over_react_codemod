@@ -435,7 +435,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
 
   /// Yields a patch that adds a given [child] to a usage.
   ///
-  /// If children are already present in the usage, the given [child] will 
+  /// If children are already present in the usage, the given [child] will
   /// become the first child of the usage.
   void yieldAddChildPatch(FluentComponentUsage usage, String child) {
     final int start;
@@ -609,6 +609,26 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
         (needsLeadingNewline ? '\n ' : '') +
             lineComment('$fixmePrefix - $message'),
         child.node.beginToken.offset);
+  }
+
+  void yieldPatchOverChildNode(String updatedText, ComponentChild child) {
+    int start = child.node.offset;
+    int end = child.node.end;
+    final needsLeadingNewline = context.sourceFile.getLine(child.node.parent!
+            .thisOrAncestorOfType<InvocationExpression>()!
+            .argumentList
+            .leftParenthesis
+            .end) ==
+        context.sourceFile.getLine(child.node.offset);
+    // If there's a comma after the child, remove it with the child.
+    final nextToken = child.node.endToken.next;
+    if (nextToken != null && nextToken.type == TokenType.COMMA) {
+      start = child.node.offset;
+      end = nextToken.end;
+    }
+    yieldPatch((needsLeadingNewline ? '\n' : '') + updatedText,
+        start, end);
+
   }
 
   static final _ignoreInfoForUnitCache = Expando<OrcmIgnoreInfo>();

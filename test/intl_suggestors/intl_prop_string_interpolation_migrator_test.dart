@@ -12,10 +12,7 @@
 // // See the License for the specific language governing permissions and
 // // limitations under the License.
 
-import 'package:file/file.dart';
-import 'package:file/memory.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_prop_migrator.dart';
-import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_prop_string_interpolation_migrator.dart';
 import 'package:test/test.dart';
 
 import '../resolved_file_context.dart';
@@ -28,127 +25,15 @@ void main() {
   // (which is more common for the WSD context), it fails here instead of failing the first test.
   setUpAll(resolvedContext.warmUpAnalysis);
 
-  group('IntlPropMigrator', () {
-    late File file;
-    SuggestorTester? testSuggestor;
-
-    setUp(() async {
-      final FileSystem fs = MemoryFileSystem();
-      final Directory tmp = await fs.systemTempDirectory.createTemp();
-      file = tmp.childFile('TestClassIntl')..createSync(recursive: true);
-      testSuggestor = getSuggestorTester(
-        IntlPropMigrator('TestClassIntl', file),
-        resolvedContext: resolvedContext,
-      );
-    });
-
-    tearDown(() {
-      file..exists()..deleteSync();
-    });
-
-    group('StringLiteral', () {
-      test('uiFunction string literal', () async {
-        await testSuggestor!(
-          input: '''
-              import 'package:over_react/over_react.dart';
-
-              mixin FooProps on UiProps {}
-
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {
-                  return (Dom.div()
-                    ..label = 'Test String')();
-                },
-                _\$FooConfig, //ignore: undefined_identifier
-              );
-              ''',
-          expectedOutput: '''
-              import 'package:over_react/over_react.dart';
-
-              mixin FooProps on UiProps {}
-
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {
-                  return (Dom.div()
-                    ..label = TestClassIntl.TestString)();
-                },
-                _\$FooConfig, //ignore: undefined_identifier
-              );
-              ''',
-        );
-
-        expect(file.readAsStringSync(),
-            '\nstatic String get TestString => Intl.message(\'Test String\', name: \'TestClassIntl_TestString\',);\n');
-      });
-
-      test('class string literal', () async {
-        await testSuggestor!(
-          input: '''
-               import 'package:over_react/over_react.dart';
-
-               mixin FooProps on UiProps {}
-
-               class Foo extends UiComponent<UiProps> {
-
-                 @override
-                 render() {
-                   return (Dom.div()
-                     ..label = 'Test String')();
-                 }
-               }
-              ''',
-          expectedOutput: '''
-              import 'package:over_react/over_react.dart';
-
-              mixin FooProps on UiProps {}
-
-              class Foo extends UiComponent<UiProps> {
-
-                 @override
-                 render() {
-                   return (Dom.div()
-                     ..label = TestClassIntl.TestString)();
-                 }
-               }
-              ''',
-        );
-        expect(file.readAsStringSync(),
-            '\nstatic String get TestString => Intl.message(\'Test String\', name: \'TestClassIntl_TestString\',);\n');
-      });
-
-      test('uiFunction props => component', () async {
-        await testSuggestor!(
-          input: '''
-                import 'package:over_react/over_react.dart';
-
-                mixin FooProps on UiProps {}
-
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) => (Dom.div()
-                      ..label = 'Test String')(),
-                  _\$FooConfig, //ignore: undefined_identifier
-                );
-                ''',
-          expectedOutput: '''
-                import 'package:over_react/over_react.dart';
-
-                mixin FooProps on UiProps {}
-
-                UiFactory<FooProps> Foo = uiFunction(
-                  (props) => (Dom.div()
-                      ..label = TestClassIntl.TestString)(),
-                  _\$FooConfig, //ignore: undefined_identifier
-                );
-                ''',
-        );
-        expect(file.readAsStringSync(),
-            '\nstatic String get TestString => Intl.message(\'Test String\', name: \'TestClassIntl_TestString\',);\n');
-      });
-    });
+  group('IntlPropStringInterpolationMigrator', () {
+    SuggestorTester testSuggestor = getSuggestorTester(
+      IntlPropStringInterpolationMigrator(),
+      resolvedContext: resolvedContext,
+    );
 
     group('StringInterpolation', () {
       test('one argument with top level accessor', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
                 import 'package:over_react/over_react.dart';
 
@@ -174,20 +59,22 @@ void main() {
                     final name = 'bob';
 
                     return (Dom.div()
-                      ..label = TestClassIntl.domDivLabel('\${name}'))();
+                      ..label = tempFunction0(name))();
                   },
                   _\$FooConfig, //ignore: undefined_identifier
                 );
+                
+                String tempFunction0(String name) => Intl.message(
+                    'Interpolated \$name',
+                    args: [name],
+                    name: 'tempFunction0',
+                  );
               ''',
         );
-
-        final expectedFileContent = interpolationTemplate('TestClassIntl',
-            'domDivLabel', '\'Interpolated \$name\'', ['name']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('two argument with top level accessors', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
 
@@ -215,22 +102,22 @@ void main() {
                   final title = 'Test Title';
 
                   return (Dom.div()
-                    ..label = TestClassIntl.domDivLabel('\${name}', '\$title'))();
+                    ..label = tempFunction0(name, title))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String tempFunction0(String name, String title) => Intl.message(
+                    'Interpolated \$name \$title',
+                    args: [name, title],
+                    name: 'tempFunction0',
+                  );
               ''',
         );
-        final expectedFileContent = interpolationTemplate(
-            'TestClassIntl',
-            'domDivLabel',
-            '\'Interpolated \$name \$title\'',
-            ['name', 'title']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('one argument with nested accessor', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
 
@@ -258,19 +145,22 @@ void main() {
                 (props) {
 
                   return (Dom.div()
-                    ..label = TestClassIntl.domDivLabel('\${props.name}'))();
+                    ..label = tempFunction0(props.name))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+                              
+              String tempFunction0(String name) => Intl.message(
+                    'Interpolated \$name',
+                    args: [name],
+                    name: 'tempFunction0',
+                  );
               ''',
         );
-        final expectedFileContent = interpolationTemplate('TestClassIntl',
-            'domDivLabel', '\'Interpolated \$name\'', ['name']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('two arguments with nested accessor', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
 
@@ -300,22 +190,22 @@ void main() {
                 (props) {
 
                   return (Dom.div()
-                    ..label = TestClassIntl.domDivLabel('\${props.name}', '\${props.title}'))();
+                    ..label = tempFunction0(props.name, props.title))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String tempFunction0(String name, String title) => Intl.message(
+                    'Interpolated \$name \$title',
+                    args: [name, title],
+                    name: 'tempFunction0',
+                  );
               ''',
         );
-        final expectedFileContent = interpolationTemplate(
-            'TestClassIntl',
-            'domDivLabel',
-            '\'Interpolated \$name \$title\'',
-            ['name', 'title']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Single interpolated element', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
 
@@ -351,8 +241,8 @@ void main() {
         );
       });
 
-      test('Interpolated functiona call', () async {
-        await testSuggestor!(
+      test('Interpolated function call', () async {
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
 
@@ -384,19 +274,22 @@ void main() {
                   }
                   
                   return (Dom.div()
-                    ..label = TestClassIntl.domDivLabel('\${getName()}'))();
+                    ..label = tempFunction0(getName()))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String tempFunction0(String getName) => Intl.message(
+                    'His name was \$getName',
+                    args: [getName],
+                    name: 'tempFunction0',
+                  );
               ''',
         );
-
-        final expectedFileContent = interpolationTemplate('TestClassIntl',
-            'domDivLabel', '\'His name was \$getName\'', ['getName']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
+
       test('Interpolated with apostrophe', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
 
@@ -424,19 +317,22 @@ void main() {
                   final lastName = 'Paulsen';
                   
                   return (Dom.div()
-                    ..label = TestClassIntl.domDivLabel('\${lastName}'))();
+                    ..label = tempFunction0(lastName))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String tempFunction0(String lastName) => Intl.message(
+                    'Bob\\\'s last name was \$lastName',
+                    args: [lastName],
+                    name: 'tempFunction0',
+                  );
               ''',
         );
-
-        final expectedFileContent = interpolationTemplate('TestClassIntl',
-            'domDivLabel', "\"Bob\'s last name was \$lastName\"", ['lastName']);
-        expect(file.readAsStringSync(), expectedFileContent);
       });
+
       test('Interpolated with testId string', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
 
@@ -466,20 +362,22 @@ void main() {
                                  
                   return (Dom.p() 
                     ..addTestId('truss.aboutWdeskModal.versionInfo')
-                    ..label = TestClassIntl.versionInfo('\${props.version}'))();
+                    ..label = versionInfo(props.version))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String versionInfo(String version) => Intl.message(
+                  'Version \$version',
+                  args: [version],
+                  name: 'versionInfo',
+                );
               ''',
         );
-
-        String expectedFileContent =
-            "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
-        expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('Interpolated with testId', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
 
@@ -517,22 +415,24 @@ void main() {
                                  
                   return (Dom.p() 
                     ..addTestId(TestClassTestIds.versionInfo)
-                    ..label = TestClassIntl.versionInfo('\${props.version}'))();
+                    ..label = versionInfo(props.version))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
+              
+              String versionInfo(String version) => Intl.message(
+                  'Version \$version',
+                  args: [version],
+                  name: 'versionInfo',
+                );
               ''',
         );
-
-        String expectedFileContent =
-            "static String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);\n";
-        expect(file.readAsStringSync(), expectedFileContent);
       });
     });
 
     group('Values that we will not need i18n for', () {
       test('ReactElement', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
               
@@ -565,7 +465,7 @@ void main() {
       });
 
       test('DartCoreBool', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
               
@@ -597,7 +497,7 @@ void main() {
         );
       });
       test('DartCoreNull', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
               
@@ -629,7 +529,7 @@ void main() {
         );
       });
       test('\' \'', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
               
@@ -661,7 +561,7 @@ void main() {
         );
       });
       test('.', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
               
@@ -693,7 +593,7 @@ void main() {
         );
       });
       test('props.key', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
               
@@ -729,7 +629,7 @@ void main() {
         );
       });
       test('single camelCased string', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
               
@@ -762,7 +662,7 @@ void main() {
       });
 
       test('single number string', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
               import 'package:over_react/over_react.dart';
               

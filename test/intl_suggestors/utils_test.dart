@@ -34,20 +34,26 @@ void main() {
       test('\${a.b}', () async {
         var inputString = '\${a.b}';
         var result = removeInterpolationSyntax(inputString);
-        expect(result, 'b');
+        expect(result, 'a.b');
       });
 
       test('\${a.b.c}', () async {
         var inputString = '\${a.b.c}';
         var result = removeInterpolationSyntax(inputString);
-        expect(result, 'c');
+        expect(result, 'a.b.c');
       });
 
       test('\${a.b.c ?? d}', () async {
         var inputString = '\${a.b.c ?? d}';
         var result = removeInterpolationSyntax(inputString);
-        expect(result, 'c');
+        expect(result, 'a.b.c');
       });
+    });
+  });
+
+  group('getTestId' , () {
+    test('basic case', () {
+
     });
   });
 }

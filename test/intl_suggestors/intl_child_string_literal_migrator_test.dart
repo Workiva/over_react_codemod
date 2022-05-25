@@ -1,7 +1,4 @@
-import 'package:file/file.dart';
-import 'package:file/memory.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_child_migrator.dart';
-import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_child_string_literal_migrator.dart';
 import 'package:test/test.dart';
 
 import '../resolved_file_context.dart';
@@ -15,27 +12,14 @@ void main() {
   setUpAll(resolvedContext.warmUpAnalysis);
 
   group('IntlChildMigrator', () {
-    late File file;
-    SuggestorTester? testSuggestor;
-
-    setUp(() async {
-      final FileSystem fs = MemoryFileSystem();
-      final Directory tmp = await fs.systemTempDirectory.createTemp();
-      file = tmp.childFile('TestClassIntl')
-        ..createSync(recursive: true);
-      testSuggestor = getSuggestorTester(
-        IntlChildMigrator('test_namespace', file),
-        resolvedContext: resolvedContext,
-      );
-    });
-
-    tearDown(() {
-      file.deleteSync();
-    });
+    SuggestorTester testSuggestor = getSuggestorTester(
+      IntlChildStringLiteralMigrator(),
+      resolvedContext: resolvedContext,
+    );
 
     group('StringLiteral', () {
       test('StringLiteral single child', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
             import 'package:over_react/over_react.dart';
 
@@ -57,23 +41,21 @@ void main() {
             UiFactory<FooProps> Foo = uiFunction(
               (props) {
 
-                return (Dom.div())(viewer);
+                return (Dom.div())(
+                  Intl.message(
+                    'viewer', 
+                    name: 'Foo',
+                  ),
+                );
               },
               _\$FooConfig, //ignore: undefined_identifier
             );
-            
-            String get viewer => Intl.message(
-                'viewer', 
-                name: 'test_namespace_viewer',
-              );
             ''',
         );
-        // final expectedFileContent = literalTemplate("test_namespace_viewer", 'viewer', 'viewer');
-        // expect(file.readAsStringSync(), expectedFileContent);
       });
 
       test('StringLiteral two children', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
             import 'package:over_react/over_react.dart';
 
@@ -98,25 +80,24 @@ void main() {
             UiFactory<FooProps> Foo = uiFunction(
               (props) {
 
-                return (Dom.div())(testString1, testString2,);
+                return (Dom.div())(Intl.message(
+                      'testString1',
+                      name: 'Foo',
+                    ),
+                  Intl.message(
+                      'testString2',
+                      name: 'Foo',
+                    ),
+                );
               },
               _\$FooConfig, //ignore: undefined_identifier
             );
-            
-            String get testString1 => Intl.message(
-                  'testString1',
-                  name: 'test_namespace_testString1',
-                );
-            String get testString2 => Intl.message(
-                  'testString2',
-                  name: 'test_namespace_testString2',
-                );
             ''',
         );
       });
 
       test('single number string', () async {
-        await testSuggestor!(
+        await testSuggestor(
           input: '''
             import 'package:over_react/over_react.dart';
 

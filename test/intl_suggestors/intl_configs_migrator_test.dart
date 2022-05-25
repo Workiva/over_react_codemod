@@ -13,17 +13,13 @@
 // limitations under the License.
 
 import 'package:analyzer/error/error.dart';
-import 'package:file/file.dart';
-import 'package:file/memory.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
-import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:test/test.dart';
 
 import '../resolved_file_context.dart';
 import '../util.dart';
 
 void main() {
-
   group('IntlConfigsMigrator', () {
     final resolvedContext = SharedAnalysisContext.overReact;
 
@@ -31,25 +27,12 @@ void main() {
     // (which is more common for the WSD context), it fails here instead of failing the first test.
     setUpAll(resolvedContext.warmUpAnalysis);
 
-    late File file;
     SuggestorTester? testSuggestor;
 
-    setUp(() async {
-      final FileSystem fs = MemoryFileSystem();
-      final Directory tmp = await fs.systemTempDirectory.createTemp();
-      file = tmp.childFile('TestClassIntl')..createSync(recursive: true);
-    });
-
-    tearDown(() {
-      file.deleteSync();
-    });
-
     test('correctly changes display name', () async {
-      testSuggestor = getSuggestorTester(
-          ConfigsMigrator('TestClassIntl', file),
+      testSuggestor = getSuggestorTester(IntlConfigsMigrator(),
           resolvedContext: resolvedContext,
-          inputUrl: 'test/input/display_name_config.dart'
-      );
+          inputUrl: 'test/input/display_name_config.dart');
       await testSuggestor!(
         input: '''
             class TestExperienceConfig {
@@ -60,21 +43,19 @@ void main() {
         expectedOutput: '''
             class TestExperienceConfig {
               @override
-              String get displayName => TestClassIntl.TestDisplayName;
+              String get displayName => Intl.message(
+                  'Test Display Name',
+                  name: 'TestExperienceConfig_displayName',
+                );
             }
             ''',
       );
-      final expectedFileContent =
-          literalTemplate("TestClassIntl", 'TestDisplayName', 'Test Display Name');
-      expect(file.readAsStringSync(), expectedFileContent);
     });
 
     test('correctly changes name', () async {
-      testSuggestor = getSuggestorTester(
-          ConfigsMigrator('TestClassIntl', file),
+      testSuggestor = getSuggestorTester(IntlConfigsMigrator(),
           resolvedContext: resolvedContext,
-          inputUrl: 'test/input/name_config.dart'
-      );
+          inputUrl: 'test/input/name_config.dart');
 
       await testSuggestor!(
         input: '''
@@ -86,21 +67,19 @@ void main() {
         expectedOutput: '''
             class TestExperienceConfig {
               @override
-              String get name => TestClassIntl.TestName;
+              String get name => Intl.message(
+                  'Test Name',
+                  name: 'TestExperienceConfig_name',
+                );
             }
             ''',
       );
-      final expectedFileContent =
-      literalTemplate("TestClassIntl", 'TestName', 'Test Name');
-      expect(file.readAsStringSync(), expectedFileContent);
     });
 
     test('correctly changes title', () async {
-      testSuggestor = getSuggestorTester(
-          ConfigsMigrator('TestClassIntl', file),
+      testSuggestor = getSuggestorTester(IntlConfigsMigrator(),
           resolvedContext: resolvedContext,
-          inputUrl: 'test/input/title_config.dart'
-      );
+          inputUrl: 'test/input/title_config.dart');
       await testSuggestor!(
         input: '''
             class TestExperienceConfig {
@@ -111,15 +90,14 @@ void main() {
         expectedOutput: '''
             class TestExperienceConfig {
               @override
-              String get title => TestClassIntl.TestTitle;
+              String get title => Intl.message(
+                  'Test Title',
+                  name: 'TestExperienceConfig_title',
+                );
             }
             ''',
       );
-      final expectedFileContent =
-      literalTemplate("TestClassIntl", 'TestTitle', 'Test Title');
-      expect(file.readAsStringSync(), expectedFileContent);
     });
-
   });
 }
 

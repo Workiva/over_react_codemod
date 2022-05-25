@@ -30,12 +30,12 @@ void main() {
     // Don't forget that testSuggestor tests idempotency by default, which is
     // especially important for this suggestor.
     final testSuggestor = getSuggestorTester(
-      (context) => intlImporter(context, 'test_project', 'TestProjectIntl'),
+      (context) => intlImporter(context),
       resolvedContext: resolvedContext,
     );
 
     group(
-        'adds a `TestProjectIntl` import when there is an undefined `TestProjectIntl` identifier in the file',
+        'adds a `intl` import when there is an undefined `intl` identifier in the file',
         () {
       bool isFakeUriError(AnalysisError error) =>
           error.errorCode.name.toLowerCase() == 'uri_does_not_exist' &&
@@ -44,109 +44,109 @@ void main() {
       test('when there are no other imports', () async {
         await testSuggestor(
           input: /*language=dart*/ '''
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
           isExpectedError: isUndefinedIntlError,
           expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
-              content() => TestProjectIntl.testString;
+              import 'package:intl/intl.dart';
+              content() => Intl.message('foo');
           ''',
         );
       });
 
       group('when there are other imports', () {
-        test('(alphabetized before `TestProjectIntl`)', () async {
+        test('(alphabetized before `intl`)', () async {
           await testSuggestor(
             input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
             isExpectedError: isUndefinedIntlError,
             expectedOutput: /*language=dart*/ '''
+              import 'package:intl/intl.dart';
               import 'package:over_react/over_react.dart';
-              import 'package:test_project/src/intl/test_project_intl.dart';
               
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
           );
         });
 
-        test('(alphabetized after TestProjectIntl)', () async {
+        test('(alphabetized after intl)', () async {
           await testSuggestor(
             input: /*language=dart*/ '''
               import 'package:z_fake_package/z_fake_package.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
             isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:intl/intl.dart';
               import 'package:z_fake_package/z_fake_package.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
           );
         });
 
-        test('(one alphabetized before and after `TestProjectIntl`)', () async {
+        test('(one alphabetized before and after `intl`)', () async {
           await testSuggestor(
             input: /*language=dart*/ '''
-                import 'package:over_react/over_react.dart';
+                import 'package:a_fake_package/a_fake_package.dart';
                 import 'package:z_fake_package/z_fake_package.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
             isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
-              import 'package:over_react/over_react.dart';
-              import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:a_fake_package/a_fake_package.dart';
+              import 'package:intl/intl.dart';
               import 'package:z_fake_package/z_fake_package.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
           );
         });
 
-        test('(more than one alphabetized before and after `TestProjectIntl`)', () async {
+        test('(more than one alphabetized before and after `intl`)', () async {
           await testSuggestor(
             input: /*language=dart*/ '''
-                import 'package:over_react/over_react.dart';
-                import 'package:over_react/components.dart';
+                import 'package:a_fake_package/a_fake_package_1.dart';
+                import 'package:a_fake_package/a_fake_package_2.dart';
                 import 'package:z_fake_package/z_fake_package_1.dart';
                 import 'package:z_fake_package/z_fake_package_2.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
             isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
-              import 'package:over_react/over_react.dart';
-              import 'package:over_react/components.dart';
-              import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:a_fake_package/a_fake_package_1.dart';
+              import 'package:a_fake_package/a_fake_package_2.dart';
+              import 'package:intl/intl.dart';
               import 'package:z_fake_package/z_fake_package_1.dart';
               import 'package:z_fake_package/z_fake_package_2.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
           );
         });
 
-        test('(a relative import, alphabetized before `TestProjectIntl`)', () async {
+        test('(a relative import, alphabetized before `intl`)', () async {
           await testSuggestor(
             input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
 
               import 'a/fake_relative_file.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
             isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
+              import 'package:intl/intl.dart';
               import 'package:over_react/over_react.dart';
-              import 'package:test_project/src/intl/test_project_intl.dart';
 
               import 'a/fake_relative_file.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
           );
         });
@@ -156,15 +156,15 @@ void main() {
             input: /*language=dart*/ '''
               import 'dart:html';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
             isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
               import 'dart:html';
 
-              import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:intl/intl.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
             ''',
           );
         });
@@ -175,15 +175,15 @@ void main() {
           input: /*language=dart*/ '''
               library lib;
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
           isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
           expectedOutput: /*language=dart*/ '''
               library lib;
 
-              import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:intl/intl.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
         );
       });
@@ -193,15 +193,15 @@ void main() {
           input: /*language=dart*/ '''
               part 'fake_part.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
           isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
           expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:intl/intl.dart';
 
               part 'fake_part.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
         );
       });
@@ -211,15 +211,15 @@ void main() {
           input: /*language=dart*/ '''
               export 'package:over_react/over_react.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
           isExpectedError: isUndefinedIntlError,
           expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:intl/intl.dart';
 
               export 'package:over_react/over_react.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
         );
       });
@@ -231,16 +231,16 @@ void main() {
 
               part 'fake_part.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
           isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
           expectedOutput: /*language=dart*/ '''
+              import 'package:intl/intl.dart';
               import 'package:over_react/over_react.dart';
-              import 'package:test_project/src/intl/test_project_intl.dart';
 
               part 'fake_part.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
         );
       });
@@ -252,17 +252,17 @@ void main() {
 
               part 'fake_part.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
           isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
           expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:intl/intl.dart';
 
               export 'package:over_react/over_react.dart';
 
               part 'fake_part.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
         );
       });
@@ -276,25 +276,25 @@ void main() {
 
               part 'fake_part.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
           isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
           expectedOutput: /*language=dart*/ '''
+              import 'package:intl/intl.dart';
               import 'package:over_react/over_react.dart';
-              import 'package:test_project/src/intl/test_project_intl.dart';
 
               export 'package:over_react/over_react.dart';
 
               part 'fake_part.dart';
 
-              content() => TestProjectIntl.testString;
+              content() => Intl.message('foo');
           ''',
         );
       });
     });
 
     test(
-        'adds a `TestProjectIntl` import when there is an undefined `TestProjectIntl` identifier in a part file',
+        'adds a `intl` import when there is an undefined `intl` identifier in a part file',
         () async {
       // testSuggestor isn't really set up for multiple files,
       // so the test setup here is a little more manual.
@@ -306,7 +306,7 @@ void main() {
           await resolvedContext.resolvedFileContextForTest('''
             part of '${mainLibraryFilename}';
 
-            content() => TestProjectIntl.testString;
+            content() => Intl.testString;
         ''',
               filename: partFilename,
               // Don't pre-resolve since this isn't a library.
@@ -322,17 +322,17 @@ void main() {
         isExpectedError: isUndefinedIntlError,
       );
 
-      final mainPatches = await intlImporter(mainLibraryFileContext, 'test_project', 'TestProjectIntl').toList();
+      final mainPatches = await intlImporter(mainLibraryFileContext).toList();
       expect(mainPatches, [
         hasPatchText(contains(
-            "import 'package:test_project/src/intl/test_project_intl.dart';")),
+            "import 'package:intl/intl.dart';")),
       ]);
 
-      final partPatches = await intlImporter(partFileContext, 'test_project', 'TestProjectIntl').toList();
+      final partPatches = await intlImporter(partFileContext).toList();
       expect(partPatches, isEmpty);
     });
 
-    group('does not add an `TestProjectIntl` import when', () {
+    group('does not add an `intl` import when', () {
       test('a `Intl` identifier in the file is not undefined', () async {
         await testSuggestor(
           input: /*language=dart*/ '''
@@ -341,7 +341,7 @@ void main() {
           ''',
         );
       });
-      test('there is no `TestProjectIntl` identifier in the file', () async {
+      test('there is no `intl` identifier in the file', () async {
         await testSuggestor(
           input: /*language=dart*/ '''
               content() {}
@@ -353,4 +353,4 @@ void main() {
 }
 
 bool isUndefinedIntlError(AnalysisError error) =>
-    error.message.contains("Undefined name 'TestProjectIntl'");
+    error.message.contains("Undefined name 'Intl'");

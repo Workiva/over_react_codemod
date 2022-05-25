@@ -20,8 +20,7 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('intlImporter');
 
-Stream<Patch> intlImporter(
-    FileContext context, String projectName, String className) async* {
+Stream<Patch> intlImporter(FileContext context) async* {
   final libraryResult = await context.getResolvedLibrary();
   if (libraryResult == null) {
     // Most likely a part and not a library.
@@ -48,11 +47,11 @@ Stream<Patch> intlImporter(
   final needsIntlImport = unitResults
       .expand((unitResult) => unitResult.errors)
       .where((error) => error.errorCode.name == 'UNDEFINED_IDENTIFIER')
-      .any((error) => error.message.contains("Undefined name '$className'"));
+      .any((error) => error.message.contains("Undefined name 'Intl'"));
 
   if (!needsIntlImport) return;
 
-  final intlUri = 'package:${projectName}/src/intl/${projectName}_intl.dart';
+  final intlUri = 'package:intl/intl.dart';
 
   final insertInfo = _insertionLocationForPackageImport(
       intlUri, mainLibraryUnitResult.unit!, mainLibraryUnitResult.lineInfo);

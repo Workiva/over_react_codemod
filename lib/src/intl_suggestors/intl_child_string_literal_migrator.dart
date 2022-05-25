@@ -1,50 +1,29 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:file/file.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_deep_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
-class IntlChildMigrator extends ComponentUsageMigrator with IntlMigrator {
-  final String _namespace;
-
-  IntlChildMigrator(this._namespace);
-
+class IntlChildStringLiteralMigrator extends ComponentUsageMigrator with IntlMigrator {
   @override
-  bool shouldMigrateUsage(FluentComponentUsage usage) => usage.children
-      .whereType<ExpressionComponentChild>()
-      .where((child) => (child.node is SimpleStringLiteral))
-      .isNotEmpty;
+  bool shouldMigrateUsage(FluentComponentUsage usage) => true;
 
   @override
   void migrateUsage(FluentComponentUsage usage) {
     super.migrateUsage(usage);
-
-    migrateChildString(usage);
-    //Add child inside props usecase
-  }
-
-  void migrateChildString(FluentComponentUsage usage) async {
+    final name = usage.node.thisOrAncestorOfType<ClassDeclaration>()?.name ??
+        usage.node.thisOrAncestorOfType<VariableDeclaration>()?.name;
     usage.children
-        .map((child) => child.node)
-        .whereType<SimpleStringLiteral>()
-        .forEachIndexed((index, node) {
-      if (isNodeValidString(node)) {
-        final name = toVariableName(node.value);
-        yieldPatchOverNode(
-          literalTemplate(_namespace, name, node.value),
-          node,
+        .forEachIndexed((index, child) {
+      if (isValidStringLiteralNode(child.node)) {
+        final node = child.node as SimpleStringLiteral;
+        yieldPatchOverChildNode(
+          intlMessageTemplate(node.stringValue!, name.toString()) + ',',
+          child,
         );
       }
     });
   }
-}
-
-bool isNodeValidString(SimpleStringLiteral node) {
-  if (node.value.isEmpty) return false;
-  if (double.tryParse(node.stringValue!) != null) return false;
-  if (quotedCamelCase(node.value)) return false;
-  if (node.value.length == 1) return false;
-  return true;
 }
