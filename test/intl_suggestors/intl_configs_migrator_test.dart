@@ -60,12 +60,11 @@ void main() {
         expectedOutput: '''
             class TestExperienceConfig {
               @override
-              String get displayName => TestClassIntl.TestDisplayName;
+              String get displayName => TestClassIntl.testDisplayName;
             }
             ''',
       );
-      final expectedFileContent =
-          literalTemplate("TestClassIntl", 'TestDisplayName', 'Test Display Name');
+      final expectedFileContent = "\n\tstatic String get testDisplayName => Intl.message('Test Display Name', name: 'TestClassIntl_testDisplayName',);";
       expect(file.readAsStringSync(), expectedFileContent);
     });
 
@@ -86,12 +85,11 @@ void main() {
         expectedOutput: '''
             class TestExperienceConfig {
               @override
-              String get name => TestClassIntl.TestName;
+              String get name => TestClassIntl.testName;
             }
             ''',
       );
-      final expectedFileContent =
-      literalTemplate("TestClassIntl", 'TestName', 'Test Name');
+      final expectedFileContent = "\n\tstatic String get testName => Intl.message('Test Name', name: 'TestClassIntl_testName',);";
       expect(file.readAsStringSync(), expectedFileContent);
     });
 
@@ -111,12 +109,11 @@ void main() {
         expectedOutput: '''
             class TestExperienceConfig {
               @override
-              String get title => TestClassIntl.TestTitle;
+              String get title => TestClassIntl.testTitle;
             }
             ''',
       );
-      final expectedFileContent =
-      literalTemplate("TestClassIntl", 'TestTitle', 'Test Title');
+      final expectedFileContent = "\n\tstatic String get testTitle => Intl.message('Test Title', name: 'TestClassIntl_testTitle',);";
       expect(file.readAsStringSync(), expectedFileContent);
     });
 

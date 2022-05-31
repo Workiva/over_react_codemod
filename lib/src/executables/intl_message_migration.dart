@@ -17,8 +17,7 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_child_migrator.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_prop_migrator.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/args.dart';
@@ -165,7 +164,8 @@ void main(List<String> args) async {
     value: (path) {
       final pubspec = fs.file(path);
       List<String> pubspecLines = pubspec.readAsLinesSync();
-      String nameLine = pubspecLines.firstWhere((line) => line.startsWith('name'));
+      String nameLine =
+          pubspecLines.firstWhere((line) => line.startsWith('name'));
       var nameLineParts = nameLine.split(':');
       return nameLineParts[1].trim();
     },
@@ -182,7 +182,6 @@ void main(List<String> args) async {
   );
   if (exitCode != 0) return;
   print('^ Ignore the "codemod found no files" warning above for now.');
-
 
   for (String package in packageRoots) {
     _log.info('Starting migration for $package');
@@ -201,40 +200,41 @@ void main(List<String> args) async {
     final className = toClassName('${packageName}');
     if (!existingOutputFile) {
       outputFile.createSync(recursive: true);
-      outputFile.writeAsStringSync("import 'package:intl/intl.dart';\n\n//ignore: avoid_classes_with_only_static_members\nabstract class $className {\n");
+      outputFile.writeAsStringSync(
+          "import 'package:intl/intl.dart';\n\n//ignore: avoid_classes_with_only_static_members\nclass $className {\n");
     } else {
       final List<String> lines = outputFile.readAsLinesSync();
       lines.removeLast();
       String outputContent = lines.join('\n');
-      print(outputContent);
       outputFile.writeAsStringSync(outputContent);
     }
 
-    final intlPropMigrator = IntlPropMigrator(className, outputFile);
-    final intlChildMigrator = IntlChildMigrator(className, outputFile);
+    final intlPropMigrator = IntlMigrator(className, outputFile);
     final displayNameMigrator = ConfigsMigrator(className, outputFile);
     final importMigrator =
         (FileContext context) => intlImporter(context, packageName, className);
 
-    final migrators = <Iterable<Stream<Patch> Function(FileContext)>>[];
-    if (parsedArgs['migrators'].contains('prop'))
-      migrators.add([intlPropMigrator]);
-    if (parsedArgs['migrators'].contains('child'))
-      migrators.add([intlChildMigrator]);
-    if (parsedArgs['migrators'].contains('displayName'))
-      migrators.add([displayNameMigrator]);
-    if (migrators.isNotEmpty) migrators.add([importMigrator]);
 
-    exitCode = await runCodemodSequences(packageDartPath, migrators);
+    exitCode = await runCodemodSequences(packageDartPath, [
+      [intlPropMigrator],
+      [displayNameMigrator],
+      [importMigrator]
+    ]);
 
     processedPackages.add(package);
     if (exitCode != 0) {
       outputFile.deleteSync();
     } else {
-      if (outputFile.readAsLinesSync().length == 4) {
+      List<String> lines = outputFile.readAsLinesSync();
+      if (lines.length == 4) {
         outputFile.deleteSync();
       } else {
-        outputFile.writeAsStringSync('}', mode: FileMode.append);
+        final functions = lines.sublist(4);
+        functions.removeWhere((string) => string == '');
+        functions.sort();
+        lines.replaceRange(4, lines.length, functions);
+        lines.add('}');
+        outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
       }
     }
   }

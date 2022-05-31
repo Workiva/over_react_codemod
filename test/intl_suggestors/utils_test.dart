@@ -34,19 +34,61 @@ void main() {
       test('\${a.b}', () async {
         var inputString = '\${a.b}';
         var result = removeInterpolationSyntax(inputString);
-        expect(result, 'b');
+        expect(result, 'a.b');
       });
 
       test('\${a.b.c}', () async {
         var inputString = '\${a.b.c}';
         var result = removeInterpolationSyntax(inputString);
-        expect(result, 'c');
+        expect(result, 'a.b.c');
       });
 
       test('\${a.b.c ?? d}', () async {
         var inputString = '\${a.b.c ?? d}';
         var result = removeInterpolationSyntax(inputString);
-        expect(result, 'c');
+        expect(result, 'a.b.c');
+      });
+    });
+    group('Apostrophe escaping', () {
+      test('unescaped apos', () {
+        final testString = "Foo's Bar";
+        final result = escapeApos(testString);
+        expect(result, 'Foo\\\'s Bar');
+      });
+      test('escaped apos', () {
+        final testString = "Foo\'s Bar";
+        final result = escapeApos(testString);
+        expect(result, 'Foo\\\'s Bar');
+      });
+      test('home example', () {
+        final fileStr = 'test1';
+        final refStr = 'test2';
+        final result = escapeApos('Now that you\'ve transitioned your $fileStr, you\'ll want to freeze $refStr or update permissions to prevent others from using $refStr.');
+        expect(result, 'Now that you\\\'ve transitioned your $fileStr, you\\\'ll want to freeze $refStr or update permissions to prevent others from using $refStr.');
+      });
+    });
+
+    group('toClassName', () {
+      test('one', () {
+        expect(toClassName('one'), 'OneIntl');
+      });
+      test('one_two', () {
+        expect(toClassName('one_two'), 'OneTwoIntl');
+      });
+      test('one_two_three', () {
+        expect(toClassName('one_two_three'), 'OneTwoThreeIntl');
+      });
+    });
+
+    group('toVariableName', () {
+      test('001 test Var', () {
+        expect(toVariableName('001 test Var'), 'testVar');
+      });
+      test('Test This string', () {
+        expect(toVariableName('Test This string'), 'testThisString');
+      });
+      test("Test's test'1", () {
+        expect(toVariableName("Test's test'1"), 'testsTest1');
       });
     });
   });

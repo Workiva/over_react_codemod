@@ -16,13 +16,15 @@ class ConfigsMigrator extends RecursiveAstVisitor with AstVisitingSuggestor {
   void visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     if (varsToCheck.contains(node.name.name)) {
-      final body = (node.body as ExpressionFunctionBody).expression;
-      if (body is SimpleStringLiteral) {
-        if (body.value == '') return;
-        final name = toVariableName(body.value);
-        yieldPatch('${_className}.$name', body.offset, body.end);
-        addMethodToClass(
-            _outputFile, literalTemplate(_className, name, body.value));
+      if (node.body is ExpressionFunctionBody) {
+        final body = (node.body as ExpressionFunctionBody).expression;
+        if (body is SimpleStringLiteral) {
+          if (body.value == '') return;
+          final functionCall = intlStringAccess(body, _className);
+          final functionDef = intlGetterDef(body, _className);
+          yieldPatch(functionCall, body.offset, body.end);
+          addMethodToClass(_outputFile, functionDef);
+        }
       }
     }
   }
