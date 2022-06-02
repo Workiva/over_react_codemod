@@ -660,7 +660,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String fileStr, String refStr) => Intl.message('Now that you\'ve transitioned your \$fileStr, you\'ll want to freeze \$refStr or update permissions to prevent others from using \$refStr.', args: [fileStr, refStr], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String fileStr, String refStr) => Intl.message('Now that you\\\'ve transitioned your \$fileStr, you\\\'ll want to freeze \$refStr or update permissions to prevent others from using \$refStr.', args: [fileStr, refStr], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
 
       });
