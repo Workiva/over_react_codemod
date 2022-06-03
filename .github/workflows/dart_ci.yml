@@ -64,19 +64,4 @@ jobs:
         run: |
           echo 'Running pub get in test fixtures beforehand to prevent concurrent `pub get`s in tests from failing'
           (cd test/test_fixtures/over_react_project && dart pub get)
-          dart run test --exclude-tags=wsd --file-reporter json:reports/${{ matrix.sdk }}/test-results.json
-
-      - name: Upload Unit Test Results
-        uses: actions/upload-artifact@v2
-        if: ${{ steps.install.outcome == 'success' && (success() || failure()) }} # run this step even if previous step failed, but not if it was skipped
-        with:
-          name: test-results@${{ matrix.sdk }}
-          path: reports/${{ matrix.sdk }}/test-results.json
-
-      - name: Report Unit Test Results
-        uses: dorny/test-reporter@v1
-        if: ${{ always() && steps.install.outcome == 'success' }}
-        with:
-          name: Unit Test Results (${{ matrix.sdk }})
-          path: 'reports/${{ matrix.sdk }}/test-results.json'
-          reporter: dart-json
+          dart run test --exclude-tags=wsd
