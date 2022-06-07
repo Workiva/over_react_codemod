@@ -297,10 +297,7 @@ bool excludeUnlikelyExpressions<E extends Expression>(PropAssignment prop,
   if (source == "'.'") return true;
   if (source == "'('") return true;
   if (source == "')'") return true;
-  // If a string value is wrapped in quotes, and is in lowerCamelCase or UpperCamelCase, it is most likely a key of some kind, not a human-readable, translatable string.
-  if (RegExp(
-      r"^'([a-z]+[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)|([A-Z][a-z0-9]*[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)'$")
-      .hasMatch(source)) return true;
+  if (quotedCamelCase(source)) return true;
 
   return false;
 }
