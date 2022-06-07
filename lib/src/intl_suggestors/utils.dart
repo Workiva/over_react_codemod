@@ -4,13 +4,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:file/file.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
-import 'package:collection/collection.dart' show IterableExtension;
 
 import 'constants.dart';
 
 // -- Node Validation --
 bool isValidStringInterpolationNode(AstNode node) {
-  if (!(node is StringInterpolation)) return false;
+  if (node is! StringInterpolation) return false;
   //We do not need to localize single values.  This should be handled by the
   // variable being passed in.  IE: ..foo = '$bar' becomes [', '$bar', ']
   if (node.elements.length == 3 &&
@@ -20,9 +19,9 @@ bool isValidStringInterpolationNode(AstNode node) {
 }
 
 bool isValidStringLiteralNode(AstNode node) {
-  if (!(node is SimpleStringLiteral)) return false;
+  if (node is! SimpleStringLiteral) return false;
   if (node.value.isEmpty) return false;
-  if (double.tryParse(node.stringValue!) != null) return false;
+  if (double.tryParse(node.value) != null) return false;
   if (quotedCamelCase(node.value)) return false;
   if (node.value
       .trim()
@@ -161,12 +160,30 @@ String escapeApos(String s) {
   var apos = '\'';
   var backslash = '\\';
   return s.replaceAll(apos, backslash + apos);
-  // return s.replaceAllMapped(apos, (m) => s[m.start-1] == '\\' ? s[m.start] : backslash + apos);
 }
 
 String removeInterpolationSyntax(String s) =>
     s.replaceAll(RegExp(r'(\$[^a-zA-Z0-9.]|\s|}|\?.*|\$)'), '');
 
+/// This is a helper function to create a name out of
+/// an interpolation element that is a nested accessor
+///   -ex:
+///     final string = 'The string is ${props.theString.length} characters long';
+///     toNestedName(string) = 'length'
+/// Looking at this example in combination with the intl migration
+///   -ex
+///     Input:
+///       Dom.div()('The string is ${props.theString.length} characters long';)
+///     Output:
+///       Dom.div()(FooIntl.theStringIs('${props.theString.length'}))
+///       class FooIntl {
+///         String theStringIs(String length) => Intl.message(
+///                                                 'The string is $length characters long',
+///                                                 args: [length],
+///                                                 name: 'FooIntl_theStringIs',
+///                                               );
+///       }
+///
 String toNestedName(String s) =>
     removeInterpolationSyntax(s)
         .split('.')
@@ -178,6 +195,8 @@ void addMethodToClass(File outputFile, String content) {
   }
 }
 
+/// Input: foo_bar_package
+/// Output: FooBarPackageIntl
 String toClassName(String str) {
   final res = toAlphaNumeric(str.replaceAll('_', ' '));
   final pascalString = res
@@ -187,6 +206,21 @@ String toClassName(String str) {
   return '${pascalString}Intl';
 }
 
+/// Converts a string to a variable name
+/// First we remove any leading numbers.
+///   - This solves "10 documents deleted" -> deletedDocuments
+/// Next only take the first 5 tokens in the string
+/// to keep the names shortish
+///   - "This string was a very long paragraph that
+///   needs translation but if we just join on spaces
+///   and convert to camel case it makes a variable
+///   name no one wants to type" -> thisStringWasAVery
+/// Next we remove any non alphanumeric characters
+///   - "This (optional) case" -> thisOptionalCase
+/// Next we convert it to camel case
+///   - "IM NOT YELLING" -> imNotYelling
+/// finally we check if it is a keyword and if so append "String" to it.
+///   - "New" -> newString
 String toVariableName(String str) {
   String strippedName = str.replaceFirst(RegExp(r'^[0-9]*'), '').trim();
   var fiveAtMost = strippedName.split(' ');
@@ -245,9 +279,10 @@ String? getTestId(String? testId, AstNode node) {
 
 bool excludeUnlikelyExpressions<E extends Expression>(PropAssignment prop,
     String propKey) {
-  if (prop.rightHandSide.staticType == null) return true;
-  if (prop.rightHandSide.staticType?.isDartCoreBool ?? false) return true;
-  if (prop.rightHandSide.staticType?.isDartCoreNull ?? false) return true;
+  final staticType = prop.rightHandSide.staticType;
+  if (staticType == null) return true;
+  if (staticType.isDartCoreBool) return true;
+  if (staticType.isDartCoreNull) return true;
   if (RegExp('((List|Iterable)\<ReactElement\>|ReactElement)(\sFunction)?')
       .hasMatch(prop.rightHandSide.staticType
       ?.getDisplayString(withNullability: false) ??
@@ -262,10 +297,7 @@ bool excludeUnlikelyExpressions<E extends Expression>(PropAssignment prop,
   if (source == "'.'") return true;
   if (source == "'('") return true;
   if (source == "')'") return true;
-  // If a string value is wrapped in quotes, and is in lowerCamelCase or UpperCamelCase, it is most likely a key of some kind, not a human-readable, translatable string.
-  if (RegExp(
-      r"^'([a-z]+[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)|([A-Z][a-z0-9]*[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)'$")
-      .hasMatch(source)) return true;
+  if (quotedCamelCase(source)) return true;
 
   return false;
 }

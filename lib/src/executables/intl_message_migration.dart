@@ -106,7 +106,7 @@ void main(List<String> args) async {
       .toList();
 
   // codemod sets up a global logging handler that forwards to the console, and
-  // we want that set up before we do other non-codemodd things that might log.
+  // we want that set up before we do other non-codemod things that might log.
   //
   // We could set up logging too, but we can't disable codemod's log handler,
   // so we'd have to disable our own logging before calling into codemod.
@@ -198,10 +198,11 @@ void main(List<String> args) async {
     final bool existingOutputFile = outputFile.existsSync();
 
     final className = toClassName('${packageName}');
+    final classPredicate =
+        "import 'package:intl/intl.dart';\n\n//ignore: avoid_classes_with_only_static_members\nclass $className {\n";
     if (!existingOutputFile) {
       outputFile.createSync(recursive: true);
-      outputFile.writeAsStringSync(
-          "import 'package:intl/intl.dart';\n\n//ignore: avoid_classes_with_only_static_members\nclass $className {\n");
+      outputFile.writeAsStringSync(classPredicate);
     } else {
       final List<String> lines = outputFile.readAsLinesSync();
       lines.removeLast();
@@ -222,20 +223,16 @@ void main(List<String> args) async {
     ]);
 
     processedPackages.add(package);
-    if (exitCode != 0) {
+    if (exitCode != 0 || outputFile.readAsStringSync() == classPredicate) {
       outputFile.deleteSync();
     } else {
       List<String> lines = outputFile.readAsLinesSync();
-      if (lines.length == 4) {
-        outputFile.deleteSync();
-      } else {
         final functions = lines.sublist(4);
         functions.removeWhere((string) => string == '');
         functions.sort();
         lines.replaceRange(4, lines.length, functions);
         lines.add('}');
         outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
-      }
     }
   }
 }
