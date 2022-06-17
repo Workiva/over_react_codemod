@@ -15,6 +15,7 @@
 import 'dart:io';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
+import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
@@ -156,11 +157,11 @@ void main(List<String> args) async {
   // TODO - reference analyzer issue for this once it's created
   final packageRoots = dartPaths.map(findPackageRootFor).toSet().toList();
   packageRoots.sort((packageA, packageB) =>
-      packageB.split('/').length - packageA.split('/').length);
+      packageB.split('${slash}').length - packageA.split('${slash}').length);
 
   Map<String, String> packageNameLookup = Map.fromIterable(
     pubspecYamlPaths(),
-    key: (path) => findPackageRootFor(path).split('/').last,
+    key: (path) => findPackageRootFor(path).split('${slash}').last,
     value: (path) {
       final pubspec = fs.file(path);
       List<String> pubspecLines = pubspec.readAsLinesSync();
@@ -186,7 +187,7 @@ void main(List<String> args) async {
   for (String package in packageRoots) {
     _log.info('Starting migration for $package');
 
-    final packageRoot = package.split('/').last;
+    final packageRoot = package.split('${slash}').last;
     final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
     _log.info('Starting migration for $packageName');
     final packageDartPath =
@@ -194,7 +195,7 @@ void main(List<String> args) async {
     sortPartsLast(packageDartPath);
 
     final File outputFile = fs.currentDirectory
-        .childFile('${package}/lib/src/intl/${packageName}_intl.dart');
+        .childFile('${package}${slash}lib${slash}src${slash}intl${slash}${packageName}_intl.dart');
     final bool existingOutputFile = outputFile.existsSync();
 
     final className = toClassName('${packageName}');
@@ -292,7 +293,7 @@ Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
 
 Iterable<String> dartFilesToMigrateForPackage(
         String package, Set<String> processedPackages) =>
-    Glob('/$package/lib/*/**.dart', recursive: true)
+    Glob('${slash}$package${slash}lib${slash}*${slash}**.dart', recursive: true)
         .listSync()
         .whereType<File>()
         .where((file) => !file.path.contains('.sg.g.dart'))
