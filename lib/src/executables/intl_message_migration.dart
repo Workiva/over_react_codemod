@@ -157,11 +157,11 @@ void main(List<String> args) async {
   // TODO - reference analyzer issue for this once it's created
   final packageRoots = dartPaths.map(findPackageRootFor).toSet().toList();
   packageRoots.sort((packageA, packageB) =>
-      packageB.split('${slash}').length - packageA.split('${slash}').length);
+      packageB.split(slash).length - packageA.split(slash).length);
 
   Map<String, String> packageNameLookup = Map.fromIterable(
     pubspecYamlPaths(),
-    key: (path) => findPackageRootFor(path).split('${slash}').last,
+    key: (path) => findPackageRootFor(path).split(slash).last,
     value: (path) {
       final pubspec = fs.file(path);
       List<String> pubspecLines = pubspec.readAsLinesSync();
@@ -187,7 +187,7 @@ void main(List<String> args) async {
   for (String package in packageRoots) {
     _log.info('Starting migration for $package');
 
-    final packageRoot = package.split('${slash}').last;
+    final packageRoot = package.split(slash).last;
     final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
     _log.info('Starting migration for $packageName');
     final packageDartPath =
