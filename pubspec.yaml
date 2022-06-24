@@ -44,3 +44,6 @@ executables:
   mui_migration:
   rmui_preparation:
   intl_message_migration:
+dependency_overrides:
+  uuid: 3.0.6
+  crypto: 3.0.1
