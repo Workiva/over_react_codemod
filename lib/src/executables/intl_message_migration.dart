@@ -190,12 +190,18 @@ void main(List<String> args) async {
     final packageRoot = package.split(slash).last;
     final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
     _log.info('Starting migration for $packageName');
-    final packageDartPath =
-        dartFilesToMigrateForPackage(package, processedPackages).toList();
+    final packageDartPath;
+    try {
+      packageDartPath =
+          dartFilesToMigrateForPackage(package, processedPackages).toList();
+    } on FileSystemException {
+      _log.info('${package} does not have a lib directory, moving on...');
+      continue;
+    }
     sortPartsLast(packageDartPath);
 
-    final File outputFile = fs.currentDirectory
-        .childFile('${package}${slash}lib${slash}src${slash}intl${slash}${packageName}_intl.dart');
+    final File outputFile = fs.currentDirectory.childFile(
+        '${package}${slash}lib${slash}src${slash}intl${slash}${packageName}_intl.dart');
     final bool existingOutputFile = outputFile.existsSync();
 
     final className = toClassName('${packageName}');
@@ -216,7 +222,6 @@ void main(List<String> args) async {
     final importMigrator =
         (FileContext context) => intlImporter(context, packageName, className);
 
-
     exitCode = await runCodemodSequences(packageDartPath, [
       [intlPropMigrator],
       [displayNameMigrator],
@@ -228,12 +233,12 @@ void main(List<String> args) async {
       outputFile.deleteSync();
     } else {
       List<String> lines = outputFile.readAsLinesSync();
-        final functions = lines.sublist(4);
-        functions.removeWhere((string) => string == '');
-        functions.sort();
-        lines.replaceRange(4, lines.length, functions);
-        lines.add('}');
-        outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
+      final functions = lines.sublist(4);
+      functions.removeWhere((string) => string == '');
+      functions.sort();
+      lines.replaceRange(4, lines.length, functions);
+      lines.add('}');
+      outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
     }
   }
 }
