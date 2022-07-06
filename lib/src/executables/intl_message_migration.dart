@@ -13,21 +13,22 @@
 // limitations under the License.
 
 import 'dart:io';
-import 'package:file/file.dart';
-import 'package:file/local.dart';
-import 'package:over_react_codemod/src/constants.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
+
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
+import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
+import 'package:path/path.dart' as p;
 
 import '../util.dart';
 
@@ -157,20 +158,19 @@ void main(List<String> args) async {
   // TODO - reference analyzer issue for this once it's created
   final packageRoots = dartPaths.map(findPackageRootFor).toSet().toList();
   packageRoots.sort((packageA, packageB) =>
-      packageB.split(slash).length - packageA.split(slash).length);
+      p.split(packageB).length - p.split(packageA).length);
 
-  Map<String, String> packageNameLookup = Map.fromIterable(
-    pubspecYamlPaths(),
-    key: (path) => findPackageRootFor(path).split(slash).last,
-    value: (path) {
-      final pubspec = fs.file(path);
-      List<String> pubspecLines = pubspec.readAsLinesSync();
-      String nameLine =
-          pubspecLines.firstWhere((line) => line.startsWith('name'));
-      var nameLineParts = nameLine.split(':');
-      return nameLineParts[1].trim();
-    },
-  );
+  // TODO: Use packageConfig and utilities for reading that rather than manually parsing pubspec..
+  Map<String, String> packageNameLookup = {
+    for (String path in pubspecYamlPaths())
+      p.basename(findPackageRootFor(path)): fs
+          .file(path)
+          .readAsLinesSync()
+          .firstWhere((line) => line.startsWith('name'))
+          .split(':')
+          .last
+          .trim()
+  };
 
   final processedPackages = Set<String>();
   await pubGetForAllPackageRoots(dartPaths);
@@ -187,15 +187,15 @@ void main(List<String> args) async {
   for (String package in packageRoots) {
     _log.info('Starting migration for $package');
 
-    final packageRoot = package.split(slash).last;
+    final packageRoot = p.basename(package);
     final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
     _log.info('Starting migration for $packageName');
     final packageDartPath =
         dartFilesToMigrateForPackage(package, processedPackages).toList();
     sortPartsLast(packageDartPath);
 
-    final File outputFile = fs.currentDirectory
-        .childFile('${package}${slash}lib${slash}src${slash}intl${slash}${packageName}_intl.dart');
+    final File outputFile = fs.currentDirectory.childFile(
+        p.join(package, 'lib', 'src', 'intl', '${packageName}_intl.dart'));
     final bool existingOutputFile = outputFile.existsSync();
 
     final className = toClassName('${packageName}');
@@ -216,7 +216,6 @@ void main(List<String> args) async {
     final importMigrator =
         (FileContext context) => intlImporter(context, packageName, className);
 
-
     exitCode = await runCodemodSequences(packageDartPath, [
       [intlPropMigrator],
       [displayNameMigrator],
@@ -228,12 +227,12 @@ void main(List<String> args) async {
       outputFile.deleteSync();
     } else {
       List<String> lines = outputFile.readAsLinesSync();
-        final functions = lines.sublist(4);
-        functions.removeWhere((string) => string == '');
-        functions.sort();
-        lines.replaceRange(4, lines.length, functions);
-        lines.add('}');
-        outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
+      final functions = lines.sublist(4);
+      functions.removeWhere((string) => string == '');
+      functions.sort();
+      lines.replaceRange(4, lines.length, functions);
+      lines.add('}');
+      outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
     }
   }
 }
@@ -293,7 +292,7 @@ Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
 
 Iterable<String> dartFilesToMigrateForPackage(
         String package, Set<String> processedPackages) =>
-    Glob('${slash}$package${slash}lib${slash}*${slash}**.dart', recursive: true)
+    Glob(p.join(package, 'lib', '*', '**.dart'), recursive: true)
         .listSync()
         .whereType<File>()
         .where((file) => !file.path.contains('.sg.g.dart'))
@@ -304,10 +303,10 @@ Iterable<String> dartFilesToMigrateForPackage(
         .where(isNotWithinTopLevelBuildOutputDir)
         .where(isNotWithinTopLevelToolDir)
         .where((file) => !processedPackages.contains(file.path))
-        .map((e) => e.path);
+        .map((e) => e.path)
+        .toList();
 
-Iterable<String> experienceConfigDartFiles() => Glob('**.dart', recursive: true)
-    .listSync()
-    .whereType<File>()
-    .where((file) => file.path.contains('_experience_config.dart'))
-    .map((e) => e.path);
+Iterable<String> experienceConfigDartFiles() => [
+      for (var f in Glob('**.dart', recursive: true).listSync())
+        if (f is File && f.path.contains('_experience_config.dart')) f.path
+    ];
