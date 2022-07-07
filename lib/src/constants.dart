@@ -16,8 +16,6 @@
 /// suggestor.
 library over_react_codemod.src.constants;
 
-import 'dart:io';
-
 const String generatedPrefix = r'$';
 const String privatePrefix = r'_';
 const String privateGeneratedPrefix = '$privatePrefix$generatedPrefix';
@@ -137,5 +135,3 @@ final RegExp dependencyOverrideRegExp = RegExp(
   r'^dependency_overrides:\s*$',
   multiLine: true,
 );
-
-final String slash = Platform.pathSeparator;
