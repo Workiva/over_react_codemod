@@ -45,6 +45,8 @@ const _allCodemodFlags = {
   _stderrAssumeTtyFlag,
 };
 
+final FileSystem fs = const LocalFileSystem();
+
 void main(List<String> args) async {
   final parser = ArgParser()
     ..addFlag(
@@ -152,7 +154,6 @@ void main(List<String> args) async {
     return 0;
   }
 
-  final FileSystem fs = const LocalFileSystem();
   final dartPaths = dartFilesToMigrate().toList();
   // Work around parts being unresolved if you resolve them before their libraries.
   // TODO - reference analyzer issue for this once it's created
@@ -277,6 +278,7 @@ Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
   }
 }
 
+/// Finds all the Dart files in any subdirectory, so we can be sure to catch any sub-packages.
 // TODO we'll probably going to need to also ignore files excluded in analysis_options.yaml
 // so that our component migrator codemods don't fail when they can't resolve the files.
 Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
@@ -292,12 +294,18 @@ Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
 
 Iterable<String> dartFilesToMigrateForPackage(
         String package, Set<String> processedPackages) =>
-    Glob(p.join(package, 'lib', '*', '**.dart'), recursive: true)
-        .listSync()
+    // Glob is peculiar about how it wants absolute Windows paths, so just query the
+    // file system directly. It wants "posix-style", but no leading slash. So
+    // C:/users/user/..., which is ugly to produce.
+    fs
+        .directory(p.join(package, 'lib'))
+        .listSync(recursive: true, followLinks: false)
         .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'))
         .where((file) => !file.path.contains('.sg.g.dart'))
         .where((file) => !file.path.contains('.sg.freezed.dart'))
         .where((file) => !file.path.endsWith('_test.dart'))
+        .where((file) => !file.path.endsWith('_intl.dart'))
         .where(isNotHiddenFile)
         .where(isNotDartHiddenFile)
         .where(isNotWithinTopLevelBuildOutputDir)
