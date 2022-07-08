@@ -278,6 +278,7 @@ Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
   }
 }
 
+/// Finds all the Dart files in any subdirectory, so we can be sure to catch any sub-packages.
 // TODO we'll probably going to need to also ignore files excluded in analysis_options.yaml
 // so that our component migrator codemods don't fail when they can't resolve the files.
 Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
@@ -304,6 +305,7 @@ Iterable<String> dartFilesToMigrateForPackage(
         .where((file) => !file.path.contains('.sg.g.dart'))
         .where((file) => !file.path.contains('.sg.freezed.dart'))
         .where((file) => !file.path.endsWith('_test.dart'))
+        .where((file) => !file.path.endsWith('_intl.dart'))
         .where(isNotHiddenFile)
         .where(isNotDartHiddenFile)
         .where(isNotWithinTopLevelBuildOutputDir)
