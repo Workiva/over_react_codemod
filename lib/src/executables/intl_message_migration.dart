@@ -304,6 +304,7 @@ Iterable<String> dartFilesToMigrateForPackage(
         .where((file) => !file.path.contains('.sg.g.dart'))
         .where((file) => !file.path.contains('.sg.freezed.dart'))
         .where((file) => !file.path.endsWith('_test.dart'))
+        .where((file) => !file.path.endsWith('_intl.dart'))
         .where(isNotHiddenFile)
         .where(isNotDartHiddenFile)
         .where(isNotWithinTopLevelBuildOutputDir)
