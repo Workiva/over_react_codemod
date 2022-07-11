@@ -191,8 +191,14 @@ void main(List<String> args) async {
     final packageRoot = p.basename(package);
     final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
     _log.info('Starting migration for $packageName');
-    final packageDartPath =
-        dartFilesToMigrateForPackage(package, processedPackages).toList();
+    final packageDartPath;
+    try {
+      packageDartPath =
+          dartFilesToMigrateForPackage(package, processedPackages).toList();
+    } on FileSystemException {
+      _log.info('${package} does not have a lib directory, moving on...');
+      continue;
+    }
     sortPartsLast(packageDartPath);
 
     final File outputFile = fs.currentDirectory.childFile(
