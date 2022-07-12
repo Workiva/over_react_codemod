@@ -3,6 +3,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:file/file.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 
 import 'constants.dart';
@@ -23,14 +24,13 @@ bool isValidStringLiteralNode(AstNode node) {
   if (node.value.isEmpty) return false;
   if (double.tryParse(node.value) != null) return false;
   if (quotedCamelCase(node.value)) return false;
-  if (node.value
-      .trim()
-      .length == 1) return false;
+  if (node.value.trim().length == 1) return false;
   return true;
 }
 
 bool isValidStringInterpolationProp(PropAssignment prop) {
   if (!propsToCheck.contains(prop.name.name)) return false;
+  if (excludeKnownBadCases(prop, prop.name.name)) return false;
   if (excludeUnlikelyExpressions(prop, prop.name.name)) return false;
   if (!isValidStringInterpolationNode(prop.rightHandSide)) return false;
   return true;
@@ -38,6 +38,7 @@ bool isValidStringInterpolationProp(PropAssignment prop) {
 
 bool isValidStringLiteralProp(PropAssignment prop) {
   if (!propsToCheck.contains(prop.name.name)) return false;
+  if (excludeKnownBadCases(prop, prop.name.name)) return false;
   if (excludeUnlikelyExpressions(prop, prop.name.name)) return false;
   if (!isValidStringLiteralNode(prop.rightHandSide)) return false;
   return true;
@@ -50,9 +51,11 @@ const intlFunctionPrefix = 'static String';
 
 /// A template to build a function name for Intl message
 /// ex: Foo_bar
-String intlFunctionName(StringInterpolation node,
-    String namePrefix,
-    int index,) =>
+String intlFunctionName(
+  StringInterpolation node,
+  String namePrefix,
+  int index,
+) =>
     '${getTestId(null, node) ?? '${namePrefix}_intlFunction$index'}';
 
 String intlFunctionParameters(StringInterpolation node) {
@@ -65,37 +68,33 @@ String intlFunctionParameters(StringInterpolation node) {
 }
 
 /// A template to build Intl.message('[message]', args: [args], name: [name]);
-String intlFunctionBody(String message,
-    String name, {
-      List<String> args = const [],
-    }) {
+String intlFunctionBody(
+  String message,
+  String name, {
+  List<String> args = const [],
+}) {
   var escapedStr = escapeApos(message);
-  return "Intl.message('${escapedStr}', ${args.isNotEmpty
-      ? 'args: ${args}, '
-      : ''}name: '$name',)";
+  return "Intl.message('${escapedStr}', ${args.isNotEmpty ? 'args: ${args}, ' : ''}name: '$name',)";
 }
 
 // --- Start Intl.message parts
 /// Converts 'Interpolated ${foo.bar} and $baz' into
 /// 'Interpolated $bar and $baz'
-String intlParameterizedMessage(StringInterpolation node) =>
-    node.elements
-        .map((e) =>
-    e is InterpolationExpression
+String intlParameterizedMessage(StringInterpolation node) => node.elements
+    .map((e) => e is InterpolationExpression
         ? '\$${toVariableName(toNestedName(e.toString()))}'
         : (e as InterpolationString).value)
-        .toList()
-        .join('');
+    .toList()
+    .join('');
 
 /// Creates the arg array for Intl.message
 /// ex: For the parameterized string 'Interpolated $bar and $baz'
 ///     it will return [bar, baz]
-List<String> intlMessageArgs(StringInterpolation node) =>
-    node.elements
-        .whereType<InterpolationExpression>()
-        .map((e) => toVariableName(toNestedName(e.expression.toString())))
-        .toSet()
-        .toList();
+List<String> intlMessageArgs(StringInterpolation node) => node.elements
+    .whereType<InterpolationExpression>()
+    .map((e) => toVariableName(toNestedName(e.expression.toString())))
+    .toSet()
+    .toList();
 
 /// Creates the parameters for the intl function call
 /// ex: For the parameterized string 'Interpolated ${foo.bar} and $baz'
@@ -116,10 +115,12 @@ String intlStringAccess(SimpleStringLiteral node, String namespace) =>
 
 /// A template to build function call intl interpolated string
 /// ex: ExampleIntl.exampleString(sting1, string2)
-String intlFunctionCall(StringInterpolation node,
-    String namespace,
-    String namePrefix,
-    int index,) {
+String intlFunctionCall(
+  StringInterpolation node,
+  String namespace,
+  String namePrefix,
+  int index,
+) {
   final functionName = intlFunctionName(node, namePrefix, index);
   final functionArgs = intlFunctionArguments(node);
   return '$namespace.$functionName$functionArgs';
@@ -139,10 +140,12 @@ String intlGetterDef(SimpleStringLiteral node, String namespace) {
 ///                                           args: [baz],
 ///                                           'name: FooBarIntl_Foo_bar',
 ///                                           );
-String intlFunctionDef(StringInterpolation node,
-    String namespace,
-    String namePrefix,
-    int index,) {
+String intlFunctionDef(
+  StringInterpolation node,
+  String namespace,
+  String namePrefix,
+  int index,
+) {
   final functionName = intlFunctionName(node, namePrefix, index);
   final functionParams = intlFunctionParameters(node);
   final parameterizedMessage = intlParameterizedMessage(node);
@@ -184,10 +187,7 @@ String removeInterpolationSyntax(String s) =>
 ///                                               );
 ///       }
 ///
-String toNestedName(String s) =>
-    removeInterpolationSyntax(s)
-        .split('.')
-        .last;
+String toNestedName(String s) => removeInterpolationSyntax(s).split('.').last;
 
 void addMethodToClass(File outputFile, String content) {
   if (!outputFile.readAsStringSync().contains(content)) {
@@ -201,7 +201,7 @@ String toClassName(String str) {
   final res = toAlphaNumeric(str.replaceAll('_', ' '));
   final pascalString = res
       .splitMapJoin(RegExp(r'(?:^\w|[A-Z]|\b\w|\s+)'),
-      onMatch: (m) => m[0]!.toUpperCase())
+          onMatch: (m) => m[0]!.toUpperCase())
       .replaceAll(' ', '');
   return '${pascalString}Intl';
 }
@@ -224,7 +224,8 @@ String toClassName(String str) {
 String toVariableName(String str) {
   String strippedName = str.replaceFirst(RegExp(r'^[0-9]*'), '').trim();
   var fiveAtMost = strippedName.split(' ');
-  fiveAtMost = fiveAtMost.sublist(0, fiveAtMost.length < 5 ? fiveAtMost.length : 5);
+  fiveAtMost =
+      fiveAtMost.sublist(0, fiveAtMost.length < 5 ? fiveAtMost.length : 5);
   final alphaNumericName = toAlphaNumeric(fiveAtMost.join(' '));
   final name = toCamelCase(alphaNumericName);
 
@@ -277,16 +278,28 @@ String? getTestId(String? testId, AstNode node) {
   }
 }
 
-bool excludeUnlikelyExpressions<E extends Expression>(PropAssignment prop,
-    String propKey) {
+/// Exclude cases we know shouldn't be localized, even though that attribute
+/// should be localized for some classes.
+bool excludeKnownBadCases(PropAssignment prop, String propKey) {
+  // TODO: If we get more of these we will want to have this check a list or similar.
+  var targetType = prop.target.staticType;
+  if (targetType == null) return false; // We don't know.
+  if (targetType.isA('AbstractSelectOptionPropsMixin') && propKey == 'value') {
+    return true;
+  }
+  return false;
+}
+
+bool excludeUnlikelyExpressions<E extends Expression>(
+    PropAssignment prop, String propKey) {
   final staticType = prop.rightHandSide.staticType;
   if (staticType == null) return true;
   if (staticType.isDartCoreBool) return true;
   if (staticType.isDartCoreNull) return true;
   if (RegExp('((List|Iterable)\<ReactElement\>|ReactElement)(\sFunction)?')
       .hasMatch(prop.rightHandSide.staticType
-      ?.getDisplayString(withNullability: false) ??
-      '')) return true;
+              ?.getDisplayString(withNullability: false) ??
+          '')) return true;
   if (prop.rightHandSide.staticType?.getDisplayString(withNullability: false) ==
       'Iterable<ReactElement>') return true;
   final source = prop.rightHandSide.toSource();
@@ -303,10 +316,9 @@ bool excludeUnlikelyExpressions<E extends Expression>(PropAssignment prop,
 }
 
 // If a string value is wrapped in quotes, and is in lowerCamelCase or UpperCamelCase, it is most likely a key of some kind, not a human-readable, translatable string.
-bool quotedCamelCase(String str) =>
-    RegExp(
+bool quotedCamelCase(String str) => RegExp(
         r"^'([a-z]+[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)|([A-Z][a-z0-9]*[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)'$")
-        .hasMatch(str);
+    .hasMatch(str);
 
 extension ReactTypes$DartType on DartType {
   bool get isComponentClass => element?.isComponentClass ?? false;
@@ -342,19 +354,18 @@ extension ElementSubtypeUtils on Element /*?*/ {
     final that = this;
     return that is ClassElement &&
         (that.isTypeFromPackage(typeName, packageName, packageType) ||
-            that.allSupertypes.any((type) =>
-                type.element
-                    .isTypeFromPackage(typeName, packageName, packageType)));
+            that.allSupertypes.any((type) => type.element
+                .isTypeFromPackage(typeName, packageName, packageType)));
   }
 
   bool isTypeFromPackage(String typeName, String packageName,
-      [PackageType packageType = PackageType.package]) =>
+          [PackageType packageType = PackageType.package]) =>
       name == typeName && isDeclaredInPackage(packageName, packageType);
 }
 
 extension on Element {
   bool isDeclaredInPackage(String packageName,
-      [PackageType packageType = PackageType.package]) =>
+          [PackageType packageType = PackageType.package]) =>
       isUriWithinPackage(source?.uri ?? Uri(), packageName, packageType);
 }
 

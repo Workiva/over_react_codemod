@@ -1,8 +1,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
@@ -13,7 +13,7 @@ class IntlMigrator extends ComponentUsageMigrator {
   IntlMigrator(this._className, this._outputFile);
 
   @override
-  String get fixmePrefix => 'FIXME(intl_migration)';
+  String get fixmePrefix => 'FIXME - INTL ';
   @override
   bool get shouldFlagUnsafeMethodCalls => false;
   @override
@@ -66,19 +66,11 @@ class IntlMigrator extends ComponentUsageMigrator {
         migrateChildStringInterpolation(node, namePrefix, index));
   }
 
-  bool isAThing(InterfaceType type, String superName) {
-    var superclasses = [
-      for (var s in type.element.allSupertypes) s.element.name
-    ];
-    print("all supertpes = $superclasses");
-    return superclasses.contains(superName);
-  }
-
   @override
   void flagCommon(FluentComponentUsage usage) {
     super.flagCommon(usage);
-    if (!isAThing(
-        usage.builderType as InterfaceType, 'FormComponentDisplayPropsMixin')) {
+    if (usage.builderType == null) return;
+    if (!(usage.builderType!.isA('FormComponentDisplayPropsMixin'))) {
       return;
     }
 
