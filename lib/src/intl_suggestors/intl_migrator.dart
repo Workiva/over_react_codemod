@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
@@ -40,7 +41,8 @@ class IntlMigrator extends ComponentUsageMigrator {
     super.migrateUsage(usage);
     final namePrefix =
         usage.node.thisOrAncestorOfType<ClassDeclaration>()?.name.name ??
-                usage.node.thisOrAncestorOfType<VariableDeclaration>()?.name.name ?? 'null';
+            usage.node.thisOrAncestorOfType<VariableDeclaration>()?.name.name ??
+            'null';
 
     //Props
     final stringLiteralProps =
@@ -62,6 +64,31 @@ class IntlMigrator extends ComponentUsageMigrator {
     //Migrate String Interpolations
     childNodes.whereType<StringInterpolation>().forEachIndexed((index, node) =>
         migrateChildStringInterpolation(node, namePrefix, index));
+  }
+
+  bool isAThing(InterfaceType type, String superName) {
+    var superclasses = [
+      for (var s in type.element.allSupertypes) s.element.name
+    ];
+    print("all supertpes = $superclasses");
+    return superclasses.contains(superName);
+  }
+
+  @override
+  void flagCommon(FluentComponentUsage usage) {
+    super.flagCommon(usage);
+    if (!isAThing(
+        usage.builderType as InterfaceType, 'FormComponentDisplayPropsMixin')) {
+      return;
+    }
+
+    for (final prop in usage.cascadedProps) {
+      var left = prop.leftHandSide;
+      if (left is PropertyAccess && left.propertyName.toString() == 'label') {
+        yieldBuilderMemberFixmePatch(prop,
+            'The "label" property may or may not be user-visible, check hideLabel');
+      }
+    }
   }
 
   void migrateChildStringLiteral(
