@@ -32,7 +32,6 @@ void main() {
   group('Utils', () {
     group('isA', () {
       late ResolvedUnitResult result;
-      CompilationUnit astNode;
 
       setUp(() async {
         // final sourceFile = SourceFile.fromString(content)

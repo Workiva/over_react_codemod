@@ -69,6 +69,8 @@ class IntlMigrator extends ComponentUsageMigrator {
   @override
   void flagCommon(FluentComponentUsage usage) {
     super.flagCommon(usage);
+    // Flag the case of the label attribute, which may be user-visible or may not, depending
+    // on the value of hideLabel.
     if (usage.builderType == null) return;
     if (!(usage.builderType!.isA('FormComponentDisplayPropsMixin'))) {
       return;
