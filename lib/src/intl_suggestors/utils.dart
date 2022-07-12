@@ -25,6 +25,12 @@ bool isValidStringLiteralNode(AstNode node) {
   if (double.tryParse(node.value) != null) return false;
   if (quotedCamelCase(node.value)) return false;
   if (node.value.trim().length == 1) return false;
+  // Uri.parse is too accepting. Also check common schemes that might make sense.
+  var mightBeAUrl = Uri.tryParse(node.value);
+  if (mightBeAUrl != null &&
+      ['http', 'https', 'wurl', 'mailTo'].contains(mightBeAUrl.scheme)) {
+    return false;
+  }
   return true;
 }
 
