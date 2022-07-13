@@ -220,11 +220,14 @@ void main(List<String> args) async {
 
     final intlPropMigrator = IntlMigrator(className, outputFile);
     final displayNameMigrator = ConfigsMigrator(className, outputFile);
+    final constantStringMigrator =
+        ConstantStringMigrator(className, outputFile);
     final importMigrator =
         (FileContext context) => intlImporter(context, packageName, className);
 
     exitCode = await runCodemodSequences(packageDartPath, [
       [intlPropMigrator],
+      [constantStringMigrator],
       [displayNameMigrator],
       [importMigrator]
     ]);
