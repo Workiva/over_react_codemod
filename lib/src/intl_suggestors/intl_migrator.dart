@@ -6,6 +6,7 @@ import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
+import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 
 /// Mark const string variables whose first character is uppercase for internationalization. e.g.
 ///
@@ -57,7 +58,7 @@ class IntlMigrator extends ComponentUsageMigrator {
   IntlMigrator(this._className, this._outputFile);
 
   @override
-  String get fixmePrefix => 'FIXME(intl_migration)';
+  String get fixmePrefix => 'FIXME - INTL ';
   @override
   bool get shouldFlagUnsafeMethodCalls => false;
   @override
@@ -108,6 +109,26 @@ class IntlMigrator extends ComponentUsageMigrator {
     //Migrate String Interpolations
     childNodes.whereType<StringInterpolation>().forEachIndexed((index, node) =>
         migrateChildStringInterpolation(node, namePrefix, index));
+  }
+
+  @override
+  void flagCommon(FluentComponentUsage usage) {
+    super.flagCommon(usage);
+    // Flag the case of the label attribute, which may be user-visible or may not, depending
+    // on the value of hideLabel.
+    if (usage.builderType == null) return;
+    if (!(usage.builderType!.isOrIsSubtypeOfClassFromPackage(
+        'FormComponentDisplayPropsMixin', 'web_skin_dart'))) {
+      return;
+    }
+
+    for (final prop in usage.cascadedProps) {
+      var left = prop.leftHandSide;
+      if (left is PropertyAccess && left.propertyName.toString() == 'label') {
+        yieldBuilderMemberFixmePatch(prop,
+            'The "label" property may or may not be user-visible, check hideLabel');
+      }
+    }
   }
 
   void migrateChildStringLiteral(

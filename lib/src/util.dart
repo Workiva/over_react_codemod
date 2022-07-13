@@ -435,6 +435,29 @@ extension TypeOrBound on DartType {
   }
 }
 
+extension IsA on DartType {
+  // Return true if we are an inteface type (normally a class) and our
+  // name is [typeName] or our supertypes includes [typeName]. e.g.
+  //
+  //    aDartType.isA('FormComponentDisplayPropsMixin'))
+  //
+  // The type name is unqualified, so this could be a false positive in the case
+  // of two inherited classes with the same name. Note that this is not like a regular
+  // Dart "is" check, which uses the runtimeType of an instance. This is checking the
+  // static type of a declaration.
+  bool isA(String typeName) {
+    if (this is! InterfaceType) return false;
+    if (this.element == null) return false;
+    if (this.getDisplayString(withNullability: false) == typeName) return true;
+    InterfaceType self = this as InterfaceType;
+
+    var supertypes = [
+      for (var type in self.element.allSupertypes) type.element.name
+    ];
+    return supertypes.contains(typeName);
+  }
+}
+
 /// Returns a lazy iterable of all descendants of [node], in breadth-first order.
 Iterable<AstNode> allDescendants(AstNode node) sync* {
   final nodesQueue = Queue<AstNode>()..add(node);
