@@ -16,14 +16,12 @@ import 'package:analyzer/error/error.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
-import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:test/test.dart';
 
 import '../resolved_file_context.dart';
 import '../util.dart';
 
 void main() {
-
   group('IntlConfigsMigrator', () {
     final resolvedContext = SharedAnalysisContext.overReact;
 
@@ -45,11 +43,9 @@ void main() {
     });
 
     test('correctly changes display name', () async {
-      testSuggestor = getSuggestorTester(
-          ConfigsMigrator('TestClassIntl', file),
+      testSuggestor = getSuggestorTester(ConfigsMigrator('TestClassIntl', file),
           resolvedContext: resolvedContext,
-          inputUrl: 'test/input/display_name_config.dart'
-      );
+          inputUrl: 'test/input/display_name_config.dart');
       await testSuggestor!(
         input: '''
             class TestExperienceConfig {
@@ -64,16 +60,15 @@ void main() {
             }
             ''',
       );
-      final expectedFileContent = "\n\tstatic String get testDisplayName => Intl.message('Test Display Name', name: 'TestClassIntl_testDisplayName',);";
+      final expectedFileContent =
+          "\n\tstatic String get testDisplayName => Intl.message('Test Display Name', name: 'TestClassIntl_testDisplayName',);";
       expect(file.readAsStringSync(), expectedFileContent);
     });
 
     test('correctly changes name', () async {
-      testSuggestor = getSuggestorTester(
-          ConfigsMigrator('TestClassIntl', file),
+      testSuggestor = getSuggestorTester(ConfigsMigrator('TestClassIntl', file),
           resolvedContext: resolvedContext,
-          inputUrl: 'test/input/name_config.dart'
-      );
+          inputUrl: 'test/input/name_config.dart');
 
       await testSuggestor!(
         input: '''
@@ -89,16 +84,15 @@ void main() {
             }
             ''',
       );
-      final expectedFileContent = "\n\tstatic String get testName => Intl.message('Test Name', name: 'TestClassIntl_testName',);";
+      final expectedFileContent =
+          "\n\tstatic String get testName => Intl.message('Test Name', name: 'TestClassIntl_testName',);";
       expect(file.readAsStringSync(), expectedFileContent);
     });
 
     test('correctly changes title', () async {
-      testSuggestor = getSuggestorTester(
-          ConfigsMigrator('TestClassIntl', file),
+      testSuggestor = getSuggestorTester(ConfigsMigrator('TestClassIntl', file),
           resolvedContext: resolvedContext,
-          inputUrl: 'test/input/title_config.dart'
-      );
+          inputUrl: 'test/input/title_config.dart');
       await testSuggestor!(
         input: '''
             class TestExperienceConfig {
@@ -113,10 +107,10 @@ void main() {
             }
             ''',
       );
-      final expectedFileContent = "\n\tstatic String get testTitle => Intl.message('Test Title', name: 'TestClassIntl_testTitle',);";
+      final expectedFileContent =
+          "\n\tstatic String get testTitle => Intl.message('Test Title', name: 'TestClassIntl_testTitle',);";
       expect(file.readAsStringSync(), expectedFileContent);
     });
-
   });
 }
 
