@@ -13,47 +13,22 @@
 // limitations under the License.
 
 @TestOn('vm')
-import 'dart:io';
-
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:over_react_codemod/src/constants.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/executables/dependency_validator_ignore.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
-import 'package:over_react_codemod/src/util.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 
+import 'package:over_react_codemod/src/constants.dart';
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
+import 'package:over_react_codemod/src/util.dart';
+
 void main() {
   group('Utils', () {
-    group('isA', () {
-      late ResolvedUnitResult result;
-
-      setUp(() async {
-        // final sourceFile = SourceFile.fromString(content)
-        // astNode = parseString(content: content).unit;
-        var path = p.join(Directory.current.absolute.path, 'test',
-            'util_test_things_to_parse.dart');
-        print("reading $path");
-        result = (await resolveFile2(path: path)) as ResolvedUnitResult;
-      });
-
-      test('checkClass', () {
-        var cType =
-            (result.unit?.declarations.last as TopLevelVariableDeclaration)
-                .variables
-                .type
-                ?.type;
-        expect(cType?.isA('foo'), isFalse);
-        expect(cType?.isA('A'), isTrue);
-        expect(cType?.isA('B'), isTrue);
-        expect(cType?.isA('C'), isTrue);
-      });
-    });
     group('buildIgnoreComment()', () {
       test('constInitializedWithNonConstantValue', () {
         expect(buildIgnoreComment(constInitializedWithNonConstantValue: true),

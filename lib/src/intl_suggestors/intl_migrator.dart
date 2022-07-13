@@ -2,9 +2,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
-import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
+import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 
 class IntlMigrator extends ComponentUsageMigrator {
   final File _outputFile;
@@ -72,7 +72,8 @@ class IntlMigrator extends ComponentUsageMigrator {
     // Flag the case of the label attribute, which may be user-visible or may not, depending
     // on the value of hideLabel.
     if (usage.builderType == null) return;
-    if (!(usage.builderType!.isA('FormComponentDisplayPropsMixin'))) {
+    if (!(usage.builderType!.isOrIsSubtypeOfClassFromPackage(
+        'FormComponentDisplayPropsMixin', 'web_skin_dart'))) {
       return;
     }
 

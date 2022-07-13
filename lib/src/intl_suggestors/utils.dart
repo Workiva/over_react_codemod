@@ -3,8 +3,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:file/file.dart';
-import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
+import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 
 import 'constants.dart';
 
@@ -290,7 +290,9 @@ bool excludeKnownBadCases(PropAssignment prop, String propKey) {
   // TODO: If we get more of these we will want to have this check a list or similar.
   var targetType = prop.target.staticType;
   if (targetType == null) return false; // We don't know.
-  if (targetType.isA('AbstractSelectOptionPropsMixin') && propKey == 'value') {
+  if (targetType.isOrIsSubtypeOfClassFromPackage(
+          'AbstractSelectOptionPropsMixin', 'web_skin_dart') &&
+      propKey == 'value') {
     return true;
   }
   return false;
@@ -366,11 +368,11 @@ extension ElementSubtypeUtils on Element /*?*/ {
 
   bool isTypeFromPackage(String typeName, String packageName,
           [PackageType packageType = PackageType.package]) =>
-      name == typeName && isDeclaredInPackage(packageName, packageType);
+      name == typeName && isDeclaredInPackageOfType(packageName, packageType);
 }
 
-extension on Element {
-  bool isDeclaredInPackage(String packageName,
+extension ElementChecks on Element {
+  bool isDeclaredInPackageOfType(String packageName,
           [PackageType packageType = PackageType.package]) =>
       isUriWithinPackage(source?.uri ?? Uri(), packageName, packageType);
 }
