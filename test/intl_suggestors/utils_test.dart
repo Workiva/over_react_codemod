@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:test/test.dart';
 
+import '../resolved_file_context.dart';
+
 void main() {
-  group('IntlUtils', ()
-  {
+  group('IntlUtils', () {
     group('removeInterpolationSyntax', () {
       test('\$a', () async {
         var inputString = '\$a';
@@ -63,8 +65,45 @@ void main() {
       test('home example', () {
         final fileStr = 'test1';
         final refStr = 'test2';
-        final result = escapeApos('Now that you\'ve transitioned your $fileStr, you\'ll want to freeze $refStr or update permissions to prevent others from using $refStr.');
-        expect(result, 'Now that you\\\'ve transitioned your $fileStr, you\\\'ll want to freeze $refStr or update permissions to prevent others from using $refStr.');
+        final result = escapeApos(
+            'Now that you\'ve transitioned your $fileStr, you\'ll want to freeze $refStr or update permissions to prevent others from using $refStr.');
+        expect(result,
+            'Now that you\\\'ve transitioned your $fileStr, you\\\'ll want to freeze $refStr or update permissions to prevent others from using $refStr.');
+      });
+    });
+
+    group('Multiline vs. Single line', () {
+      final sharedContext = SharedAnalysisContext.overReact;
+
+      // Warm up analysis in a setUpAll so that if getting the resolved AST times out
+      // (which is more common for the WSD context), it fails here instead of failing the first test.
+      setUpAll(sharedContext.warmUpAnalysis);
+
+      void runResults(
+          String testStr, bool isMultiline, String expectedResult) async {
+        final parsedExpression = await sharedContext.parseExpression(testStr);
+        expect(parsedExpression is StringInterpolation, isTrue);
+
+        final parsedInterpolation = parsedExpression as StringInterpolation;
+        expect(parsedInterpolation.isMultiline, isMultiline);
+
+        final testResult =
+            intlFunctionDef(parsedInterpolation, 'Namespace', "NamePrefix", 0);
+        expect(expectedResult, testResult);
+      }
+
+      test('single line', () async {
+        final testStr = r"'${singleLine}'";
+        final expectedResult =
+            "\n\tstatic String NamePrefix_intlFunction0(String singleLine) => Intl.message('\$singleLine', args: [singleLine], name: 'Namespace_NamePrefix_intlFunction0',);";
+        runResults(testStr, false, expectedResult);
+      });
+
+      test('multiline', () async {
+        final testStr = r"'''${multiline}'''";
+        final expectedResult =
+            "\n\tstatic String NamePrefix_intlFunction0(String multiline) => Intl.message('''\$multiline''', args: [multiline], name: 'Namespace_NamePrefix_intlFunction0',);";
+        runResults(testStr, true, expectedResult);
       });
     });
 

@@ -78,9 +78,11 @@ String intlFunctionBody(
   String message,
   String name, {
   List<String> args = const [],
+  bool isMultiline = false,
 }) {
   var escapedStr = escapeApos(message);
-  return "Intl.message('${escapedStr}', ${args.isNotEmpty ? 'args: ${args}, ' : ''}name: '$name',)";
+  String delimiter = (isMultiline) ? "'''" : "'";
+  return "Intl.message(${delimiter}${escapedStr}${delimiter}, ${args.isNotEmpty ? 'args: ${args}, ' : ''}name: '$name',)";
 }
 
 // --- Start Intl.message parts
@@ -136,7 +138,8 @@ String intlFunctionCall(
 /// ex: static String get fooBar => Intl.message('Foo Bar','name: FooBarIntl_fooBar',);
 String intlGetterDef(SimpleStringLiteral node, String namespace) {
   final varName = toVariableName(node.stringValue!);
-  final message = intlFunctionBody(node.stringValue!, '${namespace}_$varName');
+  final message = intlFunctionBody(node.stringValue!, '${namespace}_$varName',
+      isMultiline: node.isMultiline);
   return '\n\t$intlFunctionPrefix get $varName => $message;';
 }
 
@@ -157,10 +160,8 @@ String intlFunctionDef(
   final parameterizedMessage = intlParameterizedMessage(node);
   final messageArgs = intlMessageArgs(node);
   final message = intlFunctionBody(
-    parameterizedMessage,
-    '${namespace}_$functionName',
-    args: messageArgs,
-  );
+      parameterizedMessage, '${namespace}_$functionName',
+      args: messageArgs, isMultiline: node.isMultiline);
   return '\n\t$intlFunctionPrefix $functionName$functionParams => $message;';
 }
 // -- End Intl helpers --
