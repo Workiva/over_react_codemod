@@ -38,6 +38,7 @@ const _verboseFlag = 'verbose';
 const _yesToAllFlag = 'yes-to-all';
 const _failOnChangesFlag = 'fail-on-changes';
 const _stderrAssumeTtyFlag = 'stderr-assume-tty';
+const _migrateConstants = 'migrate-constants';
 const _allCodemodFlags = {
   _verboseFlag,
   _yesToAllFlag,
@@ -77,6 +78,13 @@ void main(List<String> args) async {
       _stderrAssumeTtyFlag,
       negatable: false,
       help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
+    )
+    ..addFlag(
+      _migrateConstants,
+      negatable: true,
+      defaultsTo: false,
+      help:
+          'Should the codemod try to migrate constant Strings that look user-visible',
     )
     ..addMultiOption(
       'migrators',
@@ -227,7 +235,7 @@ void main(List<String> args) async {
 
     exitCode = await runCodemodSequences(packageDartPath, [
       [intlPropMigrator],
-      [constantStringMigrator],
+      if (parsedArgs[_migrateConstants]) [constantStringMigrator],
       [displayNameMigrator],
       [importMigrator]
     ]);

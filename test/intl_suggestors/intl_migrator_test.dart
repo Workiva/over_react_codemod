@@ -662,7 +662,6 @@ void main() {
         final expectedFileContent =
             "\n\tstatic String Foo_intlFunction0(String fileStr, String refStr) => Intl.message('Now that you\\\'ve transitioned your \$fileStr, you\\\'ll want to freeze \$refStr or update permissions to prevent others from using \$refStr.', args: [fileStr, refStr], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
-
       });
     });
 
@@ -697,7 +696,8 @@ void main() {
               ''',
         );
 
-        final expectedFileOutput = '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
+        final expectedFileOutput =
+            '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
         expect(file.readAsStringSync(), expectedFileOutput);
       });
 
@@ -732,7 +732,8 @@ void main() {
                }
               ''',
         );
-        final expectedFileOutput = '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
+        final expectedFileOutput =
+            '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
         expect(file.readAsStringSync(), expectedFileOutput);
       });
 
@@ -761,9 +762,9 @@ void main() {
                 );
                 ''',
         );
-        final expectedFileOutput = '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
-        expect(file.readAsStringSync(),
-            expectedFileOutput);
+        final expectedFileOutput =
+            '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
+        expect(file.readAsStringSync(), expectedFileOutput);
       });
     });
 
