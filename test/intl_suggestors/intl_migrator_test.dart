@@ -168,9 +168,42 @@ void main() {
                 );
               ''',
         );
+      });
+
+      test('one argument interpolation followed by text', () async {
+        await testSuggestor(
+          input: '''
+                import 'package:over_react/over_react.dart';
+
+                mixin FooProps on UiProps {}
+
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {
+                    final number = '42';
+
+                    return (Dom.div())('Distance \${number}km');
+                  },
+                  _\$FooConfig, //ignore: undefined_identifier
+                );
+                ''',
+          expectedOutput: '''
+                import 'package:over_react/over_react.dart';
+
+                mixin FooProps on UiProps {}
+
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {
+                    final number = '42';
+
+                    return (Dom.div())(TestClassIntl.Foo_intlFunction0(number));
+                  },
+                  _\$FooConfig, //ignore: undefined_identifier
+                );
+              ''',
+        );
 
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String name) => Intl.message('Interpolated \$name', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String number) => Intl.message('Distance \${number}km', args: [number], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -208,7 +241,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \$name \$title', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -246,7 +279,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String name) => Intl.message('Interpolated \$name', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -288,7 +321,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \$name \$title', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -326,7 +359,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String name) => Intl.message('Interpolated \$name', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -406,7 +439,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String getName) => Intl.message('His name was \$getName', args: [getName], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -445,7 +478,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \$lastName', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
       test('Interpolated with testId string', () async {
@@ -491,7 +524,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n\tstatic String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);";
+            "\n\tstatic String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -546,7 +579,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n\tstatic String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);";
+            "\n\tstatic String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -615,9 +648,9 @@ void main() {
         );
 
         String expectedFileContent1 =
-            "\n\tstatic String foo(String displayName) => Intl.message('Create one from any \$displayName by selecting Save As Template', args: [displayName], name: 'TestClassIntl_foo',);";
+            "\n\tstatic String foo(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_foo',);";
         String expectedFileContent2 =
-            "\n\tstatic String bar(String displayName) => Intl.message('Create one from any \$displayName by selecting Save As Template', args: [displayName], name: 'TestClassIntl_bar',);";
+            "\n\tstatic String bar(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_bar',);";
         expect(file.readAsStringSync(),
             [expectedFileContent1, expectedFileContent2].join(''));
       });
@@ -660,9 +693,8 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String fileStr, String refStr) => Intl.message('Now that you\\\'ve transitioned your \$fileStr, you\\\'ll want to freeze \$refStr or update permissions to prevent others from using \$refStr.', args: [fileStr, refStr], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String fileStr, String refStr) => Intl.message('Now that you\\\'ve transitioned your \${fileStr}, you\\\'ll want to freeze \${refStr} or update permissions to prevent others from using \${refStr}.', args: [fileStr, refStr], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
-
       });
     });
 
@@ -697,7 +729,8 @@ void main() {
               ''',
         );
 
-        final expectedFileOutput = '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
+        final expectedFileOutput =
+            '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
         expect(file.readAsStringSync(), expectedFileOutput);
       });
 
@@ -732,7 +765,8 @@ void main() {
                }
               ''',
         );
-        final expectedFileOutput = '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
+        final expectedFileOutput =
+            '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
         expect(file.readAsStringSync(), expectedFileOutput);
       });
 
@@ -761,9 +795,9 @@ void main() {
                 );
                 ''',
         );
-        final expectedFileOutput = '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
-        expect(file.readAsStringSync(),
-            expectedFileOutput);
+        final expectedFileOutput =
+            '\n\tstatic String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
+        expect(file.readAsStringSync(), expectedFileOutput);
       });
     });
 
@@ -803,7 +837,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String name) => Intl.message('Interpolated \$name', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -843,7 +877,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \$name \$title', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -883,7 +917,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String name) => Intl.message('Interpolated \$name', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -925,7 +959,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \$name \$title', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -1007,7 +1041,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String getName) => Intl.message('His name was \$getName', args: [getName], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -1048,7 +1082,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n\tstatic String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \$lastName', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n\tstatic String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -1091,7 +1125,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n\tstatic String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);";
+            "\n\tstatic String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -1142,7 +1176,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n\tstatic String versionInfo(String version) => Intl.message('Version \$version', args: [version], name: 'TestClassIntl_versionInfo',);";
+            "\n\tstatic String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
     });
