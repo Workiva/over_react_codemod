@@ -90,10 +90,15 @@ String intlFunctionBody(
 /// 'Interpolated $bar and $baz'
 String intlParameterizedMessage(StringInterpolation node) => node.elements
     .map((e) => e is InterpolationExpression
-        ? '\$${toVariableName(toNestedName(e.toString()))}'
+        ? intlInterpolation(e)
         : (e as InterpolationString).value)
     .toList()
     .join('');
+
+String intlInterpolation(InterpolationExpression e) {
+  var name = toVariableName(toNestedName('$e'));
+  return r'${' + name + '}';
+}
 
 /// Creates the arg array for Intl.message
 /// ex: For the parameterized string 'Interpolated $bar and $baz'

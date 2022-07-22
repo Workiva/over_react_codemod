@@ -95,14 +95,14 @@ void main() {
       test('single line', () async {
         final testStr = r"'${singleLine}'";
         final expectedResult =
-            "\n\tstatic String NamePrefix_intlFunction0(String singleLine) => Intl.message('\$singleLine', args: [singleLine], name: 'Namespace_NamePrefix_intlFunction0',);";
+            "\n\tstatic String NamePrefix_intlFunction0(String singleLine) => Intl.message('\${singleLine}', args: [singleLine], name: 'Namespace_NamePrefix_intlFunction0',);";
         runResults(testStr, false, expectedResult);
       });
 
       test('multiline', () async {
         final testStr = r"'''${multiline}'''";
         final expectedResult =
-            "\n\tstatic String NamePrefix_intlFunction0(String multiline) => Intl.message('''\$multiline''', args: [multiline], name: 'Namespace_NamePrefix_intlFunction0',);";
+            "\n\tstatic String NamePrefix_intlFunction0(String multiline) => Intl.message('''\${multiline}''', args: [multiline], name: 'Namespace_NamePrefix_intlFunction0',);";
         runResults(testStr, true, expectedResult);
       });
     });
