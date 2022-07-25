@@ -72,8 +72,25 @@ void main() {
 
     testCodemod('Output is sorted',
         script: script,
-        input: inputFiles(),
-        expectedOutput: expectedOutputFiles(),
+        input: inputFiles(additionalFilesInLib: [
+          d.file('more_stuff.dart',
+              /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
+
+someMoreStrings() => (mui.Button()..aria.label='orange')('aquamarine');''')
+        ]),
+        expectedOutput: expectedOutputFiles(
+            additionalFilesInLib: [
+              d.file('more_stuff.dart',
+                  /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
+import 'package:test_project/src/intl/test_project_intl.dart';
+
+someMoreStrings() => (mui.Button()..aria.label=TestProjectIntl.orange)(TestProjectIntl.aquamarine);''')
+            ],
+            messages: [
+              ...defaultMessages,
+              "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange',);",
+              "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine',);"
+            ]..sort()),
         args: ['--yes-to-all']);
   });
 }
@@ -102,13 +119,19 @@ usage() => (mui.Button()..aria.label='Sorts later')('Literal String');''')
   ]);
 }
 
+const List<String> defaultMessages = [
+  "  static String get literalString => Intl.message('Literal String', name: 'TestProjectIntl_literalString',);",
+  "  static String get sortsLater => Intl.message('Sorts later', name: 'TestProjectIntl_sortsLater',);"
+];
+
 d.DirectoryDescriptor expectedOutputFiles({
   Iterable<d.Descriptor> additionalFilesInLib = const [],
+  List<String> messages = defaultMessages,
   String rmuiVersionConstraint = '^1.1.1',
-}) =>
-    d.dir('project', [
-      // Note that the codemod doesn't currently add the intl dependency to the pubspec.
-      d.file('pubspec.yaml', /*language=yaml*/ '''
+}) {
+  return d.dir('project', [
+    // Note that the codemod doesn't currently add the intl dependency to the pubspec.
+    d.file('pubspec.yaml', /*language=yaml*/ '''
 name: test_project
 environment:
   sdk: '>=2.11.0 <3.0.0'
@@ -118,24 +141,24 @@ dependencies:
       name: react_material_ui
       url: https://pub.workiva.org
     version: $rmuiVersionConstraint'''),
-      d.dir('lib', [
-        ...additionalFilesInLib,
-        d.file('usage.dart', /*language=dart*/ '''
+    d.dir('lib', [
+      ...additionalFilesInLib,
+      d.file('usage.dart', /*language=dart*/ '''
 import 'package:react_material_ui/react_material_ui.dart' as mui;
 import 'package:test_project/src/intl/test_project_intl.dart';
 
 usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl.literalString);'''),
-        d.dir('src', [
-          d.dir('intl', [
-            d.file('test_project_intl.dart', /*language=dart*/ '''
+      d.dir('src', [
+        d.dir('intl', [
+          d.file('test_project_intl.dart', /*language=dart*/ '''
 import 'package:intl/intl.dart';
 
 //ignore: avoid_classes_with_only_static_members
 class TestProjectIntl {
-  static String get literalString => Intl.message('Literal String', name: 'TestProjectIntl_literalString',);
-  static String get sortsLater => Intl.message('Sorts later', name: 'TestProjectIntl_sortsLater',);
+${messages.join('\n')}
 }''')
-          ]),
         ]),
       ]),
-    ]);
+    ]),
+  ]);
+}
