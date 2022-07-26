@@ -89,7 +89,7 @@ someMoreStrings() => (mui.Button()..aria.label=TestProjectIntl.orange)(TestProje
               "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine',);"
             ]..sort()),
         args: ['--yes-to-all']);
-  });
+  }, tags: 'wsd');
 }
 
 d.DirectoryDescriptor inputFiles(
