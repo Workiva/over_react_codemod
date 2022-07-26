@@ -87,10 +87,11 @@ void main(List<String> args) async {
   final parsedArgs = parser.parse(args);
 
   if (parsedArgs['help'] as bool) {
-    stderr.writeln('Migrates string usage to wrap in Intl.message');
+    stderr.writeln(
+        'Migrates literal strings that seem user-visible in the package by wrapping them in Intl.message calls.');
     stderr.writeln();
     stderr.writeln('Usage:');
-    stderr.writeln('    intl_migration [arguments]');
+    stderr.writeln('    intl_message_migration [arguments]');
     stderr.writeln();
     stderr.writeln('Options:');
     stderr.writeln(parser.usage);
