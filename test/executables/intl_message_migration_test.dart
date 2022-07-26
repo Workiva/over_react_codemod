@@ -22,7 +22,7 @@ import 'mui_migration_test.dart' show testCodemod;
 
 // Change this to `true` and all of the functional tests in this file will print
 // the stdout/stderr of the codemod processes.
-final _debug = true;
+final _debug = false;
 
 void main() {
   group('intl_message_migration executable', () {
@@ -43,10 +43,7 @@ void main() {
           ));
     });
 
-    testCodemod(
-        'applies all patches via --yes-to-all,'
-        'and also correctly runs `pub get` if needed, migrates components,'
-        ' adds MUI imports, and removes WSD imports all in a single run',
+    testCodemod('applies all patches via --yes-to-all,',
         script: script,
         input: inputFiles(),
         expectedOutput: expectedOutputFiles(),
