@@ -61,7 +61,7 @@ void main() {
             ''',
       );
       final expectedFileContent =
-          "\n\tstatic String get testDisplayName => Intl.message('Test Display Name', name: 'TestClassIntl_testDisplayName',);";
+          "\n  static String get testDisplayName => Intl.message('Test Display Name', name: 'TestClassIntl_testDisplayName',);";
       expect(file.readAsStringSync(), expectedFileContent);
     });
 
@@ -85,7 +85,7 @@ void main() {
             ''',
       );
       final expectedFileContent =
-          "\n\tstatic String get testName => Intl.message('Test Name', name: 'TestClassIntl_testName',);";
+          "\n  static String get testName => Intl.message('Test Name', name: 'TestClassIntl_testName',);";
       expect(file.readAsStringSync(), expectedFileContent);
     });
 
@@ -108,7 +108,7 @@ void main() {
             ''',
       );
       final expectedFileContent =
-          "\n\tstatic String get testTitle => Intl.message('Test Title', name: 'TestClassIntl_testTitle',);";
+          "\n  static String get testTitle => Intl.message('Test Title', name: 'TestClassIntl_testTitle',);";
       expect(file.readAsStringSync(), expectedFileContent);
     });
   });

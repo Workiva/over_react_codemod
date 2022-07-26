@@ -90,10 +90,15 @@ String intlFunctionBody(
 /// 'Interpolated $bar and $baz'
 String intlParameterizedMessage(StringInterpolation node) => node.elements
     .map((e) => e is InterpolationExpression
-        ? '\$${toVariableName(toNestedName(e.toString()))}'
+        ? intlInterpolation(e)
         : (e as InterpolationString).value)
     .toList()
     .join('');
+
+String intlInterpolation(InterpolationExpression e) {
+  var name = toVariableName(toNestedName('$e'));
+  return r'${' + name + '}';
+}
 
 /// Creates the arg array for Intl.message
 /// ex: For the parameterized string 'Interpolated $bar and $baz'
@@ -140,7 +145,7 @@ String intlGetterDef(SimpleStringLiteral node, String namespace) {
   final varName = toVariableName(node.stringValue!);
   final message = intlFunctionBody(node.stringValue!, '${namespace}_$varName',
       isMultiline: node.isMultiline);
-  return '\n\t$intlFunctionPrefix get $varName => $message;';
+  return '\n  $intlFunctionPrefix get $varName => $message;';
 }
 
 /// Returns Intl.message with interpolation
@@ -162,7 +167,7 @@ String intlFunctionDef(
   final message = intlFunctionBody(
       parameterizedMessage, '${namespace}_$functionName',
       args: messageArgs, isMultiline: node.isMultiline);
-  return '\n\t$intlFunctionPrefix $functionName$functionParams => $message;';
+  return '\n  $intlFunctionPrefix $functionName$functionParams => $message;';
 }
 // -- End Intl helpers --
 

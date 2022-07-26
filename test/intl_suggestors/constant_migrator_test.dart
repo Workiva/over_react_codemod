@@ -42,7 +42,7 @@ void main() {
             ''',
         );
         final expectedFileContent =
-            '\n\tstatic String get iAmAUservisibleConstant => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_iAmAUservisibleConstant\',);';
+            '\n  static String get iAmAUservisibleConstant => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_iAmAUservisibleConstant\',);';
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -73,7 +73,7 @@ void main() {
             ''',
         );
         final expectedFileContent =
-            '\n\tstatic String get iAmAUservisibleConstant => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_iAmAUservisibleConstant\',);';
+            '\n  static String get iAmAUservisibleConstant => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_iAmAUservisibleConstant\',);';
         expect(file.readAsStringSync(), expectedFileContent);
       });
     });
