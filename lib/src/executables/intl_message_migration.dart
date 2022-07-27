@@ -47,54 +47,46 @@ const _allCodemodFlags = {
 
 final FileSystem fs = const LocalFileSystem();
 
+final parser = ArgParser()
+  ..addFlag(
+    'help',
+    abbr: 'h',
+    negatable: false,
+    help: 'Prints this help output.',
+  )
+  ..addFlag(
+    'verbose',
+    abbr: 'v',
+    negatable: false,
+    help: 'Outputs all logging to stdout/stderr.',
+  )
+  ..addFlag(
+    _yesToAllFlag,
+    negatable: false,
+    help: 'Forces all patches accepted without prompting the user. '
+        'Useful for scripts.',
+  )
+  ..addFlag(
+    _failOnChangesFlag,
+    negatable: false,
+    help: 'Returns a non-zero exit code if there are changes to be made. '
+        'Will not make any changes (i.e. this is a dry-run).',
+  )
+  ..addFlag(
+    _stderrAssumeTtyFlag,
+    negatable: false,
+    help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
+  )
+  ..addMultiOption(
+    'migrators',
+    defaultsTo: ['prop', 'child', 'displayName'],
+    allowed: ['prop', 'child', 'displayName'],
+  );
+
 void main(List<String> args) async {
-  final parser = ArgParser()
-    ..addFlag(
-      'help',
-      abbr: 'h',
-      negatable: false,
-      help: 'Prints this help output.',
-    )
-    ..addFlag(
-      'verbose',
-      abbr: 'v',
-      negatable: false,
-      help: 'Outputs all logging to stdout/stderr.',
-    )
-    ..addFlag(
-      _yesToAllFlag,
-      negatable: false,
-      help: 'Forces all patches accepted without prompting the user. '
-          'Useful for scripts.',
-    )
-    ..addFlag(
-      _failOnChangesFlag,
-      negatable: false,
-      help: 'Returns a non-zero exit code if there are changes to be made. '
-          'Will not make any changes (i.e. this is a dry-run).',
-    )
-    ..addFlag(
-      _stderrAssumeTtyFlag,
-      negatable: false,
-      help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
-    )
-    ..addMultiOption(
-      'migrators',
-      defaultsTo: ['prop', 'child', 'displayName'],
-      allowed: ['prop', 'child', 'displayName'],
-    );
-
   final parsedArgs = parser.parse(args);
-
   if (parsedArgs['help'] as bool) {
-    stderr.writeln(
-        'Migrates literal strings that seem user-visible in the package by wrapping them in Intl.message calls.');
-    stderr.writeln();
-    stderr.writeln('Usage:');
-    stderr.writeln('    intl_message_migration [arguments]');
-    stderr.writeln();
-    stderr.writeln('Options:');
-    stderr.writeln(parser.usage);
+    printUsage();
     return;
   }
 
@@ -126,36 +118,12 @@ void main(List<String> args) async {
   if (exitCode != 0) return;
   print('^ Ignore the "codemod found no files" warning above for now.');
 
-  /// Runs a set of codemod sequences separately to work around an issue where
-  /// updates from an earlier suggestor aren't reflected in the resolved AST
-  /// for later suggestors.
-  ///
-  /// This means we have to set up analysis contexts multiple times, which takes longer,
-  /// but isn't a dealbreaker. E.g., for wdesk_sdk, running two sequences takes 2:52
-  /// as opposed to 2:00 for one sequence.
-  ///
-  /// If any sequence fails, returns that exit code and short-circuits the other
-  /// sequences.
+  // If we have specified paths on the command line, limit our processing to
+  // those, and make sure they're absolute.
+  var dartPaths = parsedArgs.rest.isEmpty
+      ? dartFilesToMigrate().toList()
+      : [for (var path in parsedArgs.rest) p.absolute(path)];
 
-  Future<int> runCodemodSequences(
-    Iterable<String> paths,
-    Iterable<Iterable<Suggestor>> sequences,
-  ) async {
-    for (final sequence in sequences) {
-      final exitCode = await runInteractiveCodemodSequence(
-        paths,
-        sequence,
-        defaultYes: true,
-        args: codemodArgs,
-        additionalHelpOutput: parser.usage,
-      );
-      if (exitCode != 0) return exitCode;
-    }
-
-    return 0;
-  }
-
-  final dartPaths = dartFilesToMigrate().toList();
   // Work around parts being unresolved if you resolve them before their libraries.
   // TODO - reference analyzer issue for this once it's created
   final packageRoots = dartPaths.map(findPackageRootFor).toSet().toList();
@@ -177,6 +145,8 @@ void main(List<String> args) async {
   final processedPackages = Set<String>();
   await pubGetForAllPackageRoots(dartPaths);
 
+  // Is this necessary, or a duplicate of the earlier call? Like, do we have to run
+  // a null codemod again after the pub get?
   exitCode = await runInteractiveCodemod(
     [],
     (_) async* {},
@@ -187,61 +157,123 @@ void main(List<String> args) async {
   print('^ Ignore the "codemod found no files" warning above for now.');
 
   for (String package in packageRoots) {
-    _log.info('Starting migration for $package');
+    await migratePackage(
+        package, packageNameLookup, processedPackages, codemodArgs, dartPaths);
+  }
+}
 
-    final packageRoot = p.basename(package);
-    final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
-    _log.info('Starting migration for $packageName');
-    final packageDartPath;
-    try {
-      packageDartPath =
-          dartFilesToMigrateForPackage(package, processedPackages).toList();
-    } on FileSystemException {
-      _log.info('${package} does not have a lib directory, moving on...');
-      continue;
-    }
-    sortPartsLast(packageDartPath);
+void printUsage() {
+  stderr.writeln(
+      'Migrates literal strings that seem user-visible in the package by wrapping them in Intl.message calls.');
+  stderr.writeln();
+  stderr.writeln('Usage:');
+  stderr.writeln('    intl_message_migration [arguments]');
+  stderr.writeln();
+  stderr.writeln('Options:');
+  stderr.writeln(parser.usage);
+}
 
-    final File outputFile = fs.currentDirectory.childFile(
-        p.join(package, 'lib', 'src', 'intl', '${packageName}_intl.dart'));
-    final bool existingOutputFile = outputFile.existsSync();
+/// Runs a set of codemod sequences separately to work around an issue where
+/// updates from an earlier suggestor aren't reflected in the resolved AST
+/// for later suggestors.
+///
+/// This means we have to set up analysis contexts multiple times, which takes longer,
+/// but isn't a dealbreaker. E.g., for wdesk_sdk, running two sequences takes 2:52
+/// as opposed to 2:00 for one sequence.
+///
+/// If any sequence fails, returns that exit code and short-circuits the other
+/// sequences.
+Future<int> runCodemodSequences(
+  Iterable<String> paths,
+  Iterable<Iterable<Suggestor>> sequences,
+  List<String> codemodArgs,
+) async {
+  for (final sequence in sequences) {
+    final exitCode = await runInteractiveCodemodSequence(
+      paths,
+      sequence,
+      defaultYes: true,
+      args: codemodArgs,
+      additionalHelpOutput: parser.usage,
+    );
+    if (exitCode != 0) return exitCode;
+  }
 
-    final className = toClassName('${packageName}');
-    final classPredicate =
-        "import 'package:intl/intl.dart';\n\n//ignore: avoid_classes_with_only_static_members\nclass $className {\n";
-    if (!existingOutputFile) {
-      outputFile.createSync(recursive: true);
-      outputFile.writeAsStringSync(classPredicate);
-    } else {
-      final List<String> lines = outputFile.readAsLinesSync();
-      lines.removeLast();
-      String outputContent = lines.join('\n');
-      outputFile.writeAsStringSync(outputContent);
-    }
+  return 0;
+}
 
-    final intlPropMigrator = IntlMigrator(className, outputFile);
-    final displayNameMigrator = ConfigsMigrator(className, outputFile);
-    final importMigrator =
-        (FileContext context) => intlImporter(context, packageName, className);
+/// Migrate files included in [paths] within [package].
+///
+/// We expect [paths] to be absolute.
+Future<void> migratePackage(
+    String package,
+    Map<String, String> packageNameLookup,
+    Set<String> processedPackages,
+    List<String> codemodArgs,
+    List<String> paths) async {
+  _log.info('Starting migration for $package');
 
-    exitCode = await runCodemodSequences(packageDartPath, [
-      [intlPropMigrator],
-      [displayNameMigrator],
-      [importMigrator]
-    ]);
+  final packageRoot = p.basename(package);
+  final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
+  _log.info('Starting migration for $packageName');
+  List<String> packageDartPaths;
+  try {
+    packageDartPaths =
+        dartFilesToMigrateForPackage(package, processedPackages).toList();
+  } on FileSystemException {
+    _log.info('${package} does not have a lib directory, moving on...');
+    return;
+  }
 
-    processedPackages.add(package);
-    if (exitCode != 0 || outputFile.readAsStringSync() == classPredicate) {
-      outputFile.deleteSync();
-    } else {
-      List<String> lines = outputFile.readAsLinesSync();
-      final functions = lines.sublist(4);
-      functions.removeWhere((string) => string == '');
-      functions.sort();
-      lines.replaceRange(4, lines.length, functions);
-      lines.add('}');
-      outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
-    }
+  // Limit the paths we handle to those that were included in [paths]
+  packageDartPaths = [
+    for (var path in packageDartPaths)
+      if (paths.contains(path)) path
+  ];
+  sortPartsLast(packageDartPaths);
+
+  final File outputFile = fs.currentDirectory.childFile(
+      p.join(package, 'lib', 'src', 'intl', '${packageName}_intl.dart'));
+  final bool existingOutputFile = outputFile.existsSync();
+
+  final className = toClassName('${packageName}');
+  final classPredicate =
+      "import 'package:intl/intl.dart';\n\n//ignore: avoid_classes_with_only_static_members\nclass $className {\n";
+  if (!existingOutputFile) {
+    outputFile.createSync(recursive: true);
+    outputFile.writeAsStringSync(classPredicate);
+  } else {
+    final List<String> lines = outputFile.readAsLinesSync();
+    lines.removeLast();
+    String outputContent = lines.join('\n');
+    outputFile.writeAsStringSync(outputContent);
+  }
+
+  final intlPropMigrator = IntlMigrator(className, outputFile);
+  final displayNameMigrator = ConfigsMigrator(className, outputFile);
+  final importMigrator =
+      (FileContext context) => intlImporter(context, packageName, className);
+
+  exitCode = await runCodemodSequences(
+      packageDartPaths,
+      [
+        [intlPropMigrator],
+        [displayNameMigrator],
+        [importMigrator],
+      ],
+      codemodArgs);
+
+  processedPackages.add(package);
+  if (exitCode != 0 || outputFile.readAsStringSync() == classPredicate) {
+    outputFile.deleteSync();
+  } else {
+    List<String> lines = outputFile.readAsLinesSync();
+    final functions = lines.sublist(4);
+    functions.removeWhere((string) => string == '');
+    functions.sort();
+    lines.replaceRange(4, lines.length, functions);
+    lines.add('}');
+    outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
   }
 }
 
