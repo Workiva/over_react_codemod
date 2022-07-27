@@ -292,6 +292,11 @@ void sortPartsLast(List<String> dartPaths) {
         return unit.directives.whereType<PartOfDirective>().isNotEmpty;
       });
 
+  if (dartPaths.isNotEmpty && dartPaths.every(isPart)) {
+    _log.severe(
+        'Only part files were specified. The containing library must be included for any part file, as it is needed for analysis context');
+    exit(1);
+  }
   dartPaths.sort((a, b) {
     final isAPart = isPart(a);
     final isBPart = isPart(b);
