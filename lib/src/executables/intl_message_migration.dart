@@ -120,9 +120,11 @@ void main(List<String> args) async {
 
   // If we have specified paths on the command line, limit our processing to
   // those, and make sure they're absolute.
-  var dartPaths = parsedArgs.rest.isEmpty
-      ? dartFilesToMigrate().toList()
-      : [for (var path in parsedArgs.rest) p.absolute(path)];
+  var basicDartPaths =
+      parsedArgs.rest.isEmpty ? dartFilesToMigrate().toList() : parsedArgs.rest;
+  var dartPaths = [
+    for (var path in basicDartPaths) p.canonicalize(p.absolute(path))
+  ];
 
   // Work around parts being unresolved if you resolve them before their libraries.
   // TODO - reference analyzer issue for this once it's created
