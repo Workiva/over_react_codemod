@@ -46,7 +46,7 @@ void main() {
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
-      test('non-matching standlalone constant', () async {
+      test('non-matching standalone constant', () async {
         await testSuggestor(
           input: '''
             const foo = 'probably-not';
