@@ -69,28 +69,55 @@ void main() {
 
     testCodemod('Output is sorted',
         script: script,
+        input: inputFiles(additionalFilesInLib: [extraInput()]),
+        expectedOutput: expectedOutputFiles(
+            additionalFilesInLib: [extraOutput()],
+            messages: [...defaultMessages, ...extraMessages]..sort()),
+        args: ['--yes-to-all']);
+
+    testCodemod('Specify a single file',
+        // We add some extra files, but we specify just the original, so they shouldn't be included.
+        script: script,
+        input: inputFiles(additionalFilesInLib: [extraInput()]),
+        expectedOutput: expectedOutputFiles(messages: defaultMessages),
+        args: ['--yes-to-all', 'lib/usage.dart']);
+
+    testCodemod('Specifying only part files is an error',
+        script: script,
         input: inputFiles(additionalFilesInLib: [
-          d.file('more_stuff.dart',
-              /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
+          d.file('a_part_file.dart',
+              /*language=dart*/ '''part of something.bigger;
 
 someMoreStrings() => (mui.Button()..aria.label='orange')('aquamarine');''')
         ]),
-        expectedOutput: expectedOutputFiles(
-            additionalFilesInLib: [
-              d.file('more_stuff.dart',
-                  /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
-import 'package:test_project/src/intl/test_project_intl.dart';
-
-someMoreStrings() => (mui.Button()..aria.label=TestProjectIntl.orange)(TestProjectIntl.aquamarine);''')
-            ],
-            messages: [
-              ...defaultMessages,
-              "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange',);",
-              "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine',);"
-            ]..sort()),
-        args: ['--yes-to-all']);
+        expectedOutput: inputFiles(),
+        args: ['--yes-to-all', 'lib/a_part_file.dart'],
+        expectedExitCode: 1, body: (out, err) {
+      expect(err, contains('Only part files were specified'));
+    });
   }, tags: 'wsd');
 }
+
+/// An extra input file we can use.
+d.FileDescriptor extraInput() {
+  return d.file('more_stuff.dart',
+      /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
+
+someMoreStrings() => (mui.Button()..aria.label='orange')('aquamarine');''');
+}
+
+d.FileDescriptor extraOutput() {
+  return d.file('more_stuff.dart',
+      /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
+import 'package:test_project/src/intl/test_project_intl.dart';
+
+someMoreStrings() => (mui.Button()..aria.label=TestProjectIntl.orange)(TestProjectIntl.aquamarine);''');
+}
+
+List<String> extraMessages = [
+  "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange',);",
+  "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine',);"
+];
 
 d.DirectoryDescriptor inputFiles(
     {Iterable<d.Descriptor> additionalFilesInLib = const []}) {
