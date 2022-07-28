@@ -6,7 +6,6 @@ import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
-import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 
 /// Mark const string variables whose first character is uppercase for internationalization. e.g.
 ///
@@ -116,19 +115,25 @@ class IntlMigrator extends ComponentUsageMigrator {
     super.flagCommon(usage);
     // Flag the case of the label attribute, which may be user-visible or may not, depending
     // on the value of hideLabel.
-    if (usage.builderType == null) return;
-    if (!(usage.builderType!.isOrIsSubtypeOfClassFromPackage(
-        'FormComponentDisplayPropsMixin', 'web_skin_dart'))) {
-      return;
-    }
 
-    for (final prop in usage.cascadedProps) {
-      var left = prop.leftHandSide;
-      if (left is PropertyAccess && left.propertyName.toString() == 'label') {
-        yieldBuilderMemberFixmePatch(prop,
-            'The "label" property may or may not be user-visible, check hideLabel');
-      }
-    }
+    // This is commented out, because it turns out we should be internationalizing the
+    // label attribute, even if hideLabel is true, because it is visible to screen readers.
+    // Leaving the code here in case it's useful as an example for other properties we may
+    // need to customize.
+
+    // if (usage.builderType == null) return;
+    // if (!(usage.builderType!.isOrIsSubtypeOfClassFromPackage(
+    //     'FormComponentDisplayPropsMixin', 'web_skin_dart'))) {
+    //   return;
+    // }
+
+    // for (final prop in usage.cascadedProps) {
+    //   var left = prop.leftHandSide;
+    //   if (left is PropertyAccess && left.propertyName.toString() == 'label') {
+    //     yieldBuilderMemberFixmePatch(prop,
+    //         'The "label" property may or may not be user-visible, check hideLabel');
+    //   }
+    // }
   }
 
   void migrateChildStringLiteral(
