@@ -25,7 +25,7 @@ import 'mui_migration_test.dart' show testCodemod;
 final _debug = false;
 
 // The help text may have different amount of whitespace depending on the names
-// of the options, so collapse all whitespace to a
+// of the options, so collapse all whitespace to a single space before comparing.
 String condenseWhitespace(String input) =>
     input.split(RegExp(r"\s+")).join(" ");
 
