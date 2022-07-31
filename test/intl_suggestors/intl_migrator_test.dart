@@ -16,12 +16,22 @@ void main() {
   group('IntlMigrator', () {
     final FileSystem fs = MemoryFileSystem();
     late File file;
-    late SuggestorTester testSuggestor;
+    late SuggestorTester basicSuggestor;
+
+    // Idempotency isn't a worry for this suggestor, and testing it throws off
+    // using a global counter for numbering messages whose name isn't otherwise
+    // unique, so skip that check.
+    Future<void> testSuggestor(
+            {required String input, required String expectedOutput}) =>
+        basicSuggestor(
+            input: input,
+            expectedOutput: expectedOutput,
+            testIdempotency: false);
 
     setUp(() async {
       final Directory tmp = await fs.systemTempDirectory.createTemp();
       file = tmp.childFile('TestClassIntl')..createSync(recursive: true);
-      testSuggestor = getSuggestorTester(
+      basicSuggestor = getSuggestorTester(
         IntlMigrator('TestClassIntl', file),
         resolvedContext: resolvedContext,
       );
@@ -657,7 +667,6 @@ void main() {
 
       test('Home Example', () async {
         await testSuggestor(
-          testIdempotency: false,
           input: '''
               import 'package:over_react/over_react.dart';
 
