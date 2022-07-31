@@ -9,6 +9,9 @@ class IntlMigrator extends ComponentUsageMigrator {
   final File _outputFile;
   final String _className;
 
+  int functionIndex = 0;
+  int nextFunctionIndex() => functionIndex++;
+
   IntlMigrator(this._className, this._outputFile);
 
   @override
@@ -54,15 +57,16 @@ class IntlMigrator extends ComponentUsageMigrator {
         migratePropStringInterpolation(prop, namePrefix, index));
 
     //Children
-    final childNodes = usage.children.map((child) => child.node);
+    final childNodes = usage.children.map((child) => child.node).toList();
     //Migrate String Literals
     childNodes
         .whereType<SimpleStringLiteral>()
         .forEach((node) => migrateChildStringLiteral(node));
 
     //Migrate String Interpolations
-    childNodes.whereType<StringInterpolation>().forEachIndexed((index, node) =>
-        migrateChildStringInterpolation(node, namePrefix, index));
+    childNodes
+        .whereType<StringInterpolation>()
+        .forEach((node) => migrateChildStringInterpolation(node, namePrefix));
   }
 
   @override
@@ -103,11 +107,9 @@ class IntlMigrator extends ComponentUsageMigrator {
   }
 
   void migrateChildStringInterpolation(
-    StringInterpolation node,
-    String namePrefix,
-    int index,
-  ) {
+      StringInterpolation node, String namePrefix) {
     if (isValidStringInterpolationNode(node)) {
+      var index = nextFunctionIndex();
       final functionCall =
           intlFunctionCall(node, _className, namePrefix, index);
       final functionDef = intlFunctionDef(node, _className, namePrefix, index);

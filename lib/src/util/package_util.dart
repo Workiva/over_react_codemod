@@ -123,9 +123,10 @@ Iterable<String> ancestorsOfPath(String path) sync* {
 bool isNotWithinTopLevelBuildOutputDir(File file) =>
     !isWithinTopLevelDir(file, 'build');
 
-/// Returns whether [file] is within a top-level `tool` directory of a package root.
+/// Returns whether [file] is within a top-level `tool` or `dev_tools` directory of a package root.
 bool isNotWithinTopLevelToolDir(File file) =>
-    !isWithinTopLevelDir(file, 'tool');
+    !isWithinTopLevelDir(file, 'tool') &&
+    !isWithinTopLevelDir(file, 'dev_tools');
 
 /// Returns whether [file] is within a top-level [topLevelDir] directory
 /// (e.g., `bin`, `lib`, `web`) of a package root.

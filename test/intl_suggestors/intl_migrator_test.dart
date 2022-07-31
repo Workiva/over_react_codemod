@@ -657,6 +657,7 @@ void main() {
 
       test('Home Example', () async {
         await testSuggestor(
+          testIdempotency: false,
           input: '''
               import 'package:over_react/over_react.dart';
 
