@@ -38,6 +38,7 @@ const _verboseFlag = 'verbose';
 const _yesToAllFlag = 'yes-to-all';
 const _failOnChangesFlag = 'fail-on-changes';
 const _stderrAssumeTtyFlag = 'stderr-assume-tty';
+const _migrateConstants = 'migrate-constants';
 const _allCodemodFlags = {
   _verboseFlag,
   _yesToAllFlag,
@@ -77,14 +78,23 @@ final parser = ArgParser()
     negatable: false,
     help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
   )
+  ..addFlag(
+    _migrateConstants,
+    negatable: true,
+    defaultsTo: false,
+    help:
+        'Should the codemod try to migrate constant Strings that look user-visible',
+  )
   ..addMultiOption(
     'migrators',
     defaultsTo: ['prop', 'child', 'displayName'],
     allowed: ['prop', 'child', 'displayName'],
   );
 
+late ArgResults parsedArgs;
+
 void main(List<String> args) async {
-  final parsedArgs = parser.parse(args);
+  parsedArgs = parser.parse(args);
   if (parsedArgs['help'] as bool) {
     printUsage();
     return;
@@ -252,6 +262,7 @@ Future<void> migratePackage(
   }
 
   final intlPropMigrator = IntlMigrator(className, outputFile);
+  final constantStringMigrator = ConstantStringMigrator(className, outputFile);
   final displayNameMigrator = ConfigsMigrator(className, outputFile);
   final importMigrator =
       (FileContext context) => intlImporter(context, packageName, className);
@@ -260,6 +271,7 @@ Future<void> migratePackage(
       packageDartPaths,
       [
         [intlPropMigrator],
+        if (parsedArgs[_migrateConstants]) [constantStringMigrator],
         [displayNameMigrator],
         [importMigrator],
       ],
