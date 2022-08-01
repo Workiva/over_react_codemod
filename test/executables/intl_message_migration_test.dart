@@ -24,6 +24,11 @@ import 'mui_migration_test.dart' show testCodemod;
 // the stdout/stderr of the codemod processes.
 final _debug = false;
 
+// The help text may have different amount of whitespace depending on the names
+// of the options, so collapse all whitespace to a single space before comparing.
+String condenseWhitespace(String input) =>
+    input.split(RegExp(r"\s+")).join(" ");
+
 void main() {
   group('intl_message_migration executable', () {
     final script = p.join(
@@ -36,9 +41,9 @@ void main() {
         expectedExitCode: 0,
         args: ['--help'], body: (out, err) {
       expect(
-          err,
+          condenseWhitespace(err),
           allOf(
-            contains(codemodArgParser.usage),
+            contains(condenseWhitespace(codemodArgParser.usage)),
             contains('Migrates literal strings'),
           ));
     });

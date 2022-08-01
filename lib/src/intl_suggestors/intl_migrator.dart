@@ -1,8 +1,53 @@
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:codemod/codemod.dart';
 import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
+
+/// Mark const string variables whose first character is uppercase for internationalization. e.g.
+///
+///   const String cancel = 'Cancel';
+///
+/// Turns it into
+///
+///   final String cancel = <IntlClassName>.cancel;
+class ConstantStringMigrator extends GeneralizingAstVisitor
+    with AstVisitingSuggestor {
+  final File _outputFile;
+  final String _className;
+
+  ConstantStringMigrator(this._className, this._outputFile);
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    // We expect it to be const and have an initializer that's a simple string.
+    if (node.isConst &&
+        node.initializer != null &&
+        node.initializer is SimpleStringLiteral) {
+      SimpleStringLiteral literal = node.initializer as SimpleStringLiteral;
+      var string = literal.stringValue;
+      // I don't see how the parent could possibly be null, but if it's true, bail out.
+      if (node.parent == null || string == null || string.length <= 1) return;
+      // Otherwise use the parent to find the area to replace, because we want to replace
+      // the full declaration. Re-assure the compiler that we're positive it's not null.
+      var start = node.parent!.offset;
+      var end = node.parent!.end;
+      var firstLetter = string.substring(0, 1);
+      var secondLetter = string.substring(1, 2);
+      // Is the first character uppercase, excluding strings that start with two of the same
+      // uppercase character, which has a good chance of being a date format (e.g. 'MM/dd/YYYY').
+      if (firstLetter != secondLetter &&
+          firstLetter.toLowerCase() != firstLetter) {
+        final functionCall = intlStringAccess(literal, _className);
+        final functionDef = intlGetterDef(literal, _className);
+        yieldPatch('final String ${node.name} = $functionCall', start, end);
+        addMethodToClass(_outputFile, functionDef);
+      }
+    }
+  }
+}
 
 class IntlMigrator extends ComponentUsageMigrator {
   final File _outputFile;
