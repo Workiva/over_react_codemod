@@ -217,6 +217,45 @@ void main() {
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
+      test('two different interpolations get different names', () async {
+        await testSuggestor(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                  final name = 'bob';
+                  final title = 'Test Title';
+
+                  return (Dom.div()..label='Also interpolated \$title')('Interpolated \${name}');
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                  final name = 'bob';
+                  final title = 'Test Title';
+
+                  return (Dom.div()..label=TestClassIntl.Foo_intlFunction1(title))(TestClassIntl.Foo_intlFunction0(name));
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+        );
+        final expectedFileContent =
+            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);"
+            "\n  static String Foo_intlFunction1(String title) => Intl.message('Also interpolated \${title}', args: [title], name: 'TestClassIntl_Foo_intlFunction1',);";
+        expect(file.readAsStringSync(), expectedFileContent);
+      });
+
       test('two argument with top level accessors', () async {
         await testSuggestor(
           input: '''
