@@ -244,15 +244,15 @@ void main() {
                   final name = 'bob';
                   final title = 'Test Title';
 
-                  return (Dom.div()..label=TestClassIntl.Foo_intlFunction1(title))(TestClassIntl.Foo_intlFunction0(name));
+                  return (Dom.div()..label=TestClassIntl.Foo_intlFunction0(title))(TestClassIntl.Foo_intlFunction1(name));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);"
-            "\n  static String Foo_intlFunction1(String title) => Intl.message('Also interpolated \${title}', args: [title], name: 'TestClassIntl_Foo_intlFunction1',);";
+            "\n  static String Foo_intlFunction0(String title) => Intl.message('Also interpolated \${title}', args: [title], name: 'TestClassIntl_Foo_intlFunction0',);"
+            "\n  static String Foo_intlFunction1(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction1',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 

@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:collection/collection.dart' show IterableExtension;
 import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
@@ -52,9 +51,9 @@ class IntlMigrator extends ComponentUsageMigrator {
     final stringInterpolationProps = usage.cascadedProps
         .where((prop) => isValidStringInterpolationProp(prop));
 
-    stringLiteralProps.forEach((prop) => migratePropStringLiteral(prop));
-    stringInterpolationProps.forEachIndexed((index, prop) =>
-        migratePropStringInterpolation(prop, namePrefix, index));
+    stringLiteralProps.forEach(migratePropStringLiteral);
+    stringInterpolationProps
+        .forEach((prop) => migratePropStringInterpolation(prop, namePrefix));
 
     //Children
     final childNodes = usage.children.map((child) => child.node).toList();
@@ -133,10 +132,10 @@ class IntlMigrator extends ComponentUsageMigrator {
   void migratePropStringInterpolation(
     PropAssignment prop,
     String namePrefix,
-    int index,
   ) {
     if (isValidStringInterpolationProp(prop)) {
       final rhs = prop.rightHandSide as StringInterpolation;
+      final index = nextFunctionIndex();
       final functionCall = intlFunctionCall(rhs, _className, namePrefix, index);
       final functionDef = intlFunctionDef(rhs, _className, namePrefix, index);
       yieldPropPatch(prop, newRhs: functionCall);
