@@ -19,7 +19,9 @@ bool isValidStringInterpolationNode(AstNode node) {
   return true;
 }
 
-final RegExp isAlphabetic = RegExp('[a-zA-Z]');
+bool hasNoAlphabeticCharacters(String s) => !_alphabeticPattern.hasMatch(s);
+
+final RegExp _alphabeticPattern = RegExp('[a-zA-Z]');
 
 /// The text under [node] if it's some kind of string literal, null if it's not.
 String? stringContent(AstNode node) {
@@ -48,7 +50,7 @@ bool isValidStringLiteralNode(AstNode node) {
   if (quotedCamelCase(text)) return false;
   if (text.trim().length == 1) return false;
   // If there are no alphabetic characters, we can't do anything useful.
-  if (!isAlphabetic.hasMatch(text)) return false;
+  if (hasNoAlphabeticCharacters(text)) return false;
   // Uri.parse is too accepting. Also check common schemes that might make sense.
   var mightBeAUrl = Uri.tryParse(text);
   if (mightBeAUrl != null &&
