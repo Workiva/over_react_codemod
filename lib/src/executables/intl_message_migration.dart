@@ -130,8 +130,7 @@ void main(List<String> args) async {
 
   // If we have specified paths on the command line, limit our processing to
   // those, and make sure they're absolute.
-  var basicDartPaths =
-      parsedArgs.rest.isEmpty ? dartFilesToMigrate().toList() : parsedArgs.rest;
+  var basicDartPaths = parsedArgs.rest.isEmpty ? ['lib'] : parsedArgs.rest;
   var dartPaths = [
     for (var path in basicDartPaths) p.canonicalize(p.absolute(path))
   ];
@@ -237,11 +236,7 @@ Future<void> migratePackage(
     return;
   }
 
-  // Limit the paths we handle to those that were included in [paths]
-  packageDartPaths = [
-    for (var path in packageDartPaths)
-      if (paths.contains(path)) path
-  ];
+  packageDartPaths = limitPaths(packageDartPaths, allowed: paths);
   sortPartsLast(packageDartPaths);
 
   final File outputFile = fs.currentDirectory.childFile(
@@ -348,7 +343,6 @@ Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
     .where(isNotDartHiddenFile)
     .where(isNotWithinTopLevelBuildOutputDir)
     .where(isNotWithinTopLevelToolDir)
-    .where((file) => isWithinTopLevelDir(file, 'lib'))
     .map((e) => e.path);
 
 Iterable<String> dartFilesToMigrateForPackage(
@@ -369,7 +363,6 @@ Iterable<String> dartFilesToMigrateForPackage(
         .where(isNotDartHiddenFile)
         .where(isNotWithinTopLevelBuildOutputDir)
         .where(isNotWithinTopLevelToolDir)
-        .where((file) => isWithinTopLevelDir(file, 'lib'))
         .where((file) => !processedPackages.contains(file.path))
         .map((e) => e.path)
         .toList();
@@ -377,4 +370,14 @@ Iterable<String> dartFilesToMigrateForPackage(
 Iterable<String> experienceConfigDartFiles() => [
       for (var f in Glob('**.dart', recursive: true).listSync())
         if (f is File && f.path.contains('_experience_config.dart')) f.path
+    ];
+
+// Limit the paths we handle to those that were included in [paths]
+List<String> limitPaths(List<String> allPaths,
+        {required List<String> allowed}) =>
+    [
+      for (var path in allPaths)
+        if (allowed
+            .any((included) => included == path || p.isWithin(included, path)))
+          path
     ];
