@@ -348,6 +348,7 @@ Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
     .where(isNotDartHiddenFile)
     .where(isNotWithinTopLevelBuildOutputDir)
     .where(isNotWithinTopLevelToolDir)
+    .where((file) => isWithinTopLevelDir(file, 'lib'))
     .map((e) => e.path);
 
 Iterable<String> dartFilesToMigrateForPackage(
@@ -368,6 +369,7 @@ Iterable<String> dartFilesToMigrateForPackage(
         .where(isNotDartHiddenFile)
         .where(isNotWithinTopLevelBuildOutputDir)
         .where(isNotWithinTopLevelToolDir)
+        .where((file) => isWithinTopLevelDir(file, 'lib'))
         .where((file) => !processedPackages.contains(file.path))
         .map((e) => e.path)
         .toList();
