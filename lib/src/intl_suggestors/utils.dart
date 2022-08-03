@@ -19,14 +19,40 @@ bool isValidStringInterpolationNode(AstNode node) {
   return true;
 }
 
+bool hasNoAlphabeticCharacters(String s) => !_alphabeticPattern.hasMatch(s);
+
+final RegExp _alphabeticPattern = RegExp('[a-zA-Z]');
+
+/// The text under [node] if it's some kind of string literal, null if it's not.
+String? stringContent(AstNode node) {
+  if (node is SimpleStringLiteral) return node.value;
+  if (node is AdjacentStrings) {
+    if (!node.strings.toList().every((x) => x is SimpleStringLiteral))
+      return null;
+    return [for (var s in node.strings) (s as SimpleStringLiteral).value]
+        .join('');
+  }
+  return null;
+}
+
+/// Is this a multiline string literal?
+bool isMultiline(AstNode node) {
+  // TODO: Can we have multiline adjacent strings? And if we can, would someone actually do that?
+  if (node is SimpleStringLiteral) return node.isMultiline;
+  return false;
+}
+
 bool isValidStringLiteralNode(AstNode node) {
-  if (node is! SimpleStringLiteral) return false;
-  if (node.value.isEmpty) return false;
-  if (double.tryParse(node.value) != null) return false;
-  if (quotedCamelCase(node.value)) return false;
-  if (node.value.trim().length == 1) return false;
+  String? text = stringContent(node);
+  if (text == null) return false;
+  if (text.isEmpty) return false;
+  if (double.tryParse(text) != null) return false;
+  if (quotedCamelCase(text)) return false;
+  if (text.trim().length == 1) return false;
+  // If there are no alphabetic characters, we can't do anything useful.
+  if (hasNoAlphabeticCharacters(text)) return false;
   // Uri.parse is too accepting. Also check common schemes that might make sense.
-  var mightBeAUrl = Uri.tryParse(node.value);
+  var mightBeAUrl = Uri.tryParse(text);
   if (mightBeAUrl != null &&
       ['http', 'https', 'wurl', 'mailTo'].contains(mightBeAUrl.scheme)) {
     return false;
@@ -123,8 +149,8 @@ String intlFunctionArguments(StringInterpolation node) {
 
 /// A template to build property access for intl string
 /// ex: ExampleIntl.exampleString
-String intlStringAccess(SimpleStringLiteral node, String namespace) =>
-    '${namespace}.${toVariableName(node.stringValue!)}';
+String intlStringAccess(StringLiteral node, String namespace) =>
+    '${namespace}.${toVariableName(stringContent(node)!)}';
 
 /// A template to build function call intl interpolated string
 /// ex: ExampleIntl.exampleString(sting1, string2)
@@ -141,10 +167,11 @@ String intlFunctionCall(
 
 /// Returns Intl.message for string literal
 /// ex: static String get fooBar => Intl.message('Foo Bar','name: FooBarIntl_fooBar',);
-String intlGetterDef(SimpleStringLiteral node, String namespace) {
-  final varName = toVariableName(node.stringValue!);
-  final message = intlFunctionBody(node.stringValue!, '${namespace}_$varName',
-      isMultiline: node.isMultiline);
+String intlGetterDef(StringLiteral node, String namespace) {
+  String text = stringContent(node)!;
+  final varName = toVariableName(text);
+  final message = intlFunctionBody(text, '${namespace}_$varName',
+      isMultiline: isMultiline(node));
   return '\n  $intlFunctionPrefix get $varName => $message;';
 }
 

@@ -134,6 +134,73 @@ void main() {
             ''',
         );
       });
+
+      test('single punctuation string', () async {
+        await testSuggestor(
+          input: '''
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+
+                return (Dom.div())('[]');
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+          expectedOutput: '''
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+
+                return (Dom.div())('[]');
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+        );
+      });
+
+      test('adjacent strings', () async {
+        await testSuggestor(
+          input: '''
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+
+                return (Dom.div())('this is a lengthy string, '
+                'it\\\'s been broken up into several lines '
+                'which Dart automatically concatenates.' );
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+          expectedOutput: '''
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+
+                return (Dom.div())(TestClassIntl.thisIsALengthyString);
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+        );
+        final expected =
+            "\n  static String get thisIsALengthyString => Intl.message('this is a lengthy string, it\\\'s been broken up into several lines which Dart automatically concatenates.', name: 'TestClassIntl_thisIsALengthyString',);";
+        expect(file.readAsStringSync(), expected);
+      });
     });
 
     group('Child - StringInterpolation', () {

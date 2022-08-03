@@ -73,6 +73,7 @@ class IntlMigrator extends ComponentUsageMigrator {
 
   @override
   bool shouldMigrateUsage(FluentComponentUsage usage) =>
+      // TODO: Handle adjacent strings with an interpolation.
       usage.cascadedProps.any((prop) =>
           isValidStringLiteralProp(prop) ||
           isValidStringInterpolationProp(prop)) ||
@@ -102,7 +103,7 @@ class IntlMigrator extends ComponentUsageMigrator {
     final childNodes = usage.children.map((child) => child.node);
     //Migrate String Literals
     childNodes
-        .whereType<SimpleStringLiteral>()
+        .whereType<StringLiteral>()
         .forEach((node) => migrateChildStringLiteral(node));
 
     //Migrate String Interpolations
@@ -137,7 +138,7 @@ class IntlMigrator extends ComponentUsageMigrator {
   }
 
   void migrateChildStringLiteral(
-    SimpleStringLiteral node,
+    StringLiteral node,
   ) {
     if (isValidStringLiteralNode(node)) {
       final functionCall = intlStringAccess(node, _className);
