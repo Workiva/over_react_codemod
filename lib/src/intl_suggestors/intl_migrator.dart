@@ -1,7 +1,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
-import 'package:collection/collection.dart' show IterableExtension;
 import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
@@ -54,6 +53,9 @@ class IntlMigrator extends ComponentUsageMigrator {
   final File _outputFile;
   final String _className;
 
+  int functionIndex = 0;
+  int nextFunctionIndex() => functionIndex++;
+
   IntlMigrator(this._className, this._outputFile);
 
   @override
@@ -95,20 +97,21 @@ class IntlMigrator extends ComponentUsageMigrator {
     final stringInterpolationProps = usage.cascadedProps
         .where((prop) => isValidStringInterpolationProp(prop));
 
-    stringLiteralProps.forEach((prop) => migratePropStringLiteral(prop));
-    stringInterpolationProps.forEachIndexed((index, prop) =>
-        migratePropStringInterpolation(prop, namePrefix, index));
+    stringLiteralProps.forEach(migratePropStringLiteral);
+    stringInterpolationProps
+        .forEach((prop) => migratePropStringInterpolation(prop, namePrefix));
 
     //Children
-    final childNodes = usage.children.map((child) => child.node);
+    final childNodes = usage.children.map((child) => child.node).toList();
     //Migrate String Literals
     childNodes
         .whereType<StringLiteral>()
         .forEach((node) => migrateChildStringLiteral(node));
 
     //Migrate String Interpolations
-    childNodes.whereType<StringInterpolation>().forEachIndexed((index, node) =>
-        migrateChildStringInterpolation(node, namePrefix, index));
+    childNodes
+        .whereType<StringInterpolation>()
+        .forEach((node) => migrateChildStringInterpolation(node, namePrefix));
   }
 
   @override
@@ -149,11 +152,9 @@ class IntlMigrator extends ComponentUsageMigrator {
   }
 
   void migrateChildStringInterpolation(
-    StringInterpolation node,
-    String namePrefix,
-    int index,
-  ) {
+      StringInterpolation node, String namePrefix) {
     if (isValidStringInterpolationNode(node)) {
+      var index = nextFunctionIndex();
       final functionCall =
           intlFunctionCall(node, _className, namePrefix, index);
       final functionDef = intlFunctionDef(node, _className, namePrefix, index);
@@ -177,10 +178,10 @@ class IntlMigrator extends ComponentUsageMigrator {
   void migratePropStringInterpolation(
     PropAssignment prop,
     String namePrefix,
-    int index,
   ) {
     if (isValidStringInterpolationProp(prop)) {
       final rhs = prop.rightHandSide as StringInterpolation;
+      final index = nextFunctionIndex();
       final functionCall = intlFunctionCall(rhs, _className, namePrefix, index);
       final functionDef = intlFunctionDef(rhs, _className, namePrefix, index);
       yieldPropPatch(prop, newRhs: functionCall);

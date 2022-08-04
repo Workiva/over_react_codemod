@@ -16,12 +16,22 @@ void main() {
   group('IntlMigrator', () {
     final FileSystem fs = MemoryFileSystem();
     late File file;
-    late SuggestorTester testSuggestor;
+    late SuggestorTester basicSuggestor;
+
+    // Idempotency isn't a worry for this suggestor, and testing it throws off
+    // using a global counter for numbering messages whose name isn't otherwise
+    // unique, so skip that check.
+    Future<void> testSuggestor(
+            {required String input, required String expectedOutput}) =>
+        basicSuggestor(
+            input: input,
+            expectedOutput: expectedOutput,
+            testIdempotency: false);
 
     setUp(() async {
       final Directory tmp = await fs.systemTempDirectory.createTemp();
       file = tmp.childFile('TestClassIntl')..createSync(recursive: true);
-      testSuggestor = getSuggestorTester(
+      basicSuggestor = getSuggestorTester(
         IntlMigrator('TestClassIntl', file),
         resolvedContext: resolvedContext,
       );
@@ -271,6 +281,45 @@ void main() {
 
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String number) => Intl.message('Distance \${number}km', args: [number], name: 'TestClassIntl_Foo_intlFunction0',);";
+        expect(file.readAsStringSync(), expectedFileContent);
+      });
+
+      test('two different interpolations get different names', () async {
+        await testSuggestor(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                  final name = 'bob';
+                  final title = 'Test Title';
+
+                  return (Dom.div()..label='Also interpolated \$title')('Interpolated \${name}');
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {}
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+                  final name = 'bob';
+                  final title = 'Test Title';
+
+                  return (Dom.div()..label=TestClassIntl.Foo_intlFunction0(title))(TestClassIntl.Foo_intlFunction1(name));
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+        );
+        final expectedFileContent =
+            "\n  static String Foo_intlFunction0(String title) => Intl.message('Also interpolated \${title}', args: [title], name: 'TestClassIntl_Foo_intlFunction0',);"
+            "\n  static String Foo_intlFunction1(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction1',);";
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
