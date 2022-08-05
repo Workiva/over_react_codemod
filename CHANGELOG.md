@@ -1,3 +1,12 @@
+## [2.6.0]](https://github.com/Workiva/over_react_codemod/compare/2.6.0....2.5.0)
+
+- Make the intl\_message\_migration codemod  handle adjacent strings.
+- Make the intl\_message\_migration codemod  allow directories on the
+  command line, and default to processing only /lib.
+- Fix a bug in intl\_message\_migration codemod  numbering of
+  functions that it otherwise couldn't name.
+
+
 ## [1.12.0](https://github.com/Workiva/over_react_codemod/compare/1.12.0...1.11.0)
 
 - Add `dart2_9_upgrade` executable that can either:
