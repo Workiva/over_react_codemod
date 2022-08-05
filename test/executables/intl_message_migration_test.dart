@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:codemod/src/run_interactive_codemod.dart' show codemodArgParser;
+import 'package:over_react_codemod/src/executables/intl_message_migration.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -101,6 +102,45 @@ someMoreStrings() => (mui.Button()..aria.label='orange')('aquamarine');''')
       expect(err, contains('Only part files were specified'));
     });
   }, tags: 'wsd');
+
+  group('limit paths', () {
+    var all = ['lib/src/a.dart', 'lib/b.dart', 'lib/src/a/c.dart'];
+    test('single file', () {
+      var allowed = ['lib/src/a.dart'];
+      expect(limitPaths(all, allowed: allowed), allowed);
+    });
+
+    test('multiples all match', () {
+      var allowed = ['lib/b.dart', 'lib/src/a.dart'];
+      expect(
+          limitPaths(all, allowed: allowed), ['lib/src/a.dart', 'lib/b.dart']);
+    });
+    test('multiples some match', () {
+      var allowed = ['lib/nothere.dart', 'lib/src/a/c.dart'];
+      expect(limitPaths(all, allowed: allowed), ['lib/src/a/c.dart']);
+    });
+    test('directory match', () {
+      var allowed = ['lib/src'];
+      expect(limitPaths(all, allowed: allowed),
+          ['lib/src/a.dart', 'lib/src/a/c.dart']);
+    });
+
+    test('directory plus file', () {
+      var allowed = ['lib/src', 'test/foo.dart'];
+      var allFiles = [...all, 'test/foo.dart', 'test/other.dart'];
+      expect(limitPaths(allFiles, allowed: allowed),
+          ['lib/src/a.dart', 'lib/src/a/c.dart', 'test/foo.dart']);
+    });
+    test('no match for file', () {
+      var allowed = ['lib/src/nothere.dart'];
+      expect(limitPaths(all, allowed: allowed), isEmpty);
+    });
+
+    test('no match for directory', () {
+      var allowed = ['lib/src/nothere'];
+      expect(limitPaths(all, allowed: allowed), isEmpty);
+    });
+  });
 }
 
 /// An extra input file we can use.
