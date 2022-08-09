@@ -244,8 +244,13 @@ Future<void> migratePackage(
   final bool existingOutputFile = outputFile.existsSync();
 
   final className = toClassName('${packageName}');
-  final classPredicate =
-      "import 'package:intl/intl.dart';\n\n//ignore: avoid_classes_with_only_static_members\nclass $className {\n";
+  final classPredicate = '''import 'package:intl/intl.dart';
+
+//ignore: avoid_classes_with_only_static_members
+//ignore: unnecessary_brace_in_string_interps
+
+class $className {
+''';
   if (!existingOutputFile) {
     outputFile.createSync(recursive: true);
     outputFile.writeAsStringSync(classPredicate);

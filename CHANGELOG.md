@@ -1,3 +1,8 @@
+## [2.7.0](https://github.com/Workiva/over_react_codemod/compare/2.7.0....2.6.0)
+
+- Ignore the lint for unnecessary braces in string interpolations in the generated `intl.dart` file.
+
+
 ## [2.6.0]](https://github.com/Workiva/over_react_codemod/compare/2.6.0....2.5.0)
 
 - Make the intl\_message\_migration codemod  handle adjacent strings.
