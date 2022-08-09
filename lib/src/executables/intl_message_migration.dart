@@ -281,11 +281,12 @@ class $className {
   if (exitCode != 0 || outputFile.readAsStringSync() == classPredicate) {
     outputFile.deleteSync();
   } else {
+    var prologueLength = 6;
     List<String> lines = outputFile.readAsLinesSync();
-    final functions = lines.sublist(4);
+    final functions = lines.sublist(prologueLength);
     functions.removeWhere((string) => string == '');
     functions.sort();
-    lines.replaceRange(4, lines.length, functions);
+    lines.replaceRange(prologueLength, lines.length, functions);
     lines.add('}');
     outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
   }
