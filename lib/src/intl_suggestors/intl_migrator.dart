@@ -40,8 +40,10 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
       // uppercase character, which has a good chance of being a date format (e.g. 'MM/dd/YYYY').
       if (firstLetter != secondLetter &&
           firstLetter.toLowerCase() != firstLetter) {
-        final functionCall = intlStringAccess(literal, _className);
-        final functionDef = intlGetterDef(literal, _className);
+        final functionCall =
+            intlStringAccess(literal, _className, name: node.name.toString());
+        final functionDef =
+            intlGetterDef(literal, _className, name: node.name.toString());
         yieldPatch('final String ${node.name} = $functionCall', start, end);
         addMethodToClass(_outputFile, functionDef);
       }
