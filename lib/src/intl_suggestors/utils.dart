@@ -2,7 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:file/file.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 
@@ -228,9 +228,9 @@ String removeInterpolationSyntax(String s) =>
 ///
 String toNestedName(String s) => removeInterpolationSyntax(s).split('.').last;
 
-void addMethodToClass(File outputFile, String content) {
-  if (!outputFile.readAsStringSync().contains(content)) {
-    outputFile.writeAsStringSync(content, mode: FileMode.append);
+void addMethodToClass(IntlMessages outputFile, String content) {
+  if (!outputFile.contains(content)) {
+    outputFile.append(content);
   }
 }
 
