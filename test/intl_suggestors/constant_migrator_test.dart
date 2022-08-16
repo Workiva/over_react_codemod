@@ -38,11 +38,11 @@ void main() {
             const foo = 'I am a user-visible constant';
             ''',
           expectedOutput: '''
-            final String foo = TestClassIntl.iAmAUservisibleConstant;
+            final String foo = TestClassIntl.foo;
             ''',
         );
         final expectedFileContent =
-            '\n  static String get iAmAUservisibleConstant => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_iAmAUservisibleConstant\',);';
+            '\n  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\',);';
         expect(file.readAsStringSync(), expectedFileContent);
       });
 
@@ -68,12 +68,12 @@ void main() {
             ''',
           expectedOutput: '''
           class Bar { 
-            static final String foo = TestClassIntl.iAmAUservisibleConstant;
+            static final String foo = TestClassIntl.foo;
           }
             ''',
         );
         final expectedFileContent =
-            '\n  static String get iAmAUservisibleConstant => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_iAmAUservisibleConstant\',);';
+            '\n  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\',);';
         expect(file.readAsStringSync(), expectedFileContent);
       });
     });
