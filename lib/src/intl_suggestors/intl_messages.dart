@@ -4,6 +4,11 @@ import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:path/path.dart' as p;
 
+/// Represents the generated file with the Intl class.
+///
+/// Right now this just wraps the file, but in the future it can be more
+/// abstract to make it easier to add new messages to existing files and
+/// otherwise programmatically modify it.
 class IntlMessages {
   final String packageName;
   final File outputFile;
@@ -14,16 +19,22 @@ class IntlMessages {
 
   IntlMessages(this.packageName, Directory currentDir, String packagePath)
       :
-        // What's going on with this? Wouldn't currentDir and packagePath have to agree anyway?
+        // TODO: I think packagePath only applies if there's a sub-package.
         outputFile = currentDir.childFile(p.join(
             packagePath, 'lib', 'src', 'intl', '${packageName}_intl.dart')),
         className = toClassName('${packageName}');
 
-  contains(String x) => outputFile.contents.contains(x);
+  bool contains(String x) => outputFile.readAsStringSync().contains(x);
 
-  append(String x) => outputFile.writeAsStringSync(x, mode: FileMode.append);
+  // TODO: Get rid of the pseudo-file operations if possible.
+  String readAsStringSync() => outputFile.readAsStringSync();
 
-  flirp() {
+  void append(String x) =>
+      outputFile.writeAsStringSync(x, mode: FileMode.append);
+
+  void deleteSync() => outputFile.deleteSync();
+
+  initialize() {
     bool existingOutputFile = outputFile.existsSync();
 
     if (!existingOutputFile) {

@@ -1,5 +1,6 @@
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
 import 'package:test/test.dart';
 
@@ -15,7 +16,7 @@ void main() {
 
   group('IntlMigrator', () {
     final FileSystem fs = MemoryFileSystem();
-    late File file;
+    late IntlMessages file;
     late SuggestorTester basicSuggestor;
 
     // Idempotency isn't a worry for this suggestor, and testing it throws off
@@ -30,7 +31,9 @@ void main() {
 
     setUp(() async {
       final Directory tmp = await fs.systemTempDirectory.createTemp();
-      file = tmp.childFile('TestClassIntl')..createSync(recursive: true);
+      file = IntlMessages('TestClass', tmp, '');
+      // TODO: It's awkward that this test assumes the file exists, but that it doesn't have the prologue written.
+      file.outputFile.createSync(recursive: true);
       basicSuggestor = getSuggestorTester(
         IntlMigrator('TestClassIntl', file),
         resolvedContext: resolvedContext,

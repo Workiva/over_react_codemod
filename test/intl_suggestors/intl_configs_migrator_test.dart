@@ -16,6 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:test/test.dart';
 
 import '../resolved_file_context.dart';
@@ -29,13 +30,14 @@ void main() {
     // (which is more common for the WSD context), it fails here instead of failing the first test.
     setUpAll(resolvedContext.warmUpAnalysis);
 
-    late File file;
+    late IntlMessages file;
     SuggestorTester? testSuggestor;
 
     setUp(() async {
       final FileSystem fs = MemoryFileSystem();
       final Directory tmp = await fs.systemTempDirectory.createTemp();
-      file = tmp.childFile('TestClassIntl')..createSync(recursive: true);
+      file = IntlMessages('TestClass', tmp, '');
+      file.outputFile.createSync(recursive: true);
     });
 
     tearDown(() {
