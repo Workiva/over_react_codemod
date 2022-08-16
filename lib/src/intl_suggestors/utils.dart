@@ -149,8 +149,8 @@ String intlFunctionArguments(StringInterpolation node) {
 
 /// A template to build property access for intl string
 /// ex: ExampleIntl.exampleString
-String intlStringAccess(StringLiteral node, String namespace) =>
-    '${namespace}.${toVariableName(stringContent(node)!)}';
+String intlStringAccess(StringLiteral node, String namespace, {String? name}) =>
+    '${namespace}.${name ?? toVariableName(stringContent(node)!)}';
 
 /// A template to build function call intl interpolated string
 /// ex: ExampleIntl.exampleString(sting1, string2)
@@ -165,11 +165,15 @@ String intlFunctionCall(
   return '$namespace.$functionName$functionArgs';
 }
 
-/// Returns Intl.message for string literal
+/// Returns Intl.message for string literal.
+///
+/// The optional [name] parameter lets us provide a name rather than generating
+/// one from the string.
+///
 /// ex: static String get fooBar => Intl.message('Foo Bar','name: FooBarIntl_fooBar',);
-String intlGetterDef(StringLiteral node, String namespace) {
+String intlGetterDef(StringLiteral node, String namespace, {String? name}) {
   String text = stringContent(node)!;
-  final varName = toVariableName(text);
+  final varName = name ?? toVariableName(text);
   final message = intlFunctionBody(text, '${namespace}_$varName',
       isMultiline: isMultiline(node));
   return '\n  $intlFunctionPrefix get $varName => $message;';
