@@ -25,8 +25,8 @@ import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
-import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 
@@ -239,33 +239,16 @@ Future<void> migratePackage(
   packageDartPaths = limitPaths(packageDartPaths, allowed: paths);
   sortPartsLast(packageDartPaths);
 
-  final File outputFile = fs.currentDirectory.childFile(
-      p.join(package, 'lib', 'src', 'intl', '${packageName}_intl.dart'));
-  final bool existingOutputFile = outputFile.existsSync();
+  final IntlMessages outputFile =
+      IntlMessages(packageName, fs.currentDirectory, package);
+  outputFile.initialize();
 
-  final className = toClassName('${packageName}');
-  final classPredicate = '''import 'package:intl/intl.dart';
-
-//ignore: avoid_classes_with_only_static_members
-//ignore_for_file: unnecessary_brace_in_string_interps
-
-class $className {
-''';
-  if (!existingOutputFile) {
-    outputFile.createSync(recursive: true);
-    outputFile.writeAsStringSync(classPredicate);
-  } else {
-    final List<String> lines = outputFile.readAsLinesSync();
-    lines.removeLast();
-    String outputContent = lines.join('\n');
-    outputFile.writeAsStringSync(outputContent);
-  }
-
-  final intlPropMigrator = IntlMigrator(className, outputFile);
-  final constantStringMigrator = ConstantStringMigrator(className, outputFile);
-  final displayNameMigrator = ConfigsMigrator(className, outputFile);
-  final importMigrator =
-      (FileContext context) => intlImporter(context, packageName, className);
+  final intlPropMigrator = IntlMigrator(outputFile.className, outputFile);
+  final constantStringMigrator =
+      ConstantStringMigrator(outputFile.className, outputFile);
+  final displayNameMigrator = ConfigsMigrator(outputFile.className, outputFile);
+  final importMigrator = (FileContext context) =>
+      intlImporter(context, packageName, outputFile.className);
 
   exitCode = await runCodemodSequences(
       packageDartPaths,
@@ -278,19 +261,8 @@ class $className {
       codemodArgs);
 
   processedPackages.add(package);
-  if (exitCode != 0 || outputFile.readAsStringSync() == classPredicate) {
-    outputFile.deleteSync();
-  } else {
-    var prologueLength = 6;
-    List<String> lines = outputFile.readAsLinesSync();
-    final functions = lines.sublist(prologueLength);
-    functions.removeWhere((string) => string == '');
-    // TODO: Sort by function, not by line.
-    // functions.sort();
-    lines.replaceRange(prologueLength, lines.length, functions);
-    lines.add('}');
-    outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
-  }
+
+  outputFile.write();
 }
 
 void sortPartsLast(List<String> dartPaths) {

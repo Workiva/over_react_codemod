@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
-import 'package:file/file.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
@@ -15,11 +15,11 @@ import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 ///   final String cancel = <IntlClassName>.cancel;
 class ConstantStringMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestor {
-  final File _outputFile;
+  final IntlMessages _messages;
   final String _className;
   Set<String> names = {};
 
-  ConstantStringMigrator(this._className, this._outputFile);
+  ConstantStringMigrator(this._className, this._messages);
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
@@ -47,7 +47,7 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
         final functionCall = intlStringAccess(literal, _className, name: name);
         final functionDef = intlGetterDef(literal, _className, name: name);
         yieldPatch('final String ${node.name} = $functionCall', start, end);
-        addMethodToClass(_outputFile, functionDef);
+        addMethodToClass(_messages, functionDef);
       }
     }
   }
@@ -85,7 +85,7 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
 }
 
 class IntlMigrator extends ComponentUsageMigrator {
-  final File _outputFile;
+  final IntlMessages _outputFile;
   final String _className;
 
   int functionIndex = 0;

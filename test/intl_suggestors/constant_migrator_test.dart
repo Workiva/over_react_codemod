@@ -1,5 +1,6 @@
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
 import 'package:test/test.dart';
 
@@ -15,12 +16,13 @@ void main() {
 
   group('Constant Migrator', () {
     final FileSystem fs = MemoryFileSystem();
-    late File file;
+    late IntlMessages file;
     late SuggestorTester testSuggestor;
 
     setUp(() async {
       final Directory tmp = await fs.systemTempDirectory.createTemp();
-      file = tmp.childFile('TestClassIntl')..createSync(recursive: true);
+      file = IntlMessages('TestClass', tmp, '');
+      file.outputFile.createSync(recursive: true);
       testSuggestor = getSuggestorTester(
         ConstantStringMigrator('TestClassIntl', file),
         resolvedContext: resolvedContext,
