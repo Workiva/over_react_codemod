@@ -247,7 +247,7 @@ Future<void> migratePackage(
   final classPredicate = '''import 'package:intl/intl.dart';
 
 //ignore: avoid_classes_with_only_static_members
-//ignore: unnecessary_brace_in_string_interps
+//ignore_for_file: unnecessary_brace_in_string_interps
 
 class $className {
 ''';
@@ -285,7 +285,8 @@ class $className {
     List<String> lines = outputFile.readAsLinesSync();
     final functions = lines.sublist(prologueLength);
     functions.removeWhere((string) => string == '');
-    functions.sort();
+    // TODO: Sort by function, not by line.
+    // functions.sort();
     lines.replaceRange(prologueLength, lines.length, functions);
     lines.add('}');
     outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);

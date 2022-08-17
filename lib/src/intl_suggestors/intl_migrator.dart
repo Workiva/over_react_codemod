@@ -17,6 +17,7 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestor {
   final File _outputFile;
   final String _className;
+  Set<String> names = {};
 
   ConstantStringMigrator(this._className, this._outputFile);
 
@@ -40,13 +41,45 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
       // uppercase character, which has a good chance of being a date format (e.g. 'MM/dd/YYYY').
       if (firstLetter != secondLetter &&
           firstLetter.toLowerCase() != firstLetter) {
-        final functionCall =
-            intlStringAccess(literal, _className, name: node.name.toString());
-        final functionDef =
-            intlGetterDef(literal, _className, name: node.name.toString());
+        // Constant strings might be private.
+        var name = publicNameFor(node);
+        names.add(name);
+        final functionCall = intlStringAccess(literal, _className, name: name);
+        final functionDef = intlGetterDef(literal, _className, name: name);
         yieldPatch('final String ${node.name} = $functionCall', start, end);
         addMethodToClass(_outputFile, functionDef);
       }
+    }
+  }
+
+  String publicNameFor(VariableDeclaration node) {
+    var basicName = node.name.name;
+    // Make sure it's not private.
+    var publicName =
+        basicName.startsWith('_') ? basicName.substring(1) : basicName;
+    if (isUnique(publicName)) return publicName;
+    var contentBasedName =
+        toVariableName(stringContent(node.initializer as StringLiteral)!);
+    if (isUnique(contentBasedName)) return contentBasedName;
+    return appendANumberTo(publicName);
+  }
+
+  bool isUnique(String name) => !names.contains(name);
+
+  /// Make a name that's unique within the constant methods in the Intl file.
+  ///
+  /// Do this by appending a number. It recursively tries each number in turn, which
+  /// would be pretty inefficient for large numbers, but if we have even dozens of duplicate
+  /// names then we need to change our approach more than just making unique numbers faster.
+  String appendANumberTo(String name, [int counter = 1]) {
+    // TODO: This is only unique within constants. It would be better to move this
+    // into a class representing the output.
+    if (!names.contains(name)) {
+      return name;
+    } else if (!names.contains('$name$counter')) {
+      return '$name$counter';
+    } else {
+      return appendANumberTo(name, counter + 1);
     }
   }
 }
@@ -169,7 +202,7 @@ class IntlMigrator extends ComponentUsageMigrator {
     PropAssignment prop,
   ) {
     if (isValidStringLiteralProp(prop)) {
-      final rhs = prop.rightHandSide as SimpleStringLiteral;
+      final rhs = prop.rightHandSide as StringLiteral;
       final functionCall = intlStringAccess(rhs, _className);
       final functionDef = intlGetterDef(rhs, _className);
       yieldPropPatch(prop, newRhs: functionCall);
