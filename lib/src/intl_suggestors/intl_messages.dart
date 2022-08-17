@@ -14,8 +14,13 @@ class IntlMessages {
   final File outputFile;
   final String className;
 
-  String get classPredicate =>
-      "import 'package:intl/intl.dart';\n\n//ignore: avoid_classes_with_only_static_members\nclass $className {\n";
+  String get classPredicate => '''import 'package:intl/intl.dart';
+
+//ignore: avoid_classes_with_only_static_members
+//ignore_for_file: unnecessary_brace_in_string_interps
+
+class $className {
+''';
 
   IntlMessages(this.packageName, Directory currentDir, String packagePath)
       :
@@ -52,11 +57,12 @@ class IntlMessages {
     if (exitCode != 0 || outputFile.readAsStringSync() == classPredicate) {
       outputFile.deleteSync();
     } else {
+      var prologueLength = 6;
       List<String> lines = outputFile.readAsLinesSync();
-      final functions = lines.sublist(4);
+      final functions = lines.sublist(prologueLength);
       functions.removeWhere((string) => string == '');
       functions.sort();
-      lines.replaceRange(4, lines.length, functions);
+      lines.replaceRange(prologueLength, lines.length, functions);
       lines.add('}');
       outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
     }
