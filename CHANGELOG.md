@@ -1,5 +1,7 @@
 ## [2.7.0](https://github.com/Workiva/over_react_codemod/compare/2.7.0....2.6.0)
 
+- Fix type error with adjacent strings.
+- Prevent duplicate names for constants by falling back to a content-based name if the variable name is a duplicate.
 - Ignore the lint for unnecessary braces in string interpolations in the generated `intl.dart` file.
 - Change the name of migrated constant strings to match the original variable instead of being derived from the value.
 
