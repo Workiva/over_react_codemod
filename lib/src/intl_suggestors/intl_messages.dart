@@ -61,7 +61,8 @@ class $className {
       List<String> lines = outputFile.readAsLinesSync();
       final functions = lines.sublist(prologueLength);
       functions.removeWhere((string) => string == '');
-      functions.sort();
+      // TODO: Sort by function, not by line.
+      // functions.sort();
       lines.replaceRange(prologueLength, lines.length, functions);
       lines.add('}');
       outputFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);

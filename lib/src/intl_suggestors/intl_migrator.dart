@@ -17,6 +17,8 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestor {
   final IntlMessages _messages;
   final String _className;
+  // TODO: Move this and duplicate testing into IntlMessages.
+  Set<String> names = {};
 
   ConstantStringMigrator(this._className, this._messages);
 
@@ -40,15 +42,33 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
       // uppercase character, which has a good chance of being a date format (e.g. 'MM/dd/YYYY').
       if (firstLetter != secondLetter &&
           firstLetter.toLowerCase() != firstLetter) {
-        final functionCall =
-            intlStringAccess(literal, _className, name: node.name.toString());
-        final functionDef =
-            intlGetterDef(literal, _className, name: node.name.toString());
+        // Constant strings might be private.
+        var name = publicNameFor(node);
+        names.add(name);
+        final functionCall = intlStringAccess(literal, _className, name: name);
+        final functionDef = intlGetterDef(literal, _className, name: name);
         yieldPatch('final String ${node.name} = $functionCall', start, end);
         addMethodToClass(_messages, functionDef);
       }
     }
   }
+
+  String publicNameFor(VariableDeclaration node) {
+    var basicName = node.name.name;
+    // Make sure it's not private.
+    var publicName =
+        basicName.startsWith('_') ? basicName.substring(1) : basicName;
+    if (isUnique(publicName)) {
+      return publicName;
+    } else {
+      // Use a content-based name.
+      var contentBasedName =
+          toVariableName(stringContent(node.initializer as StringLiteral)!);
+      return contentBasedName;
+    }
+  }
+
+  bool isUnique(String name) => !names.contains(name);
 }
 
 class IntlMigrator extends ComponentUsageMigrator {
@@ -169,7 +189,7 @@ class IntlMigrator extends ComponentUsageMigrator {
     PropAssignment prop,
   ) {
     if (isValidStringLiteralProp(prop)) {
-      final rhs = prop.rightHandSide as SimpleStringLiteral;
+      final rhs = prop.rightHandSide as StringLiteral;
       final functionCall = intlStringAccess(rhs, _className);
       final functionDef = intlGetterDef(rhs, _className);
       yieldPropPatch(prop, newRhs: functionCall);
