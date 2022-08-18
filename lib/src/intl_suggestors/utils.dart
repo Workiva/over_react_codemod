@@ -233,9 +233,7 @@ String removeInterpolationSyntax(String s) =>
 String toNestedName(String s) => removeInterpolationSyntax(s).split('.').last;
 
 void addMethodToClass(IntlMessages outputFile, String content) {
-  if (!outputFile.contains(content)) {
-    outputFile.append(content);
-  }
+  outputFile.addMethod(content);
 }
 
 /// Input: foo_bar_package

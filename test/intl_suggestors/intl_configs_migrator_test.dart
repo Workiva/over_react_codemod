@@ -30,22 +30,23 @@ void main() {
     // (which is more common for the WSD context), it fails here instead of failing the first test.
     setUpAll(resolvedContext.warmUpAnalysis);
 
-    late IntlMessages file;
+    late IntlMessages messages;
     SuggestorTester? testSuggestor;
 
     setUp(() async {
       final FileSystem fs = MemoryFileSystem();
       final Directory tmp = await fs.systemTempDirectory.createTemp();
-      file = IntlMessages('TestClass', tmp, '');
-      file.outputFile.createSync(recursive: true);
+      messages = IntlMessages('TestClass', tmp, '');
+      messages.outputFile.createSync(recursive: true);
     });
 
     tearDown(() {
-      file.deleteSync();
+      messages.delete();
     });
 
     test('correctly changes display name', () async {
-      testSuggestor = getSuggestorTester(ConfigsMigrator('TestClassIntl', file),
+      testSuggestor = getSuggestorTester(
+          ConfigsMigrator('TestClassIntl', messages),
           resolvedContext: resolvedContext,
           inputUrl: 'test/input/display_name_config.dart');
       await testSuggestor!(
@@ -64,11 +65,12 @@ void main() {
       );
       final expectedFileContent =
           "\n  static String get testDisplayName => Intl.message('Test Display Name', name: 'TestClassIntl_testDisplayName',);";
-      expect(file.readAsStringSync(), expectedFileContent);
+      expect(messages.messageContents(), expectedFileContent);
     });
 
     test('correctly changes name', () async {
-      testSuggestor = getSuggestorTester(ConfigsMigrator('TestClassIntl', file),
+      testSuggestor = getSuggestorTester(
+          ConfigsMigrator('TestClassIntl', messages),
           resolvedContext: resolvedContext,
           inputUrl: 'test/input/name_config.dart');
 
@@ -88,11 +90,12 @@ void main() {
       );
       final expectedFileContent =
           "\n  static String get testName => Intl.message('Test Name', name: 'TestClassIntl_testName',);";
-      expect(file.readAsStringSync(), expectedFileContent);
+      expect(messages.messageContents(), expectedFileContent);
     });
 
     test('correctly changes title', () async {
-      testSuggestor = getSuggestorTester(ConfigsMigrator('TestClassIntl', file),
+      testSuggestor = getSuggestorTester(
+          ConfigsMigrator('TestClassIntl', messages),
           resolvedContext: resolvedContext,
           inputUrl: 'test/input/title_config.dart');
       await testSuggestor!(
@@ -111,7 +114,7 @@ void main() {
       );
       final expectedFileContent =
           "\n  static String get testTitle => Intl.message('Test Title', name: 'TestClassIntl_testTitle',);";
-      expect(file.readAsStringSync(), expectedFileContent);
+      expect(messages.messageContents(), expectedFileContent);
     });
   });
 }
