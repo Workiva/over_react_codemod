@@ -73,13 +73,14 @@ void main() {
       expect(err, contains(' change(s) needed.'));
     });
 
-    testCodemod('Output is sorted',
-        script: script,
-        input: inputFiles(additionalFilesInLib: [extraInput()]),
-        expectedOutput: expectedOutputFiles(
-            additionalFilesInLib: [extraOutput()],
-            messages: [...defaultMessages, ...extraMessages]..sort()),
-        args: ['--yes-to-all']);
+    // TODO: Restore when sorting is restored.
+    // testCodemod('Output is sorted',
+    //     script: script,
+    //     input: inputFiles(additionalFilesInLib: [extraInput()]),
+    //     expectedOutput: expectedOutputFiles(
+    //         additionalFilesInLib: [extraOutput()],
+    //         messages: [...defaultMessages, ...extraMessages]..sort()),
+    //     args: ['--yes-to-all']);
 
     testCodemod('Specify a single file',
         // We add some extra files, but we specify just the original, so they shouldn't be included.
@@ -188,9 +189,10 @@ usage() => (mui.Button()..aria.label='Sorts later')('Literal String');''')
   ]);
 }
 
+// TODO: Put these back in the correct order when sorting is re-enabled.
 const List<String> defaultMessages = [
+  "  static String get sortsLater => Intl.message('Sorts later', name: 'TestProjectIntl_sortsLater',);",
   "  static String get literalString => Intl.message('Literal String', name: 'TestProjectIntl_literalString',);",
-  "  static String get sortsLater => Intl.message('Sorts later', name: 'TestProjectIntl_sortsLater',);"
 ];
 
 d.DirectoryDescriptor expectedOutputFiles({
