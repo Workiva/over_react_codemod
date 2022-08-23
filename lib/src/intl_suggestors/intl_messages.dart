@@ -30,6 +30,9 @@ class $className {''';
     _readExisting();
   }
 
+// #### Be able to update an existing file
+// #### Tests for adjacent strings and multi-line.
+
   void _readExisting() {
     if (outputFile.existsSync()) {
       existingContents = outputFile.readAsStringSync();
