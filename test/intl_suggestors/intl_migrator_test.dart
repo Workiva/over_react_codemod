@@ -16,7 +16,7 @@ void main() {
 
   group('IntlMigrator', () {
     final FileSystem fs = MemoryFileSystem();
-    late IntlMessages file;
+    late IntlMessages messages;
     late SuggestorTester basicSuggestor;
 
     // Idempotency isn't a worry for this suggestor, and testing it throws off
@@ -31,17 +31,17 @@ void main() {
 
     setUp(() async {
       final Directory tmp = await fs.systemTempDirectory.createTemp();
-      file = IntlMessages('TestClass', tmp, '');
+      messages = IntlMessages('TestClass', tmp, '');
       // TODO: It's awkward that this test assumes the file exists, but that it doesn't have the prologue written.
-      file.outputFile.createSync(recursive: true);
+      messages.outputFile.createSync(recursive: true);
       basicSuggestor = getSuggestorTester(
-        IntlMigrator('TestClassIntl', file),
+        IntlMigrator('TestClassIntl', messages),
         resolvedContext: resolvedContext,
       );
     });
 
     tearDown(() {
-      file.deleteSync();
+      messages.delete();
     });
 
     group('Child - StringLiteral', () {
@@ -76,7 +76,7 @@ void main() {
         );
         final expectedFileContent =
             '\n  static String get viewer => Intl.message(\'viewer\', name: \'TestClassIntl_viewer\',);';
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('StringLiteral two children', () async {
@@ -114,7 +114,7 @@ void main() {
 
         final expected =
             "\n  static String get testString1 => Intl.message('testString1', name: 'TestClassIntl_testString1',);\n  static String get testString2 => Intl.message('testString2', name: 'TestClassIntl_testString2',);";
-        expect(file.readAsStringSync(), expected);
+        expect(messages.messageContents(), expected);
       });
 
       test('single number string', () async {
@@ -212,7 +212,7 @@ void main() {
         );
         final expected =
             "\n  static String get thisIsALengthyString => Intl.message('this is a lengthy string, it\\\'s been broken up into several lines which Dart automatically concatenates.', name: 'TestClassIntl_thisIsALengthyString',);";
-        expect(file.readAsStringSync(), expected);
+        expect(messages.messageContents(), expected);
       });
     });
 
@@ -284,7 +284,7 @@ void main() {
 
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String number) => Intl.message('Distance \${number}km', args: [number], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('two different interpolations get different names', () async {
@@ -323,7 +323,7 @@ void main() {
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String title) => Intl.message('Also interpolated \${title}', args: [title], name: 'TestClassIntl_Foo_intlFunction0',);"
             "\n  static String Foo_intlFunction1(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction1',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('two argument with top level accessors', () async {
@@ -361,7 +361,7 @@ void main() {
         );
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('one argument with nested accessor', () async {
@@ -399,7 +399,7 @@ void main() {
         );
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('two arguments with nested accessor', () async {
@@ -441,7 +441,7 @@ void main() {
         );
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('one argument with nested accessor and null operator', () async {
@@ -479,7 +479,7 @@ void main() {
         );
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('Single interpolated element', () async {
@@ -559,7 +559,7 @@ void main() {
 
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('Interpolated with apostrophe', () async {
@@ -598,7 +598,7 @@ void main() {
 
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
       test('Interpolated with testId string', () async {
         await testSuggestor(
@@ -644,7 +644,7 @@ void main() {
 
         String expectedFileContent =
             "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('Interpolated with testId', () async {
@@ -699,7 +699,7 @@ void main() {
 
         String expectedFileContent =
             "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('Interpolated with testId in a parent node', () async {
@@ -770,8 +770,8 @@ void main() {
             "\n  static String foo(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_foo',);";
         String expectedFileContent2 =
             "\n  static String bar(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_bar',);";
-        expect(file.readAsStringSync(),
-            [expectedFileContent1, expectedFileContent2].join(''));
+        expect(messages.messageContents(),
+            [expectedFileContent2, expectedFileContent1].join(''));
       });
 
       test('Home Example', () async {
@@ -813,7 +813,7 @@ void main() {
         );
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String fileStr, String refStr) => Intl.message('Now that you\\\'ve transitioned your \${fileStr}, you\\\'ll want to freeze \${refStr} or update permissions to prevent others from using \${refStr}.', args: [fileStr, refStr], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
     });
 
@@ -850,7 +850,7 @@ void main() {
 
         final expectedFileOutput =
             '\n  static String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
-        expect(file.readAsStringSync(), expectedFileOutput);
+        expect(messages.messageContents(), expectedFileOutput);
       });
 
       test('class string literal', () async {
@@ -886,7 +886,7 @@ void main() {
         );
         final expectedFileOutput =
             '\n  static String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
-        expect(file.readAsStringSync(), expectedFileOutput);
+        expect(messages.messageContents(), expectedFileOutput);
       });
 
       test('uiFunction props => component', () async {
@@ -916,7 +916,7 @@ void main() {
         );
         final expectedFileOutput =
             '\n  static String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
-        expect(file.readAsStringSync(), expectedFileOutput);
+        expect(messages.messageContents(), expectedFileOutput);
       });
     });
 
@@ -957,7 +957,7 @@ void main() {
 
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('two argument with top level accessors', () async {
@@ -997,7 +997,7 @@ void main() {
         );
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('one argument with nested accessor', () async {
@@ -1037,7 +1037,7 @@ void main() {
         );
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('two arguments with nested accessor', () async {
@@ -1079,7 +1079,7 @@ void main() {
         );
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('Single interpolated element', () async {
@@ -1161,7 +1161,7 @@ void main() {
 
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('Interpolated with apostrophe', () async {
@@ -1202,7 +1202,7 @@ void main() {
 
         final expectedFileContent =
             "\n  static String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('Interpolated with testId string', () async {
@@ -1245,7 +1245,7 @@ void main() {
 
         String expectedFileContent =
             "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('Interpolated with testId', () async {
@@ -1296,7 +1296,7 @@ void main() {
 
         String expectedFileContent =
             "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
     });
   });

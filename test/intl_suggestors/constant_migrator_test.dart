@@ -16,7 +16,7 @@ void main() {
 
   group('Constant Migrator', () {
     final FileSystem fs = MemoryFileSystem();
-    late IntlMessages file;
+    late IntlMessages messages;
     late SuggestorTester basicSuggestor;
 
     // Idempotency isn't a worry for this suggestor, and testing it throws off
@@ -31,16 +31,16 @@ void main() {
 
     setUp(() async {
       final Directory tmp = await fs.systemTempDirectory.createTemp();
-      file = IntlMessages('TestClass', tmp, '');
-      file.outputFile.createSync(recursive: true);
+      messages = IntlMessages('TestClass', tmp, '');
+      messages.outputFile.createSync(recursive: true);
       basicSuggestor = getSuggestorTester(
-        ConstantStringMigrator('TestClassIntl', file),
+        ConstantStringMigrator('TestClassIntl', messages),
         resolvedContext: resolvedContext,
       );
     });
 
     tearDown(() {
-      file.deleteSync();
+      messages.delete();
     });
 
     group('Constants', () {
@@ -55,7 +55,7 @@ void main() {
         );
         final expectedFileContent =
             '\n  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\',);';
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('non-matching standalone constant', () async {
@@ -68,7 +68,7 @@ void main() {
             ''',
         );
         final expectedFileContent = '';
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('static constant', () async {
@@ -86,7 +86,7 @@ void main() {
         );
         final expectedFileContent =
             '\n  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\',);';
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('private constant', () async {
@@ -104,7 +104,7 @@ void main() {
         );
         final expectedFileContent =
             '\n  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\',);';
-        expect(file.readAsStringSync(), expectedFileContent);
+        expect(messages.messageContents(), expectedFileContent);
       });
 
       test('duplicate static names', () async {
@@ -131,10 +131,11 @@ void main() {
             ''',
         );
         final expectedFileContent = '''
-  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\',);
+  static String get aDifferentConstant => Intl.message(\'A different constant\', name: \'TestClassIntl_aDifferentConstant\',);
   static String get anotherStatic => Intl.message(\'Another static\', name: \'TestClassIntl_anotherStatic\',);
-  static String get aDifferentConstant => Intl.message(\'A different constant\', name: \'TestClassIntl_aDifferentConstant\',);''';
-        expect(file.readAsStringSync().trim(),
+  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\',);
+''';
+        expect(messages.messageContents().trim(),
             expectedFileContent.trim()); // Avoid the leading return.
       });
 
@@ -162,9 +163,10 @@ void main() {
             ''',
         );
         final expectedFileContent = '''
+  static String get anotherStatic => Intl.message(\'Another static\', name: \'TestClassIntl_anotherStatic\',);
   static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\',);
-  static String get anotherStatic => Intl.message(\'Another static\', name: \'TestClassIntl_anotherStatic\',);''';
-        expect(file.readAsStringSync().trim(),
+''';
+        expect(messages.messageContents().trim(),
             expectedFileContent.trim()); // Avoid the leading return.
       });
     });

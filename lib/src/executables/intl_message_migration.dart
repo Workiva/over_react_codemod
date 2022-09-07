@@ -241,7 +241,6 @@ Future<void> migratePackage(
 
   final IntlMessages outputFile =
       IntlMessages(packageName, fs.currentDirectory, package);
-  outputFile.initialize();
 
   final intlPropMigrator = IntlMigrator(outputFile.className, outputFile);
   final constantStringMigrator =
