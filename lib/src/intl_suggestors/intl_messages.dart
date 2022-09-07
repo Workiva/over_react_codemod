@@ -30,9 +30,7 @@ class $className {''';
     _readExisting();
   }
 
-// #### Be able to update an existing file
-// #### Tests for adjacent strings and multi-line.
-
+  // TODO: Be able to update an existing file.
   void _readExisting() {
     if (outputFile.existsSync()) {
       existingContents = outputFile.readAsStringSync();
@@ -46,7 +44,6 @@ class $className {''';
 
   void addMethod(String method) {
     methods.add(method);
-    // outputFile.writeAsStringSync(method, mode: FileMode.append);
   }
 
   void delete() => outputFile.deleteSync();

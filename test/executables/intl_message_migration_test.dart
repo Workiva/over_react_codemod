@@ -78,7 +78,8 @@ void main() {
         input: inputFiles(additionalFilesInLib: [extraInput()]),
         expectedOutput: expectedOutputFiles(
             additionalFilesInLib: [extraOutput()],
-            messages: [...defaultMessages, ...extraMessages]..sort()),
+            messages: [...defaultMessages, ...extraMessages, ...longMessages]
+              ..sort()),
         args: ['--yes-to-all']);
 
     testCodemod('Specify a single file',
@@ -148,7 +149,15 @@ d.FileDescriptor extraInput() {
   return d.file('more_stuff.dart',
       /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
 
-someMoreStrings() => (mui.Button()..aria.label='orange')('aquamarine');''');
+someMoreStrings() => (mui.Button()
+  ..aria.label='orange'
+  ..label="""
+A long string
+with multiple
+   lines""")
+    ('aquamarine',
+     'two adjacent '
+     'strings on separate lines');''');
 }
 
 d.FileDescriptor extraOutput() {
@@ -156,12 +165,23 @@ d.FileDescriptor extraOutput() {
       /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
 import 'package:test_project/src/intl/test_project_intl.dart';
 
-someMoreStrings() => (mui.Button()..aria.label=TestProjectIntl.orange)(TestProjectIntl.aquamarine);''');
+someMoreStrings() => (mui.Button()
+  ..aria.label=TestProjectIntl.orange
+  ..label=TestProjectIntl.aLongStringwithMultiple)
+    (TestProjectIntl.aquamarine,
+     TestProjectIntl.twoAdjacentStringsOnSeparate);''');
 }
 
 List<String> extraMessages = [
   "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange',);",
   "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine',);"
+];
+
+List<String> longMessages = [
+  """  static String get twoAdjacentStringsOnSeparate => Intl.message('two adjacent strings on separate lines', name: 'TestProjectIntl_twoAdjacentStringsOnSeparate',);""",
+  """  static String get aLongStringwithMultiple => Intl.message('''A long string
+with multiple
+   lines''', name: 'TestProjectIntl_aLongStringwithMultiple',);""",
 ];
 
 d.DirectoryDescriptor inputFiles(
@@ -188,7 +208,6 @@ usage() => (mui.Button()..aria.label='Sorts later')('Literal String');''')
   ]);
 }
 
-// TODO: Put these back in the correct order when sorting is re-enabled.
 const List<String> defaultMessages = [
   "  static String get literalString => Intl.message('Literal String', name: 'TestProjectIntl_literalString',);",
   "  static String get sortsLater => Intl.message('Sorts later', name: 'TestProjectIntl_sortsLater',);",
