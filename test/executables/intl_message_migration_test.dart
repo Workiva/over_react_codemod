@@ -82,6 +82,20 @@ void main() {
               ..sort()),
         args: ['--yes-to-all']);
 
+    testCodemod('Changes are preserved',
+        script: script,
+        input: expectedOutputFiles(
+            additionalFilesInLib: [extraInput()],
+            messages: [...defaultMessages]),
+        expectedOutput: expectedOutputFiles(
+            additionalFilesInLib: [extraOutput()],
+            messages: [
+              ...defaultMessages,
+              ...annotatedMessages,
+              ...longMessages
+            ]..sort()),
+        args: ['--yes-to-all']);
+
     testCodemod('Specify a single file',
         // We add some extra files, but we specify just the original, so they shouldn't be included.
         script: script,
@@ -175,6 +189,12 @@ someMoreStrings() => (mui.Button()
 List<String> extraMessages = [
   "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange',);",
   "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine',);"
+];
+
+/// Messages that have extra parameters we want to preserve.
+List<String> annotatedMessages = [
+  "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange', desc: 'The color.');",
+  "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine', desc: 'The color', meaning: 'blueish');"
 ];
 
 List<String> longMessages = [

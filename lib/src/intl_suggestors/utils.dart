@@ -176,7 +176,7 @@ String intlGetterDef(StringLiteral node, String namespace, {String? name}) {
   final varName = name ?? toVariableName(text);
   final message = intlFunctionBody(text, '${namespace}_$varName',
       isMultiline: isMultiline(node));
-  return '\n  $intlFunctionPrefix get $varName => $message;';
+  return '  $intlFunctionPrefix get $varName => $message;';
 }
 
 /// Returns Intl.message with interpolation
@@ -198,7 +198,7 @@ String intlFunctionDef(
   final message = intlFunctionBody(
       parameterizedMessage, '${namespace}_$functionName',
       args: messageArgs, isMultiline: node.isMultiline);
-  return '\n  $intlFunctionPrefix $functionName$functionParams => $message;';
+  return '  $intlFunctionPrefix $functionName$functionParams => $message;';
 }
 // -- End Intl helpers --
 
