@@ -1,3 +1,12 @@
+## [2.9.0](https://github.com/Workiva/over_react_codemod/compare/2.9.0....2.8.0)
+
+- Improve the sorting to be by function/getter name rather than the whole function/getter string.
+- Allow reading an existing _intl.dart file and rewriting it, preserving the existing functions.
+
+## [2.8.0](https://github.com/Workiva/over_react_codemod/compare/2.8.0....2.7.0)
+
+- Re-enable sorting of the _intl.dart file.
+
 ## [2.7.0](https://github.com/Workiva/over_react_codemod/compare/2.7.0....2.6.0)
 
 - Fix type error with adjacent strings.

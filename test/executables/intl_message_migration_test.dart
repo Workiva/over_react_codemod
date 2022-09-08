@@ -82,7 +82,8 @@ void main() {
               ..sort()),
         args: ['--yes-to-all']);
 
-    testCodemod('Changes are preserved',
+    // Test that additional information (desc, meaning) are preserved if we read and then rewrite the file.
+    testCodemod('Manual modifications are preserved',
         script: script,
         input: expectedOutputFiles(
             additionalFilesInLib: [extraInput()],

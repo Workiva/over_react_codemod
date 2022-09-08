@@ -61,6 +61,11 @@ void main() {
       messages.write();
       expect(messages.outputFile.readAsStringSync(), expectedFile([extra]));
     });
+
+    test('duplicate names with different content throw', () {
+      var tweaked = sampleMethods.last.replaceFirst('def', 'zzzz');
+      expect(() => messages.addMethod(tweaked), throwsA(isA<AssertionError>()));
+    });
   });
 }
 

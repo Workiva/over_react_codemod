@@ -66,6 +66,13 @@ class IntlMessages {
   String messageContents() => _messageContents;
 
   void addMethod(String method) {
+    var name = methodName(method);
+    if (methods.containsKey(name) && methods[name] != method) {
+      throw AssertionError('''
+Attempting to add a different message with the same name:
+  new: $method
+  old: ${methods[name]}''');
+    }
     methods[methodName(method)] = method;
   }
 
