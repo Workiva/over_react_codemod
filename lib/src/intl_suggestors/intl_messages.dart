@@ -79,7 +79,7 @@ class IntlMessages {
   String get _messageContents {
     var buffer = StringBuffer();
     (methods.keys.toList()..sort())
-        .forEach((name) => buffer.write('\n${methods[name]}'));
+        .forEach((name) => buffer.write('\n\n${methods[name]}'));
     return '$buffer';
   }
 

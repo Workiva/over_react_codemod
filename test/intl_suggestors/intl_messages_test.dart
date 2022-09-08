@@ -24,13 +24,20 @@ void main() {
     });
   });
   group('round-trip', () {
-    setUp(() async {
-      final Directory tmp = await fs.systemTempDirectory.createTemp();
-      var intlFile = tmp.childFile('foo_intl.dart');
-      intlFile.createSync(recursive: true);
+    late Directory tmp;
+    late File intlFile;
+
+    writeExisting(List<String> methods) {
       intlFile.writeAsStringSync(
-          "${IntlMessages.prologueFor('TestClassIntl')}\n${sampleMethods.join('\n')}\n}\n");
+          "${IntlMessages.prologueFor('TestClassIntl')}\n${methods.join('\n')}\n}\n");
       messages = IntlMessages('TestClass', tmp, '', output: intlFile);
+    }
+
+    setUp(() async {
+      tmp = await fs.systemTempDirectory.createTemp();
+      intlFile = tmp.childFile('foo_intl.dart');
+      intlFile.createSync(recursive: true);
+      writeExisting(sampleMethods);
     });
 
     test('messages found', () {
@@ -39,8 +46,34 @@ void main() {
           messages.methods.keys, ['orange', 'aquamarine', 'long', 'function']);
       expect(messages.methods.values, sampleMethods);
     });
+
+    test('messages written as expected', () {
+      messages.write();
+      expect(messages.outputFile.readAsStringSync(), expectedFile());
+    });
+
+    test('annotated messages rewritten properly when new ones are added', () {
+      // Add an extra method. Name it so that it is sorted last without us needing to make the test sorting
+      // more sophisticated.
+      var extra =
+          "  static String get zzNewMessage => Intl.message('new', name: 'TestProjectIntl_zzNewMessage',);";
+      messages.addMethod(extra);
+      messages.write();
+      expect(messages.outputFile.readAsStringSync(), expectedFile([extra]));
+    });
   });
 }
+
+String expectedFile([List<String> extraMessages = const []]) => '''
+import 'package:intl/intl.dart';
+
+//ignore: avoid_classes_with_only_static_members
+//ignore_for_file: unnecessary_brace_in_string_interps
+
+class TestClassIntl {
+
+${[...sortedSampleMethods, ...extraMessages].join('\n\n')}
+}''';
 
 List<String> sampleMethods = [
   "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange', desc: 'The color.',);",
@@ -50,6 +83,9 @@ line
 string''', name: 'TestProjectIntl_long',);""",
   """  static String function(String x) => Intl.message('abc\${x}def'), name: 'TestProjectIntl_function',);""",
 ];
+
+List<String> get sortedSampleMethods =>
+    [sampleMethods[1], sampleMethods[3], sampleMethods[2], sampleMethods[0]];
 
 // A test utility to be invoked from the debug console to see where subtly-different long strings differ.
 void firstDifference(String a, String b) {
