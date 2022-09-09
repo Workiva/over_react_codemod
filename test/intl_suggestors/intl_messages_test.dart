@@ -22,6 +22,23 @@ void main() {
       ];
       expect(names, ['orange', 'aquamarine', 'long', 'function']);
     });
+    test('Tabs instead of spaces', () {
+      var tabbed =
+          '''\tstatic String get activateTheSelectedNode => Intl.message(
+        'Activate the selected node',
+        name: 'WOutlineIntl_activateTheSelectedNode',
+      );
+\tstatic String get addChild => Intl.message(
+        'Add Child',
+        name: 'WOutlineIntl_addChild',
+      );''';
+      var split = tabbed
+          .split(IntlMessages.methodSplitter)
+          .where((each) => each.isNotEmpty);
+      expect(split.length, 2);
+      expect(split.first, startsWith('activateTheSelectedNode'));
+      expect(split.last, startsWith('addChild'));
+    });
   });
 
   group('Create with no messages', () {

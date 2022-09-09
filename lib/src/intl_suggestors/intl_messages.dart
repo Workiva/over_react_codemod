@@ -44,7 +44,7 @@ class IntlMessages {
         content.substring(prologue.length, content.lastIndexOf('}'));
     // Include a newline in the split, so we only catch the start of lines,
     // but we don't need a starting newline in the actual method text, so omit it.
-    var individualMethods = classBody.split('\n$_methodDelimiter');
+    var individualMethods = classBody.split(methodSplitter);
     return [
       for (var method in individualMethods)
         if (method.trim().isNotEmpty) '$_methodDelimiter${method.trim()}'
@@ -126,5 +126,11 @@ class $className {''';
 
   /// Used to extract the method names.
   // TODO: Don't use RegExp.
-  static RegExp methodMatcher = RegExp(r'^ +static String (get )*(\w+)');
+  static RegExp methodMatcher = RegExp(r'^\s+static String (get )*(\w+)');
+
+  /// Used to split the string into separate methods. Doesn't include the name, which
+  /// would get removed if we split on this.
+  // TODO: Don't use RegExp.
+  static RegExp methodSplitter =
+      RegExp(r'^\s+static String (get )*', multiLine: true);
 }
