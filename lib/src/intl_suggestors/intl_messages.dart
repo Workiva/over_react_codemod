@@ -67,15 +67,28 @@ class IntlMessages {
 
   void addMethod(String method) {
     var name = methodName(method);
-    // TODO: Can this happen in practice? Should we do something better than stop the whole migration?
-    if (methods.containsKey(name) && methods[name] != method) {
-      throw AssertionError('''
+    // TODO: Do a better job of checking if these are really the same. Really parsing would be helpful.
+    // For example, this will report a difference if description is added ahead of name.
+    if (methods.containsKey(name)) {
+      var existingMethod = methods[name]!;
+      if (existingMethod != method) {
+        if (upToTheNameArgument(method) !=
+            upToTheNameArgument(existingMethod)) {
+          throw AssertionError('''
 Attempting to add a different message with the same name:
   new: $method
   old: ${methods[name]}''');
+        } else {
+          // Seems to match, keep the existing one, which may have modifications (e.g. add description).
+          return;
+        }
+      }
     }
     methods[methodName(method)] = method;
   }
+
+  String upToTheNameArgument(String method) =>
+      method.substring(0, method.indexOf(", name: '${className}_"));
 
   void delete() => outputFile.deleteSync();
 
