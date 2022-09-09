@@ -89,20 +89,20 @@ void main() {
 
         final testResult =
             intlFunctionDef(parsedInterpolation, 'Namespace', "NamePrefix", 0);
-        expect(expectedResult, testResult);
+        expect(testResult, expectedResult);
       }
 
       test('single line', () async {
         final testStr = r"'${singleLine}'";
         final expectedResult =
-            "\n  static String NamePrefix_intlFunction0(String singleLine) => Intl.message('\${singleLine}', args: [singleLine], name: 'Namespace_NamePrefix_intlFunction0',);";
+            "  static String NamePrefix_intlFunction0(String singleLine) => Intl.message('\${singleLine}', args: [singleLine], name: 'Namespace_NamePrefix_intlFunction0',);";
         runResults(testStr, false, expectedResult);
       });
 
       test('multiline', () async {
         final testStr = r"'''${multiline}'''";
         final expectedResult =
-            "\n  static String NamePrefix_intlFunction0(String multiline) => Intl.message('''\${multiline}''', args: [multiline], name: 'Namespace_NamePrefix_intlFunction0',);";
+            "  static String NamePrefix_intlFunction0(String multiline) => Intl.message('''\${multiline}''', args: [multiline], name: 'Namespace_NamePrefix_intlFunction0',);";
         runResults(testStr, true, expectedResult);
       });
     });

@@ -67,6 +67,7 @@ class IntlMessages {
 
   void addMethod(String method) {
     var name = methodName(method);
+    // TODO: Can this happen in practice? Should we do something better than stop the whole migration?
     if (methods.containsKey(name) && methods[name] != method) {
       throw AssertionError('''
 Attempting to add a different message with the same name:
@@ -86,12 +87,11 @@ Attempting to add a different message with the same name:
   String get _messageContents {
     var buffer = StringBuffer();
     (methods.keys.toList()..sort())
-        .forEach((name) => buffer.write('\n\n${methods[name]}'));
+        .forEach((name) => buffer.write('\n${methods[name]}'));
     return '$buffer';
   }
 
   write() {
-    if (methods.isEmpty) return;
     outputFile.createSync(recursive: true);
     outputFile.writeAsStringSync(contents);
   }

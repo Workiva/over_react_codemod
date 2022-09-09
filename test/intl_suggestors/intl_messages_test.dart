@@ -23,6 +23,22 @@ void main() {
       expect(names, ['orange', 'aquamarine', 'long', 'function']);
     });
   });
+
+  group('Create with no messages', () {
+    late Directory tmp;
+    late File intlFile;
+    setUp(() async {
+      tmp = await fs.systemTempDirectory.createTemp();
+      intlFile = tmp.childFile('foo_intl.dart');
+      intlFile.createSync(recursive: true);
+    });
+
+    test('empty', () {
+      messages = IntlMessages('TestClass', tmp, '', output: intlFile);
+      messages.write();
+      expect(messages.outputFile.readAsStringSync(), expectedFile(''));
+    });
+  });
   group('round-trip', () {
     late Directory tmp;
     late File intlFile;
@@ -49,7 +65,8 @@ void main() {
 
     test('messages written as expected', () {
       messages.write();
-      expect(messages.outputFile.readAsStringSync(), expectedFile());
+      expect(messages.outputFile.readAsStringSync(),
+          expectedFile(sortedSampleMethods.join('\n')));
     });
 
     test('annotated messages rewritten properly when new ones are added', () {
@@ -59,7 +76,8 @@ void main() {
           "  static String get zzNewMessage => Intl.message('new', name: 'TestProjectIntl_zzNewMessage',);";
       messages.addMethod(extra);
       messages.write();
-      expect(messages.outputFile.readAsStringSync(), expectedFile([extra]));
+      expect(messages.outputFile.readAsStringSync(),
+          expectedFile([...sortedSampleMethods, extra].join('\n')));
     });
 
     test('duplicate names with different content throw', () {
@@ -69,15 +87,13 @@ void main() {
   });
 }
 
-String expectedFile([List<String> extraMessages = const []]) => '''
+String expectedFile(String methods) => '''
 import 'package:intl/intl.dart';
 
 //ignore: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
 
-class TestClassIntl {
-
-${[...sortedSampleMethods, ...extraMessages].join('\n\n')}
+class TestClassIntl {${methods.isNotEmpty ? '\n' : ''}$methods
 }''';
 
 List<String> sampleMethods = [
@@ -89,8 +105,13 @@ string''', name: 'TestProjectIntl_long',);""",
   """  static String function(String x) => Intl.message('abc\${x}def'), name: 'TestProjectIntl_function',);""",
 ];
 
-List<String> get sortedSampleMethods =>
-    [sampleMethods[1], sampleMethods[3], sampleMethods[2], sampleMethods[0]];
+// The sample methods in a hard-coded sorted order.
+List<String> get sortedSampleMethods => [
+      sampleMethods[1],
+      sampleMethods[3],
+      sampleMethods[2],
+      sampleMethods[0],
+    ];
 
 // A test utility to be invoked from the debug console to see where subtly-different long strings differ.
 void firstDifference(String a, String b) {
