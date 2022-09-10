@@ -26,18 +26,18 @@ void main() {
       var tabbed =
           '''\tstatic String get activateTheSelectedNode => Intl.message(
         'Activate the selected node',
-        name: 'WOutlineIntl_activateTheSelectedNode',
+        name: 'TestProjectIntl_activateTheSelectedNode',
       );
 \tstatic String get addChild => Intl.message(
         'Add Child',
-        name: 'WOutlineIntl_addChild',
+        name: 'TestProjectIntl_addChild',
       );''';
       var split = tabbed
           .split(IntlMessages.methodSplitter)
           .where((each) => each.isNotEmpty);
       expect(split.length, 2);
-      expect(split.first, startsWith('activateTheSelectedNode'));
-      expect(split.last, startsWith('addChild'));
+      expect(split.first, startsWith('get activateTheSelectedNode'));
+      expect(split.last, startsWith('get addChild'));
     });
   });
 
@@ -51,7 +51,7 @@ void main() {
     });
 
     test('empty', () {
-      messages = IntlMessages('TestClass', tmp, '', output: intlFile);
+      messages = IntlMessages('TestProject', tmp, '', output: intlFile);
       messages.write();
       expect(messages.outputFile.readAsStringSync(), expectedFile(''));
     });
@@ -62,8 +62,8 @@ void main() {
 
     writeExisting(List<String> methods) {
       intlFile.writeAsStringSync(
-          "${IntlMessages.prologueFor('TestClassIntl')}\n${methods.join('\n')}\n}\n");
-      messages = IntlMessages('TestClass', tmp, '', output: intlFile);
+          "${IntlMessages.prologueFor('TestProjectIntl')}\n${methods.join('\n')}\n}\n");
+      messages = IntlMessages('TestProject', tmp, '', output: intlFile);
     }
 
     setUp(() async {
@@ -110,7 +110,7 @@ import 'package:intl/intl.dart';
 //ignore: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
 
-class TestClassIntl {${methods.isNotEmpty ? '\n' : ''}$methods
+class TestProjectIntl {${methods.isNotEmpty ? '\n' : ''}$methods
 }''';
 
 List<String> sampleMethods = [

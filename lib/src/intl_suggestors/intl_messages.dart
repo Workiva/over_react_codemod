@@ -131,6 +131,5 @@ class $className {''';
   /// Used to split the string into separate methods. Doesn't include the name, which
   /// would get removed if we split on this.
   // TODO: Don't use RegExp.
-  static RegExp methodSplitter =
-      RegExp(r'^\s+static String (get )*', multiLine: true);
+  static RegExp methodSplitter = RegExp(r'^\s+static String ', multiLine: true);
 }
