@@ -233,8 +233,8 @@ usage() => (mui.Button()..aria.label='Sorts later')('Literal String');''')
 }
 
 const List<String> defaultMessages = [
-  "  static String get literalString => Intl.message('Literal String', name: 'TestProjectIntl_literalString',);",
-  "  static String get sortsLater => Intl.message('Sorts later', name: 'TestProjectIntl_sortsLater',);",
+  "  static String get literalString => Intl.message('Literal String', name: 'TestProjectIntl_literalString');",
+  "  static String get sortsLater => Intl.message('Sorts later', name: 'TestProjectIntl_sortsLater');",
 ];
 
 d.DirectoryDescriptor expectedOutputFiles({

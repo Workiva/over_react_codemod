@@ -81,7 +81,7 @@ void main() {
     });
 
     test('messages written as expected', () {
-      messages.write();
+      messages.write(force: true);
       expect(messages.outputFile.readAsStringSync(),
           expectedFile(sortedSampleMethods.join('\n')));
     });
@@ -90,7 +90,7 @@ void main() {
       // Add an extra method. Name it so that it is sorted last without us needing to make the test sorting
       // more sophisticated.
       var extra =
-          "  static String get zzNewMessage => Intl.message('new', name: 'TestProjectIntl_zzNewMessage',);";
+          "  static String get zzNewMessage => Intl.message('new', name: 'TestProjectIntl_zzNewMessage');";
       messages.addMethod(extra);
       messages.write();
       expect(messages.outputFile.readAsStringSync(),
@@ -114,12 +114,12 @@ class TestProjectIntl {${methods.isNotEmpty ? '\n' : ''}$methods
 }''';
 
 List<String> sampleMethods = [
-  "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange', desc: 'The color.',);",
-  "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine', desc: 'The color', meaning: 'blueish',);",
+  "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange', desc: 'The color.');",
+  "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine', desc: 'The color', meaning: 'blueish');",
   """  static String get long => Intl.message('''multi
 line 
-string''', name: 'TestProjectIntl_long',);""",
-  """  static String function(String x) => Intl.message('abc\${x}def'), name: 'TestProjectIntl_function',);""",
+string''', name: 'TestProjectIntl_long');""",
+  """  static String function(String x) => Intl.message('abc\${x}def', name: 'TestProjectIntl_function');""",
 ];
 
 // The sample methods in a hard-coded sorted order.
