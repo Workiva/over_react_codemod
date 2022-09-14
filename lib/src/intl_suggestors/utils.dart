@@ -108,7 +108,7 @@ String intlFunctionBody(
 }) {
   var escapedStr = escapeApos(message);
   String delimiter = (isMultiline) ? "'''" : "'";
-  return "Intl.message(${delimiter}${escapedStr}${delimiter}, ${args.isNotEmpty ? 'args: ${args}, ' : ''}name: '$name',)";
+  return "Intl.message(${delimiter}${escapedStr}${delimiter}, ${args.isNotEmpty ? 'args: ${args}, ' : ''}name: '$name')";
 }
 
 // --- Start Intl.message parts

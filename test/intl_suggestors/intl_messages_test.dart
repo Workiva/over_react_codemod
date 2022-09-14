@@ -9,17 +9,9 @@ void main() {
   late IntlMessages messages;
 
   group('basic', () {
-    test('Find method names via RegExp', () {
-      var matches = sampleMethods
-          .map((each) => IntlMessages.methodMatcher.matchAsPrefix(each));
-      var names = [for (var m in matches) m?.group(m.groupCount)];
-      expect(names, ['orange', 'aquamarine', 'long', 'function']);
-    });
-
     test('methodName', () {
-      var names = [
-        for (var method in sampleMethods) IntlMessages.methodName(method)
-      ];
+      var parser = MessageParser();
+      var names = [for (var method in sampleMethods) parser.methodName(method)];
       expect(names, ['orange', 'aquamarine', 'long', 'function']);
     });
     test('Tabs instead of spaces', () {
@@ -28,16 +20,8 @@ void main() {
         'Activate the selected node',
         name: 'TestProjectIntl_activateTheSelectedNode',
       );
-\tstatic String get addChild => Intl.message(
-        'Add Child',
-        name: 'TestProjectIntl_addChild',
-      );''';
-      var split = tabbed
-          .split(IntlMessages.methodSplitter)
-          .where((each) => each.isNotEmpty);
-      expect(split.length, 2);
-      expect(split.first, startsWith('get activateTheSelectedNode'));
-      expect(split.last, startsWith('get addChild'));
+      ''';
+      expect(MessageParser().methodName(tabbed), 'activateTheSelectedNode');
     });
   });
 

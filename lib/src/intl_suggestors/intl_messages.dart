@@ -5,56 +5,38 @@ import 'package:file/file.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:path/path.dart' as p;
 
-class MessageParser {
-  late ParseStringResult parsed;
-
-  Map<String, String> parseFile(String contents, String origin) {
-    if (contents.contains("Intl.")) {
-      parsed = parseString(content: contents, path: origin);
-    } else {
-      return {};
-    }
-    // var visitor = MessageFindingVisitor(this);
-    // parsed.accept(visitor);
-    ClassDeclaration foo = parsed.unit.declarations.first as ClassDeclaration;
-    List<MethodDeclaration> methods =
-        foo.members.toList().cast<MethodDeclaration>();
-    return {for (var method in methods) method.name.name: '  $method'};
-  }
-}
-
-/// Represents the generated file with the Intl class.
-///
-/// Right now this just wraps the file, but in the future it can be more
-/// abstract to make it easier to add new messages to existing files and
-/// otherwise programmatically modify it.
+/// The generated messages for the Intl class, with the ability to read and
+/// write the source file for that class.
 class IntlMessages {
+  /// The name of the package we're generating in, used in the output file name.
   final String packageName;
+
+  /// The file we will read/write.
   File outputFile;
-  late String existingContents;
-  final String className;
+
+  /// The methods for this class, indexed by method name.
   Map<String, String> methods = {};
+
+  /// Flag to check if we've actually added anything, and need to rewrite the file.
   bool addedNewMethods = false;
+
+  MessageParser parser = MessageParser();
 
   IntlMessages(this.packageName, Directory currentDir, String packagePath,
       {File? output})
       : outputFile = output ??
             currentDir.childFile(p.join(
-                packagePath, 'lib', 'src', 'intl', '${packageName}_intl.dart')),
-        // TODO: I think packagePath only applies if there's a sub-package.
-        className = toClassName('${packageName}') {
+                packagePath, 'lib', 'src', 'intl', '${packageName}_intl.dart'))
+  // TODO: I think packagePath only applies if there's a sub-package.
+  {
     _readExisting();
   }
 
   /// Read the existing file and incorporate its methods.
   void _readExisting() {
-    if (outputFile.existsSync()) {
-      existingContents = outputFile.readAsStringSync();
-    } else {
-      existingContents = '';
-    }
-    parseMethods(existingContents)
-        .forEach((name, text) => addMethodNamed(text, name));
+    String existing =
+        outputFile.existsSync() ? outputFile.readAsStringSync() : '';
+    parseMethods(existing).forEach((name, text) => addMethodNamed(text, name));
   }
 
   /// Read all the methods from an existing file.
@@ -62,37 +44,28 @@ class IntlMessages {
     if (content.isEmpty) {
       return {};
     }
-    return MessageParser().parseFile(content, outputFile.path);
+    return parser.parseFile(content, outputFile.path);
   }
 
-  /// Given a full method, extract the name.
-  static String methodName(String method) {
-    var match = methodMatcher.matchAsPrefix(method);
-    if (match == null) {
-      print("Can't find method name for $method");
-      return 'invalid method name';
-    } else {
-      return match.group(match.groupCount)!;
-    }
-  }
+  String get className => toClassName(packageName);
 
   // TODO: Get rid of the pseudo-file operations if possible.
   String messageContents() => _messageContents;
 
   void addMethod(String method) {
-    // We assume this means we're adding a new one.
+    // If we call this then we're adding a new method, so note that we have changes.
     addedNewMethods |= true;
-    addMethodNamed(method, methodName(method));
+    addMethodNamed(parser.methodName(method), method);
   }
 
-  void addMethodNamed(String method, String name) {
+  void addMethodNamed(String name, String source) {
     if (methods.containsKey(name)) {
       var existingMethod = methods[name]!;
-      if (existingMethod != method) {
-        if (messageText(existingMethod) != messageText(method)) {
+      if (existingMethod != source) {
+        if (parser.messageText(existingMethod) != parser.messageText(source)) {
           throw AssertionError('''
 Attempting to add a different message with the same name:
-  new: $method
+  new: $source
   old: ${methods[name]}''');
         } else {
           // Seems to match, keep the existing one, which may have modifications (e.g. add description).
@@ -100,27 +73,7 @@ Attempting to add a different message with the same name:
         }
       }
     }
-    methods[name] = method;
-  }
-
-  // We expect [method] to be a declaration of the form
-  //
-  //   `static String foo() => Intl.message(messageText, <...other arguments>`
-  //
-  // or a getter of the same form.
-  // TODO: THIS WILL NOT WORK FOR PLURAL/SELECT. We just return an empty string so
-  // they will always match.
-  String messageText(String method) {
-    var parsed = parseString(content: method.replaceFirst('static', ''));
-    var m = parsed.unit.declarations.first as FunctionDeclaration;
-    MethodInvocation invocation =
-        m.functionExpression.body.childEntities.toList()[1] as MethodInvocation;
-    if (invocation.methodName.name != 'message') {
-      // This isn't an Intl.message call, we don't know what to do, bail.
-      return '';
-    }
-    var text = invocation.argumentList.arguments.first.toSource();
-    return text;
+    methods[name] = source;
   }
 
   void delete() => outputFile.deleteSync();
@@ -150,9 +103,6 @@ Attempting to add a different message with the same name:
     }
   }
 
-  /// A probably unique string for mechanism for finding the message names.
-  static const _methodDelimiter = '  static String ';
-
   /// The beginning of any Intl class.
   static String prologueFor(String className) =>
       '''import 'package:intl/intl.dart';
@@ -164,13 +114,58 @@ class $className {''';
 
   /// The beginning of our Intl class.
   String get prologue => prologueFor(className);
+}
 
-  /// Used to extract the method names.
-  // TODO: Don't use RegExp.
-  static RegExp methodMatcher = RegExp(r'^\s+static String (get )*(\w+)');
+/// Parse the messages from the _intl.dart file, and has methods for getting
+/// information from them.
+///
+/// Note that this assumes things about the format, and will fail if the file is
+/// changed outside those assumptions.
+class MessageParser {
+  /// For [contents] representing an existing Intl class, read the messages
+  /// and return them indexed by name.
+  Map<String, String> parseFile(String contents, String path) {
+    ParseStringResult parsed = parseString(content: contents, path: path);
+    ClassDeclaration intlClass =
+        parsed.unit.declarations.first as ClassDeclaration;
+    List<MethodDeclaration> methods =
+        intlClass.members.toList().cast<MethodDeclaration>();
+    return {for (var method in methods) method.name.name: '  $method'};
+  }
 
-  /// Used to split the string into separate methods. Doesn't include the name, which
-  /// would get removed if we split on this.
-  // TODO: Don't use RegExp.
-  static RegExp methodSplitter = RegExp(r'^\s+static String ', multiLine: true);
+  /// Given a full Intl method's source code, return the name.
+  String methodName(String source) {
+    // It doesn't want to parse a static in isolation, so remove that.
+    var parsed = parseString(content: inClassContext(source));
+    var method = parsed.unit.declarations.first as FunctionDeclaration;
+    return method.name.name;
+  }
+
+  /// Return a method in the context of a class, so it can be parsed where it
+  /// might not in isolation. (e.g. if it's static).
+  String inClassContext(String methodSource) => 'class Foo { $methodSource }';
+
+  /// The message text for an Intl method, that is to say the first argument
+  /// of the method. We expect [method] to be a declaration of the form
+  ///
+  ///   `static String foo() => Intl.message(messageText, <...other arguments>`
+  ///
+  /// or a getter of the same form.
+
+  String messageText(String source) {
+    // TODO: Doesn't work for Intl.plural/select where there is no
+    // single text argument. We return an empty string so they will always
+    // match as being the same and it will use the existing one.
+    // TODO: Rather than throw, could this e.g. return a different suggested name?
+    var parsed = parseString(content: inClassContext(source));
+    var method = parsed.unit.declarations.first as FunctionDeclaration;
+    MethodInvocation invocation = method.functionExpression.body.childEntities
+        .toList()[1] as MethodInvocation;
+    if (invocation.methodName.name != 'message') {
+      // This isn't an Intl.message call, we don't know what to do, bail.
+      return '';
+    }
+    var text = invocation.argumentList.arguments.first.toSource();
+    return text;
+  }
 }
