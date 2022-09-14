@@ -2,6 +2,7 @@
 
 - Improve the sorting to be by function/getter name rather than the whole function/getter string.
 - Allow reading an existing _intl.dart file and rewriting it, preserving the existing functions.
+- Turn on the --migrate-constants option by default.
 
 ## [2.8.0](https://github.com/Workiva/over_react_codemod/compare/2.8.0....2.7.0)
 
