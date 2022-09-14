@@ -10,8 +10,10 @@ void main() {
 
   group('basic', () {
     test('methodName', () {
-      var parser = MessageParser();
-      var names = [for (var method in sampleMethods) parser.methodName(method)];
+      var names = [
+        for (var method in sampleMethods)
+          MessageParser.forMethod(method).methodName
+      ];
       expect(names, ['orange', 'aquamarine', 'long', 'function']);
     });
     test('Tabs instead of spaces', () {
@@ -21,7 +23,8 @@ void main() {
         name: 'TestProjectIntl_activateTheSelectedNode',
       );
       ''';
-      expect(MessageParser().methodName(tabbed), 'activateTheSelectedNode');
+      expect(MessageParser.forMethod(tabbed).methodName,
+          'activateTheSelectedNode');
     });
   });
 

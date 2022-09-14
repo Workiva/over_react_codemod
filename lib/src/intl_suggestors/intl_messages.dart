@@ -20,8 +20,6 @@ class IntlMessages {
   /// Flag to check if we've actually added anything, and need to rewrite the file.
   bool addedNewMethods = false;
 
-  MessageParser parser = MessageParser();
-
   IntlMessages(this.packageName, Directory currentDir, String packagePath,
       {File? output})
       : outputFile = output ??
@@ -44,7 +42,7 @@ class IntlMessages {
     if (content.isEmpty) {
       return {};
     }
-    return parser.parseFile(content, outputFile.path);
+    return MessageParser.forFile(content, outputFile.path).methodSourceByName;
   }
 
   String get className => toClassName(packageName);
@@ -52,17 +50,20 @@ class IntlMessages {
   // TODO: Get rid of the pseudo-file operations if possible.
   String messageContents() => _messageContents;
 
-  void addMethod(String method) {
+  void addMethod(String source) {
     // If we call this then we're adding a new method, so note that we have changes.
     addedNewMethods |= true;
-    addMethodNamed(parser.methodName(method), method);
+    var name = MessageParser.forMethod(source).methodName;
+    addMethodNamed(name, source);
   }
 
   void addMethodNamed(String name, String source) {
     if (methods.containsKey(name)) {
       var existingMethod = methods[name]!;
       if (existingMethod != source) {
-        if (parser.messageText(existingMethod) != parser.messageText(source)) {
+        var existingText = MessageParser.forMethod(existingMethod).messageText;
+        var newText = MessageParser.forMethod(source).messageText;
+        if (existingText != newText) {
           throw AssertionError('''
 Attempting to add a different message with the same name:
   new: $source
@@ -122,23 +123,52 @@ class $className {''';
 /// Note that this assumes things about the format, and will fail if the file is
 /// changed outside those assumptions.
 class MessageParser {
+  String source;
+
+  String path;
+
+  ClassDeclaration? _intlClass;
+  List<MethodDeclaration>? _methods;
+
+  ClassDeclaration get intlClass {
+    if (_intlClass == null) {
+      parse();
+    }
+    return _intlClass!;
+  }
+
+  List<MethodDeclaration> get methods {
+    if (_methods == null) {
+      parse();
+    }
+    return _methods!;
+  }
+
+  MessageParser.forFile(this.source, this.path);
+
+  // If we're parsing a method in isolation, it can't be parsed (at least not if it's static),
+  // so wrap it in a trivial class and parse that.
+  MessageParser.forMethod(String methodSource)
+      : this.source = 'class Foo { $methodSource }',
+        path = 'generated class for method';
+
   /// For [contents] representing an existing Intl class, read the messages
   /// and return them indexed by name.
-  Map<String, String> parseFile(String contents, String path) {
-    ParseStringResult parsed = parseString(content: contents, path: path);
-    ClassDeclaration intlClass =
-        parsed.unit.declarations.first as ClassDeclaration;
-    List<MethodDeclaration> methods =
-        intlClass.members.toList().cast<MethodDeclaration>();
+  Map<String, String> get methodSourceByName {
     return {for (var method in methods) method.name.name: '  $method'};
   }
 
+  void parse() {
+    ParseStringResult parsed = parseString(content: source, path: path);
+    _intlClass = parsed.unit.declarations.first as ClassDeclaration;
+    _methods = _intlClass!.members.toList().cast<MethodDeclaration>();
+  }
+
   /// Given a full Intl method's source code, return the name.
-  String methodName(String source) => parseMethod(source).name.name;
+  String get methodName => methods.first.name.name;
 
   /// Return a method in the context of a class, so it can be parsed where it
   /// might not in isolation. (e.g. if it's static).
-  String inClassContext(String methodSource) => 'class Foo { $methodSource }';
 
   /// The message text for an Intl method, that is to say the first argument
   /// of the method. We expect [method] to be a declaration of the form
@@ -146,26 +176,18 @@ class MessageParser {
   ///   `static String foo() => Intl.message(messageText, <...other arguments>`
   ///
   /// or a getter of the same form.
-  String messageText(String source) {
+  String get messageText {
     // TODO: Doesn't work for Intl.plural/select where there is no
     // single text argument. We return an empty string so they will always
     // match as being the same and it will use the existing one.
     // TODO: Rather than throw, could this e.g. return a different suggested name?
-    var method = parseMethod(source);
     MethodInvocation invocation =
-        method.body.childEntities.toList()[1] as MethodInvocation;
+        methods.first.body.childEntities.toList()[1] as MethodInvocation;
     if (invocation.methodName.name != 'message') {
       // This isn't an Intl.message call, we don't know what to do, bail.
       return '';
     }
     var text = invocation.argumentList.arguments.first.toSource();
     return text;
-  }
-
-  MethodDeclaration parseMethod(String source) {
-    var parsed = parseString(content: inClassContext(source));
-    var classDeclaration = parsed.unit.declarations.first as ClassDeclaration;
-    var method = classDeclaration.members.first;
-    return method as MethodDeclaration;
   }
 }
