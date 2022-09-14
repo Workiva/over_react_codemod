@@ -81,7 +81,7 @@ final parser = ArgParser()
   ..addFlag(
     _migrateConstants,
     negatable: true,
-    defaultsTo: false,
+    defaultsTo: true,
     help:
         'Should the codemod try to migrate constant Strings that look user-visible',
   )
