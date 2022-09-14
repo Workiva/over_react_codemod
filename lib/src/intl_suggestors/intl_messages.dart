@@ -34,29 +34,28 @@ class IntlMessages {
   void _readExisting() {
     String existing =
         outputFile.existsSync() ? outputFile.readAsStringSync() : '';
-    parseMethods(existing).forEach((name, text) => addMethodNamed(name, text));
+    parseMethods(existing).forEach(addMethodNamed);
   }
 
   /// Read all the methods from an existing file.
-  Map<String, String> parseMethods(String content) {
-    if (content.isEmpty) {
-      return {};
-    }
-    return MessageParser.forFile(content, outputFile.path).methodSourceByName;
-  }
+  Map<String, String> parseMethods(String content) => content.isEmpty
+      ? {}
+      : MessageParser.forFile(content, outputFile.path).methodSourceByName;
 
   String get className => toClassName(packageName);
 
-  // TODO: Get rid of the pseudo-file operations if possible.
   String messageContents() => _messageContents;
 
+  /// Add a method with the given [source].
   void addMethod(String source) {
-    // If we call this then we're adding a new method, so note that we have changes.
+    // If we call this rather than addMethodNamed, then we're adding a new
+    // method, record that.
     addedNewMethods |= true;
     var name = MessageParser.forMethod(source).methodName;
     addMethodNamed(name, source);
   }
 
+  /// Add a method named [name] with the given [source].
   void addMethodNamed(String name, String source) {
     if (methods.containsKey(name)) {
       var existingMethod = methods[name]!;
@@ -77,8 +76,10 @@ Attempting to add a different message with the same name:
     methods[name] = source;
   }
 
+  /// Delete our generated file. Used for tests.
   void delete() => outputFile.deleteSync();
 
+  /// The contents of the generated file.
   String get contents =>
       (StringBuffer()..write(prologue)..write(_messageContents)..write('\n}'))
           .toString();
@@ -132,14 +133,14 @@ class MessageParser {
 
   ClassDeclaration get intlClass {
     if (_intlClass == null) {
-      parse();
+      _parse();
     }
     return _intlClass!;
   }
 
   List<MethodDeclaration> get methods {
     if (_methods == null) {
-      parse();
+      _parse();
     }
     return _methods!;
   }
@@ -158,7 +159,7 @@ class MessageParser {
     return {for (var method in methods) method.name.name: '  $method'};
   }
 
-  void parse() {
+  void _parse() {
     ParseStringResult parsed = parseString(content: source, path: path);
     _intlClass = parsed.unit.declarations.first as ClassDeclaration;
     _methods = _intlClass!.members.toList().cast<MethodDeclaration>();
