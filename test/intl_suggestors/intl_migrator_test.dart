@@ -75,7 +75,7 @@ void main() {
             ''',
         );
         final expectedFileContent =
-            '\n  static String get viewer => Intl.message(\'viewer\', name: \'TestClassIntl_viewer\',);';
+            '\n  static String get viewer => Intl.message(\'viewer\', name: \'TestClassIntl_viewer\');';
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -113,7 +113,7 @@ void main() {
         );
 
         final expected =
-            "\n  static String get testString1 => Intl.message('testString1', name: 'TestClassIntl_testString1',);\n  static String get testString2 => Intl.message('testString2', name: 'TestClassIntl_testString2',);";
+            "\n  static String get testString1 => Intl.message('testString1', name: 'TestClassIntl_testString1');\n  static String get testString2 => Intl.message('testString2', name: 'TestClassIntl_testString2');";
         expect(messages.messageContents(), expected);
       });
 
@@ -211,7 +211,7 @@ void main() {
             ''',
         );
         final expected =
-            "\n  static String get thisIsALengthyString => Intl.message('this is a lengthy string, it\\\'s been broken up into several lines which Dart automatically concatenates.', name: 'TestClassIntl_thisIsALengthyString',);";
+            "\n  static String get thisIsALengthyString => Intl.message('this is a lengthy string, it\\\'s been broken up into several lines which Dart automatically concatenates.', name: 'TestClassIntl_thisIsALengthyString');";
         expect(messages.messageContents(), expected);
       });
     });
@@ -283,7 +283,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String number) => Intl.message('Distance \${number}km', args: [number], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String number) => Intl.message('Distance \${number}km', args: [number], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -321,8 +321,8 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String title) => Intl.message('Also interpolated \${title}', args: [title], name: 'TestClassIntl_Foo_intlFunction0',);"
-            "\n  static String Foo_intlFunction1(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction1',);";
+            "\n  static String Foo_intlFunction0(String title) => Intl.message('Also interpolated \${title}', args: [title], name: 'TestClassIntl_Foo_intlFunction0');"
+            "\n  static String Foo_intlFunction1(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction1');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -360,7 +360,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -398,7 +398,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -440,7 +440,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -478,7 +478,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -558,7 +558,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -597,7 +597,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
       test('Interpolated with testId string', () async {
@@ -643,7 +643,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
+            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -698,7 +698,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
+            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -767,9 +767,9 @@ void main() {
         );
 
         String expectedFileContent1 =
-            "\n  static String foo(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_foo',);";
+            "\n  static String foo(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_foo');";
         String expectedFileContent2 =
-            "\n  static String bar(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_bar',);";
+            "\n  static String bar(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_bar');";
         expect(messages.messageContents(),
             [expectedFileContent2, expectedFileContent1].join(''));
       });
@@ -812,7 +812,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String fileStr, String refStr) => Intl.message('Now that you\\\'ve transitioned your \${fileStr}, you\\\'ll want to freeze \${refStr} or update permissions to prevent others from using \${refStr}.', args: [fileStr, refStr], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String fileStr, String refStr) => Intl.message('Now that you\\\'ve transitioned your \${fileStr}, you\\\'ll want to freeze \${refStr} or update permissions to prevent others from using \${refStr}.', args: [fileStr, refStr], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
     });
@@ -849,7 +849,7 @@ void main() {
         );
 
         final expectedFileOutput =
-            '\n  static String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
+            '\n  static String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\');';
         expect(messages.messageContents(), expectedFileOutput);
       });
 
@@ -885,7 +885,7 @@ void main() {
               ''',
         );
         final expectedFileOutput =
-            '\n  static String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
+            '\n  static String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\');';
         expect(messages.messageContents(), expectedFileOutput);
       });
 
@@ -915,7 +915,7 @@ void main() {
                 ''',
         );
         final expectedFileOutput =
-            '\n  static String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\',);';
+            '\n  static String get testString => Intl.message(\'Test String\', name: \'TestClassIntl_testString\');';
         expect(messages.messageContents(), expectedFileOutput);
       });
     });
@@ -956,7 +956,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -996,7 +996,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1036,7 +1036,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1078,7 +1078,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1160,7 +1160,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1201,7 +1201,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0',);";
+            "\n  static String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1244,7 +1244,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
+            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1295,7 +1295,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo',);";
+            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
         expect(messages.messageContents(), expectedFileContent);
       });
     });

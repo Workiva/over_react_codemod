@@ -36,7 +36,7 @@ class IntlMessages {
   void _readExisting() {
     String existing =
         outputFile.existsSync() ? outputFile.readAsStringSync() : '';
-    parseMethods(existing).forEach((name, text) => addMethodNamed(text, name));
+    parseMethods(existing).forEach((name, text) => addMethodNamed(name, text));
   }
 
   /// Read all the methods from an existing file.
@@ -134,12 +134,7 @@ class MessageParser {
   }
 
   /// Given a full Intl method's source code, return the name.
-  String methodName(String source) {
-    // It doesn't want to parse a static in isolation, so remove that.
-    var parsed = parseString(content: inClassContext(source));
-    var method = parsed.unit.declarations.first as FunctionDeclaration;
-    return method.name.name;
-  }
+  String methodName(String source) => parseMethod(source).name.name;
 
   /// Return a method in the context of a class, so it can be parsed where it
   /// might not in isolation. (e.g. if it's static).
@@ -151,21 +146,26 @@ class MessageParser {
   ///   `static String foo() => Intl.message(messageText, <...other arguments>`
   ///
   /// or a getter of the same form.
-
   String messageText(String source) {
     // TODO: Doesn't work for Intl.plural/select where there is no
     // single text argument. We return an empty string so they will always
     // match as being the same and it will use the existing one.
     // TODO: Rather than throw, could this e.g. return a different suggested name?
-    var parsed = parseString(content: inClassContext(source));
-    var method = parsed.unit.declarations.first as FunctionDeclaration;
-    MethodInvocation invocation = method.functionExpression.body.childEntities
-        .toList()[1] as MethodInvocation;
+    var method = parseMethod(source);
+    MethodInvocation invocation =
+        method.body.childEntities.toList()[1] as MethodInvocation;
     if (invocation.methodName.name != 'message') {
       // This isn't an Intl.message call, we don't know what to do, bail.
       return '';
     }
     var text = invocation.argumentList.arguments.first.toSource();
     return text;
+  }
+
+  MethodDeclaration parseMethod(String source) {
+    var parsed = parseString(content: inClassContext(source));
+    var classDeclaration = parsed.unit.declarations.first as ClassDeclaration;
+    var method = classDeclaration.members.first;
+    return method as MethodDeclaration;
   }
 }
