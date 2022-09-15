@@ -419,6 +419,8 @@ Future<Null> testCodemod(
             'it exited with $codemodExitCode.\n'
             'Process stderr:\n$codemodStderr');
 
+    print(codemodStdout);
+    print(codemodStderr);
     if (expectedOutput != null) {
       // Expect that the modified projet matches the gold files.
       await expectedOutput.validate();

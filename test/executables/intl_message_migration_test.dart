@@ -185,7 +185,7 @@ import 'package:test_project/src/intl/test_project_intl.dart';
 
 someMoreStrings() => (mui.Button()
   ..aria.label=TestProjectIntl.orange
-  ..label=TestProjectIntl.aLongStringwithMultiple)
+  ..label=TestProjectIntl.aLongStringwithMultipleLines)
     (TestProjectIntl.aquamarine,
      TestProjectIntl.twoAdjacentStringsOnSeparate);''');
 }
@@ -203,9 +203,9 @@ List<String> annotatedMessages = [
 
 List<String> longMessages = [
   """  static String get twoAdjacentStringsOnSeparate => Intl.message('two adjacent strings on separate lines', name: 'TestProjectIntl_twoAdjacentStringsOnSeparate');""",
-  """  static String get aLongStringwithMultiple => Intl.message('''A long string
+  """  static String get aLongStringwithMultipleLines => Intl.message('''A long string
 with multiple
-   lines''', name: 'TestProjectIntl_aLongStringwithMultiple');""",
+   lines''', name: 'TestProjectIntl_aLongStringwithMultipleLines');""",
 ];
 
 d.DirectoryDescriptor inputFiles(

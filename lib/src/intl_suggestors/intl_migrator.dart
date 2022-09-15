@@ -45,8 +45,10 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
         // Constant strings might be private.
         var name = publicNameFor(node);
         names.add(name);
-        final functionCall = intlStringAccess(literal, _className, name: name);
-        final functionDef = intlGetterDef(literal, _className, name: name);
+        final functionCall =
+            _messages.intlStringAccess(literal, _className, name: name);
+        final functionDef =
+            _messages.intlGetterDef(literal, _className, name: name);
         yieldPatch('final String ${node.name} = $functionCall', start, end);
         addMethodToClass(_messages, functionDef);
       }
@@ -166,8 +168,8 @@ class IntlMigrator extends ComponentUsageMigrator {
     StringLiteral node,
   ) {
     if (isValidStringLiteralNode(node)) {
-      final functionCall = intlStringAccess(node, _className);
-      final functionDef = intlGetterDef(node, _className);
+      final functionCall = _outputFile.intlStringAccess(node, _className);
+      final functionDef = _outputFile.intlGetterDef(node, _className);
       yieldPatchOverNode(functionCall, node);
       addMethodToClass(_outputFile, functionDef);
     }
@@ -176,10 +178,10 @@ class IntlMigrator extends ComponentUsageMigrator {
   void migrateChildStringInterpolation(
       StringInterpolation node, String namePrefix) {
     if (isValidStringInterpolationNode(node)) {
-      var index = nextFunctionIndex();
       final functionCall =
-          intlFunctionCall(node, _className, namePrefix, index);
-      final functionDef = intlFunctionDef(node, _className, namePrefix, index);
+          _outputFile.intlFunctionCall(node, _className, namePrefix);
+      final functionDef =
+          _outputFile.intlFunctionDef(node, _className, namePrefix);
       yieldPatchOverNode(functionCall, node);
       addMethodToClass(_outputFile, functionDef);
     }
@@ -190,8 +192,8 @@ class IntlMigrator extends ComponentUsageMigrator {
   ) {
     if (isValidStringLiteralProp(prop)) {
       final rhs = prop.rightHandSide as StringLiteral;
-      final functionCall = intlStringAccess(rhs, _className);
-      final functionDef = intlGetterDef(rhs, _className);
+      final functionCall = _outputFile.intlStringAccess(rhs, _className);
+      final functionDef = _outputFile.intlGetterDef(rhs, _className);
       yieldPropPatch(prop, newRhs: functionCall);
       addMethodToClass(_outputFile, functionDef);
     }
@@ -203,9 +205,10 @@ class IntlMigrator extends ComponentUsageMigrator {
   ) {
     if (isValidStringInterpolationProp(prop)) {
       final rhs = prop.rightHandSide as StringInterpolation;
-      final index = nextFunctionIndex();
-      final functionCall = intlFunctionCall(rhs, _className, namePrefix, index);
-      final functionDef = intlFunctionDef(rhs, _className, namePrefix, index);
+      final functionCall =
+          _outputFile.intlFunctionCall(rhs, _className, namePrefix);
+      final functionDef =
+          _outputFile.intlFunctionDef(rhs, _className, namePrefix);
       yieldPropPatch(prop, newRhs: functionCall);
       addMethodToClass(_outputFile, functionDef);
     }

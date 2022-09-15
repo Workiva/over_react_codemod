@@ -20,8 +20,8 @@ class ConfigsMigrator extends RecursiveAstVisitor with AstVisitingSuggestor {
         final body = (node.body as ExpressionFunctionBody).expression;
         if (body is SimpleStringLiteral) {
           if (body.value == '') return;
-          final functionCall = intlStringAccess(body, _className);
-          final functionDef = intlGetterDef(body, _className);
+          var functionDef = _outputFile.intlGetterDef(body, _className);
+          final functionCall = _outputFile.intlStringAccess(body, _className);
           yieldPatch(functionCall, body.offset, body.end);
           addMethodToClass(_outputFile, functionDef);
         }

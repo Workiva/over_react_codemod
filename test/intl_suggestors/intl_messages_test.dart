@@ -1,3 +1,5 @@
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
@@ -12,7 +14,7 @@ void main() {
     test('methodName', () {
       var names = [
         for (var method in sampleMethods)
-          MessageParser.forMethod(method).methodName
+          MessageParser.forMethod(method).methods.first.name
       ];
       expect(names, ['orange', 'aquamarine', 'long', 'function']);
     });
@@ -23,7 +25,7 @@ void main() {
         name: 'TestProjectIntl_activateTheSelectedNode',
       );
       ''';
-      expect(MessageParser.forMethod(tabbed).methodName,
+      expect(MessageParser.forMethod(tabbed).methods.first.name,
           'activateTheSelectedNode');
     });
   });
@@ -41,6 +43,26 @@ void main() {
       messages = IntlMessages('TestProject', tmp, '', output: intlFile);
       messages.write();
       expect(messages.outputFile.readAsStringSync(), expectedFile(''));
+    });
+
+    test('name for adjacent string', () {
+      // TODO: Adjacent strings are messy for finding the name.
+      // TODO: This test is awkward because we've hidden away the parsing.
+      var method = """  static String get adjacent => Intl.message('Adjacent'
+        ' strings' ' on' ' two ' 'lines' ' eh' , name: 'TestProjectIntl_adjacentStringsOnTwoLines');""";
+      var classSource = 'class Foo { $method }';
+      var parsed = parseString(content: classSource);
+      var intlClass = parsed.unit.declarations.first as ClassDeclaration;
+      var methodDeclarations =
+          intlClass.members.toList().cast<MethodDeclaration>();
+      var argument = ((methodDeclarations.first.body.childEntities.toList()[1]
+              as MethodInvocation)
+          .argumentList
+          .arguments
+          .first as StringLiteral);
+      messages = IntlMessages('TestProject', tmp, '', output: intlFile);
+      var derivedName = messages.giveMeANameFor(argument);
+      expect(derivedName, 'adjacentStringsOnTwoLines');
     });
   });
   group('round-trip', () {
@@ -64,7 +86,8 @@ void main() {
       expect(messages.methods.length, 4);
       expect(
           messages.methods.keys, ['orange', 'aquamarine', 'long', 'function']);
-      expect(messages.methods.values, sampleMethods);
+      expect(messages.methods.values.map((each) => each.source).toList(),
+          sampleMethods);
     });
 
     test('messages written as expected', () {
@@ -84,9 +107,22 @@ void main() {
           expectedFile([...sortedSampleMethods, extra].join('\n')));
     });
 
-    test('duplicate names with different content throw', () {
+    test('duplicate names with different content throw in addMethod', () {
       var tweaked = sampleMethods.last.replaceFirst('def', 'zzzz');
       expect(() => messages.addMethod(tweaked), throwsA(isA<AssertionError>()));
+      // expect(messages.methods.length, 2);
+      // expect(messages.methods.keys.toList()..sort(), ['function', 'function1']);
+    });
+
+    test('duplicate names with different content give a valid name if asked',
+        () {
+      var tweaked = sampleMethods.last.replaceFirst('def', 'zzzz');
+      var name = messages.giveMeANameForString('function', r'abc\${x}zzzz');
+      tweaked = tweaked.replaceFirst('function', name);
+      messages.addMethod(tweaked);
+      expect(messages.methods.length, 5);
+      expect(messages.methods['function']?.source, sampleMethods.last);
+      expect(messages.methods['function1']?.source, tweaked);
     });
   });
 }
