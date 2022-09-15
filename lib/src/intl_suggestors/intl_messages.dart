@@ -71,7 +71,8 @@ Attempting to add a different message with the same name:
   new: $source
   old: ${methods[parsed.name]?.source}''');
     }
-    methods[parsed.name] = parsed;
+    // If it's already there, leave the existing one, which may have manual modifications.
+    methods.putIfAbsent(parsed.name, () => parsed);
   }
 
   /// Returns Intl.message for string literal.
