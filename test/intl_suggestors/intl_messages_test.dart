@@ -111,19 +111,24 @@ void main() {
     test('duplicate names with different content throw in addMethod', () {
       var tweaked = sampleMethods.last.replaceFirst('def', 'zzzz');
       expect(() => messages.addMethod(tweaked), throwsA(isA<AssertionError>()));
-      // expect(messages.methods.length, 2);
-      // expect(messages.methods.keys.toList()..sort(), ['function', 'function1']);
     });
 
     test('duplicate names with different content give a valid name if asked',
         () {
+      /// Modify the message text, but also change the name so that when it parses the function it will
+      /// find it. So we're really exercising the nameForString more than the addMethod.
       var tweaked = sampleMethods.last.replaceFirst('def', 'zzzz');
-      var name = messages.nameForString('function', r'abc\${x}zzzz');
+      var name = messages.nameForString('function', r'abc${x}zzzz');
       tweaked = tweaked.replaceFirst('function', name);
       messages.addMethod(tweaked);
-      expect(messages.methods.length, 5);
+      var tweakedMore = sampleMethods.last.replaceFirst('abc', 'www');
+      var otherName = messages.nameForString('function', r'www${x}def');
+      tweakedMore = tweakedMore.replaceFirst('function', otherName);
+      messages.addMethod(tweakedMore);
+      expect(messages.methods.length, 6);
       expect(messages.methods['function']?.source, sampleMethods.last);
       expect(messages.methods['function1']?.source, tweaked);
+      expect(messages.methods['function2']?.source, contains(r'www${x}def'));
     });
   });
 }

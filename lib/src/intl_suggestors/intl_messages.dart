@@ -81,7 +81,7 @@ Attempting to add a different message with the same name:
     var index = 1;
     var newName = '$name${startAtZero ? 0 : ''}';
     while (isNameTaken(newName, messageText)) {
-      newName = '$name$index';
+      newName = '$name${index++}';
     }
     return newName;
   }
