@@ -3,6 +3,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
+import 'package:over_react_codemod/src/intl_suggestors/message_parser.dart';
 import 'package:test/test.dart';
 
 void main() {
