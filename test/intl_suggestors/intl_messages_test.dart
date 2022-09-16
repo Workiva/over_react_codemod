@@ -61,7 +61,7 @@ void main() {
           .arguments
           .first as StringLiteral);
       messages = IntlMessages('TestProject', output: intlFile);
-      var derivedName = messages.giveMeANameFor(argument);
+      var derivedName = messages.syntax.nameForNode(argument);
       expect(derivedName, 'adjacentStringsOnTwoLines');
     });
   });
@@ -117,7 +117,7 @@ void main() {
     test('duplicate names with different content give a valid name if asked',
         () {
       var tweaked = sampleMethods.last.replaceFirst('def', 'zzzz');
-      var name = messages.giveMeANameForString('function', r'abc\${x}zzzz');
+      var name = messages.nameForString('function', r'abc\${x}zzzz');
       tweaked = tweaked.replaceFirst('function', name);
       messages.addMethod(tweaked);
       expect(messages.methods.length, 5);

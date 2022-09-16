@@ -89,7 +89,8 @@ void main() {
         expect(parsedInterpolation.isMultiline, isMultiline);
 
         final testResult = IntlMessages('Test')
-            .intlFunctionDef(parsedInterpolation, 'Namespace', "NamePrefix");
+            .syntax
+            .functionDefinition(parsedInterpolation, 'Namespace', "NamePrefix");
         expect(testResult, expectedResult);
       }
 

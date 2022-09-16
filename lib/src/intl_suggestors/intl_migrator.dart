@@ -46,9 +46,9 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
         var name = publicNameFor(node);
         names.add(name);
         final functionCall =
-            _messages.intlStringAccess(literal, _className, name: name);
+            _messages.syntax.getterCall(literal, _className, name: name);
         final functionDef =
-            _messages.intlGetterDef(literal, _className, name: name);
+            _messages.syntax.getterDefinition(literal, _className, name: name);
         yieldPatch('final String ${node.name} = $functionCall', start, end);
         addMethodToClass(_messages, functionDef);
       }
@@ -74,13 +74,10 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
 }
 
 class IntlMigrator extends ComponentUsageMigrator {
-  final IntlMessages _outputFile;
+  final IntlMessages _messages;
   final String _className;
 
-  int functionIndex = 0;
-  int nextFunctionIndex() => functionIndex++;
-
-  IntlMigrator(this._className, this._outputFile);
+  IntlMigrator(this._className, this._messages);
 
   @override
   String get fixmePrefix => 'FIXME - INTL ';
@@ -168,10 +165,10 @@ class IntlMigrator extends ComponentUsageMigrator {
     StringLiteral node,
   ) {
     if (isValidStringLiteralNode(node)) {
-      final functionCall = _outputFile.intlStringAccess(node, _className);
-      final functionDef = _outputFile.intlGetterDef(node, _className);
+      final functionCall = _messages.syntax.getterCall(node, _className);
+      final functionDef = _messages.syntax.getterDefinition(node, _className);
       yieldPatchOverNode(functionCall, node);
-      addMethodToClass(_outputFile, functionDef);
+      addMethodToClass(_messages, functionDef);
     }
   }
 
@@ -179,11 +176,11 @@ class IntlMigrator extends ComponentUsageMigrator {
       StringInterpolation node, String namePrefix) {
     if (isValidStringInterpolationNode(node)) {
       final functionCall =
-          _outputFile.intlFunctionCall(node, _className, namePrefix);
+          _messages.syntax.functionCall(node, _className, namePrefix);
       final functionDef =
-          _outputFile.intlFunctionDef(node, _className, namePrefix);
+          _messages.syntax.functionDefinition(node, _className, namePrefix);
       yieldPatchOverNode(functionCall, node);
-      addMethodToClass(_outputFile, functionDef);
+      addMethodToClass(_messages, functionDef);
     }
   }
 
@@ -192,10 +189,10 @@ class IntlMigrator extends ComponentUsageMigrator {
   ) {
     if (isValidStringLiteralProp(prop)) {
       final rhs = prop.rightHandSide as StringLiteral;
-      final functionCall = _outputFile.intlStringAccess(rhs, _className);
-      final functionDef = _outputFile.intlGetterDef(rhs, _className);
+      final functionCall = _messages.syntax.getterCall(rhs, _className);
+      final functionDef = _messages.syntax.getterDefinition(rhs, _className);
       yieldPropPatch(prop, newRhs: functionCall);
-      addMethodToClass(_outputFile, functionDef);
+      addMethodToClass(_messages, functionDef);
     }
   }
 
@@ -206,11 +203,11 @@ class IntlMigrator extends ComponentUsageMigrator {
     if (isValidStringInterpolationProp(prop)) {
       final rhs = prop.rightHandSide as StringInterpolation;
       final functionCall =
-          _outputFile.intlFunctionCall(rhs, _className, namePrefix);
+          _messages.syntax.functionCall(rhs, _className, namePrefix);
       final functionDef =
-          _outputFile.intlFunctionDef(rhs, _className, namePrefix);
+          _messages.syntax.functionDefinition(rhs, _className, namePrefix);
       yieldPropPatch(prop, newRhs: functionCall);
-      addMethodToClass(_outputFile, functionDef);
+      addMethodToClass(_messages, functionDef);
     }
   }
 }

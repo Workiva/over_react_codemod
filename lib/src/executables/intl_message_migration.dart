@@ -239,15 +239,15 @@ Future<void> migratePackage(
   packageDartPaths = limitPaths(packageDartPaths, allowed: paths);
   sortPartsLast(packageDartPaths);
 
-  final IntlMessages outputFile = IntlMessages(packageName,
+  final IntlMessages messages = IntlMessages(packageName,
       directory: fs.currentDirectory, packagePath: package);
 
-  final intlPropMigrator = IntlMigrator(outputFile.className, outputFile);
+  final intlPropMigrator = IntlMigrator(messages.className, messages);
   final constantStringMigrator =
-      ConstantStringMigrator(outputFile.className, outputFile);
-  final displayNameMigrator = ConfigsMigrator(outputFile.className, outputFile);
+      ConstantStringMigrator(messages.className, messages);
+  final displayNameMigrator = ConfigsMigrator(messages.className, messages);
   final importMigrator = (FileContext context) =>
-      intlImporter(context, packageName, outputFile.className);
+      intlImporter(context, packageName, messages.className);
 
   exitCode = await runCodemodSequences(
       packageDartPaths,
@@ -261,7 +261,7 @@ Future<void> migratePackage(
 
   processedPackages.add(package);
 
-  outputFile.write();
+  messages.write();
 }
 
 void sortPartsLast(List<String> dartPaths) {

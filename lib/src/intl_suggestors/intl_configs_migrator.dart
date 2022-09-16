@@ -8,9 +8,9 @@ const varsToCheck = ['displayName', 'name', 'title'];
 
 class ConfigsMigrator extends RecursiveAstVisitor with AstVisitingSuggestor {
   final String _className;
-  final IntlMessages _outputFile;
+  final IntlMessages _messages;
 
-  ConfigsMigrator(this._className, this._outputFile);
+  ConfigsMigrator(this._className, this._messages);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
@@ -20,10 +20,10 @@ class ConfigsMigrator extends RecursiveAstVisitor with AstVisitingSuggestor {
         final body = (node.body as ExpressionFunctionBody).expression;
         if (body is SimpleStringLiteral) {
           if (body.value == '') return;
-          var functionDef = _outputFile.intlGetterDef(body, _className);
-          final functionCall = _outputFile.intlStringAccess(body, _className);
+          var functionDef = _messages.syntax.getterDefinition(body, _className);
+          final functionCall = _messages.syntax.getterCall(body, _className);
           yieldPatch(functionCall, body.offset, body.end);
-          addMethodToClass(_outputFile, functionDef);
+          addMethodToClass(_messages, functionDef);
         }
       }
     }
