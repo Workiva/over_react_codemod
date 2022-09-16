@@ -77,131 +77,6 @@ bool isValidStringLiteralProp(PropAssignment prop) {
 }
 // -- End Node Validation --
 
-// -- Intl Codegen Helpers --
-
-const intlFunctionPrefix = 'static String';
-
-/// A template to build a function name for Intl message
-/// ex: Foo_bar
-String intlFunctionName(
-  StringInterpolation node,
-  String namePrefix,
-  int index,
-) =>
-    '${getTestId(null, node) ?? '${namePrefix}_intlFunction$index'}';
-
-String intlFunctionParameters(StringInterpolation node) {
-  final args = node.elements
-      .whereType<InterpolationExpression>()
-      .map((e) => toVariableName(toNestedName(e.toString())))
-      .toSet()
-      .toList();
-  return '(${args.map((arg) => 'String $arg').toList().join(', ')})';
-}
-
-/// A template to build Intl.message('[message]', args: [args], name: [name]);
-String intlFunctionBody(
-  String message,
-  String name, {
-  List<String> args = const [],
-  bool isMultiline = false,
-}) {
-  var escapedStr = escapeApos(message);
-  String delimiter = (isMultiline) ? "'''" : "'";
-  return "Intl.message(${delimiter}${escapedStr}${delimiter}, ${args.isNotEmpty ? 'args: ${args}, ' : ''}name: '$name',)";
-}
-
-// --- Start Intl.message parts
-/// Converts 'Interpolated ${foo.bar} and $baz' into
-/// 'Interpolated $bar and $baz'
-String intlParameterizedMessage(StringInterpolation node) => node.elements
-    .map((e) => e is InterpolationExpression
-        ? intlInterpolation(e)
-        : (e as InterpolationString).value)
-    .toList()
-    .join('');
-
-String intlInterpolation(InterpolationExpression e) {
-  var name = toVariableName(toNestedName('$e'));
-  return r'${' + name + '}';
-}
-
-/// Creates the arg array for Intl.message
-/// ex: For the parameterized string 'Interpolated $bar and $baz'
-///     it will return [bar, baz]
-List<String> intlMessageArgs(StringInterpolation node) => node.elements
-    .whereType<InterpolationExpression>()
-    .map((e) => toVariableName(toNestedName(e.expression.toString())))
-    .toSet()
-    .toList();
-
-/// Creates the parameters for the intl function call
-/// ex: For the parameterized string 'Interpolated ${foo.bar} and $baz'
-///     it will return (foo.bar, baz)
-String intlFunctionArguments(StringInterpolation node) {
-  var args = node.elements
-      .whereType<InterpolationExpression>()
-      .map((e) => e.expression.toString())
-      .toSet()
-      .toList();
-  return '(${args.join(', ')})';
-}
-
-/// A template to build property access for intl string
-/// ex: ExampleIntl.exampleString
-String intlStringAccess(StringLiteral node, String namespace, {String? name}) =>
-    '${namespace}.${name ?? toVariableName(stringContent(node)!)}';
-
-/// A template to build function call intl interpolated string
-/// ex: ExampleIntl.exampleString(sting1, string2)
-String intlFunctionCall(
-  StringInterpolation node,
-  String namespace,
-  String namePrefix,
-  int index,
-) {
-  final functionName = intlFunctionName(node, namePrefix, index);
-  final functionArgs = intlFunctionArguments(node);
-  return '$namespace.$functionName$functionArgs';
-}
-
-/// Returns Intl.message for string literal.
-///
-/// The optional [name] parameter lets us provide a name rather than generating
-/// one from the string.
-///
-/// ex: static String get fooBar => Intl.message('Foo Bar','name: FooBarIntl_fooBar',);
-String intlGetterDef(StringLiteral node, String namespace, {String? name}) {
-  String text = stringContent(node)!;
-  final varName = name ?? toVariableName(text);
-  final message = intlFunctionBody(text, '${namespace}_$varName',
-      isMultiline: isMultiline(node));
-  return '\n  $intlFunctionPrefix get $varName => $message;';
-}
-
-/// Returns Intl.message with interpolation
-/// ex: static String Foo_bar(String baz) => Intl.message(
-///                                           'Foo bar $baz',
-///                                           args: [baz],
-///                                           'name: FooBarIntl_Foo_bar',
-///                                           );
-String intlFunctionDef(
-  StringInterpolation node,
-  String namespace,
-  String namePrefix,
-  int index,
-) {
-  final functionName = intlFunctionName(node, namePrefix, index);
-  final functionParams = intlFunctionParameters(node);
-  final parameterizedMessage = intlParameterizedMessage(node);
-  final messageArgs = intlMessageArgs(node);
-  final message = intlFunctionBody(
-      parameterizedMessage, '${namespace}_$functionName',
-      args: messageArgs, isMultiline: node.isMultiline);
-  return '\n  $intlFunctionPrefix $functionName$functionParams => $message;';
-}
-// -- End Intl helpers --
-
 String escapeApos(String s) {
   var apos = '\'';
   var backslash = '\\';
@@ -263,8 +138,10 @@ String toClassName(String str) {
 /// finally we check if it is a keyword and if so append "String" to it.
 ///   - "New" -> newString
 String toVariableName(String str) {
-  String strippedName = str.replaceFirst(RegExp(r'^[0-9]*'), '').trim();
-  var fiveAtMost = strippedName.split(' ');
+  String strippedName =
+      str.replaceFirst(RegExp(r'^[0-9]*'), '').replaceAll("'", '').trim();
+  var fiveAtMost =
+      strippedName.split(' ').where((each) => each.isNotEmpty).toList();
   fiveAtMost =
       fiveAtMost.sublist(0, fiveAtMost.length < 5 ? fiveAtMost.length : 5);
   final alphaNumericName = toAlphaNumeric(fiveAtMost.join(' '));

@@ -82,6 +82,24 @@ void main() {
               ..sort()),
         args: ['--yes-to-all']);
 
+    // Test that additional information (desc, meaning) are preserved if we read and then rewrite the file.
+    testCodemod('Manual modifications are preserved',
+        script: script,
+        input: expectedOutputFiles(additionalFilesInLib: [
+          extraInput()
+        ], messages: [
+          ...defaultMessages,
+          ...annotatedMessages,
+        ]),
+        expectedOutput: expectedOutputFiles(
+            additionalFilesInLib: [extraOutput()],
+            messages: [
+              ...defaultMessages,
+              ...annotatedMessages,
+              ...longMessages
+            ]..sort()),
+        args: ['--yes-to-all']);
+
     testCodemod('Specify a single file',
         // We add some extra files, but we specify just the original, so they shouldn't be included.
         script: script,
@@ -167,21 +185,27 @@ import 'package:test_project/src/intl/test_project_intl.dart';
 
 someMoreStrings() => (mui.Button()
   ..aria.label=TestProjectIntl.orange
-  ..label=TestProjectIntl.aLongStringwithMultiple)
+  ..label=TestProjectIntl.aLongStringwithMultipleLines)
     (TestProjectIntl.aquamarine,
      TestProjectIntl.twoAdjacentStringsOnSeparate);''');
 }
 
 List<String> extraMessages = [
-  "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange',);",
-  "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine',);"
+  "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange');",
+  "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine');"
+];
+
+/// Messages that have extra parameters we want to preserve.
+List<String> annotatedMessages = [
+  "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange', desc: 'The color.');",
+  "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine', desc: 'The color', meaning: 'blueish');"
 ];
 
 List<String> longMessages = [
-  """  static String get twoAdjacentStringsOnSeparate => Intl.message('two adjacent strings on separate lines', name: 'TestProjectIntl_twoAdjacentStringsOnSeparate',);""",
-  """  static String get aLongStringwithMultiple => Intl.message('''A long string
+  """  static String get twoAdjacentStringsOnSeparate => Intl.message('two adjacent strings on separate lines', name: 'TestProjectIntl_twoAdjacentStringsOnSeparate');""",
+  """  static String get aLongStringwithMultipleLines => Intl.message('''A long string
 with multiple
-   lines''', name: 'TestProjectIntl_aLongStringwithMultiple',);""",
+   lines''', name: 'TestProjectIntl_aLongStringwithMultipleLines');""",
 ];
 
 d.DirectoryDescriptor inputFiles(
@@ -209,8 +233,8 @@ usage() => (mui.Button()..aria.label='Sorts later')('Literal String');''')
 }
 
 const List<String> defaultMessages = [
-  "  static String get literalString => Intl.message('Literal String', name: 'TestProjectIntl_literalString',);",
-  "  static String get sortsLater => Intl.message('Sorts later', name: 'TestProjectIntl_sortsLater',);",
+  "  static String get literalString => Intl.message('Literal String', name: 'TestProjectIntl_literalString');",
+  "  static String get sortsLater => Intl.message('Sorts later', name: 'TestProjectIntl_sortsLater');",
 ];
 
 d.DirectoryDescriptor expectedOutputFiles({
