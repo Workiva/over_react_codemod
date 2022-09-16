@@ -31,7 +31,7 @@ void main() {
 
     setUp(() async {
       final Directory tmp = await fs.systemTempDirectory.createTemp();
-      messages = IntlMessages('TestClass', tmp, '');
+      messages = IntlMessages('TestClass', directory: tmp);
       // TODO: It's awkward that this test assumes the file exists, but that it doesn't have the prologue written.
       messages.outputFile.createSync(recursive: true);
       basicSuggestor = getSuggestorTester(

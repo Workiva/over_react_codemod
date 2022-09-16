@@ -36,7 +36,7 @@ void main() {
     setUp(() async {
       final FileSystem fs = MemoryFileSystem();
       final Directory tmp = await fs.systemTempDirectory.createTemp();
-      messages = IntlMessages('TestClass', tmp, '');
+      messages = IntlMessages('TestClass', directory: tmp);
       messages.outputFile.createSync(recursive: true);
     });
 

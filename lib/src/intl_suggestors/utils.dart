@@ -77,10 +77,6 @@ bool isValidStringLiteralProp(PropAssignment prop) {
 }
 // -- End Node Validation --
 
-// -- Intl Codegen Helpers --
-
-// -- End Intl helpers --
-
 String escapeApos(String s) {
   var apos = '\'';
   var backslash = '\\';
@@ -142,20 +138,12 @@ String toClassName(String str) {
 /// finally we check if it is a keyword and if so append "String" to it.
 ///   - "New" -> newString
 String toVariableName(String str) {
-  var debug = false;
-  if (str.startsWith('Two adjacent')) {
-    debug = true;
-    print("toVariableName($str)");
-  }
-  print("toVariableName($str)");
   String strippedName =
       str.replaceFirst(RegExp(r'^[0-9]*'), '').replaceAll("'", '').trim();
   var fiveAtMost =
       strippedName.split(' ').where((each) => each.isNotEmpty).toList();
-  print("words = $fiveAtMost");
   fiveAtMost =
       fiveAtMost.sublist(0, fiveAtMost.length < 5 ? fiveAtMost.length : 5);
-  print("now words = $fiveAtMost");
   final alphaNumericName = toAlphaNumeric(fiveAtMost.join(' '));
   final name = toCamelCase(alphaNumericName);
 

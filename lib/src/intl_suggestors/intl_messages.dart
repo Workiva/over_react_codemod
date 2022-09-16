@@ -2,6 +2,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:path/path.dart' as p;
 
@@ -27,13 +28,16 @@ class IntlMessages {
 
   static const intlFunctionPrefix = 'static String';
 
-  IntlMessages(this.packageName, Directory currentDir, String packagePath,
-      {File? output})
-      : outputFile = output ??
-            currentDir.childFile(p.join(
-                packagePath, 'lib', 'src', 'intl', '${packageName}_intl.dart'))
   // TODO: I think packagePath only applies if there's a sub-package.
-  {
+  IntlMessages(this.packageName,
+      {Directory? directory, String packagePath = '', File? output})
+      : outputFile = output ??
+            (directory ?? LocalFileSystem().currentDirectory).childFile(p.join(
+                packagePath,
+                'lib',
+                'src',
+                'intl',
+                '${packageName}_intl.dart')) {
     _readExisting();
   }
 

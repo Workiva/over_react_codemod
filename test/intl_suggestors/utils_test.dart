@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:test/test.dart';
 
@@ -87,8 +88,8 @@ void main() {
         final parsedInterpolation = parsedExpression as StringInterpolation;
         expect(parsedInterpolation.isMultiline, isMultiline);
 
-        final testResult =
-            intlFunctionDef(parsedInterpolation, 'Namespace', "NamePrefix");
+        final testResult = IntlMessages('Test')
+            .intlFunctionDef(parsedInterpolation, 'Namespace', "NamePrefix");
         expect(testResult, expectedResult);
       }
 
@@ -99,12 +100,12 @@ void main() {
         runResults(testStr, false, expectedResult);
       });
 
-      // test('multiline', () async {  ######
-      //   final testStr = r"'''${multiline}'''";
-      //   final expectedResult =
-      //       "  static String NamePrefix_intlFunction0(String multiline) => Intl.message('''\${multiline}''', args: [multiline], name: 'Namespace_NamePrefix_intlFunction0');";
-      //   runResults(testStr, true, expectedResult);
-      // });
+      test('multiline', () async {
+        final testStr = r"'''${multiline}'''";
+        final expectedResult =
+            "  static String NamePrefix_intlFunction0(String multiline) => Intl.message('''\${multiline}''', args: [multiline], name: 'Namespace_NamePrefix_intlFunction0');";
+        runResults(testStr, true, expectedResult);
+      });
     });
 
     group('toClassName', () {
@@ -130,25 +131,5 @@ void main() {
         expect(toVariableName("Test's test'1"), 'testsTest1');
       });
     });
-
-    // group('intlGetterDef', () {  ######
-    //   test('explicit name', () {
-    //     var s = intlGetterDef1('abc', 'Foo',
-    //         name: 'blah', index: 1, isMultiline: false);
-    //     expect(s, contains("name: 'Foo_blah1'"));
-    //   });
-
-    //   test('explicit name, multiline', () {
-    //     var s = intlGetterDef1('abc', 'Foo',
-    //         name: 'blah', index: 1, isMultiline: true);
-    //     expect(s,
-    //         "  static String get blah => Intl.message('''abc''', name: 'Foo_blah1');");
-    //   });
-
-    //   test('implicit name', () {
-    //     var s = intlGetterDef1('abc', 'Foo');
-    //     expect(s, contains("name: 'Foo_abc'"));
-    //   });
-    // });
   });
 }

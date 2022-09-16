@@ -40,7 +40,7 @@ void main() {
     });
 
     test('empty', () {
-      messages = IntlMessages('TestProject', tmp, '', output: intlFile);
+      messages = IntlMessages('TestProject', output: intlFile);
       messages.write();
       expect(messages.outputFile.readAsStringSync(), expectedFile(''));
     });
@@ -60,7 +60,7 @@ void main() {
           .argumentList
           .arguments
           .first as StringLiteral);
-      messages = IntlMessages('TestProject', tmp, '', output: intlFile);
+      messages = IntlMessages('TestProject', output: intlFile);
       var derivedName = messages.giveMeANameFor(argument);
       expect(derivedName, 'adjacentStringsOnTwoLines');
     });
@@ -72,7 +72,7 @@ void main() {
     writeExisting(List<String> methods) {
       intlFile.writeAsStringSync(
           "${IntlMessages.prologueFor('TestProjectIntl')}\n${methods.join('\n')}\n}\n");
-      messages = IntlMessages('TestProject', tmp, '', output: intlFile);
+      messages = IntlMessages('TestProject', output: intlFile);
     }
 
     setUp(() async {

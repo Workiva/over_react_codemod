@@ -239,8 +239,8 @@ Future<void> migratePackage(
   packageDartPaths = limitPaths(packageDartPaths, allowed: paths);
   sortPartsLast(packageDartPaths);
 
-  final IntlMessages outputFile =
-      IntlMessages(packageName, fs.currentDirectory, package);
+  final IntlMessages outputFile = IntlMessages(packageName,
+      directory: fs.currentDirectory, packagePath: package);
 
   final intlPropMigrator = IntlMigrator(outputFile.className, outputFile);
   final constantStringMigrator =
