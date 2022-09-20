@@ -464,10 +464,10 @@ void main() {
       test('returns the correct version for non-toolbar WSD v2 components',
           () async {
         final usage1 = await parseAndGetSingleUsage(/*language=dart*/ '''
-            content() => wsd_v2.Button()(); 
+            content() => wsd_v2.Button()();
         ''');
         final usage2 = await parseAndGetSingleUsage(/*language=dart*/ '''
-            content() => Button()(); 
+            content() => Button()();
         ''');
         expect(wsdComponentVersionForFactory(usage1), WsdComponentVersion.v2);
         expect(wsdComponentVersionForFactory(usage2), WsdComponentVersion.v2);
