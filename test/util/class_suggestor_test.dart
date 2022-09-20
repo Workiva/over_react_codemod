@@ -30,7 +30,7 @@ class LibNameDoubler with ClassSuggestor {
   @override
   Future<void> generatePatches() async {
     final library = await context.getResolvedLibrary();
-    final libraryName = library?.element?.name;
+    final libraryName = library?.element.name;
     if (libraryName == null) return;
     yieldPatch(libraryName * 2, 0, 1);
   }

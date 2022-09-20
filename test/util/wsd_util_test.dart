@@ -49,7 +49,7 @@ void main() {
       final context = await resolvedContext
           .resolvedFileContextForTest(withOverReactAndWsdImports(source));
       final result = await context.getResolvedUnit();
-      return allDescendantsOfType<InvocationExpression>(result!.unit!)
+      return allDescendantsOfType<InvocationExpression>(result!.unit)
           .map(getComponentUsage)
           .whereNotNull()
           .single;

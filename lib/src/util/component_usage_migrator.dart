@@ -140,17 +140,11 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
       throw Exception(
           'Could not get resolved result for "${context.relativePath}"');
     }
-    final unit = result.unit;
-    if (unit == null) {
-      throw Exception(
-          'Could not get resolved unit for "${context.relativePath}"');
-    }
-
     final allUsages = <FluentComponentUsage>[];
-    unit.accept(ComponentUsageVisitor(allUsages.add));
+    result.unit.accept(ComponentUsageVisitor(allUsages.add));
 
     for (final usage in allUsages) {
-      if (_isIgnored(usage, unit)) {
+      if (_isIgnored(usage, result.unit)) {
         _log.finest(context.sourceFile
             .spanFor(usage.factory ?? usage.builder)
             .message('Skipping ignored usage'));
@@ -435,7 +429,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
 
   /// Yields a patch that adds a given [child] to a usage.
   ///
-  /// If children are already present in the usage, the given [child] will 
+  /// If children are already present in the usage, the given [child] will
   /// become the first child of the usage.
   void yieldAddChildPatch(FluentComponentUsage usage, String child) {
     final int start;

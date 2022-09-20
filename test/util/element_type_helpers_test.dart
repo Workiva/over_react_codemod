@@ -63,7 +63,7 @@ void main() {
     Future<CompilationUnit> parseResolvedUnit(String source) async {
       final context = await resolvedContext.resolvedFileContextForTest(source);
       final result = await context.getResolvedUnit();
-      return result!.unit!;
+      return result!.unit;
     }
 
     group('type and element helpers', () {

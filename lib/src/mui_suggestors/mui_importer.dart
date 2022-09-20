@@ -31,27 +31,16 @@ Stream<Patch> muiImporter(FileContext context) async* {
     return;
   }
 
-  final libraryElement = libraryResult.element;
-  final unitResults = libraryResult.units;
-  if (libraryElement == null || unitResults == null) {
-    _log.warning('Could not resolve ${context.relativePath}');
-    return;
-  }
-
   // Parts that have not been generated can show up as `exists = false` but also `isPart = false`,
   // so using the unitResults is a little trickier than using the libraryElement to get it.
-  final mainLibraryUnitResult = unitResults.singleWhere((unitResult) =>
-      unitResult.unit?.declaredElement ==
-      libraryElement.definingCompilationUnit);
-  if (mainLibraryUnitResult.unit == null) {
-    _log.warning('Could not resolve ${context.relativePath}');
-    return;
-  }
+  final mainLibraryUnitResult = libraryResult.units.singleWhere((unitResult) =>
+      unitResult.unit.declaredElement ==
+      libraryResult.element.definingCompilationUnit);
 
   // Look for errors in the main compilation unit and its part files.
   // Ignore null partContexts and partContexts elements caused by
   // resolution issues and parts being excluded in the codemod file list.
-  final needsMuiImport = unitResults
+  final needsMuiImport = libraryResult.units
       .expand((unitResult) => unitResult.errors)
       .where((error) => error.errorCode.name == 'UNDEFINED_IDENTIFIER')
       .any((error) => error.message.contains("Undefined name '$muiNs'"));
@@ -61,7 +50,7 @@ Stream<Patch> muiImporter(FileContext context) async* {
   const rmuiImportUri = 'package:react_material_ui/react_material_ui.dart';
 
   final insertInfo = _insertionLocationForPackageImport(rmuiImportUri,
-      mainLibraryUnitResult.unit!, mainLibraryUnitResult.lineInfo);
+      mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
   yield Patch(
       insertInfo.leadingNewlines +
           "import '$rmuiImportUri' as $muiNs;" +

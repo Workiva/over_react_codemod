@@ -124,7 +124,7 @@ class SharedAnalysisContext {
   Future<void> warmUpAnalysis() async {
     await _initIfNeeded();
     final path = p.join(_path, 'lib/analysis_warmup.dart');
-    await collection.contextFor(path).currentSession.getResolvedLibrary2(path);
+    await collection.contextFor(path).currentSession.getResolvedLibrary(path);
     _shouldPrintFirstFileWarning = false;
   }
 
@@ -222,7 +222,7 @@ class SharedAnalysisContext {
     }
     if (preResolveLibrary) {
       final result = await _printAboutFirstFile(
-          () => context.currentSession.getResolvedLibrary2(path));
+          () => context.currentSession.getResolvedLibrary(path));
       if (throwOnAnalysisErrors) {
         checkResolvedResultForErrors(result, isExpectedError: isExpectedError);
       }
@@ -297,15 +297,7 @@ void checkResolvedResultForErrors(
     ].join(' '));
   }
 
-  final units = result.units;
-  if (units == null) {
-    throw ArgumentError([
-      'Error resolving file; units was null. Result: ${result}.',
-      sharedMessage
-    ].join(' '));
-  }
-
-  final unexpectedErrors = units
+  final unexpectedErrors = result.units
       .expand((unit) => unit.errors)
       .where((AnalysisError error) =>
           error.severity == Severity.error ||
@@ -373,7 +365,7 @@ extension ParseHelpers on SharedAnalysisContext {
         throwOnAnalysisErrors: false);
     if (isResolved) {
       final result = await fileContext.getResolvedUnit();
-      unit = result!.unit!;
+      unit = result!.unit;
     } else {
       unit = fileContext.getUnresolvedUnit();
     }

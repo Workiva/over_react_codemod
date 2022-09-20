@@ -28,24 +28,13 @@ Stream<Patch> intlImporter(
     return;
   }
 
-  final libraryElement = libraryResult.element;
-  final unitResults = libraryResult.units;
-  if (libraryElement == null || unitResults == null) {
-    _log.warning('Could not resolve ${context.relativePath}');
-    return;
-  }
-
   // Parts that have not been generated can show up as `exists = false` but also `isPart = false`,
   // so using the unitResults is a little trickier than using the libraryElement to get it.
-  final mainLibraryUnitResult = unitResults.singleWhere((unitResult) =>
-      unitResult.unit?.declaredElement ==
-      libraryElement.definingCompilationUnit);
-  if (mainLibraryUnitResult.unit == null) {
-    _log.warning('Could not resolve ${context.relativePath}');
-    return;
-  }
+  final mainLibraryUnitResult = libraryResult.units.singleWhere((unitResult) =>
+      unitResult.unit.declaredElement ==
+      libraryResult.element.definingCompilationUnit);
 
-  final needsIntlImport = unitResults
+  final needsIntlImport = libraryResult.units
       .expand((unitResult) => unitResult.errors)
       .where((error) => error.errorCode.name == 'UNDEFINED_IDENTIFIER')
       .any((error) => error.message.contains("Undefined name '$className'"));
@@ -55,7 +44,7 @@ Stream<Patch> intlImporter(
   final intlUri = 'package:${projectName}/src/intl/${projectName}_intl.dart';
 
   final insertInfo = _insertionLocationForPackageImport(
-      intlUri, mainLibraryUnitResult.unit!, mainLibraryUnitResult.lineInfo);
+      intlUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
   yield Patch(
       insertInfo.leadingNewlines +
           "import '$intlUri';" +
