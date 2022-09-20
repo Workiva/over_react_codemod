@@ -15,7 +15,7 @@ UI component code. Currently, the only use cases are around upgrading from Dart
 > themselves are designed to run on code that is written for Dart 1.x or 2.x.
 
 ```bash
-pub global activate over_react_codemod
+dart pub global activate over_react_codemod
 ```
 
 Once you've activated this package, you should be able to run whichever codemods
@@ -32,12 +32,12 @@ Dart 2, or you may need to take an intermediary step and provide a version of
 your codebase that is both forwards- and backwards-compatible. Both of these
 options are supported by this codemod.
 
-- `pub global run over_react_codemod:dart2_upgrade --backwards-compat`
+- `dart pub global run over_react_codemod:dart2_upgrade --backwards-compat`
 
     Use this codemod to migrate your over_react code to a format that is both
     forwards-compatible with Dart 2 and backwards-compatible with Dart 1.
 
-- `pub global run over_react_codemod:dart2_upgrade`
+- `dart pub global run over_react_codemod:dart2_upgrade`
 
     Use this codemod if you want to migrate to Dart 2 compatible code and do not
     need to maintain backwards-compatability with Dart 1. You can run this to
@@ -66,7 +66,7 @@ checklist will prevent merging code that is not in the form that is compatible
 with both Dart 1 and Dart 2:
 
 ```bash
-pub global run over_react_codemod:dart2_upgrade --fail-on-changes
+dart pub global run over_react_codemod:dart2_upgrade --fail-on-changes
 ```
 
 ## Ignoring Codemod Suggestions

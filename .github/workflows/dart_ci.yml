@@ -62,6 +62,6 @@ jobs:
 
       - name: Run tests
         run: |
-          echo 'Running pub get in test fixtures beforehand to prevent concurrent `pub get`s in tests from failing'
+          echo 'Running dart pub get in test fixtures beforehand to prevent concurrent `dart pub get`s in tests from failing'
           (cd test/test_fixtures/over_react_project && dart pub get)
-          dart run test --exclude-tags=wsd
+          dart test --exclude-tags=wsd
