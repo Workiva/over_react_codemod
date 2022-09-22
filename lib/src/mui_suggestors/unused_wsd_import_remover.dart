@@ -26,17 +26,12 @@ Stream<Patch> unusedWsdImportRemover(FileContext context) async* {
     // Most likely a part and not a library.
     return;
   }
-  final unit = unitResult.unit;
-  if (unit == null) {
-    _log.warning('Could not resolve ${context.relativePath}');
-    return;
-  }
-
   final unusedImportErrors = unitResult.errors
       .where((error) => error.errorCode.name.toLowerCase() == 'unused_import')
       .toList();
 
-  final allImports = unit.directives.whereType<ImportDirective>().toList();
+  final allImports =
+      unitResult.unit.directives.whereType<ImportDirective>().toList();
 
   for (final error in unusedImportErrors) {
     final matchingImport =

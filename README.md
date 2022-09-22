@@ -15,7 +15,7 @@ UI component code. Currently, the only use cases are around upgrading from Dart
 > themselves are designed to run on code that is written for Dart 1.x or 2.x.
 
 ```bash
-pub global activate over_react_codemod
+dart pub global activate over_react_codemod
 ```
 
 Once you've activated this package, you should be able to run whichever codemods
@@ -32,12 +32,12 @@ Dart 2, or you may need to take an intermediary step and provide a version of
 your codebase that is both forwards- and backwards-compatible. Both of these
 options are supported by this codemod.
 
-- `pub global run over_react_codemod:dart2_upgrade --backwards-compat`
+- `dart pub global run over_react_codemod:dart2_upgrade --backwards-compat`
 
     Use this codemod to migrate your over_react code to a format that is both
     forwards-compatible with Dart 2 and backwards-compatible with Dart 1.
 
-- `pub global run over_react_codemod:dart2_upgrade`
+- `dart pub global run over_react_codemod:dart2_upgrade`
 
     Use this codemod if you want to migrate to Dart 2 compatible code and do not
     need to maintain backwards-compatability with Dart 1. You can run this to
@@ -66,7 +66,7 @@ checklist will prevent merging code that is not in the form that is compatible
 with both Dart 1 and Dart 2:
 
 ```bash
-pub global run over_react_codemod:dart2_upgrade --fail-on-changes
+dart pub global run over_react_codemod:dart2_upgrade --fail-on-changes
 ```
 
 ## Ignoring Codemod Suggestions
@@ -119,26 +119,25 @@ package will try to suggest.
     - [Element model documentation](https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/doc/tutorial/element.md)
       - (the element model is only accessible from "resolved AST")
     - In general, the various `AstNode` and `Element` subclasses are well-documented, and are very helpful in describing the relationships between different types of nodes/elements and pointing to other classes. Reading those and clicking through the references is a good way to learn about specific structures, and help get your bearings.
-    - 
 - [codemod][dart_codemod] package
 
 ### Best practices
 
-- Code defensively for edge-cases, and avoid assumptions about the AST or Element model. 
+- Code defensively for edge-cases, and avoid assumptions about the AST or Element model.
 
     Some codemods process a lot of code, especially when identifying code that should be operated on, and some of that code may have structures you don't expect.
 
     That doesn't necessarily mean your codemod should handle every single edge-case, but generally it shouldn't break with uncaught exceptions when it encounters certain code.
 
     Things to avoid assumptions about:
-  
+
     - The types or nullability of child/parent nodes
         - Prefer type checks over casts
-          - `tryCast()` and `ancestorOfType()` can be handy in certain cases. 
+          - `tryCast()` and `ancestorOfType()` can be handy in certain cases.
         - Prefer null-checks over `!`
-    - The number of child nodes or other items in collections 
+    - The number of child nodes or other items in collections
         - When using `.first`/`.last`/`.single` on iterables, either check the length of the iterable first, or switch to something more conditional like `.firstWhere()` or `.firstOrNull`
-        
+
 - Avoid using `childEntities`
 
     Most AST node classes have getters for their different child nodes. Using these helps make code easier to read, and also provide typing (and nullability) which helps with static analysis and autocomplete.
@@ -163,7 +162,7 @@ package will try to suggest.
         ```
         and change the foo check to something else, depending on the use-case:
         ```dart
-        // Check whether the target is a "foo" identifier 
+        // Check whether the target is a "foo" identifier
         // (though this doesn't handle prefixed cases)
         expression.realTarget?.tryCast<Identifier>()?.name == 'foo'
         // Check whether it statically points to a `foo` variable
@@ -189,10 +188,10 @@ package will try to suggest.
     - For building patch strings (such as when moving code from one place to another).
 
         `toSource()` provides an approximation of the source, and may be missing comments or have different whitespace. If needed, use the `context.sourceFile` to get the original source for a given node.
-    
+
 - Don't make assumptions about existing whitespace and line breaks.
 
-    There are different ways code can be formatted with dartfmt, and some code may not be formatted at all, so it's unsafe to make assumptions. 
+    There are different ways code can be formatted with dartfmt, and some code may not be formatted at all, so it's unsafe to make assumptions.
 
     For instance, if you'd like to yield a patch that deletes a newline with some code, either check for its existence first by getting the source or line number of that offset in `context.sourceFile`. Or, instead of deleting from `node.offset`, delete from the end of the previous token (`node.prevToken?.end ?? node.offset`) to take any whitespace between those nodes with it.
 

@@ -19,10 +19,10 @@ import 'package:codemod/codemod.dart';
 /// Example:
 /// ```
 /// // Before
-/// pub run dependency validator
+/// dart run dependency validator
 ///
 /// // After (with `dependency` equal to "a_dependency")
-/// pub run dependency_validator -i a_dependency
+/// dart run dependency_validator -i a_dependency
 /// ```
 ///
 /// See: [dependency_validator V1](https://github.com/Workiva/dependency_validator/blob/9554150b6473a7f822be65c863642b94653ea0d0/README.md)

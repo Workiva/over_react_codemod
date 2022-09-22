@@ -63,7 +63,7 @@ void main() {
     Future<CompilationUnit> parseResolvedUnit(String source) async {
       final context = await resolvedContext.resolvedFileContextForTest(source);
       final result = await context.getResolvedUnit();
-      return result!.unit!;
+      return result!.unit;
     }
 
     group('type and element helpers', () {
@@ -87,10 +87,10 @@ void main() {
         unit = await parseResolvedUnit(/*language=dart*/ '''
             import 'dart:html';
             import 'package:over_react/over_react.dart';
-            
+
             class CustomClass {}
             mixin CustomProps on UiProps {}
-            
+
             foo0(
               UiProps uiProps,
               ReactElement reactElement,
@@ -100,7 +100,7 @@ void main() {
               CustomClass customClass,
               dynamic dynamic_,
             ) {}
-            
+
             foo1<T extends UiProps>(T uiPropsAsBound) {}
             foo2<T extends CustomProps>(T customPropsAsBound) {}
         ''');
