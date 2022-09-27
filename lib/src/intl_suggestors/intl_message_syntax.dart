@@ -16,7 +16,7 @@ class MessageSyntax {
   /// A template to build property access for intl string
   /// ex: ExampleIntl.exampleString
   String getterCall(StringLiteral node, String namespace, {String? name}) =>
-      '${namespace}.${name ?? nameForNode(node, initialName: name)}';
+      '${namespace}.${nameForNode(node, initialName: name)}';
 
   /// Returns Intl.message for string literal.
   ///
