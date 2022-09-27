@@ -169,6 +169,29 @@ void main() {
         expect(messages.messageContents().trim(),
             expectedFileContent.trim()); // Avoid the leading return.
       });
+
+      test('duplicate getter names increment', () async {
+        await testSuggestor(
+          input: '''
+          const String dueDate = 'Due Date';
+          class Dupe {
+            static const dueDate = 'Due date';
+          }
+            ''',
+          expectedOutput: '''
+          final String dueDate = TestClassIntl.dueDate;
+          class Dupe {
+            static final String dueDate = TestClassIntl.dueDate1;
+          }          
+            ''',
+        );
+        final expectedFileContent = '''
+  static String get dueDate => Intl.message(\'Due Date\', name: \'TestClassIntl_dueDate\');
+  static String get dueDate1 => Intl.message(\'Due date\', name: \'TestClassIntl_dueDate1\');
+''';
+        expect(messages.messageContents().trim(),
+            expectedFileContent.trim()); // Avoid the leading return.
+      });
     });
   });
 }
