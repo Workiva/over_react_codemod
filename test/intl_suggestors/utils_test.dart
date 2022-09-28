@@ -101,6 +101,13 @@ void main() {
         runResults(testStr, false, expectedResult);
       });
 
+      test('single line with explicit newline', () async {
+        final testStr = r"'two\nlines${foo}'";
+        final expectedResult =
+            "  static String NamePrefix_intlFunction0(String foo) => Intl.message('two\\nlines\${foo}', args: [foo], name: 'Namespace_NamePrefix_intlFunction0');";
+        runResults(testStr, false, expectedResult);
+      });
+
       test('multiline', () async {
         final testStr = r"'''${multiline}'''";
         final expectedResult =
