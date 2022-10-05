@@ -95,7 +95,7 @@ class MessageSyntax {
     List<String> args = const [],
     bool isMultiline = false,
   }) {
-    var escapedStr = escapeApos(message);
+    var escapedStr = escapeNewlines(escapeApos(message), isMultiline);
     String delimiter = (isMultiline) ? "'''" : "'";
     return "Intl.message(${delimiter}${escapedStr}${delimiter}, ${args.isNotEmpty ? 'args: ${args}, ' : ''}name: '$name')";
   }
@@ -105,9 +105,13 @@ class MessageSyntax {
   String intlParameterizedMessage(StringInterpolation node) => node.elements
       .map((e) => e is InterpolationExpression
           ? intlInterpolation(e)
-          : (e as InterpolationString).value)
+          : escapeNewlines((e as InterpolationString).value, node.isMultiline))
       .toList()
       .join('');
+
+  String escapeNewlines(String input, bool isMultiline) {
+    return isMultiline ? input : input.replaceAll('\n', r'\n');
+  }
 
   String intlInterpolation(InterpolationExpression e) {
     var name = toVariableName(toNestedName('$e'));

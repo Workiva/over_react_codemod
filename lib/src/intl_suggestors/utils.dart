@@ -78,8 +78,8 @@ bool isValidStringLiteralProp(PropAssignment prop) {
 // -- End Node Validation --
 
 String escapeApos(String s) {
-  var apos = '\'';
-  var backslash = '\\';
+  var apos = "'";
+  var backslash = r'\';
   return s.replaceAll(apos, backslash + apos);
 }
 
