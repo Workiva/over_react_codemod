@@ -138,6 +138,10 @@ String toClassName(String str) {
 /// finally we check if it is a keyword and if so append "String" to it.
 ///   - "New" -> newString
 String toVariableName(String str) {
+  // The name might have surrounding quotes, remove them.
+  if (str.startsWith("'") && str.endsWith("'")) {
+    str = str.substring(1, str.length - 1);
+  }
   String strippedName =
       str.replaceFirst(RegExp(r'^[0-9]*'), '').replaceAll("'", '').trim();
   var fiveAtMost =

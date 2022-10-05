@@ -36,7 +36,16 @@ class MessageParser {
   }
 
   void _parse() {
-    ParseStringResult parsed = parseString(content: source, path: path);
+    ParseStringResult parsed;
+    try {
+      parsed = parseString(content: source, path: path);
+    } on ArgumentError {
+      print('Error in generated code!!');
+      print('--------------------------------------------------------');
+      print(source);
+      print('--------------------------------------------------------');
+      rethrow;
+    }
     var intlClass = parsed.unit.declarations.first as ClassDeclaration;
     var methodDeclarations =
         intlClass.members.toList().cast<MethodDeclaration>();
