@@ -38,6 +38,8 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
       var end = node.parent!.end;
       var firstLetter = string.substring(0, 1);
       var secondLetter = string.substring(1, 2);
+      // If it looks like a CONSTANT_FROM_SOME_OTHER_LIBRARY don't convert it.
+      if (string.toUpperCase() == string) return;
       // Is the first character uppercase, excluding strings that start with two of the same
       // uppercase character, which has a good chance of being a date format (e.g. 'MM/dd/YYYY').
       if (firstLetter != secondLetter &&

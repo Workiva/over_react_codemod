@@ -71,6 +71,19 @@ void main() {
         expect(messages.messageContents(), expectedFileContent);
       });
 
+      test('SCREAMING_CAPS_ARE_IGNORED', () async {
+        await testSuggestor(
+          input: '''
+            const foo = 'DO_NOT_CONVERT_ME';
+            ''',
+          expectedOutput: '''
+            const foo = 'DO_NOT_CONVERT_ME';
+            ''',
+        );
+        final expectedFileContent = '';
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
       test('static constant', () async {
         await testSuggestor(
           input: '''
