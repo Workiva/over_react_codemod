@@ -4,6 +4,7 @@
 - Improve reporting of parse errors in generated code for intl_message_migration
 - Fix a regression where we were getting strings with surrounding quotes from the node,
   and not stripping leading numbers as a result.
+- Don't convert SCREAMING_CAPS_CONSTANTS in intl_message_migration
 
 ## [2.9.0](https://github.com/Workiva/over_react_codemod/compare/2.9.0....2.8.0)
 
