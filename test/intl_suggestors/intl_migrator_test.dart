@@ -1299,5 +1299,99 @@ void main() {
         expect(messages.messageContents(), expectedFileContent);
       });
     });
+
+    group('Ignore', () {
+      test('Ignore line with ignore comment', () async {
+        await testSuggestor(
+          input: '''
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+                return (Dom.div())('viewer');
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+
+            UiFactory<FooProps> FooWithIgnore = uiFunction(
+              (props) {
+                // IGNORE LINE - INTL
+                return (Dom.div())('viewer');
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+          expectedOutput: '''
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+
+                return (Dom.div())(TestClassIntl.viewer);
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+
+            UiFactory<FooProps> FooWithIgnore = uiFunction(
+              (props) {
+                // IGNORE LINE - INTL
+                return (Dom.div())('viewer');
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+        );
+        final expectedFileContent =
+            '\n  static String get viewer => Intl.message(\'viewer\', name: \'TestClassIntl_viewer\');';
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
+      test('Ignore file with ignore comment', () async {
+        await testSuggestor(
+          input: '''
+            // IGNORE FILE - INTL
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+
+                return (Dom.div())(
+                  'testString1',
+                  'testString2',
+                );
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+          expectedOutput: '''
+            // IGNORE FILE - INTL
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+
+                return (Dom.div())(
+                  'testString1',
+                  'testString2',
+                );
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+        );
+
+        final expected =
+            "\n  static String get testString1 => Intl.message('testString1', name: 'TestClassIntl_testString1');\n  static String get testString2 => Intl.message('testString2', name: 'TestClassIntl_testString2');";
+        expect(messages.messageContents(), expected);
+      });
+    });
   });
 }

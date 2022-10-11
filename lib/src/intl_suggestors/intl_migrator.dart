@@ -84,6 +84,10 @@ class IntlMigrator extends ComponentUsageMigrator {
   @override
   String get fixmePrefix => 'FIXME - INTL ';
   @override
+  String get ignoreLine => 'IGNORE LINE - INTL';
+  @override
+  String get ignoreFile => 'IGNORE FILE - INTL';
+  @override
   bool get shouldFlagUnsafeMethodCalls => false;
   @override
   bool get shouldFlagUntypedSingleProp => false;
