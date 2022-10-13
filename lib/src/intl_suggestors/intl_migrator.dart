@@ -81,12 +81,11 @@ class IntlMigrator extends ComponentUsageMigrator {
 
   IntlMigrator(this._className, this._messages);
 
+  String get ignoreStatement => 'IGNORE STATEMENT - INTL';
+  String get ignoreFile => 'IGNORE FILE - INTL';
+
   @override
   String get fixmePrefix => 'FIXME - INTL ';
-  @override
-  String get ignoreLine => 'IGNORE LINE - INTL';
-  @override
-  String get ignoreFile => 'IGNORE FILE - INTL';
   @override
   bool get shouldFlagUnsafeMethodCalls => false;
   @override
@@ -101,14 +100,18 @@ class IntlMigrator extends ComponentUsageMigrator {
   bool get shouldFlagPrefixedProps => false;
 
   @override
-  bool shouldMigrateUsage(FluentComponentUsage usage) =>
-      // TODO: Handle adjacent strings with an interpolation.
-      usage.cascadedProps.any((prop) =>
-          isValidStringLiteralProp(prop) ||
-          isValidStringInterpolationProp(prop)) ||
-      usage.children.any((child) =>
-          isValidStringLiteralNode(child.node) ||
-          isValidStringInterpolationNode(child.node));
+  bool shouldMigrateUsage(FluentComponentUsage usage) {
+    // TODO: Handle adjacent strings with an interpolation.
+    if (isLineIgnored(usage.node)) return false;
+    if (isFileIgnored(this.context.sourceText)) return false;
+
+    return usage.cascadedProps.any((prop) =>
+            isValidStringLiteralProp(prop) ||
+            isValidStringInterpolationProp(prop)) ||
+        usage.children.any((child) =>
+            isValidStringLiteralNode(child.node) ||
+            isValidStringInterpolationNode(child.node));
+  }
 
   @override
   void migrateUsage(FluentComponentUsage usage) {
@@ -165,6 +168,20 @@ class IntlMigrator extends ComponentUsageMigrator {
     //         'The "label" property may or may not be user-visible, check hideLabel');
     //   }
     // }
+  }
+
+  bool isLineIgnored(node) {
+    final ignoreComment = node.findPrevious(node.beginToken).precedingComments;
+    if (ignoreComment != null &&
+        ignoreComment.value().contains(ignoreStatement)) {
+      return true;
+    }
+    return false;
+  }
+
+  bool isFileIgnored(fileContents) {
+    final ignored = fileContents.contains(this.ignoreFile);
+    return ignored;
   }
 
   void migrateChildStringLiteral(

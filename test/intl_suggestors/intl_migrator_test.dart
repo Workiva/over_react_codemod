@@ -1301,96 +1301,88 @@ void main() {
     });
 
     group('Ignore', () {
-      test('Ignore line with ignore comment', () async {
+      test('Ignore statement with ignore comment', () async {
+        final source = 'import \'package:over_react/over_react.dart\';\n'
+            '\n'
+            'mixin FooProps on UiProps {}\n'
+            '\n'
+            'UiFactory<FooProps> Foo = uiFunction(\n'
+            '  (props) {\n'
+            '    return (Dom.div())(\n'
+            '      \'testString1\',\n'
+            '      \'testString2\',\n'
+            '    );\n'
+            '  },\n'
+            '  _\$FooConfig, //ignore: undefined_identifier\n'
+            ');\n'
+            '\n'
+            'UiFactory<FooProps> Bar = uiFunction(\n'
+            '  (props) {\n'
+            '    // IGNORE STATEMENT - INTL\n'
+            '    return (Dom.div())(\n'
+            '      \'testString1\',\n'
+            '      \'testString2\',\n'
+            '    );\n'
+            '  },\n'
+            '  _\$FooConfig, //ignore: undefined_identifier\n'
+            ');\n'
+            '';
+        final output = 'import \'package:over_react/over_react.dart\';\n'
+            '\n'
+            'mixin FooProps on UiProps {}\n'
+            '\n'
+            'UiFactory<FooProps> Foo = uiFunction(\n'
+            '  (props) {\n'
+            '    return (Dom.div())(\n'
+            '      TestClassIntl.testString1,\n'
+            '      TestClassIntl.testString2,\n'
+            '    );\n'
+            '  },\n'
+            '  _\$FooConfig, //ignore: undefined_identifier\n'
+            ');\n'
+            '\n'
+            'UiFactory<FooProps> Bar = uiFunction(\n'
+            '  (props) {\n'
+            '    // IGNORE STATEMENT - INTL\n'
+            '    return (Dom.div())(\n'
+            '      \'testString1\',\n'
+            '      \'testString2\',\n'
+            '    );\n'
+            '  },\n'
+            '  _\$FooConfig, //ignore: undefined_identifier\n'
+            ');\n'
+            '';
+
         await testSuggestor(
-          input: '''
-            import 'package:over_react/over_react.dart';
-
-            mixin FooProps on UiProps {}
-
-            UiFactory<FooProps> Foo = uiFunction(
-              (props) {
-                return (Dom.div())('viewer');
-              },
-              _\$FooConfig, //ignore: undefined_identifier
-            );
-
-            UiFactory<FooProps> FooWithIgnore = uiFunction(
-              (props) {
-                // IGNORE LINE - INTL
-                return (Dom.div())('viewer');
-              },
-              _\$FooConfig, //ignore: undefined_identifier
-            );
-            ''',
-          expectedOutput: '''
-            import 'package:over_react/over_react.dart';
-
-            mixin FooProps on UiProps {}
-
-            UiFactory<FooProps> Foo = uiFunction(
-              (props) {
-
-                return (Dom.div())(TestClassIntl.viewer);
-              },
-              _\$FooConfig, //ignore: undefined_identifier
-            );
-
-            UiFactory<FooProps> FooWithIgnore = uiFunction(
-              (props) {
-                // IGNORE LINE - INTL
-                return (Dom.div())('viewer');
-              },
-              _\$FooConfig, //ignore: undefined_identifier
-            );
-            ''',
+          input: source,
+          expectedOutput: output,
         );
-        final expectedFileContent =
-            '\n  static String get viewer => Intl.message(\'viewer\', name: \'TestClassIntl_viewer\');';
-        expect(messages.messageContents(), expectedFileContent);
       });
-
       test('Ignore file with ignore comment', () async {
+        final source = '''
+            // IGNORE FILE - INTL
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+
+                return (Dom.div())(
+                  'testString1',
+                  'testString2',
+                );
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''';
+
         await testSuggestor(
-          input: '''
-            // IGNORE FILE - INTL
-            import 'package:over_react/over_react.dart';
-
-            mixin FooProps on UiProps {}
-
-            UiFactory<FooProps> Foo = uiFunction(
-              (props) {
-
-                return (Dom.div())(
-                  'testString1',
-                  'testString2',
-                );
-              },
-              _\$FooConfig, //ignore: undefined_identifier
-            );
-            ''',
-          expectedOutput: '''
-            // IGNORE FILE - INTL
-            import 'package:over_react/over_react.dart';
-
-            mixin FooProps on UiProps {}
-
-            UiFactory<FooProps> Foo = uiFunction(
-              (props) {
-
-                return (Dom.div())(
-                  'testString1',
-                  'testString2',
-                );
-              },
-              _\$FooConfig, //ignore: undefined_identifier
-            );
-            ''',
+          input: source,
+          expectedOutput: source,
         );
 
-        final expected =
-            "\n  static String get testString1 => Intl.message('testString1', name: 'TestClassIntl_testString1');\n  static String get testString2 => Intl.message('testString2', name: 'TestClassIntl_testString2');";
-        expect(messages.messageContents(), expected);
+        expect(messages.messageContents(), '');
       });
     });
   });
