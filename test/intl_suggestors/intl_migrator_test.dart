@@ -1358,6 +1358,47 @@ void main() {
           expectedOutput: output,
         );
       });
+
+      test('Ignore line in chained objects', () async {
+        final source = '''
+        class Foo {
+          String str;
+          Foo(this.str);
+
+          String value() {
+            return str;
+          }
+        }
+
+        class Bar {
+          Foo newFoo(str) {
+            return Foo(str);
+          }
+        }
+
+        class Baz {
+          Bar newBar() {
+            return Bar();
+          }
+        }
+
+        class Biz {
+          static const message = "Message";
+          void doIt() {
+            Baz b = Baz();
+            print(b.newBar().newFoo("Message is \$message.").value());
+          }
+        }
+        ''';
+
+        await testSuggestor(
+          input: source,
+          expectedOutput: source,
+        );
+
+        expect(messages.messageContents(), '');
+      });
+
       test('Ignore file with ignore comment', () async {
         final source = '''
             // IGNORE FILE - INTL
