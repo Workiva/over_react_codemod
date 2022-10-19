@@ -5,3 +5,4 @@ pubspec.lock
 .idea/
 
 test/test_fixtures/*/lib/dynamic_test_files
+.vscode

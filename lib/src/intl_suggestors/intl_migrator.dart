@@ -17,7 +17,6 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestor {
   final IntlMessages _messages;
   final String _className;
-  // TODO: Move this and duplicate testing into IntlMessages.
   Set<String> names = {};
 
   ConstantStringMigrator(this._className, this._messages);
@@ -81,6 +80,9 @@ class IntlMigrator extends ComponentUsageMigrator {
 
   IntlMigrator(this._className, this._messages);
 
+  String get ignoreStatement => 'ignore_statement: intl_message_migration';
+  String get ignoreFile => 'ignore_file: intl_message_migration';
+
   @override
   String get fixmePrefix => 'FIXME - INTL ';
   @override
@@ -97,14 +99,18 @@ class IntlMigrator extends ComponentUsageMigrator {
   bool get shouldFlagPrefixedProps => false;
 
   @override
-  bool shouldMigrateUsage(FluentComponentUsage usage) =>
-      // TODO: Handle adjacent strings with an interpolation.
-      usage.cascadedProps.any((prop) =>
-          isValidStringLiteralProp(prop) ||
-          isValidStringInterpolationProp(prop)) ||
-      usage.children.any((child) =>
-          isValidStringLiteralNode(child.node) ||
-          isValidStringInterpolationNode(child.node));
+  bool shouldMigrateUsage(FluentComponentUsage usage) {
+    // TODO: Handle adjacent strings with an interpolation.
+    if (isLineIgnored(usage.node)) return false;
+    if (isFileIgnored(this.context.sourceText)) return false;
+
+    return usage.cascadedProps.any((prop) =>
+            isValidStringLiteralProp(prop) ||
+            isValidStringInterpolationProp(prop)) ||
+        usage.children.any((child) =>
+            isValidStringLiteralNode(child.node) ||
+            isValidStringInterpolationNode(child.node));
+  }
 
   @override
   void migrateUsage(FluentComponentUsage usage) {
@@ -161,6 +167,46 @@ class IntlMigrator extends ComponentUsageMigrator {
     //         'The "label" property may or may not be user-visible, check hideLabel');
     //   }
     // }
+  }
+
+  // recursive function to if previous node is ignore comment until we come to the previous ";"
+  // limit
+  bool isIgnoreCommentBeforePreviousTerminator(node, limit) {
+    // Make *absolutely sure* we can't just recurse forever.
+    if (limit == null) {
+      limit = 128;
+    }
+
+    if (limit == 0) {
+      return false;
+    }
+
+    if (node.toString() == ';') {
+      return false;
+    }
+
+    if (node.precedingComments != null &&
+        node.precedingComments.value().contains(ignoreStatement)) {
+      return true;
+    } else {
+      return isIgnoreCommentBeforePreviousTerminator(node.previous, limit - 1);
+    }
+  }
+
+  bool isLineIgnored(node) {
+    //var prev = node.previous.length ? node.previous : null;
+
+    if (isIgnoreCommentBeforePreviousTerminator(
+        node.beginToken.previous, 128)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool isFileIgnored(fileContents) {
+    final ignored = fileContents.contains(this.ignoreFile);
+    return ignored;
   }
 
   void migrateChildStringLiteral(
