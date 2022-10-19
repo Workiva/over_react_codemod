@@ -17,7 +17,6 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestor {
   final IntlMessages _messages;
   final String _className;
-  // TODO: Move this and duplicate testing into IntlMessages.
   Set<String> names = {};
 
   ConstantStringMigrator(this._className, this._messages);
