@@ -89,8 +89,18 @@ Attempting to add a different message with the same name:
   /// Is there already something with this name, but a different messageText?
   bool isNameTaken(String name, String messageText) {
     var method = methods[name];
-    return method != null && methods[name]!.messageText != messageText;
+    if (method == null) return false;
+    if (method.messageText == messageText) return false;
+    return _withoutCurlies(method.messageText) != _withoutCurlies(messageText);
   }
+
+  RegExp _curlyBraces = RegExp('[{}]');
+
+  /// Earlier generated messages, or those hand-written, might not use {} around
+  /// interpolated variables. Newer code always does, but then this might lead
+  /// to a false difference in the strings. Since {} are rare in user text,
+  /// check if strings with the same method name are equal when we remove them.
+  String _withoutCurlies(String text) => text.replaceAll(_curlyBraces, '');
 
   /// Delete our generated file. Used for tests.
   void delete() => outputFile.deleteSync();
