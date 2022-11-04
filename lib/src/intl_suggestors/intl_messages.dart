@@ -121,9 +121,13 @@ Attempting to add a different message with the same name:
     }
   }
 
+  /// The dependency analyzer thinks we depend on this if we have the literal string, so
+  /// use it in an interpolation to placate it.
+  static const w_intl = 'w_intl';
+
   /// The beginning of any Intl class.
   static String prologueFor(String className) =>
-      '''import 'package:w_intl/intl_wrapper.dart';
+      '''import 'package:${w_intl}/intl_wrapper.dart';
 
 //ignore: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
