@@ -123,7 +123,7 @@ Attempting to add a different message with the same name:
 
   /// The beginning of any Intl class.
   static String prologueFor(String className) =>
-      '''import 'package:intl/intl.dart';
+      '''import 'package:w_intl/intl_wrapper.dart';
 
 //ignore: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps

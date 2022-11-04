@@ -84,9 +84,16 @@ void main() {
     });
 
     test('messages found', () {
-      expect(messages.methods.length, 4);
-      expect(
-          messages.methods.keys, ['orange', 'aquamarine', 'long', 'function']);
+      expect(messages.methods.length, 7);
+      expect(messages.methods.keys, [
+        'orange',
+        'aquamarine',
+        'long',
+        'function',
+        'aPlural',
+        'formatted',
+        'someSelect'
+      ]);
       expect(messages.methods.values.map((each) => each.source).toList(),
           sampleMethods);
     });
@@ -109,7 +116,7 @@ void main() {
     });
 
     test('duplicate names with different content throw in addMethod', () {
-      var tweaked = sampleMethods.last.replaceFirst('def', 'zzzz');
+      var tweaked = sampleMethods[3].replaceFirst('def', 'zzzz');
       expect(() => messages.addMethod(tweaked), throwsA(isA<AssertionError>()));
     });
 
@@ -117,16 +124,16 @@ void main() {
         () {
       /// Modify the message text, but also change the name so that when it parses the function it will
       /// find it. So we're really exercising the nameForString more than the addMethod.
-      var tweaked = sampleMethods.last.replaceFirst('def', 'zzzz');
+      var tweaked = sampleMethods[3].replaceFirst('def', 'zzzz');
       var name = messages.nameForString('function', r'abc${x}zzzz');
       tweaked = tweaked.replaceFirst('function', name);
       messages.addMethod(tweaked);
-      var tweakedMore = sampleMethods.last.replaceFirst('abc', 'www');
+      var tweakedMore = sampleMethods[3].replaceFirst('abc', 'www');
       var otherName = messages.nameForString('function', r'www${x}def');
       tweakedMore = tweakedMore.replaceFirst('function', otherName);
       messages.addMethod(tweakedMore);
-      expect(messages.methods.length, 6);
-      expect(messages.methods['function']?.source, sampleMethods.last);
+      expect(messages.methods.length, 9);
+      expect(messages.methods['function']?.source, sampleMethods[3]);
       expect(messages.methods['function1']?.source, tweaked);
       expect(messages.methods['function2']?.source, contains(r'www${x}def'));
     });
@@ -134,7 +141,7 @@ void main() {
 }
 
 String expectedFile(String methods) => '''
-import 'package:intl/intl.dart';
+import 'package:w_intl/intl_wrapper.dart';
 
 //ignore: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
@@ -149,15 +156,14 @@ List<String> sampleMethods = [
 line 
 string''', name: 'TestProjectIntl_long');""",
   """  static String function(String x) => Intl.message('abc\${x}def', name: 'TestProjectIntl_function');""",
+  """  static String aPlural(int n) => Intl.plural(n, zero: 'zero', other: 'other', name: 'aPlural', args: [n]);""",
+  """  static List<Object> formatted(Object f) => Intl.formattedMessage([f, 'foo'], name: 'formatted', args: [f]);""",
+  """  static String someSelect(Object choice) => Intl.select(choice, {'a' : 'b'}, name: 'someSelect', args: [choice]);"""
 ];
 
 // The sample methods in a hard-coded sorted order.
-List<String> get sortedSampleMethods => [
-      sampleMethods[1],
-      sampleMethods[3],
-      sampleMethods[2],
-      sampleMethods[0],
-    ];
+List<String> get sortedSampleMethods =>
+    [4, 1, 5, 3, 2, 0, 6].map((i) => sampleMethods[i]).toList();
 
 // A test utility to be invoked from the debug console to see where subtly-different long strings differ.
 void firstDifference(String a, String b) {
