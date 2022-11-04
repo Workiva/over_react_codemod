@@ -142,8 +142,16 @@ String toVariableName(String str) {
   if (str.startsWith("'") && str.endsWith("'")) {
     str = str.substring(1, str.length - 1);
   }
+  // This will ignore the first few interpolated variable
+
+  /// Input: $numHiddenPills additional values not shown'
+  /// Output: static String additionalValuesNotShown(String numHiddenPills)
+  if (str.startsWith('\$')) {
+    String toRemoveFromName = str.trim().substring(str.indexOf("\$"), str.indexOf(" "));
+    str = str.replaceFirst(toRemoveFromName, "").trim();
+  }
   String strippedName =
-      str.replaceFirst(RegExp(r'^[0-9]*'), '').replaceAll("'", '').trim();
+  str.replaceFirst(RegExp(r'^[0-9]*'), '').replaceAll("'", '').trim();
   var fiveAtMost =
       strippedName.split(' ').where((each) => each.isNotEmpty).toList();
   fiveAtMost =
@@ -191,8 +199,15 @@ String? getTestId(String? testId, AstNode node) {
         }
       }
     }
-  }
+  } else if(isValidStringInterpolationNode(node)) {
+    AstNode astNode = node;
+    var astString=astNode.toString();
+    testId=toVariableName(astString);
 
+    if(testId.isEmpty){
+      return null;
+    }
+  }
   if (node.parent != null) {
     return getTestId(testId, node.parent!);
   } else {

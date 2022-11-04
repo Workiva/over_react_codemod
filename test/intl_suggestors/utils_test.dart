@@ -129,6 +129,11 @@ void main() {
     });
 
     group('toVariableName', () {
+      test('test this string', () {
+        var inputString = '\$test this string';
+        var result = toVariableName(inputString);
+        expect(result, 'thisString');
+      });
       test('001 test Var', () {
         expect(toVariableName('001 test Var'), 'testVar');
       });
