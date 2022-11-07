@@ -17,7 +17,15 @@ void main() {
         for (var method in sampleMethods)
           MessageParser.forMethod(method).methods.first.name
       ];
-      expect(names, ['orange', 'aquamarine', 'long', 'function']);
+      expect(names, [
+        'orange',
+        'aquamarine',
+        'long',
+        'function',
+        'aPlural',
+        'formatted',
+        'someSelect'
+      ]);
     });
     test('Tabs instead of spaces', () {
       var tabbed =
@@ -140,8 +148,9 @@ void main() {
   });
 }
 
+String wIntl = 'w_intl';
 String expectedFile(String methods) => '''
-import 'package:w_intl/intl_wrapper.dart';
+import 'package:${wIntl}/intl_wrapper.dart';
 
 //ignore: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
