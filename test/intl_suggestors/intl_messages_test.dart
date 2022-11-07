@@ -65,6 +65,24 @@ void main() {
       var derivedName = messages.syntax.nameForNode(argument);
       expect(derivedName, 'adjacentStringsOnTwoLines');
     });
+
+    test('ignore interpolated variable from start',(){
+      var method = " static String testString(string inputString)=>Intl.message('\$test this String',args[inputString],name:'TestProjectIntl_testString'); ";
+      var classSource = 'class Foo { $method }';
+      var parsed = parseString(content: classSource);
+      var intlClass = parsed.unit.declarations.first as ClassDeclaration;
+      var methodDeclarations =
+      intlClass.members.toList().cast<MethodDeclaration>();
+      var argument = ((methodDeclarations.first.body.childEntities.toList()[1]
+      as MethodInvocation)
+          .argumentList
+          .arguments
+          .first as StringLiteral);
+      messages = IntlMessages('TestProject', output: intlFile);
+      var ignoreInterpolatedVariableFromStart=messages.syntax.nameForNode(argument);
+      expect(ignoreInterpolatedVariableFromStart, 'thisString');
+
+    });
   });
   group('round-trip', () {
     late Directory tmp;

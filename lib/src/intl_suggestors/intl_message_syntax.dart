@@ -54,8 +54,13 @@ class MessageSyntax {
   String functionNameFor(
     StringInterpolation node,
     String namePrefix,
-  ) =>
-      '${getTestId(null, node) ?? '${namePrefix}_intlFunction'}';
+  ) {
+    var ignoreNewLineString = node.toSource();
+    if (ignoreNewLineString.contains(r'\n')) {
+      return '${namePrefix}_intlFunction';
+    }
+    return '${getTestId(null, node) ?? '${namePrefix}_intlFunction'}';
+  }
 
   /// Returns Intl.message with interpolation
   /// ex: static String Foo_bar(String baz) => Intl.message(
@@ -139,9 +144,30 @@ class MessageSyntax {
     return '(${args.join(', ')})';
   }
 
+  // This will ignore the first few interpolated variable
+  /// Input: $numHiddenPills additional values not shown'
+  /// Output: static String additionalValuesNotShown(String numHiddenPills)
+  String ignoreInterpolatedVariable(String messageText) {
+    if (messageText.startsWith("'") && messageText.endsWith("'")) {
+      messageText = messageText.substring(1, messageText.length - 1);
+    }
+    if (messageText.startsWith('\$') && messageText.contains(' ')) {
+      String toRemoveFromName = messageText
+          .trim()
+          .substring(messageText.indexOf('\$'), messageText.indexOf(" "));
+      messageText = messageText.replaceFirst(toRemoveFromName, "").trim();
+    }
+    return messageText;
+  }
+
   String nameForNode(StringLiteral body,
       {String? initialName, bool startAtZero = false}) {
     var messageText = body.toSource();
+    var removingInterpolatedVariable = ignoreInterpolatedVariable(messageText);
+    if (removingInterpolatedVariable.isNotEmpty &&
+        removingInterpolatedVariable.contains(' ')) {
+      initialName = toVariableName(removingInterpolatedVariable);
+    }
     var functionName = toVariableName(messageText);
     functionName = owner.nameForString(initialName ?? functionName, messageText,
         startAtZero: startAtZero);
