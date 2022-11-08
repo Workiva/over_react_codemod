@@ -113,10 +113,12 @@ Attempting to add a different message with the same name:
   void write({bool force = false}) {
     // Create the file if it didn't exist, but if there are no changes, don't rewrite the existing.
     var exists = outputFile.existsSync();
-    if (force || !exists || outputFile.readAsStringSync().isEmpty) {
+    var fileContents = exists ? outputFile.readAsStringSync() : '';
+    var hasTheSamePrologue = fileContents.startsWith(prologue);
+    if (force || !exists || fileContents.isEmpty) {
       outputFile.createSync(recursive: true);
       outputFile.writeAsStringSync(contents);
-    } else if (addedNewMethods) {
+    } else if (addedNewMethods || !hasTheSamePrologue) {
       outputFile.writeAsStringSync(contents);
     }
   }
