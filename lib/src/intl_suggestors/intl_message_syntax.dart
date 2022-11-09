@@ -142,16 +142,19 @@ class MessageSyntax {
   String nameForNode(StringLiteral body,
       {String? initialName, bool startAtZero = false}) {
     var messageText = body.toSource();
-
     //Strings from constant fields will not pass below condition so initialName will be unchanged.
-    if (body is StringInterpolation) {
+    // Needing condition initialName.endsWith('_intlFunction') bcz when any node has addTestId we need to give that
+    // priority, and will not override the node name.
+    if (body is StringInterpolation && (initialName == null || initialName.endsWith('_intlFunction'))) {
       var strings = body.elements.where((each) => each is InterpolationString).map((each) => each.toSource()).toList();
-      var data=strings.join(' ').replaceAll("'", '').trim();
+      var data=strings.join(' ').trim();
       if(data.isNotEmpty){
-        var name = toVariableName(data);
-        var functionName = owner.nameForString(name, messageText,
-            startAtZero: startAtZero);
-        return functionName;
+        String name = toVariableName(data);
+        if(name.trim().isNotEmpty){
+          var functionName = owner.nameForString(name, messageText,
+              startAtZero: false);
+          return functionName;
+        }
       }
     }
     var functionName = toVariableName(messageText);

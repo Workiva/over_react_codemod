@@ -471,14 +471,14 @@ void main() {
               UiFactory<FooProps> Foo = uiFunction(
                 (props) {
 
-                  return (Dom.div())(TestClassIntl.Foo_intlFunction0(props.name ?? \'test\'));
+                  return (Dom.div())(TestClassIntl.interpolated(props.name ?? \'test\'));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String interpolated(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
