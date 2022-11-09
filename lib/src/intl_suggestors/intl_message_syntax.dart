@@ -52,18 +52,10 @@ class MessageSyntax {
   /// A template to build a function name for Intl message
   /// ex: Foo_bar
   String functionNameFor(
-    StringInterpolation node,
-    String namePrefix,
-  ) {
-    // checks for newline in string
-    var ignoreNewLineString = node.toSource();
-    if (ignoreNewLineString.contains(r'\n')) {
-      return '${namePrefix}_intlFunction';
-    }
-    return '${getTestId(null, node) ?? '${namePrefix}_intlFunction'}';
-  }
-
-
+      StringInterpolation node,
+      String namePrefix,
+      ) =>
+      '${getTestId(null, node) ?? '${namePrefix}_intlFunction'}';
 
   /// Returns Intl.message with interpolation
   /// ex: static String Foo_bar(String baz) => Intl.message(
@@ -147,20 +139,22 @@ class MessageSyntax {
     return '(${args.join(', ')})';
   }
 
-
   String nameForNode(StringLiteral body,
       {String? initialName, bool startAtZero = false}) {
     var messageText = body.toSource();
-    var functionName;
+
+    //Strings from constant fields will not pass below condition so initialName will be unchanged.
     if (body is StringInterpolation) {
       var strings = body.elements.where((each) => each is InterpolationString).map((each) => each.toSource()).toList();
       var data=strings.join(' ').replaceAll("'", '').trim();
-      if(data.isNotEmpty && data.contains(' ')){
-        functionName=toVariableName(data);
-        initialName=functionName;
+      if(data.isNotEmpty){
+        var name = toVariableName(data);
+        var functionName = owner.nameForString(name, messageText,
+            startAtZero: startAtZero);
+        return functionName;
       }
     }
-      functionName = toVariableName(messageText);
+    var functionName = toVariableName(messageText);
     functionName = owner.nameForString(initialName ?? functionName, messageText,
         startAtZero: startAtZero);
     return functionName;
