@@ -113,17 +113,23 @@ Attempting to add a different message with the same name:
   void write({bool force = false}) {
     // Create the file if it didn't exist, but if there are no changes, don't rewrite the existing.
     var exists = outputFile.existsSync();
-    if (force || !exists || outputFile.readAsStringSync().isEmpty) {
+    var fileContents = exists ? outputFile.readAsStringSync() : '';
+    var hasTheSamePrologue = fileContents.startsWith(prologue);
+    if (force || !exists || fileContents.isEmpty) {
       outputFile.createSync(recursive: true);
       outputFile.writeAsStringSync(contents);
-    } else if (addedNewMethods) {
+    } else if (addedNewMethods || !hasTheSamePrologue) {
       outputFile.writeAsStringSync(contents);
     }
   }
 
+  /// The dependency analyzer thinks we depend on this if we have the literal string, so
+  /// use it in an interpolation to placate it.
+  static const w_intl = 'w_intl';
+
   /// The beginning of any Intl class.
   static String prologueFor(String className) =>
-      '''import 'package:intl/intl.dart';
+      '''import 'package:${w_intl}/intl_wrapper.dart';
 
 //ignore: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps

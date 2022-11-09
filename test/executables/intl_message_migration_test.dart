@@ -100,6 +100,30 @@ void main() {
             ]..sort()),
         args: ['--yes-to-all']);
 
+    // Test that we update the file to use the w_intl import, even if there are no other changes.
+    testCodemod('Import is updated',
+        script: script,
+        input: expectedOutputFiles(additionalFilesInLib: [
+          extraInput()
+        ], messages: [
+          ...defaultMessages,
+          ...annotatedMessages,
+        ], intlImport: 'intl/intl.dart'),
+        expectedOutput: expectedOutputFiles(
+            additionalFilesInLib: [extraOutput()],
+            messages: [
+              ...defaultMessages,
+              ...annotatedMessages,
+              ...longMessages
+            ]..sort()),
+        args: ['--yes-to-all']);
+
+    testCodemod('Import is updated without other modifications',
+        script: script,
+        input: expectedOutputFiles(intlImport: 'intl/intl.dart'),
+        expectedOutput: expectedOutputFiles(),
+        args: ['--yes-to-all']);
+
     testCodemod('Specify a single file',
         // We add some extra files, but we specify just the original, so they shouldn't be included.
         script: script,
@@ -237,11 +261,11 @@ const List<String> defaultMessages = [
   "  static String get sortsLater => Intl.message('Sorts later', name: 'TestProjectIntl_sortsLater');",
 ];
 
-d.DirectoryDescriptor expectedOutputFiles({
-  Iterable<d.Descriptor> additionalFilesInLib = const [],
-  List<String> messages = defaultMessages,
-  String rmuiVersionConstraint = '^1.1.1',
-}) {
+d.DirectoryDescriptor expectedOutputFiles(
+    {Iterable<d.Descriptor> additionalFilesInLib = const [],
+    List<String> messages = defaultMessages,
+    String rmuiVersionConstraint = '^1.1.1',
+    String intlImport = '${wIntl}/intl_wrapper.dart'}) {
   return d.dir('project', [
     // Note that the codemod doesn't currently add the intl dependency to the pubspec.
     d.file('pubspec.yaml', /*language=yaml*/ '''
@@ -264,7 +288,7 @@ usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl
       d.dir('src', [
         d.dir('intl', [
           d.file('test_project_intl.dart', /*language=dart*/ '''
-import 'package:intl/intl.dart';
+import 'package:${intlImport}';
 
 //ignore: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
@@ -277,3 +301,5 @@ ${messages.join('\n')}
     ]),
   ]);
 }
+
+const wIntl = 'w_intl';

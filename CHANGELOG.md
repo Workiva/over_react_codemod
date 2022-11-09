@@ -1,3 +1,7 @@
+## [2.10.1(https://github.com/Workiva/over_react_codemod/compare/2.10.1....2.10.0)
+
+- Switch the import in _intl.dart generated classes to be w\_intl/intl\_wrapper.dart
+
 ## [2.10.0](https://github.com/Workiva/over_react_codemod/compare/2.10.0....2.9.0)
 
 - Upgrade to analyzer 2.0
