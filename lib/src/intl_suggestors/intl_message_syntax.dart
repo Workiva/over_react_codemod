@@ -146,9 +146,10 @@ class MessageSyntax {
     // Needing condition initialName.endsWith('_intlFunction') bcz when any node has addTestId we need to give that
     // priority, and will not override the node name.
     if (body is StringInterpolation && (initialName == null || initialName.endsWith('_intlFunction'))) {
-      var strings = body.elements.where((each) => each is InterpolationString).map((each) => each.toSource()).toList();
+
+      var strings = body.elements.where((each) => each is InterpolationString).map((each) => (each as InterpolationString).value).toList();
       var data=strings.join(' ').trim();
-      if(data.isNotEmpty){
+      if(data.isNotEmpty && !data.contains("'")){
         String name = toVariableName(data);
         if(name.trim().isNotEmpty){
           var functionName = owner.nameForString(name, messageText,

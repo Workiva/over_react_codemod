@@ -101,10 +101,11 @@ void main() {
         runResults(testStr, false, expectedResult);
       });
 
+      //We are ignoring the \n or new line in String and Taking till five words in method name.
       test('single line with explicit newline', () async {
         final testStr = r"'two\nlines${foo}'";
         final expectedResult =
-            "  static String NamePrefix_intlFunction0(String foo) => Intl.message('two\\nlines\${foo}', args: [foo], name: 'Namespace_NamePrefix_intlFunction0');";
+            "  static String twolines(String foo) => Intl.message('two\\nlines\${foo}', args: [foo], name: 'Namespace_twolines');";
         runResults(testStr, false, expectedResult);
       });
 

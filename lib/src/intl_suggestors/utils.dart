@@ -192,15 +192,7 @@ String? getTestId(String? testId, AstNode node) {
       }
     }
   }
-  // else if (isValidStringInterpolationNode(node)) {
-  //   AstNode astNode = node;
-  //   var astString = astNode.toString();
-  //   testId = toVariableName(astString);
-  //
-  //   if (testId.isEmpty) {
-  //     return null;
-  //   }
-  // }
+
   if (node.parent != null) {
     return getTestId(testId, node.parent!);
   } else {
