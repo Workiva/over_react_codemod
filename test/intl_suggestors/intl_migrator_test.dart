@@ -589,7 +589,7 @@ void main() {
                 
                   final lastName = 'Paulsen';
                   
-                  return (Dom.div())(TestClassIntl.Foo_intlFunction0(lastName));
+                  return (Dom.div())(TestClassIntl.bobsLastNameWas(lastName));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
@@ -597,7 +597,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String bobsLastNameWas(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_bobsLastNameWas');";
         expect(messages.messageContents(), expectedFileContent);
       });
       test('Interpolated with testId string', () async {
@@ -804,7 +804,7 @@ void main() {
                   final refStr = 'Test Title';
 
                   return (Dom.div())(
-                    TestClassIntl.Foo_intlFunction0(fileStr, refStr),
+                    TestClassIntl.nowThatYouveTransitionedYour(fileStr, refStr),
                   );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
@@ -812,7 +812,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String fileStr, String refStr) => Intl.message('Now that you\\\'ve transitioned your \${fileStr}, you\\\'ll want to freeze \${refStr} or update permissions to prevent others from using \${refStr}.', args: [fileStr, refStr], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String nowThatYouveTransitionedYour(String fileStr, String refStr) => Intl.message('Now that you\\\'ve transitioned your \${fileStr}, you\\\'ll want to freeze \${refStr} or update permissions to prevent others from using \${refStr}.', args: [fileStr, refStr], name: 'TestClassIntl_nowThatYouveTransitionedYour');";
         expect(messages.messageContents(), expectedFileContent);
       });
     });
@@ -1193,7 +1193,7 @@ void main() {
                   final lastName = 'Paulsen';
                   
                   return (Dom.div()
-                    ..label = TestClassIntl.Foo_intlFunction0(lastName))();
+                    ..label = TestClassIntl.bobsLastNameWas(lastName))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
@@ -1201,7 +1201,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String bobsLastNameWas(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_bobsLastNameWas');";
         expect(messages.messageContents(), expectedFileContent);
       });
 

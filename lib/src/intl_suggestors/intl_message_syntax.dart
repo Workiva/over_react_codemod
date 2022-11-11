@@ -41,6 +41,7 @@ class MessageSyntax {
     String namePrefix,
   ) {
     final baseName = functionNameFor(node, namePrefix);
+    print("Name prefix $namePrefix");
     // TODO: This is very messy to accomodate names starting at intlFunction0
     // for backward compatibilitys.
     final functionName = nameForNode(node,
@@ -52,9 +53,9 @@ class MessageSyntax {
   /// A template to build a function name for Intl message
   /// ex: Foo_bar
   String functionNameFor(
-      StringInterpolation node,
-      String namePrefix,
-      ) =>
+    StringInterpolation node,
+    String namePrefix,
+  ) =>
       '${getTestId(null, node) ?? '${namePrefix}_intlFunction'}';
 
   /// Returns Intl.message with interpolation
@@ -145,15 +146,19 @@ class MessageSyntax {
     //Strings from constant fields will not pass below condition so initialName will be unchanged.
     // Needing condition initialName.endsWith('_intlFunction') bcz when any node has addTestId we need to give that
     // priority, and will not override the node name.
-    if (body is StringInterpolation && (initialName == null || initialName.endsWith('_intlFunction'))) {
-
-      var strings = body.elements.where((each) => each is InterpolationString).map((each) => (each as InterpolationString).value).toList();
-      var data=strings.join(' ').trim();
-      if(data.isNotEmpty && !data.contains("'")){
+    //(initialName == null || initialName.endsWith('_intlFunction'))
+    if (body is StringInterpolation &&
+        (initialName == null || initialName.endsWith('_intlFunction'))) {
+      var strings = body.elements
+          .where((each) => each is InterpolationString)
+          .map((each) => (each as InterpolationString).value)
+          .toList();
+      var data = strings.join(' ').trim();
+      if (data.isNotEmpty) {
         String name = toVariableName(data);
-        if(name.trim().isNotEmpty){
-          var functionName = owner.nameForString(name, messageText,
-              startAtZero: false);
+        if (name.trim().isNotEmpty) {
+          var functionName =
+              owner.nameForString(name, messageText, startAtZero: false);
           return functionName;
         }
       }
