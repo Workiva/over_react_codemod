@@ -41,7 +41,6 @@ class MessageSyntax {
     String namePrefix,
   ) {
     final baseName = functionNameFor(node, namePrefix);
-    print("Name prefix $namePrefix");
     // TODO: This is very messy to accomodate names starting at intlFunction0
     // for backward compatibilitys.
     final functionName = nameForNode(node,
@@ -146,7 +145,6 @@ class MessageSyntax {
     //Strings from constant fields will not pass below condition so initialName will be unchanged.
     // Needing condition initialName.endsWith('_intlFunction') bcz when any node has addTestId we need to give that
     // priority, and will not override the node name.
-    //(initialName == null || initialName.endsWith('_intlFunction'))
     if (body is StringInterpolation &&
         (initialName == null || initialName.endsWith('_intlFunction'))) {
       var strings = body.elements
