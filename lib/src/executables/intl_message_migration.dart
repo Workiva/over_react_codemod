@@ -39,6 +39,7 @@ const _yesToAllFlag = 'yes-to-all';
 const _failOnChangesFlag = 'fail-on-changes';
 const _stderrAssumeTtyFlag = 'stderr-assume-tty';
 const _migrateConstants = 'migrate-constants';
+const _migrateComponents = 'migrate-components';
 const _allCodemodFlags = {
   _verboseFlag,
   _yesToAllFlag,
@@ -85,10 +86,12 @@ final parser = ArgParser()
     help:
         'Should the codemod try to migrate constant Strings that look user-visible',
   )
-  ..addMultiOption(
-    'migrators',
-    defaultsTo: ['prop', 'child', 'displayName'],
-    allowed: ['prop', 'child', 'displayName'],
+  ..addFlag(
+    _migrateComponents,
+    negatable: true,
+    defaultsTo: true,
+    help:
+        'Should the codemod try to migrate properties and children of React components',
   );
 
 late ArgResults parsedArgs;
@@ -252,7 +255,7 @@ Future<void> migratePackage(
   exitCode = await runCodemodSequences(
       packageDartPaths,
       [
-        [intlPropMigrator],
+        if (parsedArgs[_migrateComponents]) [intlPropMigrator],
         if (parsedArgs[_migrateConstants]) [constantStringMigrator],
         [displayNameMigrator],
         [importMigrator],
