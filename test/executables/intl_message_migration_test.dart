@@ -96,6 +96,36 @@ void main() {
             messages: [
               ...defaultMessages,
               ...annotatedMessages,
+            ]..sort()),
+        args: ['--yes-to-all']);
+
+    // We've removed the file for some that were already in the _intl.dart file,
+    // and we expect them to be removed.
+    testCodemod('Unused messages are removed',
+        script: script,
+        input: expectedOutputFiles(additionalFilesInLib: [], messages: [
+          ...defaultMessages,
+          ...annotatedMessages,
+        ]),
+        expectedOutput: expectedOutputFiles(
+            additionalFilesInLib: [], messages: [...defaultMessages]..sort()),
+        args: ['--yes-to-all', '--prune-unused']);
+
+    // Don't prune, but remove the input file. Also add some extra messages to force
+    // the file to be rewritten, and ensure the unused messages are still there.
+    testCodemod("Unused messages are not removed if we don't pass the flag",
+        script: script,
+        input: expectedOutputFiles(additionalFilesInLib: [
+          extraInput()
+        ], messages: [
+          ...defaultMessages,
+          ...annotatedMessages,
+        ]),
+        expectedOutput: expectedOutputFiles(
+            additionalFilesInLib: [],
+            messages: [
+              ...defaultMessages,
+              ...annotatedMessages,
               ...longMessages
             ]..sort()),
         args: ['--yes-to-all']);
