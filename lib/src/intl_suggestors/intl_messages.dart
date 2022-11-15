@@ -15,16 +15,10 @@ class IntlMessages {
   File outputFile;
 
   /// The methods for this class, indexed by method name.
-  Map<String, Method> methods = {};
-
-  /// The methods after removing any that appear to be unused.
-  ///
-  /// If this is empty, it probably means we haven't used the prune option.
-  Map<String, Method> prunedMethods = {};
+  final Map<String, Method> methods = {};
 
   /// If we are pruning, the list of methods that we found used. If empty, we were
   /// likely not pruning.
-  // TODO: Clean up this, prunedMethods, and how we check if we were pruning or not.
   Set<String> methodsUsed = {};
 
   late MessageSyntax syntax;
@@ -117,9 +111,8 @@ Attempting to add a different message with the same name:
   // Just the messages, without the prologue or closing brace.
   String get _messageContents {
     var buffer = StringBuffer();
-    var methodsToWrite = prunedMethods.isEmpty ? methods : prunedMethods;
-    (methodsToWrite.keys.toList()..sort())
-        .forEach((name) => buffer.write('\n${methodsToWrite[name]?.source}'));
+    (methods.keys.toList()..sort())
+        .forEach((name) => buffer.write('\n${methods[name]?.source}'));
     return '$buffer';
   }
 
@@ -127,11 +120,7 @@ Attempting to add a different message with the same name:
   void prune() {
     // Don't prune if we don't seem to have looked for usages.
     if (methodsUsed.isEmpty) return;
-
-    prunedMethods = {
-      for (var name in methods.keys)
-        if (methodsUsed.contains(name)) name: methods[name]!
-    };
+    methods.removeWhere((name, method) => !methodsUsed.contains(name));
   }
 
   /// Write the messages to a file. If the file exists and there are no changes, it will just
