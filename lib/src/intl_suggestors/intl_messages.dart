@@ -26,6 +26,10 @@ class IntlMessages {
   /// Flag to check if we've actually added anything, and need to rewrite the file.
   bool addedNewMethods = false;
 
+  /// We assume that we're pruning if we've made entries in [methodsUsed] and otherwise
+  /// we aren't.
+  bool get pruning => methodsUsed.isNotEmpty;
+
   // TODO: I think packagePath only applies if there's a sub-package.
   IntlMessages(this.packageName,
       {Directory? directory, String packagePath = '', File? output})
@@ -119,8 +123,9 @@ Attempting to add a different message with the same name:
   /// Remove any methods that we haven't seen a usage for.
   void prune() {
     // Don't prune if we don't seem to have looked for usages.
-    if (methodsUsed.isEmpty) return;
-    methods.removeWhere((name, method) => !methodsUsed.contains(name));
+    if (pruning) {
+      methods.removeWhere((name, method) => !methodsUsed.contains(name));
+    }
   }
 
   /// Write the messages to a file. If the file exists and there are no changes, it will just
@@ -134,9 +139,7 @@ Attempting to add a different message with the same name:
     if (force || !exists || fileContents.isEmpty) {
       outputFile.createSync(recursive: true);
       outputFile.writeAsStringSync(contents);
-    } else if (addedNewMethods ||
-        !hasTheSamePrologue ||
-        prunedMethods.isNotEmpty) {
+    } else if (addedNewMethods || !hasTheSamePrologue || pruning) {
       outputFile.writeAsStringSync(contents);
     }
   }
