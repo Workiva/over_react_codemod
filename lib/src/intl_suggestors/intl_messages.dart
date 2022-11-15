@@ -17,6 +17,16 @@ class IntlMessages {
   /// The methods for this class, indexed by method name.
   Map<String, Method> methods = {};
 
+  /// The methods after removing any that appear to be unused.
+  ///
+  /// If this is empty, it probably means we haven't used the prune option.
+  Map<String, Method> prunedMethods = {};
+
+  /// If we are pruning, the list of methods that we found used. If empty, we were
+  /// likely not pruning.
+  // TODO: Clean up this, prunedMethods, and how we check if we were pruning or not.
+  Set<String> methodsUsed = {};
+
   late MessageSyntax syntax;
 
   /// Flag to check if we've actually added anything, and need to rewrite the file.
@@ -74,6 +84,10 @@ Attempting to add a different message with the same name:
     methods.putIfAbsent(parsed.name, () => parsed);
   }
 
+  void noteUsage(String methodName) {
+    methodsUsed.add(methodName);
+  }
+
   /// Find the existing name for [name]+number that has the same [messageText], or
   /// if there isn't one, return the first available.
   String nameForString(String name, String messageText,
@@ -103,14 +117,27 @@ Attempting to add a different message with the same name:
   // Just the messages, without the prologue or closing brace.
   String get _messageContents {
     var buffer = StringBuffer();
-    (methods.keys.toList()..sort())
-        .forEach((name) => buffer.write('\n${methods[name]?.source}'));
+    var methodsToWrite = prunedMethods.isEmpty ? methods : prunedMethods;
+    (methodsToWrite.keys.toList()..sort())
+        .forEach((name) => buffer.write('\n${methodsToWrite[name]?.source}'));
     return '$buffer';
+  }
+
+  /// Remove any methods that we haven't seen a usage for.
+  void prune() {
+    // Don't prune if we don't seem to have looked for usages.
+    if (methodsUsed.isEmpty) return;
+
+    prunedMethods = {
+      for (var name in methods.keys)
+        if (methodsUsed.contains(name)) name: methods[name]!
+    };
   }
 
   /// Write the messages to a file. If the file exists and there are no changes, it will just
   /// stop unless [force] is true.
   void write({bool force = false}) {
+    prune();
     // Create the file if it didn't exist, but if there are no changes, don't rewrite the existing.
     var exists = outputFile.existsSync();
     var fileContents = exists ? outputFile.readAsStringSync() : '';
@@ -118,7 +145,9 @@ Attempting to add a different message with the same name:
     if (force || !exists || fileContents.isEmpty) {
       outputFile.createSync(recursive: true);
       outputFile.writeAsStringSync(contents);
-    } else if (addedNewMethods || !hasTheSamePrologue) {
+    } else if (addedNewMethods ||
+        !hasTheSamePrologue ||
+        prunedMethods.isNotEmpty) {
       outputFile.writeAsStringSync(contents);
     }
   }

@@ -40,6 +40,7 @@ const _failOnChangesFlag = 'fail-on-changes';
 const _stderrAssumeTtyFlag = 'stderr-assume-tty';
 const _migrateConstants = 'migrate-constants';
 const _migrateComponents = 'migrate-components';
+const _pruneUnused = 'prune-unused';
 const _allCodemodFlags = {
   _verboseFlag,
   _yesToAllFlag,
@@ -78,6 +79,13 @@ final parser = ArgParser()
     _stderrAssumeTtyFlag,
     negatable: false,
     help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
+  )
+  ..addFlag(
+    _pruneUnused,
+    negatable: true,
+    defaultsTo: false,
+    help:
+        "Try to remove any messages in the generated _intl.dart file that aren't called.",
   )
   ..addFlag(
     _migrateConstants,
@@ -251,6 +259,7 @@ Future<void> migratePackage(
   final displayNameMigrator = ConfigsMigrator(messages.className, messages);
   final importMigrator = (FileContext context) =>
       intlImporter(context, packageName, messages.className);
+  final usedMethodsChecker = UsedMethodsChecker(messages.className, messages);
 
   exitCode = await runCodemodSequences(
       packageDartPaths,
@@ -259,6 +268,7 @@ Future<void> migratePackage(
         if (parsedArgs[_migrateConstants]) [constantStringMigrator],
         [displayNameMigrator],
         [importMigrator],
+        if (parsedArgs[_pruneUnused]) [usedMethodsChecker],
       ],
       codemodArgs);
 
