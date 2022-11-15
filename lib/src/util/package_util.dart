@@ -16,11 +16,14 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/util/logging.dart';
 import 'package:path/path.dart' as p;
 
-final _logger = Logger('orcm.pubspec');
+final _log = Logger('orcm.pubspec');
+
 
 bool _isPubGetNecessary(String packageRoot) {
+
   final packageConfig =
       File(p.join(packageRoot, '.dart_tool', 'package_config.json'));
   final pubspec = File(p.join(packageRoot, 'pubspec.yaml'));
@@ -39,10 +42,11 @@ bool _isPubGetNecessary(String packageRoot) {
 
 /// Runs `pub get` in [packageRoot] unless running `pub get` would have no effect.
 Future<void> runPubGetIfNeeded(String packageRoot) async {
+
   if (_isPubGetNecessary(packageRoot)) {
     await runPubGet(packageRoot);
   } else {
-    _logger.info(
+    _log.info(
         'Skipping `pub get`, which has already been run, in `$packageRoot`');
   }
 }
@@ -53,7 +57,8 @@ Future<void> runPubGetIfNeeded(String packageRoot) async {
 /// For convenience, tries running with `pub get --offline` if `pub get` fails,
 /// for a better experience when not authenticated to private pub servers.
 Future<void> runPubGet(String workingDirectory) async {
-  _logger.info('Running `pub get` in `$workingDirectory`...');
+
+  _log.info('Running `pub get` in `$workingDirectory`...');
 
   final process = await Process.start('pub', ['get'],
       workingDirectory: workingDirectory,
@@ -62,7 +67,7 @@ Future<void> runPubGet(String workingDirectory) async {
   final exitCode = await process.exitCode;
 
   if (exitCode == 69) {
-    _logger.info(
+    _log.info(
         'Re-running `pub get` but with `--offline`, to hopefully fix the above error.');
     final process = await Process.start('pub', ['get', '--offline'],
         workingDirectory: workingDirectory,
@@ -94,6 +99,7 @@ Future<void> runPubGet(String workingDirectory) async {
 /// findPackageRootFor('some_package/some_nested_package/lib/file.dart');
 /// ```
 String findPackageRootFor(String path) {
+
   final packageRoot = [
     path,
     ...ancestorsOfPath(path)
@@ -109,6 +115,7 @@ String findPackageRootFor(String path) {
 /// Returns canonicalized paths for all the the ancestor directories of [path],
 /// starting with its parent and working upwards.
 Iterable<String> ancestorsOfPath(String path) sync* {
+
   path = p.canonicalize(path);
 
   // p.dirname of the root directory is the root directory, so if they're the same, stop.

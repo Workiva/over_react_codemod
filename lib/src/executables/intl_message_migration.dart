@@ -23,6 +23,7 @@ import 'package:file/local.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/util/logging.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
@@ -31,6 +32,7 @@ import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 
 import '../util.dart';
+
 
 final _log = Logger('orcm.intl_message_migration');
 
@@ -94,7 +96,9 @@ final parser = ArgParser()
 late ArgResults parsedArgs;
 
 void main(List<String> args) async {
+
   parsedArgs = parser.parse(args);
+
   if (parsedArgs['help'] as bool) {
     printUsage();
     return;
@@ -126,7 +130,7 @@ void main(List<String> args) async {
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
-  print('^ Ignore the "codemod found no files" warning above for now.');
+  logWarning('^Ignore the "codemod found no files" warning above for now.');
 
   // If we have specified paths on the command line, limit our processing to
   // those, and make sure they're absolute.
@@ -165,8 +169,7 @@ void main(List<String> args) async {
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
-  print('^ Ignore the "codemod found no files" warning above for now.');
-
+  logWarning('^Ignore the "codemod found no files" warning above for now.');
   for (String package in packageRoots) {
     await migratePackage(
         package, packageNameLookup, processedPackages, codemodArgs, dartPaths);
@@ -217,6 +220,7 @@ Future<int> runCodemodSequences(
 ///
 /// We expect [paths] to be absolute.
 Future<void> migratePackage(
+
     String package,
     Map<String, String> packageNameLookup,
     Set<String> processedPackages,
@@ -278,7 +282,7 @@ void sortPartsLast(List<String> dartPaths) {
       });
 
   if (dartPaths.isNotEmpty && dartPaths.every(isPart)) {
-    _log.severe(
+    logShout(
         'Only part files were specified. The containing library must be included for any part file, as it is needed for analysis context');
     exit(1);
   }
@@ -289,11 +293,11 @@ void sortPartsLast(List<String> dartPaths) {
     if (isAPart == isBPart) return 0;
     return isAPart ? 1 : -1;
   });
-  _log.info('Done.');
+ logShout('Done.');
 }
 
 void sortDeepestFirst(Set<String> packageRoots) {
-  _log.info('Sorting package roots...');
+  _log.info('New Sorting package roots...');
 
   packageRoots
     ..toList().sort((packageA, packageB) => packageA.length - packageB.length)
@@ -301,8 +305,7 @@ void sortDeepestFirst(Set<String> packageRoots) {
 }
 
 Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
-  _log.info(
-      'Running `pub get` if needed so that all Dart files can be resolved...');
+  _log.info('New Running `pub get` if needed so that all Dart files can be resolved...');
   final packageRoots = files.map(findPackageRootFor).toSet();
   for (final packageRoot in packageRoots) {
     await runPubGetIfNeeded(packageRoot);

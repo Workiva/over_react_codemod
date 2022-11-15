@@ -27,7 +27,7 @@ import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/ignore_info.dart';
 import 'package:source_span/source_span.dart';
-
+import 'package:over_react_codemod/src/util/logging.dart';
 import 'class_suggestor.dart';
 
 export 'class_suggestor.dart' show ClassSuggestor;
@@ -126,6 +126,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   /// See that method's doc comment for more info.
   @mustCallSuper
   void migrateUsage(FluentComponentUsage usage) {
+
     flagCommon(usage);
   }
 
@@ -145,7 +146,7 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
 
     for (final usage in allUsages) {
       if (_isIgnored(usage, result.unit)) {
-        _log.finest(context.sourceFile
+        _log.finest("finest",context.sourceFile
             .spanFor(usage.factory ?? usage.builder)
             .message('Skipping ignored usage'));
         continue;
