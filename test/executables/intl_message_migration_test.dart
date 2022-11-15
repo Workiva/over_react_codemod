@@ -96,6 +96,7 @@ void main() {
             messages: [
               ...defaultMessages,
               ...annotatedMessages,
+              ...longMessages,
             ]..sort()),
         args: ['--yes-to-all']);
 
