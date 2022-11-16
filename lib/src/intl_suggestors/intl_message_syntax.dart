@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:intl/intl.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 
@@ -40,15 +41,13 @@ class MessageSyntax {
     String namespace,
     String namePrefix,
   ) {
-    final baseName = functionNameFor(node, namePrefix);
-    // TODO: This is very messy to accomodate names starting at intlFunction0
-    // for backward compatibilitys.
-    final functionName = nameForNode(node,
-        initialName: baseName, startAtZero: baseName.endsWith('_intlFunction'));
+    // Generating function name directly by String content rather then testId or appending _intlFunction
+    final functionName = nameForNode(node);
     final functionArgs = intlFunctionArguments(node);
     return '$namespace.$functionName$functionArgs';
   }
 
+  //TODO: We can remove this method definition `getTestId` as we are using string content now to generate intl function name.
   /// A template to build a function name for Intl message
   /// ex: Foo_bar
   String functionNameFor(
@@ -65,11 +64,8 @@ class MessageSyntax {
   ///                                           );
   String functionDefinition(
       StringInterpolation node, String namespace, String namePrefix) {
-    final baseName = functionNameFor(node, namePrefix);
-    // TODO: This is very messy to accomodate function names starting at
-    // intlFunction0 for backward-compatibility.
-    final functionName = nameForNode(node,
-        initialName: baseName, startAtZero: baseName.endsWith('_intlFunction'));
+    // Generating function name directly by String content rather then testId or appending _intlFunction
+    final functionName = nameForNode(node);
     final functionParams = intlFunctionParameters(node);
     final parameterizedMessage = intlParameterizedMessage(node);
     final messageArgs = intlMessageArgs(node);
@@ -139,31 +135,24 @@ class MessageSyntax {
     return '(${args.join(', ')})';
   }
 
+  /// For a string interpolation, get all the non-interpolated parts in a string,
+  /// separated by spaces.
+  String textFromInterpolation(StringInterpolation body) => body.elements
+      .whereType<InterpolationString>()
+      .map((each) => each.value)
+      .join(' ')
+      .trim();
+
   String nameForNode(StringLiteral body,
-      {String? initialName, bool startAtZero = false}) {
-    var messageText = body.toSource();
-    //Strings from constant fields will not pass below condition so initialName will be unchanged.
-    // Needing condition initialName.endsWith('_intlFunction') bcz when any node has addTestId we need to give that
-    // priority, and will not override the node name.
-    if (body is StringInterpolation &&
-        (initialName == null || initialName.endsWith('_intlFunction'))) {
-      var strings = body.elements
-          .where((each) => each is InterpolationString)
-          .map((each) => (each as InterpolationString).value)
-          .toList();
-      var data = strings.join(' ').trim();
-      if (data.isNotEmpty) {
-        String name = toVariableName(data);
-        if (name.trim().isNotEmpty) {
-          var functionName =
-              owner.nameForString(name, messageText, startAtZero: false);
-          return functionName;
-        }
-      }
-    }
-    var functionName = toVariableName(messageText);
-    functionName = owner.nameForString(initialName ?? functionName, messageText,
-        startAtZero: startAtZero);
-    return functionName;
+      {String? initialName=null, bool startAtZero = false}) {
+    var messageText = body is StringInterpolation
+        ? textFromInterpolation(body)
+        : body.toSource();
+    // The case where there is no text after this should be checked in
+    // isValidStringInterpolationNode and so it should never happen here.
+    return owner.nameForString(initialName ?? toVariableName(messageText), messageText,
+         startAtZero: startAtZero);
+
   }
+
 }

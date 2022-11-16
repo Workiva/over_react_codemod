@@ -634,7 +634,7 @@ void main() {
                   return (Dom.p() 
                     ..addTestId('truss.aboutWdeskModal.versionInfo')
                     )(
-                      TestClassIntl.versionInfo(props.version),
+                      TestClassIntl.version(props.version),
                     );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
@@ -643,7 +643,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
+            "\n  static String version(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_version');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -689,7 +689,7 @@ void main() {
                   return (Dom.p() 
                     ..addTestId(TestClassTestIds.versionInfo)
                   )(
-                    TestClassIntl.versionInfo(props.version),
+                    TestClassIntl.version(props.version),
                   );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
@@ -698,7 +698,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
+            "\n  static String version(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_version');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -752,11 +752,11 @@ void main() {
                   ..addTestId(TestClassTestIds.emptyView)
                   )(
                    (Dom.p()..addTestId('foo'))(
-                      TestClassIntl.foo(props.displayName),
+                      TestClassIntl.createOneFromAnyBy(props.displayName),
                     ),
                     (Dom.p()..addTestId('bar'))(
                       (Dom.p())(
-                        TestClassIntl.bar(props.displayName),
+                        TestClassIntl.createOneFromAnyBy1(props.displayName),
                       ),
                     ),
                   );
@@ -767,11 +767,11 @@ void main() {
         );
 
         String expectedFileContent1 =
-            "\n  static String foo(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_foo');";
+            "\n  static String createOneFromAnyBy(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_createOneFromAnyBy');";
         String expectedFileContent2 =
-            "\n  static String bar(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_bar');";
+            "\n  static String createOneFromAnyBy1(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_createOneFromAnyBy1');";
         expect(messages.messageContents(),
-            [expectedFileContent2, expectedFileContent1].join(''));
+            [expectedFileContent1, expectedFileContent2].join(''));
       });
 
       test('Home Example', () async {
@@ -1236,7 +1236,7 @@ void main() {
                                  
                   return (Dom.p() 
                     ..addTestId('truss.aboutWdeskModal.versionInfo')
-                    ..label = TestClassIntl.versionInfo(props.version))();
+                    ..label = TestClassIntl.version(props.version))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
@@ -1244,7 +1244,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
+            "\n  static String version(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_version');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1287,7 +1287,7 @@ void main() {
                                  
                   return (Dom.p() 
                     ..addTestId(TestClassTestIds.versionInfo)
-                    ..label = TestClassIntl.versionInfo(props.version))();
+                    ..label = TestClassIntl.version(props.version))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
@@ -1295,7 +1295,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
+            "\n  static String version(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_version');";
         expect(messages.messageContents(), expectedFileContent);
       });
     });

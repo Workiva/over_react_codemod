@@ -174,6 +174,7 @@ String toCamelCase(String str) {
   return capitalizationResult.replaceAll(' ', '');
 }
 
+//TODO: We can remove this method definition `getTestId` as we are using string content now to generate intl function name.
 String? getTestId(String? testId, AstNode node) {
   if (testId != null) return testId;
   if (node is InvocationExpression) {
