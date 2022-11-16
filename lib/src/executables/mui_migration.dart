@@ -28,7 +28,7 @@ import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
 import 'package:over_react_codemod/src/mui_suggestors/unused_wsd_import_remover.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
-
+import 'package:over_react_codemod/src/util/logging.dart';
 final _log = Logger('orcm.mui_migration');
 
 const _componentOption = 'component';
@@ -130,7 +130,7 @@ void main(List<String> args) async {
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
-  print('^ Ignore the "codemod found no files" warning above for now.');
+  logWarning('^ Ignore the "codemod found no files" warning above for now.');
 
   /// Runs a set of codemod sequences separately to work around an issue where
   /// updates from an earlier suggestor aren't reflected in the resolved AST
