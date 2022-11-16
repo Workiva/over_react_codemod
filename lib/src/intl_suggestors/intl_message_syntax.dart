@@ -135,13 +135,7 @@ class MessageSyntax {
     return '(${args.join(', ')})';
   }
 
-  /// For a string interpolation, get all the non-interpolated parts in a string,
-  /// separated by spaces.
-  String textFromInterpolation(StringInterpolation body) => body.elements
-      .whereType<InterpolationString>()
-      .map((each) => each.value)
-      .join(' ')
-      .trim();
+
 
   String nameForNode(StringLiteral body,
       {String? initialName=null, bool startAtZero = false}) {
@@ -150,8 +144,10 @@ class MessageSyntax {
         : body.toSource();
     // The case where there is no text after this should be checked in
     // isValidStringInterpolationNode and so it should never happen here.
-    return owner.nameForString(initialName ?? toVariableName(messageText), messageText,
-         startAtZero: startAtZero);
+return owner.nameForString(
+          initialName ?? toVariableName(messageText), messageText,
+          startAtZero: startAtZero);
+
 
   }
 

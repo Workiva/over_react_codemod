@@ -9,6 +9,16 @@ import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 import 'constants.dart';
 
 // -- Node Validation --
+
+/// For a string interpolation, get all the non-interpolated parts in a string,
+/// separated by spaces.
+String textFromInterpolation(StringInterpolation body) {
+  return body.elements
+      .whereType<InterpolationString>()
+      .map((each) => each.value)
+      .join(' ')
+      .trim();
+}
 bool isValidStringInterpolationNode(AstNode node) {
   if (node is! StringInterpolation) return false;
   //We do not need to localize single values.  This should be handled by the
@@ -16,6 +26,8 @@ bool isValidStringInterpolationNode(AstNode node) {
   if (node.elements.length == 3 &&
       node.elements.first.toString() == node.elements.last.toString())
     return false;
+  var result=textFromInterpolation(node);
+  if(!result.contains(RegExp('[a-zA-Z0-9]')) || result.isEmpty) return false;
   return true;
 }
 
