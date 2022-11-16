@@ -15,12 +15,20 @@ class IntlMessages {
   File outputFile;
 
   /// The methods for this class, indexed by method name.
-  Map<String, Method> methods = {};
+  final Map<String, Method> methods = {};
+
+  /// If we are pruning, the list of methods that we found used. If empty, we were
+  /// likely not pruning.
+  Set<String> methodsUsed = {};
 
   late MessageSyntax syntax;
 
   /// Flag to check if we've actually added anything, and need to rewrite the file.
   bool addedNewMethods = false;
+
+  /// We assume that we're pruning if we've made entries in [methodsUsed] and otherwise
+  /// we aren't.
+  bool get pruning => methodsUsed.isNotEmpty;
 
   // TODO: I think packagePath only applies if there's a sub-package.
   IntlMessages(this.packageName,
@@ -74,6 +82,10 @@ Attempting to add a different message with the same name:
     methods.putIfAbsent(parsed.name, () => parsed);
   }
 
+  void noteUsage(String methodName) {
+    methodsUsed.add(methodName);
+  }
+
   /// Find the existing name for [name]+number that has the same [messageText], or
   /// if there isn't one, return the first available.
   String nameForString(String name, String messageText,
@@ -108,9 +120,18 @@ Attempting to add a different message with the same name:
     return '$buffer';
   }
 
+  /// Remove any methods that we haven't seen a usage for.
+  void prune() {
+    // Don't prune if we don't seem to have looked for usages.
+    if (pruning) {
+      methods.removeWhere((name, method) => !methodsUsed.contains(name));
+    }
+  }
+
   /// Write the messages to a file. If the file exists and there are no changes, it will just
   /// stop unless [force] is true.
   void write({bool force = false}) {
+    prune();
     // Create the file if it didn't exist, but if there are no changes, don't rewrite the existing.
     var exists = outputFile.existsSync();
     var fileContents = exists ? outputFile.readAsStringSync() : '';
@@ -118,7 +139,7 @@ Attempting to add a different message with the same name:
     if (force || !exists || fileContents.isEmpty) {
       outputFile.createSync(recursive: true);
       outputFile.writeAsStringSync(contents);
-    } else if (addedNewMethods || !hasTheSamePrologue) {
+    } else if (addedNewMethods || !hasTheSamePrologue || pruning) {
       outputFile.writeAsStringSync(contents);
     }
   }

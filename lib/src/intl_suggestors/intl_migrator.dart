@@ -6,6 +6,31 @@ import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
+class UsedMethodsChecker extends GeneralizingAstVisitor
+    with AstVisitingSuggestor {
+  final IntlMessages _messages;
+  final String _className;
+
+  UsedMethodsChecker(this._className, this._messages);
+
+  @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if ('${node.prefix}' == _className) {
+      _messages.noteUsage('${node.identifier}');
+    }
+    // TODO: implement visitPrefixedIdentifier
+    return super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    if ('${node.target}' == _className) {
+      _messages.noteUsage('${node.methodName}');
+    }
+    return super.visitMethodInvocation(node);
+  }
+}
+
 /// Mark const string variables whose first character is uppercase for internationalization. e.g.
 ///
 ///   const String cancel = 'Cancel';

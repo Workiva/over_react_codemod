@@ -1,4 +1,9 @@
-## [2.12.0(https://github.com/Workiva/over_react_codemod/compare/2.10.1....2.10.0)
+## [2.13.0(https://github.com/Workiva/over_react_codemod/compare/2.13.0....2.12.0)
+
+- Add a --[no]-prune-unused flag to remove methods that appear to be ununused
+  from the _intl.dart file.
+
+## [2.12.0(https://github.com/Workiva/over_react_codemod/compare/2.12.0....2.10.1)
 
 - Add a --[no]-migrate-components option for intl\_message\_migration
 
