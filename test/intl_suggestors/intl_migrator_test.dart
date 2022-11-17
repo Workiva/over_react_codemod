@@ -179,6 +179,73 @@ void main() {
         );
       });
 
+// here we can call the ignore intrepolated variable string
+      test('single interpolated variable', () async {
+        await testSuggestor(
+          input: '''
+                import 'package:over_react/over_react.dart';
+
+                mixin FooProps on UiProps {}
+
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {
+                     final name = 'bob';
+                    return (Dom.div())('\${name}');
+                  },
+                  _\$FooConfig, //ignore: undefined_identifier
+                );
+                ''',
+          expectedOutput:
+          '''
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+                 final name = 'bob';
+                return (Dom.div())('\${name}');
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+        );
+      });
+
+      test('special character in between two interpolated variables', () async {
+        await testSuggestor(
+          input: '''
+                import 'package:over_react/over_react.dart';
+
+                mixin FooProps on UiProps {}
+
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {
+                     final name = 'bob';
+                     final age='42';
+                    return (Dom.div())('\${name} : \${age}');
+                  },
+                  _\$FooConfig, //ignore: undefined_identifier
+                );
+                ''',
+          expectedOutput:
+          '''
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+                 final name = 'bob';
+                 final age='42';
+                return (Dom.div())('\${name} : \${age}');
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+        );
+      });
+
       test('adjacent strings', () async {
         await testSuggestor(
           input: '''
@@ -286,6 +353,50 @@ void main() {
             "\n  static String distanceKm(String number) => Intl.message('Distance \${number}km', args: [number], name: 'TestClassIntl_distanceKm');";
         expect(messages.messageContents(), expectedFileContent);
       });
+
+
+      test('string in between interpolated variable', () async {
+        await testSuggestor(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String name;
+                String title;
+              }
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+
+                  return (Dom.div())('\${props.name} Interpolated \${props.title}');
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String name;
+                String title;
+              }
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+
+                  return (Dom.div())(
+                    TestClassIntl.interpolated(props.name, props.title)
+                  );
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+        );
+        final expectedFileContent =
+            "\n  static String interpolated(String name, String title) => Intl.message('\${name} Interpolated \${title}', args: [name, title], name: 'TestClassIntl_interpolated');";
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
 
       test('two different interpolations get different names', () async {
         await testSuggestor(
@@ -1202,49 +1313,6 @@ void main() {
 
         final expectedFileContent =
             "\n  static String bobsLastNameWas(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_bobsLastNameWas');";
-        expect(messages.messageContents(), expectedFileContent);
-      });
-
-      test('Interpolated with testId string', () async {
-        await testSuggestor(
-          input: '''
-              import 'package:over_react/over_react.dart';
-
-              mixin FooProps on UiProps {
-                String version;
-              }
-
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {
-
-                  return (Dom.p()
-                    ..addTestId('truss.aboutWdeskModal.versionInfo')
-                    ..label = 'Version \${props.version}')();
-                },
-                _\$FooConfig, //ignore: undefined_identifier
-              );
-              ''',
-          expectedOutput: '''
-              import 'package:over_react/over_react.dart';
-
-              mixin FooProps on UiProps {
-                String version;
-              }
-
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {
-                                 
-                  return (Dom.p() 
-                    ..addTestId('truss.aboutWdeskModal.versionInfo')
-                    ..label = TestClassIntl.version(props.version))();
-                },
-                _\$FooConfig, //ignore: undefined_identifier
-              );
-              ''',
-        );
-
-        String expectedFileContent =
-            "\n  static String version(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_version');";
         expect(messages.messageContents(), expectedFileContent);
       });
 

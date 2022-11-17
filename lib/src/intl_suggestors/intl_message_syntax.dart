@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:intl/intl.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 
@@ -41,20 +40,10 @@ class MessageSyntax {
     String namespace,
     String namePrefix,
   ) {
-    // Generating function name directly by String content rather then testId or appending _intlFunction
     final functionName = nameForNode(node);
     final functionArgs = intlFunctionArguments(node);
     return '$namespace.$functionName$functionArgs';
   }
-
-  //TODO: We can remove this method definition `getTestId` as we are using string content now to generate intl function name.
-  /// A template to build a function name for Intl message
-  /// ex: Foo_bar
-  String functionNameFor(
-    StringInterpolation node,
-    String namePrefix,
-  ) =>
-      '${getTestId(null, node) ?? '${namePrefix}_intlFunction'}';
 
   /// Returns Intl.message with interpolation
   /// ex: static String Foo_bar(String baz) => Intl.message(
@@ -64,7 +53,6 @@ class MessageSyntax {
   ///                                           );
   String functionDefinition(
       StringInterpolation node, String namespace, String namePrefix) {
-    // Generating function name directly by String content rather then testId or appending _intlFunction
     final functionName = nameForNode(node);
     final functionParams = intlFunctionParameters(node);
     final parameterizedMessage = intlParameterizedMessage(node);
@@ -138,7 +126,7 @@ class MessageSyntax {
 
 
   String nameForNode(StringLiteral body,
-      {String? initialName=null, bool startAtZero = false}) {
+      {String? initialName, bool startAtZero = false}) {
     var messageText = body is StringInterpolation
         ? textFromInterpolation(body)
         : body.toSource();

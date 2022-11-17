@@ -27,7 +27,6 @@ void main() {
         var result = removeInterpolationSyntax(inputString);
         expect(result, 'a');
       });
-
       test('\${a}', () async {
         var inputString = '\${a}';
         var result = removeInterpolationSyntax(inputString);
@@ -87,20 +86,11 @@ void main() {
 
         final parsedInterpolation = parsedExpression as StringInterpolation;
         expect(parsedInterpolation.isMultiline, isMultiline);
-
         final testResult = IntlMessages('Test')
             .syntax
             .functionDefinition(parsedInterpolation, 'Namespace', "NamePrefix");
         expect(testResult, expectedResult);
       }
-
-      test('single line', () async {
-        final testStr = r"'${singleLine}'";
-        final expectedResult =r"'${singleLine}'";
-        expect(testStr, expectedResult);
-
-      });
-
 
       //We are ignoring the \n or new line in String and Taking till five words in method name.
       test('single line with explicit newline', () async {
@@ -108,12 +98,6 @@ void main() {
         final expectedResult =
             "  static String twolines(String foo) => Intl.message('two\\nlines\${foo}', args: [foo], name: 'Namespace_twolines');";
         runResults(testStr, false, expectedResult);
-      });
-
-      test('multiline', () async {
-        final testStr = r"'''${multiline}'''";
-        final expectedResult =r"'''${multiline}'''";
-        expect(testStr, expectedResult);
       });
     });
 

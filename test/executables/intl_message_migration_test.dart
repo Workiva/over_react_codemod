@@ -23,7 +23,6 @@ import 'mui_migration_test.dart' show testCodemod;
 
 // Change this to `true` and all of the functional tests in this file will print
 // the stdout/stderr of the codemod processes.
-final _debug = false;
 
 // The help text may have different amount of whitespace depending on the names
 // of the options, so collapse all whitespace to a single space before comparing.

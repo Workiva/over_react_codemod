@@ -8,17 +8,16 @@ import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 
 import 'constants.dart';
 
+var result;
 // -- Node Validation --
 
 /// For a string interpolation, get all the non-interpolated parts in a string,
 /// separated by spaces.
-String textFromInterpolation(StringInterpolation body) {
-  return body.elements
+String textFromInterpolation(StringInterpolation body) => body.elements
       .whereType<InterpolationString>()
       .map((each) => each.value)
       .join(' ')
       .trim();
-}
 bool isValidStringInterpolationNode(AstNode node) {
   if (node is! StringInterpolation) return false;
   //We do not need to localize single values.  This should be handled by the
@@ -26,9 +25,8 @@ bool isValidStringInterpolationNode(AstNode node) {
   if (node.elements.length == 3 &&
       node.elements.first.toString() == node.elements.last.toString())
     return false;
-  var result=textFromInterpolation(node);
-  if(!result.contains(RegExp('[a-zA-Z0-9]')) || result.isEmpty) return false;
-  return true;
+   result=textFromInterpolation(node);
+  return result.isNotEmpty && result.contains(RegExp('[a-zA-Z]'));
 }
 
 bool hasNoAlphabeticCharacters(String s) => !_alphabeticPattern.hasMatch(s);
@@ -184,33 +182,6 @@ String toCamelCase(String str) {
 
   /// Finally remove the spaces
   return capitalizationResult.replaceAll(' ', '');
-}
-
-//TODO: We can remove this method definition `getTestId` as we are using string content now to generate intl function name.
-String? getTestId(String? testId, AstNode node) {
-  if (testId != null) return testId;
-  if (node is InvocationExpression) {
-    var component = getComponentUsage(node);
-    if (component != null) {
-      for (final method in component.cascadedMethodInvocations) {
-        if (method.methodName.name == 'addTestId') {
-          final expression = method.node.argumentList.arguments.first;
-          testId = toVariableName(expression
-              .toString()
-              .replaceAll("'", '')
-              .split('.')
-              .last
-              .replaceAll('TestId', ''));
-        }
-      }
-    }
-  }
-
-  if (node.parent != null) {
-    return getTestId(testId, node.parent!);
-  } else {
-    return null;
-  }
 }
 
 /// Exclude cases we know shouldn't be localized, even though that attribute

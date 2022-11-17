@@ -53,19 +53,25 @@ void main() {
         ' strings' ' on' ' two ' 'lines' ' eh' , name: 'TestProjectIntl_adjacentStringsOnTwoLines');""";
       var classSource = 'class Foo { $method }';
       var parsed = parseString(content: classSource);
+      print("parsed $parsed");
       var intlClass = parsed.unit.declarations.first as ClassDeclaration;
+      print("intlClass $intlClass");
       var methodDeclarations =
           intlClass.members.toList().cast<MethodDeclaration>();
+      print("methodDeclarations $methodDeclarations");
       var argument = ((methodDeclarations.first.body.childEntities.toList()[1]
               as MethodInvocation)
           .argumentList
           .arguments
           .first as StringLiteral);
       messages = IntlMessages('TestProject', output: intlFile);
+      print("argumnet $argument messages $messages");
       var derivedName = messages.syntax.nameForNode(argument);
+      print("derived name $derivedName");
       expect(derivedName, 'adjacentStringsOnTwoLines');
     });
   });
+
   group('round-trip', () {
     late Directory tmp;
     late File intlFile;
