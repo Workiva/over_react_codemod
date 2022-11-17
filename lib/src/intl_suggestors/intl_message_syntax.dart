@@ -141,7 +141,11 @@ class MessageSyntax {
 
   String nameForNode(StringLiteral body,
       {String? initialName, bool startAtZero = false}) {
-    var messageText = body.toSource();
+    // If the body is an interpolation, make sure we generate it the same way we will see it in
+    // the final file, otherwise comparisons may fail. Notably, be sure we always use ${} form.
+    var messageText = body is StringInterpolation
+        ? intlParameterizedMessage(body)
+        : body.toSource();
     var functionName = toVariableName(messageText);
     functionName = owner.nameForString(initialName ?? functionName, messageText,
         startAtZero: startAtZero);
