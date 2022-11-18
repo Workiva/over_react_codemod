@@ -8,7 +8,7 @@ import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 
 import 'constants.dart';
 
-var result;
+RegExp alphabetMatcher = RegExp('[a-zA-Z]');
 // -- Node Validation --
 
 /// For a string interpolation, get all the non-interpolated parts in a string,
@@ -25,8 +25,8 @@ bool isValidStringInterpolationNode(AstNode node) {
   if (node.elements.length == 3 &&
       node.elements.first.toString() == node.elements.last.toString())
     return false;
-   result=textFromInterpolation(node);
-  return result.isNotEmpty && result.contains(RegExp('[a-zA-Z]'));
+  var result=textFromInterpolation(node);
+  return result.isNotEmpty && result.contains(alphabetMatcher);
 }
 
 bool hasNoAlphabeticCharacters(String s) => !_alphabeticPattern.hasMatch(s);
