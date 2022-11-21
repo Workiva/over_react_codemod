@@ -8,16 +8,17 @@ import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 
 import 'constants.dart';
 
-RegExp alphabetMatcher = RegExp('[a-zA-Z]');
 // -- Node Validation --
+// Checks the text under [node] has any alphabetic value, ignore if it's not.
+RegExp alphabetMatcher = RegExp('[a-zA-Z]');
 
 /// For a string interpolation, get all the non-interpolated parts in a string,
 /// separated by spaces.
 String textFromInterpolation(StringInterpolation body) => body.elements
-      .whereType<InterpolationString>()
-      .map((each) => each.value)
-      .join(' ')
-      .trim();
+    .whereType<InterpolationString>()
+    .map((each) => each.value)
+    .join(' ')
+    .trim();
 bool isValidStringInterpolationNode(AstNode node) {
   if (node is! StringInterpolation) return false;
   //We do not need to localize single values.  This should be handled by the
@@ -25,7 +26,7 @@ bool isValidStringInterpolationNode(AstNode node) {
   if (node.elements.length == 3 &&
       node.elements.first.toString() == node.elements.last.toString())
     return false;
-  var result=textFromInterpolation(node);
+  var result = textFromInterpolation(node);
   return result.isNotEmpty && result.contains(alphabetMatcher);
 }
 

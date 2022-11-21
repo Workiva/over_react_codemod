@@ -123,8 +123,6 @@ class MessageSyntax {
     return '(${args.join(', ')})';
   }
 
-
-
   String nameForNode(StringLiteral body,
       {String? initialName, bool startAtZero = false}) {
     var messageText = body is StringInterpolation
@@ -132,11 +130,8 @@ class MessageSyntax {
         : body.toSource();
     // The case where there is no text after this should be checked in
     // isValidStringInterpolationNode and so it should never happen here.
-return owner.nameForString(
-          initialName ?? toVariableName(messageText), messageText,
-          startAtZero: startAtZero);
-
-
+    return owner.nameForString(
+        initialName ?? toVariableName(messageText), messageText,
+        startAtZero: startAtZero);
   }
-
 }

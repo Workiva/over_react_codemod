@@ -179,7 +179,7 @@ void main() {
         );
       });
 
-// here we can call the ignore intrepolated variable string
+      // here we can call the ignore interpolated variable string
       test('single interpolated variable', () async {
         await testSuggestor(
           input: '''
@@ -195,8 +195,7 @@ void main() {
                   _\$FooConfig, //ignore: undefined_identifier
                 );
                 ''',
-          expectedOutput:
-          '''
+          expectedOutput: '''
             import 'package:over_react/over_react.dart';
 
             mixin FooProps on UiProps {}
@@ -228,8 +227,7 @@ void main() {
                   _\$FooConfig, //ignore: undefined_identifier
                 );
                 ''',
-          expectedOutput:
-          '''
+          expectedOutput: '''
             import 'package:over_react/over_react.dart';
 
             mixin FooProps on UiProps {}
@@ -354,7 +352,6 @@ void main() {
         expect(messages.messageContents(), expectedFileContent);
       });
 
-
       test('string in between interpolated variable', () async {
         await testSuggestor(
           input: '''
@@ -396,7 +393,6 @@ void main() {
             "\n  static String interpolated(String name, String title) => Intl.message('\${name} Interpolated \${title}', args: [name, title], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
-
 
       test('two different interpolations get different names', () async {
         await testSuggestor(

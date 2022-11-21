@@ -17,7 +17,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
 
-
 Stream<Patch> intlImporter(
     FileContext context, String projectName, String className) async* {
   final libraryResult = await context.getResolvedLibrary();

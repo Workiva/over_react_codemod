@@ -98,24 +98,23 @@ void main() {
         expect(parsedExpression is StringInterpolation, isTrue);
         var parsedInterpolation = parsedExpression as StringInterpolation;
         expect(parsedInterpolation.isMultiline, isMultiline);
-        var data= textFromInterpolation(parsedInterpolation);
-        if(data.isEmpty){
-          data=expectedResult;
-          expect(testStr,expectedResult);
+        var data = textFromInterpolation(parsedInterpolation);
+        if (data.isEmpty) {
+          data = expectedResult;
+          expect(testStr, expectedResult);
         }
-        expect(testStr,expectedResult);
+        expect(testStr, expectedResult);
       }
+
       test('single line', () async {
         final testStr = r"'${singleLine}'";
-        final expectedResult =
-            r"'${singleLine}'";
+        final expectedResult = r"'${singleLine}'";
         ignoreSingleLineAndMultiline(testStr, false, expectedResult);
       });
 
       test('multiline', () async {
         final testStr = r"'''${multiline}'''";
-        final expectedResult =
-            r"'''${multiline}'''";
+        final expectedResult = r"'''${multiline}'''";
         ignoreSingleLineAndMultiline(testStr, true, expectedResult);
       });
       //We are ignoring the \n or new line in String and Taking till five words in method name.
