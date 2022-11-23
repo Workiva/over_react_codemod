@@ -93,29 +93,23 @@ void main() {
       }
 
       void ignoreSingleLineAndMultiline(
-          String testStr, bool isMultiline, String expectedResult) async {
+          String testStr, bool isMultiline) async {
         final parsedExpression = await sharedContext.parseExpression(testStr);
         expect(parsedExpression is StringInterpolation, isTrue);
         var parsedInterpolation = parsedExpression as StringInterpolation;
         expect(parsedInterpolation.isMultiline, isMultiline);
         var data = textFromInterpolation(parsedInterpolation);
-        if (data.isEmpty) {
-          data = expectedResult;
-          expect(testStr, expectedResult);
-        }
-        expect(testStr, expectedResult);
+        expect(data.isEmpty, true);
       }
 
       test('single line', () async {
         final testStr = r"'${singleLine}'";
-        final expectedResult = r"'${singleLine}'";
-        ignoreSingleLineAndMultiline(testStr, false, expectedResult);
+        ignoreSingleLineAndMultiline(testStr, false);
       });
 
       test('multiline', () async {
         final testStr = r"'''${multiline}'''";
-        final expectedResult = r"'''${multiline}'''";
-        ignoreSingleLineAndMultiline(testStr, true, expectedResult);
+        ignoreSingleLineAndMultiline(testStr, true);
       });
       //We are ignoring the \n or new line in String and Taking till five words in method name.
       test('single line with explicit newline', () async {

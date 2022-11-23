@@ -19,6 +19,7 @@ String textFromInterpolation(StringInterpolation body) => body.elements
     .map((each) => each.value)
     .join(' ')
     .trim();
+
 bool isValidStringInterpolationNode(AstNode node) {
   if (node is! StringInterpolation) return false;
   //We do not need to localize single values.  This should be handled by the
