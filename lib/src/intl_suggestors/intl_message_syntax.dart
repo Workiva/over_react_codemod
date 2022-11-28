@@ -40,22 +40,10 @@ class MessageSyntax {
     String namespace,
     String namePrefix,
   ) {
-    final baseName = functionNameFor(node, namePrefix);
-    // TODO: This is very messy to accomodate names starting at intlFunction0
-    // for backward compatibilitys.
-    final functionName = nameForNode(node,
-        initialName: baseName, startAtZero: baseName.endsWith('_intlFunction'));
+    final functionName = nameForNode(node);
     final functionArgs = intlFunctionArguments(node);
     return '$namespace.$functionName$functionArgs';
   }
-
-  /// A template to build a function name for Intl message
-  /// ex: Foo_bar
-  String functionNameFor(
-    StringInterpolation node,
-    String namePrefix,
-  ) =>
-      '${getTestId(null, node) ?? '${namePrefix}_intlFunction'}';
 
   /// Returns Intl.message with interpolation
   /// ex: static String Foo_bar(String baz) => Intl.message(
@@ -65,11 +53,7 @@ class MessageSyntax {
   ///                                           );
   String functionDefinition(
       StringInterpolation node, String namespace, String namePrefix) {
-    final baseName = functionNameFor(node, namePrefix);
-    // TODO: This is very messy to accomodate function names starting at
-    // intlFunction0 for backward-compatibility.
-    final functionName = nameForNode(node,
-        initialName: baseName, startAtZero: baseName.endsWith('_intlFunction'));
+    final functionName = nameForNode(node);
     final functionParams = intlFunctionParameters(node);
     final parameterizedMessage = intlParameterizedMessage(node);
     final messageArgs = intlMessageArgs(node);
@@ -141,10 +125,13 @@ class MessageSyntax {
 
   String nameForNode(StringLiteral body,
       {String? initialName, bool startAtZero = false}) {
-    var messageText = body.toSource();
-    var functionName = toVariableName(messageText);
-    functionName = owner.nameForString(initialName ?? functionName, messageText,
+    var messageText = body is StringInterpolation
+        ? textFromInterpolation(body)
+        : body.toSource();
+    // The case where there is no text after this should be checked in
+    // isValidStringInterpolationNode and so it should never happen here.
+    return owner.nameForString(
+        initialName ?? toVariableName(messageText), messageText,
         startAtZero: startAtZero);
-    return functionName;
   }
 }

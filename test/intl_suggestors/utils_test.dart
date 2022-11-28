@@ -27,7 +27,6 @@ void main() {
         var result = removeInterpolationSyntax(inputString);
         expect(result, 'a');
       });
-
       test('\${a}', () async {
         var inputString = '\${a}';
         var result = removeInterpolationSyntax(inputString);
@@ -87,32 +86,37 @@ void main() {
 
         final parsedInterpolation = parsedExpression as StringInterpolation;
         expect(parsedInterpolation.isMultiline, isMultiline);
-
         final testResult = IntlMessages('Test')
             .syntax
             .functionDefinition(parsedInterpolation, 'Namespace', "NamePrefix");
         expect(testResult, expectedResult);
       }
 
+      void ignoreSingleLineAndMultiline(
+          String testStr, bool isMultiline) async {
+        final parsedExpression = await sharedContext.parseExpression(testStr);
+        expect(parsedExpression is StringInterpolation, isTrue);
+        var parsedInterpolation = parsedExpression as StringInterpolation;
+        expect(parsedInterpolation.isMultiline, isMultiline);
+        var data = textFromInterpolation(parsedInterpolation);
+        expect(data.isEmpty, true);
+      }
+
       test('single line', () async {
         final testStr = r"'${singleLine}'";
-        final expectedResult =
-            "  static String NamePrefix_intlFunction0(String singleLine) => Intl.message('\${singleLine}', args: [singleLine], name: 'Namespace_NamePrefix_intlFunction0');";
-        runResults(testStr, false, expectedResult);
-      });
-
-      test('single line with explicit newline', () async {
-        final testStr = r"'two\nlines${foo}'";
-        final expectedResult =
-            "  static String NamePrefix_intlFunction0(String foo) => Intl.message('two\\nlines\${foo}', args: [foo], name: 'Namespace_NamePrefix_intlFunction0');";
-        runResults(testStr, false, expectedResult);
+        ignoreSingleLineAndMultiline(testStr, false);
       });
 
       test('multiline', () async {
         final testStr = r"'''${multiline}'''";
+        ignoreSingleLineAndMultiline(testStr, true);
+      });
+      //We are ignoring the \n or new line in String and Taking till five words in method name.
+      test('single line with explicit newline', () async {
+        final testStr = r"'two\nlines${foo}'";
         final expectedResult =
-            "  static String NamePrefix_intlFunction0(String multiline) => Intl.message('''\${multiline}''', args: [multiline], name: 'Namespace_NamePrefix_intlFunction0');";
-        runResults(testStr, true, expectedResult);
+            "  static String twolines(String foo) => Intl.message('two\\nlines\${foo}', args: [foo], name: 'Namespace_twolines');";
+        runResults(testStr, false, expectedResult);
       });
     });
 

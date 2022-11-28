@@ -179,6 +179,71 @@ void main() {
         );
       });
 
+      // here we can call the ignore interpolated variable string
+      test('single interpolated variable', () async {
+        await testSuggestor(
+          input: '''
+                import 'package:over_react/over_react.dart';
+
+                mixin FooProps on UiProps {}
+
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {
+                     final name = 'bob';
+                    return (Dom.div())('\${name}');
+                  },
+                  _\$FooConfig, //ignore: undefined_identifier
+                );
+                ''',
+          expectedOutput: '''
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+                 final name = 'bob';
+                return (Dom.div())('\${name}');
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+        );
+      });
+
+      test('special character in between two interpolated variables', () async {
+        await testSuggestor(
+          input: '''
+                import 'package:over_react/over_react.dart';
+
+                mixin FooProps on UiProps {}
+
+                UiFactory<FooProps> Foo = uiFunction(
+                  (props) {
+                     final name = 'bob';
+                     final age='42';
+                    return (Dom.div())('\${name} : \${age}');
+                  },
+                  _\$FooConfig, //ignore: undefined_identifier
+                );
+                ''',
+          expectedOutput: '''
+            import 'package:over_react/over_react.dart';
+
+            mixin FooProps on UiProps {}
+
+            UiFactory<FooProps> Foo = uiFunction(
+              (props) {
+                 final name = 'bob';
+                 final age='42';
+                return (Dom.div())('\${name} : \${age}');
+              },
+              _\$FooConfig, //ignore: undefined_identifier
+            );
+            ''',
+        );
+      });
+
       test('adjacent strings', () async {
         await testSuggestor(
           input: '''
@@ -242,7 +307,7 @@ void main() {
                   (props) {
                     final name = 'bob';
 
-                    return (Dom.div())(TestClassIntl.Foo_intlFunction0(name));
+                    return (Dom.div())(TestClassIntl.interpolated(name));
                   },
                   _\$FooConfig, //ignore: undefined_identifier
                 );
@@ -275,7 +340,7 @@ void main() {
                   (props) {
                     final number = '42';
 
-                    return (Dom.div())(TestClassIntl.Foo_intlFunction0(number));
+                    return (Dom.div())(TestClassIntl.distanceKm(number));
                   },
                   _\$FooConfig, //ignore: undefined_identifier
                 );
@@ -283,7 +348,49 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String number) => Intl.message('Distance \${number}km', args: [number], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String distanceKm(String number) => Intl.message('Distance \${number}km', args: [number], name: 'TestClassIntl_distanceKm');";
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
+      test('string in between interpolated variable', () async {
+        await testSuggestor(
+          input: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String name;
+                String title;
+              }
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+
+                  return (Dom.div())('\${props.name} Interpolated \${props.title}');
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+          expectedOutput: '''
+              import 'package:over_react/over_react.dart';
+
+              mixin FooProps on UiProps {
+                String name;
+                String title;
+              }
+
+              UiFactory<FooProps> Foo = uiFunction(
+                (props) {
+
+                  return (Dom.div())(
+                    TestClassIntl.interpolated(props.name, props.title)
+                  );
+                },
+                _\$FooConfig, //ignore: undefined_identifier
+              );
+              ''',
+        );
+        final expectedFileContent =
+            "\n  static String interpolated(String name, String title) => Intl.message('\${name} Interpolated \${title}', args: [name, title], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -314,15 +421,15 @@ void main() {
                   final name = 'bob';
                   final title = 'Test Title';
 
-                  return (Dom.div()..label=TestClassIntl.Foo_intlFunction0(title))(TestClassIntl.Foo_intlFunction1(name));
+                  return (Dom.div()..label=TestClassIntl.alsoInterpolated(title))(TestClassIntl.interpolated(name));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String title) => Intl.message('Also interpolated \${title}', args: [title], name: 'TestClassIntl_Foo_intlFunction0');"
-            "\n  static String Foo_intlFunction1(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction1');";
+            "\n  static String alsoInterpolated(String title) => Intl.message('Also interpolated \${title}', args: [title], name: 'TestClassIntl_alsoInterpolated');"
+            "\n  static String interpolated(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -353,14 +460,14 @@ void main() {
                   final name = 'bob';
                   final title = 'Test Title';
 
-                  return (Dom.div())(TestClassIntl.Foo_intlFunction0(name, title));
+                  return (Dom.div())(TestClassIntl.interpolated(name, title));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String interpolated(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -391,14 +498,14 @@ void main() {
               UiFactory<FooProps> Foo = uiFunction(
                 (props) {
 
-                  return (Dom.div())(TestClassIntl.Foo_intlFunction0(props.name));
+                  return (Dom.div())(TestClassIntl.interpolated(props.name));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String interpolated(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -432,7 +539,7 @@ void main() {
                 (props) {
 
                   return (Dom.div())(
-                    TestClassIntl.Foo_intlFunction0(props.name, props.title)
+                    TestClassIntl.interpolated(props.name, props.title)
                   );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
@@ -440,7 +547,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String interpolated(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -471,14 +578,14 @@ void main() {
               UiFactory<FooProps> Foo = uiFunction(
                 (props) {
 
-                  return (Dom.div())(TestClassIntl.Foo_intlFunction0(props.name ?? \'test\'));
+                  return (Dom.div())(TestClassIntl.interpolated(props.name ?? \'test\'));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String interpolated(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -550,7 +657,7 @@ void main() {
                     return 'test name';
                   }
                   
-                  return (Dom.div())(TestClassIntl.Foo_intlFunction0(getName()));
+                  return (Dom.div())(TestClassIntl.hisNameWas(getName()));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
@@ -558,7 +665,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String hisNameWas(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_hisNameWas');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -589,7 +696,7 @@ void main() {
                 
                   final lastName = 'Paulsen';
                   
-                  return (Dom.div())(TestClassIntl.Foo_intlFunction0(lastName));
+                  return (Dom.div())(TestClassIntl.bobsLastNameWas(lastName));
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
@@ -597,7 +704,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String bobsLastNameWas(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_bobsLastNameWas');";
         expect(messages.messageContents(), expectedFileContent);
       });
       test('Interpolated with testId string', () async {
@@ -634,7 +741,7 @@ void main() {
                   return (Dom.p() 
                     ..addTestId('truss.aboutWdeskModal.versionInfo')
                     )(
-                      TestClassIntl.versionInfo(props.version),
+                      TestClassIntl.version(props.version),
                     );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
@@ -643,7 +750,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
+            "\n  static String version(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_version');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -689,7 +796,7 @@ void main() {
                   return (Dom.p() 
                     ..addTestId(TestClassTestIds.versionInfo)
                   )(
-                    TestClassIntl.versionInfo(props.version),
+                    TestClassIntl.version(props.version),
                   );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
@@ -698,7 +805,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
+            "\n  static String version(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_version');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -752,11 +859,11 @@ void main() {
                   ..addTestId(TestClassTestIds.emptyView)
                   )(
                    (Dom.p()..addTestId('foo'))(
-                      TestClassIntl.foo(props.displayName),
+                      TestClassIntl.createOneFromAnyBy(props.displayName),
                     ),
                     (Dom.p()..addTestId('bar'))(
                       (Dom.p())(
-                        TestClassIntl.bar(props.displayName),
+                        TestClassIntl.createOneFromAnyBy1(props.displayName),
                       ),
                     ),
                   );
@@ -767,11 +874,11 @@ void main() {
         );
 
         String expectedFileContent1 =
-            "\n  static String foo(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_foo');";
+            "\n  static String createOneFromAnyBy(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_createOneFromAnyBy');";
         String expectedFileContent2 =
-            "\n  static String bar(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_bar');";
+            "\n  static String createOneFromAnyBy1(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_createOneFromAnyBy1');";
         expect(messages.messageContents(),
-            [expectedFileContent2, expectedFileContent1].join(''));
+            [expectedFileContent1, expectedFileContent2].join(''));
       });
 
       test('Home Example', () async {
@@ -804,7 +911,7 @@ void main() {
                   final refStr = 'Test Title';
 
                   return (Dom.div())(
-                    TestClassIntl.Foo_intlFunction0(fileStr, refStr),
+                    TestClassIntl.nowThatYouveTransitionedYour(fileStr, refStr),
                   );
                 },
                 _\$FooConfig, //ignore: undefined_identifier
@@ -812,7 +919,7 @@ void main() {
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String fileStr, String refStr) => Intl.message('Now that you\\\'ve transitioned your \${fileStr}, you\\\'ll want to freeze \${refStr} or update permissions to prevent others from using \${refStr}.', args: [fileStr, refStr], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String nowThatYouveTransitionedYour(String fileStr, String refStr) => Intl.message('Now that you\\\'ve transitioned your \${fileStr}, you\\\'ll want to freeze \${refStr} or update permissions to prevent others from using \${refStr}.', args: [fileStr, refStr], name: 'TestClassIntl_nowThatYouveTransitionedYour');";
         expect(messages.messageContents(), expectedFileContent);
       });
     });
@@ -948,7 +1055,7 @@ void main() {
                     final name = 'bob';
 
                     return (Dom.div()
-                      ..label = TestClassIntl.Foo_intlFunction0(name))();
+                      ..label = TestClassIntl.interpolated(name))();
                   },
                   _\$FooConfig, //ignore: undefined_identifier
                 );
@@ -956,7 +1063,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String interpolated(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -989,14 +1096,14 @@ void main() {
                   final title = 'Test Title';
 
                   return (Dom.div()
-                    ..label = TestClassIntl.Foo_intlFunction0(name, title))();
+                    ..label = TestClassIntl.interpolated(name, title))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String interpolated(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1029,14 +1136,14 @@ void main() {
                 (props) {
 
                   return (Dom.div()
-                    ..label = TestClassIntl.Foo_intlFunction0(props.name))();
+                    ..label = TestClassIntl.interpolated(props.name))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String interpolated(String name) => Intl.message('Interpolated \${name}', args: [name], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1071,14 +1178,14 @@ void main() {
                 (props) {
 
                   return (Dom.div()
-                    ..label = TestClassIntl.Foo_intlFunction0(props.name, props.title))();
+                    ..label = TestClassIntl.interpolated(props.name, props.title))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
               ''',
         );
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String interpolated(String name, String title) => Intl.message('Interpolated \${name} \${title}', args: [name, title], name: 'TestClassIntl_interpolated');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1152,7 +1259,7 @@ void main() {
                   }
                   
                   return (Dom.div()
-                    ..label = TestClassIntl.Foo_intlFunction0(getName()))();
+                    ..label = TestClassIntl.hisNameWas(getName()))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
@@ -1160,7 +1267,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_Foo_intlFunction0');";
+            "\n  static String hisNameWas(String getName) => Intl.message('His name was \${getName}', args: [getName], name: 'TestClassIntl_hisNameWas');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1193,7 +1300,7 @@ void main() {
                   final lastName = 'Paulsen';
                   
                   return (Dom.div()
-                    ..label = TestClassIntl.Foo_intlFunction0(lastName))();
+                    ..label = TestClassIntl.bobsLastNameWas(lastName))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
@@ -1201,50 +1308,7 @@ void main() {
         );
 
         final expectedFileContent =
-            "\n  static String Foo_intlFunction0(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_Foo_intlFunction0');";
-        expect(messages.messageContents(), expectedFileContent);
-      });
-
-      test('Interpolated with testId string', () async {
-        await testSuggestor(
-          input: '''
-              import 'package:over_react/over_react.dart';
-
-              mixin FooProps on UiProps {
-                String version;
-              }
-
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {
-
-                  return (Dom.p()
-                    ..addTestId('truss.aboutWdeskModal.versionInfo')
-                    ..label = 'Version \${props.version}')();
-                },
-                _\$FooConfig, //ignore: undefined_identifier
-              );
-              ''',
-          expectedOutput: '''
-              import 'package:over_react/over_react.dart';
-
-              mixin FooProps on UiProps {
-                String version;
-              }
-
-              UiFactory<FooProps> Foo = uiFunction(
-                (props) {
-                                 
-                  return (Dom.p() 
-                    ..addTestId('truss.aboutWdeskModal.versionInfo')
-                    ..label = TestClassIntl.versionInfo(props.version))();
-                },
-                _\$FooConfig, //ignore: undefined_identifier
-              );
-              ''',
-        );
-
-        String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
+            "\n  static String bobsLastNameWas(String lastName) => Intl.message('Bob\\\'s last name was \${lastName}', args: [lastName], name: 'TestClassIntl_bobsLastNameWas');";
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -1287,7 +1351,7 @@ void main() {
                                  
                   return (Dom.p() 
                     ..addTestId(TestClassTestIds.versionInfo)
-                    ..label = TestClassIntl.versionInfo(props.version))();
+                    ..label = TestClassIntl.version(props.version))();
                 },
                 _\$FooConfig, //ignore: undefined_identifier
               );
@@ -1295,7 +1359,7 @@ void main() {
         );
 
         String expectedFileContent =
-            "\n  static String versionInfo(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_versionInfo');";
+            "\n  static String version(String version) => Intl.message('Version \${version}', args: [version], name: 'TestClassIntl_version');";
         expect(messages.messageContents(), expectedFileContent);
       });
     });

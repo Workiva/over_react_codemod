@@ -74,6 +74,7 @@ void main() {
       expect(derivedName, 'adjacentStringsOnTwoLines');
     });
   });
+
   group('round-trip', () {
     late Directory tmp;
     late File intlFile;

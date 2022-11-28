@@ -16,9 +16,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
-import 'package:logging/logging.dart';
-
-final _log = Logger('intlImporter');
 
 Stream<Patch> intlImporter(
     FileContext context, String projectName, String className) async* {
