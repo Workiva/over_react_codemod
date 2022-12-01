@@ -23,11 +23,14 @@ import 'package:file/local.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
+
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
+import 'package:over_react_codemod/src/util/logging.dart';
+
 import 'package:path/path.dart' as p;
 
 import '../util.dart';
@@ -137,7 +140,7 @@ void main(List<String> args) async {
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
-  print('^ Ignore the "codemod found no files" warning above for now.');
+  logWarning('^ Ignore the "codemod found no files" warning above for now.');
 
   // If we have specified paths on the command line, limit our processing to
   // those, and make sure they're absolute.
@@ -176,7 +179,7 @@ void main(List<String> args) async {
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
-  print('^ Ignore the "codemod found no files" warning above for now.');
+  logWarning('^ Ignore the "codemod found no files" warning above for now.');
 
   for (String package in packageRoots) {
     await migratePackage(
@@ -291,7 +294,7 @@ void sortPartsLast(List<String> dartPaths) {
       });
 
   if (dartPaths.isNotEmpty && dartPaths.every(isPart)) {
-    _log.severe(
+    logShout(
         'Only part files were specified. The containing library must be included for any part file, as it is needed for analysis context');
     exit(1);
   }
@@ -302,7 +305,7 @@ void sortPartsLast(List<String> dartPaths) {
     if (isAPart == isBPart) return 0;
     return isAPart ? 1 : -1;
   });
-  _log.info('Done.');
+  logShout('Done.');
 }
 
 void sortDeepestFirst(Set<String> packageRoots) {
