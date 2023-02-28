@@ -6,8 +6,7 @@
 > **Built with [dart_codemod][dart_codemod].**
 
 Codemods to help consumers of [over_react][over_react] automate the migration of
-UI component code. Currently, the only use cases are around upgrading from Dart
-1 to Dart 2.
+UI component code. 
 
 ## Installation
 
@@ -20,6 +19,13 @@ dart pub global activate over_react_codemod
 
 Once you've activated this package, you should be able to run whichever codemods
 you need via `pub global run`.
+
+
+## Internationalization Codemod
+
+This package provides a `intl_message_migration` codemod that will modify existing UI component code to make them available for internationalization.
+
+For more information, please see the [INTL Message Codemod Readme](docs/intl_message.md)
 
 ## Dart 1 to Dart 2 Codemod
 
