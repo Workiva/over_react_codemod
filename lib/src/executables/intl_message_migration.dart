@@ -23,14 +23,12 @@ import 'package:file/local.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
-
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
-import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:over_react_codemod/src/util/logging.dart';
-
+import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 
 import '../util.dart';
@@ -263,15 +261,17 @@ Future<void> migratePackage(
   final importMigrator = (FileContext context) =>
       intlImporter(context, packageName, messages.className);
   final usedMethodsChecker = UsedMethodsChecker(messages.className, messages);
+  final otherThingy = ContextMenuMigrator(messages.className, messages);
 
   exitCode = await runCodemodSequences(
       packageDartPaths,
       [
-        if (parsedArgs[_migrateComponents]) [intlPropMigrator],
-        if (parsedArgs[_migrateConstants]) [constantStringMigrator],
-        [displayNameMigrator],
-        [importMigrator],
-        if (parsedArgs[_pruneUnused]) [usedMethodsChecker],
+        // if (parsedArgs[_migrateComponents]) [intlPropMigrator],
+        // if (parsedArgs[_migrateConstants]) [constantStringMigrator],
+        // [displayNameMigrator],
+        // [importMigrator],
+        // if (parsedArgs[_pruneUnused]) [usedMethodsChecker],
+        [otherThingy],
       ],
       codemodArgs);
 
