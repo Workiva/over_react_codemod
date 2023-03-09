@@ -6,38 +6,43 @@ import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 
+/// Migrate calls to addContextMenuItem, with either literals or interpolations.
 class ContextMenuMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestor {
   final IntlMessages _messages;
   final String _className;
 
   ContextMenuMigrator(this._className, this._messages);
+
   @override
   visitMethodInvocation(MethodInvocation node) {
     migrateMenu(node);
-
     return super.visitMethodInvocation(node);
   }
 
   void migrateMenu(MethodInvocation node) {
+    // We only care about calls to addContextMenuItem, with at least one
+    // argument, we will migrate the first.
     var args = node.argumentList.arguments;
     if (args.isEmpty) return;
     if (node.methodName.name != 'addContextMenuItem') return;
-    var firstArg = args.first;
-    if (isValidStringLiteralNode(firstArg)) {
-      var literal = firstArg as StringLiteral;
+
+    if (isValidStringLiteralNode(args.first)) {
+      var literal = args.first as StringLiteral;
       final functionCall = _messages.syntax.getterCall(literal, _className);
       final functionDef =
           _messages.syntax.getterDefinition(literal, _className);
       yieldPatch(functionCall, literal.offset, literal.end);
       addMethodToClass(_messages, functionDef);
     }
-    if (isValidStringInterpolationNode(firstArg)) {
-      var interpolation = firstArg as StringInterpolation;
-      final functionCall = _messages.syntax
-          .functionCall(interpolation, _className, 'no longer used');
-      final functionDef = _messages.syntax
-          .functionDefinition(interpolation, _className, 'no longer used');
+    if (isValidStringInterpolationNode(args.first)) {
+      var interpolation = args.first as StringInterpolation;
+      final functionCall =
+          _messages.syntax.functionCall(interpolation, _className, '');
+      final functionDef =
+          _messages.syntax.functionDefinition(interpolation, _className, '');
+      // A lot of context menu calls are of the form 'Delete $type', which would be better done
+      // as a fixed number of 'Delete Audit', 'Delete Form', etc. Add a comment to point that out.
       final callWithFixMe = '''
 // FIXME - INTL Untranslated interpolated value. Is this one of a known set of possibilities?
 $functionCall
