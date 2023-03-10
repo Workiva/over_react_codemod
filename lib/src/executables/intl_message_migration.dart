@@ -23,17 +23,17 @@ import 'package:file/local.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
-
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
-import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:over_react_codemod/src/util/logging.dart';
-
+import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 
 import '../util.dart';
+
+typedef Migrator = Stream<Patch> Function(FileContext);
 
 final _log = Logger('orcm.intl_message_migration');
 
@@ -44,6 +44,7 @@ const _stderrAssumeTtyFlag = 'stderr-assume-tty';
 const _migrateConstants = 'migrate-constants';
 const _migrateComponents = 'migrate-components';
 const _pruneUnused = 'prune-unused';
+const _noMigrate = 'no-migrate';
 const _allCodemodFlags = {
   _verboseFlag,
   _yesToAllFlag,
@@ -90,6 +91,12 @@ final parser = ArgParser()
     help:
         "Try to remove any messages in the generated _intl.dart file that aren't called.",
   )
+  ..addFlag(_noMigrate,
+      negatable: false,
+      defaultsTo: false,
+      help:
+          'Does not run any migrators, overriding any --migrate flags. Can still be used with --prune-unused, and '
+          'will force the messages file to be sorted and rewritten')
   ..addFlag(
     _migrateConstants,
     negatable: true,
@@ -256,6 +263,16 @@ Future<void> migratePackage(
   final IntlMessages messages = IntlMessages(packageName,
       directory: fs.currentDirectory, packagePath: package);
 
+  exitCode =
+      await runMigrators(packageDartPaths, codemodArgs, messages, packageName);
+
+  processedPackages.add(package);
+
+  messages.write(force: parsedArgs[_noMigrate]);
+}
+
+Future<int> runMigrators(List<String> packageDartPaths,
+    List<String> codemodArgs, IntlMessages messages, String packageName) async {
   final intlPropMigrator = IntlMigrator(messages.className, messages);
   final constantStringMigrator =
       ConstantStringMigrator(messages.className, messages);
@@ -264,20 +281,20 @@ Future<void> migratePackage(
       intlImporter(context, packageName, messages.className);
   final usedMethodsChecker = UsedMethodsChecker(messages.className, messages);
 
-  exitCode = await runCodemodSequences(
-      packageDartPaths,
-      [
-        if (parsedArgs[_migrateComponents]) [intlPropMigrator],
-        if (parsedArgs[_migrateConstants]) [constantStringMigrator],
-        [displayNameMigrator],
-        [importMigrator],
-        if (parsedArgs[_pruneUnused]) [usedMethodsChecker],
-      ],
-      codemodArgs);
+  List<List<Migrator>> migrators = [
+    if (parsedArgs[_migrateComponents]) [intlPropMigrator],
+    if (parsedArgs[_migrateConstants]) [constantStringMigrator],
+    [displayNameMigrator],
+    [importMigrator]
+  ];
+  List<List<Migrator>> thingsToRun = [
+    if (!parsedArgs[_noMigrate]) ...migrators,
+    if (parsedArgs[_pruneUnused]) [usedMethodsChecker]
+  ];
 
-  processedPackages.add(package);
-
-  messages.write();
+  var result =
+      await runCodemodSequences(packageDartPaths, thingsToRun, codemodArgs);
+  return result;
 }
 
 void sortPartsLast(List<String> dartPaths) {
