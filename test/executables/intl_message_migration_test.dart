@@ -69,6 +69,14 @@ void main() {
       expect(err, contains(' change(s) needed.'));
     });
 
+    // It would be nice to verify that the file modification date is newer, but
+    // the codemod test framework doesn't really support that.
+    testCodemod('--no-migrate exits with zero, does not does not update files',
+        script: script,
+        input: inputFiles(),
+        expectedOutput: inputFiles(),
+        args: ['--no-migrate']);
+
     testCodemod('Output is sorted',
         script: script,
         input: inputFiles(additionalFilesInLib: [extraInput()]),
@@ -161,8 +169,8 @@ void main() {
     testCodemod('Specifying only part files is an error',
         script: script,
         input: inputFiles(additionalFilesInLib: [
-          d.file('a_part_file.dart',
-              /*language=dart*/ '''part of something.bigger;
+          d.file(
+              'a_part_file.dart', /*language=dart*/ '''part of something.bigger;
 
 someMoreStrings() => (mui.Button()..aria.label='orange')('aquamarine');''')
         ]),
