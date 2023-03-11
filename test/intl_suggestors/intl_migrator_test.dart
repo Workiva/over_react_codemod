@@ -1450,5 +1450,59 @@ void main() {
         expect(messages.messageContents(), '');
       });
     });
+    group('ContextMenuMigrator', () {
+      setUp(() {
+        basicSuggestor = getSuggestorTester(
+          ContextMenuMigrator('TestClassIntl', messages),
+          resolvedContext: resolvedContext,
+        );
+      });
+      test('Simple literal', () async {
+        await testSuggestor(
+          // To avoid defining a method by that name, use a dynamic variable so
+          // the analysis will pass.
+          input: '''
+            dynamic placeholder;
+            someFunction() {
+              placeholder.addContextMenuItem('abc', () => 'hello', iconGlyph: null);
+            }
+            ''',
+          expectedOutput: '''
+            dynamic placeholder;
+            someFunction() {
+              placeholder.addContextMenuItem(TestClassIntl.abc, () => 'hello', iconGlyph: null);
+            }
+            ''',
+        );
+        final expectedFileContent =
+            '\n  static String get abc => Intl.message(\'abc\', name: \'TestClassIntl_abc\');';
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
+      test('Interpolation', () async {
+        await testSuggestor(
+          input: '''
+            dynamic placeholder;
+            someFunction(String thing) {
+              placeholder.addContextMenuItem('abc \$thing', () => 'hello', iconGlyph: null);
+            }
+            ''',
+          expectedOutput: '''
+            dynamic placeholder;
+            someFunction(String thing) {
+              placeholder.addContextMenuItem(
+                // FIXME - INTL Untranslated interpolated value. Is this one of a known set of possibilities?
+                TestClassIntl.abc(thing),
+                () => 'hello',
+                iconGlyph: null);
+            }
+            ''',
+        );
+
+        final expected =
+            "\n  static String abc(String thing) => Intl.message('abc \${thing}', args: [thing], name: 'TestClassIntl_abc');";
+        expect(messages.messageContents(), expected);
+      });
+    });
   });
 }

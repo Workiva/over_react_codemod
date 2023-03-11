@@ -43,6 +43,7 @@ const _failOnChangesFlag = 'fail-on-changes';
 const _stderrAssumeTtyFlag = 'stderr-assume-tty';
 const _migrateConstants = 'migrate-constants';
 const _migrateComponents = 'migrate-components';
+const _migrateContextMenus = 'migrate-context-menus';
 const _pruneUnused = 'prune-unused';
 const _noMigrate = 'no-migrate';
 const _allCodemodFlags = {
@@ -103,6 +104,12 @@ final parser = ArgParser()
     defaultsTo: true,
     help:
         'Should the codemod try to migrate constant Strings that look user-visible',
+  )
+  ..addFlag(
+    _migrateContextMenus,
+    negatable: true,
+    defaultsTo: true,
+    help: 'Should the codemod try to migrate calls to addContextMenuItem',
   )
   ..addFlag(
     _migrateComponents,
@@ -280,12 +287,14 @@ Future<int> runMigrators(List<String> packageDartPaths,
   final importMigrator = (FileContext context) =>
       intlImporter(context, packageName, messages.className);
   final usedMethodsChecker = UsedMethodsChecker(messages.className, messages);
+  final contextMenuMigrator = ContextMenuMigrator(messages.className, messages);
 
   List<List<Migrator>> migrators = [
     if (parsedArgs[_migrateComponents]) [intlPropMigrator],
     if (parsedArgs[_migrateConstants]) [constantStringMigrator],
     [displayNameMigrator],
-    [importMigrator]
+    [importMigrator],
+    if (parsedArgs[_migrateContextMenus]) [contextMenuMigrator],
   ];
   List<List<Migrator>> thingsToRun = [
     if (!parsedArgs[_noMigrate]) ...migrators,
