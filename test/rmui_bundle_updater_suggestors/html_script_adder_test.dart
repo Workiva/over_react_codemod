@@ -57,22 +57,22 @@ void main() {
     // 2. verify they work well together, since they'll never really be run individually
     final testSuggestor = getSuggestorTester(aggregate([
       HtmlScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated),
-      // HtmlScriptUpdater(rmuiBundleProd, rmuiBundleProdUpdated),
+      HtmlScriptUpdater(rmuiBundleProd, rmuiBundleProdUpdated),
     ]));
 
-    // test('empty file', () async {
-    //   await testSuggestor(expectedPatchCount: 0, input: '');
-    // });
-    //
-    // test('no matches', () async {
-    //   await testSuggestor(
-    //     expectedPatchCount: 0,
-    //     shouldDartfmtOutput: false,
-    //     input: ''
-    //         '<script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
-    //         '',
-    //   );
-    // });
+    test('empty file', () async {
+      await testSuggestor(expectedPatchCount: 0, input: '');
+    });
+
+    test('no matches', () async {
+      await testSuggestor(
+        expectedPatchCount: 0,
+        shouldDartfmtOutput: false,
+        input: ''
+            '<script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
+            '',
+      );
+    });
 
     test('dev bundle', () async {
       await testSuggestor(
@@ -87,22 +87,70 @@ void main() {
       );
     });
 
-    // group('add prod and non-prod script', () {
-    //   for (final pathPrefix in pathPrefixesToTest) {
-    //     jsFileTypes.forEach((testName, scripts) {
-    //       final isTestProd = testName.contains('Prod');
-    //
-    //       group(testName, () {
-    //         _htmlScriptAdderTests(
-    //           testSuggestor,
-    //           scripts: scripts,
-    //           expectedAddedScript: isTestProd ? rmuiBundleProd : rmuiBundleDev,
-    //           pathPrefix: pathPrefix,
-    //         );
-    //       });
-    //     });
-    //   }
-    // });
+    test('prod bundle', () async {
+      await testSuggestor(
+        expectedPatchCount: 1,
+        shouldDartfmtOutput: false,
+        input: ''
+            '<script src="packages/react_material_ui/react-material-ui.umd.js"></script>\n'
+            '',
+        expectedOutput: ''
+            '<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js"></script>\n'
+            '',
+      );
+    });
+
+    test('with indentation', () async {
+      await testSuggestor(
+        expectedPatchCount: 1,
+        shouldDartfmtOutput: false,
+        input: ''
+            '  <script src="packages/react_material_ui/react-material-ui-development.umd.js"></script>\n'
+            '',
+        expectedOutput: ''
+            '  <script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js"></script>\n'
+            '',
+      );
+    });
+
+    test('in context with other HTML logic', () async {
+      await testSuggestor(
+        expectedPatchCount: 1,
+        shouldDartfmtOutput: false,
+        input: ''
+            '<!DOCTYPE html>\n'
+            '<html>\n'
+            '  <head>\n'
+            '    <title>{{testName}}</title>\n'
+            '    <!--my custom header-->\n'
+            '    <script src="packages/react_material_ui/react-material-ui.umd.js"></script>\n'
+            '    <script src="packages/engine/gopherBindings.js"></script>\n'
+            '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
+            '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
+            '    {{testScript}}\n'
+            '    <script src="packages/test/dart.js"></script>\n'
+            '  </head>\n'
+            '  <body></body>\n'
+            '</html>\n'
+            '',
+        expectedOutput: ''
+            '<!DOCTYPE html>\n'
+            '<html>\n'
+            '  <head>\n'
+            '    <title>{{testName}}</title>\n'
+            '    <!--my custom header-->\n'
+            '    <script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js"></script>\n'
+            '    <script src="packages/engine/gopherBindings.js"></script>\n'
+            '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
+            '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
+            '    {{testScript}}\n'
+            '    <script src="packages/test/dart.js"></script>\n'
+            '  </head>\n'
+            '  <body></body>\n'
+            '</html>\n'
+            '',
+      );
+    });
   });
 }
 
@@ -116,74 +164,9 @@ void main() {
 //       .map((getScriptWithPrefix) => getScriptWithPrefix(pathPrefix))
 //       .toList();
 //
-//   test('basic case', () async {
-//     await testSuggestor(
-//       expectedPatchCount: 1,
-//       shouldDartfmtOutput: false,
-//       input: ''
-//           '${scriptStrings.join('\n')}'
-//           '',
-//       expectedOutput: ''
-//           '${scriptStrings.join('\n')}\n'
-//           '${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\n'
-//           '',
-//     );
-//   });
-//
-//   test('with indentation', () async {
-//     await testSuggestor(
-//       expectedPatchCount: 1,
-//       shouldDartfmtOutput: false,
-//       input: ''
-//           '  ${scriptStrings.join('\n  ')}'
-//           '',
-//       expectedOutput: ''
-//           '  ${scriptStrings.join('\n  ')}\n'
-//           '  ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\n'
-//           '',
-//     );
-//   });
-//
-//   test('in context with other HTML logic', () async {
-//     await testSuggestor(
-//       expectedPatchCount: 1,
-//       shouldDartfmtOutput: false,
-//       input: ''
-//           '<!DOCTYPE html>\n'
-//           '<html>\n'
-//           '  <head>\n'
-//           '    <title>{{testName}}</title>\n'
-//           '    <!--my custom header-->\n'
-//           '    ${scriptStrings.join('\n    ')}\n'
-//           '    <script src="packages/engine/gopherBindings.js"></script>\n'
-//           '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
-//           '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
-//           '    {{testScript}}\n'
-//           '    <script src="packages/test/dart.js"></script>\n'
-//           '  </head>\n'
-//           '  <body></body>\n'
-//           '</html>\n'
-//           '',
-//       expectedOutput: ''
-//           '<!DOCTYPE html>\n'
-//           '<html>\n'
-//           '  <head>\n'
-//           '    <title>{{testName}}</title>\n'
-//           '    <!--my custom header-->\n'
-//           '    ${scriptStrings.join('\n    ')}\n'
-//           '    ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\n'
-//           '    <script src="packages/engine/gopherBindings.js"></script>\n'
-//           '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
-//           '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
-//           '    {{testScript}}\n'
-//           '    <script src="packages/test/dart.js"></script>\n'
-//           '  </head>\n'
-//           '  <body></body>\n'
-//           '</html>\n'
-//           '',
-//     );
-//   });
-//
+
+
+
 //   test('with a different script added', () async {
 //     final someOtherScript =
 //         ScriptToAdd(path: 'packages/something_else/something-else.js');

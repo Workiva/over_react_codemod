@@ -23,7 +23,7 @@ class HtmlScriptUpdater {
   final String existingScriptPath;
   final String newScriptPath;
 
-  // todo make sure the suggestor updates both prod and dev script lines
+  // todo add type="module" to script
 
   HtmlScriptUpdater(this.existingScriptPath, this.newScriptPath);
 
