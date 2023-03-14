@@ -44,7 +44,7 @@ void main() {
 
     test('dev bundle', () async {
       await testSuggestor(
-        expectedPatchCount: 1,
+        expectedPatchCount: 2,
         input: /*language=dart*/ '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="packages/react_material_ui/react-material-ui-development.umd.js"></script>'

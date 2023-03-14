@@ -29,13 +29,7 @@ class HtmlScriptUpdater {
   HtmlScriptUpdater(this.existingScriptPath, this.newScriptPath);
 
   Stream<Patch> call(FileContext context) async* {
-    // Do not update if the existingScriptPath isn't in the file.
-    if (!context.sourceText.contains(existingScriptPath)) return;
-
-    final patches = <Patch>[];
-
-    // Add type="module" attribute to script tag.
-    final existingScriptTagMatches = [
+    final relevantScriptTags = [
       ...Script(pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(context.sourceText),
@@ -44,7 +38,13 @@ class HtmlScriptUpdater {
           .allMatches(context.sourceText)
     ];
 
-    for (final scriptTagMatch in existingScriptTagMatches) {
+    // Do not update if neither the existingScriptPath nor newScriptPath are in the file.
+    if (relevantScriptTags.isEmpty) return;
+
+    final patches = <Patch>[];
+
+    // Add type="module" attribute to script tag.
+    for (final scriptTagMatch in relevantScriptTags) {
       final scriptTag = scriptTagMatch.group(0);
       if (scriptTag == null) continue;
       final typeAttributes = typeAttributePattern.allMatches(scriptTag);
