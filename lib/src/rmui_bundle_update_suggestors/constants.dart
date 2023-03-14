@@ -27,55 +27,11 @@ const rmuiBundleDevUpdated =
 const rmuiBundleProdUpdated =
     'packages/react_material_ui/js/react-material-ui.browser.min.esm.js';
 
-/// A script that can be searched for via a script tag [pattern] for a
-/// specific path ([pathSubpattern]).
-class Script {
-  final String pathSubpattern;
+/// Regex to get the type attribute if it exists.
+final typeAttributePattern = RegExp('type=[\"\']([^\"\']*)[\"\']');
 
-  const Script({required this.pathSubpattern});
+/// Regex to get the src attribute if it exists.
+final srcAttributePattern = RegExp('src=[\"\']([^\"\']*)[\"\']');
 
-  /// A pattern for finding a script tag with a matching path,
-  /// including preceding whitespace and any path prefix.
-  ///
-  /// See:
-  ///
-  /// - [ScriptMatch.precedingWhitespaceGroup]
-  /// - [ScriptMatch.pathPrefixGroup]
-  RegExp get pattern => RegExp(
-      r'(?<preceding_whitespace>[^\S\r\n]*)<script.*src="(?<path_prefix>.*)' +
-          pathSubpattern +
-          r'".*</script>');
-
-  @override
-  String toString() =>
-      'Script(pathSubpattern: $pathSubpattern, pattern: $pattern)';
-}
-
-/// A script that can be searched for via a script tag [pattern] for a
-/// specific [path], and can also be used to construct a [scriptTag] that
-/// can be inserted into a file.
-class ScriptToAdd extends Script {
-  final String path;
-
-  ScriptToAdd({required this.path})
-      : super(pathSubpattern: RegExp.escape(path));
-
-  String scriptTag({required String pathPrefix}) =>
-      '<script src="$pathPrefix$path"></script>';
-
-  @override
-  String toString() => 'ScriptToAdd(path: $path, pattern: $pattern)';
-}
-
-extension ScriptMatch on RegExpMatch {
-  /// The named capturing group for the whitespace preceding a script tag.
-  ///
-  /// For matches of [Script.pattern] only.
-  String get precedingWhitespaceGroup => namedGroup('preceding_whitespace')!;
-
-  /// The named capturing group for any path in a matched script tag that
-  /// becomes before [Script.pathSubpattern].
-  ///
-  /// For matches of [Script.pattern] only.
-  String get pathPrefixGroup => namedGroup('path_prefix')!;
-}
+/// The type attribute that needs to be added for the new RMUI bundles.
+final typeModuleAttribute = 'type="module"';

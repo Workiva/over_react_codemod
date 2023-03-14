@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/rmui_preparation_suggestors/constants.dart';
 
 import 'constants.dart';
 
@@ -31,10 +32,48 @@ class HtmlScriptUpdater {
     // Do not update if the existingScriptPath isn't in the file.
     if (!context.sourceText.contains(existingScriptPath)) return;
 
-    final scriptMatches = existingScriptPath.allMatches(context.sourceText);
-
     final patches = <Patch>[];
 
+    // Add type="module" attribute to script tag.
+    final existingScriptTagMatches = [
+      ...Script(pathSubpattern: existingScriptPath)
+          .pattern
+          .allMatches(context.sourceText),
+      ...Script(pathSubpattern: newScriptPath)
+          .pattern
+          .allMatches(context.sourceText)
+    ];
+
+    for (final scriptTagMatch in existingScriptTagMatches) {
+      final scriptTag = scriptTagMatch.group(0);
+      if (scriptTag == null) continue;
+      final typeAttributes = typeAttributePattern.allMatches(scriptTag);
+      if (typeAttributes.isNotEmpty) {
+        final attribute = typeAttributes.first;
+        final value = attribute.group(1);
+        if (value == 'module') {
+          continue;
+        } else {
+          // If the value of the type attribute is not "module", overwrite it.
+          patches.add(Patch(
+            typeModuleAttribute,
+            scriptTagMatch.start + attribute.start,
+            scriptTagMatch.start + attribute.end,
+          ));
+        }
+      } else {
+        // If the type attribute does not exist, add it.
+        final srcAttribute = srcAttributePattern.allMatches(scriptTag);
+        patches.add(Patch(
+          ' ${typeModuleAttribute}',
+          scriptTagMatch.start + srcAttribute.first.end,
+          scriptTagMatch.start + srcAttribute.first.end,
+        ));
+      }
+    }
+
+    // Update existing path to new path.
+    final scriptMatches = existingScriptPath.allMatches(context.sourceText);
     scriptMatches.forEach((match) async {
       patches.add(Patch(
         newScriptPath,

@@ -18,7 +18,7 @@ import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/constants.dart';
-import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/dart_script_adder.dart';
+import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/dart_script_updater.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/html_script_updater.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
@@ -37,6 +37,7 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
     aggregate([
+      // todo add the version number where the new bundle files exist in master
       PubspecUpgrader('react_material_ui', parseVersionRange('^1.1.1'),
           hostedUrl: 'https://pub.workiva.org'),
     ].map((s) => ignoreable(s))),
@@ -48,7 +49,7 @@ void main(List<String> args) async {
 
   if (exitCode != 0) return;
 
-  // Add RMUI bundle script to all HTML files (and templates).
+  // Update RMUI bundle script to all HTML files (and templates).
   exitCode = await runInteractiveCodemodSequence(
     allHtmlPathsIncludingTemplates(),
     [
@@ -61,18 +62,18 @@ void main(List<String> args) async {
     changesRequiredOutput: _changesRequiredOutput,
   );
 
-  // if (exitCode != 0) return;
-  //
-  // // Add RMUI bundle script to all Dart files and wrap react_dom.render calls in a ThemeProvider.
-  // exitCode = await runInteractiveCodemodSequence(
-  //   allDartPathsExceptHidden(),
-  //   [
-  //     // DartScriptAdder(rmuiBundleDev, false),
-  //     // DartScriptAdder(rmuiBundleProd, true),
-  //   ],
-  //   defaultYes: true,
-  //   args: parsedArgs.rest,
-  //   additionalHelpOutput: parser.usage,
-  //   changesRequiredOutput: _changesRequiredOutput,
-  // );
+  if (exitCode != 0) return;
+
+  // Update RMUI bundle script to all Dart files.
+  exitCode = await runInteractiveCodemodSequence(
+    allDartPathsExceptHidden(),
+    [
+      DartScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated),
+      DartScriptUpdater(rmuiBundleProd, rmuiBundleProdUpdated),
+    ],
+    defaultYes: true,
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
 }
