@@ -83,22 +83,5 @@ class HtmlScriptUpdater {
     });
 
     yield* Stream.fromIterable(patches);
-
-    // if (scriptMatches.isNotEmpty) {
-    //   final lastMatch = scriptMatches.last;
-    //
-    //   // Only add [scriptToAdd] if it has the same prod/dev status as the
-    //   // react-dart js [lastMatch] found.
-    //   final lastMatchValue = lastMatch.group(0)!;
-    //   if (isProd != isScriptProd(lastMatchValue)) return;
-    //
-    //   yield Patch(
-    //     // Add the new script with the same indentation as the line before it.
-    //     '\n${lastMatch.precedingWhitespaceGroup}'
-    //     '${existingScriptPath.scriptTag(pathPrefix: lastMatch.pathPrefixGroup)}',
-    //     lastMatch.end,
-    //     lastMatch.end,
-    //   );
-    // }
   }
 }
