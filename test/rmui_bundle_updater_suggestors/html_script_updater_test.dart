@@ -45,10 +45,10 @@ void main() {
         expectedPatchCount: 2,
         shouldDartfmtOutput: false,
         input: ''
-            '<script src="packages/react_material_ui/react-material-ui-development.umd.js"></script>\n'
+            '<script src="$rmuiBundleDev"></script>\n'
             '',
         expectedOutput: ''
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>\n'
+            '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
             '',
       );
     });
@@ -58,10 +58,10 @@ void main() {
         expectedPatchCount: 2,
         shouldDartfmtOutput: false,
         input: ''
-            '<script src="packages/react_material_ui/react-material-ui.umd.js"></script>\n'
+            '<script src="$rmuiBundleProd"></script>\n'
             '',
         expectedOutput: ''
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>\n'
+            '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
             '',
       );
     });
@@ -71,12 +71,12 @@ void main() {
         expectedPatchCount: 0,
         shouldDartfmtOutput: false,
         input: ''
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>\n'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>\n'
+            '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
+            '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
             '',
         expectedOutput: ''
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>\n'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>\n'
+            '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
+            '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
             '',
       );
     });
@@ -86,10 +86,10 @@ void main() {
         expectedPatchCount: 2,
         shouldDartfmtOutput: false,
         input: ''
-            '  <script src="packages/react_material_ui/react-material-ui-development.umd.js"></script>\n'
+            '  <script src="$rmuiBundleDev"></script>\n'
             '',
         expectedOutput: ''
-            '  <script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>\n'
+            '  <script src="$rmuiBundleDevUpdated" type="module"></script>\n'
             '',
       );
     });
@@ -104,7 +104,7 @@ void main() {
             '  <head>\n'
             '    <title>{{testName}}</title>\n'
             '    <!--my custom header-->\n'
-            '    <script src="packages/react_material_ui/react-material-ui.umd.js"></script>\n'
+            '    <script src="$rmuiBundleProd"></script>\n'
             '    <script src="packages/engine/gopherBindings.js"></script>\n'
             '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
             '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
@@ -120,7 +120,7 @@ void main() {
             '  <head>\n'
             '    <title>{{testName}}</title>\n'
             '    <!--my custom header-->\n'
-            '    <script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>\n'
+            '    <script src="$rmuiBundleProdUpdated" type="module"></script>\n'
             '    <script src="packages/engine/gopherBindings.js"></script>\n'
             '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->\n'
             '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
@@ -138,16 +138,16 @@ void main() {
         expectedPatchCount: 4,
         shouldDartfmtOutput: false,
         input: ''
-            '<script type="module" src="packages/react_material_ui/react-material-ui.umd.js"></script>\n'
-            '<script src="packages/react_material_ui/react-material-ui-development.umd.js" type="module" ></script>\n'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js"></script>\n'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js"></script>\n'
+            '<script type="module" src="$rmuiBundleProd"></script>\n'
+            '<script src="$rmuiBundleDev" type="module" ></script>\n'
+            '<script src="$rmuiBundleDevUpdated"></script>\n'
+            '<script src="$rmuiBundleProdUpdated"></script>\n'
             '',
         expectedOutput: ''
-            '<script type="module" src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js"></script>\n'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module" ></script>\n'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>\n'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>\n'
+            '<script type="module" src="$rmuiBundleProdUpdated"></script>\n'
+            '<script src="$rmuiBundleDevUpdated" type="module" ></script>\n'
+            '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
+            '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
             '',
       );
     });
@@ -157,12 +157,12 @@ void main() {
         expectedPatchCount: 4,
         shouldDartfmtOutput: false,
         input: ''
-            '<script src="packages/react_material_ui/react-material-ui-development.umd.js" type="js/slk-f.sdkf"></script>\n'
-            '<script src="packages/react_material_ui/react-material-ui.umd.js" type="js/slkfsdkf"></script>\n'
+            '<script src="$rmuiBundleDev" type="js/slk-f.sdkf"></script>\n'
+            '<script src="$rmuiBundleProd" type="js/slkfsdkf"></script>\n'
             '',
         expectedOutput: ''
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>\n'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>\n'
+            '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
+            '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
             '',
       );
     });

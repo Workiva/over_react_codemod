@@ -47,12 +47,12 @@ void main() {
         expectedPatchCount: 2,
         input: /*language=dart*/ '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="packages/react_material_ui/react-material-ui-development.umd.js"></script>'
+                '<script src="$rmuiBundleDev"></script>'
               ];
             ''',
         expectedOutput: /*language=dart*/ '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>'
+                '<script src="$rmuiBundleDevUpdated" type="module"></script>'
               ];
             ''',
       );
@@ -63,12 +63,12 @@ void main() {
         expectedPatchCount: 2,
         input: /*language=dart*/ '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="packages/react_material_ui/react-material-ui.umd.js"></script>'
+                '<script src="$rmuiBundleProd"></script>'
               ];
             ''',
         expectedOutput: /*language=dart*/ '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>'
+                '<script src="$rmuiBundleProdUpdated" type="module"></script>'
               ];
             ''',
       );
@@ -80,13 +80,13 @@ void main() {
         shouldDartfmtOutput: false,
         input: /*language=dart*/ '''
             List<String> _reactHtmlHeaders = const [\n'
-              \'<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>\'\n'
-              \'<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>\'\n'
+              \'<script src="$rmuiBundleDevUpdated" type="module"></script>\'\n'
+              \'<script src="$rmuiBundleProdUpdated" type="module"></script>\'\n'
             ];\n''',
         expectedOutput: /*language=dart*/ '''
             List<String> _reactHtmlHeaders = const [\n'
-              \'<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>\'\n'
-              \'<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>\'\n'
+              \'<script src="$rmuiBundleDevUpdated" type="module"></script>\'\n'
+              \'<script src="$rmuiBundleProdUpdated" type="module"></script>\'\n'
             ];\n''',
       );
     });
@@ -96,12 +96,12 @@ void main() {
         expectedPatchCount: 2,
         input: /*language=dart*/ '''
                 List<String> _reactHtmlHeaders = const [
-                '<script src="packages/react_material_ui/react-material-ui-development.umd.js"></script>'
+                '<script src="$rmuiBundleDev"></script>'
               ];
             ''',
         expectedOutput: /*language=dart*/ '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>'
+                '<script src="$rmuiBundleDevUpdated" type="module"></script>'
               ];
             ''',
       );
@@ -118,7 +118,7 @@ void main() {
             '  <head>'
             '    <title>{{testName}}</title>'
             '    <!--my custom header-->'
-            '    <script src="packages/react_material_ui/react-material-ui.umd.js"></script>'
+            '    <script src="$rmuiBundleProd"></script>'
             '    <script src="packages/engine/gopherBindings.js"></script>'
             '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->'
             '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>'
@@ -135,7 +135,7 @@ void main() {
             '  <head>'
             '    <title>{{testName}}</title>'
             '    <!--my custom header-->'
-            '    <script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>'
+            '    <script src="$rmuiBundleProdUpdated" type="module"></script>'
             '    <script src="packages/engine/gopherBindings.js"></script>'
             '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->'
             '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>'
@@ -154,17 +154,17 @@ void main() {
         shouldDartfmtOutput: false,
         input: /*language=dart*/ '''
           List<String> _reactHtmlHeaders = const [
-            '<script type="module" src="packages/react_material_ui/react-material-ui.umd.js"></script>'
-            '<script src="packages/react_material_ui/react-material-ui-development.umd.js" type="module" ></script>'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js"></script>'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js"></script>'
+            '<script type="module" src="$rmuiBundleProd"></script>'
+            '<script src="$rmuiBundleDev" type="module" ></script>'
+            '<script src="$rmuiBundleDevUpdated"></script>'
+            '<script src="$rmuiBundleProdUpdated"></script>'
           ];''',
         expectedOutput: /*language=dart*/ '''
           List<String> _reactHtmlHeaders = const [
-            '<script type="module" src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js"></script>'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module" ></script>'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>'
+            '<script type="module" src="$rmuiBundleProdUpdated"></script>'
+            '<script src="$rmuiBundleDevUpdated" type="module" ></script>'
+            '<script src="$rmuiBundleDevUpdated" type="module"></script>'
+            '<script src="$rmuiBundleProdUpdated" type="module"></script>'
           ];\n''',
       );
     });
@@ -175,13 +175,13 @@ void main() {
         shouldDartfmtOutput: false,
         input: /*language=dart*/ '''
           List<String> _reactHtmlHeaders = const [
-            '<script src="packages/react_material_ui/react-material-ui-development.umd.js" type="js/slk-f.sdkf"></script>'
-            '<script src="packages/react_material_ui/react-material-ui.umd.js" type="js/slkfsdkf"></script>'
+            '<script src="$rmuiBundleDev" type="js/slk-f.sdkf"></script>'
+            '<script src="$rmuiBundleProd" type="js/slkfsdkf"></script>'
           ];''',
         expectedOutput: /*language=dart*/ '''
           List<String> _reactHtmlHeaders = const [
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.dev.esm.js" type="module"></script>'
-            '<script src="packages/react_material_ui/js/react-material-ui.browser.min.esm.js" type="module"></script>'
+            '<script src="$rmuiBundleDevUpdated" type="module"></script>'
+            '<script src="$rmuiBundleProdUpdated" type="module"></script>'
           ];\n''',
       );
     });
