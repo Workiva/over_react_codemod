@@ -325,9 +325,8 @@ usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl
           d.file('test_project_intl.dart', /*language=dart*/ '''
 import 'package:${intlImport}';
 
-//ignore: avoid_classes_with_only_static_members
+//ignore_for_file: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
-
 class TestProjectIntl {
 ${messages.join('\n')}
 }''')

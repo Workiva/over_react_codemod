@@ -153,9 +153,8 @@ String wIntl = 'w_intl';
 String expectedFile(String methods) => '''
 import 'package:${wIntl}/intl_wrapper.dart';
 
-//ignore: avoid_classes_with_only_static_members
+//ignore_for_file: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
-
 class TestProjectIntl {${methods.isNotEmpty ? '\n' : ''}$methods
 }''';
 
