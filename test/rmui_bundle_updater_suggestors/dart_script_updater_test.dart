@@ -79,14 +79,14 @@ void main() {
         expectedPatchCount: 0,
         shouldDartfmtOutput: false,
         input: /*language=dart*/ '''
-            List<String> _reactHtmlHeaders = const [\n'
-              \'<script src="$rmuiBundleDevUpdated" type="module"></script>\'\n'
-              \'<script src="$rmuiBundleProdUpdated" type="module"></script>\'\n'
+            List<String> _reactHtmlHeaders = const [\n
+              \'<script src="$rmuiBundleDevUpdated" type="module"></script>\'\n
+              \'<script src="$rmuiBundleProdUpdated" type="module"></script>\'\n
             ];\n''',
         expectedOutput: /*language=dart*/ '''
-            List<String> _reactHtmlHeaders = const [\n'
-              \'<script src="$rmuiBundleDevUpdated" type="module"></script>\'\n'
-              \'<script src="$rmuiBundleProdUpdated" type="module"></script>\'\n'
+            List<String> _reactHtmlHeaders = const [\n
+              \'<script src="$rmuiBundleDevUpdated" type="module"></script>\'\n
+              \'<script src="$rmuiBundleProdUpdated" type="module"></script>\'\n
             ];\n''',
       );
     });
