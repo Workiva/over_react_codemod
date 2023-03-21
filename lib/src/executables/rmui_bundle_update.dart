@@ -37,8 +37,7 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
     aggregate([
-      // todo add the version number where the new bundle files exist in master
-      PubspecUpgrader('react_material_ui', parseVersionRange('^1.1.1'),
+      PubspecUpgrader('react_material_ui', parseVersionRange('^1.89.1'),
           hostedUrl: 'https://pub.workiva.org'),
     ].map((s) => ignoreable(s))),
     defaultYes: true,

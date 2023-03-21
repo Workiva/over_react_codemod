@@ -24,8 +24,6 @@ class HtmlScriptUpdater {
   final String existingScriptPath;
   final String newScriptPath;
 
-  // todo add type="module" to script
-
   HtmlScriptUpdater(this.existingScriptPath, this.newScriptPath);
 
   Stream<Patch> call(FileContext context) async* {
