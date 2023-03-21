@@ -21,9 +21,6 @@ import '../util.dart';
 
 void main() {
   group('DartScriptAdder', () {
-    // Test both suggestors together to:
-    // 1. verify for all cases that the wrong bundle type isn't updated
-    // 2. verify they work well together, since they'll never really be run individually
     final testSuggestor = getSuggestorTester(aggregate([
       DartScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated),
       DartScriptUpdater(rmuiBundleProd, rmuiBundleProdUpdated),
