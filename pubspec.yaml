@@ -43,6 +43,7 @@ executables:
   dependency_validator_ignore:
   mui_migration:
   rmui_preparation:
+  rmui_bundle_update:
   intl_message_migration:
 dependency_validator:
   ignore:
