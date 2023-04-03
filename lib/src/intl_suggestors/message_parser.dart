@@ -51,10 +51,32 @@ class MessageParser {
         intlClass.members.toList().cast<MethodDeclaration>();
     methods = [
       for (var declaration in methodDeclarations)
-        Method(
-            declaration.name.name, messageText(declaration), '  $declaration')
+        Method(declaration.name.name, messageText(declaration),
+            '  ${withoutArgsDeclaredFunction(declaration)}')
     ];
   }
+
+  /// Formatted messages don't like arguments of type Function, because it makes
+  /// Dart tear off the function from objects that implement [call], which loses
+  /// information so we can't figure out what to do properly. So replace all
+  /// such occurrences of 'Function' with 'Object'.
+  withoutArgsDeclaredFunction(MethodDeclaration declaration) {
+    var invocation = invocationPart(declaration);
+    var regularString = '$declaration';
+    if (invocation.methodName.name != 'formattedMessage') return regularString;
+
+    // Split out the body and just do a simple string replace. The conditions for a
+    // false positive on this seem unlikely, so just do it and cross our fingers.
+    // You can't name a getter Function. And if you name a parameter Function it'll
+    // presumably be followed by either a comma or a close-paren.
+    var declarationParts = regularString.split('=>');
+    var newBeginning =
+        declarationParts.first.replaceAll('Function ', 'Object ');
+    return '$newBeginning => ${declarationParts.last}';
+  }
+
+  MethodInvocation invocationPart(MethodDeclaration method) =>
+      method.body.childEntities.toList()[1] as MethodInvocation;
 
   /// The message text for an Intl method, that is to say the first argument
   /// of the method. We expect [method] to be a declaration of the form
@@ -67,8 +89,7 @@ class MessageParser {
     // single text argument. We return an empty string so they will always
     // match as being the same and it will use the existing one.
     // TODO: Rather than throw, could this e.g. return a different suggested name?
-    MethodInvocation invocation =
-        method.body.childEntities.toList()[1] as MethodInvocation;
+    MethodInvocation invocation = this.invocation(method);
     if (invocation.methodName.name != 'message') {
       // This isn't an Intl.message call, we don't know what to do, bail.
       return '';
