@@ -113,6 +113,22 @@ void main() {
           expectedFile(sortedSampleMethods.join('\n')));
     });
 
+    test('Function in formattedMessage parameters rewritten to Object', () {
+      // Write the file with a method in it that has a parameter typed Function.
+      var formattedMethod = messages.methods['formatted']!;
+      formattedMethod.source =
+          formattedMethod.source.replaceFirst('(Object ', '(Function ');
+      messages.write(force: true);
+      expect(messages.outputFile.readAsStringSync(),
+          isNot(equals(expectedFile(sortedSampleMethods.join('\n')))));
+      // Read it back and re-write it.
+      var newMessages = IntlMessages('TestProject', output: intlFile);
+      newMessages.write(force: true);
+      // Check that the Function parameter is back to normal.
+      expect(messages.outputFile.readAsStringSync(),
+          expectedFile(sortedSampleMethods.join('\n')));
+    });
+
     test('annotated messages rewritten properly when new ones are added', () {
       // Add an extra method. Name it so that it is sorted last without us needing to make the test sorting
       // more sophisticated.

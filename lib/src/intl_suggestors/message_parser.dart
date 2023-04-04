@@ -61,21 +61,26 @@ class MessageParser {
   /// information so we can't figure out what to do properly. So replace all
   /// such occurrences of 'Function' with 'Object'.
   withoutArgsDeclaredFunction(MethodDeclaration declaration) {
-    var invocation = invocationPart(declaration);
+    var invocation = intlMethodInvocation(declaration);
     var regularString = '$declaration';
     if (invocation.methodName.name != 'formattedMessage') return regularString;
 
-    // Split out the body and just do a simple string replace. The conditions for a
-    // false positive on this seem unlikely, so just do it and cross our fingers.
-    // You can't name a getter Function. And if you name a parameter Function it'll
-    // presumably be followed by either a comma or a close-paren.
+    // Split out the body and just do a simple string replace. The conditions
+    // for a false positive on this seem unlikely, so just do it and cross our
+    // fingers. If it's in a function name it will be followed by a parenthesis.
+    // This is only used for formattedMessage, so it won't be a getter. And if
+    // you name a parameter that ends in Function it'll presumably be followed
+    // by either a comma or a close-paren.
     var declarationParts = regularString.split('=>');
     var newBeginning =
         declarationParts.first.replaceAll('Function ', 'Object ');
-    return '$newBeginning => ${declarationParts.last}';
+    return '$newBeginning=>${declarationParts.last}';
   }
 
-  MethodInvocation invocationPart(MethodDeclaration method) =>
+  /// The invocation of the internal Intl method. That is, the part after the
+  /// '=>'.  We know there's only ever one. Used for determining what sort of
+  /// method this is message/plural/select/formattedMessage.
+  MethodInvocation intlMethodInvocation(MethodDeclaration method) =>
       method.body.childEntities.toList()[1] as MethodInvocation;
 
   /// The message text for an Intl method, that is to say the first argument
@@ -89,7 +94,7 @@ class MessageParser {
     // single text argument. We return an empty string so they will always
     // match as being the same and it will use the existing one.
     // TODO: Rather than throw, could this e.g. return a different suggested name?
-    MethodInvocation invocation = this.invocation(method);
+    var invocation = intlMethodInvocation(method);
     if (invocation.methodName.name != 'message') {
       // This isn't an Intl.message call, we don't know what to do, bail.
       return '';
