@@ -52,7 +52,7 @@ class MessageParser {
     methods = [
       for (var declaration in methodDeclarations)
         Method(declaration.name.name, messageText(declaration),
-            '  ${withoutArgsDeclaredFunction(declaration)}')
+            '  ${withoutArgsOfTypeFunction(declaration)}')
     ];
   }
 
@@ -60,7 +60,7 @@ class MessageParser {
   /// Dart tear off the function from objects that implement [call], which loses
   /// information so we can't figure out what to do properly. So replace all
   /// such occurrences of 'Function' with 'Object'.
-  withoutArgsDeclaredFunction(MethodDeclaration declaration) {
+  withoutArgsOfTypeFunction(MethodDeclaration declaration) {
     var invocation = intlMethodInvocation(declaration);
     var regularString = '$declaration';
     if (invocation.methodName.name != 'formattedMessage') return regularString;
