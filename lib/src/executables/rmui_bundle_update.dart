@@ -38,7 +38,8 @@ void main(List<String> args) async {
     pubspecYamlPaths(),
     aggregate([
       PubspecUpgrader('react_material_ui', parseVersionRange('^1.89.1'),
-          hostedUrl: 'https://pub.workiva.org'),
+          hostedUrl: 'https://pub.workiva.org',
+          shouldAddDependencies: false),
     ].map((s) => ignoreable(s))),
     defaultYes: true,
     args: parsedArgs.rest,
