@@ -17,6 +17,7 @@
 library over_react_codemod.src.util;
 
 import 'dart:collection';
+import 'dart:io';
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -261,8 +262,12 @@ String? parseAndRemoveCommentPrefixArg(List<String> args) {
         commentPrefixArgs.add(args[i]);
         args.removeAt(i);
       } else if (i + 1 < args.length) {
-        commentPrefixArgs..add(args[i])..add(args[i + 1]);
-        args..removeAt(i)..removeAt(i + 1);
+        commentPrefixArgs
+          ..add(args[i])
+          ..add(args[i + 1]);
+        args
+          ..removeAt(i)
+          ..removeAt(i + 1);
       }
       break;
     }
@@ -392,8 +397,11 @@ String stripPrivateGeneratedPrefix(String value) {
       : value;
 }
 
-Iterable<String> pubspecYamlPaths() =>
-    filePathsFromGlob(Glob('**pubspec.yaml', recursive: true));
+Iterable<String> pubspecYamlPaths() => Directory.current
+    .listSync(recursive: true, followLinks: false)
+    .whereType<File>()
+    .map((f) => f.path)
+    .where((f) => p.basename(f) == 'pubspec.yaml');
 
 Iterable<String> allHtmlPaths() =>
     filePathsFromGlob(Glob('**.html', recursive: true));
