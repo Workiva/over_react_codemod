@@ -328,7 +328,8 @@ import 'package:${intlImport}';
 //ignore_for_file: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
 class TestProjectIntl {
-${messages.join('\n')}
+${messages.join('\n\n')}
+
 }''')
         ]),
       ]),

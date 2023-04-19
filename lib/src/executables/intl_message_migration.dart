@@ -276,6 +276,7 @@ Future<void> migratePackage(
   processedPackages.add(package);
 
   messages.write(force: parsedArgs[_noMigrate]);
+  messages.format();
 }
 
 Future<int> runMigrators(List<String> packageDartPaths,

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_message_syntax.dart';
@@ -118,7 +120,7 @@ Attempting to add a different message with the same name:
   String get _messageContents {
     var buffer = StringBuffer();
     (methods.keys.toList()..sort())
-        .forEach((name) => buffer.write('\n${methods[name]?.source}'));
+        .forEach((name) => buffer.write('\n${methods[name]?.source}\n'));
     return '$buffer';
   }
 
@@ -143,6 +145,22 @@ Attempting to add a different message with the same name:
       outputFile.writeAsStringSync(contents);
     } else if (addedNewMethods || !hasTheSamePrologue || pruning) {
       outputFile.writeAsStringSync(contents);
+    }
+  }
+
+  /// Format the output file using dart_dev, and print an error it it fails
+  /// (possibly because dart_dev is not set up for this repo.)
+  void format() async {
+    var result =
+        Process.runSync('dart', ['run', 'dart_dev', 'format', outputFile.path]);
+    if (result.exitCode != 0) {
+      print('Stderr from formatting:\n${result.stderr}');
+      print('''
+-------------------------------------------------------------------
+Failure formatting with dart_dev on ${outputFile.path}. 
+Either activate dart_dev or format ${outputFile.path}
+another way according to the conventions of this repo.
+-------------------------------------------------------------------''');
     }
   }
 
