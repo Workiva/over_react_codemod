@@ -52,33 +52,48 @@ class MessageParser {
     methods = [
       for (var declaration in methodDeclarations)
         Method(declaration.name.name, messageText(declaration),
-            '  ${withoutArgsOfTypeFunction(declaration)}')
+            '  ${corrected(declaration)}')
     ];
   }
 
-  /// Formatted messages don't like arguments of type Function, because it makes
-  /// Dart tear off the function from objects that implement [call], which loses
-  /// information so we can't figure out what to do properly. So replace all
-  /// such occurrences of 'Function' with 'Object'.
-  withoutArgsOfTypeFunction(MethodDeclaration declaration) {
-    var invocation = intlMethodInvocation(declaration);
-    var regularString = sourceWithCorrectNameParameter(declaration);
-    if (invocation.methodName.name != 'formattedMessage') return regularString;
+  /// Correct messages as we're rewriting them.
+  ///
+  /// The main fix is that formatted messages don't like arguments of type
+  /// Function, because it makes Dart tear off the function from objects that
+  /// implement [call], which loses information so we can't figure out what to
+  /// do properly. So replace all such occurrences of 'Function' with 'Object'.
+  ///
+  /// We also fix the name parameters to all methods to match the class/method
+  /// name.
+  String corrected(MethodDeclaration declaration) {
+    var currentSource = withCorrectedNameParameter(declaration);
+    if (intlMethodInvocation(declaration).methodName.name !=
+        'formattedMessage') {
+      return currentSource;
+    } else {
+      return withCorrectFunctionTypes(declaration, currentSource);
+    }
+  }
 
+  /// The method source with Function rewritten to Object in formattedMessages.
+  /// This also takes the state of the current source if it's already been
+  /// partially rewritten.
+  String withCorrectFunctionTypes(
+      MethodDeclaration declaration, String currentSource) {
     // Split out the body and just do a simple string replace. The conditions
     // for a false positive on this seem unlikely, so just do it and cross our
     // fingers. If it's in a function name it will be followed by a parenthesis.
     // This is only used for formattedMessage, so it won't be a getter. And if
     // you name a parameter that ends in Function it'll presumably be followed
     // by either a comma or a close-paren.
-    var declarationParts = regularString.split('=>');
+    var declarationParts = currentSource.split('=>');
     var newBeginning =
         declarationParts.first.replaceAll('Function ', 'Object ');
     return '$newBeginning=>${declarationParts.last}';
   }
 
   /// Return the method body with the correct name.
-  String sourceWithCorrectNameParameter(MethodDeclaration declaration) {
+  String withCorrectedNameParameter(MethodDeclaration declaration) {
     var invocation = intlMethodInvocation(declaration);
     var nameParameter = invocation.argumentList.childEntities.firstWhere(
             (element) =>
