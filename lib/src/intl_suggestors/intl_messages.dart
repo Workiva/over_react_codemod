@@ -154,9 +154,13 @@ Attempting to add a different message with the same name:
     var result = Process.runSync('dart',
         ['pub', 'global', 'run', 'dart_dev', 'format', outputFile.path]);
     if (result.exitCode != 0) {
-      print(
-          'Failed to format ${outputFile.path} using dart_dev. Either activate it or format it another way');
-      print('STDERR:\n${result.stderr}');
+      print('Stderr from formatting:\n${result.stderr}');
+      print('''
+-------------------------------------------------------------------
+Failure formatting with dart_dev on ${outputFile.path}. 
+Either activate dart_dev or format ${outputFile.path}
+another way according to the conventions of this repo.
+-------------------------------------------------------------------''');
     }
   }
 
