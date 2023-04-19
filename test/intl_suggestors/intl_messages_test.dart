@@ -151,11 +151,11 @@ void main() {
       /// find it. So we're really exercising the nameForString more than the addMethod.
       var tweaked = sampleMethods[3].replaceFirst('def', 'zzzz');
       var name = messages.nameForString('function', r'abc${x}zzzz');
-      tweaked = tweaked.replaceFirst('function', name);
+      tweaked = tweaked.replaceAll('function', name);
       messages.addMethod(tweaked);
       var tweakedMore = sampleMethods[3].replaceFirst('abc', 'www');
       var otherName = messages.nameForString('function', r'www${x}def');
-      tweakedMore = tweakedMore.replaceFirst('function', otherName);
+      tweakedMore = tweakedMore.replaceAll('function', otherName);
       messages.addMethod(tweakedMore);
       expect(messages.methods.length, 9);
       expect(messages.methods['function']?.source, sampleMethods[3]);
@@ -181,9 +181,9 @@ List<String> sampleMethods = [
 line 
 string''', name: 'TestProjectIntl_long');""",
   """  static String function(String x) => Intl.message('abc\${x}def', name: 'TestProjectIntl_function');""",
-  """  static String aPlural(int n) => Intl.plural(n, zero: 'zero', other: 'other', name: 'aPlural', args: [n]);""",
-  """  static List<Object> formatted(Object f) => Intl.formattedMessage([f, 'foo'], name: 'formatted', args: [f]);""",
-  """  static String someSelect(Object choice) => Intl.select(choice, {'a' : 'b'}, name: 'someSelect', args: [choice]);"""
+  """  static String aPlural(int n) => Intl.plural(n, zero: 'zero', other: 'other', name: 'TestProjectIntl_aPlural', args: [n]);""",
+  """  static List<Object> formatted(Object f) => Intl.formattedMessage([f, 'foo'], name: 'TestProjectIntl_formatted', args: [f]);""",
+  """  static String someSelect(Object choice) => Intl.select(choice, {'a' : 'b'}, name: 'TestProjectIntl_someSelect', args: [choice]);"""
 ];
 
 // The sample methods in a hard-coded sorted order.

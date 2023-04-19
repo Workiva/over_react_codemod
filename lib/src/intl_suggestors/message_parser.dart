@@ -29,8 +29,8 @@ class MessageParser {
 
   // If we're parsing a method in isolation, it can't be parsed (at least not if it's static),
   // so wrap it in a trivial class and parse that.
-  MessageParser.forMethod(String methodSource)
-      : this.source = 'class Foo { $methodSource }',
+  MessageParser.forMethod(String methodSource, {String className = 'Foo'})
+      : this.source = 'class $className { $methodSource }',
         path = 'generated class for method' {
     _parse();
   }
@@ -62,7 +62,7 @@ class MessageParser {
   /// such occurrences of 'Function' with 'Object'.
   withoutArgsOfTypeFunction(MethodDeclaration declaration) {
     var invocation = intlMethodInvocation(declaration);
-    var regularString = '$declaration';
+    var regularString = sourceWithCorrectNameParameter(declaration);
     if (invocation.methodName.name != 'formattedMessage') return regularString;
 
     // Split out the body and just do a simple string replace. The conditions
@@ -75,6 +75,22 @@ class MessageParser {
     var newBeginning =
         declarationParts.first.replaceAll('Function ', 'Object ');
     return '$newBeginning=>${declarationParts.last}';
+  }
+
+  /// Return the method body with the correct name.
+  String sourceWithCorrectNameParameter(MethodDeclaration declaration) {
+    var invocation = intlMethodInvocation(declaration);
+    var nameParameter = invocation.argumentList.childEntities.firstWhere(
+            (element) =>
+                element is NamedExpression && element.name.label.name == 'name')
+        as NamedExpression;
+    var className = (declaration.parent as ClassDeclaration).name.name;
+    var expected = "'${className}_${declaration.name.name}'";
+    var actual = nameParameter.expression.toSource();
+    var basicString = '$declaration';
+    return expected == actual
+        ? basicString
+        : basicString.replaceFirst("name: $actual", "name: $expected");
   }
 
   /// The invocation of the internal Intl method. That is, the part after the
