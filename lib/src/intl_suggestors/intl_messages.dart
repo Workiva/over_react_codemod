@@ -151,8 +151,8 @@ Attempting to add a different message with the same name:
   /// Format the output file using dart_dev, and print an error it it fails
   /// (possibly because dart_dev is not set up for this repo.)
   void format() async {
-    var result = Process.runSync('dart',
-        ['pub', 'global', 'run', 'dart_dev', 'format', outputFile.path]);
+    var result =
+        Process.runSync('dart', ['run', 'dart_dev', 'format', outputFile.path]);
     if (result.exitCode != 0) {
       print('Stderr from formatting:\n${result.stderr}');
       print('''
