@@ -54,7 +54,7 @@ void main() {
             ''',
         );
         final expectedFileContent =
-            '\n  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');';
+            '\n  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');\n';
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -98,7 +98,7 @@ void main() {
             ''',
         );
         final expectedFileContent =
-            '\n  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');';
+            '\n  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');\n';
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -116,7 +116,7 @@ void main() {
             ''',
         );
         final expectedFileContent =
-            '\n  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');';
+            '\n  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');\n';
         expect(messages.messageContents(), expectedFileContent);
       });
 
@@ -145,8 +145,11 @@ void main() {
         );
         final expectedFileContent = '''
   static String get aDifferentConstant => Intl.message(\'A different constant\', name: \'TestClassIntl_aDifferentConstant\');
+
   static String get anotherStatic => Intl.message(\'Another static\', name: \'TestClassIntl_anotherStatic\');
+
   static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');
+
 ''';
         expect(messages.messageContents().trim(),
             expectedFileContent.trim()); // Avoid the leading return.
@@ -177,7 +180,9 @@ void main() {
         );
         final expectedFileContent = '''
   static String get anotherStatic => Intl.message(\'Another static\', name: \'TestClassIntl_anotherStatic\');
+
   static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');
+
 ''';
         expect(messages.messageContents().trim(),
             expectedFileContent.trim()); // Avoid the leading return.
@@ -200,7 +205,9 @@ void main() {
         );
         final expectedFileContent = '''
   static String get dueDate => Intl.message(\'Due Date\', name: \'TestClassIntl_dueDate\');
+
   static String get dueDate1 => Intl.message(\'Due date\', name: \'TestClassIntl_dueDate1\');
+
 ''';
         expect(messages.messageContents().trim(),
             expectedFileContent.trim()); // Avoid the leading return.
