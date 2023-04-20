@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:collection/collection.dart';
 
 /// Holds the important parts of a method that we've parsed.
 class Method {
@@ -94,18 +95,10 @@ class MessageParser {
 
   /// Find the parameter `name:` from the invocation, or return null if there
   /// isn't one.
-  NamedExpression? nameParameterFrom(MethodInvocation invocation) {
-    // firstWhere doesn't like an orElse that can return null if the original collection couldn't return nulls,
-    // so hackily force the collection to be nullable without requiring us to figure out where/if SyntacticEntity
-    // needs to be imported from.
-    var children = [...invocation.argumentList.childEntities, null];
-    // But now we don't need a null check, because is NamedExpression excludes
-    // 'null' with null-safety.
-    return children.firstWhere(
-        (element) =>
-            element is NamedExpression && element.name.label.name == 'name',
-        orElse: () => null) as NamedExpression?;
-  }
+  NamedExpression? nameParameterFrom(MethodInvocation invocation) =>
+      invocation.argumentList.childEntities.firstWhereOrNull((element) =>
+              element is NamedExpression && element.name.label.name == 'name')
+          as NamedExpression?;
 
   /// Return the method body with the correct name.
   String withCorrectedNameParameter(MethodDeclaration declaration) {
