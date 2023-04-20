@@ -37,6 +37,30 @@ void main() {
       expect(MessageParser.forMethod(tabbed).methods.first.name,
           'activateTheSelectedNode');
     });
+
+    test('Rewrite invalid name', () {
+      var badName =
+          '''static String get foo => Intl.message('Foo', name: 'foo');''';
+      expect(
+          MessageParser.forMethod(badName, className: 'AbcIntl')
+              .methods
+              .first
+              .source,
+          contains("name: 'AbcIntl_foo'"));
+    });
+
+    test('Add missing name', () {
+      var badName = '''static String get foo => Intl.message('Foo');''';
+      var parser = MessageParser.forMethod(badName, className: 'AbcIntl');
+      expect(parser.methods.first.source, endsWith(", name: 'AbcIntl_foo');"));
+      // Check that this parses as valid Dart code and the resulting declaration has the same source,
+      // i.e. we didn't mess anything up too badly.
+      var parsed = parseString(
+          content: 'class AbcIntl {${parser.methods.first.source}}');
+      var theClass = parsed.unit.declarations.first as ClassDeclaration;
+      expect(theClass.members.first.toSource(),
+          parser.methods.first.source.trim());
+    });
   });
 
   group('Create with no messages', () {

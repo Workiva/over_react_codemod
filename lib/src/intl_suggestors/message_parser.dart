@@ -92,20 +92,36 @@ class MessageParser {
     return '$newBeginning=>${declarationParts.last}';
   }
 
+  /// Find the parameter `name:` from the invocation, or return null if there
+  /// isn't one.
+  NamedExpression? nameParameterFrom(MethodInvocation invocation) {
+    // firstWhere doesn't like an orElse that can return null if the original collection couldn't return nulls,
+    // so hackily force the collection to be nullable without requiring us to figure out where/if SyntacticEntity
+    // needs to be imported from.
+    var children = [...invocation.argumentList.childEntities, null];
+    // But now we don't need a null check, because is NamedExpression excludes
+    // 'null' with null-safety.
+    return children.firstWhere(
+        (element) =>
+            element is NamedExpression && element.name.label.name == 'name',
+        orElse: () => null) as NamedExpression?;
+  }
+
   /// Return the method body with the correct name.
   String withCorrectedNameParameter(MethodDeclaration declaration) {
     var invocation = intlMethodInvocation(declaration);
-    var nameParameter = invocation.argumentList.childEntities.firstWhere(
-            (element) =>
-                element is NamedExpression && element.name.label.name == 'name')
-        as NamedExpression;
+    var nameParameter = nameParameterFrom(invocation);
     var className = (declaration.parent as ClassDeclaration).name.name;
     var expected = "'${className}_${declaration.name.name}'";
-    var actual = nameParameter.expression.toSource();
+    var actual = nameParameter?.expression.toSource();
     var basicString = '$declaration';
-    return expected == actual
-        ? basicString
-        : basicString.replaceFirst("name: $actual", "name: $expected");
+    if (actual == null) {
+      return basicString.replaceRange(
+          basicString.length - 2, basicString.length, ', name: $expected);');
+    } else
+      return expected == actual
+          ? basicString
+          : basicString.replaceFirst("name: $actual", "name: $expected");
   }
 
   /// The invocation of the internal Intl method. That is, the part after the
