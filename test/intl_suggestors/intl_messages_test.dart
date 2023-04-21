@@ -105,7 +105,7 @@ void main() {
 
     writeExisting(List<String> methods) {
       intlFile.writeAsStringSync(
-          "${IntlMessages.prologueFor('TestProjectIntl')}\n${methods.join('\n')}\n}\n");
+          "${IntlMessages.prologueFor('TestProjectIntl')}\n${methods.join('\n\n')}\n}\n");
       messages = IntlMessages('TestProject', output: intlFile);
     }
 
@@ -133,8 +133,9 @@ void main() {
 
     test('messages written as expected', () {
       messages.write(force: true);
+      messages.format();
       expect(messages.outputFile.readAsStringSync(),
-          expectedFile(sortedSampleMethods.join('\n')));
+          expectedFile(sortedSampleMethods.join('\n\n') + '\n'));
     });
 
     test('Function in formattedMessage parameters rewritten to Object', () {
@@ -144,24 +145,24 @@ void main() {
           formattedMethod.source.replaceFirst('(Object ', '(Function ');
       messages.write(force: true);
       expect(messages.outputFile.readAsStringSync(),
-          isNot(equals(expectedFile(sortedSampleMethods.join('\n')))));
+          isNot(equals(expectedFile(sortedSampleMethods.join('\n\n')))));
       // Read it back and re-write it.
       var newMessages = IntlMessages('TestProject', output: intlFile);
       newMessages.write(force: true);
       // Check that the Function parameter is back to normal.
       expect(messages.outputFile.readAsStringSync(),
-          expectedFile(sortedSampleMethods.join('\n')));
+          expectedFile(sortedSampleMethods.join('\n\n') + '\n'));
     });
 
     test('annotated messages rewritten properly when new ones are added', () {
       // Add an extra method. Name it so that it is sorted last without us needing to make the test sorting
       // more sophisticated.
       var extra =
-          "  static String get zzNewMessage => Intl.message('new', name: 'TestProjectIntl_zzNewMessage');";
+          "  static String get zzNewMessage => Intl.message('new', name: 'TestProjectIntl_zzNewMessage');\n";
       messages.addMethod(extra);
       messages.write();
       expect(messages.outputFile.readAsStringSync(),
-          expectedFile([...sortedSampleMethods, extra].join('\n')));
+          expectedFile([...sortedSampleMethods, extra].join('\n\n')));
     });
 
     test('duplicate names with different content throw in addMethod', () {
