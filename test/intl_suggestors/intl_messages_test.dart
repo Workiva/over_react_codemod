@@ -37,6 +37,30 @@ void main() {
       expect(MessageParser.forMethod(tabbed).methods.first.name,
           'activateTheSelectedNode');
     });
+
+    test('Rewrite invalid name', () {
+      var badName =
+          '''static String get foo => Intl.message('Foo', name: 'foo');''';
+      expect(
+          MessageParser.forMethod(badName, className: 'AbcIntl')
+              .methods
+              .first
+              .source,
+          contains("name: 'AbcIntl_foo'"));
+    });
+
+    test('Add missing name', () {
+      var badName = '''static String get foo => Intl.message('Foo');''';
+      var parser = MessageParser.forMethod(badName, className: 'AbcIntl');
+      expect(parser.methods.first.source, endsWith(", name: 'AbcIntl_foo');"));
+      // Check that this parses as valid Dart code and the resulting declaration has the same source,
+      // i.e. we didn't mess anything up too badly.
+      var parsed = parseString(
+          content: 'class AbcIntl {${parser.methods.first.source}}');
+      var theClass = parsed.unit.declarations.first as ClassDeclaration;
+      expect(theClass.members.first.toSource(),
+          parser.methods.first.source.trim());
+    });
   });
 
   group('Create with no messages', () {
@@ -152,11 +176,11 @@ void main() {
       /// find it. So we're really exercising the nameForString more than the addMethod.
       var tweaked = sampleMethods[3].replaceFirst('def', 'zzzz');
       var name = messages.nameForString('function', r'abc${x}zzzz');
-      tweaked = tweaked.replaceFirst('function', name);
+      tweaked = tweaked.replaceAll('function', name);
       messages.addMethod(tweaked);
       var tweakedMore = sampleMethods[3].replaceFirst('abc', 'www');
       var otherName = messages.nameForString('function', r'www${x}def');
-      tweakedMore = tweakedMore.replaceFirst('function', otherName);
+      tweakedMore = tweakedMore.replaceAll('function', otherName);
       messages.addMethod(tweakedMore);
       expect(messages.methods.length, 9);
       expect(messages.methods['function']?.source, sampleMethods[3]);
@@ -182,9 +206,9 @@ List<String> sampleMethods = [
 line 
 string''', name: 'TestProjectIntl_long');""",
   """  static String function(String x) => Intl.message('abc\${x}def', name: 'TestProjectIntl_function');""",
-  """  static String aPlural(int n) => Intl.plural(n, zero: 'zero', other: 'other', name: 'aPlural', args: [n]);""",
-  """  static List<Object> formatted(Object f) => Intl.formattedMessage([f, 'foo'], name: 'formatted', args: [f]);""",
-  """  static String someSelect(Object choice) => Intl.select(choice, {'a' : 'b'}, name: 'someSelect', args: [choice]);"""
+  """  static String aPlural(int n) => Intl.plural(n, zero: 'zero', other: 'other', name: 'TestProjectIntl_aPlural', args: [n]);""",
+  """  static List<Object> formatted(Object f) => Intl.formattedMessage([f, 'foo'], name: 'TestProjectIntl_formatted', args: [f]);""",
+  """  static String someSelect(Object choice) => Intl.select(choice, {'a' : 'b'}, name: 'TestProjectIntl_someSelect', args: [choice]);"""
 ];
 
 // The sample methods in a hard-coded sorted order.

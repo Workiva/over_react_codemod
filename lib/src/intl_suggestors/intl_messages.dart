@@ -72,7 +72,8 @@ class IntlMessages {
     // If we call this rather than addMethodNamed, then we're adding a new
     // method, record that.
     addedNewMethods |= true;
-    var parsed = MessageParser.forMethod(source).methods.first;
+    var parsed =
+        MessageParser.forMethod(source, className: className).methods.first;
     var expectedName = nameForString(parsed.name, parsed.messageText);
     if (expectedName != parsed.name) {
       throw AssertionError('''
