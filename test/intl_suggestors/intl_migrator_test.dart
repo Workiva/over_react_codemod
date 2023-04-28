@@ -863,7 +863,7 @@ void main() {
                     ),
                     (Dom.p()..addTestId('bar'))(
                       (Dom.p())(
-                        TestClassIntl.createOneFromAnyBy1(props.displayName),
+                        TestClassIntl.createOneFromAnyBy(props.displayName),
                       ),
                     ),
                   );
@@ -875,10 +875,7 @@ void main() {
 
         String expectedFileContent1 =
             "\n  static String createOneFromAnyBy(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_createOneFromAnyBy');\n";
-        String expectedFileContent2 =
-            "\n  static String createOneFromAnyBy1(String displayName) => Intl.message('Create one from any \${displayName} by selecting Save As Template', args: [displayName], name: 'TestClassIntl_createOneFromAnyBy1');\n";
-        expect(messages.messageContents(),
-            [expectedFileContent1, expectedFileContent2].join(''));
+        expect(messages.messageContents(), expectedFileContent1);
       });
 
       test('Home Example', () async {

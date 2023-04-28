@@ -188,6 +188,40 @@ void main() {
             expectedFileContent.trim()); // Avoid the leading return.
       });
 
+      test('duplicate static names with duplicated text, with double quotes',
+          () async {
+        await testSuggestor(
+          input: '''
+          class Bar {
+            static const foo = "I am a user-visible constant";
+          }
+          class Qux {
+            static const foo = "Another static";
+          }
+          const foo = "Another static";
+            ''',
+          expectedOutput: '''
+          class Bar { 
+            static final String foo = TestClassIntl.foo;
+          }
+          class Qux {
+            static final String foo = TestClassIntl.anotherStatic;
+          }
+
+          final String foo = TestClassIntl.anotherStatic;
+          
+            ''',
+        );
+        final expectedFileContent = '''
+  static String get anotherStatic => Intl.message(\'Another static\', name: \'TestClassIntl_anotherStatic\');
+
+  static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');
+
+''';
+        expect(messages.messageContents().trim(),
+            expectedFileContent.trim()); // Avoid the leading return.
+      });
+
       test('duplicate getter names increment', () async {
         await testSuggestor(
           input: '''
