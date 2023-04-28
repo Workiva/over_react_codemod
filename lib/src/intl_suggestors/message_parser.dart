@@ -2,6 +2,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:collection/collection.dart';
+import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 
 /// Holds the important parts of a method that we've parsed.
 class Method {
@@ -139,7 +140,7 @@ class MessageParser {
       // This isn't an Intl.message call, we don't know what to do, bail.
       return '';
     }
-    var text = invocation.argumentList.arguments.first.toSource();
-    return text;
+
+    return literalText(invocation.argumentList.arguments.first);
   }
 }

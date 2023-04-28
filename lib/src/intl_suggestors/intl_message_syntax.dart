@@ -125,9 +125,7 @@ class MessageSyntax {
 
   String nameForNode(StringLiteral body,
       {String? initialName, bool startAtZero = false}) {
-    var messageText = body is StringInterpolation
-        ? textFromInterpolation(body)
-        : body.toSource();
+    var messageText = literalText(body);
     // The case where there is no text after this should be checked in
     // isValidStringInterpolationNode and so it should never happen here.
     return owner.nameForString(

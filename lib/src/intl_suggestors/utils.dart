@@ -12,6 +12,14 @@ import 'constants.dart';
 // Checks the text under [node] has any alphabetic value, ignore if it's not.
 RegExp alphabetMatcher = RegExp('[a-zA-Z]');
 
+/// The text from a string literal, without quotes.
+String literalText(Expression literal) {
+  if (literal is! StringLiteral) return '';
+  return literal is StringInterpolation
+      ? textFromInterpolation(literal)
+      : literal.stringValue!;
+}
+
 /// For a string interpolation, get all the non-interpolated parts in a string,
 /// separated by spaces.
 String textFromInterpolation(StringInterpolation body) => body.elements
