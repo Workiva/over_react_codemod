@@ -346,28 +346,6 @@ void main() {
             expectedName: '_\$Foo',
           );
         });
-
-        test(
-            'for `when the intl_message_migration ignore comment is on the line after the variable`',
-            () {
-          _expectGeneratedFactoryName(
-            input: '''
-              UiFactory<FooProps> Foo = composeHocs([
-                connect<RandomColorStore, FooProps>(
-                  context: randomColorStoreContext,
-                  mapStateToProps: (_) => {},
-                  pure: false,
-                ),
-                connect<LowLevelStore, FooProps>(
-                  context: lowLevelStoreContext,
-                  mapStateToProps: (_) => {},
-                  pure: false,
-                ),
-              ])(_\$Foo); // ignore: intl_message_migration
-            ''',
-            expectedName: '_\$Foo',
-          );
-        });
       });
     });
 

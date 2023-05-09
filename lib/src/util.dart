@@ -106,13 +106,13 @@ Iterable<Token> allCommentsForNode(AstNode node) sync* {
 ///     // '// ignore: mixin_of_non_class'
 ///     buildIgnoreComment(mixinOfNonClass: true, undefinedClass: true);
 ///     // '// ignore: mixin_of_non_class, undefined_class'
-String buildIgnoreComment({
-  bool constInitializedWithNonConstantValue = false,
-  bool mixinOfNonClass = false,
-  bool undefinedClass = false,
-  bool undefinedIdentifier = false,
-  bool uriHasNotBeenGenerated = false,
-}) {
+String buildIgnoreComment(
+    {bool constInitializedWithNonConstantValue = false,
+    bool mixinOfNonClass = false,
+    bool undefinedClass = false,
+    bool undefinedIdentifier = false,
+    bool uriHasNotBeenGenerated = false,
+    bool intlMessageMigration = false}) {
   final ignores = [];
   if (constInitializedWithNonConstantValue) {
     ignores.add('const_initialized_with_non_constant_value');
@@ -126,7 +126,7 @@ String buildIgnoreComment({
   if (undefinedIdentifier) {
     ignores.add('undefined_identifier');
   }
-  if (undefinedIdentifier) {
+  if (intlMessageMigration) {
     ignores.add('intl_message_migration');
   }
   if (uriHasNotBeenGenerated) {

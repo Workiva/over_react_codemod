@@ -14,18 +14,16 @@
 
 @TestOn('vm')
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:over_react_codemod/src/constants.dart';
 import 'package:over_react_codemod/src/executables/dependency_validator_ignore.dart';
-
+import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
-
-import 'package:over_react_codemod/src/constants.dart';
-import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart';
-import 'package:over_react_codemod/src/util.dart';
 
 void main() {
   group('Utils', () {
@@ -48,6 +46,11 @@ void main() {
       test('undefinedIdentifier', () {
         expect(buildIgnoreComment(undefinedIdentifier: true),
             '// ignore: undefined_identifier');
+      });
+
+      test('intlMessageMigration', () {
+        expect(buildIgnoreComment(intlMessageMigration: true),
+            '// ignore: intl_message_migration');
       });
 
       test('uriHasNotBeenGenerated', () {
