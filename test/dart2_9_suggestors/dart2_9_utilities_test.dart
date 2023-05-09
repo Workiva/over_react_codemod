@@ -268,6 +268,17 @@ void main() {
           );
         });
 
+        test('when the ignore comment is for intl_message_migration', () {
+          _expectGeneratedFactoryName(
+            input: '''
+            UiFactory<FooProps> Foo = 
+              // ignore: intl_message_migration
+              _\$Foo;
+          ''',
+            expectedName: '_\$Foo',
+          );
+        });
+
         test('with type casting function', () {
           _expectGeneratedFactoryName(
             input: '''

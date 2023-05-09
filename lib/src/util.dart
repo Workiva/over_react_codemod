@@ -126,6 +126,9 @@ String buildIgnoreComment({
   if (undefinedIdentifier) {
     ignores.add('undefined_identifier');
   }
+  if (undefinedIdentifier) {
+    ignores.add('intl_message_migration');
+  }
   if (uriHasNotBeenGenerated) {
     ignores.add('uri_has_not_been_generated');
   }
@@ -262,12 +265,8 @@ String? parseAndRemoveCommentPrefixArg(List<String> args) {
         commentPrefixArgs.add(args[i]);
         args.removeAt(i);
       } else if (i + 1 < args.length) {
-        commentPrefixArgs
-          ..add(args[i])
-          ..add(args[i + 1]);
-        args
-          ..removeAt(i)
-          ..removeAt(i + 1);
+        commentPrefixArgs..add(args[i])..add(args[i + 1]);
+        args..removeAt(i)..removeAt(i + 1);
       }
       break;
     }

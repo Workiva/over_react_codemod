@@ -1362,64 +1362,6 @@ void main() {
     });
 
     group('Ignore', () {
-      test('Ignore statement with ignore comment', () async {
-        final source = 'import \'package:over_react/over_react.dart\';\n'
-            '\n'
-            'mixin FooProps on UiProps {}\n'
-            '\n'
-            'UiFactory<FooProps> Foo = uiFunction(\n'
-            '  (props) {\n'
-            '    return (Dom.div())(\n'
-            '      \'testString1\',\n'
-            '      \'testString2\',\n'
-            '    );\n'
-            '  },\n'
-            '  _\$FooConfig, //ignore: undefined_identifier\n'
-            ');\n'
-            '\n'
-            'UiFactory<FooProps> Bar = uiFunction(\n'
-            '  (props) {\n'
-            '    //ignore_statement: intl_message_migration\n'
-            '    return (Dom.div())(\n'
-            '      \'testString1\',\n'
-            '      \'testString2\',\n'
-            '    );\n'
-            '  },\n'
-            '  _\$FooConfig, //ignore: undefined_identifier\n'
-            ');\n'
-            '';
-        final output = 'import \'package:over_react/over_react.dart\';\n'
-            '\n'
-            'mixin FooProps on UiProps {}\n'
-            '\n'
-            'UiFactory<FooProps> Foo = uiFunction(\n'
-            '  (props) {\n'
-            '    return (Dom.div())(\n'
-            '      TestClassIntl.testString1,\n'
-            '      TestClassIntl.testString2,\n'
-            '    );\n'
-            '  },\n'
-            '  _\$FooConfig, //ignore: undefined_identifier\n'
-            ');\n'
-            '\n'
-            'UiFactory<FooProps> Bar = uiFunction(\n'
-            '  (props) {\n'
-            '    //ignore_statement: intl_message_migration\n'
-            '    return (Dom.div())(\n'
-            '      \'testString1\',\n'
-            '      \'testString2\',\n'
-            '    );\n'
-            '  },\n'
-            '  _\$FooConfig, //ignore: undefined_identifier\n'
-            ');\n'
-            '';
-
-        await testSuggestor(
-          input: source,
-          expectedOutput: output,
-        );
-      });
-
       test('Ignore file with ignore comment', () async {
         final source = '''
             //ignore_file: intl_message_migration

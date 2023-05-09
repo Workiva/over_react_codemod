@@ -241,37 +241,8 @@ class IntlMigrator extends ComponentUsageMigrator {
     // }
   }
 
-  // recursive function to if previous node is ignore comment until we come to the previous ";"
-  // limit
-  bool isIgnoreCommentBeforePreviousTerminator(node, limit) {
-    // Make *absolutely sure* we can't just recurse forever.
-    if (limit == null) {
-      limit = 128;
-    }
-
-    if (limit == 0) {
-      return false;
-    }
-
-    if (node.toString() == ';') {
-      return false;
-    }
-
-    if (node.precedingComments != null &&
-        node.precedingComments.value().contains(ignoreStatement)) {
-      return true;
-    } else {
-      return isIgnoreCommentBeforePreviousTerminator(node.previous, limit - 1);
-    }
-  }
-
   bool isLineIgnored(node) {
     //var prev = node.previous.length ? node.previous : null;
-
-    if (isIgnoreCommentBeforePreviousTerminator(
-        node.beginToken.previous, 128)) {
-      return true;
-    }
 
     return false;
   }
