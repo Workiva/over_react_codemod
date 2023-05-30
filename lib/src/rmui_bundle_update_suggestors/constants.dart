@@ -27,11 +27,29 @@ const rmuiBundleDevUpdated =
 const rmuiBundleProdUpdated =
     'packages/react_material_ui/js/react-material-ui.browser.min.esm.js';
 
-/// Regex to get the type attribute if it exists.
-final typeAttributePattern = RegExp('type=[\"\']([^\"\']*)[\"\']');
-
-/// Regex to get the src attribute if it exists.
-final srcAttributePattern = RegExp('src=[\"\']([^\"\']*)[\"\']');
-
-/// The type attribute that needs to be added for the new RMUI bundles.
+/// The type attribute that needs to be added to script tags for the new RMUI bundles.
 final typeModuleAttribute = 'type="module"';
+
+/// The crossorigin attribute that needs to be added to link tags for the new RMUI bundles.
+final crossOriginAttribute = 'crossorigin=""';
+
+/// Returns a pattern to get the [attribute] if it exists.
+RegExp getAttributePattern(String attribute) {
+  return RegExp('$attribute=[\"\']([^\"\']*)[\"\']');
+}
+
+/// A script that can be searched for via a link tag [pattern] for a
+/// specific path ([pathSubpattern]).
+class Link {
+  final String pathSubpattern;
+
+  const Link({required this.pathSubpattern});
+
+  /// A pattern for finding a link tag with a matching path.
+  RegExp get pattern => RegExp(
+      r'<link[^>]*href="(?<path_prefix>[^"]*)' + pathSubpattern + r'"[^>]*>');
+
+  @override
+  String toString() =>
+      'Script(pathSubpattern: $pathSubpattern, pattern: $pattern)';
+}

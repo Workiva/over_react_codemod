@@ -35,9 +35,17 @@ class HtmlScriptUpdater {
           .pattern
           .allMatches(context.sourceText)
     ];
+    final relevantLinkTags = [
+      ...Link(pathSubpattern: existingScriptPath)
+          .pattern
+          .allMatches(context.sourceText),
+      ...Link(pathSubpattern: newScriptPath)
+          .pattern
+          .allMatches(context.sourceText)
+    ];
 
     // Do not update if neither the existingScriptPath nor newScriptPath are in the file.
-    if (relevantScriptTags.isEmpty) return;
+    if (relevantScriptTags.isEmpty && relevantLinkTags.isEmpty) return;
 
     final patches = <Patch>[];
 
@@ -45,7 +53,7 @@ class HtmlScriptUpdater {
     for (final scriptTagMatch in relevantScriptTags) {
       final scriptTag = scriptTagMatch.group(0);
       if (scriptTag == null) continue;
-      final typeAttributes = typeAttributePattern.allMatches(scriptTag);
+      final typeAttributes = getAttributePattern('type').allMatches(scriptTag);
       if (typeAttributes.isNotEmpty) {
         final attribute = typeAttributes.first;
         final value = attribute.group(1);
@@ -61,11 +69,41 @@ class HtmlScriptUpdater {
         }
       } else {
         // If the type attribute does not exist, add it.
-        final srcAttribute = srcAttributePattern.allMatches(scriptTag);
+        final srcAttribute = getAttributePattern('src').allMatches(scriptTag);
         patches.add(Patch(
           ' ${typeModuleAttribute}',
           scriptTagMatch.start + srcAttribute.first.end,
           scriptTagMatch.start + srcAttribute.first.end,
+        ));
+      }
+    }
+
+    // Add crossorigin="" attribute to link tag.
+    for (final linkTagToMatch in relevantLinkTags) {
+      final linkTag = linkTagToMatch.group(0);
+      if (linkTag == null) continue;
+      final crossOriginAttributes =
+          getAttributePattern('crossorigin').allMatches(linkTag);
+      if (crossOriginAttributes.isNotEmpty) {
+        final attribute = crossOriginAttributes.first;
+        final value = attribute.group(1);
+        if (value == '') {
+          continue;
+        } else {
+          // If the value of the crossorigin attribute is not "", overwrite it.
+          patches.add(Patch(
+            crossOriginAttribute,
+            linkTagToMatch.start + attribute.start,
+            linkTagToMatch.start + attribute.end,
+          ));
+        }
+      } else {
+        // If the crossorigin attribute does not exist, add it.
+        final hrefAttribute = getAttributePattern('href').allMatches(linkTag);
+        patches.add(Patch(
+          ' ${crossOriginAttribute}',
+          linkTagToMatch.start + hrefAttribute.first.end,
+          linkTagToMatch.start + hrefAttribute.first.end,
         ));
       }
     }

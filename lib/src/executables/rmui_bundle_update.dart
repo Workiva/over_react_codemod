@@ -25,8 +25,8 @@ import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
-  pub global activate over_react_codemod
-  pub global run over_react_codemod:rmui_bundle_update
+  dart pub global activate over_react_codemod
+  dart pub global run over_react_codemod:rmui_bundle_update
 """;
 
 void main(List<String> args) async {
@@ -38,8 +38,7 @@ void main(List<String> args) async {
     pubspecYamlPaths(),
     aggregate([
       PubspecUpgrader('react_material_ui', parseVersionRange('^1.89.1'),
-          hostedUrl: 'https://pub.workiva.org',
-          shouldAddDependencies: false),
+          hostedUrl: 'https://pub.workiva.org', shouldAddDependencies: false),
     ].map((s) => ignoreable(s))),
     defaultYes: true,
     args: parsedArgs.rest,
