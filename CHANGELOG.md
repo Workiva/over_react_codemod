@@ -1,43 +1,43 @@
 ## [2.23.0(https://github.com/Workiva/over_react_codemod/compare/2.23.0....2.22.0)
 
-- #228 Update bundle updater codemod to include link tags 
+- Update bundle updater codemod to include link tags 
 
 ## [2.22.0(https://github.com/Workiva/over_react_codemod/compare/2.22.0....2.21.0)
 
-- #225 Fix for creating two copies of identical messages when they used double quotes
+- Fix for creating two copies of identical messages when they used double quotes
 
 ## [2.21.0(https://github.com/Workiva/over_react_codemod/compare/2.21.0....2.20.0)
 
-- #223 Fix names when writing the _intl.dart file
+- Fix names when writing the _intl.dart file
 
 ## [2.20.0(https://github.com/Workiva/over_react_codemod/compare/2.20.0....2.19.0)
 
-- #221 Attempt to reduce merge conflicts on _intl.dart files
+- Attempt to reduce merge conflicts on _intl.dart files
 
 ## [2.19.0(https://github.com/Workiva/over_react_codemod/compare/2.19.0....2.18.0)
 
-- #219 Update the glob for pubspecs to pick up things like empty_pubspec.yaml
+- Update the glob for pubspecs to pick up things like empty_pubspec.yaml
 
 ## [2.18.0(https://github.com/Workiva/over_react_codemod/compare/2.18.0....2.17.0)
 
-- #217 add shouldAddDependencies to bundle updater codemod
+- add shouldAddDependencies to bundle updater codemod
 
 ## [2.17.0(https://github.com/Workiva/over_react_codemod/compare/2.17.0....2.16.0)
 
-- #215 Change parameters typed Function in formattedMessage calls to Object
+- Change parameters typed Function in formattedMessage calls to Object
 
 ## [2.16.0(https://github.com/Workiva/over_react_codemod/compare/2.16.0....2.15.0)
 
-- #212 Batch change to update consumers to new RMUI ESM bundle
+- Batch change to update consumers to new RMUI ESM bundle
 
 ## [2.15.0(https://github.com/Workiva/over_react_codemod/compare/2.15.0....2.14.0)
 
-- #209 Migrate calls to addContextMenuItem
-- #211 Fix the ignore for static-only classes to be for the file
+- Migrate calls to addContextMenuItem
+- Fix the ignore for static-only classes to be for the file
 
 ## [2.14.0(https://github.com/Workiva/over_react_codemod/compare/2.14.0....2.13.0)
 
-- #200 Add nicer logging to codemod dryrun check 
+- Add nicer logging to codemod dryrun check 
 
 ## [2.13.0(https://github.com/Workiva/over_react_codemod/compare/2.13.0....2.12.0)
 
