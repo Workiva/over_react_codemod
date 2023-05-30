@@ -41,7 +41,7 @@ void main() {
 
     test('dev bundle', () async {
       await testSuggestor(
-        expectedPatchCount: 3,
+        expectedPatchCount: 4,
         input: '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDev"></script>',
@@ -51,7 +51,7 @@ void main() {
         expectedOutput: '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDevUpdated" type="module"></script>',
-                '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+                '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
               ];
             ''',
       );
@@ -59,7 +59,7 @@ void main() {
 
     test('prod bundle', () async {
       await testSuggestor(
-        expectedPatchCount: 3,
+        expectedPatchCount: 4,
         input: '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleProd"></script>',
@@ -69,7 +69,7 @@ void main() {
         expectedOutput: '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleProdUpdated" type="module"></script>',
-                '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
+                '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">',
               ];
             ''',
       );
@@ -82,33 +82,33 @@ void main() {
         input: '''
             List<String> _reactHtmlHeaders = const [
               '<script src="$rmuiBundleDevUpdated" type="module"></script>',
-              '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+              '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
               '<script src="$rmuiBundleProdUpdated" type="module"></script>',
-              '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
+              '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">',
             ];\n''',
         expectedOutput: '''
             List<String> _reactHtmlHeaders = const [
               '<script src="$rmuiBundleDevUpdated" type="module"></script>',
-              '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+              '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
               '<script src="$rmuiBundleProdUpdated" type="module"></script>',
-              '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
+              '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">',
             ];\n''',
       );
     });
 
     test('with indentation', () async {
       await testSuggestor(
-        expectedPatchCount: 3,
+        expectedPatchCount: 4,
         input: '''
                 List<String> _reactHtmlHeaders = const [
-                '<script src="$rmuiBundleDev"></script>',
-                '<link rel="preload" href="$rmuiBundleDev" as="script">',
+                '  <script src="$rmuiBundleDev"></script>',
+                '  <link rel="preload" href="$rmuiBundleDev" as="script">',
               ];
             ''',
         expectedOutput: '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="$rmuiBundleDevUpdated" type="module"></script>',
-                '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+                '  <script src="$rmuiBundleDevUpdated" type="module"></script>',
+                '  <link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
               ];
             ''',
       );
@@ -116,7 +116,7 @@ void main() {
 
     test('in context with other HTML logic', () async {
       await testSuggestor(
-        expectedPatchCount: 3,
+        expectedPatchCount: 4,
         shouldDartfmtOutput: false,
         input: '''
           List<String> _reactHtmlHeaders = const [
@@ -178,7 +178,7 @@ void main() {
             '    ',
             '    <!-- PRELOAD SCRIPTS -->',
             '    <link rel="preload" href="packages/react/react_with_react_dom_prod.js" as="script">',
-            '    <link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
+            '    <link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">',
             '    <link rel="preload" href="main.dart.js" as="script">',
             '    ',
             '    <!-- STYLESHEETS -->',
@@ -199,16 +199,16 @@ void main() {
       );
     });
 
-    test('with existing module attribute', () async {
+    test('with existing module or crossorigin attribute', () async {
       await testSuggestor(
-        expectedPatchCount: 6,
+        expectedPatchCount: 8,
         shouldDartfmtOutput: false,
         input: '''
           List<String> _reactHtmlHeaders = const [
             '<script type="module" src="$rmuiBundleProd"></script>',
-            '<link rel="preload" href="$rmuiBundleProd" as="script">',
+            '<link crossorigin="" rel="preload" href="$rmuiBundleProd" as="script">',
             '<script src="$rmuiBundleDev" type="module" ></script>',
-            '<link rel="preload" href="$rmuiBundleDev" as="script">',
+            '<link rel="preload" href="$rmuiBundleDev" crossorigin="" as="script">',
             '<script src="$rmuiBundleDevUpdated"></script>',
             '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
             '<script src="$rmuiBundleProdUpdated"></script>',
@@ -217,30 +217,34 @@ void main() {
         expectedOutput: '''
           List<String> _reactHtmlHeaders = const [
             '<script type="module" src="$rmuiBundleProdUpdated"></script>',
-            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
+            '<link crossorigin="" rel="preload" href="$rmuiBundleProdUpdated" as="script">',
             '<script src="$rmuiBundleDevUpdated" type="module" ></script>',
-            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+            '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
             '<script src="$rmuiBundleDevUpdated" type="module"></script>',
-            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+            '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
             '<script src="$rmuiBundleProdUpdated" type="module"></script>',
-            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
+            '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">',
           ];\n''',
       );
     });
 
-    test('will update an existing type attribute', () async {
+    test('will update an existing type and crossorigin attributes', () async {
       await testSuggestor(
-        expectedPatchCount: 4,
+        expectedPatchCount: 8,
         shouldDartfmtOutput: false,
         input: '''
           List<String> _reactHtmlHeaders = const [
             '<script src="$rmuiBundleDev" type="js/slk-f.sdkf"></script>',
+            '<link rel="preload" href="$rmuiBundleDev" crossorigin="asdfsafdsf" as="script">',
             '<script src="$rmuiBundleProd" type="js/slkfsdkf"></script>',
+            '<link rel="preload" href="$rmuiBundleProd" crossorigin="sadfsa/asdf" as="script">',
           ];''',
         expectedOutput: '''
           List<String> _reactHtmlHeaders = const [
             '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+            '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
             '<script src="$rmuiBundleProdUpdated" type="module"></script>',
+            '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">',
           ];\n''',
       );
     });
@@ -265,7 +269,7 @@ void main() {
 
     test('just link tags', () async {
       await testSuggestor(
-        expectedPatchCount: 2,
+        expectedPatchCount: 4,
         input: '''
               List<String> _reactHtmlHeaders = const [
                 '<link rel="preload" href="$rmuiBundleDev" as="script">',
@@ -274,12 +278,11 @@ void main() {
             ''',
         expectedOutput: '''
               List<String> _reactHtmlHeaders = const [
-                '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
-                '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
+                '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
+                '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">',
               ];
             ''',
       );
     });
-    // todo add tests with tags by themselves
   });
 }

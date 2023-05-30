@@ -27,8 +27,11 @@ const rmuiBundleDevUpdated =
 const rmuiBundleProdUpdated =
     'packages/react_material_ui/js/react-material-ui.browser.min.esm.js';
 
-/// The type attribute that needs to be added for the new RMUI bundles.
+/// The type attribute that needs to be added to script tags for the new RMUI bundles.
 final typeModuleAttribute = 'type="module"';
+
+/// The crossorigin attribute that needs to be added to link tags for the new RMUI bundles.
+final crossOriginAttribute = 'crossorigin=""';
 
 /// Returns a pattern to get the [attribute] if it exists.
 RegExp getAttributePattern(String attribute) {
@@ -43,8 +46,8 @@ class Link {
   const Link({required this.pathSubpattern});
 
   /// A pattern for finding a link tag with a matching path.
-  RegExp get pattern =>
-      RegExp(r'<link.*href="(?<path_prefix>.*)' + pathSubpattern + r'".*>');
+  RegExp get pattern => RegExp(
+      r'<link[^>]*href="(?<path_prefix>[^"]*)' + pathSubpattern + r'"[^>]*>');
 
   @override
   String toString() =>

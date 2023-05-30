@@ -42,7 +42,7 @@ void main() {
 
     test('dev bundle', () async {
       await testSuggestor(
-        expectedPatchCount: 3,
+        expectedPatchCount: 4,
         shouldDartfmtOutput: false,
         input: ''
             '<script src="$rmuiBundleDev"></script>\n'
@@ -50,14 +50,14 @@ void main() {
             '',
         expectedOutput: ''
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
-            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '',
       );
     });
 
     test('prod bundle', () async {
       await testSuggestor(
-        expectedPatchCount: 3,
+        expectedPatchCount: 4,
         shouldDartfmtOutput: false,
         input: ''
             '<script src="$rmuiBundleProd"></script>\n'
@@ -65,7 +65,7 @@ void main() {
             '',
         expectedOutput: ''
             '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
-            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">\n'
             '',
       );
     });
@@ -76,37 +76,37 @@ void main() {
         shouldDartfmtOutput: false,
         input: ''
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
-            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
-            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">\n'
             '',
         expectedOutput: ''
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
-            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
-            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">\n'
             '',
       );
     });
 
     test('with indentation', () async {
       await testSuggestor(
-        expectedPatchCount: 3,
+        expectedPatchCount: 4,
         shouldDartfmtOutput: false,
         input: ''
-            '<script src="$rmuiBundleDev"></script>\n'
-            '<link rel="preload" href="$rmuiBundleDev" as="script">\n'
+            '  <script src="$rmuiBundleDev"></script>\n'
+            '  <link rel="preload" href="$rmuiBundleDev" as="script">\n'
             '',
         expectedOutput: ''
-            '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
-            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">\n'
+            '  <script src="$rmuiBundleDevUpdated" type="module"></script>\n'
+            '  <link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '',
       );
     });
 
     test('in context with other HTML logic', () async {
       await testSuggestor(
-        expectedPatchCount: 3,
+        expectedPatchCount: 4,
         shouldDartfmtOutput: false,
         input: ''
             '<!DOCTYPE html>\n'
@@ -168,7 +168,7 @@ void main() {
             '    \n'
             '    <!-- PRELOAD SCRIPTS -->\n'
             '    <link rel="preload" href="packages/react/react_with_react_dom_prod.js" as="script">\n'
-            '    <link rel="preload" href="$rmuiBundleProdUpdated" as="script">\n'
+            '    <link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">\n'
             '    <link rel="preload" href="main.dart.js" as="script">\n'
             '    \n'
             '    <!-- STYLESHEETS -->\n'
@@ -189,15 +189,15 @@ void main() {
       );
     });
 
-    test('with existing module attribute', () async {
+    test('with existing module and crossorigin attributes', () async {
       await testSuggestor(
-        expectedPatchCount: 6,
+        expectedPatchCount: 8,
         shouldDartfmtOutput: false,
         input: ''
             '<script type="module" src="$rmuiBundleProd"></script>\n'
-            '<link rel="preload" href="$rmuiBundleProd" as="script">\n'
+            '<link crossorigin="" rel="preload" href="$rmuiBundleProd" as="script">\n'
             '<script src="$rmuiBundleDev" type="module" ></script>\n'
-            '<link rel="preload" href="$rmuiBundleDev" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleDev" crossorigin="" as="script">\n'
             '<script src="$rmuiBundleDevUpdated"></script>\n'
             '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">\n'
             '<script src="$rmuiBundleProdUpdated"></script>\n'
@@ -205,32 +205,32 @@ void main() {
             '',
         expectedOutput: ''
             '<script type="module" src="$rmuiBundleProdUpdated"></script>\n'
-            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">\n'
+            '<link crossorigin="" rel="preload" href="$rmuiBundleProdUpdated" as="script">\n'
             '<script src="$rmuiBundleDevUpdated" type="module" ></script>\n'
-            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
-            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
-            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">\n'
             '',
       );
     });
 
-    test('will update an existing type attribute', () async {
+    test('will update an existing type or crossorigin attribute', () async {
       await testSuggestor(
-        expectedPatchCount: 6,
+        expectedPatchCount: 8,
         shouldDartfmtOutput: false,
         input: ''
             '<script src="$rmuiBundleDev" type="js/slk-f.sdkf"></script>\n'
-            '<link rel="preload" href="$rmuiBundleDev" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleDev" crossorigin="sadfsafdsa" as="script">\n'
             '<script src="$rmuiBundleProd" type="js/slkfsdkf"></script>\n'
-            '<link rel="preload" href="$rmuiBundleProd" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleProd" crossorigin="saf/asdf/sa" as="script">\n'
             '',
         expectedOutput: ''
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
-            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
-            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">\n'
             '',
       );
     });
@@ -252,15 +252,15 @@ void main() {
 
     test('just link tags', () async {
       await testSuggestor(
-        expectedPatchCount: 2,
+        expectedPatchCount: 4,
         shouldDartfmtOutput: false,
         input: ''
             '<link rel="preload" href="$rmuiBundleDev" as="script">\n'
             '<link rel="preload" href="$rmuiBundleProd" as="script">\n'
             '',
         expectedOutput: ''
-            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">\n'
-            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
+            '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">\n'
             '',
       );
     });

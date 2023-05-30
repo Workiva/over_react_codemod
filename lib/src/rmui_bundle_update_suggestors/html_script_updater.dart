@@ -78,6 +78,36 @@ class HtmlScriptUpdater {
       }
     }
 
+    // Add crossorigin="" attribute to link tag.
+    for (final linkTagToMatch in relevantLinkTags) {
+      final linkTag = linkTagToMatch.group(0);
+      if (linkTag == null) continue;
+      final crossOriginAttributes =
+          getAttributePattern('crossorigin').allMatches(linkTag);
+      if (crossOriginAttributes.isNotEmpty) {
+        final attribute = crossOriginAttributes.first;
+        final value = attribute.group(1);
+        if (value == '') {
+          continue;
+        } else {
+          // If the value of the crossorigin attribute is not "", overwrite it.
+          patches.add(Patch(
+            crossOriginAttribute,
+            linkTagToMatch.start + attribute.start,
+            linkTagToMatch.start + attribute.end,
+          ));
+        }
+      } else {
+        // If the crossorigin attribute does not exist, add it.
+        final hrefAttribute = getAttributePattern('href').allMatches(linkTag);
+        patches.add(Patch(
+          ' ${crossOriginAttribute}',
+          linkTagToMatch.start + hrefAttribute.first.end,
+          linkTagToMatch.start + hrefAttribute.first.end,
+        ));
+      }
+    }
+
     // Update existing path to new path.
     final scriptMatches = existingScriptPath.allMatches(context.sourceText);
     scriptMatches.forEach((match) async {

@@ -16,7 +16,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/rmui_preparation_suggestors/constants.dart';
-import 'package:over_react_codemod/src/util.dart';
 
 import 'constants.dart';
 
@@ -45,10 +44,8 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
     final relevantLinkTags = [
       ...Link(pathSubpattern: existingScriptPath)
           .pattern
-          .allMatches(context.sourceText),
-      ...Link(pathSubpattern: newScriptPath)
-          .pattern
-          .allMatches(context.sourceText)
+          .allMatches(stringValue),
+      ...Link(pathSubpattern: newScriptPath).pattern.allMatches(stringValue)
     ];
 
     // Do not update if neither the existingScriptPath nor newScriptPath are in the file.
@@ -79,6 +76,36 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
           ' ${typeModuleAttribute}',
           node.offset + scriptTagMatch.start + srcAttribute.first.end,
           node.offset + scriptTagMatch.start + srcAttribute.first.end,
+        );
+      }
+    }
+
+    // Add crossorigin="" attribute to link tag.
+    for (final linkTagMatch in relevantLinkTags) {
+      final linkTag = linkTagMatch.group(0);
+      if (linkTag == null) continue;
+      final crossOriginAttributes =
+          getAttributePattern('crossorigin').allMatches(linkTag);
+      if (crossOriginAttributes.isNotEmpty) {
+        final attribute = crossOriginAttributes.first;
+        final value = attribute.group(1);
+        if (value == '') {
+          continue;
+        } else {
+          // If the value of the crossorigin attribute is not "", overwrite it.
+          yieldPatch(
+            crossOriginAttribute,
+            node.offset + linkTagMatch.start + attribute.start,
+            node.offset + linkTagMatch.start + attribute.end,
+          );
+        }
+      } else {
+        // If the crossorigin attribute does not exist, add it.
+        final hrefAttribute = getAttributePattern('href').allMatches(linkTag);
+        yieldPatch(
+          ' ${crossOriginAttribute}',
+          node.offset + linkTagMatch.start + hrefAttribute.first.end,
+          node.offset + linkTagMatch.start + hrefAttribute.first.end,
         );
       }
     }
