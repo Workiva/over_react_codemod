@@ -34,3 +34,19 @@ final typeModuleAttribute = 'type="module"';
 RegExp getAttributePattern(String attribute) {
   return RegExp('$attribute=[\"\']([^\"\']*)[\"\']');
 }
+
+/// A script that can be searched for via a link tag [pattern] for a
+/// specific path ([pathSubpattern]).
+class Link {
+  final String pathSubpattern;
+
+  const Link({required this.pathSubpattern});
+
+  /// A pattern for finding a link tag with a matching path.
+  RegExp get pattern =>
+      RegExp(r'<link.*href="(?<path_prefix>.*)' + pathSubpattern + r'".*>');
+
+  @override
+  String toString() =>
+      'Script(pathSubpattern: $pathSubpattern, pattern: $pattern)';
+}

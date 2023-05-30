@@ -41,15 +41,17 @@ void main() {
 
     test('dev bundle', () async {
       await testSuggestor(
-        expectedPatchCount: 2,
-        input: /*language=dart*/ '''
+        expectedPatchCount: 3,
+        input: '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="$rmuiBundleDev"></script>'
+                '<script src="$rmuiBundleDev"></script>',
+                '<link rel="preload" href="$rmuiBundleDev" as="script">',
               ];
             ''',
-        expectedOutput: /*language=dart*/ '''
+        expectedOutput: '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="$rmuiBundleDevUpdated" type="module"></script>'
+                '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+                '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
               ];
             ''',
       );
@@ -57,15 +59,17 @@ void main() {
 
     test('prod bundle', () async {
       await testSuggestor(
-        expectedPatchCount: 2,
-        input: /*language=dart*/ '''
+        expectedPatchCount: 3,
+        input: '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="$rmuiBundleProd"></script>'
+                '<script src="$rmuiBundleProd"></script>',
+                '<link rel="preload" href="$rmuiBundleProd" as="script">',
               ];
             ''',
-        expectedOutput: /*language=dart*/ '''
+        expectedOutput: '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="$rmuiBundleProdUpdated" type="module"></script>'
+                '<script src="$rmuiBundleProdUpdated" type="module"></script>',
+                '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
               ];
             ''',
       );
@@ -75,30 +79,36 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 0,
         shouldDartfmtOutput: false,
-        input: /*language=dart*/ '''
-            List<String> _reactHtmlHeaders = const [\n
-              \'<script src="$rmuiBundleDevUpdated" type="module"></script>\'\n
-              \'<script src="$rmuiBundleProdUpdated" type="module"></script>\'\n
+        input: '''
+            List<String> _reactHtmlHeaders = const [
+              '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+              '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+              '<script src="$rmuiBundleProdUpdated" type="module"></script>',
+              '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
             ];\n''',
-        expectedOutput: /*language=dart*/ '''
-            List<String> _reactHtmlHeaders = const [\n
-              \'<script src="$rmuiBundleDevUpdated" type="module"></script>\'\n
-              \'<script src="$rmuiBundleProdUpdated" type="module"></script>\'\n
+        expectedOutput: '''
+            List<String> _reactHtmlHeaders = const [
+              '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+              '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+              '<script src="$rmuiBundleProdUpdated" type="module"></script>',
+              '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
             ];\n''',
       );
     });
 
     test('with indentation', () async {
       await testSuggestor(
-        expectedPatchCount: 2,
-        input: /*language=dart*/ '''
+        expectedPatchCount: 3,
+        input: '''
                 List<String> _reactHtmlHeaders = const [
-                '<script src="$rmuiBundleDev"></script>'
+                '<script src="$rmuiBundleDev"></script>',
+                '<link rel="preload" href="$rmuiBundleDev" as="script">',
               ];
             ''',
-        expectedOutput: /*language=dart*/ '''
+        expectedOutput: '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="$rmuiBundleDevUpdated" type="module"></script>'
+                '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+                '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
               ];
             ''',
       );
@@ -106,62 +116,114 @@ void main() {
 
     test('in context with other HTML logic', () async {
       await testSuggestor(
-        expectedPatchCount: 2,
+        expectedPatchCount: 3,
         shouldDartfmtOutput: false,
-        input: /*language=dart*/ '''
+        input: '''
           List<String> _reactHtmlHeaders = const [
-            '<!DOCTYPE html>'
-            '<html>'
-            '  <head>'
-            '    <title>{{testName}}</title>'
-            '    <!--my custom header-->'
-            '    <script src="$rmuiBundleProd"></script>'
-            '    <script src="packages/engine/gopherBindings.js"></script>'
-            '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->'
-            '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>'
-            '    {{testScript}}'
-            '    <script src="packages/test/dart.js"></script>'
-            '  </head>'
-            '  <body></body>'
-            '</html>'
+            '<!DOCTYPE html>',
+            '<html>',
+            '  <head>',
+            '    <base href="/">',
+            '    ',
+            '    <meta http-equiv="X-UA-Compatible" content="IE=edge">',
+            '    <meta charset="UTF-8">',
+            '    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">',
+            '    <meta name="apple-mobile-web-app-capable" content="yes">',
+            '    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />',
+            '    <meta name="google" content="notranslate" />',
+            '    ',
+            '    <title>Wdesk</title>',
+            '    ',
+            '    <!-- Preconnects -->',
+            '    <link rel="preconnect" href="https://sandbox.wdesk.com">',
+            '    ',
+            '    <!-- PRELOAD SCRIPTS -->',
+            '    <link rel="preload" href="packages/react/react_with_react_dom_prod.js" as="script">',
+            '    <link rel="preload" href="$rmuiBundleProd" as="script">',
+            '    <link rel="preload" href="main.dart.js" as="script">',
+            '    ',
+            '    <!-- STYLESHEETS -->',
+            '    <link rel="stylesheet" href="packages/web_skin/dist/css/web-skin.min.css">',
+            '  </head>',
+            '  ',
+            '  <body>',
+            '    <!-- App Container -->',
+            '    <div id="shell-container" aria-hidden="true" tabindex="-1"></div>',
+            '    ',
+            '    <!-- SCRIPTS -->',
+            '    <script src="packages/react/react_with_react_dom_prod.js"></script>',
+            '    <script src="$rmuiBundleProd"></script>',
+            '    <script defer src="main.dart.js"></script>',
+            '  </body>',
+            '</html>',
           ];''',
-        expectedOutput: /*language=dart*/ '''
+        expectedOutput: '''
           List<String> _reactHtmlHeaders = const [
-            '<!DOCTYPE html>'
-            '<html>'
-            '  <head>'
-            '    <title>{{testName}}</title>'
-            '    <!--my custom header-->'
-            '    <script src="$rmuiBundleProdUpdated" type="module"></script>'
-            '    <script src="packages/engine/gopherBindings.js"></script>'
-            '    <!--In order to debug unit tests, use application/dart rather than x-dart-test-->'
-            '    <script src="packages/react_testing_library/js/react-testing-library.js"></script>'
-            '    {{testScript}}'
-            '    <script src="packages/test/dart.js"></script>'
-            '  </head>'
-            '  <body></body>'
-            '</html>'
+            '<!DOCTYPE html>',
+            '<html>',
+            '  <head>',
+            '    <base href="/">',
+            '    ',
+            '    <meta http-equiv="X-UA-Compatible" content="IE=edge">',
+            '    <meta charset="UTF-8">',
+            '    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">',
+            '    <meta name="apple-mobile-web-app-capable" content="yes">',
+            '    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />',
+            '    <meta name="google" content="notranslate" />',
+            '    ',
+            '    <title>Wdesk</title>',
+            '    ',
+            '    <!-- Preconnects -->',
+            '    <link rel="preconnect" href="https://sandbox.wdesk.com">',
+            '    ',
+            '    <!-- PRELOAD SCRIPTS -->',
+            '    <link rel="preload" href="packages/react/react_with_react_dom_prod.js" as="script">',
+            '    <link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
+            '    <link rel="preload" href="main.dart.js" as="script">',
+            '    ',
+            '    <!-- STYLESHEETS -->',
+            '    <link rel="stylesheet" href="packages/web_skin/dist/css/web-skin.min.css">',
+            '  </head>',
+            '  ',
+            '  <body>',
+            '    <!-- App Container -->',
+            '    <div id="shell-container" aria-hidden="true" tabindex="-1"></div>',
+            '    ',
+            '    <!-- SCRIPTS -->',
+            '    <script src="packages/react/react_with_react_dom_prod.js"></script>',
+            '    <script src="$rmuiBundleProdUpdated" type="module"></script>',
+            '    <script defer src="main.dart.js"></script>',
+            '  </body>',
+            '</html>',
           ];\n''',
       );
     });
 
     test('with existing module attribute', () async {
       await testSuggestor(
-        expectedPatchCount: 4,
+        expectedPatchCount: 6,
         shouldDartfmtOutput: false,
-        input: /*language=dart*/ '''
+        input: '''
           List<String> _reactHtmlHeaders = const [
-            '<script type="module" src="$rmuiBundleProd"></script>'
-            '<script src="$rmuiBundleDev" type="module" ></script>'
-            '<script src="$rmuiBundleDevUpdated"></script>'
-            '<script src="$rmuiBundleProdUpdated"></script>'
+            '<script type="module" src="$rmuiBundleProd"></script>',
+            '<link rel="preload" href="$rmuiBundleProd" as="script">',
+            '<script src="$rmuiBundleDev" type="module" ></script>',
+            '<link rel="preload" href="$rmuiBundleDev" as="script">',
+            '<script src="$rmuiBundleDevUpdated"></script>',
+            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+            '<script src="$rmuiBundleProdUpdated"></script>',
+            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
           ];''',
-        expectedOutput: /*language=dart*/ '''
+        expectedOutput: '''
           List<String> _reactHtmlHeaders = const [
-            '<script type="module" src="$rmuiBundleProdUpdated"></script>'
-            '<script src="$rmuiBundleDevUpdated" type="module" ></script>'
-            '<script src="$rmuiBundleDevUpdated" type="module"></script>'
-            '<script src="$rmuiBundleProdUpdated" type="module"></script>'
+            '<script type="module" src="$rmuiBundleProdUpdated"></script>',
+            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
+            '<script src="$rmuiBundleDevUpdated" type="module" ></script>',
+            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+            '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+            '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+            '<script src="$rmuiBundleProdUpdated" type="module"></script>',
+            '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
           ];\n''',
       );
     });
@@ -170,17 +232,54 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 4,
         shouldDartfmtOutput: false,
-        input: /*language=dart*/ '''
+        input: '''
           List<String> _reactHtmlHeaders = const [
-            '<script src="$rmuiBundleDev" type="js/slk-f.sdkf"></script>'
-            '<script src="$rmuiBundleProd" type="js/slkfsdkf"></script>'
+            '<script src="$rmuiBundleDev" type="js/slk-f.sdkf"></script>',
+            '<script src="$rmuiBundleProd" type="js/slkfsdkf"></script>',
           ];''',
-        expectedOutput: /*language=dart*/ '''
+        expectedOutput: '''
           List<String> _reactHtmlHeaders = const [
-            '<script src="$rmuiBundleDevUpdated" type="module"></script>'
-            '<script src="$rmuiBundleProdUpdated" type="module"></script>'
+            '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+            '<script src="$rmuiBundleProdUpdated" type="module"></script>',
           ];\n''',
       );
     });
+
+    test('just script tags', () async {
+      await testSuggestor(
+        expectedPatchCount: 4,
+        input: '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="$rmuiBundleDev"></script>',
+                '<script src="$rmuiBundleProd"></script>',
+              ];
+            ''',
+        expectedOutput: '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+                '<script src="$rmuiBundleProdUpdated" type="module"></script>',
+              ];
+            ''',
+      );
+    });
+
+    test('just link tags', () async {
+      await testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+              List<String> _reactHtmlHeaders = const [
+                '<link rel="preload" href="$rmuiBundleDev" as="script">',
+                '<link rel="preload" href="$rmuiBundleProd" as="script">',
+              ];
+            ''',
+        expectedOutput: '''
+              List<String> _reactHtmlHeaders = const [
+                '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+                '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
+              ];
+            ''',
+      );
+    });
+    // todo add tests with tags by themselves
   });
 }

@@ -28,16 +28,24 @@ class HtmlScriptUpdater {
 
   Stream<Patch> call(FileContext context) async* {
     final relevantScriptTags = [
-      ...SrcTag(tagName: 'script', pathSubpattern: existingScriptPath)
+      ...Script(pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(context.sourceText),
-      ...SrcTag(tagName: 'script', pathSubpattern: newScriptPath)
+      ...Script(pathSubpattern: newScriptPath)
+          .pattern
+          .allMatches(context.sourceText)
+    ];
+    final relevantLinkTags = [
+      ...Link(pathSubpattern: existingScriptPath)
+          .pattern
+          .allMatches(context.sourceText),
+      ...Link(pathSubpattern: newScriptPath)
           .pattern
           .allMatches(context.sourceText)
     ];
 
     // Do not update if neither the existingScriptPath nor newScriptPath are in the file.
-    if (relevantScriptTags.isEmpty) return;
+    if (relevantScriptTags.isEmpty && relevantLinkTags.isEmpty) return;
 
     final patches = <Patch>[];
 
