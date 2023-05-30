@@ -37,10 +37,12 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
     final stringValue = node.literal.lexeme;
 
     final relevantScriptTags = [
-      ...Script(pathSubpattern: existingScriptPath)
+      ...SrcTag(tagName: 'script', pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(stringValue),
-      ...Script(pathSubpattern: newScriptPath).pattern.allMatches(stringValue)
+      ...SrcTag(tagName: 'script', pathSubpattern: newScriptPath)
+          .pattern
+          .allMatches(stringValue)
     ];
 
     // Do not update if neither the existingScriptPath nor newScriptPath are in the file.
@@ -50,7 +52,7 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
     for (final scriptTagMatch in relevantScriptTags) {
       final scriptTag = scriptTagMatch.group(0);
       if (scriptTag == null) continue;
-      final typeAttributes = typeAttributePattern.allMatches(scriptTag);
+      final typeAttributes = getAttributePattern('type').allMatches(scriptTag);
       if (typeAttributes.isNotEmpty) {
         final attribute = typeAttributes.first;
         final value = attribute.group(1);
@@ -66,7 +68,7 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
         }
       } else {
         // If the type attribute does not exist, add it.
-        final srcAttribute = srcAttributePattern.allMatches(scriptTag);
+        final srcAttribute = getAttributePattern('src').allMatches(scriptTag);
         yieldPatch(
           ' ${typeModuleAttribute}',
           node.offset + scriptTagMatch.start + srcAttribute.first.end,

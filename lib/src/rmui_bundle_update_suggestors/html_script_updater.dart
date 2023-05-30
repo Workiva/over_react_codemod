@@ -28,10 +28,10 @@ class HtmlScriptUpdater {
 
   Stream<Patch> call(FileContext context) async* {
     final relevantScriptTags = [
-      ...Script(pathSubpattern: existingScriptPath)
+      ...SrcTag(tagName: 'script', pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(context.sourceText),
-      ...Script(pathSubpattern: newScriptPath)
+      ...SrcTag(tagName: 'script', pathSubpattern: newScriptPath)
           .pattern
           .allMatches(context.sourceText)
     ];
@@ -45,7 +45,7 @@ class HtmlScriptUpdater {
     for (final scriptTagMatch in relevantScriptTags) {
       final scriptTag = scriptTagMatch.group(0);
       if (scriptTag == null) continue;
-      final typeAttributes = typeAttributePattern.allMatches(scriptTag);
+      final typeAttributes = getAttributePattern('type').allMatches(scriptTag);
       if (typeAttributes.isNotEmpty) {
         final attribute = typeAttributes.first;
         final value = attribute.group(1);
@@ -61,7 +61,7 @@ class HtmlScriptUpdater {
         }
       } else {
         // If the type attribute does not exist, add it.
-        final srcAttribute = srcAttributePattern.allMatches(scriptTag);
+        final srcAttribute = getAttributePattern('src').allMatches(scriptTag);
         patches.add(Patch(
           ' ${typeModuleAttribute}',
           scriptTagMatch.start + srcAttribute.first.end,

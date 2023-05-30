@@ -27,11 +27,10 @@ const rmuiBundleDevUpdated =
 const rmuiBundleProdUpdated =
     'packages/react_material_ui/js/react-material-ui.browser.min.esm.js';
 
-/// Regex to get the type attribute if it exists.
-final typeAttributePattern = RegExp('type=[\"\']([^\"\']*)[\"\']');
-
-/// Regex to get the src attribute if it exists.
-final srcAttributePattern = RegExp('src=[\"\']([^\"\']*)[\"\']');
-
 /// The type attribute that needs to be added for the new RMUI bundles.
 final typeModuleAttribute = 'type="module"';
+
+/// Returns a pattern to get the [attribute] if it exists.
+RegExp getAttributePattern(String attribute) {
+  return RegExp('$attribute=[\"\']([^\"\']*)[\"\']');
+}

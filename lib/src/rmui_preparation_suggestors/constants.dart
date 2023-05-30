@@ -24,14 +24,17 @@ final rmuiBundleProd =
     ScriptToAdd(path: 'packages/react_material_ui/react-material-ui.umd.js');
 
 /// The script pattern for finding react-dart JS scripts.
-const reactJsScript = Script(pathSubpattern: r'packages/react/react\w*.js');
+const reactJsScript =
+    SrcTag(tagName: 'script', pathSubpattern: r'packages/react/react\w*.js');
 
-/// A script that can be searched for via a script tag [pattern] for a
+/// An HTML [tagName] tag with a src attribute that can be searched for via a [pattern] for a
 /// specific path ([pathSubpattern]).
-class Script {
+class SrcTag {
+  /// The name of the tag being searched for (ex. 'script', 'link').
+  final String tagName;
   final String pathSubpattern;
 
-  const Script({required this.pathSubpattern});
+  const SrcTag({required this.tagName, required this.pathSubpattern});
 
   /// A pattern for finding a script tag with a matching path,
   /// including preceding whitespace and any path prefix.
@@ -40,10 +43,13 @@ class Script {
   ///
   /// - [ScriptMatch.precedingWhitespaceGroup]
   /// - [ScriptMatch.pathPrefixGroup]
-  RegExp get pattern => RegExp(
-      r'(?<preceding_whitespace>[^\S\r\n]*)<script.*src="(?<path_prefix>.*)' +
-          pathSubpattern +
-          r'".*</script>');
+  RegExp get pattern => RegExp(r'(?<preceding_whitespace>[^\S\r\n]*)<' +
+      tagName +
+      '.*src="(?<path_prefix>.*)' +
+      pathSubpattern +
+      r'".*</' +
+      tagName +
+      '>');
 
   @override
   String toString() =>
@@ -53,11 +59,11 @@ class Script {
 /// A script that can be searched for via a script tag [pattern] for a
 /// specific [path], and can also be used to construct a [scriptTag] that
 /// can be inserted into a file.
-class ScriptToAdd extends Script {
+class ScriptToAdd extends SrcTag {
   final String path;
 
   ScriptToAdd({required this.path})
-      : super(pathSubpattern: RegExp.escape(path));
+      : super(tagName: 'script', pathSubpattern: RegExp.escape(path));
 
   String scriptTag({required String pathPrefix}) =>
       '<script src="$pathPrefix$path"></script>';
@@ -69,12 +75,12 @@ class ScriptToAdd extends Script {
 extension ScriptMatch on RegExpMatch {
   /// The named capturing group for the whitespace preceding a script tag.
   ///
-  /// For matches of [Script.pattern] only.
+  /// For matches of [SrcTag.pattern] only.
   String get precedingWhitespaceGroup => namedGroup('preceding_whitespace')!;
 
   /// The named capturing group for any path in a matched script tag that
-  /// becomes before [Script.pathSubpattern].
+  /// becomes before [SrcTag.pathSubpattern].
   ///
-  /// For matches of [Script.pattern] only.
+  /// For matches of [SrcTag.pattern] only.
   String get pathPrefixGroup => namedGroup('path_prefix')!;
 }
