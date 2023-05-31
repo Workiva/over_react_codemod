@@ -173,9 +173,23 @@ another way according to the conventions of this repo.
   static String prologueFor(String className) =>
       '''import 'package:${w_intl}/intl_wrapper.dart';
 
+$introComment
+
 //ignore_for_file: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
 class $className {''';
+
+  static const introComment = '''
+// This class is generated and maintained by the over_react_codemod:intl_message_migration.
+// It is possible to make manual changes to it, but be aware that it will be read and regenerated
+// any time the codemod is run, which will sort the members and apply its own formatting.
+// The type of code it may contain is limited to that which the codemod understands, and to 
+// things that can be extracted as Intl message. Limitations include:
+// - Only arrow functions
+// - Functions may only contain an Intl invocation
+// - Intl functions may only refer to variables in their parameter list and not to any external
+//   variables or functions.
+''';
 
   /// The beginning of our Intl class.
   String get prologue => prologueFor(className);
