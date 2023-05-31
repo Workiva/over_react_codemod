@@ -14,6 +14,7 @@
 
 import 'package:codemod/src/run_interactive_codemod.dart' show codemodArgParser;
 import 'package:over_react_codemod/src/executables/intl_message_migration.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -324,6 +325,8 @@ usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl
         d.dir('intl', [
           d.file('test_project_intl.dart', /*language=dart*/ '''
 import 'package:${intlImport}';
+
+${IntlMessages.introComment}
 
 //ignore_for_file: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
