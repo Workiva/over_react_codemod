@@ -305,3 +305,32 @@ enum PackageType {
   dartCore,
   package,
 }
+
+// recursive function to if previous node is ignore comment until we come to the previous ";"
+// limit
+bool isIgnoreCommentBeforePreviousTerminator(Token token, {int limit = 128}) {
+  if (limit == 0) {
+    return false;
+  }
+
+  if ('$token' == ';') {
+    return false;
+  }
+
+  if (token.precedingComments != null &&
+      (token.precedingComments?.value().contains(ignoreStatement) ?? false)) {
+    return true;
+  } else {
+    return token.previous != null &&
+        isIgnoreCommentBeforePreviousTerminator(token.previous!,
+            limit: limit - 1);
+  }
+}
+
+// TODO: Could we do a better job of this by finding all the ignore comments in the file and then
+// figuring out what they apply to? See e.g. https://github.com/dart-lang/sdk/blob/cc18b250ae886f556fe1d5a7962894c86f5b7be1/pkg/analyzer/lib/src/ignore_comments/ignore_info.dart#L138
+// and its uses.
+bool isLineIgnored(AstNode node) =>
+    isIgnoreCommentBeforePreviousTerminator(node.beginToken);
+
+bool isFileIgnored(String fileContents) => fileContents.contains(ignoreFile);

@@ -71,6 +71,53 @@ void main() {
         expect(messages.messageContents(), expectedFileContent);
       });
 
+      test('ignored standalone constant', () async {
+        var input = '''
+            // ignore_statement: intl_message_migration
+            const foo = 'I am a user-visible constant';
+            ''';
+        await testSuggestor(
+          input: input,
+          expectedOutput: input,
+        );
+        final expectedFileContent = '';
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
+      test('ignore one but not the second', () async {
+        var input = '''
+            // ignore_statement: intl_message_migration
+            const foo = 'I am a user-visible constant';
+            const bar = 'Me too!';
+            ''';
+        await testSuggestor(
+          input: input,
+          expectedOutput: '''
+            // ignore_statement: intl_message_migration
+            const foo = 'I am a user-visible constant';
+            final String bar = TestClassIntl.bar;
+            ''',
+        );
+        final expectedFileContent =
+            '\n  static String get bar => Intl.message(\'Me too!\', name: \'TestClassIntl_bar\');\n';
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
+      test('ignored standalone constant in file', () async {
+        var input = '''
+            // ignore_file: intl_message_migration
+            var x = 4;
+            var y = x == 5 ? x : 42;
+            const foo = 'I am a user-visible constant';
+            ''';
+        await testSuggestor(
+          input: input,
+          expectedOutput: input,
+        );
+        final expectedFileContent = '';
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
       test('SCREAMING_CAPS_ARE_IGNORED', () async {
         await testSuggestor(
           input: '''
