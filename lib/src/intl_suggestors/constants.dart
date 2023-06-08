@@ -15,3 +15,6 @@ const propsToCheck = [
   'tooltipContent',
   'value',
 ];
+
+const ignoreStatement = 'ignore_statement: intl_message_migration';
+const ignoreFile = 'ignore_file: intl_message_migration';

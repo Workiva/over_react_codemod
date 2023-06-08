@@ -65,7 +65,6 @@ class UsedMethodsChecker extends GeneralizingAstVisitor
     if ('${node.prefix}' == _className) {
       _messages.noteUsage('${node.identifier}');
     }
-    // TODO: implement visitPrefixedIdentifier
     return super.visitPrefixedIdentifier(node);
   }
 
@@ -93,8 +92,15 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
 
   ConstantStringMigrator(this._className, this._messages);
 
+  bool shouldMigrate(VariableDeclaration node) {
+    if (isLineIgnored(node)) return false;
+    if (isFileIgnored(this.context.sourceText)) return false;
+    return true;
+  }
+
   @override
   visitVariableDeclaration(VariableDeclaration node) {
+    if (!shouldMigrate(node)) return;
     // We expect it to be const and have an initializer that's a simple string.
     if (node.isConst &&
         node.initializer != null &&
@@ -151,9 +157,6 @@ class IntlMigrator extends ComponentUsageMigrator {
   final String _className;
 
   IntlMigrator(this._className, this._messages);
-
-  String get ignoreStatement => 'ignore_statement: intl_message_migration';
-  String get ignoreFile => 'ignore_file: intl_message_migration';
 
   @override
   String get fixmePrefix => 'FIXME - INTL ';
@@ -239,46 +242,6 @@ class IntlMigrator extends ComponentUsageMigrator {
     //         'The "label" property may or may not be user-visible, check hideLabel');
     //   }
     // }
-  }
-
-  // recursive function to if previous node is ignore comment until we come to the previous ";"
-  // limit
-  bool isIgnoreCommentBeforePreviousTerminator(node, limit) {
-    // Make *absolutely sure* we can't just recurse forever.
-    if (limit == null) {
-      limit = 128;
-    }
-
-    if (limit == 0) {
-      return false;
-    }
-
-    if (node.toString() == ';') {
-      return false;
-    }
-
-    if (node.precedingComments != null &&
-        node.precedingComments.value().contains(ignoreStatement)) {
-      return true;
-    } else {
-      return isIgnoreCommentBeforePreviousTerminator(node.previous, limit - 1);
-    }
-  }
-
-  bool isLineIgnored(node) {
-    //var prev = node.previous.length ? node.previous : null;
-
-    if (isIgnoreCommentBeforePreviousTerminator(
-        node.beginToken.previous, 128)) {
-      return true;
-    }
-
-    return false;
-  }
-
-  bool isFileIgnored(fileContents) {
-    final ignored = fileContents.contains(this.ignoreFile);
-    return ignored;
   }
 
   void migrateChildStringLiteral(
