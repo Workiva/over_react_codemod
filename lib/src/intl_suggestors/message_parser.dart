@@ -49,8 +49,14 @@ class MessageParser {
       rethrow;
     }
     var intlClass = parsed.unit.declarations.first as ClassDeclaration;
+    var allDeclarations = intlClass.members.toList();
+    for (var decl in allDeclarations) {
+      if (decl is! MethodDeclaration) {
+        throw FormatException('Invalid member, not a method declaration: "$decl"');
+      }
+    }
     var methodDeclarations =
-        intlClass.members.toList().cast<MethodDeclaration>();
+        allDeclarations.cast<MethodDeclaration>();
     methods = [
       for (var declaration in methodDeclarations)
         Method(declaration.name.name, messageText(declaration),
