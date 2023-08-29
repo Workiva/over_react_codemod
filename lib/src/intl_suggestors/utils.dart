@@ -93,6 +93,7 @@ bool isValidStringLiteralProp(PropAssignment prop) {
   if (excludeKnownBadCases(prop, prop.name.name)) return false;
   if (excludeUnlikelyExpressions(prop, prop.name.name)) return false;
   if (!isValidStringLiteralNode(prop.rightHandSide)) return false;
+  if (isLineIgnored(prop.node)) return false;
   return true;
 }
 // -- End Node Validation --
