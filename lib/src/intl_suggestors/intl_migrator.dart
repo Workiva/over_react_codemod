@@ -93,7 +93,7 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
   ConstantStringMigrator(this._className, this._messages);
 
   bool shouldMigrate(VariableDeclaration node) {
-    if (isLineIgnored(node)) return false;
+    if (isStatementIgnored(node)) return false;
     if (isFileIgnored(this.context.sourceText)) return false;
     return true;
   }
@@ -176,7 +176,7 @@ class IntlMigrator extends ComponentUsageMigrator {
   @override
   bool shouldMigrateUsage(FluentComponentUsage usage) {
     // TODO: Handle adjacent strings with an interpolation.
-    if (isLineIgnored(usage.node)) return false;
+    if (isStatementIgnored(usage.node)) return false;
     if (isFileIgnored(this.context.sourceText)) return false;
 
     return usage.cascadedProps.any((prop) =>
