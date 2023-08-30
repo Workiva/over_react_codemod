@@ -85,6 +85,7 @@ bool isValidStringInterpolationProp(PropAssignment prop) {
   if (excludeKnownBadCases(prop, prop.name.name)) return false;
   if (excludeUnlikelyExpressions(prop, prop.name.name)) return false;
   if (!isValidStringInterpolationNode(prop.rightHandSide)) return false;
+  if (isLineIgnored(prop.node)) return false;
   return true;
 }
 
@@ -93,6 +94,7 @@ bool isValidStringLiteralProp(PropAssignment prop) {
   if (excludeKnownBadCases(prop, prop.name.name)) return false;
   if (excludeUnlikelyExpressions(prop, prop.name.name)) return false;
   if (!isValidStringLiteralNode(prop.rightHandSide)) return false;
+  if (isLineIgnored(prop.node)) return false;
   return true;
 }
 // -- End Node Validation --
@@ -330,7 +332,16 @@ bool isIgnoreCommentBeforePreviousTerminator(Token token, {int limit = 128}) {
 // TODO: Could we do a better job of this by finding all the ignore comments in the file and then
 // figuring out what they apply to? See e.g. https://github.com/dart-lang/sdk/blob/cc18b250ae886f556fe1d5a7962894c86f5b7be1/pkg/analyzer/lib/src/ignore_comments/ignore_info.dart#L138
 // and its uses.
-bool isLineIgnored(AstNode node) =>
+bool isStatementIgnored(AstNode node) =>
     isIgnoreCommentBeforePreviousTerminator(node.beginToken);
+
+/// Attempt to determine if this single line is being ignored within a
+/// statement, which is probably a component invocation or other complex
+/// construct.
+///
+/// We assume that the comment is immediately before in terms of tokens, which
+/// is a little fragile, but better than nothing.
+bool isLineIgnored(AstNode node) =>
+    isIgnoreCommentBeforePreviousTerminator(node.beginToken, limit: 1);
 
 bool isFileIgnored(String fileContents) => fileContents.contains(ignoreFile);

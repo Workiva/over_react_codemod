@@ -1420,6 +1420,51 @@ void main() {
         );
       });
 
+      test('Ignore line within a component', () async {
+        final source = '''
+import 'package:over_react/over_react.dart';
+            
+mixin FooProps on UiProps {}
+          
+  UiFactory<FooProps> Bar = uiFunction(
+    (props) {
+      return (Dom.div()
+        ..value='foo'
+        //ignore_statement: intl_message_migration
+        ..value='bar'
+        ..title='qux')(
+         'testString1',
+        );
+    },
+    _\$FooConfig, //ignore: undefined_identifier
+  );
+''';
+
+        final output = '''
+import 'package:over_react/over_react.dart';
+            
+mixin FooProps on UiProps {}
+          
+  UiFactory<FooProps> Bar = uiFunction(
+    (props) {
+      return (Dom.div()
+        ..value=TestClassIntl.foo
+        //ignore_statement: intl_message_migration
+        ..value='bar'
+        ..title=TestClassIntl.qux)(
+         TestClassIntl.testString1,
+        );
+    },
+    _\$FooConfig, //ignore: undefined_identifier
+  );
+''';
+
+        await testSuggestor(
+          input: source,
+          expectedOutput: output,
+        );
+      });
+
       test('Ignore statement with ignore comment with leading spaces',
           () async {
         final source = 'import \'package:over_react/over_react.dart\';\n'

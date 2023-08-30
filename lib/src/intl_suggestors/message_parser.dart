@@ -52,11 +52,11 @@ class MessageParser {
     var allDeclarations = intlClass.members.toList();
     for (var decl in allDeclarations) {
       if (decl is! MethodDeclaration) {
-        throw FormatException('Invalid member, not a method declaration: "$decl"');
+        throw FormatException(
+            'Invalid member, not a method declaration: "$decl"');
       }
     }
-    var methodDeclarations =
-        allDeclarations.cast<MethodDeclaration>();
+    var methodDeclarations = allDeclarations.cast<MethodDeclaration>();
     methods = [
       for (var declaration in methodDeclarations)
         Method(declaration.name.name, messageText(declaration),
@@ -127,8 +127,16 @@ class MessageParser {
   /// The invocation of the internal Intl method. That is, the part after the
   /// '=>'.  We know there's only ever one. Used for determining what sort of
   /// method this is message/plural/select/formattedMessage.
-  MethodInvocation intlMethodInvocation(MethodDeclaration method) =>
-      method.body.childEntities.toList()[1] as MethodInvocation;
+  MethodInvocation intlMethodInvocation(MethodDeclaration method) {
+    var invocation = method.body.childEntities.toList()[1];
+    if (invocation is MethodInvocation) {
+      return invocation;
+    } else {
+      print('ERROR: Invalid Intl method: $method');
+      // We expect this to throw
+      return invocation as MethodInvocation;
+    }
+  }
 
   /// The message text for an Intl method, that is to say the first argument
   /// of the method. We expect [method] to be a declaration of the form
