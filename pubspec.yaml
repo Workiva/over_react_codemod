@@ -17,7 +17,7 @@ dependencies:
   collection: ^1.15.0
   glob: ^2.0.1
   logging: ^1.0.1
-  meta: '>=1.7.0 <1.10.0'
+  meta: '>=1.7.0  <1.10.0'
   path: ^1.8.0
   pub_semver: ^2.0.0
   source_span: ^1.8.1
@@ -47,4 +47,5 @@ executables:
   intl_message_migration:
 dependency_validator:
   ignore:
+    - meta
     - mockito
