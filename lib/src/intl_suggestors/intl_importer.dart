@@ -48,8 +48,8 @@ Stream<Patch> intlImporter(
 
   final importFormat = decideImportFormat(hasPackageImport, hasRelativeImports);
 
-  final importStatement = importFormat == 'package' ? "import '$intlUri'; "
-                                                    : "import './intl/${projectName}_intl.dart'; ";
+  final importStatement = importFormat == 'package' ? insertInfo.leadingNewlines + "import '$intlUri'; " + insertInfo.trailingNewlines
+                                                    : insertInfo.leadingNewlines + "import './intl/${projectName}_intl.dart'; " + insertInfo.trailingNewlines;
   yield Patch(
       importStatement,
       insertInfo.offset,
