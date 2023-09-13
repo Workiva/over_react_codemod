@@ -49,7 +49,7 @@ Stream<Patch> intlImporter(
   final importFormat = decideImportFormat(hasPackageImport, hasRelativeImports);
 
   final importStatement = importFormat == 'package' ? insertInfo.leadingNewlines + "import '$intlUri'; " + insertInfo.trailingNewlines
-                                                    : insertInfo.leadingNewlines + "import './intl/${projectName}_intl.dart'; " + insertInfo.trailingNewlines;
+                                                    : insertInfo.leadingNewlines + "import '../intl/${projectName}_intl.dart'; " + insertInfo.trailingNewlines;
   yield Patch(
       importStatement,
       insertInfo.offset,
@@ -142,7 +142,7 @@ _InsertionLocation _insertionLocationForPackageImport(
     if(uriContent != null){
       if(uriContent.startsWith('package:')){
         hasPackageImports = true;
-      } else if(uriContent.startsWith('./intl/')){
+      } else if(uriContent.startsWith('../')){
         hasRelativeImports = true;
       }
     }
