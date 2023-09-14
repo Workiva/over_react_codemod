@@ -108,7 +108,18 @@ void main() {
             ''',
           );
         });
-
+        test('when there are package imports',() {
+          var getStatus = decideImportFormat(true,false);
+          expect('package', equals(getStatus));
+        });
+        test('when there are relative imports',(){
+          var getStatus = decideImportFormat(false,true);
+          expect('relative', equals(getStatus));
+        });
+        test('when there are package and relative imports',(){
+          String importFormat = decideImportFormat(true,true);
+          expect('package', equals(importFormat));
+        });
         test('(more than one alphabetized before and after `TestProjectIntl`)',
             () async {
           await testSuggestor(
