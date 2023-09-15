@@ -49,3 +49,6 @@ dependency_validator:
   ignore:
     - meta
     - mockito
+
+dependency_overrides:
+  mockito: ^5.3.2
