@@ -1,0 +1,17 @@
+name: scip
+
+# Run on all PRs and default branch pushes (so navigation can be used within pull requests and master).
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+# Necessary to retrieve credentials to publish code-intel graphs to sourcegraph
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  index:
+    uses: Workiva/gha-scip/.github/workflows/dart.yaml@v0.1.10
