@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:io';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as path;
 
 Stream<Patch> intlImporter(
     FileContext context, String projectName, String className) async* {
@@ -38,23 +40,34 @@ Stream<Patch> intlImporter(
 
   if (!needsIntlImport) return;
 
-  final intlUri = 'package:${projectName}/src/intl/${projectName}_intl.dart';
+  final currentFilePath = Platform.script.toFilePath();
+  final currentDirectory = path.dirname(currentFilePath);
+
+  final intlUri = 'package:$projectName/src/intl/${projectName}_intl.dart';
+  final relativePathToIntlDir = path.relative(currentDirectory, from: intlUri);
+
+  final levelsUp = List<String>.generate(relativePathToIntlDir.split(path.separator).length, (_) => '..').join('/');
+
+  final relativeImportPath = '$levelsUp/src/intl/${projectName}_intl.dart';
 
   final insertInfo = _insertionLocationForPackageImport(
-      intlUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
+      relativeImportPath, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
 
   final hasPackageImport = insertInfo.hasPackageImports;
   final hasRelativeImports = insertInfo.hasRelativeImports;
 
-  final importFormat = decideImportFormat(hasPackageImport, hasRelativeImports);
+  var importFormat = decideImportFormat(hasPackageImport, hasRelativeImports);
 
-  final importStatement = importFormat == 'package' ? insertInfo.leadingNewlines + "import '$intlUri'; " + insertInfo.trailingNewlines
-                                                    : insertInfo.leadingNewlines + "import '../../intl/${projectName}_intl.dart'; " + insertInfo.trailingNewlines;
+  final importStatement = importFormat ? packageImport(intlUri, insertInfo) : relativeImport(relativeImportPath, insertInfo);
+
   yield Patch(
       importStatement,
       insertInfo.offset,
       insertInfo.offset);
 }
+
+String packageImport(String intlUri, _InsertionLocation insertInfo) => insertInfo.leadingNewlines + "import '$intlUri';" + insertInfo.trailingNewlines;
+String relativeImport(String relativeImportPath, _InsertionLocation insertInfo) =>  insertInfo.leadingNewlines + "import '$relativeImportPath';" + insertInfo.trailingNewlines;
 
 class _InsertionLocation {
   final int offset;
@@ -137,16 +150,17 @@ _InsertionLocation _insertionLocationForPackageImport(
         trailingNewlineCount: 2);
   }
 
-  imports.forEach((importDirective) {
+  for (final importDirective in imports) {
     final uriContent = importDirective.uriContent;
-    if(uriContent != null){
-      if(uriContent.startsWith('package:')){
-        hasPackageImports = true;
-      } else if(uriContent.startsWith('../')){
+    if (uriContent != null) {
+      final uri = Uri.parse(uriContent);
+      if (uri.scheme.isEmpty) {
         hasRelativeImports = true;
+      } else if (uri.scheme == 'package') {
+        hasPackageImports = true;
       }
     }
-  });
+  }
 
   return _InsertionLocation(
     insertAfter ? relativeNode.end : relativeNode.offset,
@@ -157,14 +171,8 @@ _InsertionLocation _insertionLocationForPackageImport(
   );
 }
 
-String decideImportFormat(bool hasPackageImports, bool hasRelativeImports) {
-  if (hasPackageImports && !hasRelativeImports) {
-    return 'package';
-  } else if (!hasPackageImports && hasRelativeImports) {
-    return 'relative';
-  } else {
-    return 'package';
-  }
+bool decideImportFormat(bool shouldUsePackageImports, bool shouldUseRelativeImports) {
+  return shouldUsePackageImports || !shouldUseRelativeImports;
 }
 
 

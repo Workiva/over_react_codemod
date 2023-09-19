@@ -108,18 +108,50 @@ void main() {
             ''',
           );
         });
-        test('when there are package imports',() {
-          var getStatus = decideImportFormat(true,false);
-          expect('package', equals(getStatus));
+
+        test('when there are only package imports', () {
+          final imports = [
+            'import \'package:over_react/over_react.dart\';',
+            'import \'package:package_two/file.dart\';',
+          ];
+          final hasPackageImports = imports.any((importStatement) => importStatement.startsWith('import \'package:'));
+          final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith('import \'../'));
+          final importFormat = decideImportFormat(hasPackageImports, hasRelativeImports);
+          expect(importFormat, isTrue);
         });
-        test('when there are relative imports',(){
-          var getStatus = decideImportFormat(false,true);
-          expect('relative', equals(getStatus));
+
+        test('when there are only relative imports', () {
+          final imports = [
+            'import \'../../../src/intl/datatables_intl.dart\';',
+            'import \'../lib/file.dart\';',
+          ];
+          final hasPackageImports = imports.any((importStatement) => importStatement.startsWith('import \'package:'));
+          final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith('import \'../'));
+          final importFormat = decideImportFormat(hasPackageImports, hasRelativeImports);
+          expect(importFormat, isTrue);
         });
-        test('when there are package and relative imports',(){
-          String importFormat = decideImportFormat(true,true);
-          expect('package', equals(importFormat));
+
+        test('when there are both package and relative imports', () {
+          final imports = [
+            'import \'package:package_one/file.dart\';',
+            'import \'../../../src/intl/datatables_intl.dart\';',
+          ];
+          final hasPackageImports = imports.any((importStatement) => importStatement.startsWith('import \'package:'));
+          final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith('import \'../'));
+          final importFormat = decideImportFormat(hasPackageImports, hasRelativeImports);
+          expect(importFormat, isTrue);
         });
+
+        test('when there are no import statements', () {
+          final imports = <String>[];
+          final hasPackageImports = imports.any((importStatement) => importStatement.startsWith('import \'package:'));
+          final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith('import \'../'));
+          final importFormat = decideImportFormat(hasPackageImports, hasRelativeImports);
+          expect(importFormat, isFalse);
+        });
+
+
+
         test('(more than one alphabetized before and after `TestProjectIntl`)',
             () async {
           await testSuggestor(
