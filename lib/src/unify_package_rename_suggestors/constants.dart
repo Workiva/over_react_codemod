@@ -12,5 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// The standard namespace to use when importing unify_ui.
-const unifyNs = 'unify';
+/// A map of the standard namespaces for rmui imports to their unify equivalents.
+const unifyNamespaceMapping = {
+  'mui': 'unify',
+  'alpha_mui': 'alpha_unify',
+  'mui_alpha': 'unify_alpha',
+};

@@ -1,0 +1,107 @@
+// Copyright 2023 Workiva Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import 'package:over_react_codemod/src/unify_package_rename_suggestors/package_rename_component_usage_migrator.dart';
+import 'package:test/test.dart';
+
+import '../resolved_file_context.dart';
+import '../util.dart';
+
+void main() {
+  final resolvedContext = SharedAnalysisContext.rmui;
+
+  // Warm up analysis in a setUpAll so that if getting the resolved AST times out
+  // (which is more common for the WSD context), it fails here instead of failing the first test.
+  setUpAll(resolvedContext.warmUpAnalysis);
+
+  group('PackageRenameComponentUsageMigrator', () {
+    final testSuggestor = getSuggestorTester(
+      PackageRenameComponentUsageMigrator(),
+      resolvedContext: resolvedContext,
+    );
+
+    group('namespace on component usage', () {
+      test('mui namespace from react_material_ui is migrated to unify', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+    import 'package:react_material_ui/react_material_ui.dart' as mui;
+    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_mui;
+    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
+    
+    content() {
+      mui.Button()();
+      mui.LinearProgress()();
+      alpha_mui.Rating()();
+      mui_alpha.Rating()();
+    }
+''',
+          expectedOutput: /*language=dart*/ '''
+    import 'package:react_material_ui/react_material_ui.dart' as mui;
+    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_mui;
+    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
+    
+    content() {
+      unify.Button()();
+      unify.LinearProgress()();
+      alpha_unify.Rating()();
+      unify_alpha.Rating()();
+    }
+''',
+        );
+      });
+
+      test('mui namespace from a different package is not migrated', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+    import 'package:over_react/over_react.dart' as mui;
+    import 'package:over_react/over_react.dart' as alpha_mui;
+    import 'package:over_react/over_react.dart' as mui_alpha;
+    
+    content() {
+      mui.Fragment()();
+      alpha_mui.Fragment()();
+      mui_alpha.Fragment()();
+    }
+''',
+        );
+      });
+
+      test('non-mui namespace on a react_material_ui import', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+    import 'package:react_material_ui/react_material_ui.dart' as abc;
+    
+    content() {
+      abc.Button()();
+      abc.LinearProgress()();
+    }
+''',
+        );
+      });
+
+      test('no namespace on a react_material_ui import', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+    import 'package:react_material_ui/react_material_ui.dart';
+    
+    content() {
+      Button()();
+      LinearProgress()();
+    }
+''',
+        );
+      });
+    });
+  });
+}

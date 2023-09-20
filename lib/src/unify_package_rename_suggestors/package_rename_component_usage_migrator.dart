@@ -33,16 +33,17 @@ class PackageRenameComponentUsageMigrator extends ComponentUsageMigrator {
     final factoryElement = usage.factoryTopLevelVariableElement;
     if (factoryElement == null) return;
 
-    // Replace 'mui' namespace usage with 'unify'.
-   if(factoryElement.isDeclaredInPackage('react_material_ui')) {
-      final prefix = usage.node.function.tryCast<FunctionExpressionInvocation>()?.function.tryCast<PrefixedIdentifier>()?.prefix;
-      if(prefix != null && prefix.name == 'mui') {
-        yieldPatch(
-          unifyNs,
-          prefix.offset,
-          prefix.end,
-        );
+    // Replace 'mui' namespaces usage with 'unify'.
+    if (factoryElement.isDeclaredInPackage('react_material_ui')) {
+      final prefix = usage.node.function
+          .tryCast<FunctionExpressionInvocation>()
+          ?.function
+          .tryCast<PrefixedIdentifier>()
+          ?.prefix;
+      final newPrefixName = unifyNamespaceMapping[prefix?.name];
+      if (prefix != null && newPrefixName != null) {
+        yieldPatch(newPrefixName, prefix.offset, prefix.end);
       }
-   }
+    }
   }
 }
