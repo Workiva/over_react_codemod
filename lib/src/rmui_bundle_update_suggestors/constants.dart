@@ -27,6 +27,14 @@ const rmuiBundleDevUpdated =
 const rmuiBundleProdUpdated =
     'packages/react_material_ui/js/react-material-ui.browser.min.esm.js';
 
+/// The script for the dev Unify bundle.
+const unifyBundleDev =
+    'packages/unify_ui/js/unify-ui.browser.dev.esm.js';
+
+/// The script for the prod Unify bundle.
+const unifyBundleProd =
+    'packages/unify_ui/js/unify-ui.browser.min.esm.js';
+
 /// The type attribute that needs to be added to script tags for the new RMUI bundles.
 final typeModuleAttribute = 'type="module"';
 
