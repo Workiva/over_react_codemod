@@ -103,5 +103,63 @@ void main() {
         );
       });
     });
+
+    group('rename components', () {
+      test('from react_material_ui to unify equivalents', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+    import 'package:react_material_ui/react_material_ui.dart' as mui;
+    import 'package:react_material_ui/react_material_ui.dart';
+    import 'package:react_material_ui/components/providers/workiva_mui_theme_provider.dart';
+    
+    content() {
+      mui.Alert()();
+      Alert()();
+      mui.LinkButton()();
+      LinkButton()();
+      mui.MuiList()();
+      MuiList()();
+      WorkivaMuiThemeProvider()();
+    }
+''',
+          expectedOutput: /*language=dart*/ '''
+    import 'package:react_material_ui/react_material_ui.dart' as mui;
+    import 'package:react_material_ui/react_material_ui.dart';
+    import 'package:react_material_ui/components/providers/workiva_mui_theme_provider.dart';
+
+    content() {
+      unify.WsdAlert()();
+      WsdAlert()();
+      unify.WsdLinkButton()();
+      WsdLinkButton()();
+      unify.UnifyList()();
+      UnifyList()();
+      UnifyThemeProvider()();
+    }
+''',
+        );
+      });
+
+      test('except when they are not from react_material_ui', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+    import 'package:over_react/over_react.dart';
+    
+    // Shadows the RMUI factories
+    UiFactory Alert;
+    UiFactory LinkButton;
+    UiFactory MuiList;
+    UiFactory WorkivaMuiThemeProvider;
+    
+    content() {
+      Alert()();
+      LinkButton()();
+      MuiList()();
+      WorkivaMuiThemeProvider()();
+    }
+''',
+        );
+      });
+    });
   });
 }

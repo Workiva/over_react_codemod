@@ -13,8 +13,16 @@
 // limitations under the License.
 
 /// A map of the standard namespaces for rmui imports to their unify equivalents.
-const unifyNamespaceMapping = {
+const rmuiToUnifyNamespaces = {
   'mui': 'unify',
   'alpha_mui': 'alpha_unify',
   'mui_alpha': 'unify_alpha',
+};
+
+/// A map of RMUI component names to their new names in unify_ui.
+const rmuiToUnifyComponentNames = {
+  'Alert': 'WsdAlert',
+  'LinkButton': 'WsdLinkButton',
+  'MuiList': 'UnifyList',
+  'WorkivaMuiThemeProvider': 'UnifyThemeProvider',
 };

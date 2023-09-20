@@ -33,16 +33,24 @@ class PackageRenameComponentUsageMigrator extends ComponentUsageMigrator {
     final factoryElement = usage.factoryTopLevelVariableElement;
     if (factoryElement == null) return;
 
-    // Replace 'mui' namespaces usage with 'unify'.
     if (factoryElement.isDeclaredInPackage('react_material_ui')) {
-      final prefix = usage.node.function
-          .tryCast<FunctionExpressionInvocation>()
-          ?.function
-          .tryCast<PrefixedIdentifier>()
-          ?.prefix;
-      final newPrefixName = unifyNamespaceMapping[prefix?.name];
+      // Replace 'mui' namespaces usage with 'unify'.
+      final prefix = usage.factory.tryCast<PrefixedIdentifier>()?.prefix;
+      final newPrefixName = rmuiToUnifyNamespaces[prefix?.name];
       if (prefix != null && newPrefixName != null) {
         yieldPatch(newPrefixName, prefix.offset, prefix.end);
+      }
+
+      // todo add fixme comment for things that should be updated - Wsd prefixed things
+
+      // todo remove mui prefix for Wsd prefixed components or make new prefix for import to find (unify_wsd)
+
+      // Update components that were renamed in unify_ui.
+      final identifier = usage.factory.tryCast<SimpleIdentifier>() ??
+          usage.factory.tryCast<PrefixedIdentifier>()?.identifier;
+      final newComponentName = rmuiToUnifyComponentNames[identifier?.name];
+      if (identifier != null && newComponentName != null) {
+        yieldPatch(newComponentName, identifier.offset, identifier.end);
       }
     }
   }
