@@ -41,7 +41,7 @@ void main() {
     
     content() {
       mui.Button()();
-      mui.LinearProgress()();
+      mui.Checkbox()();
       alpha_mui.Rating()();
       mui_alpha.Rating()();
     }
@@ -53,7 +53,7 @@ void main() {
     
     content() {
       unify.Button()();
-      unify.LinearProgress()();
+      unify.Checkbox()();
       alpha_unify.Rating()();
       unify_alpha.Rating()();
     }
@@ -84,7 +84,7 @@ void main() {
     
     content() {
       abc.Button()();
-      abc.LinearProgress()();
+      abc.Checkbox()();
     }
 ''',
         );
@@ -97,7 +97,7 @@ void main() {
     
     content() {
       Button()();
-      LinearProgress()();
+      Checkbox()();
     }
 ''',
         );
@@ -156,6 +156,56 @@ void main() {
       LinkButton()();
       MuiList()();
       WorkivaMuiThemeProvider()();
+    }
+''',
+        );
+      });
+    });
+
+    group('fixme comments', () {
+      test('for specific components that need manual intervention', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+    import 'package:react_material_ui/react_material_ui.dart' as mui;
+    import 'package:react_material_ui/react_material_ui.dart';
+    
+    content() {
+      mui.Badge()();
+      Badge()();
+      mui.LinearProgress()();
+      LinearProgress()();
+    }
+''',
+          expectedOutput: /*language=dart*/ '''
+    import 'package:react_material_ui/react_material_ui.dart' as mui;
+    import 'package:react_material_ui/react_material_ui.dart';
+
+    content() {
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
+      unify.Badge()();
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
+      Badge()();
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
+      unify.LinearProgress()();
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
+      LinearProgress()();
+    }
+''',
+        );
+      });
+
+      test('except when they are not from react_material_ui', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+    import 'package:over_react/over_react.dart';
+    
+    // Shadows the RMUI factories
+    UiFactory Badge;
+    UiFactory LinearProgress;
+    
+    content() {
+      Badge()();
+      LinearProgress()();
     }
 ''',
         );

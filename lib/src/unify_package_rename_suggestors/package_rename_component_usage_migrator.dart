@@ -52,6 +52,12 @@ class PackageRenameComponentUsageMigrator extends ComponentUsageMigrator {
       if (identifier != null && newComponentName != null) {
         yieldPatch(newComponentName, identifier.offset, identifier.end);
       }
+
+      // Add comments for components that need manual verification.
+      if (identifier?.name == 'Badge' || identifier?.name == 'LinearProgress') {
+        yieldUsageFixmePatch(usage,
+            'Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.');
+      }
     }
   }
 }
