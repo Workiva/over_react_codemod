@@ -34,23 +34,30 @@ class PackageRenameComponentUsageMigrator extends ComponentUsageMigrator {
     if (factoryElement == null) return;
 
     if (factoryElement.isDeclaredInPackage('react_material_ui')) {
-      // Replace 'mui' namespaces usage with 'unify'.
-      final prefix = usage.factory.tryCast<PrefixedIdentifier>()?.prefix;
-      final newPrefixName = rmuiToUnifyNamespaces[prefix?.name];
-      if (prefix != null && newPrefixName != null) {
-        yieldPatch(newPrefixName, prefix.offset, prefix.end);
-      }
-
-      // todo add fixme comment for things that should be updated - Wsd prefixed things
-
-      // todo remove mui prefix for Wsd prefixed components or make new prefix for import to find (unify_wsd)
+      // Save the import namespace to later replace with a unify version.
+      final importNamespace = usage.factory.tryCast<PrefixedIdentifier>()?.prefix;
+      final newImportNamespace = rmuiToUnifyNamespaces[importNamespace?.name];
 
       // Update components that were renamed in unify_ui.
       final identifier = usage.factory.tryCast<SimpleIdentifier>() ??
           usage.factory.tryCast<PrefixedIdentifier>()?.identifier;
       final newComponentName = rmuiToUnifyComponentNames[identifier?.name];
+      final isFromWsdEntrypoint = newComponentName?.startsWith('Wsd') ?? false;
       if (identifier != null && newComponentName != null) {
-        yieldPatch(newComponentName, identifier.offset, identifier.end);
+        if (isFromWsdEntrypoint) {
+          // Overwrite or add import namespace for components that will be imported from the separate
+          // unify_ui/components/wsd.dart entrypoint so we can keep the namespace of the import
+          // we add consistent with the components that use it.
+          final factory = usage.factory.tryCast<PrefixedIdentifier>() ?? identifier;
+          yieldPatch('$unifyWsdNamespace.$newComponentName', factory.offset, factory.end);
+        } else {
+          yieldPatch(newComponentName, identifier.offset, identifier.end);
+        }
+      }
+
+      // Replace 'mui' namespaces usage with 'unify'.
+      if (importNamespace != null && newImportNamespace != null && !isFromWsdEntrypoint) {
+        yieldPatch(newImportNamespace, importNamespace.offset, importNamespace.end);
       }
 
       // Add comments for components that need manual verification.

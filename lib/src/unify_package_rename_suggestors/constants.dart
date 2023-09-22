@@ -26,3 +26,6 @@ const rmuiToUnifyComponentNames = {
   'MuiList': 'UnifyList',
   'WorkivaMuiThemeProvider': 'UnifyThemeProvider',
 };
+
+/// The namespace that will be used for the `unify_ui/components/wsd.dart` import that is added.
+const unifyWsdNamespace = 'unify_wsd';

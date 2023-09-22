@@ -110,30 +110,38 @@ void main() {
           input: /*language=dart*/ '''
     import 'package:react_material_ui/react_material_ui.dart' as mui;
     import 'package:react_material_ui/react_material_ui.dart';
+    import 'package:react_material_ui/react_material_ui.dart' as random_rmui_namespace;
     import 'package:react_material_ui/components/providers/workiva_mui_theme_provider.dart';
     
     content() {
       mui.Alert()();
       Alert()();
+      random_rmui_namespace.Alert()();
       mui.LinkButton()();
       LinkButton()();
+      random_rmui_namespace.LinkButton()();
       mui.MuiList()();
       MuiList()();
+      random_rmui_namespace.MuiList()();
       WorkivaMuiThemeProvider()();
     }
 ''',
           expectedOutput: /*language=dart*/ '''
     import 'package:react_material_ui/react_material_ui.dart' as mui;
     import 'package:react_material_ui/react_material_ui.dart';
+    import 'package:react_material_ui/react_material_ui.dart' as random_rmui_namespace;
     import 'package:react_material_ui/components/providers/workiva_mui_theme_provider.dart';
 
     content() {
-      unify.WsdAlert()();
-      WsdAlert()();
-      unify.WsdLinkButton()();
-      WsdLinkButton()();
+      unify_wsd.WsdAlert()();
+      unify_wsd.WsdAlert()();
+      unify_wsd.WsdAlert()();
+      unify_wsd.WsdLinkButton()();
+      unify_wsd.WsdLinkButton()();
+      unify_wsd.WsdLinkButton()();
       unify.UnifyList()();
       UnifyList()();
+      random_rmui_namespace.UnifyList()();
       UnifyThemeProvider()();
     }
 ''',
