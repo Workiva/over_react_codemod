@@ -86,7 +86,7 @@ void main() {
             messages: [...defaultMessages, ...extraMessages, ...longMessages]
               ..sort(),
           rmuiVersionConstraint: '^1.1.1',
-          intlImport: '${wIntl}/intl_wrapper.dart',
+          intlImport: 'package:test_project/src/intl/test_project_intl.dart',
         ),
         args: ['--yes-to-all']);
 
@@ -107,7 +107,7 @@ void main() {
               ...longMessages,
             ]..sort(),
           rmuiVersionConstraint: '^1.1.1',
-          intlImport: '${wIntl}/intl_wrapper.dart',
+          intlImport: 'package:test_project/src/intl/test_project_intl.dart',
         ),
         args: ['--yes-to-all']);
     // We've removed the file for some that were already in the _intl.dart file,
@@ -158,7 +158,7 @@ void main() {
               ...longMessages
             ]..sort(),
           rmuiVersionConstraint: '^1.1.1',
-          intlImport: '${wIntl}/intl_wrapper.dart',
+          intlImport: 'package:test_project/src/intl/test_project_intl.dart',
         ),
         args: ['--yes-to-all'] );
 
