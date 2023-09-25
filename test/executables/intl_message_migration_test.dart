@@ -110,6 +110,7 @@ void main() {
           intlImport: 'package:test_project/src/intl/test_project_intl.dart',
         ),
         args: ['--yes-to-all']);
+
     // We've removed the file for some that were already in the _intl.dart file,
     // and we expect them to be removed.
     testCodemod('Unused messages are removed',
@@ -157,10 +158,9 @@ void main() {
               ...annotatedMessages,
               ...longMessages
             ]..sort(),
-          rmuiVersionConstraint: '^1.1.1',
           intlImport: 'package:test_project/src/intl/test_project_intl.dart',
         ),
-        args: ['--yes-to-all'] );
+        args: ['--yes-to-all']);
 
     testCodemod('Import is updated without other modifications',
         script: script,
@@ -325,8 +325,8 @@ dependencies:
     d.dir('lib', [
       ...additionalFilesInLib,
       d.file('usage.dart', /*language=dart*/ '''
-import 'package:test_project/src/intl/test_project_intl.dart';
 import 'package:react_material_ui/react_material_ui.dart' as mui;
+import 'package:test_project/src/intl/test_project_intl.dart';
 
 usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl.literalString);'''),
       d.dir('src', [
