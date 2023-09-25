@@ -63,8 +63,8 @@ void main() {
             ''',
             isExpectedError: isUndefinedIntlError,
             expectedOutput: /*language=dart*/ '''
-              import 'package:over_react/over_react.dart';
               import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:over_react/over_react.dart';
               
               content() => TestProjectIntl.testString;
             ''',
@@ -124,9 +124,9 @@ void main() {
             isExpectedError: (e) =>
                 isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
+              import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:over_react/over_react.dart';
               import 'package:over_react/components.dart';
-              import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:z_fake_package/z_fake_package_1.dart';
               import 'package:z_fake_package/z_fake_package_2.dart';
 
@@ -147,8 +147,8 @@ void main() {
             isExpectedError: (e) =>
                 isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
-              import 'package:over_react/over_react.dart';
               import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:over_react/over_react.dart';
               import 'a/fake_relative_file.dart';
               
               content() => TestProjectIntl.testString;
@@ -240,8 +240,8 @@ void main() {
           ''',
           isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
           expectedOutput: /*language=dart*/ '''
-              import 'package:over_react/over_react.dart';
               import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:over_react/over_react.dart';
               part 'fake_part.dart';
 
               content() => TestProjectIntl.testString;
@@ -282,8 +282,8 @@ void main() {
           ''',
           isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
           expectedOutput: /*language=dart*/ '''
-              import 'package:over_react/over_react.dart';
               import 'package:test_project/src/intl/test_project_intl.dart';
+              import 'package:over_react/over_react.dart';
               export 'package:over_react/over_react.dart';
               part 'fake_part.dart';
 
