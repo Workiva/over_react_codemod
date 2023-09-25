@@ -1,4 +1,4 @@
-FROM drydock-prod.workiva.net/workiva/dart2_base_image:1 as build
+FROM drydock-prod.workiva.net/workiva/dart2_base_image:0.0.0-dart2.18.7gha3 as build
 
 # Build Environment Vars
 ARG BUILD_ID
