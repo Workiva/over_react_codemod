@@ -158,7 +158,7 @@ void main() {
               ...annotatedMessages,
               ...longMessages
             ]..sort(),
-          intlImport: 'package:test_project/src/intl/test_project_intl.dart',
+          intlImport: 'package:react_material_ui/react_material_ui.dart as mui',
         ),
         args: ['--yes-to-all']);
 
@@ -325,8 +325,8 @@ dependencies:
     d.dir('lib', [
       ...additionalFilesInLib,
       d.file('usage.dart', /*language=dart*/ '''
-import 'package:react_material_ui/react_material_ui.dart' as mui;
 import 'package:test_project/src/intl/test_project_intl.dart';
+import 'package:react_material_ui/react_material_ui.dart' as mui;
 
 usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl.literalString);'''),
       d.dir('src', [
