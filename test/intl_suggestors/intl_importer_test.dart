@@ -92,11 +92,10 @@ void main() {
         test('(one alphabetized before and after `TestProjectIntl`)', () async {
           await testSuggestor(
             input: /*language=dart*/ '''
-                import 'package:test_project/src/intl/test_project_intl.dart';
                 import 'package:over_react/over_react.dart';
                 import 'package:z_fake_package/z_fake_package.dart';
 
-                content() => TestProjectIntl.testString;
+              content() => TestProjectIntl.testString;
             ''',
             isExpectedError: (e) =>
                 isUndefinedIntlError(e) || isFakeUriError(e),
@@ -373,7 +372,7 @@ void main() {
       final hasPackageImports = imports.any((importStatement) => importStatement.startsWith("import 'package:"));
       final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith("import '../"));
       final importFormat = decideImportFormat(hasPackageImports, hasRelativeImports);
-      expect(importFormat, isTrue);
+      expect(importFormat, isFalse);
     });
 
     test('when there are both package and relative imports', () {

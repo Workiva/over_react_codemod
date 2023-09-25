@@ -84,7 +84,10 @@ void main() {
         expectedOutput: expectedOutputFiles(
             additionalFilesInLib: [extraOutput()],
             messages: [...defaultMessages, ...extraMessages, ...longMessages]
-              ..sort()),
+              ..sort(),
+          rmuiVersionConstraint: '^1.1.1',
+          intlImport: '${wIntl}/intl_wrapper.dart',
+        ),
         args: ['--yes-to-all']);
 
     // Test that additional information (desc, meaning) are preserved if we read and then rewrite the file.
@@ -102,9 +105,11 @@ void main() {
               ...defaultMessages,
               ...annotatedMessages,
               ...longMessages,
-            ]..sort()),
+            ]..sort(),
+          rmuiVersionConstraint: '^1.1.1',
+          intlImport: '${wIntl}/intl_wrapper.dart',
+        ),
         args: ['--yes-to-all']);
-
     // We've removed the file for some that were already in the _intl.dart file,
     // and we expect them to be removed.
     testCodemod('Unused messages are removed',
@@ -151,8 +156,11 @@ void main() {
               ...defaultMessages,
               ...annotatedMessages,
               ...longMessages
-            ]..sort()),
-        args: ['--yes-to-all']);
+            ]..sort(),
+          rmuiVersionConstraint: '^1.1.1',
+          intlImport: '${wIntl}/intl_wrapper.dart',
+        ),
+        args: ['--yes-to-all'] );
 
     testCodemod('Import is updated without other modifications',
         script: script,
