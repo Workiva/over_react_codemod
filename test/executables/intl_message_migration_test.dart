@@ -301,7 +301,7 @@ d.DirectoryDescriptor expectedOutputFiles(
     {Iterable<d.Descriptor> additionalFilesInLib = const [],
     List<String> messages = defaultMessages,
     String rmuiVersionConstraint = '^1.1.1',
-    String intlImport = 'package:w_intl/intl_wrapper.dart'}) {
+    String intlImport = '${wIntl}/intl_wrapper.dart'}) {
   return d.dir('project', [
     // Note that the codemod doesn't currently add the intl dependency to the pubspec.
     d.file('pubspec.yaml', /*language=yaml*/ '''
@@ -317,21 +317,21 @@ dependencies:
     d.dir('lib', [
       ...additionalFilesInLib,
       d.file('usage.dart', /*language=dart*/ '''
-import 'package:test_project/src/intl/test_project_intl.dart';      
+import 'package:test_project/src/intl/test_project_intl.dart';
 import 'package:react_material_ui/react_material_ui.dart' as mui;
 
 usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl.literalString);'''),
       d.dir('src', [
         d.dir('intl', [
           d.file('test_project_intl.dart', /*language=dart*/ '''
-import 'package:w_intl/intl_wrapper.dart';
+import 'package:${intlImport}';
 
 ${IntlMessages.introComment}
 
 //ignore_for_file: avoid_classes_with_only_static_members
 //ignore_for_file: unnecessary_brace_in_string_interps
 class TestProjectIntl {
-${messages}
+${messages.join('\n\n')}
 
 }''')
         ]),
