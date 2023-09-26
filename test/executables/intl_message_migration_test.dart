@@ -161,7 +161,7 @@ someMoreStrings() => (mui.Button()..aria.label='Sorts later')('Literal String');
               ...annotatedMessages,
               ...longMessages
             ]..sort(),
-            intlImport: 'package:test_project/src/intl/test_project_intl.dart'),
+            intlImport: 'package:w_intl/intl_wrapper.dart'),
         args: ['--yes-to-all']);
 
     testCodemod('Import is updated without other modifications',
