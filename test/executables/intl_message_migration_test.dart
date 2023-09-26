@@ -146,18 +146,10 @@ void main() {
     testCodemod('Import is updated',
         script: script,
         input: expectedOutputFiles(additionalFilesInLib: [
-          d.file('more_stuff.dart', /*language=dart*/ '''
-import 'package:react_material_ui/react_material_ui.dart' as mui;
-import 'package:test_project/src/intl/test_project_intl.dart';
+          d.file('more_stuff.dart',
+              /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
 
-someMoreStrings() => (mui.Button()
-  ..aria.label=TestProjectIntl.orange
-  ..label="""
-A long string
-with multiple
-   lines""")
-    (TestProjectIntl.aquamarine,
-     TestProjectIntl.twoAdjacentStringsOnSeparate);'''),
+someMoreStrings() => (mui.Button()..aria.label='Sorts later')('Literal String');''')
         ], messages: [
           ...defaultMessages,
           ...annotatedMessages,
@@ -169,7 +161,7 @@ with multiple
               ...annotatedMessages,
               ...longMessages
             ]..sort(),
-        ),
+            intlImport: 'package:test_project/src/intl/test_project_intl.dart'),
         args: ['--yes-to-all']);
 
     testCodemod('Import is updated without other modifications',
