@@ -148,8 +148,13 @@ void main() {
         input: expectedOutputFiles(additionalFilesInLib: [
           d.file('more_stuff.dart',
               /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
+import 'package:test_project/src/intl/test_project_intl.dart';
 
-someMoreStrings() => (mui.Button()..aria.label='Sorts later')('Literal String');''')
+someMoreStrings() => (mui.Button()
+  ..aria.label=TestProjectIntl.orange
+  ..label=TestProjectIntl.aLongStringwithMultipleLines)
+  (TestProjectIntl.aquamarine, 
+    TestProjectIntl.twoAdjacentStringsOnSeparate);''')
         ], messages: [
           ...defaultMessages,
           ...annotatedMessages,
