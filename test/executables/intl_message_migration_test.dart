@@ -152,22 +152,22 @@ import 'package:test_project/src/intl/test_project_intl.dart';
 
 someMoreStrings() => (mui.Button()
   ..aria.label=TestProjectIntl.orange
-  ..label=TestProjectIntl.aLongStringwithMultipleLines)
-  (TestProjectIntl.aquamarine,
-   TestProjectIntl.twoAdjacentStringsOnSeparate);''')
-  ], messages: [
-   ...defaultMessages,
-   ...annotatedMessages,
-  ], intlImport: 'intl/intl.dart'),
-  expectedOutput: expectedOutputFiles(
-    additionalFilesInLib: [extraOutput()],
-    messages: [
-     ...defaultMessages,
-     ...annotatedMessages,
-     ...longMessages
-    ]..sort(),
-     intlImport: 'package:w_intl/intl_wrapper.dart'),
-args: ['--yes-to-all']);
+  ..label=TestProjectIntl.aLongStringwithMultipleLines)(TestProjectIntl.aquamarine, TestProjectIntl.twoAdjacentStringsOnSeparate);
+''')
+        ], messages: [
+          ...defaultMessages,
+          ...annotatedMessages,
+        ], intlImport: 'intl/intl.dart'),
+        expectedOutput: expectedOutputFiles(
+          additionalFilesInLib: [extraOutput()],
+          messages: [
+            ...defaultMessages,
+            ...annotatedMessages,
+            ...longMessages
+          ]..sort(),
+          intlImport: 'package:test_project/src/intl/test_project_intl.dart',
+        ),
+        args: ['--yes-to-all']);
 
     testCodemod('Import is updated without other modifications',
         script: script,
