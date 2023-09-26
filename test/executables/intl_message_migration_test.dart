@@ -157,16 +157,15 @@ someMoreStrings() => (mui.Button()
         ], messages: [
           ...defaultMessages,
           ...annotatedMessages,
-        ], intlImport: 'intl/intl.dart'),
-        expectedOutput: expectedOutputFiles(
-          additionalFilesInLib: [extraOutput()],
-          messages: [
-            ...defaultMessages,
-            ...annotatedMessages,
-            ...longMessages
-          ]..sort(),
-          intlImport: 'package:test_project/src/intl/test_project_intl.dart',
-        ),
+        ], intlImport: '${wIntl}/intl_wrapper.dart'),
+        expectedOutput: expectedSecondOutputFiles(
+            additionalFilesInLib: [extraOutput()],
+            messages: [
+              ...defaultMessages,
+              ...annotatedMessages,
+              ...longMessages
+            ]..sort(),
+            intlImport: '${wIntl}/intl_wrapper.dart'),
         args: ['--yes-to-all']);
 
     testCodemod('Import is updated without other modifications',
@@ -261,8 +260,8 @@ import 'package:test_project/src/intl/test_project_intl.dart';
 someMoreStrings() => (mui.Button()
   ..aria.label=TestProjectIntl.orange
   ..label=TestProjectIntl.aLongStringwithMultipleLines)
-    (TestProjectIntl.aquamarine,
-     TestProjectIntl.twoAdjacentStringsOnSeparate);''');
+    (TestProjectIntl.aquamarine, TestProjectIntl.twoAdjacentStringsOnSeparate);
+''');
 }
 
 List<String> extraMessages = [
@@ -334,6 +333,49 @@ dependencies:
       d.file('usage.dart', /*language=dart*/ '''
 import 'package:test_project/src/intl/test_project_intl.dart';
 import 'package:react_material_ui/react_material_ui.dart' as mui;
+
+usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl.literalString);'''),
+      d.dir('src', [
+        d.dir('intl', [
+          d.file('test_project_intl.dart', /*language=dart*/ '''
+import 'package:${intlImport}';
+
+${IntlMessages.introComment}
+
+//ignore_for_file: avoid_classes_with_only_static_members
+//ignore_for_file: unnecessary_brace_in_string_interps
+class TestProjectIntl {
+${messages.join('\n\n')}
+
+}''')
+        ]),
+      ]),
+    ]),
+  ]);
+}
+
+d.DirectoryDescriptor expectedSecondOutputFiles(
+    {Iterable<d.Descriptor> additionalFilesInLib = const [],
+      List<String> messages = defaultMessages,
+      String rmuiVersionConstraint = '^1.1.1',
+      String intlImport = '${wIntl}/intl_wrapper.dart'}) {
+  return d.dir('project', [
+    // Note that the codemod doesn't currently add the intl dependency to the pubspec.
+    d.file('pubspec.yaml', /*language=yaml*/ '''
+name: test_project
+environment:
+  sdk: '>=2.11.0 <3.0.0'
+dependencies:
+  react_material_ui:
+    hosted:
+      name: react_material_ui
+      url: https://pub.workiva.org
+    version: $rmuiVersionConstraint'''),
+    d.dir('lib', [
+      ...additionalFilesInLib,
+      d.file('usage.dart', /*language=dart*/ '''
+import 'package:react_material_ui/react_material_ui.dart' as mui;
+import 'package:test_project/src/intl/test_project_intl.dart';
 
 usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl.literalString);'''),
       d.dir('src', [
