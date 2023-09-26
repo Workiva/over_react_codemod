@@ -152,8 +152,9 @@ import 'package:test_project/src/intl/test_project_intl.dart';
 
 someMoreStrings() => (mui.Button()
   ..aria.label=TestProjectIntl.orange
-  ..label=TestProjectIntl.aLongStringwithMultipleLines)(TestProjectIntl.aquamarine, TestProjectIntl.twoAdjacentStringsOnSeparate);
-''')
+  ..label=TestProjectIntl.aLongStringwithMultipleLines)
+    (TestProjectIntl.aquamarine,
+     TestProjectIntl.twoAdjacentStringsOnSeparate);''')
         ], messages: [
           ...defaultMessages,
           ...annotatedMessages,
@@ -257,11 +258,11 @@ d.FileDescriptor extraOutput() {
       /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
 import 'package:test_project/src/intl/test_project_intl.dart';
 
-someMoreStrings() => (mui.Button()
-  ..aria.label=TestProjectIntl.orange
-  ..label=TestProjectIntl.aLongStringwithMultipleLines)
-    (TestProjectIntl.aquamarine, TestProjectIntl.twoAdjacentStringsOnSeparate);
-''');
+  someMoreStrings() => (mui.Button()
+    ..aria.label=TestProjectIntl.orange
+    ..label=TestProjectIntl.aLongStringwithMultipleLines)
+      (TestProjectIntl.aquamarine,
+       TestProjectIntl.twoAdjacentStringsOnSeparate);''');
 }
 
 List<String> extraMessages = [
