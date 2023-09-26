@@ -153,7 +153,7 @@ import 'package:test_project/src/intl/test_project_intl.dart';
 someMoreStrings() => (mui.Button()
   ..aria.label=TestProjectIntl.orange
   ..label=TestProjectIntl.aLongStringwithMultipleLines)
-    (TestProjectIntl.aquamarine, 
+    (TestProjectIntl.aquamarine,
      TestProjectIntl.twoAdjacentStringsOnSeparate);
 ''')
         ], messages: [
