@@ -146,19 +146,11 @@ void main() {
     testCodemod('Import is updated',
         script: script,
         input: expectedOutputFiles(additionalFilesInLib: [
-          d.file('more_stuff.dart',
-              /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
-import 'package:test_project/src/intl/test_project_intl.dart';
-
-someMoreStrings() => (mui.Button()
-  ..aria.label=TestProjectIntl.orange
-  ..label=TestProjectIntl.aLongStringwithMultipleLines)
-    (TestProjectIntl.aquamarine,
-     TestProjectIntl.twoAdjacentStringsOnSeparate);''')
+          extraInput()
         ], messages: [
           ...defaultMessages,
           ...annotatedMessages,
-        ], intlImport: '${wIntl}/intl_wrapper.dart'),
+        ], intlImport: 'intl/intl.dart'),
         expectedOutput: expectedSecondOutputFiles(
             additionalFilesInLib: [extraOutput()],
             messages: [
