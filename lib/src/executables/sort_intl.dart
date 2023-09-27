@@ -1,4 +1,4 @@
-// Copyright 2021 Workiva Inc.
+// Copyright 2023 Workiva Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'dart:io';
-
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/args.dart';
@@ -35,7 +34,7 @@ import '../util.dart';
 
 typedef Migrator = Stream<Patch> Function(FileContext);
 
-final _log = print('orcm.intl_sorting');
+final _log = Logger('orcm.intl_message_migration');
 
 const _verboseFlag = 'verbose';
 const _yesToAllFlag = 'yes-to-all';
@@ -46,6 +45,7 @@ const _migrateComponents = 'migrate-components';
 const _migrateContextMenus = 'migrate-context-menus';
 const _pruneUnused = 'prune-unused';
 const _noMigrate = 'no-migrate';
+
 const _allCodemodFlags = {
   _verboseFlag,
   _yesToAllFlag,
@@ -53,7 +53,9 @@ const _allCodemodFlags = {
   _stderrAssumeTtyFlag,
 };
 
+
 final FileSystem fs = const LocalFileSystem();
+
 
 final parser = ArgParser()
   ..addFlag(
@@ -119,7 +121,6 @@ final parser = ArgParser()
     'Should the codemod try to migrate properties and children of React components',
   );
 
-
 late ArgResults parsedArgs;
 
 void main(List<String> args) async {
@@ -128,7 +129,7 @@ void main(List<String> args) async {
     printUsage();
     return;
   }
-  print("INTLSorting");
+
   // It's easier to only pass through codemod flags than it is to try to strip
   // out our custom flags/options (since they can take several forms due to
   // abbreviations and the different syntaxes for providing an option value,
@@ -136,6 +137,7 @@ void main(List<String> args) async {
   //
   // An alternative would be to use `--` and `arguments.rest` to pass along codemod
   // args, but that's not as convenient to the user and makes showing help a bit more complicated.
+
   final codemodArgs = _allCodemodFlags
       .where((name) => parsedArgs[name] as bool)
       .map((name) => '--$name')
@@ -170,8 +172,19 @@ void main(List<String> args) async {
   packageRoots.sort((packageA, packageB) =>
   p.split(packageB).length - p.split(packageA).length);
 
+  // TODO: Use packageConfig and utilities for reading that rather than manually parsing pubspec..
+  Map<String, String> packageNameLookup = {
+    for (String path in pubspecYamlPaths())
+      p.basename(findPackageRootFor(path)): fs
+          .file(path)
+          .readAsLinesSync()
+          .firstWhere((line) => line.startsWith('name'))
+          .split(':')
+          .last
+          .trim()
+  };
 
-
+  final processedPackages = Set<String>();
   await pubGetForAllPackageRoots(dartPaths);
 
   // Is this necessary, or a duplicate of the earlier call? Like, do we have to run
@@ -185,10 +198,14 @@ void main(List<String> args) async {
   if (exitCode != 0) return;
   print('^ Ignore the "codemod found no files" warning above for now.');
 
-
+  for (String package in packageRoots) {
+    await migratePackage(
+        package, packageNameLookup, processedPackages, codemodArgs, dartPaths);
+  }
 }
 
 void printUsage() {
+
   stderr.writeln(
       'Migrates literal strings that seem user-visible in the package by wrapping them in Intl.message calls.');
   stderr.writeln();
@@ -231,12 +248,70 @@ Future<int> runCodemodSequences(
 /// Migrate files included in [paths] within [package].
 ///
 /// We expect [paths] to be absolute.
+Future<void> migratePackage(
+    String package,
+    Map<String, String> packageNameLookup,
+    Set<String> processedPackages,
+    List<String> codemodArgs,
+    List<String> paths) async {
+  print('Starting migration for $package');
 
+  final packageRoot = p.basename(package);
+  final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
+  print('Starting migration for $packageName');
+  List<String> packageDartPaths;
+  try {
+    packageDartPaths =
+        dartFilesToMigrateForPackage(package, processedPackages).toList();
+  } on FileSystemException {
+    print('${package} does not have a lib directory, moving on...');
+    return;
+  }
 
+  packageDartPaths = limitPaths(packageDartPaths, allowed: paths);
+  sortPartsLast(packageDartPaths);
 
+  final IntlMessages messages = IntlMessages(packageName,
+      directory: fs.currentDirectory, packagePath: package);
+
+  exitCode =
+  await runMigrators(packageDartPaths, codemodArgs, messages, packageName);
+
+  processedPackages.add(package);
+
+  messages.write(force: parsedArgs[_noMigrate]);
+  messages.format();
+}
+
+Future<int> runMigrators(List<String> packageDartPaths,
+    List<String> codemodArgs, IntlMessages messages, String packageName) async {
+  final intlPropMigrator = IntlMigrator(messages.className, messages);
+  final constantStringMigrator =
+  ConstantStringMigrator(messages.className, messages);
+  final displayNameMigrator = ConfigsMigrator(messages.className, messages);
+  final importMigrator = (FileContext context) =>
+      intlImporter(context, packageName, messages.className);
+  final usedMethodsChecker = UsedMethodsChecker(messages.className, messages);
+  final contextMenuMigrator = ContextMenuMigrator(messages.className, messages);
+
+  List<List<Migrator>> migrators = [
+    if (parsedArgs[_migrateComponents]) [intlPropMigrator],
+    if (parsedArgs[_migrateConstants]) [constantStringMigrator],
+    [displayNameMigrator],
+    [importMigrator],
+    if (parsedArgs[_migrateContextMenus]) [contextMenuMigrator],
+  ];
+  List<List<Migrator>> thingsToRun = [
+    if (!parsedArgs[_noMigrate]) ...migrators,
+    if (parsedArgs[_pruneUnused]) [usedMethodsChecker]
+  ];
+  var result =
+  await runCodemodSequences(packageDartPaths, thingsToRun, codemodArgs);
+  return result;
+}
 
 void sortPartsLast(List<String> dartPaths) {
-  print('Sorting part files...Intl_sorting');
+  print('Sorting part files...');
 
   final isPartCache = <String, bool>{};
   bool isPart(String path) => isPartCache.putIfAbsent(path, () {
@@ -260,7 +335,7 @@ void sortPartsLast(List<String> dartPaths) {
     if (isAPart == isBPart) return 0;
     return isAPart ? 1 : -1;
   });
-  logShout('Done.');
+  print('Done.');
 }
 
 void sortDeepestFirst(Set<String> packageRoots) {

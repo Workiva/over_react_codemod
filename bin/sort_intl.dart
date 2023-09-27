@@ -1,4 +1,4 @@
-// Copyright 2021 Workiva Inc.
+// Copyright 2023 Workiva Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,4 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export 'package:over_react_codemod/src/executables/intl_sorting.dart';
+export 'package:over_react_codemod/src/executables/sort_intl.dart';
