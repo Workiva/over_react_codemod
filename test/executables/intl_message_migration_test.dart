@@ -82,9 +82,9 @@ void main() {
         script: script,
         input: inputFiles(additionalFilesInLib: [extraInput()]),
         expectedOutput: expectedOutputFiles(
-            additionalFilesInLib: [extraOutput()],
-            messages: [...defaultMessages, ...extraMessages, ...longMessages]
-              ..sort(),
+          additionalFilesInLib: [extraOutput()],
+          messages: [...defaultMessages, ...extraMessages, ...longMessages]
+            ..sort(),
           rmuiVersionConstraint: '^1.1.1',
           intlImport: 'package:test_project/src/intl/test_project_intl.dart',
         ),
@@ -100,12 +100,12 @@ void main() {
           ...annotatedMessages,
         ]),
         expectedOutput: expectedOutputFiles(
-            additionalFilesInLib: [extraOutput()],
-            messages: [
-              ...defaultMessages,
-              ...annotatedMessages,
-              ...longMessages,
-            ]..sort(),
+          additionalFilesInLib: [extraOutput()],
+          messages: [
+            ...defaultMessages,
+            ...annotatedMessages,
+            ...longMessages,
+          ]..sort(),
           rmuiVersionConstraint: '^1.1.1',
           intlImport: 'package:test_project/src/intl/test_project_intl.dart',
         ),
@@ -348,9 +348,9 @@ ${messages.join('\n\n')}
 
 d.DirectoryDescriptor expectedSecondOutputFiles(
     {Iterable<d.Descriptor> additionalFilesInLib = const [],
-      List<String> messages = defaultMessages,
-      String rmuiVersionConstraint = '^1.1.1',
-      String intlImport = '${wIntl}/intl_wrapper.dart'}) {
+    List<String> messages = defaultMessages,
+    String rmuiVersionConstraint = '^1.1.1',
+    String intlImport = '${wIntl}/intl_wrapper.dart'}) {
   return d.dir('project', [
     // Note that the codemod doesn't currently add the intl dependency to the pubspec.
     d.file('pubspec.yaml', /*language=yaml*/ '''
@@ -366,8 +366,8 @@ dependencies:
     d.dir('lib', [
       ...additionalFilesInLib,
       d.file('usage.dart', /*language=dart*/ '''
-import 'package:react_material_ui/react_material_ui.dart' as mui;
 import 'package:test_project/src/intl/test_project_intl.dart';
+import 'package:react_material_ui/react_material_ui.dart' as mui;
 
 usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl.literalString);'''),
       d.dir('src', [
