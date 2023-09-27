@@ -150,7 +150,7 @@ void main() {
         ], messages: [
           ...defaultMessages,
           ...annotatedMessages,
-        ], intlImport: '${wIntl}/intl_wrapper.dart'),
+        ], intlImport: 'intl/intl.dart'),
         expectedOutput: expectedSecondOutputFiles(
             additionalFilesInLib: [extraOutput()],
             messages: [
