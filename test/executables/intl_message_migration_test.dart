@@ -157,8 +157,7 @@ void main() {
               ...defaultMessages,
               ...annotatedMessages,
               ...longMessages
-            ]..sort(),
-            intlImport: 'package:test_project/src/intl/test_project_intl.dart'),
+            ]..sort()),
         args: ['--yes-to-all']);
 
     testCodemod('Import is updated without other modifications',
