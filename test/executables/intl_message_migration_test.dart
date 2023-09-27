@@ -150,7 +150,7 @@ void main() {
         ], messages: [
           ...defaultMessages,
           ...annotatedMessages,
-        ], intlImport: 'intl/intl.dart'),
+        ], intlImport: '${wIntl}/intl_wrapper.dart'),
         expectedOutput: expectedSecondOutputFiles(
             additionalFilesInLib: [extraOutput()],
             messages: [
@@ -158,7 +158,7 @@ void main() {
               ...annotatedMessages,
               ...longMessages
             ]..sort(),
-            intlImport: '${wIntl}/intl_wrapper.dart'),
+            intlImport: 'package:test_project/src/intl/test_project_intl.dart'),
         args: ['--yes-to-all']);
 
     testCodemod('Import is updated without other modifications',
