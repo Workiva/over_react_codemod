@@ -324,8 +324,8 @@ dependencies:
     d.dir('lib', [
       ...additionalFilesInLib,
       d.file('usage.dart', /*language=dart*/ '''
-import 'package:test_project/src/intl/test_project_intl.dart';
 import 'package:react_material_ui/react_material_ui.dart' as mui;
+import 'package:test_project/src/intl/test_project_intl.dart';
 
 usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl.literalString);'''),
       d.dir('src', [
@@ -389,5 +389,4 @@ ${messages.join('\n\n')}
     ]),
   ]);
 }
-
 const wIntl = 'w_intl';
