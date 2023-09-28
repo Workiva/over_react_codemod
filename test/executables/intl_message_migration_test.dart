@@ -82,12 +82,9 @@ void main() {
         script: script,
         input: inputFiles(additionalFilesInLib: [extraInput()]),
         expectedOutput: expectedOutputFiles(
-          additionalFilesInLib: [extraOutput()],
-          messages: [...defaultMessages, ...extraMessages, ...longMessages]
-            ..sort(),
-          rmuiVersionConstraint: '^1.1.1',
-          intlImport: 'package:test_project/src/intl/test_project_intl.dart',
-        ),
+            additionalFilesInLib: [extraOutput()],
+            messages: [...defaultMessages, ...extraMessages, ...longMessages]
+              ..sort()),
         args: ['--yes-to-all']);
 
     // Test that additional information (desc, meaning) are preserved if we read and then rewrite the file.
@@ -100,15 +97,12 @@ void main() {
           ...annotatedMessages,
         ]),
         expectedOutput: expectedOutputFiles(
-          additionalFilesInLib: [extraOutput()],
-          messages: [
-            ...defaultMessages,
-            ...annotatedMessages,
-            ...longMessages,
-          ]..sort(),
-          rmuiVersionConstraint: '^1.1.1',
-          intlImport: 'package:test_project/src/intl/test_project_intl.dart',
-        ),
+            additionalFilesInLib: [extraOutput()],
+            messages: [
+              ...defaultMessages,
+              ...annotatedMessages,
+              ...longMessages,
+            ]..sort()),
         args: ['--yes-to-all']);
 
     // We've removed the file for some that were already in the _intl.dart file,
@@ -151,7 +145,7 @@ void main() {
           ...defaultMessages,
           ...annotatedMessages,
         ], intlImport: 'intl/intl.dart'),
-        expectedOutput: expectedSecondOutputFiles(
+        expectedOutput: expectedOutputFiles(
             additionalFilesInLib: [extraOutput()],
             messages: [
               ...defaultMessages,
@@ -368,6 +362,7 @@ dependencies:
       d.file('usage.dart', /*language=dart*/ '''
 import 'package:react_material_ui/react_material_ui.dart' as mui;
 import 'package:test_project/src/intl/test_project_intl.dart';
+
 usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl.literalString);'''),
       d.dir('src', [
         d.dir('intl', [
@@ -387,4 +382,5 @@ ${messages.join('\n\n')}
     ]),
   ]);
 }
+
 const wIntl = 'w_intl';
