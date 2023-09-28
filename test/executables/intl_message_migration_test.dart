@@ -81,7 +81,7 @@ void main() {
     testCodemod('Output is sorted',
         script: script,
         input: inputFiles(additionalFilesInLib: [extraInput()]),
-        expectedOutput: expectedOutputFiles(
+        expectedOutput: expectedSecondOutputFiles(
             additionalFilesInLib: [extraOutput()],
             messages: [...defaultMessages, ...extraMessages, ...longMessages]
               ..sort()),
@@ -96,7 +96,7 @@ void main() {
           ...defaultMessages,
           ...annotatedMessages,
         ]),
-        expectedOutput: expectedOutputFiles(
+        expectedOutput: expectedSecondOutputFiles(
             additionalFilesInLib: [extraOutput()],
             messages: [
               ...defaultMessages,
@@ -145,7 +145,7 @@ void main() {
           ...defaultMessages,
           ...annotatedMessages,
         ], intlImport: 'intl/intl.dart'),
-        expectedOutput: expectedOutputFiles(
+        expectedOutput: expectedSecondOutputFiles(
             additionalFilesInLib: [extraOutput()],
             messages: [
               ...defaultMessages,
