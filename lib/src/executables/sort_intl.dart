@@ -22,11 +22,8 @@ import 'package:file/local.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
-import 'package:over_react_codemod/src/util/logging.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 
@@ -37,20 +34,12 @@ typedef Migrator = Stream<Patch> Function(FileContext);
 final _log = Logger('orcm.intl_message_migration');
 
 const _verboseFlag = 'verbose';
-const _yesToAllFlag = 'yes-to-all';
-const _failOnChangesFlag = 'fail-on-changes';
-const _stderrAssumeTtyFlag = 'stderr-assume-tty';
-const _migrateConstants = 'migrate-constants';
-const _migrateComponents = 'migrate-components';
-const _migrateContextMenus = 'migrate-context-menus';
-const _pruneUnused = 'prune-unused';
+
 const _noMigrate = 'no-migrate';
 
 const _allCodemodFlags = {
   _verboseFlag,
-  _yesToAllFlag,
-  _failOnChangesFlag,
-  _stderrAssumeTtyFlag,
+
 };
 
 
@@ -70,56 +59,12 @@ final parser = ArgParser()
     negatable: false,
     help: 'Outputs all logging to stdout/stderr.',
   )
-  ..addFlag(
-    _yesToAllFlag,
-    negatable: false,
-    help: 'Forces all patches accepted without prompting the user. '
-        'Useful for scripts.',
-  )
-  ..addFlag(
-    _failOnChangesFlag,
-    negatable: false,
-    help: 'Returns a non-zero exit code if there are changes to be made. '
-        'Will not make any changes (i.e. this is a dry-run).',
-  )
-  ..addFlag(
-    _stderrAssumeTtyFlag,
-    negatable: false,
-    help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
-  )
-  ..addFlag(
-    _pruneUnused,
-    negatable: true,
-    defaultsTo: false,
-    help:
-    "Try to remove any messages in the generated _intl.dart file that aren't called.",
-  )
   ..addFlag(_noMigrate,
       negatable: false,
       defaultsTo: false,
       help:
       'Does not run any migrators, overriding any --migrate flags. Can still be used with --prune-unused, and '
-          'will force the messages file to be sorted and rewritten')
-  ..addFlag(
-    _migrateConstants,
-    negatable: true,
-    defaultsTo: true,
-    help:
-    'Should the codemod try to migrate constant Strings that look user-visible',
-  )
-  ..addFlag(
-    _migrateContextMenus,
-    negatable: true,
-    defaultsTo: true,
-    help: 'Should the codemod try to migrate calls to addContextMenuItem',
-  )
-  ..addFlag(
-    _migrateComponents,
-    negatable: true,
-    defaultsTo: true,
-    help:
-    'Should the codemod try to migrate properties and children of React components',
-  );
+          'will force the messages file to be sorted and rewritten');
 
 late ArgResults parsedArgs;
 
@@ -286,24 +231,18 @@ Future<void> migratePackage(
 Future<int> runMigrators(List<String> packageDartPaths,
     List<String> codemodArgs, IntlMessages messages, String packageName) async {
   final intlPropMigrator = IntlMigrator(messages.className, messages);
-  final constantStringMigrator =
-  ConstantStringMigrator(messages.className, messages);
-  final displayNameMigrator = ConfigsMigrator(messages.className, messages);
-  final importMigrator = (FileContext context) =>
-      intlImporter(context, packageName, messages.className);
-  final usedMethodsChecker = UsedMethodsChecker(messages.className, messages);
-  final contextMenuMigrator = ContextMenuMigrator(messages.className, messages);
+
 
   List<List<Migrator>> migrators = [
-    if (parsedArgs[_migrateComponents]) [intlPropMigrator],
-    if (parsedArgs[_migrateConstants]) [constantStringMigrator],
-    [displayNameMigrator],
-    [importMigrator],
-    if (parsedArgs[_migrateContextMenus]) [contextMenuMigrator],
+     if (parsedArgs[_noMigrate]) [intlPropMigrator],
+    // if (parsedArgs[_migrateConstants]) [constantStringMigrator],
+    // [displayNameMigrator],
+    // [importMigrator],
+    //if (parsedArgs[_migrateContextMenus]) [contextMenuMigrator],
   ];
   List<List<Migrator>> thingsToRun = [
     if (!parsedArgs[_noMigrate]) ...migrators,
-    if (parsedArgs[_pruneUnused]) [usedMethodsChecker]
+    //if (parsedArgs[_pruneUnused]) [usedMethodsChecker]
   ];
   var result =
   await runCodemodSequences(packageDartPaths, thingsToRun, codemodArgs);
