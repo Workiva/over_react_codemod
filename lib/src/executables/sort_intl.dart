@@ -23,13 +23,11 @@ import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 
 import '../util.dart';
-
-typedef Migrator = Stream<Patch> Function(FileContext);
+import 'intl_message_migration.dart';
 
 final _log = Logger('orcm.intl_message_migration');
 
@@ -39,12 +37,9 @@ const _noMigrate = 'no-migrate';
 
 const _allCodemodFlags = {
   _verboseFlag,
-
 };
 
-
 final FileSystem fs = const LocalFileSystem();
-
 
 final parser = ArgParser()
   ..addFlag(
@@ -144,13 +139,35 @@ void main(List<String> args) async {
   print('^ Ignore the "codemod found no files" warning above for now.');
 
   for (String package in packageRoots) {
-    await migratePackage(
-        package, packageNameLookup, processedPackages, codemodArgs, dartPaths);
+    final packageRoot = p.basename(package);
+    final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
+    _log.info('Starting migration for $packageName');
+    List<String> packageDartPaths;
+    try {
+      packageDartPaths =
+          dartFilesToMigrateForPackage(package, processedPackages).toList();
+    } on FileSystemException {
+      _log.info('${package} does not have a lib directory, moving on...');
+      return;
+    }
+
+    packageDartPaths = limitPaths(packageDartPaths, allowed: dartPaths);
+    sortPartsLast(packageDartPaths);
+
+    final IntlMessages messages = IntlMessages(packageName,
+        directory: fs.currentDirectory, packagePath: package);
+
+    exitCode =
+    await runMigrators(packageDartPaths, codemodArgs, messages, packageName);
+
+    processedPackages.add(package);
+
+    messages.write(force: parsedArgs[_noMigrate]);
+    messages.format();
   }
 }
 
 void printUsage() {
-
   stderr.writeln(
       'Migrates literal strings that seem user-visible in the package by wrapping them in Intl.message calls.');
   stderr.writeln();
@@ -190,60 +207,26 @@ Future<int> runCodemodSequences(
   return 0;
 }
 
-/// Migrate files included in [paths] within [package].
-///
-/// We expect [paths] to be absolute.
-Future<void> migratePackage(
-    String package,
-    Map<String, String> packageNameLookup,
-    Set<String> processedPackages,
-    List<String> codemodArgs,
-    List<String> paths) async {
-  print('Starting migration for $package');
+/// Define your migrators here
 
-  final packageRoot = p.basename(package);
-  final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
-  print('Starting migration for $packageName');
-  List<String> packageDartPaths;
-  try {
-    packageDartPaths =
-        dartFilesToMigrateForPackage(package, processedPackages).toList();
-  } on FileSystemException {
-    print('${package} does not have a lib directory, moving on...');
-    return;
-  }
-
-  packageDartPaths = limitPaths(packageDartPaths, allowed: paths);
-  sortPartsLast(packageDartPaths);
-
-  final IntlMessages messages = IntlMessages(packageName,
-      directory: fs.currentDirectory, packagePath: package);
-
-  exitCode =
-  await runMigrators(packageDartPaths, codemodArgs, messages, packageName);
-
-  processedPackages.add(package);
-
-  messages.write(force: parsedArgs[_noMigrate]);
-  messages.format();
-}
+// Example:
+// final intlPropMigrator = IntlMigrator(messages.className, messages);
 
 Future<int> runMigrators(List<String> packageDartPaths,
     List<String> codemodArgs, IntlMessages messages, String packageName) async {
-  final intlPropMigrator = IntlMigrator(messages.className, messages);
-
-
   List<List<Migrator>> migrators = [
-     if (parsedArgs[_noMigrate]) [intlPropMigrator],
+    // if (parsedArgs[_noMigrate]) [intlPropMigrator],
     // if (parsedArgs[_migrateConstants]) [constantStringMigrator],
     // [displayNameMigrator],
     // [importMigrator],
-    //if (parsedArgs[_migrateContextMenus]) [contextMenuMigrator],
+    // if (parsedArgs[_migrateContextMenus]) [contextMenuMigrator],
   ];
+
   List<List<Migrator>> thingsToRun = [
     if (!parsedArgs[_noMigrate]) ...migrators,
-    //if (parsedArgs[_pruneUnused]) [usedMethodsChecker]
+    // if (parsedArgs[_pruneUnused]) [usedMethodsChecker]
   ];
+
   var result =
   await runCodemodSequences(packageDartPaths, thingsToRun, codemodArgs);
   return result;
@@ -273,8 +256,10 @@ void sortPartsLast(List<String> dartPaths) {
 
     if (isAPart == isBPart) return 0;
     return isAPart ? 1 : -1;
+
   });
   print('Done.');
+
 }
 
 void sortDeepestFirst(Set<String> packageRoots) {
@@ -294,9 +279,6 @@ Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
   }
 }
 
-/// Finds all the Dart files in any subdirectory, so we can be sure to catch any sub-packages.
-// TODO we'll probably going to need to also ignore files excluded in analysis_options.yaml
-// so that our component migrator codemods don't fail when they can't resolve the files.
 Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
     .listSync()
     .whereType<File>()
@@ -344,3 +326,4 @@ List<String> limitPaths(List<String> allPaths,
             .any((included) => included == path || p.isWithin(included, path)))
           path
     ];
+
