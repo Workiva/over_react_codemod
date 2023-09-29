@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:collection/collection.dart';
 import 'package:over_react_codemod/src/unify_package_rename_suggestors/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
@@ -26,6 +27,20 @@ class PackageRenameComponentUsageMigrator extends ComponentUsageMigrator {
   @override
   bool shouldMigrateUsage(FluentComponentUsage usage) => true;
 
+  // todo update to skip all flags
+  @override
+  bool get shouldFlagUnsafeMethodCalls => false;
+  @override
+  bool get shouldFlagUntypedSingleProp => false;
+  @override
+  bool get shouldFlagExtensionMembers => false;
+  @override
+  bool get shouldFlagPrefixedProps => false;
+  @override
+  bool get shouldFlagRefProp => false;
+  @override
+  bool get shouldFlagClassName => false;
+
   @override
   void migrateUsage(FluentComponentUsage usage) {
     super.migrateUsage(usage);
@@ -36,7 +51,12 @@ class PackageRenameComponentUsageMigrator extends ComponentUsageMigrator {
     if (factoryElement.isDeclaredInPackage('react_material_ui')) {
       // Save the import namespace to later replace with a unify version.
       final importNamespace = usage.factory.tryCast<PrefixedIdentifier>()?.prefix;
-      final newImportNamespace = rmuiToUnifyNamespaces[importNamespace?.name];
+      final newImportNamespace = importsToUpdate
+          .where((import) =>
+              importNamespace?.name != null &&
+              (import.possibleMuiNamespaces?.contains(importNamespace?.name) ?? false))
+          .singleOrNull
+          ?.namespace;
 
       // Update components that were renamed in unify_ui.
       final identifier = usage.factory.tryCast<SimpleIdentifier>() ??

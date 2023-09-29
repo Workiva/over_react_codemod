@@ -16,12 +16,19 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
+import 'package:over_react_codemod/src/executables/mui_migration.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/constants.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/dart_script_updater.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/html_script_updater.dart';
+import 'package:over_react_codemod/src/unify_package_rename_suggestors/constants.dart';
+import 'package:over_react_codemod/src/unify_package_rename_suggestors/import_renamer.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
+
+import '../unify_package_rename_suggestors/package_rename_component_usage_migrator.dart';
+import '../util/importer.dart';
+import '../util/unused_import_remover.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
@@ -29,53 +36,81 @@ const _changesRequiredOutput = """
   dart pub global run over_react_codemod:unify_package_rename
 """;
 
+class CodemodInfo {
+  CodemodInfo({required this.paths, required this.sequence});
+  Iterable<String> paths;
+  Iterable<Suggestor> sequence;
+}
+
 void main(List<String> args) async {
   final parser = ArgParser.allowAnything();
 
   final parsedArgs = parser.parse(args);
 
-  // todo can we also remove rmui dependency here???
+  /// Runs a list of codemods one after the other and returns exit code 0 if any fail.
+  Future<int> runCodemods(
+    Iterable<CodemodInfo> codemods,
+  ) async {
+    for (final sequence in codemods) {
+      final exitCode = await runInteractiveCodemodSequence(
+        sequence.paths,
+        sequence.sequence,
+        defaultYes: true,
+        args: parsedArgs.rest,
+        additionalHelpOutput: parser.usage,
+        changesRequiredOutput: _changesRequiredOutput,
+      );
+      if (exitCode != 0) return exitCode;
+    }
 
-  exitCode = await runInteractiveCodemod(
-    pubspecYamlPaths(),
-    aggregate([
-      // todo update version:
-      PubspecUpgrader('unify_ui', parseVersionRange('^1.89.1'),
-          hostedUrl: 'https://pub.workiva.org', shouldAddDependencies: false),
-    ].map((s) => ignoreable(s))),
-    defaultYes: true,
-    args: parsedArgs.rest,
-    additionalHelpOutput: parser.usage,
-    changesRequiredOutput: _changesRequiredOutput,
-  );
+    return 0;
+  }
 
-  if (exitCode != 0) return;
-
-  // Update RMUI bundle script in all HTML files (and templates) to Unify bundle.
-  exitCode = await runInteractiveCodemodSequence(
-    allHtmlPathsIncludingTemplates(),
-    [
+  exitCode = await runCodemods([
+    // todo can we also remove rmui dependency here???
+    // Add unify_ui dependency.
+    CodemodInfo(paths: pubspecYamlPaths(), sequence: [
+      aggregate(
+        [
+          // todo update version:
+          PubspecUpgrader('unify_ui', parseVersionRange('^1.89.1'),
+              hostedUrl: 'https://pub.workiva.org', shouldAddDependencies: true),
+        ].map((s) => ignoreable(s)),
+      )
+    ]),
+    // Update RMUI bundle script in all HTML files (and templates) to Unify bundle.
+    CodemodInfo(paths: allHtmlPathsIncludingTemplates(), sequence: [
       HtmlScriptUpdater(rmuiBundleDevUpdated, unifyBundleDev),
       HtmlScriptUpdater(rmuiBundleProdUpdated, unifyBundleProd),
-    ],
-    defaultYes: true,
-    args: parsedArgs.rest,
-    additionalHelpOutput: parser.usage,
-    changesRequiredOutput: _changesRequiredOutput,
-  );
+    ]),
+    // Update RMUI bundle script in all Dart files to Unify bundle.
+    CodemodInfo(paths: allDartPathsExceptHidden(), sequence: [
+      DartScriptUpdater(rmuiBundleDevUpdated, unifyBundleDev),
+      DartScriptUpdater(rmuiBundleProdUpdated, unifyBundleProd),
+    ]),
+  ]);
 
   if (exitCode != 0) return;
 
-  // Update RMUI bundle script in all Dart files to Unify bundle.
-  exitCode = await runInteractiveCodemodSequence(
-    allDartPathsExceptHidden(),
-    [
-      DartScriptUpdater(rmuiBundleDevUpdated, unifyBundleDev),
-      DartScriptUpdater(rmuiBundleProdUpdated, unifyBundleProd),
-    ],
-    defaultYes: true,
-    args: parsedArgs.rest,
-    additionalHelpOutput: parser.usage,
-    changesRequiredOutput: _changesRequiredOutput,
-  );
+  final dartPaths = dartFilesToMigrate().toList();
+  // Work around parts being unresolved if you resolve them before their libraries.
+  // TODO - reference analyzer issue for this once it's created
+  sortPartsLast(dartPaths);
+
+  await pubGetForAllPackageRoots(dartPaths);
+  exitCode = await runCodemods([
+    // todo add comments
+    CodemodInfo(paths: dartPaths, sequence: [PackageRenameComponentUsageMigrator()]),
+    CodemodInfo(
+        paths: dartPaths,
+        sequence: importsToUpdate.where((import) => import.namespace != null).map((import) =>
+            importerSuggestorBuilder(importUri: import.uri, importNamespace: import.namespace!))),
+    CodemodInfo(
+        paths: dartPaths,
+        sequence: [unusedImportRemoverSuggestorBuilder(packageName: 'react_material_ui')]),
+    CodemodInfo(
+        paths: dartPaths,
+        sequence: [ImportRenamer(oldPackageName: 'react_material_ui', newPackageName: 'unify_ui')])
+  ]);
+  if (exitCode != 0) return;
 }

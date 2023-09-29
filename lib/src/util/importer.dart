@@ -18,44 +18,45 @@ import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 
-import 'constants.dart';
-
 final _log = Logger('muiImporter');
-/// A suggestor that adds imports in libraries that reference
-/// the [muiNs] import namespace (including in parts) but don't yet import it.
-Stream<Patch> muiImporter(FileContext context) async* {
-  final libraryResult = await context.getResolvedLibrary();
-  if (libraryResult == null) {
-    // Most likely a part and not a library.
-    return;
-  }
 
-  // Parts that have not been generated can show up as `exists = false` but also `isPart = false`,
-  // so using the unitResults is a little trickier than using the libraryElement to get it.
-  final mainLibraryUnitResult = libraryResult.units.singleWhere((unitResult) =>
-      unitResult.unit.declaredElement ==
-      libraryResult.element.definingCompilationUnit);
+/// Creates a suggestor that adds [importUri] imports in libraries that reference
+/// the [importNamespace] (including in parts) but don't yet import it.
+Suggestor importerSuggestorBuilder({
+  required String importUri,
+  required String importNamespace,
+}) {
+  return (context) async* {
+    final libraryResult = await context.getResolvedLibrary();
+    if (libraryResult == null) {
+      // Most likely a part and not a library.
+      return;
+    }
 
-  // Look for errors in the main compilation unit and its part files.
-  // Ignore null partContexts and partContexts elements caused by
-  // resolution issues and parts being excluded in the codemod file list.
-  final needsMuiImport = libraryResult.units
-      .expand((unitResult) => unitResult.errors)
-      .where((error) => error.errorCode.name == 'UNDEFINED_IDENTIFIER')
-      .any((error) => error.message.contains("Undefined name '$muiNs'"));
+    // Parts that have not been generated can show up as `exists = false` but also `isPart = false`,
+    // so using the unitResults is a little trickier than using the libraryElement to get it.
+    final mainLibraryUnitResult = libraryResult.units.singleWhere((unitResult) =>
+        unitResult.unit.declaredElement == libraryResult.element.definingCompilationUnit);
 
-  if (!needsMuiImport) return;
+    // Look for errors in the main compilation unit and its part files.
+    // Ignore null partContexts and partContexts elements caused by
+    // resolution issues and parts being excluded in the codemod file list.
+    final needsMuiImport = libraryResult.units
+        .expand((unitResult) => unitResult.errors)
+        .where((error) => error.errorCode.name == 'UNDEFINED_IDENTIFIER')
+        .any((error) => error.message.contains("Undefined name '$importNamespace'"));
 
-  const rmuiImportUri = 'package:react_material_ui/react_material_ui.dart';
+    if (!needsMuiImport) return;
 
-  final insertInfo = _insertionLocationForPackageImport(rmuiImportUri,
-      mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
-  yield Patch(
-      insertInfo.leadingNewlines +
-          "import '$rmuiImportUri' as $muiNs;" +
-          insertInfo.trailingNewlines,
-      insertInfo.offset,
-      insertInfo.offset);
+    final insertInfo = _insertionLocationForPackageImport(
+        importUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
+    yield Patch(
+        insertInfo.leadingNewlines +
+            "import '$importUri' as $importNamespace;" +
+            insertInfo.trailingNewlines,
+        insertInfo.offset,
+        insertInfo.offset);
+  };
 }
 
 class _InsertionLocation {
@@ -83,21 +84,16 @@ _InsertionLocation _insertionLocationForPackageImport(
   final imports = unit.directives.whereType<ImportDirective>();
   final firstImport = imports.firstOrNull;
 
-  final dartImports =
-      imports.where((i) => i.uriContent?.startsWith('dart:') ?? false);
+  final dartImports = imports.where((i) => i.uriContent?.startsWith('dart:') ?? false);
   final lastDartImport = dartImports.lastOrNull;
 
-  final packageImports =
-      imports.where((i) => i.uriContent?.startsWith('package:') ?? false);
-  final firstPackageImportSortedAfterNewImport = packageImports
-      .where((i) => i.uriContent!.compareTo(importUri) > 0)
-      .firstOrNull;
-  final lastPackageImportSortedBeforeNewImport = packageImports
-      .where((i) => i.uriContent!.compareTo(importUri) < 0)
-      .lastOrNull;
+  final packageImports = imports.where((i) => i.uriContent?.startsWith('package:') ?? false);
+  final firstPackageImportSortedAfterNewImport =
+      packageImports.where((i) => i.uriContent!.compareTo(importUri) > 0).firstOrNull;
+  final lastPackageImportSortedBeforeNewImport =
+      packageImports.where((i) => i.uriContent!.compareTo(importUri) < 0).lastOrNull;
 
-  final firstNonImportDirective =
-      unit.directives.where((d) => d is! ImportDirective).firstOrNull;
+  final firstNonImportDirective = unit.directives.where((d) => d is! ImportDirective).firstOrNull;
 
   final AstNode relativeNode;
   final bool insertAfter;
@@ -128,8 +124,7 @@ _InsertionLocation _insertionLocationForPackageImport(
   } else {
     // No directive to insert relative to; insert before the first member or
     // at the beginning of the file.
-    return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0,
-        trailingNewlineCount: 2);
+    return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0, trailingNewlineCount: 2);
   }
 
   return _InsertionLocation(

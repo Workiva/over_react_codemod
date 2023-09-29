@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/mui_suggestors/unused_wsd_import_remover.dart';
+import 'package:over_react_codemod/src/util/unused_import_remover.dart';
 import 'package:test/test.dart';
 
 import '../resolved_file_context.dart';
 import '../util.dart';
 
 void main() {
-  group('unusedWsdImportRemover', () {
+  group('unusedImportRemoverSuggestorBuilder', () {
     final resolvedContext = SharedAnalysisContext.wsd;
 
     // Warm up analysis in a setUpAll so that if getting the resolved AST times out
@@ -27,7 +27,7 @@ void main() {
     setUpAll(resolvedContext.warmUpAnalysis);
 
     final testSuggestor = getSuggestorTester(
-      unusedWsdImportRemover,
+      unusedImportRemoverSuggestorBuilder(packageName: 'web_skin_dart'),
       resolvedContext: resolvedContext,
     );
 

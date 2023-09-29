@@ -18,3 +18,6 @@
 /// is what `muiImporter` picks up on to add the react_material_ui import to
 /// libraries only when it's needed.
 const muiNs = 'mui';
+
+/// The import uri for the main react_material_ui entrypoint.
+const rmuiImportUri = 'package:react_material_ui/react_material_ui.dart';
