@@ -14,4 +14,3 @@ ignore:
   - web_skin
   - web_skin_dart
   - z_fake_package
-  - build_test
