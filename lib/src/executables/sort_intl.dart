@@ -23,21 +23,15 @@ import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
-
 import '../util.dart';
 import 'intl_message_migration.dart';
 
 final _log = Logger('orcm.intl_message_migration');
 
-const _verboseFlag = 'verbose';
-
 const _noMigrate = 'no-migrate';
-
-const _allCodemodFlags = {
-  _verboseFlag,
-};
 
 final FileSystem fs = const LocalFileSystem();
 
@@ -48,18 +42,13 @@ final parser = ArgParser()
     negatable: false,
     help: 'Prints this help output.',
   )
-  ..addFlag(
-    'verbose',
-    abbr: 'v',
-    negatable: false,
-    help: 'Outputs all logging to stdout/stderr.',
-  )
   ..addFlag(_noMigrate,
       negatable: false,
       defaultsTo: false,
       help:
       'Does not run any migrators, overriding any --migrate flags. Can still be used with --prune-unused, and '
-          'will force the messages file to be sorted and rewritten');
+          'will force the messages file to be sorted and rewritten'
+  );
 
 late ArgResults parsedArgs;
 
@@ -69,35 +58,6 @@ void main(List<String> args) async {
     printUsage();
     return;
   }
-
-  // It's easier to only pass through codemod flags than it is to try to strip
-  // out our custom flags/options (since they can take several forms due to
-  // abbreviations and the different syntaxes for providing an option value,
-  // especially the two-arg `--option value` syntax).
-  //
-  // An alternative would be to use `--` and `arguments.rest` to pass along codemod
-  // args, but that's not as convenient to the user and makes showing help a bit more complicated.
-
-  final codemodArgs = _allCodemodFlags
-      .where((name) => parsedArgs[name] as bool)
-      .map((name) => '--$name')
-      .toList();
-
-  // codemod sets up a global logging handler that forwards to the console, and
-  // we want that set up before we do other non-codemod things that might log.
-  //
-  // We could set up logging too, but we can't disable codemod's log handler,
-  // so we'd have to disable our own logging before calling into codemod.
-  // While hackier, this is easier.
-  // TODO each time we call runInteractiveCodemod, all subsequent logs are forwarded to the console an extra time. Update codemod package to prevent this (maybe a flag to disable automatic global logging?)
-  exitCode = await runInteractiveCodemod(
-    [],
-        (_) async* {},
-    args: codemodArgs,
-    additionalHelpOutput: parser.usage,
-  );
-  if (exitCode != 0) return;
-  print('^ Ignore the "codemod found no files" warning above for now.');
 
   // If we have specified paths on the command line, limit our processing to
   // those, and make sure they're absolute.
@@ -127,17 +87,6 @@ void main(List<String> args) async {
   final processedPackages = Set<String>();
   await pubGetForAllPackageRoots(dartPaths);
 
-  // Is this necessary, or a duplicate of the earlier call? Like, do we have to run
-  // a null codemod again after the pub get?
-  exitCode = await runInteractiveCodemod(
-    [],
-        (_) async* {},
-    args: codemodArgs,
-    additionalHelpOutput: parser.usage,
-  );
-  if (exitCode != 0) return;
-  print('^ Ignore the "codemod found no files" warning above for now.');
-
   for (String package in packageRoots) {
     final packageRoot = p.basename(package);
     final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
@@ -158,7 +107,7 @@ void main(List<String> args) async {
         directory: fs.currentDirectory, packagePath: package);
 
     exitCode =
-    await runMigrators(packageDartPaths, codemodArgs, messages, packageName);
+    await runMigrators(packageDartPaths, messages,packageName);
 
     processedPackages.add(package);
 
@@ -178,62 +127,29 @@ void printUsage() {
   stderr.writeln(parser.usage);
 }
 
-/// Runs a set of codemod sequences separately to work around an issue where
-/// updates from an earlier suggestor aren't reflected in the resolved AST
-/// for later suggestors.
-///
-/// This means we have to set up analysis contexts multiple times, which takes longer,
-/// but isn't a dealbreaker. E.g., for wdesk_sdk, running two sequences takes 2:52
-/// as opposed to 2:00 for one sequence.
-///
-/// If any sequence fails, returns that exit code and short-circuits the other
-/// sequences.
-Future<int> runCodemodSequences(
-    Iterable<String> paths,
-    Iterable<Iterable<Suggestor>> sequences,
-    List<String> codemodArgs,
-    ) async {
-  for (final sequence in sequences) {
-    final exitCode = await runInteractiveCodemodSequence(
-      paths,
-      sequence,
-      defaultYes: true,
-      args: codemodArgs,
-      additionalHelpOutput: parser.usage,
-    );
-    if (exitCode != 0) return exitCode;
-  }
 
-  return 0;
-}
+Future<int> runMigrators(
 
-/// Define your migrators here
+List<String> packageDartPaths, IntlMessages messages, String packageName)
+async {
 
-// Example:
-// final intlPropMigrator = IntlMigrator(messages.className, messages);
-
-Future<int> runMigrators(List<String> packageDartPaths,
-    List<String> codemodArgs, IntlMessages messages, String packageName) async {
+  final intlPropMigrator = IntlMigrator(messages.className, messages);
   List<List<Migrator>> migrators = [
-    // if (parsedArgs[_noMigrate]) [intlPropMigrator],
-    // if (parsedArgs[_migrateConstants]) [constantStringMigrator],
-    // [displayNameMigrator],
-    // [importMigrator],
-    // if (parsedArgs[_migrateContextMenus]) [contextMenuMigrator],
+    if (parsedArgs[_noMigrate]) [intlPropMigrator],
   ];
 
   List<List<Migrator>> thingsToRun = [
     if (!parsedArgs[_noMigrate]) ...migrators,
-    // if (parsedArgs[_pruneUnused]) [usedMethodsChecker]
-  ];
 
+  ];
+  List<String> codemodArgs= [_noMigrate];
   var result =
   await runCodemodSequences(packageDartPaths, thingsToRun, codemodArgs);
   return result;
 }
 
 void sortPartsLast(List<String> dartPaths) {
-  print('Sorting part files...');
+  _log.info('Sorting part files...');
 
   final isPartCache = <String, bool>{};
   bool isPart(String path) => isPartCache.putIfAbsent(path, () {
@@ -246,7 +162,7 @@ void sortPartsLast(List<String> dartPaths) {
   });
 
   if (dartPaths.isNotEmpty && dartPaths.every(isPart)) {
-    print(
+    _log.info(
         'Only part files were specified. The containing library must be included for any part file, as it is needed for analysis context');
     exit(1);
   }
@@ -258,25 +174,8 @@ void sortPartsLast(List<String> dartPaths) {
     return isAPart ? 1 : -1;
 
   });
-  print('Done.');
+  _log.info('Done.');
 
-}
-
-void sortDeepestFirst(Set<String> packageRoots) {
-  print('Sorting package roots...');
-
-  packageRoots
-    ..toList().sort((packageA, packageB) => packageA.length - packageB.length)
-    ..toSet();
-}
-
-Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
-  print(
-      'Running `pub get` if needed so that all Dart files can be resolved...');
-  final packageRoots = files.map(findPackageRootFor).toSet();
-  for (final packageRoot in packageRoots) {
-    await runPubGetIfNeeded(packageRoot);
-  }
 }
 
 Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
@@ -290,40 +189,5 @@ Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
     .where(isNotWithinTopLevelToolDir)
     .map((e) => e.path);
 
-Iterable<String> dartFilesToMigrateForPackage(
-    String package, Set<String> processedPackages) =>
-    // Glob is peculiar about how it wants absolute Windows paths, so just query the
-// file system directly. It wants "posix-style", but no leading slash. So
-// C:/users/user/..., which is ugly to produce.
-fs
-    .directory(p.join(package, 'lib'))
-    .listSync(recursive: true, followLinks: false)
-    .whereType<File>()
-    .where((file) => file.path.endsWith('.dart'))
-    .where((file) => !file.path.contains('.sg.g.dart'))
-    .where((file) => !file.path.contains('.sg.freezed.dart'))
-    .where((file) => !file.path.endsWith('_test.dart'))
-    .where((file) => !file.path.endsWith('_intl.dart'))
-    .where(isNotHiddenFile)
-    .where(isNotDartHiddenFile)
-    .where(isNotWithinTopLevelBuildOutputDir)
-    .where(isNotWithinTopLevelToolDir)
-    .where((file) => !processedPackages.contains(file.path))
-    .map((e) => e.path)
-    .toList();
 
-Iterable<String> experienceConfigDartFiles() => [
-  for (var f in Glob('**.dart', recursive: true).listSync())
-    if (f is File && f.path.contains('_experience_config.dart')) f.path
-];
-
-// Limit the paths we handle to those that were included in [paths]
-List<String> limitPaths(List<String> allPaths,
-    {required List<String> allowed}) =>
-    [
-      for (var path in allPaths)
-        if (allowed
-            .any((included) => included == path || p.isWithin(included, path)))
-          path
-    ];
 
