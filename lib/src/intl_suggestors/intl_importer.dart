@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:io';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:codemod/codemod.dart';
@@ -40,25 +39,17 @@ Stream<Patch> intlImporter(
 
   if (!needsIntlImport) return;
 
-  final currentFilePath = Platform.script.toFilePath();
-  final currentDirectory = path.dirname(currentFilePath);
-
   final intlUri = 'package:$projectName/src/intl/${projectName}_intl.dart';
-  final relativePathToIntlDir = path.relative(currentDirectory, from: intlUri);
+  final intlDirectory = path.join(context.root, 'lib/src/intl/${projectName}_intl.dart');
+  final relativePathToIntlDir = path.relative(intlDirectory, from: path.current);
 
   final levelsUp = List<String>.generate(relativePathToIntlDir.split(path.separator).length, (_) => '..').join('/');
-
   final relativeImportPath = '$levelsUp/src/intl/${projectName}_intl.dart';
 
   final insertInfo = _insertionLocationForPackageImport(
       relativeImportPath, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
 
-  final hasPackageImport = insertInfo.hasPackageImports;
-  final hasRelativeImports = insertInfo.hasRelativeImports;
-
-  var importFormat = decideImportFormat(hasPackageImport, hasRelativeImports);
-
-  final importStatement = importFormat ? packageImport(intlUri, insertInfo) : relativeImport(relativeImportPath, insertInfo);
+  final importStatement = insertInfo.usePackageImports ? packageImport(intlUri, insertInfo) : relativeImport(relativeImportPath, insertInfo);
 
   yield Patch(
       importStatement,
@@ -73,15 +64,13 @@ class _InsertionLocation {
   final int offset;
   final int leadingNewlineCount;
   final int trailingNewlineCount;
-  final bool hasPackageImports;
-  final bool hasRelativeImports;
+  final bool usePackageImports;
 
   _InsertionLocation(
     this.offset, {
     this.leadingNewlineCount = 0,
     this.trailingNewlineCount = 0,
-    this.hasPackageImports = false,
-    this.hasRelativeImports = false,
+    this.usePackageImports = false,
   });
 
   String get leadingNewlines => '\n' * leadingNewlineCount;
@@ -97,9 +86,6 @@ _InsertionLocation _insertionLocationForPackageImport(
     String importUri, CompilationUnit unit, LineInfo lineInfo) {
   final imports = unit.directives.whereType<ImportDirective>();
   final firstImport = imports.firstOrNull;
-
-  bool hasPackageImports = false;
-  bool hasRelativeImports = false;
 
   final dartImports =
       imports.where((i) => i.uriContent?.startsWith('dart:') ?? false);
@@ -150,14 +136,15 @@ _InsertionLocation _insertionLocationForPackageImport(
         trailingNewlineCount: 2);
   }
 
+  bool hasPackageImports = false;
+
   for (final importDirective in imports) {
     final uriContent = importDirective.uriContent;
     if (uriContent != null) {
       final uri = Uri.parse(uriContent);
-      if (uri.scheme.isEmpty) {
-        hasRelativeImports = true;
-      } else if (uri.scheme == 'package') {
+      if (uri.scheme == 'package') {
         hasPackageImports = true;
+        break;
       }
     }
   }
@@ -166,13 +153,8 @@ _InsertionLocation _insertionLocationForPackageImport(
     insertAfter ? relativeNode.end : relativeNode.offset,
     leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
     trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
-    hasPackageImports: hasPackageImports,
-    hasRelativeImports : hasRelativeImports
+    usePackageImports: hasPackageImports
   );
-}
-
-bool decideImportFormat(bool shouldUsePackageImports, bool shouldUseRelativeImports) {
-  return shouldUsePackageImports || !shouldUseRelativeImports;
 }
 
 

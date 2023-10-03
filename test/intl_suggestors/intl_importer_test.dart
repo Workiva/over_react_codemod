@@ -353,37 +353,45 @@ void main() {
       });
     });
 
-    test('when there are only package imports', () {
+    test('should recognize import format as "package" when there are only package imports', () {
       final imports = [
         "import 'package:over_react/over_react.dart';",
         "import 'package:react_material_ui/react_material_ui.dart';",
       ];
       final hasPackageImports = imports.any((importStatement) => importStatement.startsWith("import 'package:"));
       final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith("import '../"));
-      final importFormat = decideImportFormat(hasPackageImports, hasRelativeImports);
-      expect(importFormat, isTrue);
+      expect(hasPackageImports, isTrue);
+      expect(hasRelativeImports, isFalse);
     });
 
-    test('when there are only relative imports', () {
+    test('should recognize import format as "relative" when there are only relative imports', () {
       final imports = [
-        "import '../../../src/intl/datatables_intl.dart';",
+        "import '../../../src/intl/test_project_intl.dart';",
         "import '../lib/file.dart';",
       ];
       final hasPackageImports = imports.any((importStatement) => importStatement.startsWith("import 'package:"));
       final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith("import '../"));
-      final importFormat = decideImportFormat(hasPackageImports, hasRelativeImports);
-      expect(importFormat, isFalse);
+      expect(hasPackageImports, isFalse);
+      expect(hasRelativeImports, isTrue);
     });
 
-    test('when there are both package and relative imports', () {
+    test('should recognize import format as "package" when there are both package and relative imports', () {
       final imports = [
         "import 'package:over_react/over_react.dart';",
-        "import '../../../src/intl/datatables_intl.dart';",
+        "import '../../../src/intl/test_project_intl.dart';",
       ];
       final hasPackageImports = imports.any((importStatement) => importStatement.startsWith("import 'package:"));
       final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith("import '../"));
-      final importFormat = decideImportFormat(hasPackageImports, hasRelativeImports);
-      expect(importFormat, isTrue);
+      expect(hasPackageImports, isTrue);
+      expect(hasRelativeImports, isFalse);
+    });
+
+    test('should recognize import format as "package" when there are no imports', () {
+      final imports = <String>[];
+      final hasPackageImports = imports.any((importStatement) => importStatement.startsWith("import 'package:"));
+      final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith("import '../"));
+      expect(hasPackageImports, isTrue);
+      expect(hasRelativeImports, isFalse);
     });
   });
 }
