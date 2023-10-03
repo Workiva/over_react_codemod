@@ -190,10 +190,12 @@ class IntlMigrator extends ComponentUsageMigrator {
   @override
   void migrateUsage(FluentComponentUsage usage) {
     super.migrateUsage(usage);
-    final namePrefix =
-        usage.node.thisOrAncestorOfType<ClassDeclaration>()?.name.lexeme ??
-            usage.node.thisOrAncestorOfType<VariableDeclaration>()?.name.lexeme ??
-            'null';
+    final namePrefix = usage.node
+            .thisOrAncestorOfType<ClassDeclaration>()
+            ?.name
+            .lexeme ??
+        usage.node.thisOrAncestorOfType<VariableDeclaration>()?.name.lexeme ??
+        'null';
 
     //Props
     final stringLiteralProps =
