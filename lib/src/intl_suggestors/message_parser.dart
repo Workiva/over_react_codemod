@@ -59,7 +59,7 @@ class MessageParser {
     var methodDeclarations = allDeclarations.cast<MethodDeclaration>();
     methods = [
       for (var declaration in methodDeclarations)
-        Method(declaration.name.name, messageText(declaration),
+        Method(declaration.name.lexeme, messageText(declaration),
             '  ${corrected(declaration)}')
     ];
   }
@@ -112,8 +112,8 @@ class MessageParser {
   String withCorrectedNameParameter(MethodDeclaration declaration) {
     var invocation = intlMethodInvocation(declaration);
     var nameParameter = nameParameterFrom(invocation);
-    var className = (declaration.parent as ClassDeclaration).name.name;
-    var expected = "'${className}_${declaration.name.name}'";
+    var className = (declaration.parent as ClassDeclaration).name.lexeme;
+    var expected = "'${className}_${declaration.name.lexeme}'";
     var actual = nameParameter?.expression.toSource();
     var basicString = '$declaration';
     if (actual == null) {

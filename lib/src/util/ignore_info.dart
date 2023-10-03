@@ -63,7 +63,7 @@ class OrcmIgnoreInfo {
   /// Initialize a newly created instance of this class to represent the ignore
   /// comments in the given compilation [unit].
   OrcmIgnoreInfo.forDart(CompilationUnit unit, String content) {
-    var lineInfo = unit.lineInfo!;
+    var lineInfo = unit.lineInfo;
     for (var ignoreComment in unit.ignoreComments) {
       if (ignoreComment.isForFile) {
         _ignoredForFile.addAll(ignoreComment.ignores);

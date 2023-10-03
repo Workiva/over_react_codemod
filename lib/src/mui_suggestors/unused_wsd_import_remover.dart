@@ -35,7 +35,7 @@ Stream<Patch> unusedWsdImportRemover(FileContext context) async* {
   for (final error in unusedImportErrors) {
     final matchingImport =
         allImports.singleWhere((import) => import.containsOffset(error.offset));
-    final importUri = matchingImport.uriContent;
+    final importUri = matchingImport.uri.stringValue;
     if (importUri != null && importUri.startsWith('package:web_skin_dart/')) {
       final prevTokenEnd = matchingImport.beginToken.previous?.end;
       // Try to take the newline before the import, but watch out

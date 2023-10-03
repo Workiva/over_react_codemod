@@ -562,15 +562,15 @@ void overReactExample() {}''';
                 'string value',
                 'Foo = castUiFactory(_\$Foo)',
               ),
-              isA<TypeName>()
+              isA<NamedType>()
                   .having((node) => node.name.name, 'name', 'UiFactory'),
-              isA<TypeName>()
+              isA<NamedType>()
                   .having((node) => node.name.name, 'name', 'FooProps'),
               isA<MethodInvocation>().having((node) => node.methodName.name,
                   'methodName', 'castUiFactory'),
               isA<TypeArgumentList>().having(
                   (node) => node.arguments.toList(), 'arguments', [
-                isA<TypeName>()
+                isA<NamedType>()
                     .having((node) => node.name.name, 'name', 'FooProps')
               ]),
               isA<ArgumentList>().having(
@@ -594,7 +594,7 @@ void overReactExample() {}''';
       test('returns empty list when input has no descendants', () {
         final node = parseAndGetSingle('''
           UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
-        ''').variables.variables.first.name;
+        ''').variables.variables.first.root;
 
         expect(allDescendants(node).toList(), isEmpty);
       });
@@ -648,7 +648,7 @@ void overReactExample() {}''';
       test('when input has no descendants', () {
         final node = parseAndGetSingle('''
           UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
-        ''').variables.variables.first.name;
+        ''').variables.variables.first.root;
 
         expect(allDescendantsOfType<SimpleIdentifier>(node).toList(), isEmpty);
       });
