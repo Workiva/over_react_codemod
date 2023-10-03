@@ -366,7 +366,7 @@ void main() {
 
     test('should recognize import format as "relative" when there are only relative imports', () {
       final imports = [
-        "import '../../../src/intl/test_project_intl.dart';",
+        "import '../../src/intl/test_project_intl.dart';",
         "import '../lib/file.dart';",
       ];
       final hasPackageImports = imports.any((importStatement) => importStatement.startsWith("import 'package:"));
@@ -378,7 +378,7 @@ void main() {
     test('should recognize import format as "package" when there are both package and relative imports', () {
       final imports = [
         "import 'package:over_react/over_react.dart';",
-        "import '../../../src/intl/test_project_intl.dart';",
+        "import '../../src/intl/test_project_intl.dart';",
       ];
       final hasPackageImports = imports.any((importStatement) => importStatement.startsWith("import 'package:"));
       final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith("import '../"));
