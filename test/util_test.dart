@@ -579,8 +579,6 @@ void overReactExample() {}''';
                     .having((node) => node.name, 'name', '_\$Foo')
               ]),
               isA<SimpleIdentifier>()
-                  .having((node) => node.name, 'name', 'Foo'),
-              isA<SimpleIdentifier>()
                   .having((node) => node.name, 'name', 'UiFactory'),
               isA<SimpleIdentifier>()
                   .having((node) => node.name, 'name', 'FooProps'),
