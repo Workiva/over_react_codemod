@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:io';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:codemod/codemod.dart';
@@ -39,18 +41,15 @@ Stream<Patch> intlImporter(
 
   if (!needsIntlImport) return;
 
-  final intlUri = 'package:$projectName/src/intl/${projectName}_intl.dart';
-  final intlDirectory = path.join(context.root, 'lib/src/intl/${projectName}_intl.dart');
+  final intlUri = 'package:${projectName}/src/intl/${projectName}_intl.dart';
+  final currentDirectory = Directory.current;
+  final intlDirectory = path.join(currentDirectory.path, 'lib/src/intl/${projectName}_intl.dart');
   final relativePathToIntlDir = path.relative(intlDirectory, from: path.current);
-
   final levelsUp = List<String>.generate(relativePathToIntlDir.split(path.separator).length, (_) => '..').join('/');
-  final relativeImportPath = '$levelsUp/src/intl/${projectName}_intl.dart';
-
+  final relativeImportPath = '${levelsUp}/src/intl/${projectName}_intl.dart';
   final insertInfo = _insertionLocationForPackageImport(
-      relativeImportPath, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
-
-  final importStatement = insertInfo.usePackageImports ? packageImport(intlUri, insertInfo) : relativeImport(relativeImportPath, insertInfo);
-
+      intlUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
+  final importStatement = insertInfo.usePackageImports  ? packageImport(intlUri, insertInfo) : relativeImport(relativeImportPath, insertInfo);
   yield Patch(
       importStatement,
       insertInfo.offset,
@@ -135,15 +134,14 @@ _InsertionLocation _insertionLocationForPackageImport(
     return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0,
         trailingNewlineCount: 2);
   }
-
-  bool hasPackageImports = false;
+  bool hasPackageImports = true;
 
   for (final importDirective in imports) {
     final uriContent = importDirective.uriContent;
     if (uriContent != null) {
       final uri = Uri.parse(uriContent);
-      if (uri.scheme == 'package') {
-        hasPackageImports = true;
+      if (uri.scheme != 'package') {
+        hasPackageImports = false;
         break;
       }
     }
@@ -156,5 +154,3 @@ _InsertionLocation _insertionLocationForPackageImport(
     usePackageImports: hasPackageImports
   );
 }
-
-
