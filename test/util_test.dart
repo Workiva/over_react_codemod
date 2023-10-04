@@ -600,7 +600,6 @@ void overReactExample() {}''';
       });
     });
 
-
     group('allDescendantsOfType()', () {
       TopLevelVariableDeclaration parseAndGetSingle(String source) =>
           parseString(content: source)
@@ -651,7 +650,8 @@ void overReactExample() {}''';
           UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
         ''').variables.variables.first.name;
 
-        expect(allDescendantsOfType<SimpleIdentifier>(node as AstNode).toList(), isEmpty);
+        expect(allDescendantsOfType<SimpleIdentifier>(node as AstNode).toList(),
+            isEmpty);
       });
     });
   });
