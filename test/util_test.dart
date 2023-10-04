@@ -611,19 +611,12 @@ void overReactExample() {}''';
       group('returns all descendants of the specified type for a node', () {
         final node = parseAndGetSingle('''
           UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
-        ''');
+        ''').variables.variables.first;
 
         test('when there are many descendants of a type', () {
           expect(
               allDescendantsOfType<SimpleIdentifier>(node).toList(),
-              unorderedEquals([
-                // Commenting out the following line, as it seems to be the mismatch
-                // isA<SimpleIdentifier>()
-                //     .having((node) => node.name, 'name', 'Foo'),
-                isA<SimpleIdentifier>()
-                    .having((node) => node.name, 'name', 'UiFactory'),
-                isA<SimpleIdentifier>()
-                    .having((node) => node.name, 'name', 'FooProps'),
+              unorderedMatches([
                 isA<SimpleIdentifier>()
                     .having((node) => node.name, 'name', '_\$Foo'),
                 isA<SimpleIdentifier>()
