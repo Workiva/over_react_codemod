@@ -578,9 +578,8 @@ void overReactExample() {}''';
                 isA<SimpleIdentifier>()
                     .having((node) => node.name, 'name', '_\$Foo')
               ]),
-              // Commenting out the following line, as it seems to be the mismatch
-              // isA<SimpleIdentifier>()
-              //     .having((node) => node.name, 'name', 'Foo'),
+              isA<SimpleIdentifier>()
+                  .having((node) => node.name, 'name', 'Foo'),
               isA<SimpleIdentifier>()
                   .having((node) => node.name, 'name', 'UiFactory'),
               isA<SimpleIdentifier>()
@@ -595,8 +594,8 @@ void overReactExample() {}''';
       test('returns empty list when input has no descendants', () {
         final node = parseAndGetSingle('''
           UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
-        ''').variables.variables.first.name;
-        expect(node.toString(), equals('Foo'));
+        ''').variables.variables.first.root;
+        expect(allDescendants(node).toList(), isEmpty);
       });
     });
 
@@ -611,12 +610,18 @@ void overReactExample() {}''';
       group('returns all descendants of the specified type for a node', () {
         final node = parseAndGetSingle('''
           UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
-        ''').variables.variables.first;
+        ''');
 
         test('when there are many descendants of a type', () {
           expect(
               allDescendantsOfType<SimpleIdentifier>(node).toList(),
-              unorderedMatches([
+              unorderedEquals([
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'Foo'),
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'UiFactory'),
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'FooProps'),
                 isA<SimpleIdentifier>()
                     .having((node) => node.name, 'name', '_\$Foo'),
                 isA<SimpleIdentifier>()
@@ -642,9 +647,9 @@ void overReactExample() {}''';
       test('when input has no descendants', () {
         final node = parseAndGetSingle('''
           UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
-        ''').variables.variables.first.name;
+        ''').variables.variables.first.root;
 
-        expect(node.toString(), equals('Foo'));
+        expect(allDescendantsOfType<SimpleIdentifier>(node).toList(), isEmpty);
       });
     });
   });
