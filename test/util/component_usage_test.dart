@@ -414,7 +414,7 @@ void main() {
 
               expect(
                 componentUsage.propsClassElement,
-                isA<InterfaceElement>()
+                isA<ClassElement>()
                     .having((c) => c.name, 'name', builderSource.propsName),
               );
               expect(

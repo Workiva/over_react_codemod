@@ -594,11 +594,12 @@ void overReactExample() {}''';
       test('returns empty list when input has no descendants', () {
         final node = parseAndGetSingle('''
           UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
-        ''').variables.variables.first.root;
+        ''').variables.variables.first.name;
 
-        expect(allDescendants(node).toList(), isEmpty);
+        expect(allDescendants(node as AstNode).toList(), isEmpty);
       });
     });
+
 
     group('allDescendantsOfType()', () {
       TopLevelVariableDeclaration parseAndGetSingle(String source) =>
@@ -648,9 +649,9 @@ void overReactExample() {}''';
       test('when input has no descendants', () {
         final node = parseAndGetSingle('''
           UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
-        ''').variables.variables.first.root;
+        ''').variables.variables.first.name;
 
-        expect(allDescendantsOfType<SimpleIdentifier>(node).toList(), isEmpty);
+        expect(allDescendantsOfType<SimpleIdentifier>(node as AstNode).toList(), isEmpty);
       });
     });
   });

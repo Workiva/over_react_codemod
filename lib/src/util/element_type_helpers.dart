@@ -25,7 +25,7 @@ extension TypeHelpers on DartType {
 
   bool isOrIsSubtypeOfClassFromPackage(String typeName, String packageName) {
     final element = typeOrBound.element;
-    return element is InterfaceElement &&
+    return element is ClassElement &&
         (element.isElementFromPackage(typeName, packageName) ||
             element.allSupertypes.any((type) =>
                 type.element.isElementFromPackage(typeName, packageName)));

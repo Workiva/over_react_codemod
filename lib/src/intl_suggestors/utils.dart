@@ -272,7 +272,7 @@ extension ElementSubtypeUtils on Element /*?*/ {
   bool isOrIsSubtypeOfTypeFromPackage(String typeName, String packageName,
       [PackageType packageType = PackageType.package]) {
     final that = this;
-    return that is InterfaceElement &&
+    return that is ClassElement &&
         (that.isTypeFromPackage(typeName, packageName, packageType) ||
             that.allSupertypes.any((type) => type.element
                 .isTypeFromPackage(typeName, packageName, packageType)));

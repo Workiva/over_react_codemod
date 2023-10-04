@@ -21,7 +21,6 @@ import 'package:logging/logging.dart';
 import 'constants.dart';
 
 final _log = Logger('muiImporter');
-
 /// A suggestor that adds imports in libraries that reference
 /// the [muiNs] import namespace (including in parts) but don't yet import it.
 Stream<Patch> muiImporter(FileContext context) async* {
