@@ -1,4 +1,4 @@
-concurrency: 8
+concurrency: 2
 
 tags:
   # Tests that fetch a web_skin_dart as a dependency,
