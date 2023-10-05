@@ -60,17 +60,20 @@ void main() {
           await testSuggestor(
             input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
-              import 'package:test_project/src/intl/test_project_intl.dart';
               content() => TestProjectIntl.testString;
+              
             ''',
             isExpectedError: isUndefinedIntlError,
+
             expectedOutput: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
               import 'package:test_project/src/intl/test_project_intl.dart';
               
               
               content() => TestProjectIntl.testString;
+              
             ''',
+
           );
         });
 
@@ -166,6 +169,7 @@ void main() {
               import 'dart:html';
 
               content() => TestProjectIntl.testString;
+              
             ''',
             isExpectedError: (e) =>
                 isUndefinedIntlError(e) || isFakeUriError(e),
