@@ -31,7 +31,7 @@ Stream<Patch> intlImporter(
   // Parts that have not been generated can show up as `exists = false` but also `isPart = false`,
   // so using the unitResults is a little trickier than using the libraryElement to get it.
   final mainLibraryUnitResult = libraryResult.units.singleWhere((unitResult) =>
-      unitResult.unit.declaredElement ==
+  unitResult.unit.declaredElement ==
       libraryResult.element.definingCompilationUnit);
 
   final needsIntlImport = libraryResult.units
@@ -50,6 +50,8 @@ Stream<Patch> intlImporter(
   final insertInfo = _insertionLocationForPackageImport(
       intlUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
   final importStatement = insertInfo.usePackageImports  ? packageImport(intlUri, insertInfo) : relativeImport(relativeImportPath, insertInfo);
+  print("importStatement"+importStatement);
+  print(insertInfo.usePackageImports);
   yield Patch(
       importStatement,
       insertInfo.offset,
@@ -66,11 +68,11 @@ class _InsertionLocation {
   final bool usePackageImports;
 
   _InsertionLocation(
-    this.offset, {
-    this.leadingNewlineCount = 0,
-    this.trailingNewlineCount = 0,
-    this.usePackageImports = false,
-  });
+      this.offset, {
+        this.leadingNewlineCount = 0,
+        this.trailingNewlineCount = 0,
+        this.usePackageImports = false,
+      });
 
   String get leadingNewlines => '\n' * leadingNewlineCount;
 
@@ -87,11 +89,11 @@ _InsertionLocation _insertionLocationForPackageImport(
   final firstImport = imports.firstOrNull;
 
   final dartImports =
-      imports.where((i) => i.uriContent?.startsWith('dart:') ?? false);
+  imports.where((i) => i.uriContent?.startsWith('dart:') ?? false);
   final lastDartImport = dartImports.lastOrNull;
 
   final packageImports =
-      imports.where((i) => i.uriContent?.startsWith('package:') ?? false);
+  imports.where((i) => i.uriContent?.startsWith('package:') ?? false);
   final firstPackageImportSortedAfterNewImport = packageImports
       .where((i) => i.uriContent!.compareTo(importUri) > 0)
       .firstOrNull;
@@ -148,9 +150,9 @@ _InsertionLocation _insertionLocationForPackageImport(
   }
 
   return _InsertionLocation(
-    insertAfter ? relativeNode.end : relativeNode.offset,
-    leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
-    trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
-    usePackageImports: hasPackageImports
+      insertAfter ? relativeNode.end : relativeNode.offset,
+      leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
+      trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
+      usePackageImports: hasPackageImports
   );
 }

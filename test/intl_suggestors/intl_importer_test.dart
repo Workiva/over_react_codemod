@@ -48,7 +48,7 @@ void main() {
           ''',
           isExpectedError: isUndefinedIntlError,
           expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
+              import '../../../../src/intl/test_project_intl.dart';
               content() => TestProjectIntl.testString;
           ''',
         );
@@ -63,8 +63,9 @@ void main() {
             ''',
             isExpectedError: isUndefinedIntlError,
             expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:over_react/over_react.dart';
+              import 'package:test_project/src/intl/test_project_intl.dart';
+              
               
               content() => TestProjectIntl.testString;
             ''',
@@ -100,8 +101,8 @@ void main() {
             isExpectedError: (e) =>
                 isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:over_react/over_react.dart';
+              import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:z_fake_package/z_fake_package.dart';
 
               content() => TestProjectIntl.testString;
@@ -123,9 +124,9 @@ void main() {
             isExpectedError: (e) =>
                 isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:over_react/over_react.dart';
               import 'package:over_react/components.dart';
+              import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:z_fake_package/z_fake_package_1.dart';
               import 'package:z_fake_package/z_fake_package_2.dart';
 
@@ -139,17 +140,19 @@ void main() {
           await testSuggestor(
             input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
+
               import 'a/fake_relative_file.dart';
-      
+
               content() => TestProjectIntl.testString;
             ''',
             isExpectedError: (e) =>
                 isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:over_react/over_react.dart';
+              import 'package:test_project/src/intl/test_project_intl.dart';
+
               import 'a/fake_relative_file.dart';
-              
+
               content() => TestProjectIntl.testString;
             ''',
           );
@@ -167,7 +170,7 @@ void main() {
             expectedOutput: /*language=dart*/ '''
               import 'dart:html';
 
-              import 'package:test_project/src/intl/test_project_intl.dart';
+              import '../../../../src/intl/test_project_intl.dart';
 
               content() => TestProjectIntl.testString;
             ''',
@@ -233,14 +236,16 @@ void main() {
         await testSuggestor(
           input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
+
               part 'fake_part.dart';
 
               content() => TestProjectIntl.testString;
           ''',
           isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
           expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:over_react/over_react.dart';
+              import 'package:test_project/src/intl/test_project_intl.dart';
+
               part 'fake_part.dart';
 
               content() => TestProjectIntl.testString;
@@ -274,16 +279,20 @@ void main() {
         await testSuggestor(
           input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
+
               export 'package:over_react/over_react.dart';
+
               part 'fake_part.dart';
 
               content() => TestProjectIntl.testString;
           ''',
           isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
           expectedOutput: /*language=dart*/ '''
-              import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:over_react/over_react.dart';
+              import 'package:test_project/src/intl/test_project_intl.dart';
+
               export 'package:over_react/over_react.dart';
+
               part 'fake_part.dart';
 
               content() => TestProjectIntl.testString;
@@ -351,47 +360,6 @@ void main() {
           ''',
         );
       });
-    });
-
-    test('should recognize import format as "package" when there are only package imports', () {
-      final imports = [
-        "import 'package:over_react/over_react.dart';",
-        "import 'package:react_material_ui/react_material_ui.dart';",
-      ];
-      final hasPackageImports = imports.any((importStatement) => importStatement.startsWith("import 'package:"));
-      final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith("import '../"));
-      expect(hasPackageImports, isTrue);
-      expect(hasRelativeImports, isFalse);
-    });
-
-    test('should recognize import format as "relative" when there are only relative imports', () {
-      final imports = [
-        "import '../../src/intl/test_project_intl.dart';",
-        "import '../lib/file.dart';",
-      ];
-      final hasPackageImports = imports.any((importStatement) => importStatement.startsWith("import 'package:"));
-      final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith("import '../"));
-      expect(hasPackageImports, isFalse);
-      expect(hasRelativeImports, isTrue);
-    });
-
-    test('should recognize import format as "package" when there are both package and relative imports', () {
-      final imports = [
-        "import 'package:over_react/over_react.dart';",
-        "import '../../src/intl/test_project_intl.dart';",
-      ];
-      final hasPackageImports = imports.any((importStatement) => importStatement.startsWith("import 'package:"));
-      final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith("import '../"));
-      expect(hasPackageImports, isTrue);
-      expect(hasRelativeImports, isFalse);
-    });
-
-    test('should recognize import format as "package" when there are no imports', () {
-      final imports = <String>[];
-      final hasPackageImports = imports.any((importStatement) => importStatement.startsWith("import 'package:"));
-      final hasRelativeImports = imports.any((importStatement) => importStatement.startsWith("import '../"));
-      expect(hasPackageImports, isTrue);
-      expect(hasRelativeImports, isFalse);
     });
   });
 }

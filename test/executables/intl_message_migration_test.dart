@@ -38,13 +38,13 @@ void main() {
         expectedOutput: inputFiles(),
         expectedExitCode: 0,
         args: ['--help'], body: (out, err) {
-      expect(
-          condenseWhitespace(err),
-          allOf(
-            contains(condenseWhitespace(codemodArgParser.usage)),
-            contains('Migrates literal strings'),
-          ));
-    });
+          expect(
+              condenseWhitespace(err),
+              allOf(
+                contains(condenseWhitespace(codemodArgParser.usage)),
+                contains('Migrates literal strings'),
+              ));
+        });
 
     testCodemod('applies all patches via --yes-to-all,',
         script: script,
@@ -57,8 +57,8 @@ void main() {
         input: expectedOutputFiles(),
         expectedOutput: expectedOutputFiles(),
         args: ['--fail-on-changes'], body: (out, err) {
-      expect(out, contains('No changes needed.'));
-    });
+          expect(out, contains('No changes needed.'));
+        });
 
     testCodemod(
         '--fail-on-changes exits with non-zero when changes needed and does not update files',
@@ -180,8 +180,8 @@ someMoreStrings() => (mui.Button()..aria.label='orange')('aquamarine');''')
         expectedOutput: inputFiles(),
         args: ['--yes-to-all', 'lib/a_part_file.dart'],
         expectedExitCode: 1, body: (out, err) {
-      expect(err, contains('Only part files were specified'));
-    });
+          expect(err, contains('Only part files were specified'));
+        });
   }, tags: 'wsd');
 
   group('limit paths', () {
@@ -242,8 +242,8 @@ with multiple
 
 d.FileDescriptor extraOutput() {
   return d.file('more_stuff.dart',
-      /*language=dart*/ '''import 'package:test_project/src/intl/test_project_intl.dart';
-import 'package:react_material_ui/react_material_ui.dart' as mui;
+      /*language=dart*/ '''import 'package:react_material_ui/react_material_ui.dart' as mui;
+import 'package:test_project/src/intl/test_project_intl.dart';
 
 someMoreStrings() => (mui.Button()
   ..aria.label=TestProjectIntl.orange
@@ -301,9 +301,9 @@ const List<String> defaultMessages = [
 
 d.DirectoryDescriptor expectedOutputFiles(
     {Iterable<d.Descriptor> additionalFilesInLib = const [],
-    List<String> messages = defaultMessages,
-    String rmuiVersionConstraint = '^1.1.1',
-    String intlImport = '${wIntl}/intl_wrapper.dart'}) {
+      List<String> messages = defaultMessages,
+      String rmuiVersionConstraint = '^1.1.1',
+      String intlImport = '${wIntl}/intl_wrapper.dart'}) {
   return d.dir('project', [
     // Note that the codemod doesn't currently add the intl dependency to the pubspec.
     d.file('pubspec.yaml', /*language=yaml*/ '''
@@ -319,8 +319,8 @@ dependencies:
     d.dir('lib', [
       ...additionalFilesInLib,
       d.file('usage.dart', /*language=dart*/ '''
-import 'package:test_project/src/intl/test_project_intl.dart';
 import 'package:react_material_ui/react_material_ui.dart' as mui;
+import 'package:test_project/src/intl/test_project_intl.dart';
 
 usage() => (mui.Button()..aria.label=TestProjectIntl.sortsLater)(TestProjectIntl.literalString);'''),
       d.dir('src', [
