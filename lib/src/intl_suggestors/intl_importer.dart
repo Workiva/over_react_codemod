@@ -50,8 +50,6 @@ Stream<Patch> intlImporter(
   final insertInfo = _insertionLocationForPackageImport(
       intlUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
   final importStatement = insertInfo.usePackageImports  ? packageImport(intlUri, insertInfo) : relativeImport(relativeImportPath, insertInfo);
-  print("importStatement"+importStatement);
-  print(insertInfo.usePackageImports);
   yield Patch(
       importStatement,
       insertInfo.offset,
