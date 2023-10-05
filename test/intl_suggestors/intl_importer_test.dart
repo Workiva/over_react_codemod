@@ -44,6 +44,7 @@ void main() {
       test('when there are no other imports', () async {
         await testSuggestor(
           input: /*language=dart*/ '''
+          
               content() => TestProjectIntl.testString;
           ''',
           isExpectedError: isUndefinedIntlError,
@@ -59,6 +60,7 @@ void main() {
           await testSuggestor(
             input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
+              import 'package:test_project/src/intl/test_project_intl.dart';
               content() => TestProjectIntl.testString;
             ''',
             isExpectedError: isUndefinedIntlError,
