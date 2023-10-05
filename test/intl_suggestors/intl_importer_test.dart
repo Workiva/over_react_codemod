@@ -151,7 +151,7 @@ void main() {
                 isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
-              import 'package:test_project/src/intl/test_project_intl.dart';
+              import '../../../../src/intl/test_project_intl.dart';
 
               import 'a/fake_relative_file.dart';
 
