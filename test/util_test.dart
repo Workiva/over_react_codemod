@@ -16,6 +16,7 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:over_react_codemod/src/executables/dependency_validator_ignore.dart';
 
 import 'package:path/path.dart' as p;
@@ -578,10 +579,12 @@ void overReactExample() {}''';
                 isA<SimpleIdentifier>()
                     .having((node) => node.name, 'name', '_\$Foo')
               ]),
-              isA<SimpleIdentifier>()
-                  .having((node) => node.name, 'name', 'UiFactory'),
-              isA<SimpleIdentifier>()
-                  .having((node) => node.name, 'name', 'FooProps'),
+              if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'UiFactory'),
+              if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
+                isA<SimpleIdentifier>()
+                    .having((node) => node.name, 'name', 'FooProps'),
               isA<SimpleIdentifier>()
                   .having((node) => node.name, 'name', '_\$Foo'),
               isA<SimpleIdentifier>()
@@ -614,10 +617,12 @@ void overReactExample() {}''';
           expect(
               allDescendantsOfType<SimpleIdentifier>(node).toList(),
               unorderedEquals([
-                isA<SimpleIdentifier>()
-                    .having((node) => node.name, 'name', 'UiFactory'),
-                isA<SimpleIdentifier>()
-                    .having((node) => node.name, 'name', 'FooProps'),
+                if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
+                  isA<SimpleIdentifier>()
+                      .having((node) => node.name, 'name', 'UiFactory'),
+                if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
+                  isA<SimpleIdentifier>()
+                      .having((node) => node.name, 'name', 'FooProps'),
                 isA<SimpleIdentifier>()
                     .having((node) => node.name, 'name', '_\$Foo'),
                 isA<SimpleIdentifier>()
@@ -649,6 +654,36 @@ void overReactExample() {}''';
       });
     });
   });
+}
+
+/// Some version of analyzer 5 above 5.6.0 changes the behavior of
+/// whether NamedType have SimpleIdentifier in their childEntities.
+///
+/// However, we can't set our analyzer constraint to a higher version while
+/// supporting Dart 2.18 due to SDK constraints in analyzer requiring 2.19.
+///
+/// This method detects the behavior of the current analyzer package so we can
+/// author tests that pass regardless of analyzer behavior.
+bool currentAnalyzerHasChildrenIdentifiersInNamedTypes() {
+  final namedTypes = <NamedType>[];
+  parseString(content: '''
+    NamedType variable;
+  ''').unit.accept(_NamedTypeVisitor(namedTypes.add));
+  return namedTypes.single.childEntities
+      .whereType<SimpleIdentifier>()
+      .isNotEmpty;
+}
+
+class _NamedTypeVisitor extends RecursiveAstVisitor<void> {
+  final Function(NamedType) onVisitNamedType;
+
+  _NamedTypeVisitor(this.onVisitNamedType);
+
+  @override
+  void visitNamedType(NamedType node) {
+    onVisitNamedType(node);
+    super.visitNamedType(node);
+  }
 }
 
 void testCompanionClassBuilder(CompanionBuilder builder, String metaType) {
