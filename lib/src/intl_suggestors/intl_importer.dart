@@ -31,7 +31,7 @@ Stream<Patch> intlImporter(
   // Parts that have not been generated can show up as `exists = false` but also `isPart = false`,
   // so using the unitResults is a little trickier than using the libraryElement to get it.
   final mainLibraryUnitResult = libraryResult.units.singleWhere((unitResult) =>
-  unitResult.unit.declaredElement ==
+      unitResult.unit.declaredElement ==
       libraryResult.element.definingCompilationUnit);
 
   final needsIntlImport = libraryResult.units
@@ -41,23 +41,30 @@ Stream<Patch> intlImporter(
 
   if (!needsIntlImport) return;
 
-  final intlUri = 'package:${projectName}/src/intl/${projectName}_intl.dart';
-  final currentDirectory = Directory.current;
-  final intlDirectory = path.join(currentDirectory.path, 'lib/src/intl/${projectName}_intl.dart');
-  final relativePathToIntlDir = path.relative(intlDirectory, from: path.current);
-  final levelsUp = List<String>.generate(relativePathToIntlDir.split(path.separator).length, (_) => '..').join('/');
-  final relativeImportPath = '${levelsUp}/src/intl/${projectName}_intl.dart';
+  final intlFilePath = '/src/intl/${projectName}_intl.dart';
+  final intlUri = 'package:${projectName}' + intlFilePath;
+  final intlDirectory = path.join(Directory.current.path, intlFilePath);
+  final relativePathToIntlDir =
+      path.relative(intlDirectory, from: Directory.current.path);
   final insertInfo = _insertionLocationForPackageImport(
       intlUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
-  final importStatement = insertInfo.usePackageImports  ? packageImport(intlUri, insertInfo) : relativeImport(relativeImportPath, insertInfo);
-  yield Patch(
-      importStatement,
-      insertInfo.offset,
-      insertInfo.offset);
+
+  final importStatement = insertInfo.usePackageImports
+      ? packageImport(intlUri, insertInfo)
+      : relativeImport(relativePathToIntlDir, insertInfo);
+
+  yield Patch(importStatement, insertInfo.offset, insertInfo.offset);
 }
 
-String packageImport(String intlUri, _InsertionLocation insertInfo) => insertInfo.leadingNewlines + "import '$intlUri';" + insertInfo.trailingNewlines;
-String relativeImport(String relativeImportPath, _InsertionLocation insertInfo) =>  insertInfo.leadingNewlines + "import '$relativeImportPath';" + insertInfo.trailingNewlines;
+String packageImport(String intlUri, _InsertionLocation insertInfo) =>
+    insertInfo.leadingNewlines +
+    "import '$intlUri';" +
+    insertInfo.trailingNewlines;
+String relativeImport(
+        String relativeImportPath, _InsertionLocation insertInfo) =>
+    insertInfo.leadingNewlines +
+    "import '$relativeImportPath';" +
+    insertInfo.trailingNewlines;
 
 class _InsertionLocation {
   final int offset;
@@ -66,11 +73,11 @@ class _InsertionLocation {
   final bool usePackageImports;
 
   _InsertionLocation(
-      this.offset, {
-        this.leadingNewlineCount = 0,
-        this.trailingNewlineCount = 0,
-        this.usePackageImports = false,
-      });
+    this.offset, {
+    this.leadingNewlineCount = 0,
+    this.trailingNewlineCount = 0,
+    this.usePackageImports = false,
+  });
 
   String get leadingNewlines => '\n' * leadingNewlineCount;
 
@@ -87,11 +94,11 @@ _InsertionLocation _insertionLocationForPackageImport(
   final firstImport = imports.firstOrNull;
 
   final dartImports =
-  imports.where((i) => i.uriContent?.startsWith('dart:') ?? false);
+      imports.where((i) => i.uriContent?.startsWith('dart:') ?? false);
   final lastDartImport = dartImports.lastOrNull;
 
   final packageImports =
-  imports.where((i) => i.uriContent?.startsWith('package:') ?? false);
+      imports.where((i) => i.uriContent?.startsWith('package:') ?? false);
   final firstPackageImportSortedAfterNewImport = packageImports
       .where((i) => i.uriContent!.compareTo(importUri) > 0)
       .firstOrNull;
@@ -151,6 +158,5 @@ _InsertionLocation _insertionLocationForPackageImport(
       insertAfter ? relativeNode.end : relativeNode.offset,
       leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
       trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
-      usePackageImports: hasPackageImports
-  );
+      usePackageImports: hasPackageImports);
 }

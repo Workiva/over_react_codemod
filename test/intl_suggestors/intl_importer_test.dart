@@ -44,12 +44,11 @@ void main() {
       test('when there are no other imports', () async {
         await testSuggestor(
           input: /*language=dart*/ '''
-          
               content() => TestProjectIntl.testString;
           ''',
           isExpectedError: isUndefinedIntlError,
           expectedOutput: /*language=dart*/ '''
-              import '../../../../src/intl/test_project_intl.dart';
+              import '../../../../../src/intl/test_project_intl.dart';
               content() => TestProjectIntl.testString;
           ''',
         );
@@ -61,19 +60,14 @@ void main() {
             input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
               content() => TestProjectIntl.testString;
-              
             ''',
             isExpectedError: isUndefinedIntlError,
-
             expectedOutput: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
               import 'package:test_project/src/intl/test_project_intl.dart';
-              
-              
               content() => TestProjectIntl.testString;
               
             ''',
-
           );
         });
 
@@ -81,7 +75,6 @@ void main() {
           await testSuggestor(
             input: /*language=dart*/ '''
               import 'package:z_fake_package/z_fake_package.dart';
-
               content() => TestProjectIntl.testString;
             ''',
             isExpectedError: (e) =>
@@ -89,7 +82,6 @@ void main() {
             expectedOutput: /*language=dart*/ '''
               import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:z_fake_package/z_fake_package.dart';
-
               content() => TestProjectIntl.testString;
             ''',
           );
@@ -100,7 +92,6 @@ void main() {
             input: /*language=dart*/ '''
                 import 'package:over_react/over_react.dart';
                 import 'package:z_fake_package/z_fake_package.dart';
-
               content() => TestProjectIntl.testString;
             ''',
             isExpectedError: (e) =>
@@ -109,7 +100,6 @@ void main() {
               import 'package:over_react/over_react.dart';
               import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:z_fake_package/z_fake_package.dart';
-
               content() => TestProjectIntl.testString;
             ''',
           );
@@ -123,7 +113,6 @@ void main() {
                 import 'package:over_react/components.dart';
                 import 'package:z_fake_package/z_fake_package_1.dart';
                 import 'package:z_fake_package/z_fake_package_2.dart';
-
               content() => TestProjectIntl.testString;
             ''',
             isExpectedError: (e) =>
@@ -134,7 +123,6 @@ void main() {
               import 'package:test_project/src/intl/test_project_intl.dart';
               import 'package:z_fake_package/z_fake_package_1.dart';
               import 'package:z_fake_package/z_fake_package_2.dart';
-
               content() => TestProjectIntl.testString;
             ''',
           );
@@ -145,19 +133,15 @@ void main() {
           await testSuggestor(
             input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
-
               import 'a/fake_relative_file.dart';
-
               content() => TestProjectIntl.testString;
             ''',
             isExpectedError: (e) =>
                 isUndefinedIntlError(e) || isFakeUriError(e),
             expectedOutput: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
-              import '../../../../src/intl/test_project_intl.dart';
-
+              import '../../../../../src/intl/test_project_intl.dart';
               import 'a/fake_relative_file.dart';
-
               content() => TestProjectIntl.testString;
             ''',
           );
@@ -176,7 +160,7 @@ void main() {
             expectedOutput: /*language=dart*/ '''
               import 'dart:html';
 
-              import '../../../../src/intl/test_project_intl.dart';
+              import '../../../../../src/intl/test_project_intl.dart';
 
               content() => TestProjectIntl.testString;
             ''',
