@@ -84,6 +84,20 @@ void main() {
         expect(messages.messageContents(), expectedFileContent);
       });
 
+      test('ignored with preceding comment', () async {
+        var input = '''
+            // This says it's user-visible, but don't believe its lies!
+            // ignore_statement: intl_message_migration
+            const foo = 'I am a user-visible constant';
+            ''';
+        await testSuggestor(
+          input: input,
+          expectedOutput: input,
+        );
+        final expectedFileContent = '';
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
       test('ignore one but not the second', () async {
         var input = '''
             // ignore_statement: intl_message_migration
