@@ -308,32 +308,40 @@ enum PackageType {
   package,
 }
 
-// recursive function to if previous node is ignore comment until we come to the previous ";"
-// limit
-bool isIgnoreCommentBeforePreviousTerminator(Token token, {int limit = 128}) {
-  if (limit == 0) {
+/// Is there an ignore comment ahead of this token which we think should apply to it.
+///
+/// This is a little bit tricky, but basically we walk back until we find an ignore comment or
+/// a semicolon, indicating the end of the previous statement.
+bool hasIgnoreComment(Token token, {int limit = 128}) {
+  if (limit == 0 || token.lexeme == ';') {
     return false;
   }
 
-  if ('$token' == ';') {
-    return false;
-  }
-
-  if (token.precedingComments != null &&
-      (token.precedingComments?.value().contains(ignoreStatement) ?? false)) {
+  var comments = token.precedingComments;
+  if (comments != null &&
+      (_allComments(comments).any((line) => line.contains(ignoreStatement)))) {
     return true;
   } else {
     return token.previous != null &&
-        isIgnoreCommentBeforePreviousTerminator(token.previous!,
-            limit: limit - 1);
+        hasIgnoreComment(token.previous!, limit: limit - 1);
   }
+}
+
+/// When we ask for precedingComments we get back the first of any potential comments. Turn that into
+/// a list of all the comments. This handles the case where an ignore comment comes after a regular comment.
+List<String> _allComments(Token? comment) {
+  if (comment == null) return [];
+  var stringForm = comment.lexeme;
+  // The type CommentToken is not exposed, so use a string check to see if this is a comment.
+  if (!stringForm.trimLeft().startsWith('//')) return [];
+  // It's recursive and rebuilds the string every time, but it shouldn't have to go very deep.
+  return [stringForm, ..._allComments(comment.next)];
 }
 
 // TODO: Could we do a better job of this by finding all the ignore comments in the file and then
 // figuring out what they apply to? See e.g. https://github.com/dart-lang/sdk/blob/cc18b250ae886f556fe1d5a7962894c86f5b7be1/pkg/analyzer/lib/src/ignore_comments/ignore_info.dart#L138
 // and its uses.
-bool isStatementIgnored(AstNode node) =>
-    isIgnoreCommentBeforePreviousTerminator(node.beginToken);
+bool isStatementIgnored(AstNode node) => hasIgnoreComment(node.beginToken);
 
 /// Attempt to determine if this single line is being ignored within a
 /// statement, which is probably a component invocation or other complex
@@ -341,7 +349,6 @@ bool isStatementIgnored(AstNode node) =>
 ///
 /// We assume that the comment is immediately before in terms of tokens, which
 /// is a little fragile, but better than nothing.
-bool isLineIgnored(AstNode node) =>
-    isIgnoreCommentBeforePreviousTerminator(node.beginToken, limit: 1);
+bool isLineIgnored(AstNode node) => hasIgnoreComment(node.beginToken, limit: 1);
 
 bool isFileIgnored(String fileContents) => fileContents.contains(ignoreFile);
