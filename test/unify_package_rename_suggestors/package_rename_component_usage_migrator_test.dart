@@ -34,79 +34,6 @@ void main() {
       resolvedContext: resolvedContext,
     );
 
-    group('namespace on component usage', () {
-      test('mui namespace from react_material_ui is migrated to unify', () async {
-        await testSuggestor(
-          input: /*language=dart*/ '''
-    import 'package:react_material_ui/react_material_ui.dart' as mui;
-    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_mui;
-    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
-    
-    content() {
-      mui.Button()();
-      mui.Checkbox()();
-      alpha_mui.Rating()();
-      mui_alpha.Rating()();
-    }
-''',
-          expectedOutput: /*language=dart*/ '''
-    import 'package:react_material_ui/react_material_ui.dart' as mui;
-    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_mui;
-    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
-    
-    content() {
-      unify.Button()();
-      unify.Checkbox()();
-      alpha_unify.Rating()();
-      unify_alpha.Rating()();
-    }
-''',
-        );
-      });
-
-      test('mui namespace from a different package is not migrated', () async {
-        await testSuggestor(
-          input: /*language=dart*/ '''
-    import 'package:over_react/over_react.dart' as mui;
-    import 'package:over_react/over_react.dart' as alpha_mui;
-    import 'package:over_react/over_react.dart' as mui_alpha;
-    
-    content() {
-      mui.Fragment()();
-      alpha_mui.Fragment()();
-      mui_alpha.Fragment()();
-    }
-''',
-        );
-      });
-
-      test('non-mui namespace on a react_material_ui import', () async {
-        await testSuggestor(
-          input: /*language=dart*/ '''
-    import 'package:react_material_ui/react_material_ui.dart' as abc;
-    
-    content() {
-      abc.Button()();
-      abc.Checkbox()();
-    }
-''',
-        );
-      });
-
-      test('no namespace on a react_material_ui import', () async {
-        await testSuggestor(
-          input: /*language=dart*/ '''
-    import 'package:react_material_ui/react_material_ui.dart';
-    
-    content() {
-      Button()();
-      Checkbox()();
-    }
-''',
-        );
-      });
-    });
-
     group('rename components', () {
       test('from react_material_ui to unify equivalents', () async {
         await testSuggestor(
@@ -142,7 +69,7 @@ void main() {
       unify_wsd.WsdLinkButton()();
       unify_wsd.WsdLinkButton()();
       unify_wsd.WsdLinkButton()();
-      unify.UnifyList()();
+      mui.UnifyList()();
       UnifyList()();
       random_rmui_namespace.UnifyList()();
       UnifyThemeProvider()();
@@ -193,11 +120,11 @@ void main() {
 
     content() {
       // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
-      unify.Badge()();
+      mui.Badge()();
       // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
       Badge()();
       // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
-      unify.LinearProgress()();
+      mui.LinearProgress()();
       // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
       LinearProgress()();
     }

@@ -76,9 +76,9 @@ class PackageRenameComponentUsageMigrator extends ComponentUsageMigrator {
       }
 
       // Replace 'mui' namespaces usage with 'unify'.
-      if (importNamespace != null && newImportNamespace != null && !isFromWsdEntrypoint) {
-        yieldPatch(newImportNamespace, importNamespace.offset, importNamespace.end);
-      }
+      // if (importNamespace != null && newImportNamespace != null && !isFromWsdEntrypoint) {
+      //   yieldPatch(newImportNamespace, importNamespace.offset, importNamespace.end);
+      // }
 
       // Add comments for components that need manual verification.
       if (identifier?.name == 'Badge' || identifier?.name == 'LinearProgress') {

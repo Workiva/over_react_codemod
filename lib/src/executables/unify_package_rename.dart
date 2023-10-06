@@ -23,6 +23,7 @@ import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/dart_script
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/html_script_updater.dart';
 import 'package:over_react_codemod/src/unify_package_rename_suggestors/constants.dart';
 import 'package:over_react_codemod/src/unify_package_rename_suggestors/import_renamer.dart';
+import 'package:over_react_codemod/src/unify_package_rename_suggestors/namespace_usage_updater.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
@@ -100,17 +101,18 @@ void main(List<String> args) async {
   await pubGetForAllPackageRoots(dartPaths);
   exitCode = await runCodemods([
     // todo add comments
-    CodemodInfo(paths: dartPaths, sequence: [PackageRenameComponentUsageMigrator()]),
-    CodemodInfo(
-        paths: dartPaths,
-        sequence: importsToUpdate.where((import) => import.namespace != null).map((import) =>
-            importerSuggestorBuilder(importUri: import.uri, importNamespace: import.namespace!))),
-    CodemodInfo(
-        paths: dartPaths,
-        sequence: [unusedImportRemoverSuggestorBuilder(packageName: 'react_material_ui')]),
-    CodemodInfo(
-        paths: dartPaths,
-        sequence: [ImportRenamer(oldPackageName: 'react_material_ui', newPackageName: 'unify_ui')])
+    CodemodInfo(paths: dartPaths, sequence: [NamespaceUsageUpdater()]),
+    // CodemodInfo(paths: dartPaths, sequence: [PackageRenameComponentUsageMigrator()]),
+    // CodemodInfo(
+    //     paths: dartPaths,
+    //     sequence: importsToUpdate.where((import) => import.namespace != null).map((import) =>
+    //         importerSuggestorBuilder(importUri: import.uri, importNamespace: import.namespace!))),
+    // CodemodInfo(
+    //     paths: dartPaths,
+    //     sequence: [unusedImportRemoverSuggestorBuilder(packageName: 'react_material_ui')]),
+    // CodemodInfo(
+    //     paths: dartPaths,
+    //     sequence: [ImportRenamer(oldPackageName: 'react_material_ui', newPackageName: 'unify_ui')])
   ]);
   if (exitCode != 0) return;
 }
