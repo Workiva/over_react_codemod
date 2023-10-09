@@ -60,6 +60,7 @@ String packageImport(String intlUri, _InsertionLocation insertInfo) =>
     insertInfo.leadingNewlines +
     "import '$intlUri';" +
     insertInfo.trailingNewlines;
+
 String relativeImport(
         String relativeImportPath, _InsertionLocation insertInfo) =>
     insertInfo.leadingNewlines +
@@ -136,10 +137,11 @@ _InsertionLocation _insertionLocationForPackageImport(
     insertAfter = firstNonImportDirective is LibraryDirective;
     inOwnSection = true;
   } else {
+    bool hasPackageImports = true;
     // No directive to insert relative to; insert before the first member or
     // at the beginning of the file.
     return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0,
-        trailingNewlineCount: 2);
+        trailingNewlineCount: 2, usePackageImports: hasPackageImports);
   }
   bool hasPackageImports = true;
 

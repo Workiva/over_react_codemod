@@ -48,7 +48,7 @@ void main() {
           ''',
           isExpectedError: isUndefinedIntlError,
           expectedOutput: /*language=dart*/ '''
-              import '../../../../../src/intl/test_project_intl.dart';
+              import 'package:test_project/src/intl/test_project_intl.dart';
               content() => TestProjectIntl.testString;
           ''',
         );
