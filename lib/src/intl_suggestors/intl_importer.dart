@@ -113,6 +113,7 @@ _InsertionLocation _insertionLocationForPackageImport(
   final AstNode relativeNode;
   final bool insertAfter;
   final bool inOwnSection;
+  bool hasPackageImports = true;
   if (firstPackageImportSortedAfterNewImport != null) {
     relativeNode = firstPackageImportSortedAfterNewImport;
     insertAfter = false;
@@ -137,13 +138,13 @@ _InsertionLocation _insertionLocationForPackageImport(
     insertAfter = firstNonImportDirective is LibraryDirective;
     inOwnSection = true;
   } else {
-    bool hasPackageImports = true;
+
     // No directive to insert relative to; insert before the first member or
     // at the beginning of the file.
     return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0,
         trailingNewlineCount: 2, usePackageImports: hasPackageImports);
   }
-  bool hasPackageImports = true;
+
 
   for (final importDirective in imports) {
     final uriContent = importDirective.uriContent;
