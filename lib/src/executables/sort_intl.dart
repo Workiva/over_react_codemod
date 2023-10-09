@@ -20,7 +20,7 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
+
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 import '../util.dart';
@@ -119,25 +119,7 @@ void printUsage() {
 }
 
 
-Future<int> runMigrators(
 
-List<String> packageDartPaths, IntlMessages messages, String packageName)
-async {
-
-  final intlPropMigrator = IntlMigrator(messages.className, messages);
-  List<List<Migrator>> migrators = [
-    if (parsedArgs[_noMigrate]) [intlPropMigrator],
-  ];
-
-  List<List<Migrator>> thingsToRun = [
-    if (!parsedArgs[_noMigrate]) ...migrators,
-
-  ];
-  List<String> codemodArgs= [_noMigrate];
-  var result =
-  await runCodemodSequences(packageDartPaths, thingsToRun, codemodArgs);
-  return result;
-}
 
 void sortPartsLast(List<String> dartPaths) {
   _log.info('Sorting part files...');
