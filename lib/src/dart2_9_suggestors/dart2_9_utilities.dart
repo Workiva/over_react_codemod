@@ -62,7 +62,7 @@ SimpleIdentifier? getGeneratedFactory(TopLevelVariableDeclaration node) {
   if (type != null && type is NamedType && type.name.name == 'UiFactory') {
     final initializer = node.variables.variables.first.initializer;
     if (initializer != null) {
-      final name = node.variables.variables.first.name.name;
+      final name = node.variables.variables.first.name.lexeme;
       final generatedName = r'_$' + name;
       if (initializer is SimpleIdentifier && initializer.name == generatedName)
         return initializer;

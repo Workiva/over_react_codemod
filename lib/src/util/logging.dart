@@ -6,7 +6,6 @@ import 'package:io/ansi.dart' as ansi;
 Logger logger = Logger('orcm.logging');
 bool verbose = true;
 void initLogging(verbose, String message) {
-
   Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((rec) {
     var colorizer;
@@ -18,7 +17,7 @@ void initLogging(verbose, String message) {
     } else if (rec.level >= Level.WARNING) {
       colorizer = ansi.backgroundLightYellow.wrap;
       output = stderr;
-    } else{
+    } else {
       colorizer = _noopColorizer;
       output = stdout;
     }
@@ -32,19 +31,17 @@ void initLogging(verbose, String message) {
     if (verbose && rec.stackTrace != null) {
       output.writeln(colorizer(rec.stackTrace.toString()));
     }
-
   });
-
 }
+
 String _noopColorizer(String string) => string;
 
-void logWarning(String message){
-  initLogging(verbose,message);
+void logWarning(String message) {
+  initLogging(verbose, message);
   logger.warning(message);
 }
-void logShout(String message){
-  initLogging(verbose,message);
+
+void logShout(String message) {
+  initLogging(verbose, message);
   logger.shout(message);
 }
-
-
