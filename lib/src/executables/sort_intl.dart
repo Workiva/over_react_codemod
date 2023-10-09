@@ -16,11 +16,8 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/args.dart';
-import 'package:codemod/codemod.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
-import 'package:glob/glob.dart';
-import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
@@ -103,16 +100,10 @@ void main(List<String> args) async {
     packageDartPaths = limitPaths(packageDartPaths, allowed: dartPaths);
     sortPartsLast(packageDartPaths);
 
-    final IntlMessages messages = IntlMessages(packageName,
-        directory: fs.currentDirectory, packagePath: package);
+    final IntlMessages messages = IntlMessages(packageName);
+    messages.write();
 
-    exitCode =
-    await runMigrators(packageDartPaths, messages,packageName);
 
-    processedPackages.add(package);
-
-    messages.write(force: parsedArgs[_noMigrate]);
-    messages.format();
   }
 }
 
@@ -178,16 +169,6 @@ void sortPartsLast(List<String> dartPaths) {
 
 }
 
-Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
-    .listSync()
-    .whereType<File>()
-    .where((file) => !file.path.contains('.sg'))
-    .where((file) => !file.path.endsWith('_test.dart'))
-    .where(isNotHiddenFile)
-    .where(isNotDartHiddenFile)
-    .where(isNotWithinTopLevelBuildOutputDir)
-    .where(isNotWithinTopLevelToolDir)
-    .map((e) => e.path);
 
 
 
