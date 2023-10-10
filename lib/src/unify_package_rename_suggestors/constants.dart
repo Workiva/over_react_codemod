@@ -25,12 +25,12 @@ class UnifyImportInfo {
 ///
 /// Only adds namespace information if the import is commonly used with a namespace.
 /// Only adds RMUI uri information if it is different from a simple package name swap.
-final importsToUpdate = [
+final rmuiImportsToUpdate = [
   UnifyImportInfo(
     'package:unify_ui/unify_ui.dart',
     rmuiUri: 'package:react_material_ui/react_material_ui.dart',
     namespace: 'unify',
-    possibleMuiNamespaces: ['mui'],
+    possibleMuiNamespaces: ['mui', 'rmui'],
   ),
   UnifyImportInfo(
     'package:unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart',

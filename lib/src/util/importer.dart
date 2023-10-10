@@ -48,7 +48,7 @@ Suggestor importerSuggestorBuilder({
 
     if (!needsMuiImport) return;
 
-    final insertInfo = _insertionLocationForPackageImport(
+    final insertInfo = insertionLocationForPackageImport(
         importUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
     yield Patch(
         insertInfo.leadingNewlines +
@@ -79,7 +79,7 @@ class _InsertionLocation {
 /// insert it alongside other `package:` imports in alphabetical order,
 /// otherwise inserting it in a new section relative to other imports
 /// or other directives.
-_InsertionLocation _insertionLocationForPackageImport(
+_InsertionLocation insertionLocationForPackageImport(
     String importUri, CompilationUnit unit, LineInfo lineInfo) {
   final imports = unit.directives.whereType<ImportDirective>();
   final firstImport = imports.firstOrNull;

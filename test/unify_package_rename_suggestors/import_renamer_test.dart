@@ -17,10 +17,17 @@ import 'package:test/test.dart';
 
 import '../util.dart';
 
+// todo add import order tests
+
 void main() {
   group('importRenamer', () {
     final testSuggestor = getSuggestorTester(
-      ImportRenamer(oldPackageName: 'react_material_ui', newPackageName: 'unify_ui'),
+      importRenamerSuggestorBuilder(
+        oldPackageName: 'react_material_ui',
+        newPackageName: 'unify_ui',
+        oldPackageNamespace: 'mui',
+        newPackageNamespace: 'unify',
+      ),
     );
 
     test('does nothing when there are no imports', () async {
@@ -106,7 +113,7 @@ void main() {
               import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_mui;
               import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
               import 'package:over_react/over_react.dart' as mui;
-              import 'package:unify_ui/components/badge.dart' as mui;
+              import 'package:unify_ui/components/badge.dart' as unify;
           
               content() => Dom.div()();
           ''',
@@ -131,7 +138,11 @@ void main() {
 
       test('also works for other package name inputs', () async {
         final testSuggestor = getSuggestorTester(
-          ImportRenamer(oldPackageName: 'test_old', newPackageName: 'test_new'),
+          ImportRenamer(
+              oldPackageName: 'test_old',
+              newPackageName: 'test_new',
+              oldPackageNamespace: 'old',
+              newPackageNamespace: 'new'),
         );
         await testSuggestor(
           input: /*language=dart*/ '''

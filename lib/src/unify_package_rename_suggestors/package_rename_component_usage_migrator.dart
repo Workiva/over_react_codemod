@@ -51,7 +51,7 @@ class PackageRenameComponentUsageMigrator extends ComponentUsageMigrator {
     if (factoryElement.isDeclaredInPackage('react_material_ui')) {
       // Save the import namespace to later replace with a unify version.
       final importNamespace = usage.factory.tryCast<PrefixedIdentifier>()?.prefix;
-      final newImportNamespace = importsToUpdate
+      final newImportNamespace = rmuiImportsToUpdate
           .where((import) =>
               importNamespace?.name != null &&
               (import.possibleMuiNamespaces?.contains(importNamespace?.name) ?? false))

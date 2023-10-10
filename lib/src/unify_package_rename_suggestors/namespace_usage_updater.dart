@@ -27,6 +27,36 @@ final _log = Logger('NamespaceUsageVisitor');
 
 // todo update comment
 
+// Suggestor namespaceUsageUpdater() {
+//   return (context) async* {
+//     final unitResult = await context.getResolvedUnit();
+//     if (unitResult == null) {
+//       // Most likely a part and not a library.
+//       return;
+//     }
+//     final unusedImportErrors = unitResult.errors
+//         .where((error) => error.errorCode.name.toLowerCase() == 'unused_import')
+//         .toList();
+//
+//     final allImports = unitResult.unit.directives.whereType<ImportDirective>().toList();
+//
+//     for (final error in unusedImportErrors) {
+//       final matchingImport =
+//           allImports.singleWhere((import) => import.containsOffset(error.offset));
+//       final importUri = matchingImport.uriContent;
+//       if (importUri != null && importUri.startsWith('package:$packageName/')) {
+//         final prevTokenEnd = matchingImport.beginToken.previous?.end;
+//         // Try to take the newline before the import, but watch out
+//         // for prevToken's offset/end being -1 if it's this import has the
+//         // first token in the file.
+//         final startOffset =
+//             prevTokenEnd != null && prevTokenEnd != -1 ? prevTokenEnd : matchingImport.offset;
+//         yield Patch('', startOffset, matchingImport.end);
+//       }
+//     }
+//   };
+// }
+
 /// Suggestor that adds a [scriptToAdd] line after the last usage of a
 /// react-dart script in a Dart string literal or list of string literals.
 ///
@@ -35,21 +65,38 @@ class NamespaceUsageUpdater extends GeneralizingAstVisitor with ClassSuggestor {
   NamespaceUsageUpdater();
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    super.visitPrefixedIdentifier(node);
+  visitMethodInvocation(MethodInvocation node) {
+    super.visitMethodInvocation(node);
 
-    // Replace 'mui' namespaces usage with 'unify'.
-    final uri = node.identifier.staticElement?.source?.uri;
-    if (uri != null && isUriWithinPackage(uri, 'react_material_ui')) {
-      final importNamespace = node.prefix;
-      final newImportNamespace = importsToUpdate
-          .where((import) => import.possibleMuiNamespaces?.contains(importNamespace.name) ?? false)
+    final importNamespace = node.target;
+    if (importNamespace != null) {
+      final newImportNamespace = rmuiImportsToUpdate
+          .where((import) =>
+              import.possibleMuiNamespaces?.contains(importNamespace.toSource()) ?? false)
           .singleOrNull
           ?.namespace;
       if (newImportNamespace != null) {
         yieldPatch(newImportNamespace, importNamespace.offset, importNamespace.end);
       }
     }
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    super.visitPrefixedIdentifier(node);
+
+    // Replace 'mui' namespaces usage with 'unify'.
+    final uri = node.identifier.staticElement?.source?.uri;
+    // if (uri != null && isUriWithinPackage(uri, 'react_material_ui')) {
+    final importNamespace = node.prefix;
+    final newImportNamespace = rmuiImportsToUpdate
+        .where((import) => import.possibleMuiNamespaces?.contains(importNamespace.name) ?? false)
+        .singleOrNull
+        ?.namespace;
+    if (newImportNamespace != null) {
+      yieldPatch(newImportNamespace, importNamespace.offset, importNamespace.end);
+    }
+    // }
   }
 
   @override
@@ -60,7 +107,7 @@ class NamespaceUsageUpdater extends GeneralizingAstVisitor with ClassSuggestor {
     if (result == null) {
       throw Exception('Could not get resolved result for "${context.relativePath}"');
     }
-    result.unit.accept(this);
+    result.unit.visitChildren(this);
   }
 
   @override

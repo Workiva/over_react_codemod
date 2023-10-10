@@ -74,7 +74,7 @@ void main(List<String> args) async {
       aggregate(
         [
           // todo update version:
-          PubspecUpgrader('unify_ui', parseVersionRange('^1.89.1'),
+          PubspecUpgrader('unify_ui', parseVersionRange('^1.121.0'),
               hostedUrl: 'https://pub.workiva.org', shouldAddDependencies: true),
         ].map((s) => ignoreable(s)),
       )
@@ -107,12 +107,17 @@ void main(List<String> args) async {
     //     paths: dartPaths,
     //     sequence: importsToUpdate.where((import) => import.namespace != null).map((import) =>
     //         importerSuggestorBuilder(importUri: import.uri, importNamespace: import.namespace!))),
+    CodemodInfo(paths: dartPaths, sequence: [
+      importRenamerSuggestorBuilder(
+        oldPackageName: 'react_material_ui',
+        newPackageName: 'unify_ui',
+        oldPackageNamespace: 'mui',
+        newPackageNamespace: 'unify',
+      )
+    ]),
     // CodemodInfo(
     //     paths: dartPaths,
     //     sequence: [unusedImportRemoverSuggestorBuilder(packageName: 'react_material_ui')]),
-    // CodemodInfo(
-    //     paths: dartPaths,
-    //     sequence: [ImportRenamer(oldPackageName: 'react_material_ui', newPackageName: 'unify_ui')])
   ]);
   if (exitCode != 0) return;
 }

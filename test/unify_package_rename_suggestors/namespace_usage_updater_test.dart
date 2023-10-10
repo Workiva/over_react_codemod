@@ -39,6 +39,7 @@ void main() {
         await testSuggestor(
           input: /*language=dart*/ '''
     import 'package:react_material_ui/react_material_ui.dart' as mui;
+    import 'package:react_material_ui/styles/color_utils.dart' as mui;
     
     content() {
       mui.Button()();
@@ -48,10 +49,12 @@ void main() {
       mui.UnifyIcons.expandMore()();
       mui.Button;
       mui.Button();
+      mui.darken('abc', 1);
     }
 ''',
           expectedOutput: /*language=dart*/ '''
     import 'package:react_material_ui/react_material_ui.dart' as mui;
+    import 'package:react_material_ui/styles/color_utils.dart' as mui;
     
     content() {
       unify.Button()();
@@ -61,6 +64,7 @@ void main() {
       unify.UnifyIcons.expandMore()();
       unify.Button;
       unify.Button();
+      unify.darken('abc', 1);
     }
 ''',
         );
@@ -91,15 +95,15 @@ void main() {
     
     content() {
       alpha_unify.Rating()();
-      unify_alpha.Rating()();
+      alpha_unify.Rating()();
       alpha_unify.TimelinePosition.left;
       alpha_unify.useGridApiRef();
       alpha_unify.Popper;
       alpha_unify.Popper();
-      unify_alpha.TimelinePosition.left;
-      unify_alpha.useGridApiRef();
-      unify_alpha.Popper;
-      unify_alpha.Popper();
+      alpha_unify.TimelinePosition.left;
+      alpha_unify.useGridApiRef();
+      alpha_unify.Popper;
+      alpha_unify.Popper();
     }
 ''',
         );
@@ -127,6 +131,10 @@ void main() {
           'popper': mui.Popper()..placement = 'top-end',
           'popupIndicator': mui.IconButton()..sx = {'width': '20px'},
         }
+        ..sx = {
+          'color': (mui.Theme theme) =>
+                  mui.getThemePalette(theme).common.white
+        }
         ..renderInput = mui.wrapRenderInput((textFieldProps) => (mui.TextField()
           ..addProps(textFieldProps)
           ..InputLabelProps = (mui.InputLabel()
@@ -137,9 +145,10 @@ void main() {
 ''',
           expectedOutput: /*language=dart*/ '''
     import 'package:react_material_ui/react_material_ui.dart' as mui;
+    import 'package:over_react/over_react.dart';
     
     content() {
-      unify.ButtonToolbar()(
+      Fragment()(unify.ButtonToolbar()(
         (unify.Button()..size = unify.ButtonSize.small)('Foo'),
         (unify.Button()
           ..size = unify.ButtonSize.small
@@ -147,6 +156,22 @@ void main() {
         )(
           'Bar',
         ),
+      ));
+      
+      return (unify.Autocomplete()
+        ..componentsProps = {
+          'popper': unify.Popper()..placement = 'top-end',
+          'popupIndicator': unify.IconButton()..sx = {'width': '20px'},
+        }
+        ..sx = {
+          'color': (unify.Theme theme) =>
+                  unify.getThemePalette(theme).common.white
+        }
+        ..renderInput = unify.wrapRenderInput((textFieldProps) => (unify.TextField()
+          ..addProps(textFieldProps)
+          ..InputLabelProps = (unify.InputLabel()
+            ..shrink = false)
+        )())
       );
     }
 ''',
