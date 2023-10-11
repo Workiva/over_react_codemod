@@ -95,16 +95,16 @@ _InsertionLocation _insertionLocationForPackageImport(
   final firstImport = imports.firstOrNull;
 
   final dartImports =
-  imports.where((i) => i.uriContent?.startsWith('dart:') ?? false);
+      imports.where((i) => i.uri.stringValue?.startsWith('dart:') ?? false);
   final lastDartImport = dartImports.lastOrNull;
 
   final packageImports =
-  imports.where((i) => i.uriContent?.startsWith('package:') ?? false);
+      imports.where((i) => i.uri.stringValue?.startsWith('package:') ?? false);
   final firstPackageImportSortedAfterNewImport = packageImports
-      .where((i) => i.uriContent!.compareTo(importUri) > 0)
+      .where((i) => i.uri.stringValue!.compareTo(importUri) > 0)
       .firstOrNull;
   final lastPackageImportSortedBeforeNewImport = packageImports
-      .where((i) => i.uriContent!.compareTo(importUri) < 0)
+      .where((i) => i.uri.stringValue!.compareTo(importUri) < 0)
       .lastOrNull;
 
   final firstNonImportDirective =

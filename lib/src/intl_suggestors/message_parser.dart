@@ -59,7 +59,7 @@ class MessageParser {
     var methodDeclarations = allDeclarations.cast<MethodDeclaration>();
     methods = [
       for (var declaration in methodDeclarations)
-        Method(declaration.name.name, messageText(declaration),
+        Method(declaration.name.lexeme, messageText(declaration),
             '  ${corrected(declaration)}')
     ];
   }
@@ -88,16 +88,17 @@ class MessageParser {
   /// partially rewritten.
   String withCorrectFunctionTypes(
       MethodDeclaration declaration, String currentSource) {
-    // Split out the body and just do a simple string replace. The conditions
-    // for a false positive on this seem unlikely, so just do it and cross our
-    // fingers. If it's in a function name it will be followed by a parenthesis.
-    // This is only used for formattedMessage, so it won't be a getter. And if
-    // you name a parameter that ends in Function it'll presumably be followed
-    // by either a comma or a close-paren.
-    var declarationParts = currentSource.split('=>');
+    // Split out the body and just do a simple string replace on the header. The
+    // conditions for a false positive on this seem unlikely, so just do it and
+    // cross our fingers. If it's in a function name it will be followed by a
+    // parenthesis. This is only used for formattedMessage, so it won't be a
+    // getter. And if you name a parameter that ends in Function it'll
+    // presumably be followed by either a comma or a close-paren.
+    var splitString = (declaration.body is BlockFunctionBody) ? '{' : '=>';
+    var declarationParts = currentSource.split(splitString);
     var newBeginning =
         declarationParts.first.replaceAll('Function ', 'Object ');
-    return '$newBeginning=>${declarationParts.last}';
+    return '$newBeginning$splitString${declarationParts.last}';
   }
 
   /// Find the parameter `name:` from the invocation, or return null if there
@@ -111,8 +112,8 @@ class MessageParser {
   String withCorrectedNameParameter(MethodDeclaration declaration) {
     var invocation = intlMethodInvocation(declaration);
     var nameParameter = nameParameterFrom(invocation);
-    var className = (declaration.parent as ClassDeclaration).name.name;
-    var expected = "'${className}_${declaration.name.name}'";
+    var className = (declaration.parent as ClassDeclaration).name.lexeme;
+    var expected = "'${className}_${declaration.name.lexeme}'";
     var actual = nameParameter?.expression.toSource();
     var basicString = '$declaration';
     if (actual == null) {
@@ -125,16 +126,23 @@ class MessageParser {
   }
 
   /// The invocation of the internal Intl method. That is, the part after the
-  /// '=>'.  We know there's only ever one. Used for determining what sort of
-  /// method this is message/plural/select/formattedMessage.
+  /// '=>' or the first statement inside the {}.  We expect only one. Used for
+  /// determining what sort of method this is
+  /// message/plural/select/formattedMessage.
   MethodInvocation intlMethodInvocation(MethodDeclaration method) {
-    var invocation = method.body.childEntities.toList()[1];
-    if (invocation is MethodInvocation) {
-      return invocation;
+    var node = method.body;
+    if (node is ExpressionFunctionBody) {
+      return node.expression as MethodInvocation;
+    } else if (node is BlockFunctionBody) {
+      var children = node.block.statements.first.childEntities.toList();
+      var methods = children.whereType<MethodInvocation>().toList();
+      if (methods.length > 1)
+        throw ArgumentError(
+            'A message can only contain a single call, which must be to an Intl function');
+      return methods.first;
     } else {
-      print('ERROR: Invalid Intl method: $method');
-      // We expect this to throw
-      return invocation as MethodInvocation;
+      throw ArgumentError(
+          'Cannot parse $node. It needs to be a function with a single expression which is an Intl method invocation');
     }
   }
 

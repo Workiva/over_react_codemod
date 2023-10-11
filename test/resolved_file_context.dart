@@ -371,7 +371,7 @@ extension ParseHelpers on SharedAnalysisContext {
     }
     final parsedFunction = unit.childEntities
         .whereType<FunctionDeclaration>()
-        .singleWhere((function) => function.name.name == 'wrapperFunction');
+        .singleWhere((function) => function.name.lexeme == 'wrapperFunction');
     final body = parsedFunction.functionExpression.body as BlockFunctionBody;
     final statement = body.block.statements.single as ExpressionStatement;
     return (statement.expression as ParenthesizedExpression).expression;
