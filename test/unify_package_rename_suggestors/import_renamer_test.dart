@@ -138,11 +138,12 @@ void main() {
 
       test('also works for other package name inputs', () async {
         final testSuggestor = getSuggestorTester(
-          ImportRenamer(
-              oldPackageName: 'test_old',
-              newPackageName: 'test_new',
-              oldPackageNamespace: 'old',
-              newPackageNamespace: 'new'),
+          importRenamerSuggestorBuilder(
+            oldPackageName: 'test_old',
+            newPackageName: 'test_new',
+            oldPackageNamespace: 'old',
+            newPackageNamespace: 'new',
+          ),
         );
         await testSuggestor(
           input: /*language=dart*/ '''

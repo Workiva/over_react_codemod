@@ -103,10 +103,12 @@ void main(List<String> args) async {
     // todo add comments
     CodemodInfo(paths: dartPaths, sequence: [NamespaceUsageUpdater()]),
     // CodemodInfo(paths: dartPaths, sequence: [PackageRenameComponentUsageMigrator()]),
-    // CodemodInfo(
-    //     paths: dartPaths,
-    //     sequence: importsToUpdate.where((import) => import.namespace != null).map((import) =>
-    //         importerSuggestorBuilder(importUri: import.uri, importNamespace: import.namespace!))),
+    CodemodInfo(paths: dartPaths, sequence: [
+      importerSuggestorBuilder(
+        importUri: unifyWsdUri,
+        importNamespace: unifyWsdNamespace,
+      )
+    ]),
     CodemodInfo(paths: dartPaths, sequence: [
       importRenamerSuggestorBuilder(
         oldPackageName: 'react_material_ui',

@@ -61,7 +61,7 @@ class PackageRenameComponentUsageMigrator extends ComponentUsageMigrator {
       // Update components that were renamed in unify_ui.
       final identifier = usage.factory.tryCast<SimpleIdentifier>() ??
           usage.factory.tryCast<PrefixedIdentifier>()?.identifier;
-      final newComponentName = rmuiToUnifyComponentNames[identifier?.name];
+      final newComponentName = rmuiToUnifyIdentifierRenames[identifier?.name];
       final isFromWsdEntrypoint = newComponentName?.startsWith('Wsd') ?? false;
       if (identifier != null && newComponentName != null) {
         if (isFromWsdEntrypoint) {

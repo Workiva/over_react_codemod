@@ -68,6 +68,7 @@ class NamespaceUsageUpdater extends GeneralizingAstVisitor with ClassSuggestor {
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
+    // todo update this to also check that it's coming from rmui package
     final importNamespace = node.target;
     if (importNamespace != null) {
       final newImportNamespace = rmuiImportsToUpdate
@@ -82,20 +83,82 @@ class NamespaceUsageUpdater extends GeneralizingAstVisitor with ClassSuggestor {
   }
 
   @override
+  visitIdentifier(Identifier node) {
+    super.visitIdentifier(node);
+
+    // Check that the parent isn't a prefixed identifier to avoid conflicts if the parent was already updated.
+    if (node.parent is PrefixedIdentifier) {
+      return;
+    }
+
+    final identifier =
+        node.tryCast<SimpleIdentifier>() ?? node.tryCast<PrefixedIdentifier>()?.identifier;
+    final uri = identifier?.staticElement?.source?.uri;
+    final namespace = node.tryCast<PrefixedIdentifier>()?.prefix;
+
+    // todo fix this
+    // if (uri != null && isUriWithinPackage(uri, 'react_material_ui')) {
+    // Save the import namespace to later replace with a unify version.
+    final newNamespace = rmuiImportsToUpdate
+        .where((import) => import.possibleMuiNamespaces?.contains(namespace?.name) ?? false)
+        .singleOrNull
+        ?.namespace;
+
+    // Update components and objects that were renamed in unify_ui.
+    final newName = rmuiToUnifyIdentifierRenames[identifier?.name];
+    final isFromWsdEntrypoint = newName?.startsWith('Wsd') ?? false;
+    if (identifier != null && newName != null) {
+      if (isFromWsdEntrypoint) {
+        // Overwrite or add import namespace for components that will be imported from the separate
+        // unify_ui/components/wsd.dart entrypoint so we can keep the namespace of the import
+        // we add consistent with the components that use it.
+        yieldPatch('$unifyWsdNamespace.$newName', node.offset, node.end);
+      } else {
+        yieldPatch(newName, identifier.offset, identifier.end);
+      }
+    }
+
+    // Replace 'mui' namespaces usage with 'unify'.
+    if (namespace != null && newNamespace != null && !isFromWsdEntrypoint) {
+      yieldPatch(newNamespace, namespace.offset, namespace.end);
+    }
+
+    // Add comments for components that need manual verification.
+    // if (identifier?.name == 'Badge' || identifier?.name == 'LinearProgress') {
+    //   yieldUsageFixmePatch(usage,
+    //       'Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.');
+    // }
+  }
+
+  // Replace 'mui' namespaces usage with 'unify'.
+  // final uri = node.identifier.staticElement?.source?.uri;
+  // // if (uri != null && isUriWithinPackage(uri, 'react_material_ui')) {
+  // final importNamespace = node.prefix;
+  // final newImportNamespace = rmuiImportsToUpdate
+  //     .where((import) => import.possibleMuiNamespaces?.contains(importNamespace.name) ?? false)
+  //     .singleOrNull
+  //     ?.namespace;
+  // if (newImportNamespace != null) {
+  //   yieldPatch(newImportNamespace, importNamespace.offset, importNamespace.end);
+  // }
+  // }
+  // }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     super.visitPrefixedIdentifier(node);
 
     // Replace 'mui' namespaces usage with 'unify'.
-    final uri = node.identifier.staticElement?.source?.uri;
-    // if (uri != null && isUriWithinPackage(uri, 'react_material_ui')) {
-    final importNamespace = node.prefix;
-    final newImportNamespace = rmuiImportsToUpdate
-        .where((import) => import.possibleMuiNamespaces?.contains(importNamespace.name) ?? false)
-        .singleOrNull
-        ?.namespace;
-    if (newImportNamespace != null) {
-      yieldPatch(newImportNamespace, importNamespace.offset, importNamespace.end);
-    }
+    // final uri = node.identifier.staticElement?.source?.uri;
+    // // if (uri != null && isUriWithinPackage(uri, 'react_material_ui')) {
+    // final importNamespace = node.prefix;
+    // final newImportNamespace = rmuiImportsToUpdate
+    //     .where((import) => import.possibleMuiNamespaces?.contains(importNamespace.name) ?? false)
+    //     .singleOrNull
+    //     ?.namespace;
+    // if (newImportNamespace != null) {
+    //   yieldPatch(newImportNamespace, importNamespace.offset, importNamespace.end);
+    // }
     // }
   }
 

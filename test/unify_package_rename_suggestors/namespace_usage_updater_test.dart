@@ -39,17 +39,16 @@ void main() {
         await testSuggestor(
           input: /*language=dart*/ '''
     import 'package:react_material_ui/react_material_ui.dart' as mui;
+    import 'package:react_material_ui/react_material_ui.dart';
     import 'package:react_material_ui/styles/color_utils.dart' as mui;
     
     content() {
-      mui.Button()();
-      mui.Checkbox()();
-      mui.ButtonColor.success;
-      mui.useTheme();
-      mui.UnifyIcons.expandMore()();
-      mui.Button;
-      mui.Button();
-      mui.darken('abc', 1);
+      mui.LinkButton()();
+      mui.LinkButton();
+      mui.LinkButton;
+      LinkButton()();
+      LinkButton();
+      LinkButton;
     }
 ''',
           expectedOutput: /*language=dart*/ '''

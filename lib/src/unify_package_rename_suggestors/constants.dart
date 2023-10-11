@@ -40,10 +40,6 @@ final rmuiImportsToUpdate = [
     possibleMuiNamespaces: ['alpha_mui', 'mui_alpha'],
   ),
   UnifyImportInfo(
-    'package:unify_ui/components/wsd.dart',
-    namespace: unifyWsdNamespace,
-  ),
-  UnifyImportInfo(
     'package:unify_ui/components/list.dart',
     rmuiUri: 'package:react_material_ui/components/mui_list.dart',
   ),
@@ -54,12 +50,66 @@ final rmuiImportsToUpdate = [
 ];
 
 /// A map of RMUI component names to their new names in unify_ui.
-const rmuiToUnifyComponentNames = {
+///
+/// This is based on the list of changes in the migration guide: https://github.com/Workiva/react_material_ui/tree/master/react_material_ui#how-to-migrate-from-reactmaterialui-to-unifyui
+const rmuiToUnifyIdentifierRenames = {
+  // Components
   'Alert': 'WsdAlert',
   'LinkButton': 'WsdLinkButton',
   'MuiList': 'UnifyList',
   'WorkivaMuiThemeProvider': 'UnifyThemeProvider',
+  // Autocomplete objects
+  'AutocompleteFilterOptionsObject': 'AutocompleteFilterOptionsState',
+  'AutocompleteOnChangeObject': 'AutocompleteChangeDetails',
+  'AutocompleteRenderOptionObject': 'AutocompleteRenderOptionState',
+  // Backdrop objects
+  'BackdropTimeoutObject': 'BackdropObject',
+  'BackdropTransitionDurationObject': 'BackdropObject',
+  // Badge objects
+  'BadgeAnchorOriginObject': 'BadgeOrigin',
+  'BadgeAnchorOriginObjectVertical': 'BadgeOriginVertical',
+  'BadgeAnchorOriginObjectHorizontal': 'BadgeOriginHorizontal',
+  // Breadcrumb objects
+  'BreadcrumbNavCrumbsObject': 'BreadcrumbNavBreadcrumbModel',
+  // CSSTransition objects
+  'CSSTransitionClassNamesObject': 'CSSTransitionClassNames',
+  // DropdownButton objects
+  'DropdownButtonOnPlacementUpdate': 'DropdownButtonPlacement',
+  // Menu objects
+  'MenuAnchorOriginObject': 'MenuPopoverOrigin',
+  'MenuTransformOriginObject': 'MenuPopoverOrigin',
+  'MenuAnchorOriginObjectVertical': 'MenuPopoverOriginVertical',
+  'MenuTransformOriginObjectVertical': 'MenuPopoverOriginVertical',
+  'MenuAnchorOriginObjectHorizontal': 'MenuPopoverOriginHorizontal',
+  'MenuTransformOriginObjectHorizontal': 'MenuPopoverOriginHorizontal',
+  'MenuAnchorPositionObject': 'MenuPopoverPosition',
+  // Popover objects
+  'PopoverAnchorOriginObject': 'PopoverOrigin',
+  'PopoverTransformOriginObject': 'PopoverOrigin',
+  'PopoverAnchorOriginObjectVertical': 'PopoverOriginVertical',
+  'PopoverTransformOriginObjectVertical': 'PopoverOriginVertical',
+  'PopoverAnchorOriginObjectHorizontal': 'PopoverOriginHorizontal',
+  'PopoverTransformOriginObjectHorizontal': 'PopoverOriginHorizontal',
+  'PopoverAnchorPositionObject': 'PopoverPosition',
+  // Popper objects
+  'PopperAnchorElObject': 'PopperVirtualElement',
+  'PopperModifiersObject': 'PopperModifier',
+  'PopperModifiersObjectPhase': 'PopperModifierPhases',
+  'PopperPopperOptionsObject': 'PopperOptionsGeneric',
+  'PopperPopperOptionsObjectPlacement': 'PopperPlacement',
+  'PopperPopperOptionsObjectStrategy': 'PopperPositioningStrategy',
+  // Slider objects
+  'SliderMarksObject': 'SliderMark',
+  // Snackbar objects
+  'SnackbarAnchorOriginObject': 'SnackbarOrigin',
+  'SnackbarAnchorOriginObjectVertical': 'SnackbarOriginVertical',
+  'SnackbarAnchorOriginObjectHorizontal': 'SnackbarOriginHorizontal',
+  // TablePagination objects
+  'TablePaginationLabelDisplayedRowsObject': 'TablePaginationLabelDisplayedRowsArgs',
 };
 
 /// The namespace that will be used for the `unify_ui/components/wsd.dart` import that is added.
 const unifyWsdNamespace = 'unify_wsd';
+
+/// The uri for the `unify_ui/components/wsd.dart` import that is added.
+const unifyWsdUri = 'package:unify_ui/components/wsd.dart';
