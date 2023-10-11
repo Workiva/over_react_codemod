@@ -147,7 +147,7 @@ _InsertionLocation _insertionLocationForPackageImport(
 
 
   for (final importDirective in imports) {
-    final uriContent = importDirective.uriContent;
+    final uriContent = importDirective.uri.stringValue;
     if (uriContent != null) {
       final uri = Uri.parse(uriContent);
       if (uri.scheme != 'package') {
