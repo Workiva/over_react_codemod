@@ -31,7 +31,7 @@ Stream<Patch> intlImporter(
   // Parts that have not been generated can show up as `exists = false` but also `isPart = false`,
   // so using the unitResults is a little trickier than using the libraryElement to get it.
   final mainLibraryUnitResult = libraryResult.units.singleWhere((unitResult) =>
-  unitResult.unit.declaredElement ==
+      unitResult.unit.declaredElement ==
       libraryResult.element.definingCompilationUnit);
 
   final needsIntlImport = libraryResult.units
@@ -45,7 +45,7 @@ Stream<Patch> intlImporter(
   final intlUri = 'package:${projectName}' + intlFilePath;
   final intlDirectory = path.join(Directory.current.path, intlFilePath);
   final relativePathToIntlDir =
-  path.relative(intlDirectory, from: Directory.current.path);
+      path.relative(intlDirectory, from: Directory.current.path);
   final insertInfo = _insertionLocationForPackageImport(
       intlUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
 
@@ -58,14 +58,14 @@ Stream<Patch> intlImporter(
 
 String packageImport(String intlUri, _InsertionLocation insertInfo) =>
     insertInfo.leadingNewlines +
-        "import '$intlUri';" +
-        insertInfo.trailingNewlines;
+    "import '$intlUri';" +
+    insertInfo.trailingNewlines;
 
 String relativeImport(
-    String relativeImportPath, _InsertionLocation insertInfo) =>
+        String relativeImportPath, _InsertionLocation insertInfo) =>
     insertInfo.leadingNewlines +
-        "import '$relativeImportPath';" +
-        insertInfo.trailingNewlines;
+    "import '$relativeImportPath';" +
+    insertInfo.trailingNewlines;
 
 class _InsertionLocation {
   final int offset;
@@ -74,11 +74,11 @@ class _InsertionLocation {
   final bool usePackageImports;
 
   _InsertionLocation(
-      this.offset, {
-        this.leadingNewlineCount = 0,
-        this.trailingNewlineCount = 0,
-        this.usePackageImports = false,
-      });
+    this.offset, {
+    this.leadingNewlineCount = 0,
+    this.trailingNewlineCount = 0,
+    this.usePackageImports = false,
+  });
 
   String get leadingNewlines => '\n' * leadingNewlineCount;
 
@@ -138,13 +138,11 @@ _InsertionLocation _insertionLocationForPackageImport(
     insertAfter = firstNonImportDirective is LibraryDirective;
     inOwnSection = true;
   } else {
-
     // No directive to insert relative to; insert before the first member or
     // at the beginning of the file.
     return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0,
         trailingNewlineCount: 2, usePackageImports: hasPackageImports);
   }
-
 
   for (final importDirective in imports) {
     final uriContent = importDirective.uri.stringValue;
