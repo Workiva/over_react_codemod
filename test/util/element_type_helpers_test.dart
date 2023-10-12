@@ -75,7 +75,7 @@ void main() {
       /// with generic bounds.
       DartType parameterType(String name) =>
           allDescendantsOfType<SimpleFormalParameter>(unit)
-              .singleWhere((p) => p.identifier?.name == name, orElse: () {
+              .singleWhere((p) => p.name?.lexeme == name, orElse: () {
                 throw StateError("Could not find variable with name '$name'");
               })
               .declaredElement!

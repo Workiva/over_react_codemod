@@ -15,7 +15,7 @@ class ConfigsMigrator extends RecursiveAstVisitor with AstVisitingSuggestor {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
-    if (varsToCheck.contains(node.name.name)) {
+    if (varsToCheck.contains(node.name.lexeme)) {
       if (node.body is ExpressionFunctionBody) {
         final body = (node.body as ExpressionFunctionBody).expression;
         if (body is SimpleStringLiteral) {

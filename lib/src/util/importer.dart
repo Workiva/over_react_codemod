@@ -84,14 +84,14 @@ _InsertionLocation insertionLocationForPackageImport(
   final imports = unit.directives.whereType<ImportDirective>();
   final firstImport = imports.firstOrNull;
 
-  final dartImports = imports.where((i) => i.uriContent?.startsWith('dart:') ?? false);
+  final dartImports = imports.where((i) => i.uri.stringValue?.startsWith('dart:') ?? false);
   final lastDartImport = dartImports.lastOrNull;
 
-  final packageImports = imports.where((i) => i.uriContent?.startsWith('package:') ?? false);
+  final packageImports = imports.where((i) => i.uri.stringValue?.startsWith('package:') ?? false);
   final firstPackageImportSortedAfterNewImport =
-      packageImports.where((i) => i.uriContent!.compareTo(importUri) > 0).firstOrNull;
+      packageImports.where((i) => i.uri.stringValue!.compareTo(importUri) > 0).firstOrNull;
   final lastPackageImportSortedBeforeNewImport =
-      packageImports.where((i) => i.uriContent!.compareTo(importUri) < 0).lastOrNull;
+      packageImports.where((i) => i.uri.stringValue!.compareTo(importUri) < 0).lastOrNull;
 
   final firstNonImportDirective = unit.directives.where((d) => d is! ImportDirective).firstOrNull;
 

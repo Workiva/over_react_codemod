@@ -24,6 +24,7 @@ void main() {
         'function',
         'aPlural',
         'formatted',
+        'formattedNonArrow',
         'someSelect'
       ]);
     });
@@ -117,7 +118,7 @@ void main() {
     });
 
     test('messages found', () {
-      expect(messages.methods.length, 7);
+      expect(messages.methods.length, 8);
       expect(messages.methods.keys, [
         'orange',
         'aquamarine',
@@ -125,6 +126,7 @@ void main() {
         'function',
         'aPlural',
         'formatted',
+        'formattedNonArrow',
         'someSelect'
       ]);
       expect(messages.methods.values.map((each) => each.source).toList(),
@@ -182,7 +184,7 @@ void main() {
       var otherName = messages.nameForString('function', r'www${x}def');
       tweakedMore = tweakedMore.replaceAll('function', otherName);
       messages.addMethod(tweakedMore);
-      expect(messages.methods.length, 9);
+      expect(messages.methods.length, 10);
       expect(messages.methods['function']?.source, sampleMethods[3]);
       expect(messages.methods['function1']?.source, tweaked);
       expect(messages.methods['function2']?.source, contains(r'www${x}def'));
@@ -202,7 +204,7 @@ class TestProjectIntl {${methods.isNotEmpty ? '\n' : ''}$methods
 }''';
 
 List<String> sampleMethods = [
-  "  static String get orange => Intl.message('orange', name: 'TestProjectIntl_orange', desc: 'The color.');",
+  "  static String get orange {return Intl.message('orange', name: 'TestProjectIntl_orange', desc: 'The color.');}",
   "  static String get aquamarine => Intl.message('aquamarine', name: 'TestProjectIntl_aquamarine', desc: 'The color', meaning: 'blueish');",
   """  static String get long => Intl.message('''multi
 line 
@@ -210,12 +212,13 @@ string''', name: 'TestProjectIntl_long');""",
   """  static String function(String x) => Intl.message('abc\${x}def', name: 'TestProjectIntl_function');""",
   """  static String aPlural(int n) => Intl.plural(n, zero: 'zero', other: 'other', name: 'TestProjectIntl_aPlural', args: [n]);""",
   """  static List<Object> formatted(Object f) => Intl.formattedMessage([f, 'foo'], name: 'TestProjectIntl_formatted', args: [f]);""",
+  """  static List<Object> formattedNonArrow(Object f) {Intl.formattedMessage([f, 'foo'], name: 'TestProjectIntl_formattedNonArrow', args: [f]);}""",
   """  static String someSelect(Object choice) => Intl.select(choice, {'a' : 'b'}, name: 'TestProjectIntl_someSelect', args: [choice]);"""
 ];
 
 // The sample methods in a hard-coded sorted order.
 List<String> get sortedSampleMethods =>
-    [4, 1, 5, 3, 2, 0, 6].map((i) => sampleMethods[i]).toList();
+    [4, 1, 5, 6, 3, 2, 0, 7].map((i) => sampleMethods[i]).toList();
 
 // A test utility to be invoked from the debug console to see where subtly-different long strings differ.
 void firstDifference(String a, String b) {
