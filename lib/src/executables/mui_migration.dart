@@ -21,16 +21,16 @@ import 'package:codemod/codemod.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/components.dart';
+import 'package:over_react_codemod/src/mui_suggestors/unused_wsd_import_remover.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 import 'package:over_react_codemod/src/util/logging.dart';
 
+import '../mui_suggestors/constants.dart';
 import '../util/importer.dart';
-import '../util/unused_import_remover.dart';
 
 final _log = Logger('orcm.mui_migration');
 
@@ -96,7 +96,8 @@ void main(List<String> args) async {
   final parsedArgs = parser.parse(args);
 
   if (parsedArgs['help'] as bool) {
-    stderr.writeln('Migrates web_skin_dart component usages to react_material_ui.');
+    stderr.writeln(
+        'Migrates web_skin_dart component usages to react_material_ui.');
     stderr.writeln();
     stderr.writeln('Usage:');
     stderr.writeln('    mui_migration [arguments]');
@@ -113,8 +114,10 @@ void main(List<String> args) async {
   //
   // An alternative would be to use `--` and `arguments.rest` to pass along codemod
   // args, but that's not as convenient to the user and makes showing help a bit more complicated.
-  final codemodArgs =
-      _allCodemodFlags.where((name) => parsedArgs[name] as bool).map((name) => '--$name').toList();
+  final codemodArgs = _allCodemodFlags
+      .where((name) => parsedArgs[name] as bool)
+      .map((name) => '--$name')
+      .toList();
 
   // codemod sets up a global logging handler that forwards to the console, and
   // we want that set up before we do other non-codemodd things that might log.
@@ -188,7 +191,7 @@ void main(List<String> args) async {
     // output of previous migrators.
     [aggregate(migratorsToRun)],
     [importerSuggestorBuilder(importUri: rmuiImportUri, importNamespace: muiNs)],
-    [unusedImportRemoverSuggestorBuilder(packageName: 'web_skin_dart')],
+    [unusedWsdImportRemover],
   ]);
   if (exitCode != 0) return;
 
@@ -197,7 +200,8 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
     aggregate([
-      PubspecUpgrader('react_material_ui', rmuiVersionRange, hostedUrl: 'https://pub.workiva.org'),
+      PubspecUpgrader('react_material_ui', rmuiVersionRange,
+          hostedUrl: 'https://pub.workiva.org'),
     ].map((s) => ignoreable(s))),
     defaultYes: true,
     args: codemodArgs,
@@ -228,7 +232,8 @@ void sortPartsLast(List<String> dartPaths) {
 }
 
 Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
-  _log.info('Running `pub get` if needed so that all Dart files can be resolved...');
+  _log.info(
+      'Running `pub get` if needed so that all Dart files can be resolved...');
   final packageRoots = files.map(findPackageRootFor).toSet();
   for (final packageRoot in packageRoots) {
     await runPubGetIfNeeded(packageRoot);

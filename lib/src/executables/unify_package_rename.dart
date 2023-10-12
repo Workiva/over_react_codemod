@@ -27,9 +27,7 @@ import 'package:over_react_codemod/src/unify_package_rename_suggestors/unify_ren
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
-import '../unify_package_rename_suggestors/package_rename_component_usage_migrator.dart';
 import '../util/importer.dart';
-import '../util/unused_import_remover.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
