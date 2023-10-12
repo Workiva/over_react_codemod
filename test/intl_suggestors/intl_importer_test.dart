@@ -168,6 +168,21 @@ void main() {
         });
       });
 
+      test('package import in the same package should produce relative import',
+          () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+           import 'package:test_project/src/intl/test_project_intl.dart';
+            content() => TestProjectIntl.testString;
+  ''',
+          isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
+          expectedOutput: /*language=dart*/ '''
+          import '/src/intl/test_project_intl.dart';
+    content() => TestProjectIntl.testString;
+  ''',
+        );
+      });
+
       test('when there is just a library declaration', () async {
         await testSuggestor(
           input: /*language=dart*/ '''
