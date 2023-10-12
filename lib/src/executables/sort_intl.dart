@@ -13,8 +13,6 @@
 // limitations under the License.
 
 import 'dart:io';
-import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/args.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
@@ -28,8 +26,6 @@ import 'intl_message_migration.dart';
 
 final _log = Logger('orcm.intl_message_migration');
 
-const _noMigrate = 'no-migrate';
-
 final FileSystem fs = const LocalFileSystem();
 
 final parser = ArgParser()
@@ -38,14 +34,8 @@ final parser = ArgParser()
     abbr: 'h',
     negatable: false,
     help: 'Prints this help output.',
-  )
-  ..addFlag(_noMigrate,
-      negatable: false,
-      defaultsTo: false,
-      help:
-      'Does not run any migrators, overriding any --migrate flags. Can still be used with --prune-unused, and '
-          'will force the messages file to be sorted and rewritten'
   );
+
 
 late ArgResults parsedArgs;
 
@@ -66,8 +56,7 @@ void main(List<String> args) async {
   // Work around parts being unresolved if you resolve them before their libraries.
   // TODO - reference analyzer issue for this once it's created
   final packageRoots = dartPaths.map(findPackageRootFor).toSet().toList();
-  packageRoots.sort((packageA, packageB) =>
-  p.split(packageB).length - p.split(packageA).length);
+
 
   // TODO: Use packageConfig and utilities for reading that rather than manually parsing pubspec..
   Map<String, String> packageNameLookup = {
@@ -82,8 +71,11 @@ void main(List<String> args) async {
   };
 
   final processedPackages = Set<String>();
-  await pubGetForAllPackageRoots(dartPaths);
 
+  void intlMessage(packageName)
+{
+
+}
   for (String package in packageRoots) {
     final packageRoot = p.basename(package);
     final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
@@ -98,7 +90,7 @@ void main(List<String> args) async {
     }
 
     packageDartPaths = limitPaths(packageDartPaths, allowed: dartPaths);
-    sortPartsLast(packageDartPaths);
+
 
     final IntlMessages messages = IntlMessages(packageName);
     messages.write();
@@ -109,47 +101,15 @@ void main(List<String> args) async {
 
 void printUsage() {
   stderr.writeln(
-      'Migrates literal strings that seem user-visible in the package by wrapping them in Intl.message calls.');
+      'Activating Excutables and Sort INTL file.');
   stderr.writeln();
   stderr.writeln('Usage:');
-  stderr.writeln('intl_sorting [arguments]');
+  stderr.writeln('sort_intl [arguments]');
   stderr.writeln();
   stderr.writeln('Options:');
   stderr.writeln(parser.usage);
 }
 
-
-
-
-void sortPartsLast(List<String> dartPaths) {
-  _log.info('Sorting part files...');
-
-  final isPartCache = <String, bool>{};
-  bool isPart(String path) => isPartCache.putIfAbsent(path, () {
-    // parseString is much faster than using an AnalysisContextCollection
-    //  to get unresolved AST, at least in repos with many context roots.
-    final unit = parseString(
-        content: LocalFileSystem().file(path).readAsStringSync())
-        .unit;
-    return unit.directives.whereType<PartOfDirective>().isNotEmpty;
-  });
-
-  if (dartPaths.isNotEmpty && dartPaths.every(isPart)) {
-    _log.info(
-        'Only part files were specified. The containing library must be included for any part file, as it is needed for analysis context');
-    exit(1);
-  }
-  dartPaths.sort((a, b) {
-    final isAPart = isPart(a);
-    final isBPart = isPart(b);
-
-    if (isAPart == isBPart) return 0;
-    return isAPart ? 1 : -1;
-
-  });
-  _log.info('Done.');
-
-}
 
 
 
