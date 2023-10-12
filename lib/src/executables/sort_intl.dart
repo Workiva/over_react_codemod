@@ -36,7 +36,6 @@ final parser = ArgParser()
     help: 'Prints this help output.',
   );
 
-
 late ArgResults parsedArgs;
 
 void main(List<String> args) async {
@@ -57,7 +56,6 @@ void main(List<String> args) async {
   // TODO - reference analyzer issue for this once it's created
   final packageRoots = dartPaths.map(findPackageRootFor).toSet().toList();
 
-
   // TODO: Use packageConfig and utilities for reading that rather than manually parsing pubspec..
   Map<String, String> packageNameLookup = {
     for (String path in pubspecYamlPaths())
@@ -72,10 +70,7 @@ void main(List<String> args) async {
 
   final processedPackages = Set<String>();
 
-  void intlMessage(packageName)
-{
-
-}
+  void intlMessage(packageName) {}
   for (String package in packageRoots) {
     final packageRoot = p.basename(package);
     final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
@@ -91,17 +86,13 @@ void main(List<String> args) async {
 
     packageDartPaths = limitPaths(packageDartPaths, allowed: dartPaths);
 
-
     final IntlMessages messages = IntlMessages(packageName);
     messages.write();
-
-
   }
 }
 
 void printUsage() {
-  stderr.writeln(
-      'Activating Excutables and Sort INTL file.');
+  stderr.writeln('Activating Excutables and Sort INTL file.');
   stderr.writeln();
   stderr.writeln('Usage:');
   stderr.writeln('sort_intl [arguments]');
@@ -109,8 +100,3 @@ void printUsage() {
   stderr.writeln('Options:');
   stderr.writeln(parser.usage);
 }
-
-
-
-
-
