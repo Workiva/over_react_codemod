@@ -23,7 +23,7 @@ import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/dart_script
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/html_script_updater.dart';
 import 'package:over_react_codemod/src/unify_package_rename_suggestors/constants.dart';
 import 'package:over_react_codemod/src/unify_package_rename_suggestors/import_renamer.dart';
-import 'package:over_react_codemod/src/unify_package_rename_suggestors/namespace_usage_updater.dart';
+import 'package:over_react_codemod/src/unify_package_rename_suggestors/unify_rename_suggestor.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
@@ -101,7 +101,7 @@ void main(List<String> args) async {
   await pubGetForAllPackageRoots(dartPaths);
   exitCode = await runCodemods([
     // todo add comments
-    CodemodInfo(paths: dartPaths, sequence: [NamespaceUsageUpdater()]),
+    CodemodInfo(paths: dartPaths, sequence: [UnifyRenameSuggestor()]),
     // CodemodInfo(paths: dartPaths, sequence: [PackageRenameComponentUsageMigrator()]),
     CodemodInfo(paths: dartPaths, sequence: [
       importerSuggestorBuilder(
