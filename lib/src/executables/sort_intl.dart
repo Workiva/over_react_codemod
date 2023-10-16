@@ -70,7 +70,6 @@ void main(List<String> args) async {
 
   final processedPackages = Set<String>();
 
-
   for (String package in packageRoots) {
     final packageRoot = p.basename(package);
     final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
