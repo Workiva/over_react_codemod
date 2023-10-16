@@ -148,13 +148,13 @@ _InsertionLocation _insertionLocationForPackageImport(
     final uriContent = importDirective.uri.stringValue;
     if (uriContent != null) {
       final uri = Uri.parse(uriContent);
-      if (uri.scheme != 'package') {
+
+      if (uri.scheme != 'package' && uri.scheme != 'dart:') {
         hasPackageImports = false;
         break;
       }
     }
   }
-
   return _InsertionLocation(
       insertAfter ? relativeNode.end : relativeNode.offset,
       leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
