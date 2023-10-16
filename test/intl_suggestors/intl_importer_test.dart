@@ -66,7 +66,6 @@ void main() {
               import 'package:over_react/over_react.dart';
               import 'package:test_project/src/intl/test_project_intl.dart';
               content() => TestProjectIntl.testString;
-              
             ''',
           );
         });

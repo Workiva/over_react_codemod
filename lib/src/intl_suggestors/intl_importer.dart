@@ -43,7 +43,7 @@ Stream<Patch> intlImporter(
 
   final intlFilePath = '/src/intl/${projectName}_intl.dart';
   final intlUri = 'package:${projectName}' + intlFilePath;
-  final intlDirectory = path.join(Directory.current.path, intlFilePath);
+  final intlDirectory = path.join(context.root, intlFilePath);
   final relativePathToIntlDir =
       path.relative(intlDirectory, from: Directory.current.path);
   final insertInfo = _insertionLocationForPackageImport(
