@@ -14,7 +14,8 @@
 
 /// Info on a unify_ui import.
 class UnifyImportInfo {
-  UnifyImportInfo(this.uri, {this.rmuiUri, this.namespace, this.possibleMuiNamespaces});
+  UnifyImportInfo(this.uri,
+      {this.rmuiUri, this.namespace, this.possibleMuiNamespaces});
 
   /// Unify import URI.
   String uri;
@@ -117,7 +118,8 @@ const rmuiToUnifyIdentifierRenames = {
   'SnackbarAnchorOriginObjectVertical': 'SnackbarOriginVertical',
   'SnackbarAnchorOriginObjectHorizontal': 'SnackbarOriginHorizontal',
   // TablePagination objects
-  'TablePaginationLabelDisplayedRowsObject': 'TablePaginationLabelDisplayedRowsArgs',
+  'TablePaginationLabelDisplayedRowsObject':
+      'TablePaginationLabelDisplayedRowsArgs',
 };
 
 /// The namespace that will be used for the `unify_ui/components/wsd.dart` import that is added.

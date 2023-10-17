@@ -23,7 +23,8 @@ import '../util.dart';
 void main() {
   group('importerSuggestorBuilder', () {
     final resolvedContext = SharedAnalysisContext.overReact;
-    final muiImporter = importerSuggestorBuilder(importUri: rmuiImportUri, importNamespace: muiNs);
+    final muiImporter = importerSuggestorBuilder(
+        importUri: rmuiImportUri, importNamespace: muiNs);
 
     // Warm up analysis in a setUpAll so that if getting the resolved AST times out
     // (which is more common for the WSD context), it fails here instead of failing the first test.
@@ -36,7 +37,9 @@ void main() {
       resolvedContext: resolvedContext,
     );
 
-    group('adds a RMUI import when there is an undefined `mui` identifier in the file', () {
+    group(
+        'adds a RMUI import when there is an undefined `mui` identifier in the file',
+        () {
       bool isFakeUriError(AnalysisError error) =>
           error.errorCode.name.toLowerCase() == 'uri_does_not_exist' &&
           error.message.contains('fake');
@@ -294,24 +297,28 @@ void main() {
       });
     });
 
-    test('adds a RMUI import when there is an undefined `mui` identifier in a part file', () async {
+    test(
+        'adds a RMUI import when there is an undefined `mui` identifier in a part file',
+        () async {
       // testSuggestor isn't really set up for multiple files,
       // so the test setup here is a little more manual.
 
       const partFilename = 'mui_importer_test_part.dart';
       const mainLibraryFilename = 'mui_importer_test_main_library.dart';
 
-      final partFileContext = await resolvedContext.resolvedFileContextForTest('''
+      final partFileContext =
+          await resolvedContext.resolvedFileContextForTest('''
             part of '${mainLibraryFilename}';
   
             content() => mui.Button();
         ''',
-          filename: partFilename,
-          // Don't pre-resolve since this isn't a library.
-          preResolveLibrary: false,
-          throwOnAnalysisErrors: false);
+              filename: partFilename,
+              // Don't pre-resolve since this isn't a library.
+              preResolveLibrary: false,
+              throwOnAnalysisErrors: false);
 
-      final mainLibraryFileContext = await resolvedContext.resolvedFileContextForTest(
+      final mainLibraryFileContext =
+          await resolvedContext.resolvedFileContextForTest(
         '''
             part '${partFilename}';
         ''',
@@ -321,7 +328,8 @@ void main() {
 
       final mainPatches = await muiImporter(mainLibraryFileContext).toList();
       expect(mainPatches, [
-        hasPatchText(contains("import 'package:react_material_ui/react_material_ui.dart' as mui;")),
+        hasPatchText(contains(
+            "import 'package:react_material_ui/react_material_ui.dart' as mui;")),
       ]);
 
       final partPatches = await muiImporter(partFileContext).toList();
@@ -349,4 +357,5 @@ void main() {
   });
 }
 
-bool isUndefinedMuiError(AnalysisError error) => error.message.contains("Undefined name 'mui'");
+bool isUndefinedMuiError(AnalysisError error) =>
+    error.message.contains("Undefined name 'mui'");

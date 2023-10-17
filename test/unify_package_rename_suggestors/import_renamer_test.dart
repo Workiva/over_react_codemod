@@ -81,7 +81,9 @@ void main() {
         );
       });
 
-      test('for special cases when the new file path is different from the old one', () async {
+      test(
+          'for special cases when the new file path is different from the old one',
+          () async {
         await testSuggestor(
           input: /*language=dart*/ '''
               import 'package:react_material_ui/react_material_ui.dart';

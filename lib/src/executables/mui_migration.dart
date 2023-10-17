@@ -190,7 +190,9 @@ void main(List<String> args) async {
     // should only be handled by a single migrator, and shouldn't depend on the
     // output of previous migrators.
     [aggregate(migratorsToRun)],
-    [importerSuggestorBuilder(importUri: rmuiImportUri, importNamespace: muiNs)],
+    [
+      importerSuggestorBuilder(importUri: rmuiImportUri, importNamespace: muiNs)
+    ],
     [unusedImportRemoverSuggestorBuilder('web_skin_dart')],
   ]);
   if (exitCode != 0) return;

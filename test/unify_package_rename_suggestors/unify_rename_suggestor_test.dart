@@ -32,7 +32,8 @@ void main() {
     );
 
     group('namespace on component usage', () {
-      test('mui namespace from react_material_ui is migrated to unify', () async {
+      test('mui namespace from react_material_ui is migrated to unify',
+          () async {
         await testSuggestor(
           input: /*language=dart*/ '''
     import 'package:react_material_ui/react_material_ui.dart' as mui;
@@ -67,7 +68,8 @@ void main() {
         );
       });
 
-      test('alpha namespace from react_material_ui is migrated to unify', () async {
+      test('alpha namespace from react_material_ui is migrated to unify',
+          () async {
         await testSuggestor(
           input: /*language=dart*/ '''
     import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_mui;

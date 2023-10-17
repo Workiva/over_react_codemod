@@ -61,8 +61,8 @@ class SharedAnalysisContext {
 
   /// A context root located at `test/test_fixtures/rmui_project`
   /// that depends on the `react_material_ui` package (as well as `over_react`).
-  static final rmui = SharedAnalysisContext(p.join(
-      findPackageRootFor(p.current), 'test/test_fixtures/rmui_project'));
+  static final rmui = SharedAnalysisContext(
+      p.join(findPackageRootFor(p.current), 'test/test_fixtures/rmui_project'));
 
   /// The path to the package root in which test files will be created
   /// and resolved.

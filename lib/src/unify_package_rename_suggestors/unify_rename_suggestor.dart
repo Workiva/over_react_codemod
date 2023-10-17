@@ -44,16 +44,20 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
     // Replace 'mui' namespaces usage with 'unify' for method invocations.
     final uri = node.methodName.staticElement?.source?.uri;
     if (uri != null &&
-        (isUriWithinPackage(uri, 'react_material_ui') || isUriWithinPackage(uri, 'unify_ui'))) {
+        (isUriWithinPackage(uri, 'react_material_ui') ||
+            isUriWithinPackage(uri, 'unify_ui'))) {
       final importNamespace = node.target;
       if (importNamespace != null) {
         final newImportNamespace = rmuiImportsToUpdate
             .where((import) =>
-                import.possibleMuiNamespaces?.contains(importNamespace.toSource()) ?? false)
+                import.possibleMuiNamespaces
+                    ?.contains(importNamespace.toSource()) ??
+                false)
             .singleOrNull
             ?.namespace;
         if (newImportNamespace != null) {
-          yieldPatch(newImportNamespace, importNamespace.offset, importNamespace.end);
+          yieldPatch(
+              newImportNamespace, importNamespace.offset, importNamespace.end);
         }
       }
     }
@@ -68,13 +72,14 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
       return;
     }
 
-    final identifier =
-        node.tryCast<SimpleIdentifier>() ?? node.tryCast<PrefixedIdentifier>()?.identifier;
+    final identifier = node.tryCast<SimpleIdentifier>() ??
+        node.tryCast<PrefixedIdentifier>()?.identifier;
     final uri = identifier?.staticElement?.source?.uri;
     final prefix = node.tryCast<PrefixedIdentifier>()?.prefix;
 
     if (uri != null &&
-        (isUriWithinPackage(uri, 'react_material_ui') || isUriWithinPackage(uri, 'unify_ui'))) {
+        (isUriWithinPackage(uri, 'react_material_ui') ||
+            isUriWithinPackage(uri, 'unify_ui'))) {
       // Update components and objects that were renamed in unify_ui.
       final newName = rmuiToUnifyIdentifierRenames[identifier?.name];
       var isFromWsdEntrypoint = newName?.startsWith('Wsd') ?? false;
@@ -92,13 +97,17 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
       // Update WSD ButtonColor and AlertSize usages.
       {
         // Update WSD constant properties objects to use the WSD versions if applicable.
-        yieldWsdRenamePatchIfApplicable(Expression node, String? objectName, String? propertyName) {
-          if (objectName == 'ButtonColor' && (propertyName?.startsWith('wsd') ?? false)) {
+        yieldWsdRenamePatchIfApplicable(
+            Expression node, String? objectName, String? propertyName) {
+          if (objectName == 'ButtonColor' &&
+              (propertyName?.startsWith('wsd') ?? false)) {
             isFromWsdEntrypoint = true;
-            yieldPatch('$unifyWsdNamespace.WsdButtonColor.$propertyName', node.offset, node.end);
+            yieldPatch('$unifyWsdNamespace.WsdButtonColor.$propertyName',
+                node.offset, node.end);
           } else if (objectName == 'AlertSize') {
             isFromWsdEntrypoint = true;
-            yieldPatch('$unifyWsdNamespace.WsdAlertSize.$propertyName', node.offset, node.end);
+            yieldPatch('$unifyWsdNamespace.WsdAlertSize.$propertyName',
+                node.offset, node.end);
           }
         }
 
@@ -107,13 +116,15 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
         yieldWsdRenamePatchIfApplicable(node, prefix?.name, identifier?.name);
         // Check for namespaced `mui.ButtonColor.wsd...` usage.
         if (node is PrefixedIdentifier && parent is PropertyAccess) {
-          yieldWsdRenamePatchIfApplicable(parent, identifier?.name, parent.propertyName.name);
+          yieldWsdRenamePatchIfApplicable(
+              parent, identifier?.name, parent.propertyName.name);
         }
       }
 
       // Replace 'mui' namespaces usage with 'unify'.
       final newNamespace = rmuiImportsToUpdate
-          .where((import) => import.possibleMuiNamespaces?.contains(prefix?.name) ?? false)
+          .where((import) =>
+              import.possibleMuiNamespaces?.contains(prefix?.name) ?? false)
           .singleOrNull
           ?.namespace;
       if (prefix != null && newNamespace != null && !isFromWsdEntrypoint) {
@@ -136,7 +147,8 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
 
     final result = await context.getResolvedUnit();
     if (result == null) {
-      throw Exception('Could not get resolved result for "${context.relativePath}"');
+      throw Exception(
+          'Could not get resolved result for "${context.relativePath}"');
     }
     result.unit.visitChildren(this);
   }
