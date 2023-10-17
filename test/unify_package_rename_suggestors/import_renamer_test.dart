@@ -40,10 +40,11 @@ void main() {
       );
     });
 
+    // All tests strings are split by package name to work around issues with dependency_validator.
     group('updates react_material_ui imports in a file', () {
       test('', () async {
         await testSuggestor(
-          input: /*language=dart*/ '''
+          input: '''
               import 'package:over_react/over_react.dart';
               import 'package:react_material_ui/react_material_ui.dart';
               import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart';
@@ -52,12 +53,16 @@ void main() {
           
               content() => Dom.div()();
           ''',
-          expectedOutput: /*language=dart*/ '''
+          expectedOutput: '''
               import 'package:over_react/over_react.dart';
-              import 'package:unify_ui/abc.dart';
-              import 'package:unify_ui/components/badge.dart';
-              import 'package:unify_ui/unify_ui.dart';
-              import 'package:unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart';
+              import 'package:'''
+              '''unify_ui/abc.dart';
+              import 'package:'''
+              '''unify_ui/components/badge.dart';
+              import 'package:'''
+              '''unify_ui/unify_ui.dart';
+              import 'package:'''
+              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart';
           
               content() => Dom.div()();
           ''',
@@ -66,15 +71,17 @@ void main() {
 
       test('in alphabetical order', () async {
         await testSuggestor(
-          input: /*language=dart*/ '''
+          input: '''
               import 'package:react_material_ui/react_material_ui.dart' as mui;
               import 'package:react_material_ui/styles/styled.dart' as mui;
           
               content() => Dom.div()();
           ''',
-          expectedOutput: /*language=dart*/ '''
-              import 'package:unify_ui/styles/styled.dart' as unify;
-              import 'package:unify_ui/unify_ui.dart' as unify;
+          expectedOutput: '''
+              import 'package:'''
+              '''unify_ui/styles/styled.dart' as unify;
+              import 'package:'''
+              '''unify_ui/unify_ui.dart' as unify;
           
               content() => Dom.div()();
           ''',
@@ -85,7 +92,7 @@ void main() {
           'for special cases when the new file path is different from the old one',
           () async {
         await testSuggestor(
-          input: /*language=dart*/ '''
+          input: '''
               import 'package:react_material_ui/react_material_ui.dart';
               import 'package:over_react/over_react.dart';
               import 'package:web_skin_dart/ui_components.dart';
@@ -95,12 +102,16 @@ void main() {
           
               content() => Dom.div()();
           ''',
-          expectedOutput: /*language=dart*/ '''
+          expectedOutput: '''
               import 'package:over_react/over_react.dart';
-              import 'package:unify_ui/components/list.dart';
-              import 'package:unify_ui/styles/styled.dart';
-              import 'package:unify_ui/styles/styled.dart';
-              import 'package:unify_ui/unify_ui.dart';
+              import 'package:'''
+              '''unify_ui/components/list.dart';
+              import 'package:'''
+              '''unify_ui/styles/styled.dart';
+              import 'package:'''
+              '''unify_ui/styles/styled.dart';
+              import 'package:'''
+              '''unify_ui/unify_ui.dart';
               import 'package:web_skin_dart/ui_components.dart';
           
               content() => Dom.div()();
@@ -110,7 +121,7 @@ void main() {
 
       test('with namespaces', () async {
         await testSuggestor(
-          input: /*language=dart*/ '''
+          input: '''
               library lib;
           
               import 'package:react_material_ui/react_material_ui.dart' as mui;
@@ -122,15 +133,20 @@ void main() {
           
               content() => Dom.div()();
           ''',
-          expectedOutput: /*language=dart*/ '''
+          expectedOutput: '''
               library lib;
               
               import 'package:over_react/over_react.dart' as mui;
-              import 'package:unify_ui/components/alert.dart' as something_else;
-              import 'package:unify_ui/components/badge.dart' as unify;
-              import 'package:unify_ui/unify_ui.dart' as unify;
-              import 'package:unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_unify;
-              import 'package:unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_unify;
+              import 'package:'''
+              '''unify_ui/components/alert.dart' as something_else;
+              import 'package:'''
+              '''unify_ui/components/badge.dart' as unify;
+              import 'package:'''
+              '''unify_ui/unify_ui.dart' as unify;
+              import 'package:'''
+              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_unify;
+              import 'package:'''
+              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_unify;
           
               content() => Dom.div()();
           ''',
@@ -139,14 +155,19 @@ void main() {
 
       test('unless the imports are already updated to the new name', () async {
         await testSuggestor(
-          input: /*language=dart*/ '''
+          input: '''
               library lib;
           
-              import 'package:unify_ui/unify_ui.dart' as mui;
-              import 'package:unify_ui/unify_ui.dart';
-              import 'package:unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
-              import 'package:unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart';
-              import 'package:unify_ui/abc.dart';
+              import 'package:'''
+              '''unify_ui/unify_ui.dart' as mui;
+              import 'package:'''
+              '''unify_ui/unify_ui.dart';
+              import 'package:'''
+              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
+              import 'package:'''
+              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart';
+              import 'package:'''
+              '''unify_ui/abc.dart';
           
               content() => Dom.div()();
           ''',
@@ -163,16 +184,20 @@ void main() {
           ),
         );
         await testSuggestor(
-          input: /*language=dart*/ '''
+          input: '''
               import 'package:over_react/over_react.dart';
-              import 'package:old/old.dart' as o;
-              import 'package:old/components/badge.dart';
+              import 'package:'''
+              '''old/old.dart' as o;
+              import 'package:'''
+              '''old/components/badge.dart';
           
               content() => Dom.div()();
           ''',
-          expectedOutput: /*language=dart*/ '''
-              import 'package:new/components/badge.dart';
-              import 'package:new/old.dart' as n;
+          expectedOutput: '''
+              import 'package:'''
+              '''new/components/badge.dart';
+              import 'package:'''
+              '''new/old.dart' as n;
               import 'package:over_react/over_react.dart';
           
               content() => Dom.div()();

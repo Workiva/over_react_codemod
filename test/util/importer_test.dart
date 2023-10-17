@@ -356,7 +356,9 @@ void main() {
 
       test('for a different package name', () async {
         final testSuggestor = getSuggestorTester(
-          importerSuggestorBuilder(importUri: 'package:over_react/over_react.dart', importNamespace: 'or'),
+          importerSuggestorBuilder(
+              importUri: 'package:over_react/over_react.dart',
+              importNamespace: 'or'),
           resolvedContext: resolvedContext,
         );
         await testSuggestor(
@@ -364,7 +366,8 @@ void main() {
             
                 content() => or.Fragment();
             ''',
-          isExpectedError: (error) => error.message.contains("Undefined name 'or'"),
+          isExpectedError: (error) =>
+              error.message.contains("Undefined name 'or'"),
           expectedOutput: /*language=dart*/ '''
                 import 'package:over_react/over_react.dart' as or;
                 
