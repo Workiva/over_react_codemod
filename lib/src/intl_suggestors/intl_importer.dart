@@ -148,7 +148,8 @@ _InsertionLocation _insertionLocationForPackageImport(
     final uriContent = importDirective.uri.stringValue;
     if (uriContent != null) {
       final uri = Uri.parse(uriContent);
-      hasPackageImports = !imports.any((importDirective) => uri!= null &&  uri.scheme != 'package'  && uri.scheme != 'dart:');
+      hasPackageImports = !imports.any((importDirective) =>
+          uri != null && uri.scheme != 'package' && uri.scheme != 'dart:');
     }
   }
   return _InsertionLocation(
@@ -157,4 +158,3 @@ _InsertionLocation _insertionLocationForPackageImport(
       trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
       usePackageImports: hasPackageImports);
 }
-
