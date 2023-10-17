@@ -18,9 +18,6 @@ import 'package:test/test.dart';
 import '../resolved_file_context.dart';
 import '../util.dart';
 
-// todo also test builders
-// todo also test non-component usage of the namespace
-
 void main() {
   final resolvedContext = SharedAnalysisContext.rmui;
 

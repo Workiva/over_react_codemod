@@ -17,8 +17,6 @@ import 'package:test/test.dart';
 
 import '../util.dart';
 
-// todo add import order tests
-
 void main() {
   group('importRenamer', () {
     final testSuggestor = getSuggestorTester(

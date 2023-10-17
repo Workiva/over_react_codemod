@@ -12,12 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// todo comment
+/// Info on a unify_ui import.
 class UnifyImportInfo {
   UnifyImportInfo(this.uri, {this.rmuiUri, this.namespace, this.possibleMuiNamespaces});
-  String? namespace;
-  List<String>? possibleMuiNamespaces;
+
+  /// Unify import URI.
   String uri;
+
+  /// Recommended Unify version of the import namespace, if applicable.
+  String? namespace;
+
+  /// List of common RMUI versions of the namespace for the import, if applicable.
+  List<String>? possibleMuiNamespaces;
+
+  /// Previous RMUI import URI (if it's different from the unify_ui path).
   String? rmuiUri;
 }
 

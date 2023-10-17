@@ -25,7 +25,6 @@ import 'package:over_react_codemod/src/unify_package_rename_suggestors/import_re
 import 'package:over_react_codemod/src/unify_package_rename_suggestors/unify_rename_suggestor.dart';
 import 'package:over_react_codemod/src/util.dart';
 
-import '../dependency_validator_suggestors/ignore_updaters/v3_updater.dart';
 import '../util/importer.dart';
 import '../util/unused_import_remover.dart';
 
@@ -66,17 +65,6 @@ void main(List<String> args) async {
   }
 
   exitCode = await runCodemods([
-    // todo can we also remove rmui dependency here???
-    // Add unify_ui dependency.
-    // CodemodInfo(paths: pubspecYamlPaths(), sequence: [
-    //   aggregate(
-    //     [
-    //       // todo update version:
-    //       PubspecUpgrader('unify_ui', parseVersionRange('^1.121.0'),
-    //           hostedUrl: 'https://pub.workiva.org', shouldAddDependencies: true),
-    //     ].map((s) => ignoreable(s)),
-    //   )
-    // ]),
     // Update RMUI bundle script in all HTML files (and templates) to Unify bundle.
     CodemodInfo(paths: allHtmlPathsIncludingTemplates(), sequence: [
       HtmlScriptUpdater(rmuiBundleDevUpdated, unifyBundleDev),
@@ -87,9 +75,6 @@ void main(List<String> args) async {
       DartScriptUpdater(rmuiBundleDevUpdated, unifyBundleDev),
       DartScriptUpdater(rmuiBundleProdUpdated, unifyBundleProd),
     ]),
-    CodemodInfo(
-        paths: pubspecYamlPaths(),
-        sequence: [V3DependencyValidatorUpdater('react_material_ui', remove: true)])
   ]);
 
   if (exitCode != 0) return;
@@ -101,15 +86,16 @@ void main(List<String> args) async {
 
   await pubGetForAllPackageRoots(dartPaths);
   exitCode = await runCodemods([
-    // todo add comments
+    // Make main rename updates.
     CodemodInfo(paths: dartPaths, sequence: [UnifyRenameSuggestor()]),
-    // CodemodInfo(paths: dartPaths, sequence: [PackageRenameComponentUsageMigrator()]),
+    // Add WSD entrypoint imports as needed.
     CodemodInfo(paths: dartPaths, sequence: [
       importerSuggestorBuilder(
         importUri: unifyWsdUri,
         importNamespace: unifyWsdNamespace,
       )
     ]),
+    // Update rmui imports to unify.
     CodemodInfo(paths: dartPaths, sequence: [
       importRenamerSuggestorBuilder(
         oldPackageName: 'react_material_ui',
@@ -118,6 +104,7 @@ void main(List<String> args) async {
         newPackageNamespace: 'unify',
       )
     ]),
+    // Remove any left over unused imports.
     CodemodInfo(paths: dartPaths, sequence: [
       unusedImportRemoverSuggestorBuilder('react_material_ui'),
       unusedImportRemoverSuggestorBuilder('unify_ui'),
