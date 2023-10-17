@@ -89,23 +89,25 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
         }
       }
 
-      // Update WSD ButtonColor usages.
+      // Update WSD ButtonColor and AlertSize usages.
       {
-        // Update ButtonColor WSD properties to use the WsdButtonColor object if applicable.
-        yieldButtonColorPatchIfApplicable(
-            Expression node, String? objectName, String? propertyName) {
+        // Update WSD constant properties objects to use the WSD versions if applicable.
+        yieldWsdRenamePatchIfApplicable(Expression node, String? objectName, String? propertyName) {
           if (objectName == 'ButtonColor' && (propertyName?.startsWith('wsd') ?? false)) {
             isFromWsdEntrypoint = true;
             yieldPatch('$unifyWsdNamespace.WsdButtonColor.$propertyName', node.offset, node.end);
+          } else if (objectName == 'AlertSize') {
+            isFromWsdEntrypoint = true;
+            yieldPatch('$unifyWsdNamespace.WsdAlertSize.$propertyName', node.offset, node.end);
           }
         }
 
         final parent = node.parent;
         // Check for non-namespaced `ButtonColor.wsd...` usage.
-        yieldButtonColorPatchIfApplicable(node, prefix?.name, identifier?.name);
+        yieldWsdRenamePatchIfApplicable(node, prefix?.name, identifier?.name);
         // Check for namespaced `mui.ButtonColor.wsd...` usage.
         if (node is PrefixedIdentifier && parent is PropertyAccess) {
-          yieldButtonColorPatchIfApplicable(parent, identifier?.name, parent.propertyName.name);
+          yieldWsdRenamePatchIfApplicable(parent, identifier?.name, parent.propertyName.name);
         }
       }
 

@@ -55,9 +55,13 @@ final rmuiImportsToUpdate = [
 const rmuiToUnifyIdentifierRenames = {
   // Components
   'Alert': 'WsdAlert',
+  'AlertPropsMixin': 'WsdAlertPropsMixin',
   'LinkButton': 'WsdLinkButton',
+  'LinkButtonPropsMixin': 'WsdLinkButtonPropsMixin',
   'MuiList': 'UnifyList',
+  'MuiListPropsMixin': 'UnifyListPropsMixin',
   'WorkivaMuiThemeProvider': 'UnifyThemeProvider',
+  'WorkivaMuiThemeProviderPropsMixin': 'UnifyThemeProviderPropsMixin',
   // Autocomplete objects
   'AutocompleteFilterOptionsObject': 'AutocompleteFilterOptionsState',
   'AutocompleteOnChangeObject': 'AutocompleteChangeDetails',

@@ -14,7 +14,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:codemod/codemod.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../util/importer.dart';
 import 'constants.dart';
@@ -107,6 +106,7 @@ Suggestor importRenamerSuggestorBuilder({
         .whereType<ImportDirective>()
         .where((import) => import.uri.stringValue?.startsWith('package:$oldPackageName/') ?? false);
 
+    final newImportsInfo = <UnifyImportInfo>[];
     for (final import in importsToUpdate) {
       final importUri = import.uri.stringValue;
       final namespace = import.prefix?.name;
@@ -126,14 +126,7 @@ Suggestor importRenamerSuggestorBuilder({
       }
 
       if (newImportUri != null) {
-        final insertInfo = insertionLocationForPackageImport(
-            newImportUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
-        yield Patch(
-            insertInfo.leadingNewlines +
-                "import '$newImportUri'${newNamespace != null ? ' as $newNamespace' : ''};" +
-                insertInfo.trailingNewlines,
-            insertInfo.offset,
-            insertInfo.offset);
+        newImportsInfo.add(UnifyImportInfo(newImportUri, namespace: newNamespace));
       }
 
       final prevTokenEnd = import.beginToken.previous?.end;
@@ -143,6 +136,39 @@ Suggestor importRenamerSuggestorBuilder({
       final startOffset = prevTokenEnd != null && prevTokenEnd != -1 ? prevTokenEnd : import.offset;
       yield Patch('', startOffset, import.end);
     }
+
+    // Sort imports before adding them.
+    newImportsInfo.sort((a, b) => a.uri.compareTo(b.uri));
+
+    for (final importInfo in newImportsInfo) {
+      final insertInfo = insertionLocationForPackageImport(
+          importInfo.uri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
+      yield Patch(
+          insertInfo.leadingNewlines +
+              "import '${importInfo.uri}'${importInfo.namespace != null ? ' as ${importInfo.namespace}' : ''};" +
+              insertInfo.trailingNewlines,
+          insertInfo.offset,
+          insertInfo.offset);
+    }
+
+    //   if (newImportUri != null) {
+    //     final insertInfo = insertionLocationForPackageImport(
+    //         newImportUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
+    //     yield Patch(
+    //         insertInfo.leadingNewlines +
+    //             "import '$newImportUri'${newNamespace != null ? ' as $newNamespace' : ''};" +
+    //             insertInfo.trailingNewlines,
+    //         insertInfo.offset,
+    //         insertInfo.offset);
+    //   }
+    //
+    //   final prevTokenEnd = import.beginToken.previous?.end;
+    //   // Try to take the newline before the import, but watch out
+    //   // for prevToken's offset/end being -1 if it's this import has the
+    //   // first token in the file.
+    //   final startOffset = prevTokenEnd != null && prevTokenEnd != -1 ? prevTokenEnd : import.offset;
+    //   yield Patch('', startOffset, import.end);
+    // }
 
     // for(final import in importsToUpdate) {
     //

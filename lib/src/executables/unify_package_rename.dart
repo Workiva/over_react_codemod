@@ -17,7 +17,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/executables/mui_migration.dart';
-import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/constants.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/dart_script_updater.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/html_script_updater.dart';
@@ -25,9 +24,10 @@ import 'package:over_react_codemod/src/unify_package_rename_suggestors/constants
 import 'package:over_react_codemod/src/unify_package_rename_suggestors/import_renamer.dart';
 import 'package:over_react_codemod/src/unify_package_rename_suggestors/unify_rename_suggestor.dart';
 import 'package:over_react_codemod/src/util.dart';
-import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 
+import '../dependency_validator_suggestors/ignore_updaters/v3_updater.dart';
 import '../util/importer.dart';
+import '../util/unused_import_remover.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
@@ -68,15 +68,15 @@ void main(List<String> args) async {
   exitCode = await runCodemods([
     // todo can we also remove rmui dependency here???
     // Add unify_ui dependency.
-    CodemodInfo(paths: pubspecYamlPaths(), sequence: [
-      aggregate(
-        [
-          // todo update version:
-          PubspecUpgrader('unify_ui', parseVersionRange('^1.121.0'),
-              hostedUrl: 'https://pub.workiva.org', shouldAddDependencies: true),
-        ].map((s) => ignoreable(s)),
-      )
-    ]),
+    // CodemodInfo(paths: pubspecYamlPaths(), sequence: [
+    //   aggregate(
+    //     [
+    //       // todo update version:
+    //       PubspecUpgrader('unify_ui', parseVersionRange('^1.121.0'),
+    //           hostedUrl: 'https://pub.workiva.org', shouldAddDependencies: true),
+    //     ].map((s) => ignoreable(s)),
+    //   )
+    // ]),
     // Update RMUI bundle script in all HTML files (and templates) to Unify bundle.
     CodemodInfo(paths: allHtmlPathsIncludingTemplates(), sequence: [
       HtmlScriptUpdater(rmuiBundleDevUpdated, unifyBundleDev),
@@ -87,6 +87,9 @@ void main(List<String> args) async {
       DartScriptUpdater(rmuiBundleDevUpdated, unifyBundleDev),
       DartScriptUpdater(rmuiBundleProdUpdated, unifyBundleProd),
     ]),
+    CodemodInfo(
+        paths: pubspecYamlPaths(),
+        sequence: [V3DependencyValidatorUpdater('react_material_ui', remove: true)])
   ]);
 
   if (exitCode != 0) return;
@@ -115,9 +118,10 @@ void main(List<String> args) async {
         newPackageNamespace: 'unify',
       )
     ]),
-    // CodemodInfo(
-    //     paths: dartPaths,
-    //     sequence: [unusedImportRemoverSuggestorBuilder(packageName: 'react_material_ui')]),
+    CodemodInfo(paths: dartPaths, sequence: [
+      unusedImportRemoverSuggestorBuilder('react_material_ui'),
+      unusedImportRemoverSuggestorBuilder('unify_ui'),
+    ]),
   ]);
   if (exitCode != 0) return;
 }

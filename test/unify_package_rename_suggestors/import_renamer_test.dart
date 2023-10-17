@@ -56,10 +56,27 @@ void main() {
           ''',
           expectedOutput: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
+              import 'package:unify_ui/abc.dart';
+              import 'package:unify_ui/components/badge.dart';
               import 'package:unify_ui/unify_ui.dart';
               import 'package:unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart';
-              import 'package:unify_ui/components/badge.dart';
-              import 'package:unify_ui/abc.dart';
+          
+              content() => Dom.div()();
+          ''',
+        );
+      });
+
+      test('in alphabetical order', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+              import 'package:react_material_ui/react_material_ui.dart' as mui;
+              import 'package:react_material_ui/styles/styled.dart' as mui;
+          
+              content() => Dom.div()();
+          ''',
+          expectedOutput: /*language=dart*/ '''
+              import 'package:unify_ui/styles/styled.dart' as unify;
+              import 'package:unify_ui/unify_ui.dart' as unify;
           
               content() => Dom.div()();
           ''',
@@ -79,21 +96,19 @@ void main() {
               content() => Dom.div()();
           ''',
           expectedOutput: /*language=dart*/ '''
-              import 'package:unify_ui/unify_ui.dart';
               import 'package:over_react/over_react.dart';
-              import 'package:web_skin_dart/ui_components.dart';
-              import 'package:unify_ui/styles/styled.dart';
               import 'package:unify_ui/components/list.dart';
               import 'package:unify_ui/styles/styled.dart';
+              import 'package:unify_ui/styles/styled.dart';
+              import 'package:unify_ui/unify_ui.dart';
+              import 'package:web_skin_dart/ui_components.dart';
           
               content() => Dom.div()();
           ''',
         );
       });
 
-      test(
-          'unless there is a namespace on the main entrypoints that will be updated by a different suggestor',
-          () async {
+      test('with namespaces', () async {
         await testSuggestor(
           input: /*language=dart*/ '''
               library lib;
@@ -103,17 +118,19 @@ void main() {
               import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
               import 'package:over_react/over_react.dart' as mui;
               import 'package:react_material_ui/components/badge.dart' as mui;
+              import 'package:react_material_ui/components/alert.dart' as something_else;
           
               content() => Dom.div()();
           ''',
           expectedOutput: /*language=dart*/ '''
               library lib;
               
-              import 'package:react_material_ui/react_material_ui.dart' as mui;
-              import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_mui;
-              import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
               import 'package:over_react/over_react.dart' as mui;
+              import 'package:unify_ui/components/alert.dart' as something_else;
               import 'package:unify_ui/components/badge.dart' as unify;
+              import 'package:unify_ui/unify_ui.dart' as unify;
+              import 'package:unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_unify;
+              import 'package:unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_unify;
           
               content() => Dom.div()();
           ''',
@@ -139,24 +156,24 @@ void main() {
       test('also works for other package name inputs', () async {
         final testSuggestor = getSuggestorTester(
           importRenamerSuggestorBuilder(
-            oldPackageName: 'test_old',
-            newPackageName: 'test_new',
-            oldPackageNamespace: 'old',
-            newPackageNamespace: 'new',
+            oldPackageName: 'old',
+            newPackageName: 'new',
+            oldPackageNamespace: 'o',
+            newPackageNamespace: 'n',
           ),
         );
         await testSuggestor(
           input: /*language=dart*/ '''
-              import 'package:test_old/abc.dart' as mui;
               import 'package:over_react/over_react.dart';
-              import 'package:test_old/components/badge.dart';
+              import 'package:old/old.dart' as o;
+              import 'package:old/components/badge.dart';
           
               content() => Dom.div()();
           ''',
           expectedOutput: /*language=dart*/ '''
-              import 'package:test_new/abc.dart' as mui;
+              import 'package:new/components/badge.dart';
+              import 'package:new/old.dart' as n;
               import 'package:over_react/over_react.dart';
-              import 'package:test_new/components/badge.dart';
           
               content() => Dom.div()();
           ''',

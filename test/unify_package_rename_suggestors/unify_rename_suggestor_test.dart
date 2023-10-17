@@ -239,6 +239,8 @@ void main() {
       mui.Alert()();
       mui.Alert();
       mui.Alert;
+      mui.AlertSize.small;
+      AlertSize.small;
       Alert()();
       random_rmui_namespace.Alert()();
       mui.LinkButton()();
@@ -260,6 +262,8 @@ void main() {
       unify_wsd.WsdAlert()();
       unify_wsd.WsdAlert();
       unify_wsd.WsdAlert;
+      unify_wsd.WsdAlertSize.small;
+      unify_wsd.WsdAlertSize.small;
       unify_wsd.WsdAlert()();
       unify_wsd.WsdAlert()();
       unify_wsd.WsdLinkButton()();
@@ -370,6 +374,7 @@ void main() {
       });
     });
 
+    // test existing fixme
     group('fixme comments', () {
       test('for specific components that need manual intervention', () async {
         await testSuggestor(
