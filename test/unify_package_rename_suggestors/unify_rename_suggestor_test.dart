@@ -373,7 +373,6 @@ void main() {
       });
     });
 
-    // test existing fixme
     group('fixme comments', () {
       test('for specific components that need manual intervention', () async {
         await testSuggestor(
