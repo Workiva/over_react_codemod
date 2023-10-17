@@ -64,7 +64,7 @@ Future<void> runPubGet(String workingDirectory) async {
   if (exitCode == 69) {
     _logger.info(
         'Re-running `pub get` but with `--offline`, to hopefully fix the above error.');
-    final process = await Process.start('pub', ['get', '--offline'],
+    final process = await Process.start('dart', ['pub', 'get', '--offline'],
         workingDirectory: workingDirectory,
         runInShell: true,
         mode: ProcessStartMode.inheritStdio);
