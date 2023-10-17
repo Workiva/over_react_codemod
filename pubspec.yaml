@@ -50,3 +50,7 @@ dependency_validator:
   ignore:
     - meta
     - mockito
+    # For testing purposes:
+    - unify_ui
+    - new
+    - old
