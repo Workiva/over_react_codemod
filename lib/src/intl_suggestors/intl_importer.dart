@@ -113,7 +113,7 @@ _InsertionLocation _insertionLocationForPackageImport(
   final AstNode relativeNode;
   final bool insertAfter;
   final bool inOwnSection;
-  bool hasPackageImports = true;
+  bool hasOnlyPackageImports = true;
   if (firstPackageImportSortedAfterNewImport != null) {
     relativeNode = firstPackageImportSortedAfterNewImport;
     insertAfter = false;
@@ -141,20 +141,21 @@ _InsertionLocation _insertionLocationForPackageImport(
     // No directive to insert relative to; insert before the first member or
     // at the beginning of the file.
     return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0,
-        trailingNewlineCount: 2, usePackageImports: hasPackageImports);
+        trailingNewlineCount: 2, usePackageImports: hasOnlyPackageImports);
   }
 
-  for (final importDirective in imports) {
+  hasOnlyPackageImports = !imports.any((importDirective) {
     final uriContent = importDirective.uri.stringValue;
     if (uriContent != null) {
       final uri = Uri.parse(uriContent);
-      hasPackageImports = !imports.any((importDirective) =>
-          uri != null && uri.scheme != 'package' && uri.scheme != 'dart:');
+      return uri != null && uri.scheme != 'package' && uri.scheme != 'dart:';
     }
-  }
+    return false;
+  });
+
   return _InsertionLocation(
       insertAfter ? relativeNode.end : relativeNode.offset,
       leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
       trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
-      usePackageImports: hasPackageImports);
+      usePackageImports: hasOnlyPackageImports);
 }
