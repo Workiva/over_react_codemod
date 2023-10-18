@@ -22,7 +22,6 @@ import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 import '../util.dart';
-import 'intl_message_migration.dart';
 
 final _log = Logger('orcm.intl_message_migration');
 
@@ -68,23 +67,10 @@ void main(List<String> args) async {
           .trim()
   };
 
-  final processedPackages = Set<String>();
-
   for (String package in packageRoots) {
     final packageRoot = p.basename(package);
     final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
     _log.info('Starting migration for $packageName');
-    List<String> packageDartPaths;
-    try {
-      packageDartPaths =
-          dartFilesToMigrateForPackage(package, processedPackages).toList();
-    } on FileSystemException {
-      _log.info('${package} does not have a lib directory, moving on...');
-      return;
-    }
-
-    packageDartPaths = limitPaths(packageDartPaths, allowed: dartPaths);
-
     final IntlMessages messages = IntlMessages(packageName);
     messages.write();
   }
