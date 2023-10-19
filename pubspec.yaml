@@ -45,6 +45,7 @@ executables:
   rmui_preparation:
   rmui_bundle_update:
   intl_message_migration:
+  intl_quick:
 dependency_validator:
   ignore:
     - meta
