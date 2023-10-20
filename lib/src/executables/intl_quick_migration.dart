@@ -36,6 +36,12 @@ final parser = ArgParser()
     negatable: false,
     help: 'Prints this help output.',
   )
+  ..addOption(
+    'offset',
+    abbr: 'o',
+    help:
+        'The character offset of a position within the string we want to migrate',
+  )
   ..addFlag(
     'verbose',
     abbr: 'v',
@@ -58,7 +64,8 @@ void main(List<String> args) async {
   }
   var intlPath = p.canonicalize(p.absolute((parsedArgs.rest.first)));
 
-  await migratePackage(fs.currentDirectory.path, intlPath);
+  await migratePackage(
+      fs.currentDirectory.path, intlPath, int.parse(parsedArgs['offset']));
 }
 
 void printUsage() {
@@ -74,27 +81,33 @@ void printUsage() {
 /// Migrate files included in [paths] within [packagePath].
 ///
 /// We expect [paths] to be absolute.
-Future<void> migratePackage(String packagePath, String path) async {
+Future<void> migratePackage(String packagePath, String path, int offset) async {
   final packageName = p.basename(packagePath);
 
   final IntlMessages messages = IntlMessages(packageName,
       directory: fs.currentDirectory, packagePath: packagePath);
 
-  exitCode = await runMigrators([path], [], messages, packageName);
+  exitCode = await runMigrators(
+      [path], ['--yes-to-all'], messages, packageName, offset);
 
   messages.write(force: false);
   // This will leave the intl.dart file unformatted, but that takes too long, so we'll just leave it out.
 }
 
-Future<int> runMigrators(List<String> packageDartPaths,
-    List<String> codemodArgs, IntlMessages messages, String packageName) async {
-  final constantStringMigrator = SingleStringMigrator(messages, 1, 1);
+Future<int> runMigrators(
+    List<String> packageDartPaths,
+    List<String> codemodArgs,
+    IntlMessages messages,
+    String packageName,
+    int offset) async {
+  final constantStringMigrator = SingleStringMigrator(messages, offset, offset);
+  // The import migrator is extremely slow, probably looking at all the files.
   final importMigrator = (FileContext context) =>
       intlImporter(context, packageName, messages.className);
 
   var result = await runInteractiveCodemodSequence(
-      packageDartPaths, [constantStringMigrator, importMigrator],
-      defaultYes: true);
+      packageDartPaths, [constantStringMigrator],
+      args: ['--yes-to-all'], defaultYes: true);
   return result;
 }
 
