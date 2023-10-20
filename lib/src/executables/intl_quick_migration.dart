@@ -98,6 +98,7 @@ Future<int> runMigrators(List<String> packageDartPaths,
   return result;
 }
 
+// TODO: This shouldn't be in the executable file.
 class SingleStringMigrator extends GeneralizingAstVisitor
     with AstVisitingSuggestor {
   final IntlMessages _messages;
