@@ -14,12 +14,15 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
+import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
-import 'package:over_react_codemod/src/intl_suggestors/intl_migrator.dart';
+import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:path/path.dart' as p;
 
 typedef Migrator = Stream<Patch> Function(FileContext);
@@ -85,20 +88,52 @@ Future<void> migratePackage(String packagePath, String path) async {
 
 Future<int> runMigrators(List<String> packageDartPaths,
     List<String> codemodArgs, IntlMessages messages, String packageName) async {
-  // final intlPropMigrator = IntlMigrator(messages.className, messages);
-  final constantStringMigrator =
-      ConstantStringMigrator(messages.className, messages);
-  // final importMigrator = (FileContext context) =>
-  //     intlImporter(context, packageName, messages.className);
+  final constantStringMigrator = SingleStringMigrator(messages, 1, 1);
+  final importMigrator = (FileContext context) =>
+      intlImporter(context, packageName, messages.className);
 
-  // List<List<Migrator>> migrators = [
-  //   [intlPropMigrator],
-//   [constantStringMigrator],
-  //   [importMigrator],
-  // ];
-
-  var result = await runInteractiveCodemod(
-      packageDartPaths, constantStringMigrator,
+  var result = await runInteractiveCodemodSequence(
+      packageDartPaths, [constantStringMigrator, importMigrator],
       defaultYes: true);
   return result;
+}
+
+class SingleStringMigrator extends GeneralizingAstVisitor
+    with AstVisitingSuggestor {
+  final IntlMessages _messages;
+  int startPosition;
+  int endPosition;
+
+  SingleStringMigrator(this._messages, this.startPosition, this.endPosition);
+
+  @override
+  visitStringLiteral(StringLiteral node) {
+    // Assume this is a single character position and just check if it's within the string for now.
+    if (node.offset <= startPosition && node.end >= startPosition) {
+      migrateStringExpression(node);
+    }
+    super.visitStringLiteral(node);
+  }
+
+  void migrateStringExpression(StringLiteral node) {
+    var stringForm = stringContent(node);
+    if (stringForm != null && stringForm.isNotEmpty) {
+      final functionCall =
+          _messages.syntax.getterCall(node, _messages.className);
+      final functionDef =
+          _messages.syntax.getterDefinition(node, _messages.className);
+      yieldPatch(functionCall, node.offset, node.end);
+      addMethodToClass(_messages, functionDef);
+    } else {
+      if (isValidStringInterpolationNode(node)) {
+        var interpolation = node as StringInterpolation;
+        final functionCall = _messages.syntax
+            .functionCall(interpolation, _messages.className, '');
+        final functionDef = _messages.syntax
+            .functionDefinition(interpolation, _messages.className, '');
+        yieldPatch(functionCall, interpolation.offset, interpolation.end);
+        addMethodToClass(_messages, functionDef);
+      }
+    }
+  }
 }
