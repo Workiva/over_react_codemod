@@ -67,7 +67,7 @@ bool isValidStringLiteralNode(AstNode node) {
   if (text == null) return false;
   if (text.isEmpty) return false;
   if (double.tryParse(text) != null) return false;
-  if (quotedCamelCase(text)) return false;
+  if (isCamelCase(text)) return false;
   if (text.trim().length == 1) return false;
   // If there are no alphabetic characters, we can't do anything useful.
   if (hasNoAlphabeticCharacters(text)) return false;
@@ -230,15 +230,32 @@ bool excludeUnlikelyExpressions<E extends Expression>(
   if (source == "'.'") return true;
   if (source == "'('") return true;
   if (source == "')'") return true;
-  if (quotedCamelCase(source)) return true;
+  if (isCamelCase(source)) return true;
 
   return false;
 }
 
-// If a string value is wrapped in quotes, and is in lowerCamelCase or UpperCamelCase, it is most likely a key of some kind, not a human-readable, translatable string.
-bool quotedCamelCase(String str) => RegExp(
-        r"^'([a-z]+[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)|([A-Z][a-z0-9]*[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)'$")
-    .hasMatch(str);
+/// Matches, where
+///  lower = a lower case letter
+///  UPPER = an upper case letter
+///  ALPHANUM = upper case or digit or period.
+///  alphanum = lower case or digit or period.
+///  whatev = any letter, any case, digit, or period.
+///  a) (lower)+(ALPHANUM)(alphanum)+(whatev)*
+///  b) (UPPER)(alphanum)*(ALPHANUM)(alphanum)+(whatev*)
+///
+/// So basically camel case either starting lower case or upper case.
+final _camelRegexp = RegExp(
+    r"^([a-z]+[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)|([A-Z][a-z0-9]*[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)$");
+
+/// If a string value is in lowerCamelCase or UpperCamelCase or
+/// Period.Separated.Camels, it is most likely a key of some kind, not a
+/// human-readable, translatable string.
+bool isCamelCase(String str) {
+  // return str.split('').every((c) => c);
+  var looksLikeQuotedCamelCase = _camelRegexp.hasMatch(str);
+  return looksLikeQuotedCamelCase;
+}
 
 extension ReactTypes$DartType on DartType {
   bool get isComponentClass => element?.isComponentClass ?? false;
