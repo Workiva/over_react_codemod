@@ -105,8 +105,9 @@ String escapeApos(String s) {
   return s.replaceAll(apos, backslash + apos);
 }
 
+final RegExp _interpolationRegexp = RegExp(r'(\$[^a-zA-Z0-9.]|\s|}|\?.*|\$)');
 String removeInterpolationSyntax(String s) =>
-    s.replaceAll(RegExp(r'(\$[^a-zA-Z0-9.]|\s|}|\?.*|\$)'), '');
+    s.replaceAll(_interpolationRegexp, '');
 
 /// This is a helper function to create a name out of
 /// an interpolation element that is a nested accessor
@@ -133,13 +134,14 @@ void addMethodToClass(IntlMessages outputFile, String content) {
   outputFile.addMethod(content);
 }
 
+final RegExp _toClassNameRegexp = RegExp(r'(?:^\w|[A-Z]|\b\w|\s+)');
+
 /// Input: foo_bar_package
 /// Output: FooBarPackageIntl
 String toClassName(String str) {
   final res = toAlphaNumeric(str.replaceAll('_', ' '));
   final pascalString = res
-      .splitMapJoin(RegExp(r'(?:^\w|[A-Z]|\b\w|\s+)'),
-          onMatch: (m) => m[0]!.toUpperCase())
+      .splitMapJoin(_toClassNameRegexp, onMatch: (m) => m[0]!.toUpperCase())
       .replaceAll(' ', '');
   return '${pascalString}Intl';
 }
@@ -179,16 +181,17 @@ String toVariableName(String str) {
   return isKeyWord ? '${name}String' : name;
 }
 
-String toAlphaNumeric(String str) =>
-    str.replaceAll(RegExp(r'[^a-zA-Z0-9 ]'), '');
+final RegExp _toAlphanumericRegexp = RegExp(r'[^a-zA-Z0-9 ]');
+String toAlphaNumeric(String str) => str.replaceAll(_toAlphanumericRegexp, '');
 
+final RegExp _toCamelCaseRegexp = RegExp(r'(?:^\w|[A-Z]|\b\w|\s+)');
 String toCamelCase(String str) {
   /// Remove any non-alphanumeric characters, but leave spaces so we can match by word
   var res = toAlphaNumeric(str);
 
   /// BuildCamelCase
   var capitalizationResult = res.replaceAllMapped(
-      RegExp(r'(?:^\w|[A-Z]|\b\w|\s+)'),
+      _toCamelCaseRegexp,
       (m) =>
           m.start == 0 ? m[0]?.toLowerCase() ?? '' : m[0]?.toUpperCase() ?? '');
 
@@ -210,15 +213,17 @@ bool excludeKnownBadCases(PropAssignment prop, String propKey) {
   return false;
 }
 
+final RegExp _excludedStaticTypes =
+    RegExp('((List|Iterable)\<ReactElement\>|ReactElement)(\sFunction)?');
+
 bool excludeUnlikelyExpressions<E extends Expression>(
     PropAssignment prop, String propKey) {
   final staticType = prop.rightHandSide.staticType;
   if (staticType == null) return true;
   if (staticType.isDartCoreBool) return true;
   if (staticType.isDartCoreNull) return true;
-  if (RegExp('((List|Iterable)\<ReactElement\>|ReactElement)(\sFunction)?')
-      .hasMatch(prop.rightHandSide.staticType
-              ?.getDisplayString(withNullability: false) ??
+  if (_excludedStaticTypes.hasMatch(
+      prop.rightHandSide.staticType?.getDisplayString(withNullability: false) ??
           '')) return true;
   if (prop.rightHandSide.staticType?.getDisplayString(withNullability: false) ==
       'Iterable<ReactElement>') return true;
@@ -246,7 +251,7 @@ bool excludeUnlikelyExpressions<E extends Expression>(
 ///
 /// So basically camel case either starting lower case or upper case.
 final _camelRegexp = RegExp(
-    r"^([a-z]+[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)|([A-Z][a-z0-9]*[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)$");
+    r"^([a-z\.]+[A-Z0-9\.][a-z0-9\.]+[A-Za-z0-9\.]*)|([A-Z\.][a-z0-9\.]*[A-Z0-9\.][a-z0-9\.]+[A-Za-z0-9\.]*)$");
 
 /// If a string value is in lowerCamelCase or UpperCamelCase or
 /// Period.Separated.Camels, it is most likely a key of some kind, not a
