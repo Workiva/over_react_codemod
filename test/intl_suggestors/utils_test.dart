@@ -159,6 +159,10 @@ void main() {
         expect(isCamelCase("hello"), isFalse);
       });
 
+      test('Single words with upper case', () {
+        expect(isCamelCase("Hello"), isFalse);
+      });
+
       test('HelloWorld7 counts', () {
         expect(isCamelCase("HelloWorld7"), isTrue);
       });
