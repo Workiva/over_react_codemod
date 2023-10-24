@@ -51,17 +51,37 @@ class MessageParser {
     var intlClass = parsed.unit.declarations.first as ClassDeclaration;
     var allDeclarations = intlClass.members.toList();
     for (var decl in allDeclarations) {
-      if (decl is! MethodDeclaration) {
+      if (decl is! MethodDeclaration && decl is! FieldDeclaration) {
         throw FormatException(
             'Invalid member, not a method declaration: "$decl"');
       }
     }
-    var methodDeclarations = allDeclarations.cast<MethodDeclaration>();
-    methods = [
+    methods = toMethodDeclarations(allDeclarations);
+  }
+
+  List<Method> toMethodDeclarations(List<Declaration> declarations) {
+    var methodDeclarations = [
+      for (var each in declarations)
+        if (each is MethodDeclaration && each.isStatic) each
+    ];
+    var fieldDeclarations = [
+      for (var each in declarations)
+        if (each is FieldDeclaration &&
+            each.isStatic &&
+            each.fields.variables.length == 1)
+          each.fields.variables.first
+    ];
+    var methods = [
       for (var declaration in methodDeclarations)
         Method(declaration.name.lexeme, messageText(declaration),
             '  ${corrected(declaration)}')
     ];
+    var fields = [
+      for (var declaration in fieldDeclarations)
+        Method(declaration.name.lexeme, messageText(declaration),
+            '  ${corrected(declaration)}')
+    ];
+    return [...methods, ...fields];
   }
 
   /// Correct messages as we're rewriting them.
@@ -73,13 +93,14 @@ class MessageParser {
   ///
   /// We also fix the name parameters to all methods to match the class/method
   /// name.
-  String corrected(MethodDeclaration declaration) {
+  String corrected(Declaration declaration) {
     var currentSource = withCorrectedNameParameter(declaration);
-    if (intlMethodInvocation(declaration).methodName.name !=
+    if (intlMethodInvocation(declaration)?.methodName.name !=
         'formattedMessage') {
       return currentSource;
     } else {
-      return withCorrectFunctionTypes(declaration, currentSource);
+      return withCorrectFunctionTypes(
+          declaration as MethodDeclaration, currentSource);
     }
   }
 
@@ -109,13 +130,14 @@ class MessageParser {
           as NamedExpression?;
 
   /// Return the method body with the correct name.
-  String withCorrectedNameParameter(MethodDeclaration declaration) {
+  String withCorrectedNameParameter(Declaration declaration) {
     var invocation = intlMethodInvocation(declaration);
+    if (invocation == null) return '';
     var nameParameter = nameParameterFrom(invocation);
-    var className = (declaration.parent as ClassDeclaration).name.lexeme;
-    var expected = "'${className}_${declaration.name.lexeme}'";
+    var expected =
+        "'${classNameFor(declaration)}_${declarationName(declaration)}'";
     var actual = nameParameter?.expression.toSource();
-    var basicString = '$declaration';
+    var basicString = declarationTextFor(declaration);
     if (actual == null) {
       return basicString.replaceRange(
           basicString.length - 2, basicString.length, ', name: $expected);');
@@ -125,11 +147,47 @@ class MessageParser {
           : basicString.replaceFirst("name: $actual", "name: $expected");
   }
 
+  String declarationTextFor(Declaration declaration) {
+    if (declaration is MethodDeclaration) return '$declaration';
+    if (declaration is VariableDeclaration) {
+      var basic = '$declaration';
+      var withArrow = basic.replaceFirst('=', '=>');
+      return 'static String get $withArrow;';
+    }
+    return 'invalid declaration $declaration';
+  }
+
+  String declarationName(Declaration declaration) {
+    if (declaration is MethodDeclaration) return declaration.name.lexeme;
+    if (declaration is VariableDeclaration) return declaration.name.lexeme;
+    return 'Cannot find declaration name for $declaration';
+  }
+
+  String classNameFor(Declaration declaration) {
+    dynamic parent = declaration;
+    while (parent != null && parent is! ClassDeclaration) {
+      parent = parent?.parent;
+    }
+    if (parent == null) {
+      return 'Cannot find class containing declaration $declaration';
+    } else {
+      return parent.name.lexeme;
+    }
+  }
+
   /// The invocation of the internal Intl method. That is, the part after the
   /// '=>' or the first statement inside the {}.  We expect only one. Used for
   /// determining what sort of method this is
   /// message/plural/select/formattedMessage.
-  MethodInvocation intlMethodInvocation(MethodDeclaration method) {
+  MethodInvocation? intlMethodInvocation(Declaration declaration) {
+    if (declaration is MethodDeclaration)
+      return intlMethodInvocationFromMethod(declaration);
+    if (declaration is VariableDeclaration)
+      return intlMethodInvocationFromVariable(declaration);
+    return null;
+  }
+
+  MethodInvocation? intlMethodInvocationFromMethod(MethodDeclaration method) {
     var node = method.body;
     if (node is ExpressionFunctionBody) {
       return node.expression as MethodInvocation;
@@ -146,19 +204,32 @@ class MessageParser {
     }
   }
 
+  MethodInvocation? intlMethodInvocationFromVariable(
+      VariableDeclaration variable) {
+    return ((variable.initializer != null &&
+            variable.initializer is MethodInvocation)
+        ? variable.initializer
+        : null) as MethodInvocation?;
+  }
+
   /// The message text for an Intl method, that is to say the first argument
   /// of the method. We expect [method] to be a declaration of the form
   ///
   ///   `static String foo() => Intl.message(messageText, <...other arguments>`
   ///
   /// or a getter of the same form.
-  String messageText(MethodDeclaration method) {
+  String messageText(Declaration method) {
     // TODO: Doesn't work for Intl.plural/select where there is no
     // single text argument. We return an empty string so they will always
     // match as being the same and it will use the existing one.
     // TODO: Rather than throw, could this e.g. return a different suggested name?
-    var invocation = intlMethodInvocation(method);
-    if (invocation.methodName.name != 'message') {
+    var invocation = (method is MethodDeclaration
+        ? intlMethodInvocation(method)
+        : (method is VariableDeclaration &&
+                method.initializer is MethodInvocation)
+            ? method.initializer
+            : null) as MethodInvocation?;
+    if (invocation == null || invocation.methodName.name != 'message') {
       // This isn't an Intl.message call, we don't know what to do, bail.
       return '';
     }
