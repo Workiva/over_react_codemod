@@ -95,7 +95,10 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
   bool shouldMigrate(VariableDeclaration node) {
     if (isStatementIgnored(node)) return false;
     if (isFileIgnored(this.context.sourceText)) return false;
-    return true;
+    var string = node.initializer;
+    return string != null &&
+        (isValidStringLiteralNode(string) ||
+            isValidStringInterpolationNode(string));
   }
 
   @override

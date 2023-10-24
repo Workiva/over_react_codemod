@@ -71,6 +71,32 @@ void main() {
         expect(messages.messageContents(), expectedFileContent);
       });
 
+      test('CamelCase constant', () async {
+        await testSuggestor(
+          input: '''
+            const foo = 'ProbablyAnIdentifier';
+            ''',
+          expectedOutput: '''
+            const foo = 'ProbablyAnIdentifier';
+            ''',
+        );
+        final expectedFileContent = '';
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
+      test('Pendo ID', () async {
+        await testSuggestor(
+          input: '''
+            const foo = 'Probably.An.Identifier';
+            ''',
+          expectedOutput: '''
+            const foo = 'Probably.An.Identifier';
+            ''',
+        );
+        final expectedFileContent = '';
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
       test('ignored standalone constant', () async {
         var input = '''
             // ignore_statement: intl_message_migration

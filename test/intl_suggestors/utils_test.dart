@@ -143,5 +143,36 @@ void main() {
         expect(toVariableName("Test's test'1"), 'testsTest1');
       });
     });
+
+    group('CamelCase', () {
+      test('helloWorld', () {
+        expect(isCamelCase("helloWorld"), isTrue);
+      });
+      test('HelloWorld', () {
+        expect(isCamelCase("HelloWorld"), isTrue);
+      });
+      test('Hello World', () {
+        expect(isCamelCase("Hello World"), isFalse);
+      });
+
+      test('Single words do not count', () {
+        expect(isCamelCase("hello"), isFalse);
+      });
+
+      test('Single words with upper case', () {
+        expect(isCamelCase("Hello"), isFalse);
+      });
+
+      test('HelloWorld7 counts', () {
+        expect(isCamelCase("HelloWorld7"), isTrue);
+      });
+
+      test('mixed-in digits', () {
+        expect(isCamelCase("If7MaidsWith7Mops"), isTrue);
+      });
+      test('Periods', () {
+        expect(isCamelCase("Hello.World.7"), isTrue);
+      });
+    });
   });
 }
