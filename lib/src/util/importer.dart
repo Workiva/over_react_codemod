@@ -43,13 +43,13 @@ Suggestor importerSuggestorBuilder({
     // Look for errors in the main compilation unit and its part files.
     // Ignore null partContexts and partContexts elements caused by
     // resolution issues and parts being excluded in the codemod file list.
-    final needsMuiImport = libraryResult.units
+    final needsImport = libraryResult.units
         .expand((unitResult) => unitResult.errors)
         .where((error) => error.errorCode.name == 'UNDEFINED_IDENTIFIER')
         .any((error) =>
             error.message.contains("Undefined name '$importNamespace'"));
 
-    if (!needsMuiImport) return;
+    if (!needsImport) return;
 
     final insertInfo = insertionLocationForPackageImport(
         importUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
