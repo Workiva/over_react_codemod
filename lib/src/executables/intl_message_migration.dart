@@ -22,6 +22,7 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
+import 'package:io/ansi.dart' as ansi;
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
@@ -210,7 +211,7 @@ void main(List<String> args) async {
 }
 
 void printInBlue(String text) {
-  print('\x1B[34m$text\x1B[0m');
+  print(ansi.blue.wrap(text));
 }
 
 void printUsage() {
