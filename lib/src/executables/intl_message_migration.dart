@@ -199,6 +199,18 @@ void main(List<String> args) async {
     await migratePackage(
         package, packageNameLookup, processedPackages, codemodArgs, dartPaths);
   }
+
+  if (exitCode != 0) {
+    printInBlue(
+        'To resolve these changes, please execute the codemod locally by running :');
+    printInBlue('dart pub global activate --overwrite over_react_codemod');
+    printInBlue(
+        'dart pub global run over_react_codemod:intl_message_migration --migrate-constants --prune-unused');
+  }
+}
+
+void printInBlue(String text) {
+  print('\x1B[34m$text\x1B[0m');
 }
 
 void printUsage() {
