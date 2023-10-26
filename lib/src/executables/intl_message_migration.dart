@@ -206,7 +206,7 @@ void main(List<String> args) async {
         'To resolve these changes, please execute the codemod locally by running :');
     printInBlue('dart pub global activate --overwrite over_react_codemod');
     printInBlue(
-        'dart pub global run over_react_codemod:intl_message_migration --migrate-constants --prune-unused');
+        'dart pub global run over_react_codemod:intl_message_migration');
   }
 }
 
