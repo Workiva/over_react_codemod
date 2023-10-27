@@ -43,19 +43,19 @@ Future<void> runPubGetIfNeeded(String packageRoot) async {
     await runPubGet(packageRoot);
   } else {
     _logger.info(
-        'Skipping `pub get`, which has already been run, in `$packageRoot`');
+        'Skipping `dart pub get`, which has already been run, in `$packageRoot`');
   }
 }
 
-/// Runs `pub get` in [workingDirectory], and throws if the command completed
-/// with a non-zero exit code.
+/// Runs `dart pub get` in [workingDirectory], and throws if the command
+/// completed with a non-zero exit code.
 ///
-/// For convenience, tries running with `pub get --offline` if `pub get` fails,
-/// for a better experience when not authenticated to private pub servers.
+/// For convenience, tries running with `dart pub get --offline` if `pub get`
+/// fails, for a better experience when not authenticated to private pub servers.
 Future<void> runPubGet(String workingDirectory) async {
-  _logger.info('Running `pub get` in `$workingDirectory`...');
+  _logger.info('Running `dart pub get` in `$workingDirectory`...');
 
-  final process = await Process.start('pub', ['get'],
+  final process = await Process.start('dart', ['pub', 'get'],
       workingDirectory: workingDirectory,
       runInShell: true,
       mode: ProcessStartMode.inheritStdio);
@@ -63,17 +63,17 @@ Future<void> runPubGet(String workingDirectory) async {
 
   if (exitCode == 69) {
     _logger.info(
-        'Re-running `pub get` but with `--offline`, to hopefully fix the above error.');
-    final process = await Process.start('pub', ['get', '--offline'],
+        'Re-running `dart pub get` but with `--offline`, to hopefully fix the above error.');
+    final process = await Process.start('dart', ['pub', 'get', '--offline'],
         workingDirectory: workingDirectory,
         runInShell: true,
         mode: ProcessStartMode.inheritStdio);
     final exitCode = await process.exitCode;
     if (exitCode != 0) {
-      throw Exception('pub get failed with exit code: $exitCode');
+      throw Exception('dart pub get failed with exit code: $exitCode');
     }
   } else if (exitCode != 0) {
-    throw Exception('pub get failed with exit code: $exitCode');
+    throw Exception('dart pub get failed with exit code: $exitCode');
   }
 }
 
