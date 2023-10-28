@@ -22,6 +22,7 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
+import 'package:io/ansi.dart' as ansi;
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
@@ -199,6 +200,18 @@ void main(List<String> args) async {
     await migratePackage(
         package, packageNameLookup, processedPackages, codemodArgs, dartPaths);
   }
+
+  if (exitCode != 0) {
+    printInBlue(
+        'To resolve these changes, please execute the codemod locally by running :');
+    printInBlue('dart pub global activate --overwrite over_react_codemod');
+    printInBlue(
+        'dart pub global run over_react_codemod:intl_message_migration');
+  }
+}
+
+void printInBlue(String text) {
+  print(ansi.blue.wrap(text));
 }
 
 void printUsage() {
