@@ -99,14 +99,15 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
         // Update WSD constant properties objects to use the WSD versions if applicable.
         yieldWsdRenamePatchIfApplicable(
             Expression node, String? objectName, String? propertyName) {
+          const alertConstantNames = ['AlertSize', 'AlertColor', 'AlertVariant', 'AlertSeverity'];
           if (objectName == 'ButtonColor' &&
               (propertyName?.startsWith('wsd') ?? false)) {
             isFromWsdEntrypoint = true;
             yieldPatch('$unifyWsdNamespace.WsdButtonColor.$propertyName',
                 node.offset, node.end);
-          } else if (objectName == 'AlertSize') {
+          } else if (alertConstantNames.contains(objectName)) {
             isFromWsdEntrypoint = true;
-            yieldPatch('$unifyWsdNamespace.WsdAlertSize.$propertyName',
+            yieldPatch('$unifyWsdNamespace.Wsd$objectName.$propertyName',
                 node.offset, node.end);
           }
         }

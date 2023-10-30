@@ -240,6 +240,9 @@ void main() {
       mui.Alert;
       mui.AlertSize.small;
       AlertSize.small;
+      AlertSeverity.error;
+      mui.AlertColor.warning;
+      mui.AlertVariant.outlined;
       Alert()();
       random_rmui_namespace.Alert()();
       mui.LinkButton()();
@@ -263,6 +266,9 @@ void main() {
       unify_wsd.WsdAlert;
       unify_wsd.WsdAlertSize.small;
       unify_wsd.WsdAlertSize.small;
+      unify_wsd.WsdAlertSeverity.error;
+      unify_wsd.WsdAlertColor.warning;
+      unify_wsd.WsdAlertVariant.outlined;
       unify_wsd.WsdAlert()();
       unify_wsd.WsdAlert()();
       unify_wsd.WsdLinkButton()();
