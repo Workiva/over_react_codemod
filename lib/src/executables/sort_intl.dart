@@ -18,15 +18,10 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
-
-import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
-import '../util.dart';
 
 final _log = Logger('orcm.intl_message_migration');
-
 final FileSystem fs = const LocalFileSystem();
-
 final parser = ArgParser()
   ..addFlag(
     'help',
@@ -34,7 +29,6 @@ final parser = ArgParser()
     negatable: false,
     help: 'Prints this help output.',
   );
-
 late ArgResults parsedArgs;
 
 void main(List<String> args) async {
@@ -44,40 +38,41 @@ void main(List<String> args) async {
     return;
   }
 
-  // If we have specified paths on the command line, limit our processing to
-  // those, and make sure they're absolute.
-  var basicDartPaths = parsedArgs.rest.isEmpty ? ['lib'] : parsedArgs.rest;
-  var dartPaths = [
-    for (var path in basicDartPaths) p.canonicalize(p.absolute(path))
-  ];
+  final rootDirectory = p.canonicalize(p.absolute(''));
 
-  // Work around parts being unresolved if you resolve them before their libraries.
-  // TODO - reference analyzer issue for this once it's created
-  final packageRoots = dartPaths.map(findPackageRootFor).toSet().toList();
+  // Derive the package name from pubspec.yaml or intl.dart file name
+  final packageName = derivePackageName(rootDirectory);
 
-  // TODO: Use packageConfig and utilities for reading that rather than manually parsing pubspec..
-  Map<String, String> packageNameLookup = {
-    for (String path in pubspecYamlPaths())
-      p.basename(findPackageRootFor(path)): fs
-          .file(path)
-          .readAsLinesSync()
-          .firstWhere((line) => line.startsWith('name'))
-          .split(':')
-          .last
-          .trim()
-  };
-
-  for (String package in packageRoots) {
-    final packageRoot = p.basename(package);
-    final packageName = packageNameLookup[packageRoot] ?? 'fix_me_bad_name';
-    _log.info('Starting migration for $packageName');
-    final IntlMessages messages = IntlMessages(packageName);
-    messages.write();
+  if (packageName == null) {
+    stderr.writeln('Could not determine the package name.');
+    return;
   }
+
+  _log.info('Starting migration for $packageName');
+  final IntlMessages messages = IntlMessages(packageName);
+  messages.write();
+}
+
+String? derivePackageName(String rootDirectory) {
+  final pubspecPath = p.join(rootDirectory, 'pubspec.yaml');
+  if (fs.isFileSync(pubspecPath)) {
+    final pubspecContents = fs.file(pubspecPath).readAsStringSync();
+    final nameMatch = RegExp(r'name:\s+(\w+)').firstMatch(pubspecContents);
+    if (nameMatch != null) {
+      return nameMatch.group(1);
+    }
+  }
+
+  final intlDartFile = p.join(rootDirectory, 'intl.dart');
+  if (fs.isFileSync(intlDartFile)) {
+    return p.basenameWithoutExtension(intlDartFile);
+  }
+
+  return null;
 }
 
 void printUsage() {
-  stderr.writeln('Activating Excutables and Sort INTL file.');
+  stderr.writeln('Activating Executables and Sort INTL file.');
   stderr.writeln();
   stderr.writeln('Usage:');
   stderr.writeln('sort_intl [arguments]');
