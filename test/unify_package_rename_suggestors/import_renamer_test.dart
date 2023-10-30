@@ -130,6 +130,7 @@ void main() {
               import 'package:over_react/over_react.dart' as mui;
               import 'package:react_material_ui/components/badge.dart' as mui;
               import 'package:react_material_ui/components/alert.dart' as something_else;
+              import 'package:react_material_ui/styles/theme_provider.dart' as mui_theme;
           
               content() => Dom.div()();
           ''',
@@ -141,6 +142,8 @@ void main() {
               '''unify_ui/components/alert.dart' as something_else;
               import 'package:'''
               '''unify_ui/components/badge.dart' as unify;
+              import 'package:'''
+              '''unify_ui/styles/theme_provider.dart' as unify_theme;
               import 'package:'''
               '''unify_ui/unify_ui.dart' as unify;
               import 'package:'''
