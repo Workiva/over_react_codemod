@@ -71,6 +71,8 @@ const rmuiToUnifyIdentifierRenames = {
   'MuiListPropsMixin': 'UnifyListPropsMixin',
   'WorkivaMuiThemeProvider': 'UnifyThemeProvider',
   'WorkivaMuiThemeProviderPropsMixin': 'UnifyThemeProviderPropsMixin',
+  // Alert objects
+  'AlertIconMappingObject': 'WsdAlertIconMappingObject',
   // Autocomplete objects
   'AutocompleteFilterOptionsObject': 'AutocompleteFilterOptionsState',
   'AutocompleteOnChangeObject': 'AutocompleteChangeDetails',
