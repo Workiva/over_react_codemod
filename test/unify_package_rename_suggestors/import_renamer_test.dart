@@ -130,7 +130,7 @@ void main() {
               import 'package:over_react/over_react.dart' as mui;
               import 'package:react_material_ui/components/badge.dart' as mui;
               import 'package:react_material_ui/components/alert.dart' as something_else;
-              import 'package:react_material_ui/styles/theme_provider.dart' as mui_theme;
+              import 'package:react_material_ui/styles/theme_provider.dart' as mui_theme show UnifyThemeProvider;
           
               content() => Dom.div()();
           ''',
@@ -143,7 +143,7 @@ void main() {
               import 'package:'''
               '''unify_ui/components/badge.dart' as unify;
               import 'package:'''
-              '''unify_ui/styles/theme_provider.dart' as unify_theme;
+              '''unify_ui/styles/theme_provider.dart' as unify_theme show UnifyThemeProvider;
               import 'package:'''
               '''unify_ui/unify_ui.dart' as unify;
               import 'package:'''
@@ -151,6 +151,34 @@ void main() {
               import 'package:'''
               '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_unify;
           
+              content() => Dom.div()();
+          ''',
+        );
+      });
+
+      test('with show / hide', () async {
+        await testSuggestor(
+          input: '''
+              import 'package:react_material_ui/react_material_ui.dart' hide Alert;
+              import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha hide Alert show LinearProgress;
+              import 'package:react_material_ui/components/badge.dart' show Badge hide BadgeColor;
+              import 'package:react_material_ui/components/alert.dart' as something_else show Alert;
+              import 'package:react_material_ui/styles/theme_provider.dart' as mui_theme show UnifyThemeProvider;
+          
+              content() => Dom.div()();
+          ''',
+          expectedOutput: '''
+              import 'package:'''
+              '''unify_ui/components/alert.dart' as something_else show Alert;
+              import 'package:'''
+              '''unify_ui/components/badge.dart' show Badge hide BadgeColor;
+              import 'package:'''
+              '''unify_ui/styles/theme_provider.dart' as unify_theme show UnifyThemeProvider;
+              import 'package:'''
+              '''unify_ui/unify_ui.dart' hide Alert;
+              import 'package:'''
+              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_unify hide Alert show LinearProgress;
+              
               content() => Dom.div()();
           ''',
         );

@@ -15,7 +15,10 @@
 /// Info on a unify_ui import.
 class UnifyImportInfo {
   UnifyImportInfo(this.uri,
-      {this.rmuiUri, this.namespace, this.possibleMuiNamespaces});
+      {this.rmuiUri,
+      this.namespace,
+      this.possibleMuiNamespaces,
+      this.showHideInfo});
 
   /// Unify import URI.
   String uri;
@@ -28,6 +31,9 @@ class UnifyImportInfo {
 
   /// Previous RMUI import URI (if it's different from the unify_ui path).
   String? rmuiUri;
+
+  /// Additional show / hide information used in [importRenamerSuggestorBuilder] to add to updated imports.
+  String? showHideInfo;
 }
 
 /// A list of the standard imports for unify_ui that should be updated.

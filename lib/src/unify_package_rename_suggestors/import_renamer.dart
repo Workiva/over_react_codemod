@@ -73,8 +73,12 @@ Suggestor importRenamerSuggestorBuilder({
 
       if (newImportUri != null) {
         // Collect info on new imports to add.
-        newImportsInfo
-            .add(UnifyImportInfo(newImportUri, namespace: newNamespace));
+        newImportsInfo.add(UnifyImportInfo(newImportUri,
+            namespace: newNamespace,
+            showHideInfo: import.combinators
+                .map((c) => c.toSource())
+                .toList()
+                .join(' ')));
       }
 
       final prevTokenEnd = import.beginToken.previous?.end;
@@ -96,7 +100,7 @@ Suggestor importRenamerSuggestorBuilder({
           mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
       yield Patch(
           insertInfo.leadingNewlines +
-              "import '${importInfo.uri}'${importInfo.namespace != null ? ' as ${importInfo.namespace}' : ''};" +
+              "import '${importInfo.uri}'${importInfo.namespace != null ? ' as ${importInfo.namespace}' : ''}${importInfo.showHideInfo != null ? ' ${importInfo.showHideInfo}' : ''};" +
               insertInfo.trailingNewlines,
           insertInfo.offset,
           insertInfo.offset);
