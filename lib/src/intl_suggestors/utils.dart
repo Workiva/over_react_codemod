@@ -67,7 +67,7 @@ bool isValidStringLiteralNode(AstNode node) {
   if (text == null) return false;
   if (text.isEmpty) return false;
   if (double.tryParse(text) != null) return false;
-  if (quotedCamelCase(text)) return false;
+  if (isCamelCase(text)) return false;
   if (text.trim().length == 1) return false;
   // If there are no alphabetic characters, we can't do anything useful.
   if (hasNoAlphabeticCharacters(text)) return false;
@@ -105,8 +105,9 @@ String escapeApos(String s) {
   return s.replaceAll(apos, backslash + apos);
 }
 
+final RegExp _interpolationRegexp = RegExp(r'(\$[^a-zA-Z0-9.]|\s|}|\?.*|\$)');
 String removeInterpolationSyntax(String s) =>
-    s.replaceAll(RegExp(r'(\$[^a-zA-Z0-9.]|\s|}|\?.*|\$)'), '');
+    s.replaceAll(_interpolationRegexp, '');
 
 /// This is a helper function to create a name out of
 /// an interpolation element that is a nested accessor
@@ -133,13 +134,14 @@ void addMethodToClass(IntlMessages outputFile, String content) {
   outputFile.addMethod(content);
 }
 
+final RegExp _toClassNameRegexp = RegExp(r'(?:^\w|[A-Z]|\b\w|\s+)');
+
 /// Input: foo_bar_package
 /// Output: FooBarPackageIntl
 String toClassName(String str) {
   final res = toAlphaNumeric(str.replaceAll('_', ' '));
   final pascalString = res
-      .splitMapJoin(RegExp(r'(?:^\w|[A-Z]|\b\w|\s+)'),
-          onMatch: (m) => m[0]!.toUpperCase())
+      .splitMapJoin(_toClassNameRegexp, onMatch: (m) => m[0]!.toUpperCase())
       .replaceAll(' ', '');
   return '${pascalString}Intl';
 }
@@ -179,16 +181,17 @@ String toVariableName(String str) {
   return isKeyWord ? '${name}String' : name;
 }
 
-String toAlphaNumeric(String str) =>
-    str.replaceAll(RegExp(r'[^a-zA-Z0-9 ]'), '');
+final RegExp _toAlphanumericRegexp = RegExp(r'[^a-zA-Z0-9 ]');
+String toAlphaNumeric(String str) => str.replaceAll(_toAlphanumericRegexp, '');
 
+final RegExp _toCamelCaseRegexp = RegExp(r'(?:^\w|[A-Z]|\b\w|\s+)');
 String toCamelCase(String str) {
   /// Remove any non-alphanumeric characters, but leave spaces so we can match by word
   var res = toAlphaNumeric(str);
 
   /// BuildCamelCase
   var capitalizationResult = res.replaceAllMapped(
-      RegExp(r'(?:^\w|[A-Z]|\b\w|\s+)'),
+      _toCamelCaseRegexp,
       (m) =>
           m.start == 0 ? m[0]?.toLowerCase() ?? '' : m[0]?.toUpperCase() ?? '');
 
@@ -210,15 +213,17 @@ bool excludeKnownBadCases(PropAssignment prop, String propKey) {
   return false;
 }
 
+final RegExp _excludedStaticTypes =
+    RegExp('((List|Iterable)\<ReactElement\>|ReactElement)(\sFunction)?');
+
 bool excludeUnlikelyExpressions<E extends Expression>(
     PropAssignment prop, String propKey) {
   final staticType = prop.rightHandSide.staticType;
   if (staticType == null) return true;
   if (staticType.isDartCoreBool) return true;
   if (staticType.isDartCoreNull) return true;
-  if (RegExp('((List|Iterable)\<ReactElement\>|ReactElement)(\sFunction)?')
-      .hasMatch(prop.rightHandSide.staticType
-              ?.getDisplayString(withNullability: false) ??
+  if (_excludedStaticTypes.hasMatch(
+      prop.rightHandSide.staticType?.getDisplayString(withNullability: false) ??
           '')) return true;
   if (prop.rightHandSide.staticType?.getDisplayString(withNullability: false) ==
       'Iterable<ReactElement>') return true;
@@ -230,15 +235,32 @@ bool excludeUnlikelyExpressions<E extends Expression>(
   if (source == "'.'") return true;
   if (source == "'('") return true;
   if (source == "')'") return true;
-  if (quotedCamelCase(source)) return true;
+  if (isCamelCase(source)) return true;
 
   return false;
 }
 
-// If a string value is wrapped in quotes, and is in lowerCamelCase or UpperCamelCase, it is most likely a key of some kind, not a human-readable, translatable string.
-bool quotedCamelCase(String str) => RegExp(
-        r"^'([a-z]+[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)|([A-Z][a-z0-9]*[A-Z0-9][a-z0-9]+[A-Za-z0-9]*)'$")
-    .hasMatch(str);
+/// Matches, where
+///  lower = a lower case letter
+///  UPPER = an upper case letter
+///  ALPHANUM = upper case or digit or period.
+///  alphanum = lower case or digit or period.
+///  whatev = any letter, any case, digit, or period.
+///  a) (lower)+(ALPHANUM)(alphanum)+(whatev)*
+///  b) (UPPER)(alphanum)*(ALPHANUM)(alphanum)+(whatev*)
+///
+/// So basically camel case either starting lower case or upper case.
+final _camelRegexp = RegExp(
+    r"^([a-z\.]+[A-Z0-9\.][a-z0-9\.]+[A-Za-z0-9\.]*)|([A-Z\.][a-z0-9\.]*[A-Z0-9\.][a-z0-9\.]+[A-Za-z0-9\.]*)$");
+
+/// If a string value is in lowerCamelCase or UpperCamelCase or
+/// Period.Separated.Camels, it is most likely a key of some kind, not a
+/// human-readable, translatable string.
+bool isCamelCase(String str) {
+  // return str.split('').every((c) => c);
+  var looksLikeQuotedCamelCase = _camelRegexp.hasMatch(str);
+  return looksLikeQuotedCamelCase;
+}
 
 extension ReactTypes$DartType on DartType {
   bool get isComponentClass => element?.isComponentClass ?? false;
@@ -272,7 +294,7 @@ extension ElementSubtypeUtils on Element /*?*/ {
   bool isOrIsSubtypeOfTypeFromPackage(String typeName, String packageName,
       [PackageType packageType = PackageType.package]) {
     final that = this;
-    return that is ClassElement &&
+    return that is InterfaceElement &&
         (that.isTypeFromPackage(typeName, packageName, packageType) ||
             that.allSupertypes.any((type) => type.element
                 .isTypeFromPackage(typeName, packageName, packageType)));
@@ -308,32 +330,40 @@ enum PackageType {
   package,
 }
 
-// recursive function to if previous node is ignore comment until we come to the previous ";"
-// limit
-bool isIgnoreCommentBeforePreviousTerminator(Token token, {int limit = 128}) {
-  if (limit == 0) {
+/// Is there an ignore comment ahead of this token which we think should apply to it.
+///
+/// This is a little bit tricky, but basically we walk back until we find an ignore comment or
+/// a semicolon, indicating the end of the previous statement.
+bool hasIgnoreComment(Token token, {int limit = 128}) {
+  if (limit == 0 || token.lexeme == ';') {
     return false;
   }
 
-  if ('$token' == ';') {
-    return false;
-  }
-
-  if (token.precedingComments != null &&
-      (token.precedingComments?.value().contains(ignoreStatement) ?? false)) {
+  var comments = token.precedingComments;
+  if (comments != null &&
+      (_allComments(comments).any((line) => line.contains(ignoreStatement)))) {
     return true;
   } else {
     return token.previous != null &&
-        isIgnoreCommentBeforePreviousTerminator(token.previous!,
-            limit: limit - 1);
+        hasIgnoreComment(token.previous!, limit: limit - 1);
   }
+}
+
+/// When we ask for precedingComments we get back the first of any potential comments. Turn that into
+/// a list of all the comments. This handles the case where an ignore comment comes after a regular comment.
+List<String> _allComments(Token? comment) {
+  if (comment == null) return [];
+  var stringForm = comment.lexeme;
+  // The type CommentToken is not exposed, so use a string check to see if this is a comment.
+  if (!stringForm.trimLeft().startsWith('//')) return [];
+  // It's recursive and rebuilds the string every time, but it shouldn't have to go very deep.
+  return [stringForm, ..._allComments(comment.next)];
 }
 
 // TODO: Could we do a better job of this by finding all the ignore comments in the file and then
 // figuring out what they apply to? See e.g. https://github.com/dart-lang/sdk/blob/cc18b250ae886f556fe1d5a7962894c86f5b7be1/pkg/analyzer/lib/src/ignore_comments/ignore_info.dart#L138
 // and its uses.
-bool isStatementIgnored(AstNode node) =>
-    isIgnoreCommentBeforePreviousTerminator(node.beginToken);
+bool isStatementIgnored(AstNode node) => hasIgnoreComment(node.beginToken);
 
 /// Attempt to determine if this single line is being ignored within a
 /// statement, which is probably a component invocation or other complex
@@ -341,7 +371,6 @@ bool isStatementIgnored(AstNode node) =>
 ///
 /// We assume that the comment is immediately before in terms of tokens, which
 /// is a little fragile, but better than nothing.
-bool isLineIgnored(AstNode node) =>
-    isIgnoreCommentBeforePreviousTerminator(node.beginToken, limit: 1);
+bool isLineIgnored(AstNode node) => hasIgnoreComment(node.beginToken, limit: 1);
 
 bool isFileIgnored(String fileContents) => fileContents.contains(ignoreFile);

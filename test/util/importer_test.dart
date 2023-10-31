@@ -13,15 +13,18 @@
 // limitations under the License.
 
 import 'package:analyzer/error/error.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
+import 'package:over_react_codemod/src/mui_suggestors/constants.dart';
+import 'package:over_react_codemod/src/util/importer.dart';
 import 'package:test/test.dart';
 
 import '../resolved_file_context.dart';
 import '../util.dart';
 
 void main() {
-  group('muiImporter', () {
+  group('importerSuggestorBuilder', () {
     final resolvedContext = SharedAnalysisContext.overReact;
+    final muiImporter = importerSuggestorBuilder(
+        importUri: rmuiImportUri, importNamespace: muiNs);
 
     // Warm up analysis in a setUpAll so that if getting the resolved AST times out
     // (which is more common for the WSD context), it fails here instead of failing the first test.
@@ -348,6 +351,28 @@ void main() {
           input: /*language=dart*/ '''
               content() {}
           ''',
+        );
+      });
+
+      test('for a different package name', () async {
+        final testSuggestor = getSuggestorTester(
+          importerSuggestorBuilder(
+              importUri: 'package:over_react/over_react.dart',
+              importNamespace: 'or'),
+          resolvedContext: resolvedContext,
+        );
+        await testSuggestor(
+          input: /*language=dart*/ '''
+            
+                content() => or.Fragment();
+            ''',
+          isExpectedError: (error) =>
+              error.message.contains("Undefined name 'or'"),
+          expectedOutput: /*language=dart*/ '''
+                import 'package:over_react/over_react.dart' as or;
+                
+                content() => or.Fragment();
+            ''',
         );
       });
     });

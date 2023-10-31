@@ -59,6 +59,11 @@ class SharedAnalysisContext {
           'If this fails to resolve in GitHub Actions, make sure your test or'
           ' test group is tagged with "wsd" so that it\'s only run in Skynet.');
 
+  /// A context root located at `test/test_fixtures/rmui_project`
+  /// that depends on the `react_material_ui` package (as well as `over_react`).
+  static final rmui = SharedAnalysisContext(
+      p.join(findPackageRootFor(p.current), 'test/test_fixtures/rmui_project'));
+
   /// The path to the package root in which test files will be created
   /// and resolved.
   final String _path;
@@ -371,7 +376,7 @@ extension ParseHelpers on SharedAnalysisContext {
     }
     final parsedFunction = unit.childEntities
         .whereType<FunctionDeclaration>()
-        .singleWhere((function) => function.name.name == 'wrapperFunction');
+        .singleWhere((function) => function.name.lexeme == 'wrapperFunction');
     final body = parsedFunction.functionExpression.body as BlockFunctionBody;
     final statement = body.block.statements.single as ExpressionStatement;
     return (statement.expression as ParenthesizedExpression).expression;

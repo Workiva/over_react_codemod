@@ -1,7 +1,7 @@
 name: private-unit-tests
 description: Unit tests that require access to our private Pub server.
 contact: 'Frontend Design / #support-ui-platform'
-image: drydock.workiva.net/workiva/dart_unit_test_image:1
+image: drydock.workiva.net/workiva/dart_unit_test_image:2
 size: large
 timeout: eternal
 
@@ -14,6 +14,7 @@ scripts:
   - echo 'Running dart pub get in test fixtures beforehand to prevent concurrent `dart pub get`s in tests from failing'
   - (cd test/test_fixtures/over_react_project && dart pub get)
   - (cd test/test_fixtures/wsd_project && dart pub get)
+  - (cd test/test_fixtures/rmui_project && dart pub get)
   - echo 'Running only the tests with the "wsd" tag'
   # TODO think about using an aggregated test suite for these so that we can reuse the same SharedAnalysisContext/AnalysisContextCollection instances and run tests faster.
   - dart test --tags=wsd --file-reporter=json:test-reports/wsd.json || RESULT=1

@@ -90,8 +90,8 @@ void main() {
               (props) {
 
                 return (Dom.div())(
-                  'testString1',
-                  'testString2',
+                  'test String1',
+                  'test String2',
                 );
               },
               _\$FooConfig, //ignore: undefined_identifier
@@ -113,7 +113,7 @@ void main() {
         );
 
         final expected =
-            "\n  static String get testString1 => Intl.message('testString1', name: 'TestClassIntl_testString1');\n\n  static String get testString2 => Intl.message('testString2', name: 'TestClassIntl_testString2');\n";
+            "\n  static String get testString1 => Intl.message('test String1', name: 'TestClassIntl_testString1');\n\n  static String get testString2 => Intl.message('test String2', name: 'TestClassIntl_testString2');\n";
         expect(messages.messageContents(), expected);
       });
 
@@ -1370,8 +1370,8 @@ void main() {
             'UiFactory<FooProps> Foo = uiFunction(\n'
             '  (props) {\n'
             '    return (Dom.div())(\n'
-            '      \'testString1\',\n'
-            '      \'testString2\',\n'
+            '      \'test String1\',\n'
+            '      \'test String2\',\n'
             '    );\n'
             '  },\n'
             '  _\$FooConfig, //ignore: undefined_identifier\n'
@@ -1381,8 +1381,8 @@ void main() {
             '  (props) {\n'
             '    //ignore_statement: intl_message_migration\n'
             '    return (Dom.div())(\n'
-            '      \'testString1\',\n'
-            '      \'testString2\',\n'
+            '      \'test String1\',\n'
+            '      \'test String2\',\n'
             '    );\n'
             '  },\n'
             '  _\$FooConfig, //ignore: undefined_identifier\n'
@@ -1406,8 +1406,8 @@ void main() {
             '  (props) {\n'
             '    //ignore_statement: intl_message_migration\n'
             '    return (Dom.div())(\n'
-            '      \'testString1\',\n'
-            '      \'testString2\',\n'
+            '      \'test String1\',\n'
+            '      \'test String2\',\n'
             '    );\n'
             '  },\n'
             '  _\$FooConfig, //ignore: undefined_identifier\n'
@@ -1433,7 +1433,7 @@ mixin FooProps on UiProps {}
         //ignore_statement: intl_message_migration
         ..value='bar'
         ..title='qux')(
-         'testString1',
+         'test String1',
         );
     },
     _\$FooConfig, //ignore: undefined_identifier
@@ -1477,7 +1477,7 @@ mixin FooProps on UiProps {}
             '    const String uploaderAutomationId = \'Shell.Rich.Body.Uploader\';'
             '    // ignore_statement: intl_message_migration \n'
             '    return (Dom.div())(\n'
-            '      \'testString1\',\n'
+            '      \'test String1\',\n'
             '      uploaderAutomationId,\n'
             '    );\n'
             '  },\n'
@@ -1487,8 +1487,8 @@ mixin FooProps on UiProps {}
             'UiFactory<FooProps> Bar = uiFunction(\n'
             '  (props) {\n'
             '    return (Dom.div())(\n'
-            '      \'testString1\',\n'
-            '      \'testString2\',\n'
+            '      \'test String1\',\n'
+            '      \'test String2\',\n'
             '    );\n'
             '  },\n'
             '  _\$FooConfig, //ignore: undefined_identifier\n'
@@ -1504,7 +1504,7 @@ mixin FooProps on UiProps {}
             '    const String uploaderAutomationId = \'Shell.Rich.Body.Uploader\';'
             '    // ignore_statement: intl_message_migration \n'
             '    return (Dom.div())(\n'
-            '      \'testString1\',\n'
+            '      \'test String1\',\n'
             '      uploaderAutomationId,\n'
             '    );\n'
             '  },\n'

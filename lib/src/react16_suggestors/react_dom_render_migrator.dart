@@ -156,7 +156,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
           node.realTarget!.offset,
         );
 
-        refVariableName = parent.name.name;
+        refVariableName = parent.name.lexeme;
       } else if (parent is AssignmentExpression) {
         yieldPatch(
           '',

@@ -111,7 +111,7 @@ class SemverHelper {
     ClassDeclaration node,
     String path,
   ) {
-    final className = stripPrivateGeneratedPrefix(node.name.name);
+    final className = stripPrivateGeneratedPrefix(node.name.lexeme);
 
     if (!path.startsWith('lib/')) {
       // The member is not inside of lib/ - so its inherently private.

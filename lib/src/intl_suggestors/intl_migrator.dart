@@ -95,7 +95,10 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
   bool shouldMigrate(VariableDeclaration node) {
     if (isStatementIgnored(node)) return false;
     if (isFileIgnored(this.context.sourceText)) return false;
-    return true;
+    var string = node.initializer;
+    return string != null &&
+        (isValidStringLiteralNode(string) ||
+            isValidStringInterpolationNode(string));
   }
 
   @override
@@ -135,7 +138,7 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
   }
 
   String publicNameFor(VariableDeclaration node) {
-    var basicName = node.name.name;
+    var basicName = node.name.lexeme;
     // Make sure it's not private.
     var publicName =
         basicName.startsWith('_') ? basicName.substring(1) : basicName;
@@ -190,10 +193,12 @@ class IntlMigrator extends ComponentUsageMigrator {
   @override
   void migrateUsage(FluentComponentUsage usage) {
     super.migrateUsage(usage);
-    final namePrefix =
-        usage.node.thisOrAncestorOfType<ClassDeclaration>()?.name.name ??
-            usage.node.thisOrAncestorOfType<VariableDeclaration>()?.name.name ??
-            'null';
+    final namePrefix = usage.node
+            .thisOrAncestorOfType<ClassDeclaration>()
+            ?.name
+            .lexeme ??
+        usage.node.thisOrAncestorOfType<VariableDeclaration>()?.name.lexeme ??
+        'null';
 
     //Props
     final stringLiteralProps =

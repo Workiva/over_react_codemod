@@ -63,14 +63,14 @@ bool hasMultilineDocComment(
       .split('\n')
       .map((line) => line.replaceAll('\n', '').trim())
       .toList()
-        ..removeWhere((line) => line.isEmpty);
+    ..removeWhere((line) => line.isEmpty);
   final commentLines = comment
       .replaceAll('///', '')
       .trimLeft()
       .split('\n')
       .map((line) => line.replaceAll('\n', '').trim())
       .toList()
-        ..removeWhere((line) => line.isEmpty);
+    ..removeWhere((line) => line.isEmpty);
 
   bool match = false;
 
