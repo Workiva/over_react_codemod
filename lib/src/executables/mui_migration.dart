@@ -24,11 +24,13 @@ import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/mui_suggestors/components.dart';
-import 'package:over_react_codemod/src/mui_suggestors/mui_importer.dart';
-import 'package:over_react_codemod/src/mui_suggestors/unused_wsd_import_remover.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
 import 'package:over_react_codemod/src/util/logging.dart';
+
+import '../mui_suggestors/constants.dart';
+import '../util/importer.dart';
+import '../util/unused_import_remover.dart';
 
 final _log = Logger('orcm.mui_migration');
 
@@ -188,8 +190,10 @@ void main(List<String> args) async {
     // should only be handled by a single migrator, and shouldn't depend on the
     // output of previous migrators.
     [aggregate(migratorsToRun)],
-    [muiImporter],
-    [unusedWsdImportRemover],
+    [
+      importerSuggestorBuilder(importUri: rmuiImportUri, importNamespace: muiNs)
+    ],
+    [unusedImportRemoverSuggestorBuilder('web_skin_dart')],
   ]);
   if (exitCode != 0) return;
 

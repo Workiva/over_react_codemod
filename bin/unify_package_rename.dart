@@ -1,4 +1,4 @@
-// Copyright 2021 Workiva Inc.
+// Copyright 2023 Workiva Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,12 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// The standard namespace to use when importing react_material_ui.
-///
-/// This should be used in all component codemods, since this namespace
-/// is what `muiImporter` picks up on to add the react_material_ui import to
-/// libraries only when it's needed.
-const muiNs = 'mui';
-
-/// The import uri for the main react_material_ui entrypoint.
-const rmuiImportUri = 'package:react_material_ui/react_material_ui.dart';
+export 'package:over_react_codemod/src/executables/unify_package_rename.dart';

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/mui_suggestors/unused_wsd_import_remover.dart';
+import 'package:over_react_codemod/src/util/unused_import_remover.dart';
 import 'package:test/test.dart';
 
 import '../resolved_file_context.dart';
@@ -27,7 +27,7 @@ void main() {
     setUpAll(resolvedContext.warmUpAnalysis);
 
     final testSuggestor = getSuggestorTester(
-      unusedWsdImportRemover,
+      unusedImportRemoverSuggestorBuilder('web_skin_dart'),
       resolvedContext: resolvedContext,
     );
 
@@ -118,6 +118,28 @@ void main() {
           ''',
           expectedOutput: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
+              import 'package:web_skin_dart/component2/all.dart' as wsd2;
+          
+              content() => wsd2.Button()();
+          ''',
+        );
+      });
+
+      test('for a different package name', () async {
+        final testSuggestor = getSuggestorTester(
+          unusedImportRemoverSuggestorBuilder('over_react'),
+          resolvedContext: resolvedContext,
+        );
+        await testSuggestor(
+          input: /*language=dart*/ '''
+              import 'package:over_react/over_react.dart';
+              import 'package:web_skin_dart/ui_components.dart';
+              import 'package:web_skin_dart/component2/all.dart' as wsd2;
+          
+              content() => wsd2.Button()();
+          ''',
+          expectedOutput: /*language=dart*/ '''
+              import 'package:web_skin_dart/ui_components.dart';
               import 'package:web_skin_dart/component2/all.dart' as wsd2;
           
               content() => wsd2.Button()();
