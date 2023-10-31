@@ -167,6 +167,25 @@ void main() {
         });
       });
 
+      test('when there are Dart  and Package', () async {
+        await testSuggestor(
+          input: /*language=dart*/ '''
+              import 'dart:html';
+              import 'package:over_react/over_react.dart';
+
+
+              content() => TestProjectIntl.testString;
+          ''',
+          isExpectedError: (e) => isUndefinedIntlError(e) || isFakeUriError(e),
+          expectedOutput: /*language=dart*/ '''
+              import 'dart:html';
+              import 'package:over_react/over_react.dart';
+              import 'package:test_project/src/intl/test_project_intl.dart';
+
+              content() => TestProjectIntl.testString;
+          ''',
+        );
+      });
       test('package import in the same package should produce relative import',
           () async {
         await testSuggestor(
