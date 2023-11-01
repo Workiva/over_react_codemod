@@ -153,7 +153,6 @@ _InsertionLocation _insertionLocationForPackageImport(
     return true;
   });
 
-
   return _InsertionLocation(
       insertAfter ? relativeNode.end : relativeNode.offset,
       leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
