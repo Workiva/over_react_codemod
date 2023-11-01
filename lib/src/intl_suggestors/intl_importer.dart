@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:io';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as path;
 
 Stream<Patch> intlImporter(
     FileContext context, String projectName, String className) async* {
@@ -38,27 +41,43 @@ Stream<Patch> intlImporter(
 
   if (!needsIntlImport) return;
 
-  final intlUri = 'package:${projectName}/src/intl/${projectName}_intl.dart';
-
+  final intlFilePath = '/src/intl/${projectName}_intl.dart';
+  final intlUri = 'package:${projectName}' + intlFilePath;
+  final intlDirectory = path.join(context.root, intlFilePath);
+  final relativePathToIntlDir =
+      path.relative(intlDirectory, from: Directory.current.path);
   final insertInfo = _insertionLocationForPackageImport(
       intlUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
-  yield Patch(
-      insertInfo.leadingNewlines +
-          "import '$intlUri';" +
-          insertInfo.trailingNewlines,
-      insertInfo.offset,
-      insertInfo.offset);
+
+  final importStatement = insertInfo.usePackageImports
+      ? packageImport(intlUri, insertInfo)
+      : relativeImport(relativePathToIntlDir, insertInfo);
+
+  yield Patch(importStatement, insertInfo.offset, insertInfo.offset);
 }
+
+String packageImport(String intlUri, _InsertionLocation insertInfo) =>
+    insertInfo.leadingNewlines +
+    "import '$intlUri';" +
+    insertInfo.trailingNewlines;
+
+String relativeImport(
+        String relativeImportPath, _InsertionLocation insertInfo) =>
+    insertInfo.leadingNewlines +
+    "import '$relativeImportPath';" +
+    insertInfo.trailingNewlines;
 
 class _InsertionLocation {
   final int offset;
   final int leadingNewlineCount;
   final int trailingNewlineCount;
+  final bool usePackageImports;
 
   _InsertionLocation(
     this.offset, {
     this.leadingNewlineCount = 0,
     this.trailingNewlineCount = 0,
+    this.usePackageImports = false,
   });
 
   String get leadingNewlines => '\n' * leadingNewlineCount;
@@ -94,6 +113,7 @@ _InsertionLocation _insertionLocationForPackageImport(
   final AstNode relativeNode;
   final bool insertAfter;
   final bool inOwnSection;
+  bool hasOnlyPackageImports;
   if (firstPackageImportSortedAfterNewImport != null) {
     relativeNode = firstPackageImportSortedAfterNewImport;
     insertAfter = false;
@@ -121,12 +141,21 @@ _InsertionLocation _insertionLocationForPackageImport(
     // No directive to insert relative to; insert before the first member or
     // at the beginning of the file.
     return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0,
-        trailingNewlineCount: 2);
+        trailingNewlineCount: 2, usePackageImports: true);
   }
 
+  hasOnlyPackageImports = !imports.any((importDirective) {
+    final uriContent = importDirective.uri.stringValue;
+    if (uriContent != null) {
+      final uri = Uri.parse(uriContent);
+      return uri != null && uri.scheme != 'package' && uri.scheme != 'dart';
+    }
+    return true;
+  });
+
   return _InsertionLocation(
-    insertAfter ? relativeNode.end : relativeNode.offset,
-    leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
-    trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
-  );
+      insertAfter ? relativeNode.end : relativeNode.offset,
+      leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
+      trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
+      usePackageImports: hasOnlyPackageImports);
 }
