@@ -53,6 +53,7 @@ void main(List<String> args) async {
   messages.write();
 }
 
+// Derive the package name from pubspec.yaml or intl.dart file name
 String? derivePackageName(String rootDirectory) {
   final pubspecPath = p.join(rootDirectory, 'pubspec.yaml');
   if (fs.isFileSync(pubspecPath)) {
