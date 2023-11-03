@@ -29,31 +29,13 @@ For more information, please see the [INTL Message Codemod Readme](docs/intl_mes
 
 ## Dart 1 to Dart 2 Codemod
 
-This package provides a `dart2_upgrade` codemod that will modify existing
-over_react component code to be compatible with Dart 2 and the over_react
-builder.
+The `dart2_upgrade` codemod that used to be provided by this package is no longer available.
 
-Depending on your needs, you may be able to upgrade directly from Dart 1 to
-Dart 2, or you may need to take an intermediary step and provide a version of
-your codebase that is both forwards- and backwards-compatible. Both of these
-options are supported by this codemod.
-
-- `dart pub global run over_react_codemod:dart2_upgrade --backwards-compat`
-
-    Use this codemod to migrate your over_react code to a format that is both
-    forwards-compatible with Dart 2 and backwards-compatible with Dart 1.
-
-- `dart pub global run over_react_codemod:dart2_upgrade`
-
-    Use this codemod if you want to migrate to Dart 2 compatible code and do not
-    need to maintain backwards-compatability with Dart 1. You can run this to
-    immediately upgrade from Dart 1 to Dart 2, or you can run this on code that
-    has already been run through this codemod with the `--backwards-compat`
-    flag once you're ready to drop Dart 1 support.
-
-For more information on the transition from Dart 1 to Dart 2 and how it affects
-over_react, check out the [over_react Dart 2 migration guide][over_react_dart2].
-It includes sample diffs of the changes that these codemods will introduce.
+To use it, activate over_react_codemod 1.12.1 instead of the latest:
+```sh
+dart pub global activate over_react_codemod ^1.12.1
+```
+and see its documentation: https://github.com/Workiva/over_react_codemod/tree/1.12.1#dart-1-to-dart-2-codemod
 
 ## Checking for Regressions
 
