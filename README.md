@@ -31,11 +31,13 @@ For more information, please see the [INTL Message Codemod Readme](docs/intl_mes
 
 The `dart2_upgrade` codemod that used to be provided by this package is no longer available.
 
-To use it, activate over_react_codemod 1.12.1 instead of the latest:
+To use it, you'll need over_react_codemod 1.1.0 instead of the latest, which also must be used with Dart 2.1.0:
 ```sh
-dart pub global activate over_react_codemod ^1.12.1
+asdf install dart 2.1.0
+asdf shell dart 2.1.0
+pub global activate over_react_codemod 1.1.0
 ```
-and see its documentation: https://github.com/Workiva/over_react_codemod/tree/1.12.1#dart-1-to-dart-2-codemod
+Once that's set up, see the `dart2_upgrade` documentation here: https://github.com/Workiva/over_react_codemod/tree/1.1.0#dart-1-to-dart-2-codemod
 
 ## Checking for Regressions
 
