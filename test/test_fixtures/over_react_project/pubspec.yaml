@@ -3,3 +3,13 @@ environment:
   sdk: '>=2.11.0 <3.0.0'
 dependencies:
   over_react: ^4.2.0
+
+dependency_overrides:
+  react:
+    git:
+      url: ssh://git@github.com/Workiva/react-dart.git
+      ref: v7_wip
+  w_flux:
+    git:
+      url: ssh://git@github.com/Workiva/w_flux.git
+      ref: null-safety-3

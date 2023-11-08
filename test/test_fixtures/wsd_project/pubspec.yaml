@@ -8,3 +8,13 @@ dependencies:
       name: web_skin_dart
       url: https://pub.workiva.org
     version: ^2.56.0
+
+dependency_overrides:
+  react:
+    git:
+      url: ssh://git@github.com/Workiva/react-dart.git
+      ref: v7_wip
+  w_flux:
+    git:
+      url: ssh://git@github.com/Workiva/w_flux.git
+      ref: null-safety-3
