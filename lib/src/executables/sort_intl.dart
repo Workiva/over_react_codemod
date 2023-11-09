@@ -48,7 +48,7 @@ void main(List<String> args) async {
     return;
   }
 
-  _log.info('Starting migration for $packageName');
+  _log.info('Sorting INTL messages for $packageName.');
   final IntlMessages messages = IntlMessages(packageName);
   messages.write();
 }
@@ -73,7 +73,7 @@ String? derivePackageName(String rootDirectory) {
 }
 
 void printUsage() {
-  stderr.writeln('Activating Executables and Sort INTL file.');
+  stderr.writeln('Sort the INTL file for the package in the current directory');
   stderr.writeln();
   stderr.writeln('Usage:');
   stderr.writeln('sort_intl [arguments]');
