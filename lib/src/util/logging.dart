@@ -4,31 +4,33 @@ import 'package:logging/logging.dart';
 import 'package:io/ansi.dart' as ansi;
 
 Logger logger = Logger('orcm.logging');
-bool verbose = true;
-void initLogging(verbose, String message) {
+
+void initLogging() {
   Logger.root.level = Level.INFO;
+  Logger.root.clearListeners();
   Logger.root.onRecord.listen((rec) {
     var colorizer;
     IOSink output;
-
-    if (rec.level >= Level.SEVERE) {
-      colorizer = ansi.backgroundRed.wrap;
+    ansi.AnsiCode color;
+    if (rec.level < Level.WARNING) {
+      color = ansi.cyan;
       output = stderr;
-    } else if (rec.level >= Level.WARNING) {
-      colorizer = ansi.backgroundLightYellow.wrap;
+    } else if (rec.level < Level.SEVERE) {
+      color = ansi.yellow;
       output = stderr;
     } else {
-      colorizer = _noopColorizer;
+      color = ansi.red;
       output = stdout;
     }
 
     if (rec.message != '') {
-      output.writeln(colorizer(rec.message));
+      final level = color.wrap('[${rec.level}]');
+      output.writeln('$level ${rec.loggerName} ${rec.message}');
     }
     if (rec.error != null) {
       output.writeln(colorizer(rec.error.toString()));
     }
-    if (verbose && rec.stackTrace != null) {
+    if (rec.stackTrace != null) {
       output.writeln(colorizer(rec.stackTrace.toString()));
     }
   });
@@ -37,11 +39,9 @@ void initLogging(verbose, String message) {
 String _noopColorizer(String string) => string;
 
 void logWarning(String message) {
-  initLogging(verbose, message);
   logger.warning(message);
 }
 
 void logShout(String message) {
-  initLogging(verbose, message);
   logger.shout(message);
 }

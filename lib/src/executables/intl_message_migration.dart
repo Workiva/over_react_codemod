@@ -24,6 +24,7 @@ import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:io/ansi.dart' as ansi;
 import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/executables/run_interactive_codemod.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_configs_migrator.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_importer.dart';
 import 'package:over_react_codemod/src/intl_suggestors/intl_messages.dart';
@@ -123,6 +124,7 @@ final parser = ArgParser()
 late ArgResults parsedArgs;
 
 void main(List<String> args) async {
+  initLogging();
   parsedArgs = parser.parse(args);
   if (parsedArgs['help'] as bool) {
     printUsage();
@@ -148,14 +150,14 @@ void main(List<String> args) async {
   // so we'd have to disable our own logging before calling into codemod.
   // While hackier, this is easier.
   // TODO each time we call runInteractiveCodemod, all subsequent logs are forwarded to the console an extra time. Update codemod package to prevent this (maybe a flag to disable automatic global logging?)
-  exitCode = await runInteractiveCodemod(
-    [],
-    (_) async* {},
-    args: codemodArgs,
-    additionalHelpOutput: parser.usage,
-  );
-  if (exitCode != 0) return;
-  logWarning('^ Ignore the "codemod found no files" warning above for now.');
+  // exitCode = await runInteractiveCodemod(
+  //   [],
+  //   (_) async* {},
+  //   args: codemodArgs,
+  //   additionalHelpOutput: parser.usage,
+  // );
+  // if (exitCode != 0) return;
+  // logWarning('^ Ignore the "codemod found no files" warning above for now.');
 
   // If we have specified paths on the command line, limit our processing to
   // those, and make sure they're absolute.
@@ -187,14 +189,13 @@ void main(List<String> args) async {
 
   // Is this necessary, or a duplicate of the earlier call? Like, do we have to run
   // a null codemod again after the pub get?
-  exitCode = await runInteractiveCodemod(
+  exitCode = await runInteractiveCodemod2(
     [],
     (_) async* {},
     args: codemodArgs,
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
-  logWarning('^ Ignore the "codemod found no files" warning above for now.');
 
   for (String package in packageRoots) {
     await migratePackage(
@@ -241,7 +242,7 @@ Future<int> runCodemodSequences(
   List<String> codemodArgs,
 ) async {
   for (final sequence in sequences) {
-    final exitCode = await runInteractiveCodemodSequence(
+    final exitCode = await runInteractiveCodemodSequence2(
       paths,
       sequence,
       defaultYes: true,
