@@ -24,7 +24,7 @@ dependencies:
     hosted:
       name: w_intl
       url: https://pub.workiva.org
-  version: ^2.9.4
+    version: ^2.9.4
   yaml: ^3.1.0
   yaml_edit: ^2.0.0
   file: ^6.1.2
