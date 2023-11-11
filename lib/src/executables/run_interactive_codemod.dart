@@ -191,8 +191,6 @@ Future<int> _runInteractiveCodemod2(Iterable<String> filePaths,
     Iterable<Suggestor> suggestors, ArgResults parsedArgs,
     {bool? defaultYes, String? changesRequiredOutput}) async {
   final failOnChanges = (parsedArgs['fail-on-changes'] as bool?) ?? false;
-  final stderrAssumeTty = (parsedArgs['stderr-assume-tty'] as bool?) ?? false;
-  final verbose = (parsedArgs['verbose'] as bool?) ?? false;
   var yesToAll = (parsedArgs['yes-to-all'] as bool?) ?? false;
   defaultYes ??= false;
   var numChanges = 0;
@@ -255,7 +253,7 @@ Future<int> _runInteractiveCodemod2(Iterable<String> filePaths,
 
           final diffSize = calculateDiffSize(stdout);
           logger.fine('diff size: $diffSize');
-          stdout.write(patch.renderDiff(diffSize));
+          stdout.write(patch.renderDiff(4));
           stdout.writeln();
 
           final defaultChoice = defaultYes ? 'y' : 'n';
@@ -343,7 +341,7 @@ Future<int> _runInteractiveCodemod2(Iterable<String> filePaths,
 
         final diffSize = calculateDiffSize(stdout);
         logger.fine('diff size: $diffSize');
-        stdout.write(patch.renderDiff(diffSize));
+        stdout.write(patch.renderDiff(4));
         stdout.writeln();
       });
 
