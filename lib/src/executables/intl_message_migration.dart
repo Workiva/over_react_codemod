@@ -143,22 +143,6 @@ void main(List<String> args) async {
       .map((name) => '--$name')
       .toList();
 
-  // codemod sets up a global logging handler that forwards to the console, and
-  // we want that set up before we do other non-codemod things that might log.
-  //
-  // We could set up logging too, but we can't disable codemod's log handler,
-  // so we'd have to disable our own logging before calling into codemod.
-  // While hackier, this is easier.
-  // TODO each time we call runInteractiveCodemod, all subsequent logs are forwarded to the console an extra time. Update codemod package to prevent this (maybe a flag to disable automatic global logging?)
-  exitCode = await runInteractiveCodemod(
-    [],
-    (_) async* {},
-    args: codemodArgs,
-    additionalHelpOutput: parser.usage,
-  );
-  if (exitCode != 0) return;
-  logWarning('^ Ignore the "codemod found no files" warning above for now.');
-
   // If we have specified paths on the command line, limit our processing to
   // those, and make sure they're absolute.
   var basicDartPaths = parsedArgs.rest.isEmpty ? ['lib'] : parsedArgs.rest;
