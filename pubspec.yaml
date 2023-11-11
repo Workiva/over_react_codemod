@@ -6,9 +6,8 @@ description: >
   Codemods for consumers of over_react that automate the migration of
   UI component code.
 
-
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   analyzer: ^5.0.0
@@ -17,10 +16,11 @@ dependencies:
   collection: ^1.15.0
   glob: ^2.0.1
   logging: ^1.0.1
-  meta: '>=1.7.0  <1.10.0'
+  meta: ">=1.7.0  <1.10.0"
   path: ^1.8.0
   pub_semver: ^2.0.0
   source_span: ^1.8.1
+  w_intl: ^2.9.4
   yaml: ^3.1.0
   yaml_edit: ^2.0.0
   file: ^6.1.2
