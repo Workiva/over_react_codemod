@@ -135,7 +135,7 @@ Attempting to add a different message with the same name:
 
   /// Write the messages to a file. If the file exists and there are no changes, it will just
   /// stop unless [force] is true.
-  void write({bool force = false}) {
+  int write({bool force = false}) {
     prune();
     // Create the file if it didn't exist, but if there are no changes, don't rewrite the existing.
     var exists = outputFile.existsSync();
@@ -144,16 +144,22 @@ Attempting to add a different message with the same name:
     if (force || !exists || fileContents.isEmpty) {
       outputFile.createSync(recursive: true);
       outputFile.writeAsStringSync(contents);
+      if (!force && !exists) return 1;
     } else if (addedNewMethods || !hasTheSamePrologue || pruning) {
       outputFile.writeAsStringSync(contents);
+      return 1;
     }
+    return 0;
   }
 
-  /// Format the output file using dart_dev, and print an error it it fails
+  /// Format the output file using dart_dev, and print an error if it fails
   /// (possibly because dart_dev is not set up for this repo.)
-  void format() async {
-    var result =
+  int format() {
+    final exists = outputFile.existsSync();
+    final fileContentsBefore = exists ? outputFile.readAsStringSync() : '';
+    final result =
         Process.runSync('dart', ['run', 'dart_dev', 'format', outputFile.path]);
+    final fileContentsAfter = exists ? outputFile.readAsStringSync() : '';
     if (result.exitCode != 0) {
       print('Stderr from formatting:\n${result.stderr}');
       print('''
@@ -162,6 +168,11 @@ Failure formatting with dart_dev on ${outputFile.path}.
 Either activate dart_dev or format ${outputFile.path}
 another way according to the conventions of this repo.
 -------------------------------------------------------------------''');
+    }
+    if (result.exitCode != 0 || fileContentsBefore != fileContentsAfter) {
+      return 1;
+    } else {
+      return 0;
     }
   }
 
