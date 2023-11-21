@@ -194,7 +194,8 @@ void main(List<String> args) async {
     additionalHelpOutput: parser.usage,
   );
   if (exitCode != 0) return;
-  logWarning('^ Ignore the "codemod found no files" warning above for now, more details: https://wiki.atl.workiva.net/display/FEF/Codemod+Exception+Handling');
+  logWarning(
+      '^ Ignore the "codemod found no files" warning above for now, more details: https://wiki.atl.workiva.net/display/FEF/Codemod+Exception+Handling');
 
   for (String package in packageRoots) {
     await migratePackage(
@@ -273,7 +274,8 @@ Future<void> migratePackage(
     packageDartPaths =
         dartFilesToMigrateForPackage(package, processedPackages).toList();
   } on FileSystemException {
-    _log.info('${package} does not have a lib directory, moving on...  more details: https://wiki.atl.workiva.net/display/FEF/Codemod+Exception+Handling');
+    _log.info(
+        '${package} does not have a lib directory, moving on...  more details: https://wiki.atl.workiva.net/display/FEF/Codemod+Exception+Handling');
     return;
   }
 

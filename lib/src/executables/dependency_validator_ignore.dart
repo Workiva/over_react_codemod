@@ -65,10 +65,12 @@ void main(List<String> args) async {
       print('[${rec.level}] ${rec.message}');
     }
     if (rec.error != null) {
-      print('Error: ${rec.error} \n more details: https://wiki.atl.workiva.net/display/FEF/Codemod+Exception+Handling');
+      print(
+          'Error: ${rec.error} \n more details: https://wiki.atl.workiva.net/display/FEF/Codemod+Exception+Handling');
     }
     if (rec.stackTrace != null) {
-      print('Stack Trace: ${rec.stackTrace}\n more details: https://wiki.atl.workiva.net/display/FEF/Codemod+Exception+Handling');
+      print(
+          'Stack Trace: ${rec.stackTrace}\n more details: https://wiki.atl.workiva.net/display/FEF/Codemod+Exception+Handling');
     }
   });
 

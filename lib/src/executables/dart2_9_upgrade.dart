@@ -162,7 +162,10 @@ extension on RecursiveAstVisitor {
       try {
         sourceText = file.readAsStringSync();
       } catch (e, stack) {
-        logger.warning('Failed to read file: ${file.path} - More details: https://wiki.atl.workiva.net/display/FEF/Codemod+Exception+Handling', e, stack);
+        logger.warning(
+            'Failed to read file: ${file.path} - More details: https://wiki.atl.workiva.net/display/FEF/Codemod+Exception+Handling',
+            e,
+            stack);
         continue;
       }
 
