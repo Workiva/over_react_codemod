@@ -1,3 +1,4 @@
+// ignore_for_file: cast_nullable_to_non_nullable
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';

@@ -112,6 +112,7 @@ class MessageParser {
   String withCorrectedNameParameter(MethodDeclaration declaration) {
     var invocation = intlMethodInvocation(declaration);
     var nameParameter = nameParameterFrom(invocation);
+    // ignore: cast_nullable_to_non_nullable
     var className = (declaration.parent as ClassDeclaration).name.lexeme;
     var expected = "'${className}_${declaration.name.lexeme}'";
     var actual = nameParameter?.expression.toSource();

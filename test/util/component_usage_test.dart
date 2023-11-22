@@ -269,6 +269,7 @@ void main() {
                   expressionNode.argumentList.arguments.firstOrNull, isNotNull);
               expect(expressionNode.argumentList.arguments.firstOrNull,
                   isA<InvocationExpression>());
+              // ignore: cast_nullable_to_non_nullable
               childExpression = expressionNode
                   .argumentList.arguments.firstOrNull as InvocationExpression;
               expect(childExpression.toSource(), childSource);

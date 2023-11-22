@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// ignore_for_file: cast_nullable_to_non_nullable
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/dart2_9_suggestors/dart2_9_constants.dart';

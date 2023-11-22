@@ -162,6 +162,7 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
             // Handle `toRem(1).toString()`
             if (invocation.methodName.name == 'toString' &&
                 invocation.target is MethodInvocation) {
+              // ignore: cast_nullable_to_non_nullable
               invocation = invocation.target as MethodInvocation;
             }
 
