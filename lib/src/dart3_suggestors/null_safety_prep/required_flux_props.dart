@@ -38,8 +38,35 @@ import 'package:codemod/codemod.dart';
 ///       e.g. `FluxUiPropsMixin<Null, FooStore>` or `FluxUiPropsMixin<Null, Null>` instead of `FluxUiPropsMixin`
 class RequiredFluxProps extends GeneralizingAstVisitor
     with AstVisitingSuggestor {
+  static bool usesFlux(AssignmentExpression cascade) =>
+      cascade.writeElement?.declaration?.enclosingElement?.name == 'FluxUiPropsMixin';
+
   @override
   visitCascadeExpression(CascadeExpression node) {
     super.visitCascadeExpression(node);
+
+    var storeAssigned = false;
+    var actionsAssigned = false;
+    node.cascadeSections.whereType<AssignmentExpression>().forEach((cascade) {
+      if (usesFlux(cascade)) {
+        final lhs = cascade.leftHandSide;
+        if (lhs is PropertyAccess && !storeAssigned) {
+          storeAssigned = lhs.propertyName.name == 'store';
+        }
+        if (lhs is PropertyAccess && !actionsAssigned) {
+          actionsAssigned = lhs.propertyName.name == 'actions';
+        }
+      }
+    });
+
+    if (!storeAssigned) {
+      // TODO (adl): Check if an store instance is available in scope
+      // yieldPatch('..actions = null', start, end,);
+    }
+
+    if (!actionsAssigned) {
+      // TODO (adl): Check if an actions instance is available in scope
+      // yieldPatch('..actions = null', start, end,);
+    }
   }
 }
