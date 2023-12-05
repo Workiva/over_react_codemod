@@ -26,9 +26,9 @@ import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/ignore_info.dart';
-import 'package:source_span/source_span.dart';
 
 import 'class_suggestor.dart';
+import 'offset_util.dart' ;
 
 export 'class_suggestor.dart' show ClassSuggestor;
 export 'wsd_util.dart';
@@ -727,12 +727,6 @@ void handleCascadedPropsByName(
       catchAll(prop);
     }
   }
-}
-
-extension on SourceFile {
-  /// Return the offset of the first character on the line following the line
-  /// containing the given [offset].
-  int getOffsetOfLineAfter(int offset) => getOffset(getLine(offset) + 1);
 }
 
 bool _isDataAttributePropKey(Expression expression) {

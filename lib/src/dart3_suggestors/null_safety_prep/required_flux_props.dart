@@ -12,9 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:developer';
+
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:codemod/codemod.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart';
+import 'package:over_react_codemod/src/util/offset_util.dart';
+
+import '../../util/class_suggestor.dart';
 
 /// Suggestor that adds required `store` and/or `actions` prop(s) to the
 /// call-site of `FluxUiComponent` instances that omit them since version
@@ -37,36 +45,109 @@ import 'package:codemod/codemod.dart';
 ///     * Adding generic parameters to boilerplate that lacks generic parameters
 ///       e.g. `FluxUiPropsMixin<Null, FooStore>` or `FluxUiPropsMixin<Null, Null>` instead of `FluxUiPropsMixin`
 class RequiredFluxProps extends GeneralizingAstVisitor
-    with AstVisitingSuggestor {
-  static bool usesFlux(AssignmentExpression cascade) =>
-      cascade.writeElement?.declaration?.enclosingElement?.name == 'FluxUiPropsMixin';
+    with ClassSuggestor {
+  ResolvedUnitResult? _result;
+  final List<VariableDeclaration> _variablesInScope;
+  final Map<String?, List<DartType?>> _fluxPropsParamTypesByPropsClass;
+
+  RequiredFluxProps() :
+        _variablesInScope = [],
+        _fluxPropsParamTypesByPropsClass = {};
+
+  static const fluxPropsMixinName = 'FluxUiPropsMixin';
+
+  static Element? getPropsElementBeingWrittenTo(AssignmentExpression cascade) =>
+      cascade.writeElement?.declaration?.enclosingElement;
+
+  static bool writesToFluxUiProps(AssignmentExpression cascadeAssignment) {
+    final el = getPropsElementBeingWrittenTo(cascadeAssignment);
+    return el?.name == fluxPropsMixinName;
+  }
+
+  static bool hasAssignmentsThatWriteToFluxUiProps(CascadeExpression cascade) {
+    final sections = cascade.cascadeSections;
+    return sections.whereType<AssignmentExpression>().any(writesToFluxUiProps);
+  }
+
+  VariableElement? getVariableInScopeWithType(DartType? type) =>
+      _variablesInScope.firstWhereOrNull((v) =>
+          v.declaredElement?.type == type)?.declaredElement;
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    super.visitVariableDeclaration(node);
+
+    if (node.declaredElement != null) {
+      // FIXME (adl): This needs to not pick up on variables that are declared in other classes in the same file
+      _variablesInScope.add(node);
+    }
+  }
+
+  @override
+  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    super.visitFunctionExpressionInvocation(node);
+
+    dynamic element = node.staticType?.element;
+    if (element is ClassElement) {
+      final fluxPropsMixin = element.mixins
+          .singleWhereOrNull((e) => e.element.name == fluxPropsMixinName);
+
+      if (fluxPropsMixin != null) {
+        _fluxPropsParamTypesByPropsClass
+            .putIfAbsent(node.staticType?.element?.name, () => fluxPropsMixin.typeArguments);
+      }
+    }
+  }
 
   @override
   visitCascadeExpression(CascadeExpression node) {
     super.visitCascadeExpression(node);
-
+    // TODO (adl): Is this getting polluted across multiple cascades in the same file that have store/actions names?
     var storeAssigned = false;
     var actionsAssigned = false;
     node.cascadeSections.whereType<AssignmentExpression>().forEach((cascade) {
-      if (usesFlux(cascade)) {
+      if (writesToFluxUiProps(cascade)) {
         final lhs = cascade.leftHandSide;
         if (lhs is PropertyAccess && !storeAssigned) {
           storeAssigned = lhs.propertyName.name == 'store';
         }
+
         if (lhs is PropertyAccess && !actionsAssigned) {
           actionsAssigned = lhs.propertyName.name == 'actions';
         }
       }
     });
 
+    final propsClassName = node.staticType?.element?.name;
+
     if (!storeAssigned) {
-      // TODO (adl): Check if an store instance is available in scope
-      // yieldPatch('..actions = null', start, end,);
+      final storeType = _fluxPropsParamTypesByPropsClass[propsClassName]?[1];
+      final storeValue = getVariableInScopeWithType(storeType)?.name ?? 'null';
+      yieldNewCascadeSection(node, '..store = $storeValue');
     }
 
     if (!actionsAssigned) {
-      // TODO (adl): Check if an actions instance is available in scope
-      // yieldPatch('..actions = null', start, end,);
+      final actionsType = _fluxPropsParamTypesByPropsClass[propsClassName]?[0];
+      final actionsValue = getVariableInScopeWithType(actionsType)?.name ?? 'null';
+      yieldNewCascadeSection(node, '..actions = $actionsValue');
     }
+  }
+
+  void yieldNewCascadeSection(CascadeExpression node, String newSection) {
+    if (hasAssignmentsThatWriteToFluxUiProps(node)) {
+      final offset = context.sourceFile.getOffsetOfLineAfter(
+          node.target.offset);
+      yieldPatch(newSection, offset, offset);
+    }
+  }
+
+  @override
+  Future<void> generatePatches() async {
+    _result = await context.getResolvedUnit();
+    if (_result == null) {
+      throw Exception(
+          'Could not get resolved result for "${context.relativePath}"');
+    }
+    _result!.unit.visitChildren(this);
   }
 }
