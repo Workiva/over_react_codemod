@@ -19,6 +19,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
 import 'package:over_react_codemod/src/util/offset_util.dart';
 
@@ -44,15 +45,9 @@ import '../../util/class_suggestor.dart';
 ///
 ///     * Adding generic parameters to boilerplate that lacks generic parameters
 ///       e.g. `FluxUiPropsMixin<Null, FooStore>` or `FluxUiPropsMixin<Null, Null>` instead of `FluxUiPropsMixin`
-class RequiredFluxProps extends GeneralizingAstVisitor
+class RequiredFluxProps extends RecursiveAstVisitor
     with ClassSuggestor {
   ResolvedUnitResult? _result;
-  final List<VariableDeclaration> _variablesInScope;
-  final Map<String?, List<DartType?>> _fluxPropsParamTypesByPropsClass;
-
-  RequiredFluxProps() :
-        _variablesInScope = [],
-        _fluxPropsParamTypesByPropsClass = {};
 
   static const fluxPropsMixinName = 'FluxUiPropsMixin';
 
@@ -69,76 +64,80 @@ class RequiredFluxProps extends GeneralizingAstVisitor
     return sections.whereType<AssignmentExpression>().any(writesToFluxUiProps);
   }
 
-  VariableElement? getVariableInScopeWithType(DartType? type) =>
-      _variablesInScope.firstWhereOrNull((v) =>
-          v.declaredElement?.type == type)?.declaredElement;
+  VariableElement? getVariableInScopeWithType(AstNode node, DartType? type) {
+    final globalScopeVariableDetector = _GlobalScopeVarDetector();
+    node.thisOrAncestorOfType<CompilationUnit>()?.accept(globalScopeVariableDetector);
 
-  @override
-  visitVariableDeclaration(VariableDeclaration node) {
-    super.visitVariableDeclaration(node);
+    final inScopeVariableDetector = _InScopeVarDetector();
+    [
+      // FIXME (adl): What other ancestor contexts could hold vars that are "in scope"?
+      node.thisOrAncestorOfType<ClassDeclaration>(),
+      node.thisOrAncestorOfType<BlockFunctionBody>(),
+    ].whereNotNull().forEach((ancestorNode) {
+      ancestorNode.visitChildren(inScopeVariableDetector);
+    });
+    final inScopeVars = [
+      ...globalScopeVariableDetector.found,
+      ...inScopeVariableDetector.found,
+    ];
 
-    if (node.declaredElement != null) {
-      // FIXME (adl): This needs to not pick up on variables that are declared in other classes in the same file
-      _variablesInScope.add(node);
-    }
-  }
-
-  @override
-  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    super.visitFunctionExpressionInvocation(node);
-
-    dynamic element = node.staticType?.element;
-    if (element is ClassElement) {
-      final fluxPropsMixin = element.mixins
-          .singleWhereOrNull((e) => e.element.name == fluxPropsMixinName);
-
-      if (fluxPropsMixin != null) {
-        _fluxPropsParamTypesByPropsClass
-            .putIfAbsent(node.staticType?.element?.name, () => fluxPropsMixin.typeArguments);
-      }
-    }
+    final inScopeVar = inScopeVars.firstWhereOrNull((v) {
+      final maybeMatchingType = v.declaredElement?.type;
+      // FIXME (adl): maybeMatchingType == type is only true on the first run. The idempotency test that runs a second time fails
+      return maybeMatchingType?.element?.name == type?.element?.name;
+    })?.declaredElement;
+    return inScopeVar;
   }
 
   @override
   visitCascadeExpression(CascadeExpression node) {
-    super.visitCascadeExpression(node);
-    // TODO (adl): Is this getting polluted across multiple cascades in the same file that have store/actions names?
-    var storeAssigned = false;
-    var actionsAssigned = false;
-    node.cascadeSections.whereType<AssignmentExpression>().forEach((cascade) {
-      if (writesToFluxUiProps(cascade)) {
-        final lhs = cascade.leftHandSide;
-        if (lhs is PropertyAccess && !storeAssigned) {
-          storeAssigned = lhs.propertyName.name == 'store';
-        }
+    final propsClassName = node.staticType?.element?.name;
+    // Visit the function expression that this cascade is applied to
+    // in order to populate `_fluxPropsParamTypesByPropsClass`.
+    // node.target.accept(this);
 
-        if (lhs is PropertyAccess && !actionsAssigned) {
-          actionsAssigned = lhs.propertyName.name == 'actions';
-        }
-      }
+    var actionsAssigned = false;
+    var storeAssigned = false;
+
+    List<DartType?>? fluxStoreAndActionTypes;
+    final cascadeWriteEl = node.staticType?.element;
+    if (cascadeWriteEl is ClassElement) {
+      fluxStoreAndActionTypes = cascadeWriteEl.mixins
+          .singleWhereOrNull((e) => e.element.name == fluxPropsMixinName)?.typeArguments;
+    }
+
+    // TODO (adl): Is this getting polluted across multiple cascades in the same file that have store/actions names?
+    final cascadingAssignments = node.cascadeSections.whereType<AssignmentExpression>();
+    storeAssigned = cascadingAssignments.any((cascade) {
+      if (!writesToFluxUiProps(cascade)) return false;
+      final lhs = cascade.leftHandSide;
+      return lhs is PropertyAccess && lhs.propertyName.name == 'store';
+    });
+    actionsAssigned = cascadingAssignments.any((cascade) {
+      if (!writesToFluxUiProps(cascade)) return false;
+      final lhs = cascade.leftHandSide;
+      return lhs is PropertyAccess && lhs.propertyName.name == 'actions';
     });
 
-    final propsClassName = node.staticType?.element?.name;
-
     if (!storeAssigned) {
-      final storeType = _fluxPropsParamTypesByPropsClass[propsClassName]?[1];
-      final storeValue = getVariableInScopeWithType(storeType)?.name ?? 'null';
+      storeAssigned = true;
+      final fluxStoreType = fluxStoreAndActionTypes?[1];
+      final storeValue = getVariableInScopeWithType(node, fluxStoreType)?.name ?? 'null';
       yieldNewCascadeSection(node, '..store = $storeValue');
     }
 
     if (!actionsAssigned) {
-      final actionsType = _fluxPropsParamTypesByPropsClass[propsClassName]?[0];
-      final actionsValue = getVariableInScopeWithType(actionsType)?.name ?? 'null';
+      actionsAssigned = true;
+      final fluxActionsType = fluxStoreAndActionTypes?[0];
+      final actionsValue = getVariableInScopeWithType(node, fluxActionsType)?.name ?? 'null';
       yieldNewCascadeSection(node, '..actions = $actionsValue');
     }
   }
 
   void yieldNewCascadeSection(CascadeExpression node, String newSection) {
-    if (hasAssignmentsThatWriteToFluxUiProps(node)) {
-      final offset = context.sourceFile.getOffsetOfLineAfter(
-          node.target.offset);
-      yieldPatch(newSection, offset, offset);
-    }
+    final offset = context.sourceFile.getOffsetOfLineAfter(
+        node.target.offset);
+    yieldPatch(newSection, offset, offset);
   }
 
   @override
@@ -148,6 +147,31 @@ class RequiredFluxProps extends GeneralizingAstVisitor
       throw Exception(
           'Could not get resolved result for "${context.relativePath}"');
     }
-    _result!.unit.visitChildren(this);
+    _result!.unit.accept(this);
   }
+}
+
+mixin _InScopeVarDetectorMixin on AstVisitor {
+  List<VariableDeclaration> get found;
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    if (node.declaredElement != null) {
+      found.add(node);
+    }
+  }
+}
+
+class _InScopeVarDetector extends RecursiveAstVisitor<void> with _InScopeVarDetectorMixin {
+  @override
+  final List<VariableDeclaration> found;
+
+  _InScopeVarDetector() : found = [];
+}
+
+class _GlobalScopeVarDetector extends RecursiveAstVisitor<void> with _InScopeVarDetectorMixin {
+  @override
+  final List<VariableDeclaration> found;
+
+  _GlobalScopeVarDetector() : found = [];
 }
