@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:developer';
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
 import 'package:over_react_codemod/src/util/offset_util.dart';
 
@@ -51,27 +48,16 @@ class RequiredFluxProps extends RecursiveAstVisitor
 
   static const fluxPropsMixinName = 'FluxUiPropsMixin';
 
-  static Element? getPropsElementBeingWrittenTo(AssignmentExpression cascade) =>
-      cascade.writeElement?.declaration?.enclosingElement;
-
-  static bool writesToFluxUiProps(AssignmentExpression cascadeAssignment) {
-    final el = getPropsElementBeingWrittenTo(cascadeAssignment);
-    return el?.name == fluxPropsMixinName;
-  }
-
-  static bool hasAssignmentsThatWriteToFluxUiProps(CascadeExpression cascade) {
-    final sections = cascade.cascadeSections;
-    return sections.whereType<AssignmentExpression>().any(writesToFluxUiProps);
-  }
-
   VariableElement? getVariableInScopeWithType(AstNode node, DartType? type) {
     final globalScopeVariableDetector = _GlobalScopeVarDetector();
+    // FIXME (adl): Why isn't this working?
     node.thisOrAncestorOfType<CompilationUnit>()?.accept(globalScopeVariableDetector);
 
     final inScopeVariableDetector = _InScopeVarDetector();
     [
-      // FIXME (adl): What other ancestor contexts could hold vars that are "in scope"?
+      // FIXME (adl): Need to look for prop values in class components
       node.thisOrAncestorOfType<ClassDeclaration>(),
+      // FIXME (adl): Need to look for prop values in function components (and expression fn bodies)
       node.thisOrAncestorOfType<BlockFunctionBody>(),
     ].whereNotNull().forEach((ancestorNode) {
       ancestorNode.visitChildren(inScopeVariableDetector);
@@ -91,42 +77,37 @@ class RequiredFluxProps extends RecursiveAstVisitor
 
   @override
   visitCascadeExpression(CascadeExpression node) {
-    final propsClassName = node.staticType?.element?.name;
-    // Visit the function expression that this cascade is applied to
-    // in order to populate `_fluxPropsParamTypesByPropsClass`.
-    // node.target.accept(this);
-
+    var writesToFluxUiProps = false;
     var actionsAssigned = false;
     var storeAssigned = false;
 
     List<DartType?>? fluxStoreAndActionTypes;
     final cascadeWriteEl = node.staticType?.element;
     if (cascadeWriteEl is ClassElement) {
-      fluxStoreAndActionTypes = cascadeWriteEl.mixins
-          .singleWhereOrNull((e) => e.element.name == fluxPropsMixinName)?.typeArguments;
+      final maybeFluxUiPropsMixin = cascadeWriteEl.mixins
+          .singleWhereOrNull((e) => e.element.name == fluxPropsMixinName);
+      writesToFluxUiProps = maybeFluxUiPropsMixin != null;
+      fluxStoreAndActionTypes = maybeFluxUiPropsMixin?.typeArguments;
     }
 
-    // TODO (adl): Is this getting polluted across multiple cascades in the same file that have store/actions names?
     final cascadingAssignments = node.cascadeSections.whereType<AssignmentExpression>();
     storeAssigned = cascadingAssignments.any((cascade) {
-      if (!writesToFluxUiProps(cascade)) return false;
       final lhs = cascade.leftHandSide;
       return lhs is PropertyAccess && lhs.propertyName.name == 'store';
     });
     actionsAssigned = cascadingAssignments.any((cascade) {
-      if (!writesToFluxUiProps(cascade)) return false;
       final lhs = cascade.leftHandSide;
       return lhs is PropertyAccess && lhs.propertyName.name == 'actions';
     });
 
-    if (!storeAssigned) {
+    if (writesToFluxUiProps && !storeAssigned) {
       storeAssigned = true;
       final fluxStoreType = fluxStoreAndActionTypes?[1];
       final storeValue = getVariableInScopeWithType(node, fluxStoreType)?.name ?? 'null';
       yieldNewCascadeSection(node, '..store = $storeValue');
     }
 
-    if (!actionsAssigned) {
+    if (writesToFluxUiProps && !actionsAssigned) {
       actionsAssigned = true;
       final fluxActionsType = fluxStoreAndActionTypes?[0];
       final actionsValue = getVariableInScopeWithType(node, fluxActionsType)?.name ?? 'null';
