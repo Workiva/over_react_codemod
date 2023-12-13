@@ -33,15 +33,6 @@ import '../../util/class_suggestor.dart';
 ///
 /// In the case of a component that is rendered in a scope where a store/actions
 /// instance is not available, `null` will be used as the value for the prop(s).
-///   * When this happens, a FIX ME comment will be added since the boilerplate
-///   of the FluxUiComponent's definition will need to be updated to allow `null`
-///   store/actions value(s) by either:
-///
-///     * Updating the generic parameter(s) to allow nullable values
-///       e.g. `FluxUiPropsMixin<FooActions?, FooStore?>` instead of `FluxUiPropsMixin<FooActions, FooStore>`
-///
-///     * Adding generic parameters to boilerplate that lacks generic parameters
-///       e.g. `FluxUiPropsMixin<Null, FooStore>` or `FluxUiPropsMixin<Null, Null>` instead of `FluxUiPropsMixin`
 class RequiredFluxProps extends RecursiveAstVisitor
     with ClassSuggestor {
   ResolvedUnitResult? _result;

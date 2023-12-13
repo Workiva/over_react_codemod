@@ -55,8 +55,8 @@ void main() {
     });
 
     group('patches un-invoked builders that use FluxUiPropsMixin', () {
-      group('and do not have props.actions set', () {
-        test('no actions var in scope', () async {
+      group('and have no actions setter', () {
+        test('when no actions var is available in scope', () async {
           await testSuggestor(
             expectedPatchCount: 1,
             input: withFluxComponentUsage(/*language=dart*/ r'''
@@ -79,11 +79,66 @@ void main() {
           );
         });
 
-        test('actions var in local fn scope with incorrect type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theActions'),
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
+        group('when a top-level actions var is available', () {
+          test('unless the type does not match (uses null instead)', () async {
+            await testSuggestor(
+              isExpectedError: (err) => err.message.contains('theActions'),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
+              final theActions = BazFooActions();
+              main() {
+                final theStore = FooStore();
+
+                Foo()
+                  ..store = theStore;
+              }
+            '''),
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              final theActions = BazFooActions();
+              main() {
+                final theStore = FooStore();
+
+                Foo()
+                  ..actions = null
+                  ..store = theStore;
+              }
+            '''),
+            );
+          });
+
+          test('and the type matches', () async {
+            await testSuggestor(
+              isExpectedError: (err) => err.message.contains('theActions'),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
+              final theActions = FooActions();
+              main() {
+                final theStore = FooStore();
+
+                Foo()
+                  ..store = theStore;
+              }
+            '''),
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              final theActions = FooActions();
+              main() {
+                final theStore = FooStore();
+
+                Foo()
+                  ..actions = theActions
+                  ..store = theStore;
+              }
+            '''),
+            );
+          });
+        });
+
+        group('when an actions var is available in block function scope', () {
+          test('unless the type does not match (uses null instead)', () async {
+            await testSuggestor(
+              isExpectedError: (err) => err.message.contains('theActions'),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
               main() {
                 final theStore = FooStore();
                 final theActions = BazFooActions();
@@ -92,7 +147,7 @@ void main() {
                   ..store = theStore;
               }
             '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
               main() {
                 final theStore = FooStore();
                 final theActions = BazFooActions();
@@ -102,13 +157,41 @@ void main() {
                   ..store = theStore;
               }
             '''),
-          );
+            );
+          });
+
+          test('and the type matches', () async {
+            await testSuggestor(
+              isExpectedError: (err) => err.message.contains('theActions'),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
+              main() {
+                final theStore = FooStore();
+                final theActions = FooActions();
+
+                Foo()
+                  ..store = theStore;
+              }
+            '''),
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              main() {
+                final theStore = FooStore();
+                final theActions = FooActions();
+
+                Foo()
+                  ..actions = theActions
+                  ..store = theStore;
+              }
+            '''),
+            );
+          });
         });
 
-        test('actions var in local fn component props with incorrect type', () async {
-          await testSuggestor(
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
+        group('when an actions var is available in function component props', () {
+          test('unless the type does not match (uses null instead)', () async {
+            await testSuggestor(
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
               class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
               final FooConsumer = uiFunction<FooConsumerProps>(
                 (localProps) {
@@ -122,7 +205,7 @@ void main() {
                 _$FooConsumerConfig, // ignore: undefined_identifier
               );
             '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
               class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
               final FooConsumer = uiFunction<FooConsumerProps>(
                 (localProps) {
@@ -137,100 +220,13 @@ void main() {
                 _$FooConsumerConfig, // ignore: undefined_identifier
               );
             '''),
-          );
-        });
+            );
+          });
 
-        test('actions var in class component props with incorrect type', () async {
-          await testSuggestor(
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..store = FooStore();
-                }
-
-                @override
-                render() => null;
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..actions = null
-                    ..store = FooStore();
-                }
-
-                @override
-                render() => null;
-              }
-            '''),
-          );
-        });
-
-        test('actions var in global scope with incorrect type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theActions'),
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = BazFooActions();
-              main() {
-                final theStore = FooStore();
-
-                Foo()
-                  ..store = theStore;
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = BazFooActions();
-              main() {
-                final theStore = FooStore();
-
-                Foo()
-                  ..actions = null
-                  ..store = theStore;
-              }
-            '''),
-          );
-        });
-
-        test('actions var in local fn scope with correct type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theActions'),
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..store = theStore;
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..actions = theActions
-                  ..store = theStore;
-              }
-            '''),
-          );
-        });
-
-        test('actions var in local fn component props with correct type', () async {
-          await testSuggestor(
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
+          test('and the type matches', () async {
+            await testSuggestor(
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
               class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
               final FooConsumer = uiFunction<FooConsumerProps>(
                 (localProps) {
@@ -244,7 +240,7 @@ void main() {
                 _$FooConsumerConfig, // ignore: undefined_identifier
               );
             '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
               class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
               final FooConsumer = uiFunction<FooConsumerProps>(
                 (localProps) {
@@ -259,13 +255,50 @@ void main() {
                 _$FooConsumerConfig, // ignore: undefined_identifier
               );
             '''),
-          );
+            );
+          });
         });
 
-        test('actions var in class component props with correct type', () async {
-          await testSuggestor(
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
+        group('when an actions var is available in class component props', () {
+          test('unless the type does not match (uses null instead)', () async {
+            await testSuggestor(
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
+              // ignore: undefined_identifier
+              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
+              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                someMethod() {
+                  return Foo()
+                    ..store = FooStore();
+                }
+
+                @override
+                render() => null;
+              }
+            '''),
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              // ignore: undefined_identifier
+              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
+              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                someMethod() {
+                  return Foo()
+                    ..actions = null
+                    ..store = FooStore();
+                }
+
+                @override
+                render() => null;
+              }
+            '''),
+            );
+          });
+
+          test('and the type matches', () async {
+            await testSuggestor(
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
               // ignore: undefined_identifier
               UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
               class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
@@ -279,7 +312,7 @@ void main() {
                 render() => null;
               }
             '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
               // ignore: undefined_identifier
               UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
               class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
@@ -294,38 +327,13 @@ void main() {
                 render() => null;
               }
             '''),
-          );
-        });
-
-        test('actions var in global scope with correct type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theActions'),
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = FooActions();
-              main() {
-                final theStore = FooStore();
-
-                Foo()
-                  ..store = theStore;
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = FooActions();
-              main() {
-                final theStore = FooStore();
-
-                Foo()
-                  ..actions = theActions
-                  ..store = theStore;
-              }
-            '''),
-          );
+            );
+          });
         });
       });
 
-      group('and do not have props.store set', () {
-        test('no store var in scope', () async {
+      group('and have no store setter', () {
+        test('when no store var is available in scope', () async {
           await testSuggestor(
             expectedPatchCount: 1,
             input: withFluxComponentUsage(/*language=dart*/ r'''
@@ -348,11 +356,66 @@ void main() {
           );
         });
 
-        test('store var in local fn scope with incorrect type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theStore'),
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
+        group('when a top-level store var is available', () {
+          test('unless the type does not match (uses null instead)', () async {
+            await testSuggestor(
+              isExpectedError: (err) => err.message.contains('theStore'),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
+              final theStore = BazFooStore();
+              main() {
+                final theActions = FooActions();
+
+                Foo()
+                  ..actions = theActions;
+              }
+            '''),
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              final theStore = BazFooStore();
+              main() {
+                final theActions = FooActions();
+
+                Foo()
+                  ..store = null
+                  ..actions = theActions;
+              }
+            '''),
+            );
+          });
+
+          test('and the type matches', () async {
+            await testSuggestor(
+              isExpectedError: (err) => err.message.contains('theStore'),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
+              final theStore = FooStore();
+              main() {
+                final theActions = FooActions();
+
+                Foo()
+                  ..actions = theActions;
+              }
+            '''),
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              final theStore = FooStore();
+              main() {
+                final theActions = FooActions();
+
+                Foo()
+                  ..store = theStore
+                  ..actions = theActions;
+              }
+            '''),
+            );
+          });
+        });
+
+        group('when a store var is available in block function scope', () {
+          test('unless the type does not match (uses null instead)', () async {
+            await testSuggestor(
+              isExpectedError: (err) => err.message.contains('theStore'),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
               main() {
                 final theStore = BazFooStore();
                 final theActions = FooActions();
@@ -361,7 +424,7 @@ void main() {
                   ..actions = theActions;
               }
             '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
               main() {
                 final theStore = BazFooStore();
                 final theActions = FooActions();
@@ -371,13 +434,41 @@ void main() {
                   ..actions = theActions;
               }
             '''),
-          );
+            );
+          });
+
+          test('and the type matches', () async {
+            await testSuggestor(
+              isExpectedError: (err) => err.message.contains('theStore'),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
+              main() {
+                final theStore = FooStore();
+                final theActions = FooActions();
+
+                Foo()
+                  ..actions = theActions;
+              }
+            '''),
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              main() {
+                final theStore = FooStore();
+                final theActions = FooActions();
+
+                Foo()
+                  ..store = theStore
+                  ..actions = theActions;
+              }
+            '''),
+            );
+          });
         });
 
-        test('store var in local fn component props with incorrect type', () async {
-          await testSuggestor(
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
+        group('when a store var is available in function component props', () {
+          test('unless the type does not match (uses null instead)', () async {
+            await testSuggestor(
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
               class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
               final FooConsumer = uiFunction<FooConsumerProps>(
                 (localProps) {
@@ -391,7 +482,7 @@ void main() {
                 _$FooConsumerConfig, // ignore: undefined_identifier
               );
             '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
               class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
               final FooConsumer = uiFunction<FooConsumerProps>(
                 (localProps) {
@@ -406,11 +497,48 @@ void main() {
                 _$FooConsumerConfig, // ignore: undefined_identifier
               );
             '''),
-          );
+            );
+          });
+
+          test('and the type matches', () async {
+            await testSuggestor(
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
+              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+              final FooConsumer = uiFunction<FooConsumerProps>(
+                (localProps) {
+                  someFunction() {
+                    return Foo()
+                      ..actions = localProps.actions;
+                  }
+                
+                  return someFunction()();
+                },
+                _$FooConsumerConfig, // ignore: undefined_identifier
+              );
+            '''),
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+              final FooConsumer = uiFunction<FooConsumerProps>(
+                (localProps) {
+                  someFunction() {
+                    return Foo()
+                      ..store = localProps.store
+                      ..actions = localProps.actions;
+                  }
+                
+                  return someFunction()();
+                },
+                _$FooConsumerConfig, // ignore: undefined_identifier
+              );
+            '''),
+            );
+          });
         });
 
-        test('store var in class component props with incorrect type', () async {
-          await testSuggestor(
+        group('when a store var is available in class component props', () {
+          test('unless the type does not match (uses null instead)', () async {
+            await testSuggestor(
               expectedPatchCount: 1,
               input: withFluxComponentUsage(/*language=dart*/ r'''
               // ignore: undefined_identifier
@@ -426,7 +554,7 @@ void main() {
                 render() => null;
               }
             '''),
-          expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
               // ignore: undefined_identifier
               UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
               class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
@@ -441,100 +569,13 @@ void main() {
                 render() => null;
               }
             '''),
-          );
-        });
+            );
+          });
 
-        test('store var in global scope with incorrect type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theStore'),
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = BazFooStore();
-              main() {
-                final theActions = FooActions();
-
-                Foo()
-                  ..actions = theActions;
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = BazFooStore();
-              main() {
-                final theActions = FooActions();
-
-                Foo()
-                  ..store = null
-                  ..actions = theActions;
-              }
-            '''),
-          );
-        });
-
-        test('store var in local fn scope with correct type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theStore'),
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..actions = theActions;
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..store = theStore
-                  ..actions = theActions;
-              }
-            '''),
-          );
-        });
-
-        test('store var in local fn component props with correct type', () async {
-          await testSuggestor(
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..actions = localProps.actions;
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
-              );
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..store = localProps.store
-                      ..actions = localProps.actions;
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
-              );
-            '''),
-          );
-        });
-
-        test('store var in class component props with correct type', () async {
-          await testSuggestor(
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
+          test('and the type matches', () async {
+            await testSuggestor(
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage(/*language=dart*/ r'''
               // ignore: undefined_identifier
               UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
               class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
@@ -548,7 +589,7 @@ void main() {
                 render() => null;
               }
             '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
               // ignore: undefined_identifier
               UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
               class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
@@ -563,38 +604,13 @@ void main() {
                 render() => null;
               }
             '''),
-          );
-        });
-
-        test('store var in global scope with correct type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theStore'),
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = FooStore();
-              main() {
-                final theActions = FooActions();
-
-                Foo()
-                  ..actions = theActions;
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = FooStore();
-              main() {
-                final theActions = FooActions();
-
-                Foo()
-                  ..store = theStore
-                  ..actions = theActions;
-              }
-            '''),
-          );
+            );
+          });
         });
       });
 
-      group('and do not have props.store or props.actions set', () {
-        test('no store or actions var in scope', () async {
+      group('and have no store or actions setter', () {
+        test('when no store or actions var is available in scope', () async {
           await testSuggestor(
             expectedPatchCount: 2,
             input: withFluxComponentUsage(/*language=dart*/ r'''
@@ -614,444 +630,366 @@ void main() {
           );
         });
 
-        test('store and actions vars in local fn scope with incorrect types', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = BazFooStore();
-                final theActions = BazFooActions();
+        group('when top-level store and/or actions var(s) are available', () {
+          group('in top-level scope', () {
+            group('unless the type(s) do not match (uses null instead):', () {
+              test('store AND actions', () async {
+                await testSuggestor(
+                  isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                    final theStore = BazFooStore();
+                    final theActions = BazFooActions();
+                    main() {
+                      Foo()
+                        ..id = '123';
+                    }
+                  '''),
+                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                    final theStore = BazFooStore();
+                    final theActions = BazFooActions();
+                    main() {
+                      Foo()
+                        ..store = null
+                        ..actions = null
+                        ..id = '123';
+                    }
+                  '''),
+                );
+              });
+            });
 
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = BazFooStore();
-                final theActions = BazFooActions();
+            group('and the type(s) match:', () {
+              test('store AND actions', () async {
+                await testSuggestor(
+                  isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                    final theStore = FooStore();
+                    final theActions = FooActions();
+                    main() {
+                      Foo()
+                        ..id = '123';
+                    }
+                  '''),
+                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                    final theStore = FooStore();
+                    final theActions = FooActions();
+                    main() {
+                      Foo()
+                        ..store = theStore
+                        ..actions = theActions
+                        ..id = '123';
+                    }
+                  '''),
+                );
+              });
 
-                Foo()
-                  ..store = null
-                  ..actions = null
-                  ..id = '123';
-              }
-            '''),
-          );
-        });
+              test('store only', () async {
+                await testSuggestor(
+                  isExpectedError: (err) => err.message.contains('theStore'),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                    final theStore = FooStore();
+                    main() {
+                      Foo()
+                        ..id = '123';
+                    }
+                  '''),
+                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                    final theStore = FooStore();
+                    main() {
+                      Foo()
+                        ..store = theStore
+                        ..actions = null
+                        ..id = '123';
+                    }
+                  '''),
+                );
+              });
 
-        test('store and actions vars in local fn component props with incorrect types', () async {
-          await testSuggestor(
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..id = '123';
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
+              test('actions only', () async {
+                await testSuggestor(
+                  isExpectedError: (err) => err.message.contains('theActions'),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                    final theActions = FooActions();
+                    main() {
+                      Foo()
+                        ..id = '123';
+                    }
+                  '''),
+                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                    final theActions = FooActions();
+                    main() {
+                      Foo()
+                        ..store = null
+                        ..actions = theActions
+                        ..id = '123';
+                    }
+                  '''),
+                );
+              });
+            });
+          });
+
+          group('in block function scope', () {
+            group('unless the type(s) do not match (uses null instead):', () {
+              test('store AND actions', () async {
+                await testSuggestor(
+                  isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                    main() {
+                      final theStore = BazFooStore();
+                      final theActions = BazFooActions();
+      
+                      Foo()
+                        ..id = '123';
+                    }
+                  '''),
+                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                    main() {
+                      final theStore = BazFooStore();
+                      final theActions = BazFooActions();
+      
+                      Foo()
+                        ..store = null
+                        ..actions = null
+                        ..id = '123';
+                    }
+                  '''),
+                );
+              });
+            });
+
+            group('and the type(s) match:', () {
+              test('store AND actions', () async {
+                await testSuggestor(
+                  isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                    main() {
+                      final theStore = FooStore();
+                      final theActions = FooActions();
+      
+                      Foo()
+                        ..id = '123';
+                    }
+                  '''),
+                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                    main() {
+                      final theStore = FooStore();
+                      final theActions = FooActions();
+      
+                      Foo()
+                        ..store = theStore
+                        ..actions = theActions
+                        ..id = '123';
+                    }
+                  '''),
+                );
+              });
+
+              test('store only', () async {
+                await testSuggestor(
+                  isExpectedError: (err) => err.message.contains('theStore'),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                    main() {
+                      final theStore = FooStore();
+      
+                      Foo()
+                        ..id = '123';
+                    }
+                  '''),
+                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                    main() {
+                      final theStore = FooStore();
+      
+                      Foo()
+                        ..store = theStore
+                        ..actions = null
+                        ..id = '123';
+                    }
+                  '''),
+                );
+              });
+
+              test('actions only', () async {
+                await testSuggestor(
+                  isExpectedError: (err) => err.message.contains('theActions'),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                    main() {
+                      final theActions = FooActions();
+      
+                      Foo()
+                        ..id = '123';
+                    }
+                  '''),
+                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                    main() {
+                      final theActions = FooActions();
+      
+                      Foo()
+                        ..store = null
+                        ..actions = theActions
+                        ..id = '123';
+                    }
+                  '''),
+                );
+              });
+            });
+          });
+
+          group('in function component props', () {
+            test('unless the types do not match (uses null instead):', () async {
+              await testSuggestor(
+                expectedPatchCount: 2,
+                input: withFluxComponentUsage(/*language=dart*/ r'''
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                  final FooConsumer = uiFunction<FooConsumerProps>(
+                    (localProps) {
+                      someFunction() {
+                        return Foo()
+                          ..id = '123';
+                      }
+                    
+                      return someFunction()();
+                    },
+                    _$FooConsumerConfig, // ignore: undefined_identifier
+                  );
+                '''),
+                expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                  final FooConsumer = uiFunction<FooConsumerProps>(
+                    (localProps) {
+                      someFunction() {
+                        return Foo()
+                          ..store = null
+                          ..actions = null
+                          ..id = '123';
+                      }
+                    
+                      return someFunction()();
+                    },
+                    _$FooConsumerConfig, // ignore: undefined_identifier
+                  );
+                '''),
               );
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..store = null
-                      ..actions = null
-                      ..id = '123';
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
+            });
+
+            test('and the types match:', () async {
+              await testSuggestor(
+                expectedPatchCount: 2,
+                input: withFluxComponentUsage(/*language=dart*/ r'''
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                  final FooConsumer = uiFunction<FooConsumerProps>(
+                    (localProps) {
+                      someFunction() {
+                        return Foo()
+                          ..id = '123';
+                      }
+                    
+                      return someFunction()();
+                    },
+                    _$FooConsumerConfig, // ignore: undefined_identifier
+                  );
+                '''),
+                expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                  final FooConsumer = uiFunction<FooConsumerProps>(
+                    (localProps) {
+                      someFunction() {
+                        return Foo()
+                          ..store = localProps.store
+                          ..actions = localProps.actions
+                          ..id = '123';
+                      }
+                    
+                      return someFunction()();
+                    },
+                    _$FooConsumerConfig, // ignore: undefined_identifier
+                  );
+                '''),
               );
-            '''),
-          );
-        });
+            });
+          });
 
-        test('store and actions vars in class component props with incorrect types', () async {
-          await testSuggestor(
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..id = '123';
-                }
-
-                @override
-                render() => null;
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..store = null
-                    ..actions = null
-                    ..id = '123';
-                }
-
-                @override
-                render() => null;
-              }
-            '''),
-          );
-        });
-
-        test('store var in local fn scope with incorrect type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theStore'),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = BazFooStore();
-
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = BazFooStore();
-
-                Foo()
-                  ..store = null
-                  ..actions = null
-                  ..id = '123';
-              }
-            '''),
-          );
-        });
-
-        test('actions var in local fn scope with incorrect type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theActions'),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theActions = BazFooActions();
-
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theActions = BazFooActions();
-
-                Foo()
-                  ..store = null
-                  ..actions = null
-                  ..id = '123';
-              }
-            '''),
-          );
-        });
-
-        test('store and actions vars in global scope with incorrect types', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = BazFooStore();
-              final theActions = BazFooActions();
-              main() {
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = BazFooStore();
-              final theActions = BazFooActions();
-              main() {
-                Foo()
-                  ..store = null
-                  ..actions = null
-                  ..id = '123';
-              }
-            '''),
-          );
-        });
-
-        test('store var in global scope with incorrect type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theStore'),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = BazFooStore();
-              main() {
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = BazFooStore();
-              main() {
-                Foo()
-                  ..store = null
-                  ..actions = null
-                  ..id = '123';
-              }
-            '''),
-          );
-        });
-
-        test('actions var in global scope with incorrect type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theActions'),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = BazFooActions();
-              main() {
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = BazFooActions();
-              main() {
-                Foo()
-                  ..store = null
-                  ..actions = null
-                  ..id = '123';
-              }
-            '''),
-          );
-        });
-
-        test('store and actions vars in local fn scope with correct types', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..store = theStore
-                  ..actions = theActions
-                  ..id = '123';
-              }
-            '''),
-          );
-        });
-
-        test('store and actions vars in local fn component props with correct types', () async {
-          await testSuggestor(
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..id = '123';
+          group('in class component props', () {
+            test('unless the types do not match (uses null instead):', () async {
+              await testSuggestor(
+                expectedPatchCount: 2,
+                input: withFluxComponentUsage(/*language=dart*/ r'''
+                  // ignore: undefined_identifier
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                  class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                    someMethod() {
+                      return Foo()
+                        ..id = '123';
+                    }
+    
+                    @override
+                    render() => null;
                   }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
-              );
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..store = localProps.store
-                      ..actions = localProps.actions
-                      ..id = '123';
+                '''),
+                expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                  // ignore: undefined_identifier
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                  class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                    someMethod() {
+                      return Foo()
+                        ..store = null
+                        ..actions = null
+                        ..id = '123';
+                    }
+    
+                    @override
+                    render() => null;
                   }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
+                '''),
               );
-            '''),
-          );
-        });
+            });
 
-        test('store and actions vars in class component props with correct types', () async {
-          await testSuggestor(
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..id = '123';
-                }
-
-                @override
-                render() => null;
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..store = props.store
-                    ..actions = props.actions
-                    ..id = '123';
-                }
-
-                @override
-                render() => null;
-              }
-            '''),
-          );
-        });
-
-        test('store var in local fn scope with correct type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theStore'),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-
-                Foo()
-                  ..store = theStore
-                  ..actions = null
-                  ..id = '123';
-              }
-            '''),
-          );
-        });
-
-        test('actions var in local fn scope with correct type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theActions'),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theActions = FooActions();
-
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theActions = FooActions();
-
-                Foo()
-                  ..store = null
-                  ..actions = theActions
-                  ..id = '123';
-              }
-            '''),
-          );
-        });
-
-        test('store and actions vars in global scope with correct types', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = FooStore();
-              final theActions = FooActions();
-              main() {
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = FooStore();
-              final theActions = FooActions();
-              main() {
-                Foo()
-                  ..store = theStore
-                  ..actions = theActions
-                  ..id = '123';
-              }
-            '''),
-          );
-        });
-
-        test('store var in global scope with correct type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theStore'),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = FooStore();
-              main() {
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = FooStore();
-              main() {
-                Foo()
-                  ..store = theStore
-                  ..actions = null
-                  ..id = '123';
-              }
-            '''),
-          );
-        });
-
-        test('actions var in global scope with correct type', () async {
-          await testSuggestor(
-            isExpectedError: (err) => err.message.contains('theActions'),
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = FooActions();
-              main() {
-                Foo()
-                  ..id = '123';
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = FooActions();
-              main() {
-                Foo()
-                  ..store = null
-                  ..actions = theActions
-                  ..id = '123';
-              }
-            '''),
-          );
+            test('and the types match:', () async {
+              await testSuggestor(
+                expectedPatchCount: 2,
+                input: withFluxComponentUsage(/*language=dart*/ r'''
+                  // ignore: undefined_identifier
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                  class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                    someMethod() {
+                      return Foo()
+                        ..id = '123';
+                    }
+    
+                    @override
+                    render() => null;
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                  // ignore: undefined_identifier
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                  class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                    someMethod() {
+                      return Foo()
+                        ..store = props.store
+                        ..actions = props.actions
+                        ..id = '123';
+                    }
+    
+                    @override
+                    render() => null;
+                  }
+                '''),
+              );
+            });
+          });
         });
       });
     });
