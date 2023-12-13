@@ -43,13 +43,15 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
     var actionsAssigned = false;
     var storeAssigned = false;
 
-    List<DartType?>? fluxStoreAndActionTypes;
+    DartType? fluxActionsType;
+    DartType? fluxStoreType;
     final cascadeWriteEl = node.staticType?.element;
     if (cascadeWriteEl is ClassElement) {
       final maybeFluxUiPropsMixin = cascadeWriteEl.mixins
           .singleWhereOrNull((e) => e.element.name == fluxPropsMixinName);
       writesToFluxUiProps = maybeFluxUiPropsMixin != null;
-      fluxStoreAndActionTypes = maybeFluxUiPropsMixin?.typeArguments;
+      fluxActionsType = maybeFluxUiPropsMixin?.typeArguments[0];
+      fluxStoreType = maybeFluxUiPropsMixin?.typeArguments[1];
     }
 
     final cascadingAssignments =
@@ -65,7 +67,6 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
 
     if (writesToFluxUiProps && !storeAssigned) {
       storeAssigned = true;
-      final fluxStoreType = fluxStoreAndActionTypes?[1];
       final storeValue =
           _getNameOfVarOrFieldInScopeWithType(node, fluxStoreType) ?? 'null';
       yieldNewCascadeSection(node, '..store = $storeValue');
@@ -73,7 +74,6 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
 
     if (writesToFluxUiProps && !actionsAssigned) {
       actionsAssigned = true;
-      final fluxActionsType = fluxStoreAndActionTypes?[0];
       final actionsValue =
           _getNameOfVarOrFieldInScopeWithType(node, fluxActionsType) ?? 'null';
       yieldNewCascadeSection(node, '..actions = $actionsValue');
