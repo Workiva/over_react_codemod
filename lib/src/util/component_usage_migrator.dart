@@ -28,7 +28,7 @@ import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/ignore_info.dart';
 
 import 'class_suggestor.dart';
-import 'offset_util.dart' ;
+import 'offset_util.dart';
 
 export 'class_suggestor.dart' show ClassSuggestor;
 export 'wsd_util.dart';

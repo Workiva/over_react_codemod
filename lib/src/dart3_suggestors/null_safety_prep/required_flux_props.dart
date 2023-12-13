@@ -33,8 +33,7 @@ import '../../util/class_suggestor.dart';
 ///
 /// In the case of a component that is rendered in a scope where a store/actions
 /// instance is not available, `null` will be used as the value for the prop(s).
-class RequiredFluxProps extends RecursiveAstVisitor
-    with ClassSuggestor {
+class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
   ResolvedUnitResult? _result;
 
   static const fluxPropsMixinName = 'FluxUiPropsMixin';
@@ -42,22 +41,34 @@ class RequiredFluxProps extends RecursiveAstVisitor
   String? getNameOfVarOrFieldInScopeWithType(AstNode node, DartType? type) {
     final inScopeVariableDetector = _InScopeVarDetector();
     // Find top level vars
-    node.thisOrAncestorOfType<CompilationUnit>()?.accept(inScopeVariableDetector);
+    node
+        .thisOrAncestorOfType<CompilationUnit>()
+        ?.accept(inScopeVariableDetector);
     // Find vars declared in top-level fns (like `main()`)
-    node.thisOrAncestorOfType<BlockFunctionBody>()?.visitChildren(inScopeVariableDetector);
+    node
+        .thisOrAncestorOfType<BlockFunctionBody>()
+        ?.visitChildren(inScopeVariableDetector);
 
-    final inScopeVarName = inScopeVariableDetector.found.firstWhereOrNull((v) {
-      final maybeMatchingType = v.declaredElement?.type;
-      return maybeMatchingType?.element?.name == type?.element?.name;
-    })?.declaredElement?.name;
+    final inScopeVarName = inScopeVariableDetector.found
+        .firstWhereOrNull((v) {
+          final maybeMatchingType = v.declaredElement?.type;
+          return maybeMatchingType?.element?.name == type?.element?.name;
+        })
+        ?.declaredElement
+        ?.name;
 
     final componentScopePropDetector = _ComponentScopeFluxPropsDetector();
     // Find actions/store in props of class components
-    node.thisOrAncestorOfType<ClassDeclaration>()?.accept(componentScopePropDetector);
+    node
+        .thisOrAncestorOfType<ClassDeclaration>()
+        ?.accept(componentScopePropDetector);
     // Find actions/store in props of fn components
-    node.thisOrAncestorOfType<MethodInvocation>()?.accept(componentScopePropDetector);
+    node
+        .thisOrAncestorOfType<MethodInvocation>()
+        ?.accept(componentScopePropDetector);
 
-    final inScopePropName = componentScopePropDetector.found.firstWhereOrNull((el) {
+    final inScopePropName =
+        componentScopePropDetector.found.firstWhereOrNull((el) {
       final maybeMatchingType = componentScopePropDetector.getAccessorType(el);
       return maybeMatchingType?.element?.name == type?.element?.name;
     })?.name;
@@ -91,7 +102,8 @@ class RequiredFluxProps extends RecursiveAstVisitor
       fluxStoreAndActionTypes = maybeFluxUiPropsMixin?.typeArguments;
     }
 
-    final cascadingAssignments = node.cascadeSections.whereType<AssignmentExpression>();
+    final cascadingAssignments =
+        node.cascadeSections.whereType<AssignmentExpression>();
     storeAssigned = cascadingAssignments.any((cascade) {
       final lhs = cascade.leftHandSide;
       return lhs is PropertyAccess && lhs.propertyName.name == 'store';
@@ -104,21 +116,22 @@ class RequiredFluxProps extends RecursiveAstVisitor
     if (writesToFluxUiProps && !storeAssigned) {
       storeAssigned = true;
       final fluxStoreType = fluxStoreAndActionTypes?[1];
-      final storeValue = getNameOfVarOrFieldInScopeWithType(node, fluxStoreType) ?? 'null';
+      final storeValue =
+          getNameOfVarOrFieldInScopeWithType(node, fluxStoreType) ?? 'null';
       yieldNewCascadeSection(node, '..store = $storeValue');
     }
 
     if (writesToFluxUiProps && !actionsAssigned) {
       actionsAssigned = true;
       final fluxActionsType = fluxStoreAndActionTypes?[0];
-      final actionsValue = getNameOfVarOrFieldInScopeWithType(node, fluxActionsType) ?? 'null';
+      final actionsValue =
+          getNameOfVarOrFieldInScopeWithType(node, fluxActionsType) ?? 'null';
       yieldNewCascadeSection(node, '..actions = $actionsValue');
     }
   }
 
   void yieldNewCascadeSection(CascadeExpression node, String newSection) {
-    final offset = context.sourceFile.getOffsetOfLineAfter(
-        node.target.offset);
+    final offset = context.sourceFile.getOffsetOfLineAfter(node.target.offset);
     yieldPatch(newSection, offset, offset);
   }
 
@@ -133,7 +146,8 @@ class RequiredFluxProps extends RecursiveAstVisitor
   }
 }
 
-bool isFnComponentDeclaration(Expression? varInitializer) => varInitializer is MethodInvocation &&
+bool isFnComponentDeclaration(Expression? varInitializer) =>
+    varInitializer is MethodInvocation &&
     varInitializer.methodName.name.startsWith('uiF');
 
 /// A visitor to detect in-scope store/actions variables (top-level and block function scopes)
@@ -156,20 +170,23 @@ class _InScopeVarDetector extends RecursiveAstVisitor<void> {
 /// A visitor to detect store/actions values in a props class (supports both class and fn components)
 class _ComponentScopeFluxPropsDetector extends RecursiveAstVisitor<void> {
   final Map<PropertyAccessorElement, DartType> _foundWithMappedTypes;
-  List<PropertyAccessorElement> get found => _foundWithMappedTypes.keys.toList();
+  List<PropertyAccessorElement> get found =>
+      _foundWithMappedTypes.keys.toList();
 
   _ComponentScopeFluxPropsDetector() : _foundWithMappedTypes = {};
 
   String _propsName = 'props';
+
   /// The name of the function component props arg, or the class component `props` instance field.
   String get propsName => _propsName;
 
-  DartType? getAccessorType(PropertyAccessorElement el) => _foundWithMappedTypes[el];
+  DartType? getAccessorType(PropertyAccessorElement el) =>
+      _foundWithMappedTypes[el];
 
   void _lookForFluxStoreAndActionsInPropsClass(Element? elWithProps) {
     if (elWithProps is ClassElement) {
-      final fluxPropsEl = elWithProps.mixins
-          .singleWhereOrNull((e) => e.element.name == RequiredFluxProps.fluxPropsMixinName);
+      final fluxPropsEl = elWithProps.mixins.singleWhereOrNull(
+          (e) => e.element.name == RequiredFluxProps.fluxPropsMixinName);
 
       if (fluxPropsEl != null) {
         final actionsType = fluxPropsEl.typeArguments[0];
@@ -193,8 +210,10 @@ class _ComponentScopeFluxPropsDetector extends RecursiveAstVisitor<void> {
 
     final nodeType = node.staticType;
     if (nodeType is FunctionType) {
-      final propsArg = node.argumentList.arguments.firstOrNull as FunctionExpression?;
-      final propsArgName = propsArg?.parameters?.parameterElements.firstOrNull?.name;
+      final propsArg =
+          node.argumentList.arguments.firstOrNull as FunctionExpression?;
+      final propsArgName =
+          propsArg?.parameters?.parameterElements.firstOrNull?.name;
       if (propsArgName != null) {
         _propsName = propsArgName;
       }
@@ -205,7 +224,8 @@ class _ComponentScopeFluxPropsDetector extends RecursiveAstVisitor<void> {
   /// Visit composite (class) components
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    final elWithProps = node.declaredElement?.supertype?.typeArguments.singleOrNull?.element;
+    final elWithProps =
+        node.declaredElement?.supertype?.typeArguments.singleOrNull?.element;
     _lookForFluxStoreAndActionsInPropsClass(elWithProps);
   }
 }

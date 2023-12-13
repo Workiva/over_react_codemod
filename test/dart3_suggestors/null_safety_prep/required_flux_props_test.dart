@@ -37,10 +37,12 @@ void main() {
       );
     });
 
-    test('leaves builders alone if they don\'t use FluxUiPropsMixin, '
+    test(
+        'leaves builders alone if they don\'t use FluxUiPropsMixin, '
         'even if they have props named store/actions', () async {
       await testSuggestor(
-        isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
+        isExpectedError: (err) =>
+            err.message.contains(RegExp(r'theStore|theActions')),
         expectedPatchCount: 0,
         input: withFluxComponentUsage(/*language=dart*/ r'''
           main() {
@@ -207,7 +209,8 @@ void main() {
           });
         });
 
-        group('when an actions var is available in function component props', () {
+        group('when an actions var is available in function component props',
+            () {
           test('unless the type does not match (uses null instead)', () async {
             await testSuggestor(
               isExpectedError: (err) => err.message.contains('someFunction'),
@@ -684,9 +687,11 @@ void main() {
 
         group('when store and/or actions var(s) are available', () {
           group('in top-level scope', () {
-            test('unless the type(s) do not match (uses null instead):', () async {
+            test('unless the type(s) do not match (uses null instead):',
+                () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r'theStore|theActions')),
                 expectedPatchCount: 2,
                 input: withFluxComponentUsage('''
                   final theStore = BazFooStore();
@@ -714,7 +719,8 @@ void main() {
             group('and the type(s) match:', () {
               test('store AND actions', () async {
                 await testSuggestor(
-                  isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
+                  isExpectedError: (err) =>
+                      err.message.contains(RegExp(r'theStore|theActions')),
                   expectedPatchCount: 2,
                   input: withFluxComponentUsage('''
                     final theStore = FooStore();
@@ -792,9 +798,11 @@ void main() {
           });
 
           group('in block function scope', () {
-            test('unless the type(s) do not match (uses null instead):', () async {
+            test('unless the type(s) do not match (uses null instead):',
+                () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r'theStore|theActions')),
                 expectedPatchCount: 2,
                 input: withFluxComponentUsage('''
                   main() {
@@ -824,7 +832,8 @@ void main() {
             group('and the type(s) match:', () {
               test('store AND actions', () async {
                 await testSuggestor(
-                  isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
+                  isExpectedError: (err) =>
+                      err.message.contains(RegExp(r'theStore|theActions')),
                   expectedPatchCount: 2,
                   input: withFluxComponentUsage('''
                     main() {
@@ -908,7 +917,8 @@ void main() {
           });
 
           group('in function component props', () {
-            test('unless the types do not match (uses null instead):', () async {
+            test('unless the types do not match (uses null instead):',
+                () async {
               await testSuggestor(
                 isExpectedError: (err) => err.message.contains('someFunction'),
                 expectedPatchCount: 2,
@@ -988,7 +998,8 @@ void main() {
           });
 
           group('in class component props', () {
-            test('unless the types do not match (uses null instead):', () async {
+            test('unless the types do not match (uses null instead):',
+                () async {
               await testSuggestor(
                 expectedPatchCount: 2,
                 input: withFluxComponentUsage('''
@@ -1078,8 +1089,11 @@ void main() {
   });
 }
 
-String withFluxComponentUsage(String source, {String? actionsName = 'FooActions', String? storeName = 'FooStore'}) {
-  String getActionsClasses() => actionsName == null ? '' : '''
+String withFluxComponentUsage(String source,
+    {String? actionsName = 'FooActions', String? storeName = 'FooStore'}) {
+  String getActionsClasses() => actionsName == null
+      ? ''
+      : '''
 class $actionsName {
   $actionsName();
 }
@@ -1089,7 +1103,9 @@ class Baz$actionsName {
 }
 ''';
 
-  String getStoreClasses() => storeName == null ? '' : '''
+  String getStoreClasses() => storeName == null
+      ? ''
+      : '''
 class $storeName {
   $storeName();
 }
