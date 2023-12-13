@@ -30,7 +30,7 @@ void main() {
                   .variables
                   .variables
                   .first
-                  .initializer as MethodInvocation)
+                  .initializer! as MethodInvocation)
               .argumentList;
 
           expect(getGeneratedFactoryConfigArg(argList), isNull);
@@ -74,7 +74,7 @@ void main() {
                   .variables
                   .variables
                   .first
-                  .initializer as MethodInvocation)
+                  .initializer! as MethodInvocation)
               .argumentList;
 
           final returnValue = getGeneratedFactoryConfigArg(argList)!;
@@ -156,7 +156,7 @@ void main() {
                   .variables
                   .variables
                   .first
-                  .initializer as MethodInvocation)
+                  .initializer! as MethodInvocation)
               .argumentList;
           final uiFunctionArgList = memoArgList.arguments
               .whereType<MethodInvocation>()

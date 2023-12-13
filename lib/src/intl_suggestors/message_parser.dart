@@ -112,7 +112,7 @@ class MessageParser {
   String withCorrectedNameParameter(MethodDeclaration declaration) {
     var invocation = intlMethodInvocation(declaration);
     var nameParameter = nameParameterFrom(invocation);
-    var className = (declaration.parent as ClassDeclaration).name.lexeme;
+    var className = (declaration.parent! as ClassDeclaration).name.lexeme;
     var expected = "'${className}_${declaration.name.lexeme}'";
     var actual = nameParameter?.expression.toSource();
     var basicString = '$declaration';

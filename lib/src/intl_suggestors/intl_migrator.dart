@@ -108,7 +108,7 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
     if (node.isConst &&
         node.initializer != null &&
         node.initializer is SimpleStringLiteral) {
-      SimpleStringLiteral literal = node.initializer as SimpleStringLiteral;
+      SimpleStringLiteral literal = node.initializer! as SimpleStringLiteral;
       var string = literal.stringValue;
       // I don't see how the parent could possibly be null, but if it's true, bail out.
       if (node.parent == null || string == null || string.length <= 1) return;
@@ -147,7 +147,7 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
     } else {
       // Use a content-based name.
       var contentBasedName =
-          toVariableName(stringContent(node.initializer as StringLiteral)!);
+          toVariableName(stringContent(node.initializer! as StringLiteral)!);
       return contentBasedName;
     }
   }

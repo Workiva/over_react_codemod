@@ -256,7 +256,7 @@ void main() {
             final childSource = '($cascadeSource)(\'stringChild\')';
             final nestedSource = 'Bar()($childSource)';
             late InvocationExpression expressionNode;
-            late InvocationExpression childExpression;
+            late InvocationExpression? childExpression;
 
             setUpAll(() async {
               expressionNode = await parseInvocation(
@@ -270,8 +270,8 @@ void main() {
               expect(expressionNode.argumentList.arguments.firstOrNull,
                   isA<InvocationExpression>());
               childExpression = expressionNode
-                  .argumentList.arguments.firstOrNull as InvocationExpression;
-              expect(childExpression.toSource(), childSource);
+                  .argumentList.arguments.firstOrNull as InvocationExpression?;
+              expect(childExpression?.toSource(), childSource);
             });
 
             test('and node is the parent component', () {
@@ -299,7 +299,7 @@ void main() {
 
             group('and the node inside the child component', () {
               test('is props cascade expression', () {
-                final cascadeExpression = getComponentUsage(childExpression)
+                final cascadeExpression = getComponentUsage(childExpression!)
                     ?.cascadeExpression
                     ?.cascadeSections
                     .firstOrNull;
@@ -311,7 +311,7 @@ void main() {
 
               test('is a child should return null', () {
                 final child =
-                    childExpression.argumentList.arguments.firstOrNull;
+                    childExpression!.argumentList.arguments.firstOrNull;
                 expect(child?.toSource(), '\'stringChild\'');
                 final componentUsage = identifyUsage(child);
                 expect(componentUsage, isNull);
