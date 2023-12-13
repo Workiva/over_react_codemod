@@ -63,39 +63,12 @@ void main() {
         return (!invokeBuilder ? builderString : '($builderString)()') + ';';
       }
 
-      group('have no actions setter', () {
-        test('when no actions var is available in scope', () async {
-          await testSuggestor(
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage('''
-              main() {
-                final theStore = FooStore();
-                ${maybeInvokeBuilder('''
-                Foo()
-                  ..store = theStore
-                ''')}
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage('''
-              main() {
-                final theStore = FooStore();
-                ${maybeInvokeBuilder('''
-                Foo()
-                  ..actions = null
-                  ..store = theStore
-                ''')}
-              }
-            '''),
-          );
-        });
-
-        group('when a top-level actions var is available', () {
-          test('unless the type does not match (uses null instead)', () async {
+      group('patches ${invokeBuilder ? 'invoked' : 'un-invoked'} builders that use FluxUiPropsMixin and', () {
+        group('have no actions setter', () {
+          test('when no actions var is available in scope', () async {
             await testSuggestor(
-              isExpectedError: (err) => err.message.contains('theActions'),
               expectedPatchCount: 1,
               input: withFluxComponentUsage('''
-                final theActions = BazFooActions();
                 main() {
                   final theStore = FooStore();
                   ${maybeInvokeBuilder('''
@@ -105,7 +78,6 @@ void main() {
                 }
               '''),
               expectedOutput: withFluxComponentUsage('''
-                final theActions = BazFooActions();
                 main() {
                   final theStore = FooStore();
                   ${maybeInvokeBuilder('''
@@ -118,817 +90,143 @@ void main() {
             );
           });
 
-          test('and the type matches', () async {
-            await testSuggestor(
-              isExpectedError: (err) => err.message.contains('theActions'),
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                final theActions = FooActions();
-                main() {
-                  final theStore = FooStore();
-                  ${maybeInvokeBuilder('''
-                  Foo()
-                    ..store = theStore
-                  ''')}
-                }
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                final theActions = FooActions();
-                main() {
-                  final theStore = FooStore();
-                  ${maybeInvokeBuilder('''
-                  Foo()
-                    ..actions = theActions
-                    ..store = theStore
-                  ''')}
-                }
-              '''),
-            );
-          });
-        });
-
-        group('when an actions var is available in block function scope', () {
-          test('unless the type does not match (uses null instead)', () async {
-            await testSuggestor(
-              isExpectedError: (err) => err.message.contains('theActions'),
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                main() {
-                  final theStore = FooStore();
-                  final theActions = BazFooActions();
-  
-                  ${maybeInvokeBuilder('''
-                  Foo()
-                    ..store = theStore
-                  ''')}
-                }
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                main() {
-                  final theStore = FooStore();
-                  final theActions = BazFooActions();
-  
-                  ${maybeInvokeBuilder('''
-                  Foo()
-                    ..actions = null
-                    ..store = theStore
-                  ''')}
-                }
-              '''),
-            );
-          });
-
-          test('and the type matches', () async {
-            await testSuggestor(
-              isExpectedError: (err) => err.message.contains('theActions'),
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                main() {
-                  final theStore = FooStore();
-                  final theActions = FooActions();
-  
-                  ${maybeInvokeBuilder('''
-                  Foo()
-                    ..store = theStore
-                  ''')}
-                }
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                main() {
-                  final theStore = FooStore();
-                  final theActions = FooActions();
-  
-                  ${maybeInvokeBuilder('''
-                  Foo()
-                    ..actions = theActions
-                    ..store = theStore
-                  ''')}
-                }
-              '''),
-            );
-          });
-        });
-
-        group('when an actions var is available in function component props',
-            () {
-          test('unless the type does not match (uses null instead)', () async {
-            await testSuggestor(
-              isExpectedError: (err) => err.message.contains('someFunction'),
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-                final FooConsumer = uiFunction<FooConsumerProps>(
-                  (localProps) {
-                    someFunction() {
-                      return ${maybeInvokeBuilder('''Foo()
-                        ..store = FooStore()
-                      ''')}
-                    }
-                  
-                    return null;
-                  },
-                  _\$FooConsumerConfig, // ignore: undefined_identifier
-                );
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-                final FooConsumer = uiFunction<FooConsumerProps>(
-                  (localProps) {
-                    someFunction() {
-                      return ${maybeInvokeBuilder('''Foo()
-                        ..actions = null
-                        ..store = FooStore()
-                      ''')}
-                    }
-                  
-                    return null;
-                  },
-                  _\$FooConsumerConfig, // ignore: undefined_identifier
-                );
-              '''),
-            );
-          });
-
-          test('and the type matches', () async {
-            await testSuggestor(
-              isExpectedError: (err) => err.message.contains('someFunction'),
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-                final FooConsumer = uiFunction<FooConsumerProps>(
-                  (localProps) {
-                    someFunction() {
-                      return ${maybeInvokeBuilder('''Foo()
-                        ..store = localProps.store
-                      ''')}
-                    }
-                  
-                    return null;
-                  },
-                  _\$FooConsumerConfig, // ignore: undefined_identifier
-                );
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-                final FooConsumer = uiFunction<FooConsumerProps>(
-                  (localProps) {
-                    someFunction() {
-                      return ${maybeInvokeBuilder('''Foo()
-                        ..actions = localProps.actions
-                        ..store = localProps.store
-                      ''')}
-                    }
-                  
-                    return null;
-                  },
-                  _\$FooConsumerConfig, // ignore: undefined_identifier
-                );
-              '''),
-            );
-          });
-        });
-
-        group('when an actions var is available in class component props', () {
-          test('unless the type does not match (uses null instead)', () async {
-            await testSuggestor(
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                // ignore: undefined_identifier
-                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                  someMethod() {
-                    return ${maybeInvokeBuilder('''Foo()
-                      ..store = FooStore()
-                    ''')}
-                  }
-  
-                  @override
-                  render() => null;
-                }
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                // ignore: undefined_identifier
-                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                  someMethod() {
-                    return ${maybeInvokeBuilder('''Foo()
-                      ..actions = null
-                      ..store = FooStore()
-                    ''')}
-                  }
-  
-                  @override
-                  render() => null;
-                }
-              '''),
-            );
-          });
-
-          test('and the type matches', () async {
-            await testSuggestor(
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                // ignore: undefined_identifier
-                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                  someMethod() {
-                    return ${maybeInvokeBuilder('''Foo()
-                      ..store = props.store
-                    ''')}
-                  }
-  
-                  @override
-                  render() => null;
-                }
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                // ignore: undefined_identifier
-                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                  someMethod() {
-                    return ${maybeInvokeBuilder('''Foo()
-                      ..actions = props.actions
-                      ..store = props.store
-                    ''')}
-                  }
-  
-                  @override
-                  render() => null;
-                }
-              '''),
-            );
-          });
-        });
-      });
-
-      group('have no store setter', () {
-        test('when no store var is available in scope', () async {
-          await testSuggestor(
-            expectedPatchCount: 1,
-            input: withFluxComponentUsage('''
-              main() {
-                final theActions = FooActions();
-
-                ${maybeInvokeBuilder('''Foo()
-                  ..actions = theActions
-                ''')}
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage('''
-              main() {
-                final theActions = FooActions();
-
-                ${maybeInvokeBuilder('''Foo()
-                  ..store = null
-                  ..actions = theActions
-                ''')}
-              }
-            '''),
-          );
-        });
-
-        group('when a top-level store var is available', () {
-          test('unless the type does not match (uses null instead)', () async {
-            await testSuggestor(
-              isExpectedError: (err) => err.message.contains('theStore'),
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                final theStore = BazFooStore();
-                main() {
-                  final theActions = FooActions();
-  
-                  ${maybeInvokeBuilder('''Foo()
-                    ..actions = theActions
-                  ''')}
-                }
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                final theStore = BazFooStore();
-                main() {
-                  final theActions = FooActions();
-  
-                  ${maybeInvokeBuilder('''Foo()
-                    ..store = null
-                    ..actions = theActions
-                  ''')}
-                }
-              '''),
-            );
-          });
-
-          test('and the type matches', () async {
-            await testSuggestor(
-              isExpectedError: (err) => err.message.contains('theStore'),
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                final theStore = FooStore();
-                main() {
-                  final theActions = FooActions();
-  
-                  ${maybeInvokeBuilder('''Foo()
-                    ..actions = theActions
-                  ''')}
-                }
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                final theStore = FooStore();
-                main() {
-                  final theActions = FooActions();
-  
-                  ${maybeInvokeBuilder('''Foo()
-                    ..store = theStore
-                    ..actions = theActions
-                  ''')}
-                }
-              '''),
-            );
-          });
-        });
-
-        group('when a store var is available in block function scope', () {
-          test('unless the type does not match (uses null instead)', () async {
-            await testSuggestor(
-              isExpectedError: (err) => err.message.contains('theStore'),
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                main() {
-                  final theStore = BazFooStore();
-                  final theActions = FooActions();
-  
-                  ${maybeInvokeBuilder('''Foo()
-                    ..actions = theActions
-                  ''')}
-                }
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                main() {
-                  final theStore = BazFooStore();
-                  final theActions = FooActions();
-  
-                  ${maybeInvokeBuilder('''Foo()
-                    ..store = null
-                    ..actions = theActions
-                  ''')}
-                }
-              '''),
-            );
-          });
-
-          test('and the type matches', () async {
-            await testSuggestor(
-              isExpectedError: (err) => err.message.contains('theStore'),
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                main() {
-                  final theStore = FooStore();
-                  final theActions = FooActions();
-  
-                  ${maybeInvokeBuilder('''Foo()
-                    ..actions = theActions
-                  ''')}
-                }
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                main() {
-                  final theStore = FooStore();
-                  final theActions = FooActions();
-  
-                  ${maybeInvokeBuilder('''Foo()
-                    ..store = theStore
-                    ..actions = theActions
-                  ''')}
-                }
-              '''),
-            );
-          });
-        });
-
-        group('when a store var is available in function component props', () {
-          test('unless the type does not match (uses null instead)', () async {
-            await testSuggestor(
-              isExpectedError: (err) => err.message.contains('someFunction'),
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-                final FooConsumer = uiFunction<FooConsumerProps>(
-                  (localProps) {
-                    someFunction() {
-                      return ${maybeInvokeBuilder('''Foo()
-                        ..actions = FooActions()
-                      ''')}
-                    }
-                  
-                    return null;
-                  },
-                  _\$FooConsumerConfig, // ignore: undefined_identifier
-                );
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-                final FooConsumer = uiFunction<FooConsumerProps>(
-                  (localProps) {
-                    someFunction() {
-                      return ${maybeInvokeBuilder('''Foo()
-                        ..store = null
-                        ..actions = FooActions()
-                      ''')}
-                    }
-                  
-                    return null;
-                  },
-                  _\$FooConsumerConfig, // ignore: undefined_identifier
-                );
-              '''),
-            );
-          });
-
-          test('and the type matches', () async {
-            await testSuggestor(
-              isExpectedError: (err) => err.message.contains('someFunction'),
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-                final FooConsumer = uiFunction<FooConsumerProps>(
-                  (localProps) {
-                    someFunction() {
-                      return ${maybeInvokeBuilder('''Foo()
-                        ..actions = localProps.actions
-                      ''')}
-                    }
-                  
-                    return null;
-                  },
-                  _\$FooConsumerConfig, // ignore: undefined_identifier
-                );
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-                final FooConsumer = uiFunction<FooConsumerProps>(
-                  (localProps) {
-                    someFunction() {
-                      return ${maybeInvokeBuilder('''Foo()
-                        ..store = localProps.store
-                        ..actions = localProps.actions
-                      ''')}
-                    }
-                  
-                    return null;
-                  },
-                  _\$FooConsumerConfig, // ignore: undefined_identifier
-                );
-              '''),
-            );
-          });
-        });
-
-        group('when a store var is available in class component props', () {
-          test('unless the type does not match (uses null instead)', () async {
-            await testSuggestor(
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                // ignore: undefined_identifier
-                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                  someMethod() {
-                    return ${maybeInvokeBuilder('''Foo()
-                      ..actions = FooActions()
-                    ''')}
-                  }
-  
-                  @override
-                  render() => null;
-                }
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                // ignore: undefined_identifier
-                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                  someMethod() {
-                    return ${maybeInvokeBuilder('''Foo()
-                      ..store = null
-                      ..actions = FooActions()
-                    ''')}
-                  }
-  
-                  @override
-                  render() => null;
-                }
-              '''),
-            );
-          });
-
-          test('and the type matches', () async {
-            await testSuggestor(
-              expectedPatchCount: 1,
-              input: withFluxComponentUsage('''
-                // ignore: undefined_identifier
-                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                  someMethod() {
-                    return ${maybeInvokeBuilder('''Foo()
-                      ..actions = props.actions
-                    ''')}
-                  }
-  
-                  @override
-                  render() => null;
-                }
-              '''),
-              expectedOutput: withFluxComponentUsage('''
-                // ignore: undefined_identifier
-                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
-                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                  someMethod() {
-                    return ${maybeInvokeBuilder('''Foo()
-                      ..store = props.store
-                      ..actions = props.actions
-                    ''')}
-                  }
-  
-                  @override
-                  render() => null;
-                }
-              '''),
-            );
-          });
-        });
-      });
-
-      group('have no store or actions setter', () {
-        test('when no store or actions var is available in scope', () async {
-          await testSuggestor(
-            expectedPatchCount: 2,
-            input: withFluxComponentUsage('''
-              main() {
-                ${maybeInvokeBuilder('''Foo()
-                  ..id = '123'
-                ''')}
-              }
-            '''),
-            expectedOutput: withFluxComponentUsage('''
-              main() {
-                ${maybeInvokeBuilder('''Foo()
-                  ..store = null
-                  ..actions = null
-                  ..id = '123'
-                ''')}
-              }
-            '''),
-          );
-        });
-
-        group('when store and/or actions var(s) are available', () {
-          group('in top-level scope', () {
-            test('unless the type(s) do not match (uses null instead):',
-                () async {
+          group('when a top-level actions var is available', () {
+            test(
+                'unless the type does not match (uses null instead)', () async {
               await testSuggestor(
-                isExpectedError: (err) =>
-                    err.message.contains(RegExp(r'theStore|theActions')),
-                expectedPatchCount: 2,
+                isExpectedError: (err) => err.message.contains('theActions'),
+                expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
-                  final theStore = BazFooStore();
                   final theActions = BazFooActions();
                   main() {
-                    ${maybeInvokeBuilder('''Foo()
-                      ..id = '123'
+                    final theStore = FooStore();
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..store = theStore
                     ''')}
                   }
                 '''),
                 expectedOutput: withFluxComponentUsage('''
-                  final theStore = BazFooStore();
                   final theActions = BazFooActions();
                   main() {
-                    ${maybeInvokeBuilder('''Foo()
-                      ..store = null
+                    final theStore = FooStore();
+                    ${maybeInvokeBuilder('''
+                    Foo()
                       ..actions = null
-                      ..id = '123'
+                      ..store = theStore
                     ''')}
                   }
                 '''),
               );
             });
 
-            group('and the type(s) match:', () {
-              test('store AND actions', () async {
-                await testSuggestor(
-                  isExpectedError: (err) =>
-                      err.message.contains(RegExp(r'theStore|theActions')),
-                  expectedPatchCount: 2,
-                  input: withFluxComponentUsage('''
-                    final theStore = FooStore();
-                    final theActions = FooActions();
-                    main() {
-                      ${maybeInvokeBuilder('''Foo()
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                  expectedOutput: withFluxComponentUsage('''
-                    final theStore = FooStore();
-                    final theActions = FooActions();
-                    main() {
-                      ${maybeInvokeBuilder('''Foo()
-                        ..store = theStore
-                        ..actions = theActions
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                );
-              });
-
-              test('store only', () async {
-                await testSuggestor(
-                  isExpectedError: (err) => err.message.contains('theStore'),
-                  expectedPatchCount: 2,
-                  input: withFluxComponentUsage('''
-                    final theStore = FooStore();
-                    main() {
-                      ${maybeInvokeBuilder('''Foo()
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                  expectedOutput: withFluxComponentUsage('''
-                    final theStore = FooStore();
-                    main() {
-                      ${maybeInvokeBuilder('''Foo()
-                        ..store = theStore
-                        ..actions = null
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                );
-              });
-
-              test('actions only', () async {
-                await testSuggestor(
-                  isExpectedError: (err) => err.message.contains('theActions'),
-                  expectedPatchCount: 2,
-                  input: withFluxComponentUsage('''
-                    final theActions = FooActions();
-                    main() {
-                      ${maybeInvokeBuilder('''Foo()
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                  expectedOutput: withFluxComponentUsage('''
+            test('and the type matches', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theActions'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
                   final theActions = FooActions();
-                    main() {
-                      ${maybeInvokeBuilder('''Foo()
-                        ..store = null
-                        ..actions = theActions
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                );
-              });
+                  main() {
+                    final theStore = FooStore();
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..store = theStore
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  final theActions = FooActions();
+                  main() {
+                    final theStore = FooStore();
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..actions = theActions
+                      ..store = theStore
+                    ''')}
+                  }
+                '''),
+              );
             });
           });
 
-          group('in block function scope', () {
-            test('unless the type(s) do not match (uses null instead):',
-                () async {
+          group('when an actions var is available in block function scope', () {
+            test(
+                'unless the type does not match (uses null instead)', () async {
               await testSuggestor(
-                isExpectedError: (err) =>
-                    err.message.contains(RegExp(r'theStore|theActions')),
-                expectedPatchCount: 2,
+                isExpectedError: (err) => err.message.contains('theActions'),
+                expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   main() {
-                    final theStore = BazFooStore();
+                    final theStore = FooStore();
                     final theActions = BazFooActions();
     
-                    ${maybeInvokeBuilder('''Foo()
-                      ..id = '123'
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..store = theStore
                     ''')}
                   }
                 '''),
                 expectedOutput: withFluxComponentUsage('''
                   main() {
-                    final theStore = BazFooStore();
+                    final theStore = FooStore();
                     final theActions = BazFooActions();
     
-                    ${maybeInvokeBuilder('''Foo()
-                      ..store = null
+                    ${maybeInvokeBuilder('''
+                    Foo()
                       ..actions = null
-                      ..id = '123'
+                      ..store = theStore
                     ''')}
                   }
                 '''),
               );
             });
 
-            group('and the type(s) match:', () {
-              test('store AND actions', () async {
-                await testSuggestor(
-                  isExpectedError: (err) =>
-                      err.message.contains(RegExp(r'theStore|theActions')),
-                  expectedPatchCount: 2,
-                  input: withFluxComponentUsage('''
-                    main() {
-                      final theStore = FooStore();
-                      final theActions = FooActions();
-      
-                      ${maybeInvokeBuilder('''Foo()
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                  expectedOutput: withFluxComponentUsage('''
-                    main() {
-                      final theStore = FooStore();
-                      final theActions = FooActions();
-      
-                      ${maybeInvokeBuilder('''Foo()
-                        ..store = theStore
-                        ..actions = theActions
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                );
-              });
-
-              test('store only', () async {
-                await testSuggestor(
-                  isExpectedError: (err) => err.message.contains('theStore'),
-                  expectedPatchCount: 2,
-                  input: withFluxComponentUsage('''
-                    main() {
-                      final theStore = FooStore();
-      
-                      ${maybeInvokeBuilder('''Foo()
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                  expectedOutput: withFluxComponentUsage('''
-                    main() {
-                      final theStore = FooStore();
-      
-                      ${maybeInvokeBuilder('''Foo()
-                        ..store = theStore
-                        ..actions = null
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                );
-              });
-
-              test('actions only', () async {
-                await testSuggestor(
-                  isExpectedError: (err) => err.message.contains('theActions'),
-                  expectedPatchCount: 2,
-                  input: withFluxComponentUsage('''
-                    main() {
-                      final theActions = FooActions();
-      
-                      ${maybeInvokeBuilder('''Foo()
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                  expectedOutput: withFluxComponentUsage('''
-                    main() {
-                      final theActions = FooActions();
-      
-                      ${maybeInvokeBuilder('''Foo()
-                        ..store = null
-                        ..actions = theActions
-                        ..id = '123'
-                      ''')}
-                    }
-                  '''),
-                );
-              });
+            test('and the type matches', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theActions'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  main() {
+                    final theStore = FooStore();
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..store = theStore
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  main() {
+                    final theStore = FooStore();
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..actions = theActions
+                      ..store = theStore
+                    ''')}
+                  }
+                '''),
+              );
             });
           });
 
-          group('in function component props', () {
-            test('unless the types do not match (uses null instead):',
-                () async {
-              await testSuggestor(
-                isExpectedError: (err) => err.message.contains('someFunction'),
-                expectedPatchCount: 2,
-                input: withFluxComponentUsage('''
+          group('when an actions var is available in function component props',
+                  () {
+                test(
+                    'unless the type does not match (uses null instead)', () async {
+                  await testSuggestor(
+                    isExpectedError: (err) =>
+                        err.message.contains('someFunction'),
+                    expectedPatchCount: 1,
+                    input: withFluxComponentUsage('''
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
                   final FooConsumer = uiFunction<FooConsumerProps>(
                     (localProps) {
                       someFunction() {
                         return ${maybeInvokeBuilder('''Foo()
-                          ..id = '123'
+                          ..store = FooStore()
                         ''')}
                       }
                     
@@ -936,7 +234,311 @@ void main() {
                     },
                     _\$FooConsumerConfig, // ignore: undefined_identifier
                   );
+                '''),
+                    expectedOutput: withFluxComponentUsage('''
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                  final FooConsumer = uiFunction<FooConsumerProps>(
+                    (localProps) {
+                      someFunction() {
+                        return ${maybeInvokeBuilder('''Foo()
+                          ..actions = null
+                          ..store = FooStore()
+                        ''')}
+                      }
+                    
+                      return null;
+                    },
+                    _\$FooConsumerConfig, // ignore: undefined_identifier
+                  );
+                '''),
+                  );
+                });
+
+                test('and the type matches', () async {
+                  await testSuggestor(
+                    isExpectedError: (err) =>
+                        err.message.contains('someFunction'),
+                    expectedPatchCount: 1,
+                    input: withFluxComponentUsage('''
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                  final FooConsumer = uiFunction<FooConsumerProps>(
+                    (localProps) {
+                      someFunction() {
+                        return ${maybeInvokeBuilder('''Foo()
+                          ..store = localProps.store
+                        ''')}
+                      }
+                    
+                      return null;
+                    },
+                    _\$FooConsumerConfig, // ignore: undefined_identifier
+                  );
+                '''),
+                    expectedOutput: withFluxComponentUsage('''
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                  final FooConsumer = uiFunction<FooConsumerProps>(
+                    (localProps) {
+                      someFunction() {
+                        return ${maybeInvokeBuilder('''Foo()
+                          ..actions = localProps.actions
+                          ..store = localProps.store
+                        ''')}
+                      }
+                    
+                      return null;
+                    },
+                    _\$FooConsumerConfig, // ignore: undefined_identifier
+                  );
+                '''),
+                  );
+                });
+              });
+
+          group(
+              'when an actions var is available in class component props', () {
+            test(
+                'unless the type does not match (uses null instead)', () async {
+              await testSuggestor(
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  // ignore: undefined_identifier
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                  class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                    someMethod() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..store = FooStore()
+                      ''')}
+                    }
+    
+                    @override
+                    render() => null;
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  // ignore: undefined_identifier
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                  class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                    someMethod() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..actions = null
+                        ..store = FooStore()
+                      ''')}
+                    }
+    
+                    @override
+                    render() => null;
+                  }
+                '''),
+              );
+            });
+
+            test('and the type matches', () async {
+              await testSuggestor(
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  // ignore: undefined_identifier
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                  class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                    someMethod() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..store = props.store
+                      ''')}
+                    }
+    
+                    @override
+                    render() => null;
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  // ignore: undefined_identifier
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                  class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                    someMethod() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..actions = props.actions
+                        ..store = props.store
+                      ''')}
+                    }
+    
+                    @override
+                    render() => null;
+                  }
+                '''),
+              );
+            });
+          });
+        });
+
+        group('have no store setter', () {
+          test('when no store var is available in scope', () async {
+            await testSuggestor(
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage('''
+                main() {
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''Foo()
+                    ..actions = theActions
+                  ''')}
+                }
               '''),
+              expectedOutput: withFluxComponentUsage('''
+                main() {
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''Foo()
+                    ..store = null
+                    ..actions = theActions
+                  ''')}
+                }
+              '''),
+            );
+          });
+
+          group('when a top-level store var is available', () {
+            test(
+                'unless the type does not match (uses null instead)', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theStore'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  final theStore = BazFooStore();
+                  main() {
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''Foo()
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  final theStore = BazFooStore();
+                  main() {
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''Foo()
+                      ..store = null
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+              );
+            });
+
+            test('and the type matches', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theStore'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  final theStore = FooStore();
+                  main() {
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''Foo()
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  final theStore = FooStore();
+                  main() {
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''Foo()
+                      ..store = theStore
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+              );
+            });
+          });
+
+          group('when a store var is available in block function scope', () {
+            test(
+                'unless the type does not match (uses null instead)', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theStore'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  main() {
+                    final theStore = BazFooStore();
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''Foo()
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  main() {
+                    final theStore = BazFooStore();
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''Foo()
+                      ..store = null
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+              );
+            });
+
+            test('and the type matches', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theStore'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  main() {
+                    final theStore = FooStore();
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''Foo()
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  main() {
+                    final theStore = FooStore();
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''Foo()
+                      ..store = theStore
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+              );
+            });
+          });
+
+          group(
+              'when a store var is available in function component props', () {
+            test(
+                'unless the type does not match (uses null instead)', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('someFunction'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                  final FooConsumer = uiFunction<FooConsumerProps>(
+                    (localProps) {
+                      someFunction() {
+                        return ${maybeInvokeBuilder('''Foo()
+                          ..actions = FooActions()
+                        ''')}
+                      }
+                    
+                      return null;
+                    },
+                    _\$FooConsumerConfig, // ignore: undefined_identifier
+                  );
+                '''),
                 expectedOutput: withFluxComponentUsage('''
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
                   final FooConsumer = uiFunction<FooConsumerProps>(
@@ -944,8 +546,7 @@ void main() {
                       someFunction() {
                         return ${maybeInvokeBuilder('''Foo()
                           ..store = null
-                          ..actions = null
-                          ..id = '123'
+                          ..actions = FooActions()
                         ''')}
                       }
                     
@@ -957,17 +558,17 @@ void main() {
               );
             });
 
-            test('and the types match:', () async {
+            test('and the type matches', () async {
               await testSuggestor(
                 isExpectedError: (err) => err.message.contains('someFunction'),
-                expectedPatchCount: 2,
+                expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
                   final FooConsumer = uiFunction<FooConsumerProps>(
                     (localProps) {
                       someFunction() {
                         return ${maybeInvokeBuilder('''Foo()
-                          ..id = '123'
+                          ..actions = localProps.actions
                         ''')}
                       }
                     
@@ -984,7 +585,6 @@ void main() {
                         return ${maybeInvokeBuilder('''Foo()
                           ..store = localProps.store
                           ..actions = localProps.actions
-                          ..id = '123'
                         ''')}
                       }
                     
@@ -997,11 +597,11 @@ void main() {
             });
           });
 
-          group('in class component props', () {
-            test('unless the types do not match (uses null instead):',
-                () async {
+          group('when a store var is available in class component props', () {
+            test(
+                'unless the type does not match (uses null instead)', () async {
               await testSuggestor(
-                expectedPatchCount: 2,
+                expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   // ignore: undefined_identifier
                   UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
@@ -1009,7 +609,7 @@ void main() {
                   class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
                     someMethod() {
                       return ${maybeInvokeBuilder('''Foo()
-                        ..id = '123'
+                        ..actions = FooActions()
                       ''')}
                     }
     
@@ -1025,8 +625,7 @@ void main() {
                     someMethod() {
                       return ${maybeInvokeBuilder('''Foo()
                         ..store = null
-                        ..actions = null
-                        ..id = '123'
+                        ..actions = FooActions()
                       ''')}
                     }
     
@@ -1037,9 +636,9 @@ void main() {
               );
             });
 
-            test('and the types match:', () async {
+            test('and the type matches', () async {
               await testSuggestor(
-                expectedPatchCount: 2,
+                expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   // ignore: undefined_identifier
                   UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
@@ -1047,7 +646,7 @@ void main() {
                   class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
                     someMethod() {
                       return ${maybeInvokeBuilder('''Foo()
-                        ..id = '123'
+                        ..actions = props.actions
                       ''')}
                     }
     
@@ -1064,7 +663,6 @@ void main() {
                       return ${maybeInvokeBuilder('''Foo()
                         ..store = props.store
                         ..actions = props.actions
-                        ..id = '123'
                       ''')}
                     }
     
@@ -1076,16 +674,431 @@ void main() {
             });
           });
         });
+
+        group('have no store or actions setter', () {
+          test('when no store or actions var is available in scope', () async {
+            await testSuggestor(
+              expectedPatchCount: 2,
+              input: withFluxComponentUsage('''
+                main() {
+                  ${maybeInvokeBuilder('''Foo()
+                    ..id = '123'
+                  ''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                main() {
+                  ${maybeInvokeBuilder('''Foo()
+                    ..store = null
+                    ..actions = null
+                    ..id = '123'
+                  ''')}
+                }
+              '''),
+            );
+          });
+
+          group('when store and/or actions var(s) are available', () {
+            group('in top-level scope', () {
+              test('unless the type(s) do not match (uses null instead):',
+                      () async {
+                    await testSuggestor(
+                      isExpectedError: (err) =>
+                          err.message.contains(RegExp(r'theStore|theActions')),
+                      expectedPatchCount: 2,
+                      input: withFluxComponentUsage('''
+                    final theStore = BazFooStore();
+                    final theActions = BazFooActions();
+                    main() {
+                      ${maybeInvokeBuilder('''Foo()
+                        ..id = '123'
+                      ''')}
+                    }
+                  '''),
+                      expectedOutput: withFluxComponentUsage('''
+                    final theStore = BazFooStore();
+                    final theActions = BazFooActions();
+                    main() {
+                      ${maybeInvokeBuilder('''Foo()
+                        ..store = null
+                        ..actions = null
+                        ..id = '123'
+                      ''')}
+                    }
+                  '''),
+                    );
+                  });
+
+              group('and the type(s) match:', () {
+                test('store AND actions', () async {
+                  await testSuggestor(
+                    isExpectedError: (err) =>
+                        err.message.contains(RegExp(r'theStore|theActions')),
+                    expectedPatchCount: 2,
+                    input: withFluxComponentUsage('''
+                      final theStore = FooStore();
+                      final theActions = FooActions();
+                      main() {
+                        ${maybeInvokeBuilder('''Foo()
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                    expectedOutput: withFluxComponentUsage('''
+                      final theStore = FooStore();
+                      final theActions = FooActions();
+                      main() {
+                        ${maybeInvokeBuilder('''Foo()
+                          ..store = theStore
+                          ..actions = theActions
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                  );
+                });
+
+                test('store only', () async {
+                  await testSuggestor(
+                    isExpectedError: (err) => err.message.contains('theStore'),
+                    expectedPatchCount: 2,
+                    input: withFluxComponentUsage('''
+                      final theStore = FooStore();
+                      main() {
+                        ${maybeInvokeBuilder('''Foo()
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                    expectedOutput: withFluxComponentUsage('''
+                      final theStore = FooStore();
+                      main() {
+                        ${maybeInvokeBuilder('''Foo()
+                          ..store = theStore
+                          ..actions = null
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                  );
+                });
+
+                test('actions only', () async {
+                  await testSuggestor(
+                    isExpectedError: (err) =>
+                        err.message.contains('theActions'),
+                    expectedPatchCount: 2,
+                    input: withFluxComponentUsage('''
+                      final theActions = FooActions();
+                      main() {
+                        ${maybeInvokeBuilder('''Foo()
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                    expectedOutput: withFluxComponentUsage('''
+                    final theActions = FooActions();
+                      main() {
+                        ${maybeInvokeBuilder('''Foo()
+                          ..store = null
+                          ..actions = theActions
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                  );
+                });
+              });
+            });
+
+            group('in block function scope', () {
+              test('unless the type(s) do not match (uses null instead):',
+                      () async {
+                    await testSuggestor(
+                      isExpectedError: (err) =>
+                          err.message.contains(RegExp(r'theStore|theActions')),
+                      expectedPatchCount: 2,
+                      input: withFluxComponentUsage('''
+                    main() {
+                      final theStore = BazFooStore();
+                      final theActions = BazFooActions();
+      
+                      ${maybeInvokeBuilder('''Foo()
+                        ..id = '123'
+                      ''')}
+                    }
+                  '''),
+                      expectedOutput: withFluxComponentUsage('''
+                    main() {
+                      final theStore = BazFooStore();
+                      final theActions = BazFooActions();
+      
+                      ${maybeInvokeBuilder('''Foo()
+                        ..store = null
+                        ..actions = null
+                        ..id = '123'
+                      ''')}
+                    }
+                  '''),
+                    );
+                  });
+
+              group('and the type(s) match:', () {
+                test('store AND actions', () async {
+                  await testSuggestor(
+                    isExpectedError: (err) =>
+                        err.message.contains(RegExp(r'theStore|theActions')),
+                    expectedPatchCount: 2,
+                    input: withFluxComponentUsage('''
+                      main() {
+                        final theStore = FooStore();
+                        final theActions = FooActions();
+        
+                        ${maybeInvokeBuilder('''Foo()
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                    expectedOutput: withFluxComponentUsage('''
+                      main() {
+                        final theStore = FooStore();
+                        final theActions = FooActions();
+        
+                        ${maybeInvokeBuilder('''Foo()
+                          ..store = theStore
+                          ..actions = theActions
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                  );
+                });
+
+                test('store only', () async {
+                  await testSuggestor(
+                    isExpectedError: (err) => err.message.contains('theStore'),
+                    expectedPatchCount: 2,
+                    input: withFluxComponentUsage('''
+                      main() {
+                        final theStore = FooStore();
+        
+                        ${maybeInvokeBuilder('''Foo()
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                    expectedOutput: withFluxComponentUsage('''
+                      main() {
+                        final theStore = FooStore();
+        
+                        ${maybeInvokeBuilder('''Foo()
+                          ..store = theStore
+                          ..actions = null
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                  );
+                });
+
+                test('actions only', () async {
+                  await testSuggestor(
+                    isExpectedError: (err) =>
+                        err.message.contains('theActions'),
+                    expectedPatchCount: 2,
+                    input: withFluxComponentUsage('''
+                      main() {
+                        final theActions = FooActions();
+        
+                        ${maybeInvokeBuilder('''Foo()
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                    expectedOutput: withFluxComponentUsage('''
+                      main() {
+                        final theActions = FooActions();
+        
+                        ${maybeInvokeBuilder('''Foo()
+                          ..store = null
+                          ..actions = theActions
+                          ..id = '123'
+                        ''')}
+                      }
+                    '''),
+                  );
+                });
+              });
+            });
+
+            group('in function component props', () {
+              test('unless the types do not match (uses null instead):',
+                      () async {
+                    await testSuggestor(
+                      isExpectedError: (err) =>
+                          err.message.contains('someFunction'),
+                      expectedPatchCount: 2,
+                      input: withFluxComponentUsage('''
+                    class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                    final FooConsumer = uiFunction<FooConsumerProps>(
+                      (localProps) {
+                        someFunction() {
+                          return ${maybeInvokeBuilder('''Foo()
+                            ..id = '123'
+                          ''')}
+                        }
+                      
+                        return null;
+                      },
+                      _\$FooConsumerConfig, // ignore: undefined_identifier
+                    );
+                '''),
+                      expectedOutput: withFluxComponentUsage('''
+                    class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                    final FooConsumer = uiFunction<FooConsumerProps>(
+                      (localProps) {
+                        someFunction() {
+                          return ${maybeInvokeBuilder('''Foo()
+                            ..store = null
+                            ..actions = null
+                            ..id = '123'
+                          ''')}
+                        }
+                      
+                        return null;
+                      },
+                      _\$FooConsumerConfig, // ignore: undefined_identifier
+                    );
+                  '''),
+                    );
+                  });
+
+              test('and the types match:', () async {
+                await testSuggestor(
+                  isExpectedError: (err) =>
+                      err.message.contains('someFunction'),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage('''
+                    class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                    final FooConsumer = uiFunction<FooConsumerProps>(
+                      (localProps) {
+                        someFunction() {
+                          return ${maybeInvokeBuilder('''Foo()
+                            ..id = '123'
+                          ''')}
+                        }
+                      
+                        return null;
+                      },
+                      _\$FooConsumerConfig, // ignore: undefined_identifier
+                    );
+                  '''),
+                  expectedOutput: withFluxComponentUsage('''
+                    class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                    final FooConsumer = uiFunction<FooConsumerProps>(
+                      (localProps) {
+                        someFunction() {
+                          return ${maybeInvokeBuilder('''Foo()
+                            ..store = localProps.store
+                            ..actions = localProps.actions
+                            ..id = '123'
+                          ''')}
+                        }
+                      
+                        return null;
+                      },
+                      _\$FooConsumerConfig, // ignore: undefined_identifier
+                    );
+                  '''),
+                );
+              });
+            });
+
+            group('in class component props', () {
+              test('unless the types do not match (uses null instead):',
+                      () async {
+                    await testSuggestor(
+                      expectedPatchCount: 2,
+                      input: withFluxComponentUsage('''
+                    // ignore: undefined_identifier
+                    UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                    class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                    class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                      someMethod() {
+                        return ${maybeInvokeBuilder('''Foo()
+                          ..id = '123'
+                        ''')}
+                      }
+      
+                      @override
+                      render() => null;
+                    }
+                  '''),
+                      expectedOutput: withFluxComponentUsage('''
+                    // ignore: undefined_identifier
+                    UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                    class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                    class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                      someMethod() {
+                        return ${maybeInvokeBuilder('''Foo()
+                          ..store = null
+                          ..actions = null
+                          ..id = '123'
+                        ''')}
+                      }
+      
+                      @override
+                      render() => null;
+                    }
+                  '''),
+                    );
+                  });
+
+              test('and the types match:', () async {
+                await testSuggestor(
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage('''
+                    // ignore: undefined_identifier
+                    UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                    class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                    class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                      someMethod() {
+                        return ${maybeInvokeBuilder('''Foo()
+                          ..id = '123'
+                        ''')}
+                      }
+      
+                      @override
+                      render() => null;
+                    }
+                  '''),
+                  expectedOutput: withFluxComponentUsage('''
+                    // ignore: undefined_identifier
+                    UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                    class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                    class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                      someMethod() {
+                        return ${maybeInvokeBuilder('''Foo()
+                          ..store = props.store
+                          ..actions = props.actions
+                          ..id = '123'
+                        ''')}
+                      }
+      
+                      @override
+                      render() => null;
+                    }
+                  '''),
+                );
+              });
+            });
+          });
+        });
       });
     }
 
-    group('patches un-invoked builders that use FluxUiPropsMixin and', () {
-      sharedTests(invokeBuilder: false);
-    });
-
-    group('patches invoked builders that use FluxUiPropsMixin and', () {
-      sharedTests(invokeBuilder: true);
-    });
+    sharedTests(invokeBuilder: false);
+    sharedTests(invokeBuilder: true);
   });
 }
 
