@@ -50,7 +50,6 @@ class RequiredFluxProps extends RecursiveAstVisitor
 
   VariableElement? getVariableInScopeWithType(AstNode node, DartType? type) {
     final globalScopeVariableDetector = _GlobalScopeVarDetector();
-    // FIXME (adl): Why isn't this working?
     node.thisOrAncestorOfType<CompilationUnit>()?.accept(globalScopeVariableDetector);
 
     final inScopeVariableDetector = _InScopeVarDetector();

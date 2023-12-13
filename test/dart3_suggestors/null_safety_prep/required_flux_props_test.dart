@@ -56,80 +56,80 @@ void main() {
 
     group('patches un-invoked builders that use FluxUiPropsMixin', () {
       group('and do not have props.actions set', () {
-        // test('no actions var in scope', () async {
-        //   await testSuggestor(
-        //     expectedPatchCount: 1,
-        //     input: withFluxComponentUsage(/*language=dart*/ r'''
-        //       main() {
-        //         final theStore = FooStore();
-        //
-        //         Foo()
-        //           ..store = theStore;
-        //       }
-        //     '''),
-        //     expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-        //       main() {
-        //         final theStore = FooStore();
-        //
-        //         Foo()
-        //           ..actions = null
-        //           ..store = theStore;
-        //       }
-        //     '''),
-        //   );
-        // });
-        //
-        // test('actions var in local fn scope with incorrect type', () async {
-        //   await testSuggestor(
-        //     isExpectedError: (err) => err.message.contains('theActions'),
-        //     expectedPatchCount: 1,
-        //     input: withFluxComponentUsage(/*language=dart*/ r'''
-        //       main() {
-        //         final theStore = FooStore();
-        //         final theActions = BazFooActions();
-        //
-        //         Foo()
-        //           ..store = theStore;
-        //       }
-        //     '''),
-        //     expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-        //       main() {
-        //         final theStore = FooStore();
-        //         final theActions = BazFooActions();
-        //
-        //         Foo()
-        //           ..actions = null
-        //           ..store = theStore;
-        //       }
-        //     '''),
-        //   );
-        // });
-        //
-        // test('actions var in global scope with incorrect type', () async {
-        //   await testSuggestor(
-        //     isExpectedError: (err) => err.message.contains('theActions'),
-        //     expectedPatchCount: 1,
-        //     input: withFluxComponentUsage(/*language=dart*/ r'''
-        //       final theActions = BazFooActions();
-        //       main() {
-        //         final theStore = FooStore();
-        //
-        //         Foo()
-        //           ..store = theStore;
-        //       }
-        //     '''),
-        //     expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-        //       final theActions = BazFooActions();
-        //       main() {
-        //         final theStore = FooStore();
-        //
-        //         Foo()
-        //           ..actions = null
-        //           ..store = theStore;
-        //       }
-        //     '''),
-        //   );
-        // });
+        test('no actions var in scope', () async {
+          await testSuggestor(
+            expectedPatchCount: 1,
+            input: withFluxComponentUsage(/*language=dart*/ r'''
+              main() {
+                final theStore = FooStore();
+
+                Foo()
+                  ..store = theStore;
+              }
+            '''),
+            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              main() {
+                final theStore = FooStore();
+
+                Foo()
+                  ..actions = null
+                  ..store = theStore;
+              }
+            '''),
+          );
+        });
+
+        test('actions var in local fn scope with incorrect type', () async {
+          await testSuggestor(
+            isExpectedError: (err) => err.message.contains('theActions'),
+            expectedPatchCount: 1,
+            input: withFluxComponentUsage(/*language=dart*/ r'''
+              main() {
+                final theStore = FooStore();
+                final theActions = BazFooActions();
+
+                Foo()
+                  ..store = theStore;
+              }
+            '''),
+            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              main() {
+                final theStore = FooStore();
+                final theActions = BazFooActions();
+
+                Foo()
+                  ..actions = null
+                  ..store = theStore;
+              }
+            '''),
+          );
+        });
+
+        test('actions var in global scope with incorrect type', () async {
+          await testSuggestor(
+            isExpectedError: (err) => err.message.contains('theActions'),
+            expectedPatchCount: 1,
+            input: withFluxComponentUsage(/*language=dart*/ r'''
+              final theActions = BazFooActions();
+              main() {
+                final theStore = FooStore();
+
+                Foo()
+                  ..store = theStore;
+              }
+            '''),
+            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              final theActions = BazFooActions();
+              main() {
+                final theStore = FooStore();
+
+                Foo()
+                  ..actions = null
+                  ..store = theStore;
+              }
+            '''),
+          );
+        });
 
         test('actions var in local fn scope with correct type', () async {
           await testSuggestor(
