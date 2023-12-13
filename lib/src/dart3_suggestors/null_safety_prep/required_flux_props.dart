@@ -48,30 +48,41 @@ class RequiredFluxProps extends RecursiveAstVisitor
 
   static const fluxPropsMixinName = 'FluxUiPropsMixin';
 
-  VariableElement? getVariableInScopeWithType(AstNode node, DartType? type) {
-    final globalScopeVariableDetector = _GlobalScopeVarDetector();
-    node.thisOrAncestorOfType<CompilationUnit>()?.accept(globalScopeVariableDetector);
-
+  String? getNameOfVarOrFieldInScopeWithType(AstNode node, DartType? type) {
     final inScopeVariableDetector = _InScopeVarDetector();
-    [
-      // FIXME (adl): Need to look for prop values in class components
-      node.thisOrAncestorOfType<ClassDeclaration>(),
-      // FIXME (adl): Need to look for prop values in function components (and expression fn bodies)
-      node.thisOrAncestorOfType<BlockFunctionBody>(),
-    ].whereNotNull().forEach((ancestorNode) {
-      ancestorNode.visitChildren(inScopeVariableDetector);
-    });
-    final inScopeVars = [
-      ...globalScopeVariableDetector.found,
-      ...inScopeVariableDetector.found,
-    ];
+    // Find top level vars
+    node.thisOrAncestorOfType<CompilationUnit>()?.accept(inScopeVariableDetector);
+    // Find vars declared in top-level fns (like `main()`)
+    node.thisOrAncestorOfType<BlockFunctionBody>()?.visitChildren(inScopeVariableDetector);
 
-    final inScopeVar = inScopeVars.firstWhereOrNull((v) {
+    final inScopeVarName = inScopeVariableDetector.found.firstWhereOrNull((v) {
       final maybeMatchingType = v.declaredElement?.type;
-      // FIXME (adl): maybeMatchingType == type is only true on the first run. The idempotency test that runs a second time fails
       return maybeMatchingType?.element?.name == type?.element?.name;
-    })?.declaredElement;
-    return inScopeVar;
+    })?.declaredElement?.name;
+
+    final componentScopePropDetector = _ComponentScopeFluxPropsDetector();
+    // Find actions/store in props of class components
+    node.thisOrAncestorOfType<ClassDeclaration>()?.accept(componentScopePropDetector);
+    // Find actions/store in props of fn components
+    node.thisOrAncestorOfType<MethodInvocation>()?.accept(componentScopePropDetector);
+
+    final inScopePropName = componentScopePropDetector.found.firstWhereOrNull((el) {
+      final maybeMatchingType = componentScopePropDetector.getAccessorType(el);
+      return maybeMatchingType?.element?.name == type?.element?.name;
+    })?.name;
+
+    if (inScopeVarName != null && inScopePropName != null) {
+      // TODO: Do we need to handle this edge case with something better than returning null?
+      // No way to determine which should be used - the scoped variable or the field on props
+      // so return null to avoid setting the incorrect value on the consumer's code.
+      return null;
+    }
+
+    if (inScopePropName != null) {
+      return '${componentScopePropDetector.propsName}.${inScopePropName}';
+    }
+
+    return inScopeVarName;
   }
 
   @override
@@ -102,14 +113,14 @@ class RequiredFluxProps extends RecursiveAstVisitor
     if (writesToFluxUiProps && !storeAssigned) {
       storeAssigned = true;
       final fluxStoreType = fluxStoreAndActionTypes?[1];
-      final storeValue = getVariableInScopeWithType(node, fluxStoreType)?.name ?? 'null';
+      final storeValue = getNameOfVarOrFieldInScopeWithType(node, fluxStoreType) ?? 'null';
       yieldNewCascadeSection(node, '..store = $storeValue');
     }
 
     if (writesToFluxUiProps && !actionsAssigned) {
       actionsAssigned = true;
       final fluxActionsType = fluxStoreAndActionTypes?[0];
-      final actionsValue = getVariableInScopeWithType(node, fluxActionsType)?.name ?? 'null';
+      final actionsValue = getNameOfVarOrFieldInScopeWithType(node, fluxActionsType) ?? 'null';
       yieldNewCascadeSection(node, '..actions = $actionsValue');
     }
   }
@@ -131,27 +142,79 @@ class RequiredFluxProps extends RecursiveAstVisitor
   }
 }
 
-mixin _InScopeVarDetectorMixin on AstVisitor {
-  List<VariableDeclaration> get found;
+bool isFnComponentDeclaration(Expression? varInitializer) => varInitializer is MethodInvocation &&
+    varInitializer.methodName.name.startsWith('uiF');
+
+/// A visitor to detect in-scope store/actions variables (top-level and block function scopes)
+class _InScopeVarDetector extends RecursiveAstVisitor<void> {
+  final List<VariableDeclaration> found;
+
+  _InScopeVarDetector() : found = [];
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
+    // Don't visit function component declarations here since we visit them using the _ComponentScopeFluxPropsDetector
+    if (isFnComponentDeclaration(node.initializer)) return;
+
     if (node.declaredElement != null) {
       found.add(node);
     }
   }
 }
 
-class _InScopeVarDetector extends RecursiveAstVisitor<void> with _InScopeVarDetectorMixin {
+/// A visitor to detect store/actions values in a props class (supports both class and fn components)
+class _ComponentScopeFluxPropsDetector extends RecursiveAstVisitor<void> {
+  final Map<PropertyAccessorElement, DartType> _foundWithMappedTypes;
+  List<PropertyAccessorElement> get found => _foundWithMappedTypes.keys.toList();
+
+  _ComponentScopeFluxPropsDetector() : _foundWithMappedTypes = {};
+
+  String _propsName = 'props';
+  /// The name of the function component props arg, or the class component `props` instance field.
+  String get propsName => _propsName;
+
+  DartType? getAccessorType(PropertyAccessorElement el) => _foundWithMappedTypes[el];
+
+  void _lookForFluxStoreAndActionsInPropsClass(Element? elWithProps) {
+    if (elWithProps is ClassElement) {
+      final fluxPropsEl = elWithProps.mixins
+          .singleWhereOrNull((e) => e.element.name == RequiredFluxProps.fluxPropsMixinName);
+
+      if (fluxPropsEl != null) {
+        final actionsType = fluxPropsEl.typeArguments[0];
+        final storeType = fluxPropsEl.typeArguments[1];
+        fluxPropsEl.accessors.forEach((a) {
+          final accessorTypeName = a.declaration.variable.type.element?.name;
+          if (accessorTypeName == 'ActionsT') {
+            _foundWithMappedTypes.putIfAbsent(a.declaration, () => actionsType);
+          } else if (accessorTypeName == 'StoresT') {
+            _foundWithMappedTypes.putIfAbsent(a.declaration, () => storeType);
+          }
+        });
+      }
+    }
+  }
+
+  /// Visit function components
   @override
-  final List<VariableDeclaration> found;
+  void visitMethodInvocation(MethodInvocation node) {
+    if (!isFnComponentDeclaration(node)) return;
 
-  _InScopeVarDetector() : found = [];
-}
+    final nodeType = node.staticType;
+    if (nodeType is FunctionType) {
+      final propsArg = node.argumentList.arguments.firstOrNull as FunctionExpression?;
+      final propsArgName = propsArg?.parameters?.parameterElements.firstOrNull?.name;
+      if (propsArgName != null) {
+        _propsName = propsArgName;
+      }
+      _lookForFluxStoreAndActionsInPropsClass(nodeType.returnType.element);
+    }
+  }
 
-class _GlobalScopeVarDetector extends RecursiveAstVisitor<void> with _InScopeVarDetectorMixin {
+  /// Visit composite (class) components
   @override
-  final List<VariableDeclaration> found;
-
-  _GlobalScopeVarDetector() : found = [];
+  void visitClassDeclaration(ClassDeclaration node) {
+    final elWithProps = node.declaredElement?.supertype?.typeArguments.singleOrNull?.element;
+    _lookForFluxStoreAndActionsInPropsClass(elWithProps);
+  }
 }
