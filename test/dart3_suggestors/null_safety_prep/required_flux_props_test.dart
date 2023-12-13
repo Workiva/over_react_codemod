@@ -63,7 +63,9 @@ void main() {
         return (!invokeBuilder ? builderString : '($builderString)()') + ';';
       }
 
-      group('patches ${invokeBuilder ? 'invoked' : 'un-invoked'} builders that use FluxUiPropsMixin and', () {
+      group(
+          'patches ${invokeBuilder ? 'invoked' : 'un-invoked'} builders that use FluxUiPropsMixin and',
+          () {
         group('have no actions setter', () {
           test('when no actions var is available in scope', () async {
             await testSuggestor(
@@ -91,8 +93,8 @@ void main() {
           });
 
           group('when a top-level actions var is available', () {
-            test(
-                'unless the type does not match (uses null instead)', () async {
+            test('unless the type does not match (uses null instead)',
+                () async {
               await testSuggestor(
                 isExpectedError: (err) => err.message.contains('theActions'),
                 expectedPatchCount: 1,
@@ -150,8 +152,8 @@ void main() {
           });
 
           group('when an actions var is available in block function scope', () {
-            test(
-                'unless the type does not match (uses null instead)', () async {
+            test('unless the type does not match (uses null instead)',
+                () async {
               await testSuggestor(
                 isExpectedError: (err) => err.message.contains('theActions'),
                 expectedPatchCount: 1,
@@ -213,14 +215,13 @@ void main() {
           });
 
           group('when an actions var is available in function component props',
-                  () {
-                test(
-                    'unless the type does not match (uses null instead)', () async {
-                  await testSuggestor(
-                    isExpectedError: (err) =>
-                        err.message.contains('someFunction'),
-                    expectedPatchCount: 1,
-                    input: withFluxComponentUsage('''
+              () {
+            test('unless the type does not match (uses null instead)',
+                () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('someFunction'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
                   final FooConsumer = uiFunction<FooConsumerProps>(
                     (localProps) {
@@ -235,7 +236,7 @@ void main() {
                     _\$FooConsumerConfig, // ignore: undefined_identifier
                   );
                 '''),
-                    expectedOutput: withFluxComponentUsage('''
+                expectedOutput: withFluxComponentUsage('''
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
                   final FooConsumer = uiFunction<FooConsumerProps>(
                     (localProps) {
@@ -251,15 +252,14 @@ void main() {
                     _\$FooConsumerConfig, // ignore: undefined_identifier
                   );
                 '''),
-                  );
-                });
+              );
+            });
 
-                test('and the type matches', () async {
-                  await testSuggestor(
-                    isExpectedError: (err) =>
-                        err.message.contains('someFunction'),
-                    expectedPatchCount: 1,
-                    input: withFluxComponentUsage('''
+            test('and the type matches', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('someFunction'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
                   final FooConsumer = uiFunction<FooConsumerProps>(
                     (localProps) {
@@ -274,7 +274,7 @@ void main() {
                     _\$FooConsumerConfig, // ignore: undefined_identifier
                   );
                 '''),
-                    expectedOutput: withFluxComponentUsage('''
+                expectedOutput: withFluxComponentUsage('''
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
                   final FooConsumer = uiFunction<FooConsumerProps>(
                     (localProps) {
@@ -290,14 +290,14 @@ void main() {
                     _\$FooConsumerConfig, // ignore: undefined_identifier
                   );
                 '''),
-                  );
-                });
-              });
+              );
+            });
+          });
 
-          group(
-              'when an actions var is available in class component props', () {
-            test(
-                'unless the type does not match (uses null instead)', () async {
+          group('when an actions var is available in class component props',
+              () {
+            test('unless the type does not match (uses null instead)',
+                () async {
               await testSuggestor(
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
@@ -400,8 +400,8 @@ void main() {
           });
 
           group('when a top-level store var is available', () {
-            test(
-                'unless the type does not match (uses null instead)', () async {
+            test('unless the type does not match (uses null instead)',
+                () async {
               await testSuggestor(
                 isExpectedError: (err) => err.message.contains('theStore'),
                 expectedPatchCount: 1,
@@ -459,8 +459,8 @@ void main() {
           });
 
           group('when a store var is available in block function scope', () {
-            test(
-                'unless the type does not match (uses null instead)', () async {
+            test('unless the type does not match (uses null instead)',
+                () async {
               await testSuggestor(
                 isExpectedError: (err) => err.message.contains('theStore'),
                 expectedPatchCount: 1,
@@ -517,10 +517,10 @@ void main() {
             });
           });
 
-          group(
-              'when a store var is available in function component props', () {
-            test(
-                'unless the type does not match (uses null instead)', () async {
+          group('when a store var is available in function component props',
+              () {
+            test('unless the type does not match (uses null instead)',
+                () async {
               await testSuggestor(
                 isExpectedError: (err) => err.message.contains('someFunction'),
                 expectedPatchCount: 1,
@@ -598,8 +598,8 @@ void main() {
           });
 
           group('when a store var is available in class component props', () {
-            test(
-                'unless the type does not match (uses null instead)', () async {
+            test('unless the type does not match (uses null instead)',
+                () async {
               await testSuggestor(
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
@@ -701,12 +701,12 @@ void main() {
           group('when store and/or actions var(s) are available', () {
             group('in top-level scope', () {
               test('unless the type(s) do not match (uses null instead):',
-                      () async {
-                    await testSuggestor(
-                      isExpectedError: (err) =>
-                          err.message.contains(RegExp(r'theStore|theActions')),
-                      expectedPatchCount: 2,
-                      input: withFluxComponentUsage('''
+                  () async {
+                await testSuggestor(
+                  isExpectedError: (err) =>
+                      err.message.contains(RegExp(r'theStore|theActions')),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage('''
                     final theStore = BazFooStore();
                     final theActions = BazFooActions();
                     main() {
@@ -715,7 +715,7 @@ void main() {
                       ''')}
                     }
                   '''),
-                      expectedOutput: withFluxComponentUsage('''
+                  expectedOutput: withFluxComponentUsage('''
                     final theStore = BazFooStore();
                     final theActions = BazFooActions();
                     main() {
@@ -726,8 +726,8 @@ void main() {
                       ''')}
                     }
                   '''),
-                    );
-                  });
+                );
+              });
 
               group('and the type(s) match:', () {
                 test('store AND actions', () async {
@@ -813,12 +813,12 @@ void main() {
 
             group('in block function scope', () {
               test('unless the type(s) do not match (uses null instead):',
-                      () async {
-                    await testSuggestor(
-                      isExpectedError: (err) =>
-                          err.message.contains(RegExp(r'theStore|theActions')),
-                      expectedPatchCount: 2,
-                      input: withFluxComponentUsage('''
+                  () async {
+                await testSuggestor(
+                  isExpectedError: (err) =>
+                      err.message.contains(RegExp(r'theStore|theActions')),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage('''
                     main() {
                       final theStore = BazFooStore();
                       final theActions = BazFooActions();
@@ -828,7 +828,7 @@ void main() {
                       ''')}
                     }
                   '''),
-                      expectedOutput: withFluxComponentUsage('''
+                  expectedOutput: withFluxComponentUsage('''
                     main() {
                       final theStore = BazFooStore();
                       final theActions = BazFooActions();
@@ -840,8 +840,8 @@ void main() {
                       ''')}
                     }
                   '''),
-                    );
-                  });
+                );
+              });
 
               group('and the type(s) match:', () {
                 test('store AND actions', () async {
@@ -933,12 +933,12 @@ void main() {
 
             group('in function component props', () {
               test('unless the types do not match (uses null instead):',
-                      () async {
-                    await testSuggestor(
-                      isExpectedError: (err) =>
-                          err.message.contains('someFunction'),
-                      expectedPatchCount: 2,
-                      input: withFluxComponentUsage('''
+                  () async {
+                await testSuggestor(
+                  isExpectedError: (err) =>
+                      err.message.contains('someFunction'),
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage('''
                     class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
                     final FooConsumer = uiFunction<FooConsumerProps>(
                       (localProps) {
@@ -953,7 +953,7 @@ void main() {
                       _\$FooConsumerConfig, // ignore: undefined_identifier
                     );
                 '''),
-                      expectedOutput: withFluxComponentUsage('''
+                  expectedOutput: withFluxComponentUsage('''
                     class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
                     final FooConsumer = uiFunction<FooConsumerProps>(
                       (localProps) {
@@ -970,8 +970,8 @@ void main() {
                       _\$FooConsumerConfig, // ignore: undefined_identifier
                     );
                   '''),
-                    );
-                  });
+                );
+              });
 
               test('and the types match:', () async {
                 await testSuggestor(
@@ -1016,10 +1016,10 @@ void main() {
 
             group('in class component props', () {
               test('unless the types do not match (uses null instead):',
-                      () async {
-                    await testSuggestor(
-                      expectedPatchCount: 2,
-                      input: withFluxComponentUsage('''
+                  () async {
+                await testSuggestor(
+                  expectedPatchCount: 2,
+                  input: withFluxComponentUsage('''
                     // ignore: undefined_identifier
                     UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
                     class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
@@ -1034,7 +1034,7 @@ void main() {
                       render() => null;
                     }
                   '''),
-                      expectedOutput: withFluxComponentUsage('''
+                  expectedOutput: withFluxComponentUsage('''
                     // ignore: undefined_identifier
                     UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
                     class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
@@ -1051,8 +1051,8 @@ void main() {
                       render() => null;
                     }
                   '''),
-                    );
-                  });
+                );
+              });
 
               test('and the types match:', () async {
                 await testSuggestor(

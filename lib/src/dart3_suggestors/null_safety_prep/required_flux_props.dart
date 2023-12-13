@@ -99,9 +99,7 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
 String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType? type) {
   final inScopeVariableDetector = _InScopeVarDetector();
   // Find top level vars
-  node
-      .thisOrAncestorOfType<CompilationUnit>()
-      ?.accept(inScopeVariableDetector);
+  node.thisOrAncestorOfType<CompilationUnit>()?.accept(inScopeVariableDetector);
   // Find vars declared in top-level fns (like `main()`)
   node
       .thisOrAncestorOfType<BlockFunctionBody>()
@@ -109,9 +107,9 @@ String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType? type) {
 
   final inScopeVarName = inScopeVariableDetector.found
       .firstWhereOrNull((v) {
-    final maybeMatchingType = v.declaredElement?.type;
-    return maybeMatchingType?.element?.name == type?.element?.name;
-  })
+        final maybeMatchingType = v.declaredElement?.type;
+        return maybeMatchingType?.element?.name == type?.element?.name;
+      })
       ?.declaredElement
       ?.name;
 
@@ -127,9 +125,9 @@ String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType? type) {
 
   final inScopePropName =
       componentScopePropDetector.found.firstWhereOrNull((el) {
-        final maybeMatchingType = componentScopePropDetector.getAccessorType(el);
-        return maybeMatchingType?.element?.name == type?.element?.name;
-      })?.name;
+    final maybeMatchingType = componentScopePropDetector.getAccessorType(el);
+    return maybeMatchingType?.element?.name == type?.element?.name;
+  })?.name;
 
   if (inScopeVarName != null && inScopePropName != null) {
     // TODO: Do we need to handle this edge case with something better than returning null?
