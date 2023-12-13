@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_flux_props.dart';
 import 'package:test/test.dart';
 
@@ -54,26 +55,33 @@ void main() {
       );
     });
 
-    group('patches un-invoked builders that use FluxUiPropsMixin', () {
-      group('and have no actions setter', () {
+    @isTestGroup
+    void sharedTests({required bool invokeBuilder}) {
+      String maybeInvokeBuilder(String builderString) {
+        return (!invokeBuilder ? builderString : '($builderString)()') + ';';
+      }
+
+      group('have no actions setter', () {
         test('when no actions var is available in scope', () async {
           await testSuggestor(
             expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
+            input: withFluxComponentUsage('''
               main() {
                 final theStore = FooStore();
-
+                ${maybeInvokeBuilder('''
                 Foo()
-                  ..store = theStore;
+                  ..store = theStore
+                ''')}
               }
             '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+            expectedOutput: withFluxComponentUsage('''
               main() {
                 final theStore = FooStore();
-
+                ${maybeInvokeBuilder('''
                 Foo()
                   ..actions = null
-                  ..store = theStore;
+                  ..store = theStore
+                ''')}
               }
             '''),
           );
@@ -84,25 +92,27 @@ void main() {
             await testSuggestor(
               isExpectedError: (err) => err.message.contains('theActions'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = BazFooActions();
-              main() {
-                final theStore = FooStore();
-
-                Foo()
-                  ..store = theStore;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = BazFooActions();
-              main() {
-                final theStore = FooStore();
-
-                Foo()
-                  ..actions = null
-                  ..store = theStore;
-              }
-            '''),
+              input: withFluxComponentUsage('''
+                final theActions = BazFooActions();
+                main() {
+                  final theStore = FooStore();
+                  ${maybeInvokeBuilder('''
+                  Foo()
+                    ..store = theStore
+                  ''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                final theActions = BazFooActions();
+                main() {
+                  final theStore = FooStore();
+                  ${maybeInvokeBuilder('''
+                  Foo()
+                    ..actions = null
+                    ..store = theStore
+                  ''')}
+                }
+              '''),
             );
           });
 
@@ -110,25 +120,27 @@ void main() {
             await testSuggestor(
               isExpectedError: (err) => err.message.contains('theActions'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = FooActions();
-              main() {
-                final theStore = FooStore();
-
-                Foo()
-                  ..store = theStore;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theActions = FooActions();
-              main() {
-                final theStore = FooStore();
-
-                Foo()
-                  ..actions = theActions
-                  ..store = theStore;
-              }
-            '''),
+              input: withFluxComponentUsage('''
+                final theActions = FooActions();
+                main() {
+                  final theStore = FooStore();
+                  ${maybeInvokeBuilder('''
+                  Foo()
+                    ..store = theStore
+                  ''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                final theActions = FooActions();
+                main() {
+                  final theStore = FooStore();
+                  ${maybeInvokeBuilder('''
+                  Foo()
+                    ..actions = theActions
+                    ..store = theStore
+                  ''')}
+                }
+              '''),
             );
           });
         });
@@ -138,25 +150,29 @@ void main() {
             await testSuggestor(
               isExpectedError: (err) => err.message.contains('theActions'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = BazFooActions();
-
-                Foo()
-                  ..store = theStore;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = BazFooActions();
-
-                Foo()
-                  ..actions = null
-                  ..store = theStore;
-              }
-            '''),
+              input: withFluxComponentUsage('''
+                main() {
+                  final theStore = FooStore();
+                  final theActions = BazFooActions();
+  
+                  ${maybeInvokeBuilder('''
+                  Foo()
+                    ..store = theStore
+                  ''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                main() {
+                  final theStore = FooStore();
+                  final theActions = BazFooActions();
+  
+                  ${maybeInvokeBuilder('''
+                  Foo()
+                    ..actions = null
+                    ..store = theStore
+                  ''')}
+                }
+              '''),
             );
           });
 
@@ -164,25 +180,29 @@ void main() {
             await testSuggestor(
               isExpectedError: (err) => err.message.contains('theActions'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..store = theStore;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..actions = theActions
-                  ..store = theStore;
-              }
-            '''),
+              input: withFluxComponentUsage('''
+                main() {
+                  final theStore = FooStore();
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''
+                  Foo()
+                    ..store = theStore
+                  ''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                main() {
+                  final theStore = FooStore();
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''
+                  Foo()
+                    ..actions = theActions
+                    ..store = theStore
+                  ''')}
+                }
+              '''),
             );
           });
         });
@@ -190,71 +210,77 @@ void main() {
         group('when an actions var is available in function component props', () {
           test('unless the type does not match (uses null instead)', () async {
             await testSuggestor(
+              isExpectedError: (err) => err.message.contains('someFunction'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..store = FooStore();
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
-              );
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..actions = null
-                      ..store = FooStore();
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
-              );
-            '''),
+              input: withFluxComponentUsage('''
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                final FooConsumer = uiFunction<FooConsumerProps>(
+                  (localProps) {
+                    someFunction() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..store = FooStore()
+                      ''')}
+                    }
+                  
+                    return null;
+                  },
+                  _\$FooConsumerConfig, // ignore: undefined_identifier
+                );
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                final FooConsumer = uiFunction<FooConsumerProps>(
+                  (localProps) {
+                    someFunction() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..actions = null
+                        ..store = FooStore()
+                      ''')}
+                    }
+                  
+                    return null;
+                  },
+                  _\$FooConsumerConfig, // ignore: undefined_identifier
+                );
+              '''),
             );
           });
 
           test('and the type matches', () async {
             await testSuggestor(
+              isExpectedError: (err) => err.message.contains('someFunction'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..store = localProps.store;
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
-              );
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..actions = localProps.actions
-                      ..store = localProps.store;
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
-              );
-            '''),
+              input: withFluxComponentUsage('''
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                final FooConsumer = uiFunction<FooConsumerProps>(
+                  (localProps) {
+                    someFunction() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..store = localProps.store
+                      ''')}
+                    }
+                  
+                    return null;
+                  },
+                  _\$FooConsumerConfig, // ignore: undefined_identifier
+                );
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                final FooConsumer = uiFunction<FooConsumerProps>(
+                  (localProps) {
+                    someFunction() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..actions = localProps.actions
+                        ..store = localProps.store
+                      ''')}
+                    }
+                  
+                    return null;
+                  },
+                  _\$FooConsumerConfig, // ignore: undefined_identifier
+                );
+              '''),
             );
           });
         });
@@ -263,94 +289,100 @@ void main() {
           test('unless the type does not match (uses null instead)', () async {
             await testSuggestor(
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..store = FooStore();
+              input: withFluxComponentUsage('''
+                // ignore: undefined_identifier
+                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                  someMethod() {
+                    return ${maybeInvokeBuilder('''Foo()
+                      ..store = FooStore()
+                    ''')}
+                  }
+  
+                  @override
+                  render() => null;
                 }
-
-                @override
-                render() => null;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..actions = null
-                    ..store = FooStore();
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                // ignore: undefined_identifier
+                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                  someMethod() {
+                    return ${maybeInvokeBuilder('''Foo()
+                      ..actions = null
+                      ..store = FooStore()
+                    ''')}
+                  }
+  
+                  @override
+                  render() => null;
                 }
-
-                @override
-                render() => null;
-              }
-            '''),
+              '''),
             );
           });
 
           test('and the type matches', () async {
             await testSuggestor(
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..store = props.store;
+              input: withFluxComponentUsage('''
+                // ignore: undefined_identifier
+                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                  someMethod() {
+                    return ${maybeInvokeBuilder('''Foo()
+                      ..store = props.store
+                    ''')}
+                  }
+  
+                  @override
+                  render() => null;
                 }
-
-                @override
-                render() => null;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..actions = props.actions
-                    ..store = props.store;
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                // ignore: undefined_identifier
+                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                  someMethod() {
+                    return ${maybeInvokeBuilder('''Foo()
+                      ..actions = props.actions
+                      ..store = props.store
+                    ''')}
+                  }
+  
+                  @override
+                  render() => null;
                 }
-
-                @override
-                render() => null;
-              }
-            '''),
+              '''),
             );
           });
         });
       });
 
-      group('and have no store setter', () {
+      group('have no store setter', () {
         test('when no store var is available in scope', () async {
           await testSuggestor(
             expectedPatchCount: 1,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
+            input: withFluxComponentUsage('''
               main() {
                 final theActions = FooActions();
 
-                Foo()
-                  ..actions = theActions;
+                ${maybeInvokeBuilder('''Foo()
+                  ..actions = theActions
+                ''')}
               }
             '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+            expectedOutput: withFluxComponentUsage('''
               main() {
                 final theActions = FooActions();
 
-                Foo()
+                ${maybeInvokeBuilder('''Foo()
                   ..store = null
-                  ..actions = theActions;
+                  ..actions = theActions
+                ''')}
               }
             '''),
           );
@@ -361,25 +393,27 @@ void main() {
             await testSuggestor(
               isExpectedError: (err) => err.message.contains('theStore'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = BazFooStore();
-              main() {
-                final theActions = FooActions();
-
-                Foo()
-                  ..actions = theActions;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = BazFooStore();
-              main() {
-                final theActions = FooActions();
-
-                Foo()
-                  ..store = null
-                  ..actions = theActions;
-              }
-            '''),
+              input: withFluxComponentUsage('''
+                final theStore = BazFooStore();
+                main() {
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''Foo()
+                    ..actions = theActions
+                  ''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                final theStore = BazFooStore();
+                main() {
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''Foo()
+                    ..store = null
+                    ..actions = theActions
+                  ''')}
+                }
+              '''),
             );
           });
 
@@ -387,25 +421,27 @@ void main() {
             await testSuggestor(
               isExpectedError: (err) => err.message.contains('theStore'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = FooStore();
-              main() {
-                final theActions = FooActions();
-
-                Foo()
-                  ..actions = theActions;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              final theStore = FooStore();
-              main() {
-                final theActions = FooActions();
-
-                Foo()
-                  ..store = theStore
-                  ..actions = theActions;
-              }
-            '''),
+              input: withFluxComponentUsage('''
+                final theStore = FooStore();
+                main() {
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''Foo()
+                    ..actions = theActions
+                  ''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                final theStore = FooStore();
+                main() {
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''Foo()
+                    ..store = theStore
+                    ..actions = theActions
+                  ''')}
+                }
+              '''),
             );
           });
         });
@@ -415,25 +451,27 @@ void main() {
             await testSuggestor(
               isExpectedError: (err) => err.message.contains('theStore'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = BazFooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..actions = theActions;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = BazFooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..store = null
-                  ..actions = theActions;
-              }
-            '''),
+              input: withFluxComponentUsage('''
+                main() {
+                  final theStore = BazFooStore();
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''Foo()
+                    ..actions = theActions
+                  ''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                main() {
+                  final theStore = BazFooStore();
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''Foo()
+                    ..store = null
+                    ..actions = theActions
+                  ''')}
+                }
+              '''),
             );
           });
 
@@ -441,25 +479,27 @@ void main() {
             await testSuggestor(
               isExpectedError: (err) => err.message.contains('theStore'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..actions = theActions;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              main() {
-                final theStore = FooStore();
-                final theActions = FooActions();
-
-                Foo()
-                  ..store = theStore
-                  ..actions = theActions;
-              }
-            '''),
+              input: withFluxComponentUsage('''
+                main() {
+                  final theStore = FooStore();
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''Foo()
+                    ..actions = theActions
+                  ''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                main() {
+                  final theStore = FooStore();
+                  final theActions = FooActions();
+  
+                  ${maybeInvokeBuilder('''Foo()
+                    ..store = theStore
+                    ..actions = theActions
+                  ''')}
+                }
+              '''),
             );
           });
         });
@@ -467,71 +507,77 @@ void main() {
         group('when a store var is available in function component props', () {
           test('unless the type does not match (uses null instead)', () async {
             await testSuggestor(
+              isExpectedError: (err) => err.message.contains('someFunction'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..actions = FooActions();
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
-              );
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..store = null
-                      ..actions = FooActions();
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
-              );
-            '''),
+              input: withFluxComponentUsage('''
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                final FooConsumer = uiFunction<FooConsumerProps>(
+                  (localProps) {
+                    someFunction() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..actions = FooActions()
+                      ''')}
+                    }
+                  
+                    return null;
+                  },
+                  _\$FooConsumerConfig, // ignore: undefined_identifier
+                );
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                final FooConsumer = uiFunction<FooConsumerProps>(
+                  (localProps) {
+                    someFunction() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..store = null
+                        ..actions = FooActions()
+                      ''')}
+                    }
+                  
+                    return null;
+                  },
+                  _\$FooConsumerConfig, // ignore: undefined_identifier
+                );
+              '''),
             );
           });
 
           test('and the type matches', () async {
             await testSuggestor(
+              isExpectedError: (err) => err.message.contains('someFunction'),
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..actions = localProps.actions;
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
-              );
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              final FooConsumer = uiFunction<FooConsumerProps>(
-                (localProps) {
-                  someFunction() {
-                    return Foo()
-                      ..store = localProps.store
-                      ..actions = localProps.actions;
-                  }
-                
-                  return someFunction()();
-                },
-                _$FooConsumerConfig, // ignore: undefined_identifier
-              );
-            '''),
+              input: withFluxComponentUsage('''
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                final FooConsumer = uiFunction<FooConsumerProps>(
+                  (localProps) {
+                    someFunction() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..actions = localProps.actions
+                      ''')}
+                    }
+                  
+                    return null;
+                  },
+                  _\$FooConsumerConfig, // ignore: undefined_identifier
+                );
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                final FooConsumer = uiFunction<FooConsumerProps>(
+                  (localProps) {
+                    someFunction() {
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..store = localProps.store
+                        ..actions = localProps.actions
+                      ''')}
+                    }
+                  
+                    return null;
+                  },
+                  _\$FooConsumerConfig, // ignore: undefined_identifier
+                );
+              '''),
             );
           });
         });
@@ -540,123 +586,129 @@ void main() {
           test('unless the type does not match (uses null instead)', () async {
             await testSuggestor(
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..actions = FooActions();
+              input: withFluxComponentUsage('''
+                // ignore: undefined_identifier
+                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                  someMethod() {
+                    return ${maybeInvokeBuilder('''Foo()
+                      ..actions = FooActions()
+                    ''')}
+                  }
+  
+                  @override
+                  render() => null;
                 }
-
-                @override
-                render() => null;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..store = null
-                    ..actions = FooActions();
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                // ignore: undefined_identifier
+                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
+                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                  someMethod() {
+                    return ${maybeInvokeBuilder('''Foo()
+                      ..store = null
+                      ..actions = FooActions()
+                    ''')}
+                  }
+  
+                  @override
+                  render() => null;
                 }
-
-                @override
-                render() => null;
-              }
-            '''),
+              '''),
             );
           });
 
           test('and the type matches', () async {
             await testSuggestor(
               expectedPatchCount: 1,
-              input: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..actions = props.actions;
+              input: withFluxComponentUsage('''
+                // ignore: undefined_identifier
+                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                  someMethod() {
+                    return ${maybeInvokeBuilder('''Foo()
+                      ..actions = props.actions
+                    ''')}
+                  }
+  
+                  @override
+                  render() => null;
                 }
-
-                @override
-                render() => null;
-              }
-            '''),
-              expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-              // ignore: undefined_identifier
-              UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
-              class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
-              class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
-                someMethod() {
-                  return Foo()
-                    ..store = props.store
-                    ..actions = props.actions;
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                // ignore: undefined_identifier
+                UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
+                class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
+                class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
+                  someMethod() {
+                    return ${maybeInvokeBuilder('''Foo()
+                      ..store = props.store
+                      ..actions = props.actions
+                    ''')}
+                  }
+  
+                  @override
+                  render() => null;
                 }
-
-                @override
-                render() => null;
-              }
-            '''),
+              '''),
             );
           });
         });
       });
 
-      group('and have no store or actions setter', () {
+      group('have no store or actions setter', () {
         test('when no store or actions var is available in scope', () async {
           await testSuggestor(
             expectedPatchCount: 2,
-            input: withFluxComponentUsage(/*language=dart*/ r'''
+            input: withFluxComponentUsage('''
               main() {
-                Foo()
-                  ..id = '123';
+                ${maybeInvokeBuilder('''Foo()
+                  ..id = '123'
+                ''')}
               }
             '''),
-            expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+            expectedOutput: withFluxComponentUsage('''
               main() {
-                Foo()
+                ${maybeInvokeBuilder('''Foo()
                   ..store = null
                   ..actions = null
-                  ..id = '123';
+                  ..id = '123'
+                ''')}
               }
             '''),
           );
         });
 
-        group('when top-level store and/or actions var(s) are available', () {
+        group('when store and/or actions var(s) are available', () {
           group('in top-level scope', () {
-            group('unless the type(s) do not match (uses null instead):', () {
-              test('store AND actions', () async {
-                await testSuggestor(
-                  isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
-                  expectedPatchCount: 2,
-                  input: withFluxComponentUsage(/*language=dart*/ r'''
-                    final theStore = BazFooStore();
-                    final theActions = BazFooActions();
-                    main() {
-                      Foo()
-                        ..id = '123';
-                    }
-                  '''),
-                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-                    final theStore = BazFooStore();
-                    final theActions = BazFooActions();
-                    main() {
-                      Foo()
-                        ..store = null
-                        ..actions = null
-                        ..id = '123';
-                    }
-                  '''),
-                );
-              });
+            test('unless the type(s) do not match (uses null instead):', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
+                expectedPatchCount: 2,
+                input: withFluxComponentUsage('''
+                  final theStore = BazFooStore();
+                  final theActions = BazFooActions();
+                  main() {
+                    ${maybeInvokeBuilder('''Foo()
+                      ..id = '123'
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  final theStore = BazFooStore();
+                  final theActions = BazFooActions();
+                  main() {
+                    ${maybeInvokeBuilder('''Foo()
+                      ..store = null
+                      ..actions = null
+                      ..id = '123'
+                    ''')}
+                  }
+                '''),
+              );
             });
 
             group('and the type(s) match:', () {
@@ -664,22 +716,24 @@ void main() {
                 await testSuggestor(
                   isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
                   expectedPatchCount: 2,
-                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                  input: withFluxComponentUsage('''
                     final theStore = FooStore();
                     final theActions = FooActions();
                     main() {
-                      Foo()
-                        ..id = '123';
+                      ${maybeInvokeBuilder('''Foo()
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
-                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                  expectedOutput: withFluxComponentUsage('''
                     final theStore = FooStore();
                     final theActions = FooActions();
                     main() {
-                      Foo()
+                      ${maybeInvokeBuilder('''Foo()
                         ..store = theStore
                         ..actions = theActions
-                        ..id = '123';
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
                 );
@@ -689,20 +743,22 @@ void main() {
                 await testSuggestor(
                   isExpectedError: (err) => err.message.contains('theStore'),
                   expectedPatchCount: 2,
-                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                  input: withFluxComponentUsage('''
                     final theStore = FooStore();
                     main() {
-                      Foo()
-                        ..id = '123';
+                      ${maybeInvokeBuilder('''Foo()
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
-                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                  expectedOutput: withFluxComponentUsage('''
                     final theStore = FooStore();
                     main() {
-                      Foo()
+                      ${maybeInvokeBuilder('''Foo()
                         ..store = theStore
                         ..actions = null
-                        ..id = '123';
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
                 );
@@ -712,20 +768,22 @@ void main() {
                 await testSuggestor(
                   isExpectedError: (err) => err.message.contains('theActions'),
                   expectedPatchCount: 2,
-                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                  input: withFluxComponentUsage('''
                     final theActions = FooActions();
                     main() {
-                      Foo()
-                        ..id = '123';
+                      ${maybeInvokeBuilder('''Foo()
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
-                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-                    final theActions = FooActions();
+                  expectedOutput: withFluxComponentUsage('''
+                  final theActions = FooActions();
                     main() {
-                      Foo()
+                      ${maybeInvokeBuilder('''Foo()
                         ..store = null
                         ..actions = theActions
-                        ..id = '123';
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
                 );
@@ -734,33 +792,33 @@ void main() {
           });
 
           group('in block function scope', () {
-            group('unless the type(s) do not match (uses null instead):', () {
-              test('store AND actions', () async {
-                await testSuggestor(
-                  isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
-                  expectedPatchCount: 2,
-                  input: withFluxComponentUsage(/*language=dart*/ r'''
-                    main() {
-                      final theStore = BazFooStore();
-                      final theActions = BazFooActions();
-      
-                      Foo()
-                        ..id = '123';
-                    }
-                  '''),
-                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-                    main() {
-                      final theStore = BazFooStore();
-                      final theActions = BazFooActions();
-      
-                      Foo()
-                        ..store = null
-                        ..actions = null
-                        ..id = '123';
-                    }
-                  '''),
-                );
-              });
+            test('unless the type(s) do not match (uses null instead):', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
+                expectedPatchCount: 2,
+                input: withFluxComponentUsage('''
+                  main() {
+                    final theStore = BazFooStore();
+                    final theActions = BazFooActions();
+    
+                    ${maybeInvokeBuilder('''Foo()
+                      ..id = '123'
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  main() {
+                    final theStore = BazFooStore();
+                    final theActions = BazFooActions();
+    
+                    ${maybeInvokeBuilder('''Foo()
+                      ..store = null
+                      ..actions = null
+                      ..id = '123'
+                    ''')}
+                  }
+                '''),
+              );
             });
 
             group('and the type(s) match:', () {
@@ -768,24 +826,26 @@ void main() {
                 await testSuggestor(
                   isExpectedError: (err) => err.message.contains(RegExp(r'theStore|theActions')),
                   expectedPatchCount: 2,
-                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                  input: withFluxComponentUsage('''
                     main() {
                       final theStore = FooStore();
                       final theActions = FooActions();
       
-                      Foo()
-                        ..id = '123';
+                      ${maybeInvokeBuilder('''Foo()
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
-                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                  expectedOutput: withFluxComponentUsage('''
                     main() {
                       final theStore = FooStore();
                       final theActions = FooActions();
       
-                      Foo()
+                      ${maybeInvokeBuilder('''Foo()
                         ..store = theStore
                         ..actions = theActions
-                        ..id = '123';
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
                 );
@@ -795,22 +855,24 @@ void main() {
                 await testSuggestor(
                   isExpectedError: (err) => err.message.contains('theStore'),
                   expectedPatchCount: 2,
-                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                  input: withFluxComponentUsage('''
                     main() {
                       final theStore = FooStore();
       
-                      Foo()
-                        ..id = '123';
+                      ${maybeInvokeBuilder('''Foo()
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
-                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                  expectedOutput: withFluxComponentUsage('''
                     main() {
                       final theStore = FooStore();
       
-                      Foo()
+                      ${maybeInvokeBuilder('''Foo()
                         ..store = theStore
                         ..actions = null
-                        ..id = '123';
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
                 );
@@ -820,22 +882,24 @@ void main() {
                 await testSuggestor(
                   isExpectedError: (err) => err.message.contains('theActions'),
                   expectedPatchCount: 2,
-                  input: withFluxComponentUsage(/*language=dart*/ r'''
+                  input: withFluxComponentUsage('''
                     main() {
                       final theActions = FooActions();
       
-                      Foo()
-                        ..id = '123';
+                      ${maybeInvokeBuilder('''Foo()
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
-                  expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                  expectedOutput: withFluxComponentUsage('''
                     main() {
                       final theActions = FooActions();
       
-                      Foo()
+                      ${maybeInvokeBuilder('''Foo()
                         ..store = null
                         ..actions = theActions
-                        ..id = '123';
+                        ..id = '123'
+                      ''')}
                     }
                   '''),
                 );
@@ -846,35 +910,38 @@ void main() {
           group('in function component props', () {
             test('unless the types do not match (uses null instead):', () async {
               await testSuggestor(
+                isExpectedError: (err) => err.message.contains('someFunction'),
                 expectedPatchCount: 2,
-                input: withFluxComponentUsage(/*language=dart*/ r'''
+                input: withFluxComponentUsage('''
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
                   final FooConsumer = uiFunction<FooConsumerProps>(
                     (localProps) {
                       someFunction() {
-                        return Foo()
-                          ..id = '123';
+                        return ${maybeInvokeBuilder('''Foo()
+                          ..id = '123'
+                        ''')}
                       }
                     
-                      return someFunction()();
+                      return null;
                     },
-                    _$FooConsumerConfig, // ignore: undefined_identifier
+                    _\$FooConsumerConfig, // ignore: undefined_identifier
                   );
-                '''),
-                expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+              '''),
+                expectedOutput: withFluxComponentUsage('''
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
                   final FooConsumer = uiFunction<FooConsumerProps>(
                     (localProps) {
                       someFunction() {
-                        return Foo()
+                        return ${maybeInvokeBuilder('''Foo()
                           ..store = null
                           ..actions = null
-                          ..id = '123';
+                          ..id = '123'
+                        ''')}
                       }
                     
-                      return someFunction()();
+                      return null;
                     },
-                    _$FooConsumerConfig, // ignore: undefined_identifier
+                    _\$FooConsumerConfig, // ignore: undefined_identifier
                   );
                 '''),
               );
@@ -882,35 +949,38 @@ void main() {
 
             test('and the types match:', () async {
               await testSuggestor(
+                isExpectedError: (err) => err.message.contains('someFunction'),
                 expectedPatchCount: 2,
-                input: withFluxComponentUsage(/*language=dart*/ r'''
+                input: withFluxComponentUsage('''
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
                   final FooConsumer = uiFunction<FooConsumerProps>(
                     (localProps) {
                       someFunction() {
-                        return Foo()
-                          ..id = '123';
+                        return ${maybeInvokeBuilder('''Foo()
+                          ..id = '123'
+                        ''')}
                       }
                     
-                      return someFunction()();
+                      return null;
                     },
-                    _$FooConsumerConfig, // ignore: undefined_identifier
+                    _\$FooConsumerConfig, // ignore: undefined_identifier
                   );
                 '''),
-                expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                expectedOutput: withFluxComponentUsage('''
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
                   final FooConsumer = uiFunction<FooConsumerProps>(
                     (localProps) {
                       someFunction() {
-                        return Foo()
+                        return ${maybeInvokeBuilder('''Foo()
                           ..store = localProps.store
                           ..actions = localProps.actions
-                          ..id = '123';
+                          ..id = '123'
+                        ''')}
                       }
                     
-                      return someFunction()();
+                      return null;
                     },
-                    _$FooConsumerConfig, // ignore: undefined_identifier
+                    _\$FooConsumerConfig, // ignore: undefined_identifier
                   );
                 '''),
               );
@@ -921,30 +991,32 @@ void main() {
             test('unless the types do not match (uses null instead):', () async {
               await testSuggestor(
                 expectedPatchCount: 2,
-                input: withFluxComponentUsage(/*language=dart*/ r'''
+                input: withFluxComponentUsage('''
                   // ignore: undefined_identifier
-                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
                   class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
                     someMethod() {
-                      return Foo()
-                        ..id = '123';
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..id = '123'
+                      ''')}
                     }
     
                     @override
                     render() => null;
                   }
                 '''),
-                expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                expectedOutput: withFluxComponentUsage('''
                   // ignore: undefined_identifier
-                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<BazFooActions, BazFooStore>;
                   class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
                     someMethod() {
-                      return Foo()
+                      return ${maybeInvokeBuilder('''Foo()
                         ..store = null
                         ..actions = null
-                        ..id = '123';
+                        ..id = '123'
+                      ''')}
                     }
     
                     @override
@@ -957,30 +1029,32 @@ void main() {
             test('and the types match:', () async {
               await testSuggestor(
                 expectedPatchCount: 2,
-                input: withFluxComponentUsage(/*language=dart*/ r'''
+                input: withFluxComponentUsage('''
                   // ignore: undefined_identifier
-                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
                   class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
                     someMethod() {
-                      return Foo()
-                        ..id = '123';
+                      return ${maybeInvokeBuilder('''Foo()
+                        ..id = '123'
+                      ''')}
                     }
     
                     @override
                     render() => null;
                   }
                 '''),
-                expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
+                expectedOutput: withFluxComponentUsage('''
                   // ignore: undefined_identifier
-                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_$FooConsumer);
+                  UiFactory<FooConsumerProps> FooConsumer = castUiFactory(_\$FooConsumer);
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
                   class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
                     someMethod() {
-                      return Foo()
+                      return ${maybeInvokeBuilder('''Foo()
                         ..store = props.store
                         ..actions = props.actions
-                        ..id = '123';
+                        ..id = '123'
+                      ''')}
                     }
     
                     @override
@@ -992,288 +1066,15 @@ void main() {
           });
         });
       });
+    }
+
+    group('patches un-invoked builders that use FluxUiPropsMixin and', () {
+      sharedTests(invokeBuilder: false);
     });
 
-    // TODO (adl): Make this shared with uninvoked tests to reduce duplication
-    // group('patches invoked builders that use FluxUiPropsMixin', () {
-    //   group('and do not have props.actions set', () {
-    //     test('no actions var in scope', () async {
-    //       await testSuggestor(
-    //         expectedPatchCount: 1,
-    //         input: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theStore = FooStore();
-    //
-    //             return (Foo()
-    //               ..store = theStore
-    //             )();
-    //           }
-    //         '''),
-    //         expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theStore = FooStore();
-    //
-    //             return (Foo()
-    //               ..actions = null
-    //               ..store = theStore
-    //             )();
-    //           }
-    //         '''),
-    //       );
-    //     });
-    //
-    //     test('actions var in local fn scope with incorrect type', () async {
-    //       await testSuggestor(
-    //         isExpectedError: (err) => err.message.contains('theActions'),
-    //         expectedPatchCount: 1,
-    //         input: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theStore = FooStore();
-    //             final theActions = BazFooActions();
-    //
-    //             return (Foo()
-    //               ..store = theStore
-    //             )();
-    //           }
-    //         '''),
-    //         expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theStore = FooStore();
-    //             final theActions = BazFooActions();
-    //
-    //             return (Foo()
-    //               ..actions = null
-    //               ..store = theStore
-    //             )();
-    //           }
-    //         '''),
-    //       );
-    //     });
-    //
-    //     test('actions var in global scope with incorrect type', () async {
-    //       await testSuggestor(
-    //         isExpectedError: (err) => err.message.contains('theActions'),
-    //         expectedPatchCount: 1,
-    //         input: withFluxComponentUsage(/*language=dart*/ r'''
-    //           final theActions = BazFooActions();
-    //           main() {
-    //             final theStore = FooStore();
-    //
-    //             return (Foo()
-    //               ..store = theStore
-    //             )();
-    //           }
-    //         '''),
-    //         expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-    //           final theActions = BazFooActions();
-    //           main() {
-    //             final theStore = FooStore();
-    //
-    //             return (Foo()
-    //               ..actions = null
-    //               ..store = theStore
-    //             )();
-    //           }
-    //         '''),
-    //       );
-    //     });
-    //
-    //     test('actions var in local fn scope with correct type', () async {
-    //       await testSuggestor(
-    //         isExpectedError: (err) => err.message.contains('theActions'),
-    //         expectedPatchCount: 1,
-    //         input: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theStore = FooStore();
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..store = theStore
-    //             )();
-    //           }
-    //         '''),
-    //         expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theStore = FooStore();
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..actions = theActions
-    //               ..store = theStore
-    //             )();
-    //           }
-    //         '''),
-    //       );
-    //     });
-    //
-    //     test('actions var in global scope with correct type', () async {
-    //       await testSuggestor(
-    //         isExpectedError: (err) => err.message.contains('theActions'),
-    //         expectedPatchCount: 1,
-    //         input: withFluxComponentUsage(/*language=dart*/ r'''
-    //           final theActions = FooActions();
-    //           main() {
-    //             final theStore = FooStore();
-    //
-    //             return (Foo()
-    //               ..store = theStore
-    //             )();
-    //           }
-    //         '''),
-    //         expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-    //           final theActions = FooActions();
-    //           main() {
-    //             final theStore = FooStore();
-    //
-    //             return (Foo()
-    //               ..actions = theActions
-    //               ..store = theStore
-    //             )();
-    //           }
-    //         '''),
-    //       );
-    //     });
-    //   });
-    //
-    //   group('and do not have props.store set', () {
-    //     test('no store var in scope', () async {
-    //       await testSuggestor(
-    //         expectedPatchCount: 1,
-    //         input: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..actions = theActions
-    //             )();
-    //           }
-    //         '''),
-    //         expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..store = null
-    //               ..actions = theActions
-    //             )();
-    //           }
-    //         '''),
-    //       );
-    //     });
-    //
-    //     test('store var in local fn scope with incorrect type', () async {
-    //       await testSuggestor(
-    //         isExpectedError: (err) => err.message.contains('theStore'),
-    //         expectedPatchCount: 1,
-    //         input: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theStore = BazFooStore();
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..actions = theActions
-    //             )();
-    //           }
-    //         '''),
-    //         expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theStore = BazFooStore();
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..store = null
-    //               ..actions = theActions
-    //             )();
-    //           }
-    //         '''),
-    //       );
-    //     });
-    //
-    //     test('store var in global scope with incorrect type', () async {
-    //       await testSuggestor(
-    //         isExpectedError: (err) => err.message.contains('theStore'),
-    //         expectedPatchCount: 1,
-    //         input: withFluxComponentUsage(/*language=dart*/ r'''
-    //           final theStore = BazFooStore();
-    //           main() {
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..actions = theActions
-    //             )();
-    //           }
-    //         '''),
-    //         expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-    //           final theStore = BazFooStore();
-    //           main() {
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..store = null
-    //               ..actions = theActions
-    //             )();
-    //           }
-    //         '''),
-    //       );
-    //     });
-    //
-    //     test('store var in local fn scope with correct type', () async {
-    //       await testSuggestor(
-    //         isExpectedError: (err) => err.message.contains('theStore'),
-    //         expectedPatchCount: 1,
-    //         input: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theStore = FooStore();
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..actions = theActions
-    //             )();
-    //           }
-    //         '''),
-    //         expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-    //           main() {
-    //             final theStore = FooStore();
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..store = theStore
-    //               ..actions = theActions
-    //             )();
-    //           }
-    //         '''),
-    //       );
-    //     });
-    //
-    //     test('store var in global scope with correct type', () async {
-    //       await testSuggestor(
-    //         isExpectedError: (err) => err.message.contains('theStore'),
-    //         expectedPatchCount: 1,
-    //         input: withFluxComponentUsage(/*language=dart*/ r'''
-    //           final theStore = FooStore();
-    //           main() {
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..actions = theActions
-    //             )();
-    //           }
-    //         '''),
-    //         expectedOutput: withFluxComponentUsage(/*language=dart*/ r'''
-    //           final theStore = FooStore();
-    //           main() {
-    //             final theActions = FooActions();
-    //
-    //             return (Foo()
-    //               ..store = theStore
-    //               ..actions = theActions
-    //             )();
-    //           }
-    //         '''),
-    //       );
-    //     });
-    //   });
-    // });
+    group('patches invoked builders that use FluxUiPropsMixin and', () {
+      sharedTests(invokeBuilder: true);
+    });
   });
 }
 
