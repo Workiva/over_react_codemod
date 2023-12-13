@@ -18,9 +18,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
+import 'package:over_react_codemod/src/util/class_suggestor.dart';
 import 'package:over_react_codemod/src/util/offset_util.dart';
-
-import '../../util/class_suggestor.dart';
 
 /// Suggestor that adds required `store` and/or `actions` prop(s) to the
 /// call-site of `FluxUiComponent` instances that omit them since version
@@ -37,55 +36,6 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
   ResolvedUnitResult? _result;
 
   static const fluxPropsMixinName = 'FluxUiPropsMixin';
-
-  String? getNameOfVarOrFieldInScopeWithType(AstNode node, DartType? type) {
-    final inScopeVariableDetector = _InScopeVarDetector();
-    // Find top level vars
-    node
-        .thisOrAncestorOfType<CompilationUnit>()
-        ?.accept(inScopeVariableDetector);
-    // Find vars declared in top-level fns (like `main()`)
-    node
-        .thisOrAncestorOfType<BlockFunctionBody>()
-        ?.visitChildren(inScopeVariableDetector);
-
-    final inScopeVarName = inScopeVariableDetector.found
-        .firstWhereOrNull((v) {
-          final maybeMatchingType = v.declaredElement?.type;
-          return maybeMatchingType?.element?.name == type?.element?.name;
-        })
-        ?.declaredElement
-        ?.name;
-
-    final componentScopePropDetector = _ComponentScopeFluxPropsDetector();
-    // Find actions/store in props of class components
-    node
-        .thisOrAncestorOfType<ClassDeclaration>()
-        ?.accept(componentScopePropDetector);
-    // Find actions/store in props of fn components
-    node
-        .thisOrAncestorOfType<MethodInvocation>()
-        ?.accept(componentScopePropDetector);
-
-    final inScopePropName =
-        componentScopePropDetector.found.firstWhereOrNull((el) {
-      final maybeMatchingType = componentScopePropDetector.getAccessorType(el);
-      return maybeMatchingType?.element?.name == type?.element?.name;
-    })?.name;
-
-    if (inScopeVarName != null && inScopePropName != null) {
-      // TODO: Do we need to handle this edge case with something better than returning null?
-      // No way to determine which should be used - the scoped variable or the field on props
-      // so return null to avoid setting the incorrect value on the consumer's code.
-      return null;
-    }
-
-    if (inScopePropName != null) {
-      return '${componentScopePropDetector.propsName}.${inScopePropName}';
-    }
-
-    return inScopeVarName;
-  }
 
   @override
   visitCascadeExpression(CascadeExpression node) {
@@ -117,7 +67,7 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
       storeAssigned = true;
       final fluxStoreType = fluxStoreAndActionTypes?[1];
       final storeValue =
-          getNameOfVarOrFieldInScopeWithType(node, fluxStoreType) ?? 'null';
+          _getNameOfVarOrFieldInScopeWithType(node, fluxStoreType) ?? 'null';
       yieldNewCascadeSection(node, '..store = $storeValue');
     }
 
@@ -125,7 +75,7 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
       actionsAssigned = true;
       final fluxActionsType = fluxStoreAndActionTypes?[0];
       final actionsValue =
-          getNameOfVarOrFieldInScopeWithType(node, fluxActionsType) ?? 'null';
+          _getNameOfVarOrFieldInScopeWithType(node, fluxActionsType) ?? 'null';
       yieldNewCascadeSection(node, '..actions = $actionsValue');
     }
   }
@@ -146,7 +96,56 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
   }
 }
 
-bool isFnComponentDeclaration(Expression? varInitializer) =>
+String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType? type) {
+  final inScopeVariableDetector = _InScopeVarDetector();
+  // Find top level vars
+  node
+      .thisOrAncestorOfType<CompilationUnit>()
+      ?.accept(inScopeVariableDetector);
+  // Find vars declared in top-level fns (like `main()`)
+  node
+      .thisOrAncestorOfType<BlockFunctionBody>()
+      ?.visitChildren(inScopeVariableDetector);
+
+  final inScopeVarName = inScopeVariableDetector.found
+      .firstWhereOrNull((v) {
+    final maybeMatchingType = v.declaredElement?.type;
+    return maybeMatchingType?.element?.name == type?.element?.name;
+  })
+      ?.declaredElement
+      ?.name;
+
+  final componentScopePropDetector = _ComponentScopeFluxPropsDetector();
+  // Find actions/store in props of class components
+  node
+      .thisOrAncestorOfType<ClassDeclaration>()
+      ?.accept(componentScopePropDetector);
+  // Find actions/store in props of fn components
+  node
+      .thisOrAncestorOfType<MethodInvocation>()
+      ?.accept(componentScopePropDetector);
+
+  final inScopePropName =
+      componentScopePropDetector.found.firstWhereOrNull((el) {
+        final maybeMatchingType = componentScopePropDetector.getAccessorType(el);
+        return maybeMatchingType?.element?.name == type?.element?.name;
+      })?.name;
+
+  if (inScopeVarName != null && inScopePropName != null) {
+    // TODO: Do we need to handle this edge case with something better than returning null?
+    // No way to determine which should be used - the scoped variable or the field on props
+    // so return null to avoid setting the incorrect value on the consumer's code.
+    return null;
+  }
+
+  if (inScopePropName != null) {
+    return '${componentScopePropDetector.propsName}.${inScopePropName}';
+  }
+
+  return inScopeVarName;
+}
+
+bool _isFnComponentDeclaration(Expression? varInitializer) =>
     varInitializer is MethodInvocation &&
     varInitializer.methodName.name.startsWith('uiF');
 
@@ -159,7 +158,7 @@ class _InScopeVarDetector extends RecursiveAstVisitor<void> {
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     // Don't visit function component declarations here since we visit them using the _ComponentScopeFluxPropsDetector
-    if (isFnComponentDeclaration(node.initializer)) return;
+    if (_isFnComponentDeclaration(node.initializer)) return;
 
     if (node.declaredElement != null) {
       found.add(node);
@@ -206,7 +205,7 @@ class _ComponentScopeFluxPropsDetector extends RecursiveAstVisitor<void> {
   /// Visit function components
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (!isFnComponentDeclaration(node)) return;
+    if (!_isFnComponentDeclaration(node)) return;
 
     final nodeType = node.staticType;
     if (nodeType is FunctionType) {
