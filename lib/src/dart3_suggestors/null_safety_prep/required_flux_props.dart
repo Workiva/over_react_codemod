@@ -114,13 +114,11 @@ String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType type) {
 
   final componentScopePropDetector = _ComponentScopeFluxPropsDetector();
   // Find actions/store in props of class components
-  node
-      .thisOrAncestorOfType<ClassDeclaration>()
-      ?.accept(componentScopePropDetector);
+  componentScopePropDetector.handlePotentialClassComponent(
+      node.thisOrAncestorOfType<ClassDeclaration>());
   // Find actions/store in props of fn components
-  node
-      .thisOrAncestorOfType<MethodInvocation>()
-      ?.accept(componentScopePropDetector);
+  componentScopePropDetector.handlePotentialFunctionComponent(
+      node.thisOrAncestorOfType<MethodInvocation>());
 
   final inScopePropName =
       componentScopePropDetector.found.firstWhereOrNull((el) {
@@ -164,8 +162,9 @@ class _InScopeVarDetector extends RecursiveAstVisitor<void> {
 }
 
 /// A visitor to detect store/actions values in a props class (supports both class and fn components)
-class _ComponentScopeFluxPropsDetector extends RecursiveAstVisitor<void> {
+class _ComponentScopeFluxPropsDetector {
   final Map<PropertyAccessorElement, DartType> _foundWithMappedTypes;
+
   List<PropertyAccessorElement> get found =>
       _foundWithMappedTypes.keys.toList();
 
@@ -200,8 +199,8 @@ class _ComponentScopeFluxPropsDetector extends RecursiveAstVisitor<void> {
   }
 
   /// Visit function components
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
+  void handlePotentialFunctionComponent(MethodInvocation? node) {
+    if (node == null) return;
     if (!_isFnComponentDeclaration(node)) return;
 
     final nodeType = node.staticType;
@@ -218,8 +217,8 @@ class _ComponentScopeFluxPropsDetector extends RecursiveAstVisitor<void> {
   }
 
   /// Visit composite (class) components
-  @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void handlePotentialClassComponent(ClassDeclaration? node) {
+    if (node == null) return;
     final elWithProps =
         node.declaredElement?.supertype?.typeArguments.singleOrNull?.element;
     _lookForFluxStoreAndActionsInPropsClass(elWithProps);
