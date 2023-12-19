@@ -100,11 +100,15 @@ String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType type) {
       .thisOrAncestorOfType<BlockFunctionBody>()
       ?.visitChildren(inScopeVariableDetector);
 
+  // Usually we'd grab typeSystem from the ResolvedUnitResult, but we don't have access to that
+  // in this class, so just get it from the compilation unit.
+  final typeSystem = (node.root as CompilationUnit).declaredElement!.library.typeSystem;
+  bool isMatchingType(DartType? maybeMatchingType) =>
+      maybeMatchingType != null &&
+          typeSystem.isAssignableTo(maybeMatchingType, type);
+
   final inScopeVarName = inScopeVariableDetector.found
-      .firstWhereOrNull((v) {
-        final maybeMatchingType = v.declaredElement?.type;
-        return maybeMatchingType?.element?.name == type.element?.name;
-      })
+      .firstWhereOrNull((v) => isMatchingType(v.declaredElement?.type))
       ?.declaredElement
       ?.name;
 
