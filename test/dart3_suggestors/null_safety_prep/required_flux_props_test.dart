@@ -135,6 +135,34 @@ void main() {
             );
           });
 
+          test('unless TActions is dynamic', () async {
+            await testSuggestor(
+              isExpectedError: (err) =>
+                  err.message.contains(RegExp(r"'notTheActions' isn't used.")),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage('''
+                main() {
+                  dynamic notTheActions = 123;
+                  dynamic theStore = FooStore();
+                  
+                  ${maybeInvokeBuilder('''DynamicFoo()..store = theStore''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                main() {
+                  dynamic notTheActions = 123;
+                  dynamic theStore = FooStore();
+
+                  ${maybeInvokeBuilder('''
+                  DynamicFoo()
+                    ..actions = null
+                    ..store = theStore
+                  ''')}
+                }
+              '''),
+            );
+          });
+
           group('when a top-level actions var is available', () {
             test('unless the type does not match (uses null instead)',
                 () async {
@@ -576,6 +604,34 @@ void main() {
                   final theActions = FooActions();
   
                   ${maybeInvokeBuilder('''Foo()
+                    ..store = null
+                    ..actions = theActions
+                  ''')}
+                }
+              '''),
+            );
+          });
+
+          test('unless TStore is dynamic', () async {
+            await testSuggestor(
+              isExpectedError: (err) =>
+                  err.message.contains(RegExp(r"'notTheStore' isn't used.")),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage('''
+                main() {
+                  dynamic notTheStore = 123;
+                  dynamic theActions = FooActions();
+                  
+                  ${maybeInvokeBuilder('''DynamicFoo()..actions = theActions''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                main() {
+                  dynamic notTheStore = 123;
+                  dynamic theActions = FooActions();
+
+                  ${maybeInvokeBuilder('''
+                  DynamicFoo()
                     ..store = null
                     ..actions = theActions
                   ''')}
@@ -1468,6 +1524,15 @@ UiFactory<FooProps> Foo = castUiFactory(_\$Foo); // ignore: undefined_identifier
 class FooProps = UiProps with FluxUiPropsMixin<${actionsName ?? 'Null'}, ${storeName ?? 'Null'}>;
 
 class FooComponent extends FluxUiComponent2<FooProps> {
+  @override
+  render() => null;
+}
+
+UiFactory<DynamicFooProps> DynamicFoo = castUiFactory(_\$DynamicFoo); // ignore: undefined_identifier
+
+class DynamicFooProps = UiProps with FluxUiPropsMixin<dynamic, dynamic>;
+
+class DynamicFooComponent extends FluxUiComponent2<DynamicFooProps> {
   @override
   render() => null;
 }
