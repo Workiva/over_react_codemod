@@ -214,6 +214,140 @@ void main() {
             });
           });
 
+          group('when an actions var is available as a function argument', () {
+            test('unless the type does not match (uses null instead)',
+                () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theActions'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  main(BazFooActions theActions) {
+                    final theStore = FooStore();
+    
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..store = theStore
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  main(BazFooActions theActions) {
+                    final theStore = FooStore();
+    
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..actions = null
+                      ..store = theStore
+                    ''')}
+                  }
+                '''),
+              );
+            });
+
+            test('and the type matches', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theActions'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  main(FooActions theActions) {
+                    final theStore = FooStore();
+    
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..store = theStore
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  main(FooActions theActions) {
+                    final theStore = FooStore();
+    
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..actions = theActions
+                      ..store = theStore
+                    ''')}
+                  }
+                '''),
+              );
+            });
+          });
+
+          group('when an actions var is available as a class field', () {
+            test('unless the type does not match (uses null instead)',
+                () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theActions'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  class TheBaz {
+                    final BazFooActions theActions;
+                    final FooStore theStore;
+                    TheBaz(this.theActions, this.theStore);
+                    
+                    someMethod() {
+                      ${maybeInvokeBuilder('''
+                      Foo()
+                        ..store = theStore
+                      ''')}
+                    }
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  class TheBaz {
+                    final BazFooActions theActions;
+                    final FooStore theStore;
+                    TheBaz(this.theActions, this.theStore);
+                    
+                    someMethod() {
+                      ${maybeInvokeBuilder('''
+                      Foo()
+                        ..actions = null
+                        ..store = theStore
+                      ''')}
+                    }
+                  }
+                '''),
+              );
+            });
+
+            test('and the type matches', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theActions'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  class TheFoo {
+                    final FooActions theActions;
+                    final FooStore theStore;
+                    TheFoo(this.theActions, this.theStore);
+                    
+                    someMethod() {
+                      ${maybeInvokeBuilder('''
+                      Foo()
+                        ..store = theStore
+                      ''')}
+                    }
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  class TheFoo {
+                    final FooActions theActions;
+                    final FooStore theStore;
+                    TheFoo(this.theActions, this.theStore);
+                    
+                    someMethod() {
+                      ${maybeInvokeBuilder('''
+                      Foo()
+                        ..actions = theActions
+                        ..store = theStore
+                      ''')}
+                    }
+                  }
+                '''),
+              );
+            });
+          });
+
           group('when an actions var is available in function component props',
               () {
             test('unless the type does not match (uses null instead)',
@@ -511,6 +645,140 @@ void main() {
                       ..store = theStore
                       ..actions = theActions
                     ''')}
+                  }
+                '''),
+              );
+            });
+          });
+
+          group('when a store var is available as a function argument', () {
+            test('unless the type does not match (uses null instead)',
+                () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theStore'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  main(BazFooStore theStore) {
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  main(BazFooStore theStore) {
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..store = null
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+              );
+            });
+
+            test('and the type matches', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theStore'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  main(FooStore theStore) {
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  main(FooStore theStore) {
+                    final theActions = FooActions();
+    
+                    ${maybeInvokeBuilder('''
+                    Foo()
+                      ..store = theStore
+                      ..actions = theActions
+                    ''')}
+                  }
+                '''),
+              );
+            });
+          });
+
+          group('when a store var is available as a class field', () {
+            test('unless the type does not match (uses null instead)',
+                () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theStore'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  class TheBaz {
+                    final FooActions theActions;
+                    final BazFooStore theStore;
+                    TheBaz(this.theActions, this.theStore);
+                    
+                    someMethod() {
+                      ${maybeInvokeBuilder('''
+                      Foo()
+                        ..actions = theActions
+                      ''')}
+                    }
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  class TheBaz {
+                    final FooActions theActions;
+                    final BazFooStore theStore;
+                    TheBaz(this.theActions, this.theStore);
+                    
+                    someMethod() {
+                      ${maybeInvokeBuilder('''
+                      Foo()
+                        ..store = null
+                        ..actions = theActions
+                      ''')}
+                    }
+                  }
+                '''),
+              );
+            });
+
+            test('and the type matches', () async {
+              await testSuggestor(
+                isExpectedError: (err) => err.message.contains('theStore'),
+                expectedPatchCount: 1,
+                input: withFluxComponentUsage('''
+                  class TheFoo {
+                    final FooActions theActions;
+                    final FooStore theStore;
+                    TheFoo(this.theActions, this.theStore);
+                    
+                    someMethod() {
+                      ${maybeInvokeBuilder('''
+                      Foo()
+                        ..store = theStore
+                      ''')}
+                    }
+                  }
+                '''),
+                expectedOutput: withFluxComponentUsage('''
+                  class TheFoo {
+                    final FooActions theActions;
+                    final FooStore theStore;
+                    TheFoo(this.theActions, this.theStore);
+                    
+                    someMethod() {
+                      ${maybeInvokeBuilder('''
+                      Foo()
+                        ..actions = theActions
+                        ..store = theStore
+                      ''')}
+                    }
                   }
                 '''),
               );

@@ -18,6 +18,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/class_suggestor.dart';
 import 'package:over_react_codemod/src/util/offset_util.dart';
 
@@ -91,25 +92,52 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
   }
 }
 
+class InScopeVariable {
+  final String name;
+  final DartType? type;
+
+  InScopeVariable(this.name, this.type);
+}
+
 String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType type) {
-  final inScopeVariableDetector = _InScopeVarDetector();
-  // Find top level vars
-  node.thisOrAncestorOfType<CompilationUnit>()?.accept(inScopeVariableDetector);
-  // Find vars declared in top-level fns (like `main()`)
-  node
-      .thisOrAncestorOfType<BlockFunctionBody>()
-      ?.visitChildren(inScopeVariableDetector);
+  final mostInScopeVariables = node.ancestors.expand((ancestor) sync* {
+    if (ancestor is FunctionDeclaration) {
+      // Function arguments
+      final element = ancestor.declaredElement;
+      if (element != null) {
+        yield* element.parameters.map((p) => InScopeVariable(p.name, p.type));
+      }
+    } else if (ancestor is Block) {
+      // Variables declared in the block (function body, if/else block, etc.)
+      yield* ancestor.statements
+          .whereType<VariableDeclarationStatement>()
+          .expand((d) => d.variables.variables)
+          .map((v) => InScopeVariable(v.name.lexeme, v.declaredElement?.type));
+    } else if (ancestor is ClassDeclaration) {
+      // Class fields
+      final element = ancestor.declaredElement;
+      if (element != null) {
+        yield* element.fields.map((f) => InScopeVariable(f.name, f.type));
+      }
+    } else if (ancestor is CompilationUnit) {
+      // Top-level variables
+      yield* ancestor.declarations
+          .whereType<TopLevelVariableDeclaration>()
+          .expand((d) => d.variables.variables)
+          .map((v) => InScopeVariable(v.name.lexeme, v.declaredElement?.type));
+    }
+  });
 
   // Usually we'd grab typeSystem from the ResolvedUnitResult, but we don't have access to that
   // in this class, so just get it from the compilation unit.
-  final typeSystem = (node.root as CompilationUnit).declaredElement!.library.typeSystem;
+  final typeSystem =
+      (node.root as CompilationUnit).declaredElement!.library.typeSystem;
   bool isMatchingType(DartType? maybeMatchingType) =>
       maybeMatchingType != null &&
-          typeSystem.isAssignableTo(maybeMatchingType, type);
+      typeSystem.isAssignableTo(maybeMatchingType, type);
 
-  final inScopeVarName = inScopeVariableDetector.found
-      .firstWhereOrNull((v) => isMatchingType(v.declaredElement?.type))
-      ?.declaredElement
+  final inScopeVarName = mostInScopeVariables
+      .firstWhereOrNull((v) => isMatchingType(v.type))
       ?.name;
 
   final componentScopePropDetector = _ComponentScopeFluxPropsDetector();
@@ -143,23 +171,6 @@ String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType type) {
 bool _isFnComponentDeclaration(Expression? varInitializer) =>
     varInitializer is MethodInvocation &&
     varInitializer.methodName.name.startsWith('uiF');
-
-/// A visitor to detect in-scope store/actions variables (top-level and block function scopes)
-class _InScopeVarDetector extends RecursiveAstVisitor<void> {
-  final List<VariableDeclaration> found;
-
-  _InScopeVarDetector() : found = [];
-
-  @override
-  visitVariableDeclaration(VariableDeclaration node) {
-    // Don't visit function component declarations here since we visit them using the _ComponentScopeFluxPropsDetector
-    if (_isFnComponentDeclaration(node.initializer)) return;
-
-    if (node.declaredElement != null) {
-      found.add(node);
-    }
-  }
-}
 
 /// A visitor to detect store/actions values in a props class (supports both class and fn components)
 class _ComponentScopeFluxPropsDetector {
