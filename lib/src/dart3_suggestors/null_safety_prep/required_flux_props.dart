@@ -19,7 +19,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:over_react_codemod/src/util/class_suggestor.dart';
-import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 import 'package:over_react_codemod/src/util/offset_util.dart';
 
 /// Suggestor that adds required `store` and/or `actions` prop(s) to the
