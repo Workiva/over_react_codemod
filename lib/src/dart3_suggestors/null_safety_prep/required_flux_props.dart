@@ -19,6 +19,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:over_react_codemod/src/util/class_suggestor.dart';
+import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 import 'package:over_react_codemod/src/util/offset_util.dart';
 
 /// Suggestor that adds required `store` and/or `actions` prop(s) to the
@@ -39,40 +40,35 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
 
   @override
   visitCascadeExpression(CascadeExpression node) {
-    var writesToFluxUiProps = false;
-    var actionsAssigned = false;
-    var storeAssigned = false;
-
-    DartType? fluxActionsType;
-    DartType? fluxStoreType;
     final cascadeWriteEl = node.staticType?.element;
-    if (cascadeWriteEl is ClassElement) {
-      final maybeFluxUiPropsMixin = cascadeWriteEl.mixins
-          .singleWhereOrNull((e) => e.element.name == fluxPropsMixinName);
-      writesToFluxUiProps = maybeFluxUiPropsMixin != null;
-      fluxActionsType = maybeFluxUiPropsMixin?.typeArguments[0];
-      fluxStoreType = maybeFluxUiPropsMixin?.typeArguments[1];
-    }
+    if (cascadeWriteEl is! ClassElement) return;
+
+    final maybeFluxUiPropsMixin = cascadeWriteEl.mixins
+        .singleWhereOrNull((e) => e.element.name == fluxPropsMixinName);
+    if (maybeFluxUiPropsMixin == null) return;
+
+    final fluxActionsType = maybeFluxUiPropsMixin.typeArguments[0];
+    final fluxStoreType = maybeFluxUiPropsMixin.typeArguments[1];
 
     final cascadingAssignments =
         node.cascadeSections.whereType<AssignmentExpression>();
-    storeAssigned = cascadingAssignments.any((cascade) {
+    var storeAssigned = cascadingAssignments.any((cascade) {
       final lhs = cascade.leftHandSide;
       return lhs is PropertyAccess && lhs.propertyName.name == 'store';
     });
-    actionsAssigned = cascadingAssignments.any((cascade) {
+    var actionsAssigned = cascadingAssignments.any((cascade) {
       final lhs = cascade.leftHandSide;
       return lhs is PropertyAccess && lhs.propertyName.name == 'actions';
     });
 
-    if (writesToFluxUiProps && !storeAssigned) {
+    if (!storeAssigned) {
       storeAssigned = true;
       final storeValue =
           _getNameOfVarOrFieldInScopeWithType(node, fluxStoreType) ?? 'null';
       yieldNewCascadeSection(node, '..store = $storeValue');
     }
 
-    if (writesToFluxUiProps && !actionsAssigned) {
+    if (!actionsAssigned) {
       actionsAssigned = true;
       final actionsValue =
           _getNameOfVarOrFieldInScopeWithType(node, fluxActionsType) ?? 'null';
@@ -96,7 +92,7 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
   }
 }
 
-String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType? type) {
+String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType type) {
   final inScopeVariableDetector = _InScopeVarDetector();
   // Find top level vars
   node.thisOrAncestorOfType<CompilationUnit>()?.accept(inScopeVariableDetector);
@@ -108,7 +104,7 @@ String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType? type) {
   final inScopeVarName = inScopeVariableDetector.found
       .firstWhereOrNull((v) {
         final maybeMatchingType = v.declaredElement?.type;
-        return maybeMatchingType?.element?.name == type?.element?.name;
+        return maybeMatchingType?.element?.name == type.element?.name;
       })
       ?.declaredElement
       ?.name;
@@ -126,7 +122,7 @@ String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType? type) {
   final inScopePropName =
       componentScopePropDetector.found.firstWhereOrNull((el) {
     final maybeMatchingType = componentScopePropDetector.getAccessorType(el);
-    return maybeMatchingType?.element?.name == type?.element?.name;
+    return maybeMatchingType?.element?.name == type.element?.name;
   })?.name;
 
   if (inScopeVarName != null && inScopePropName != null) {
