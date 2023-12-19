@@ -16,9 +16,11 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
+import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_flux_props.dart';
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/util.dart';
+import 'package:over_react_codemod/src/util/package_util.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
@@ -26,13 +28,27 @@ const _changesRequiredOutput = """
   pub global run over_react_codemod:required_flux_props
 """;
 
+final _log = Logger('orcm.required_flux_props');
+
+Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
+  _log.info(
+      'Running `pub get` if needed so that all Dart files can be resolved...');
+  final packageRoots = files.map(findPackageRootFor).toSet();
+  for (final packageRoot in packageRoots) {
+    await runPubGetIfNeeded(packageRoot);
+  }
+}
+
 void main(List<String> args) async {
   final parser = ArgParser.allowAnything();
 
   final parsedArgs = parser.parse(args);
+  final dartPaths = allDartPathsExceptHidden();
+
+  await pubGetForAllPackageRoots(dartPaths);
 
   exitCode = await runInteractiveCodemod(
-    allDartPathsExceptHidden(),
+    dartPaths,
     aggregate([
       RequiredFluxProps(),
     ].map((s) => ignoreable(s))),
