@@ -107,7 +107,7 @@ void main() {
             );
           });
 
-          test('when a dynamic var is available in scope', () async {
+          test('unless the in-scope var is dynamic', () async {
             await testSuggestor(
               isExpectedError: (err) =>
                   err.message.contains(RegExp(r"'notTheActions' isn't used.")),
