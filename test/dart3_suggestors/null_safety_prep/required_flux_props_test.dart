@@ -107,6 +107,34 @@ void main() {
             );
           });
 
+          test('when a dynamic var is available in scope', () async {
+            await testSuggestor(
+              isExpectedError: (err) =>
+                  err.message.contains(RegExp(r"'notTheActions' isn't used.")),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage('''
+                main() {
+                  dynamic notTheActions = 123;
+                  final theStore = FooStore();
+                  
+                  ${maybeInvokeBuilder('''Foo()..store = theStore''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                main() {
+                  dynamic notTheActions = 123;
+                  final theStore = FooStore();
+
+                  ${maybeInvokeBuilder('''
+                  Foo()
+                    ..actions = null
+                    ..store = theStore
+                  ''')}
+                }
+              '''),
+            );
+          });
+
           group('when a top-level actions var is available', () {
             test('unless the type does not match (uses null instead)',
                 () async {

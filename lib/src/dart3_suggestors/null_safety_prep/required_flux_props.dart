@@ -151,6 +151,7 @@ String? _getNameOfVarOrFieldInScopeWithType(AstNode node, DartType type) {
       (node.root as CompilationUnit).declaredElement!.library.typeSystem;
   bool isMatchingType(DartType? maybeMatchingType) =>
       maybeMatchingType != null &&
+      maybeMatchingType is! DynamicType &&
       typeSystem.isAssignableTo(maybeMatchingType, type);
 
   final inScopeVarName = mostInScopeVariables
