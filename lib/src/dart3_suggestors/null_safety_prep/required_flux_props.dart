@@ -42,6 +42,15 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
   visitCascadeExpression(CascadeExpression node) {
     final cascadeWriteEl = node.staticType?.element;
     if (cascadeWriteEl is! ClassElement) return;
+    final isReturnedAsDefaultProps = node.ancestors
+            .whereType<MethodDeclaration>()
+            .firstOrNull
+            ?.name
+            .value()
+            .toString()
+            .contains(RegExp(r'getDefaultProps|defaultProps')) ==
+        true;
+    if (isReturnedAsDefaultProps) return;
 
     final maybeFluxUiPropsMixin = cascadeWriteEl.mixins
         .singleWhereOrNull((e) => e.element.name == fluxPropsMixinName);

@@ -57,6 +57,24 @@ void main() {
       );
     });
 
+    test('leaves defaultProps/getDefaultProps alone', () async {
+      await testSuggestor(
+        expectedPatchCount: 0,
+        input: withFluxComponentUsage(/*language=dart*/ r'''
+          class FizComponent extends FluxUiComponent2<FooProps> {
+            @override
+            getDefaultProps() => newProps()..id = '123';
+            
+            @override
+            get defaultProps => newProps()..id = '123';
+          
+            @override
+            render() => null;
+          }
+        '''),
+      );
+    });
+
     @isTestGroup
     void sharedTests({required bool invokeBuilder}) {
       String maybeInvokeBuilder(String builderString) {
