@@ -1413,7 +1413,6 @@ class FooComponent extends FluxUiComponent2<FooProps> {
 
 UiFactory<NotFooProps> NotFoo = castUiFactory(_\$NotFoo); // ignore: undefined_identifier
 
-// FIXME (adl): Do we need to have a mixin that has store/actions with the correct type? (See FIXME in impl regarding out-of-scope vars being used) 
 mixin NotFooPropsMixin on UiProps {
   Baz$storeName store;
   Baz$actionsName actions;
