@@ -86,7 +86,15 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
   }
 
   void yieldNewCascadeSection(CascadeExpression node, String newSection) {
-    final offset = context.sourceFile.getOffsetOfLineAfter(node.target.offset);
+    final sf = context.sourceFile;
+    final targetLineOffset = sf.getOffset(sf.getLine(node.target.offset));
+    int offset;
+    if (targetLineOffset == sf.getOffset(sf.getLine(node.target.end))) {
+      // Cascade on a single line / same line as the target, add the new setter(s) before the semicolon
+      offset = node.target.end;
+    } else {
+      offset = sf.getOffsetOfLineAfter(node.target.offset);
+    }
     yieldPatch(newSection, offset, offset);
   }
 

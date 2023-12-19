@@ -91,10 +91,7 @@ void main() {
               input: withFluxComponentUsage('''
                 main() {
                   final theStore = FooStore();
-                  ${maybeInvokeBuilder('''
-                  Foo()
-                    ..store = theStore
-                  ''')}
+                  ${maybeInvokeBuilder('''Foo()..store = theStore''')}
                 }
               '''),
               expectedOutput: withFluxComponentUsage('''
