@@ -41,8 +41,8 @@ void main() {
         'leaves builders alone if they don\'t use FluxUiPropsMixin, '
         'even if they have props named store/actions', () async {
       await testSuggestor(
-        isExpectedError: (err) =>
-            err.message.contains(RegExp(r'theStore|theActions')),
+        isExpectedError: (err) => err.message
+            .contains(RegExp(r"'(theStore|theActions)' isn't used.")),
         expectedPatchCount: 0,
         input: withFluxComponentUsage(/*language=dart*/ r'''
           main() {
@@ -96,7 +96,8 @@ void main() {
             test('unless the type does not match (uses null instead)',
                 () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theActions'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theActions' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   final theActions = BazFooActions();
@@ -124,7 +125,8 @@ void main() {
 
             test('and the type matches', () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theActions'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theActions' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   final theActions = FooActions();
@@ -155,7 +157,8 @@ void main() {
             test('unless the type does not match (uses null instead)',
                 () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theActions'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theActions' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   main() {
@@ -185,7 +188,8 @@ void main() {
 
             test('and the type matches', () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theActions'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theActions' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   main() {
@@ -218,7 +222,8 @@ void main() {
             test('unless the type does not match (uses null instead)',
                 () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theActions'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theActions' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   main(BazFooActions theActions) {
@@ -246,7 +251,8 @@ void main() {
 
             test('and the type matches', () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theActions'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theActions' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   main(FooActions theActions) {
@@ -277,7 +283,8 @@ void main() {
             test('unless the type does not match (uses null instead)',
                 () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theActions'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theActions' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   class TheBaz {
@@ -313,7 +320,8 @@ void main() {
 
             test('and the type matches', () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theActions'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theActions' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   class TheFoo {
@@ -537,7 +545,8 @@ void main() {
             test('unless the type does not match (uses null instead)',
                 () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theStore'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theStore' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   final theStore = BazFooStore();
@@ -565,7 +574,8 @@ void main() {
 
             test('and the type matches', () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theStore'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theStore' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   final theStore = FooStore();
@@ -596,7 +606,8 @@ void main() {
             test('unless the type does not match (uses null instead)',
                 () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theStore'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theStore' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   main() {
@@ -624,7 +635,8 @@ void main() {
 
             test('and the type matches', () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theStore'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theStore' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   main() {
@@ -655,7 +667,8 @@ void main() {
             test('unless the type does not match (uses null instead)',
                 () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theStore'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theStore' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   main(BazFooStore theStore) {
@@ -683,7 +696,8 @@ void main() {
 
             test('and the type matches', () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theStore'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theStore' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   main(FooStore theStore) {
@@ -714,7 +728,8 @@ void main() {
             test('unless the type does not match (uses null instead)',
                 () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theStore'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theStore' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   class TheBaz {
@@ -750,7 +765,8 @@ void main() {
 
             test('and the type matches', () async {
               await testSuggestor(
-                isExpectedError: (err) => err.message.contains('theStore'),
+                isExpectedError: (err) =>
+                    err.message.contains(RegExp(r"'theStore' isn't used.")),
                 expectedPatchCount: 1,
                 input: withFluxComponentUsage('''
                   class TheFoo {
@@ -971,8 +987,8 @@ void main() {
               test('unless the type(s) do not match (uses null instead):',
                   () async {
                 await testSuggestor(
-                  isExpectedError: (err) =>
-                      err.message.contains(RegExp(r'theStore|theActions')),
+                  isExpectedError: (err) => err.message
+                      .contains(RegExp(r"'(theStore|theActions)' isn't used.")),
                   expectedPatchCount: 2,
                   input: withFluxComponentUsage('''
                     final theStore = BazFooStore();
@@ -1000,8 +1016,8 @@ void main() {
               group('and the type(s) match:', () {
                 test('store AND actions', () async {
                   await testSuggestor(
-                    isExpectedError: (err) =>
-                        err.message.contains(RegExp(r'theStore|theActions')),
+                    isExpectedError: (err) => err.message.contains(
+                        RegExp(r"'(theStore|theActions)' isn't used.")),
                     expectedPatchCount: 2,
                     input: withFluxComponentUsage('''
                       final theStore = FooStore();
@@ -1028,7 +1044,8 @@ void main() {
 
                 test('store only', () async {
                   await testSuggestor(
-                    isExpectedError: (err) => err.message.contains('theStore'),
+                    isExpectedError: (err) =>
+                        err.message.contains(RegExp(r"'theStore' isn't used.")),
                     expectedPatchCount: 2,
                     input: withFluxComponentUsage('''
                       final theStore = FooStore();
@@ -1053,8 +1070,8 @@ void main() {
 
                 test('actions only', () async {
                   await testSuggestor(
-                    isExpectedError: (err) =>
-                        err.message.contains('theActions'),
+                    isExpectedError: (err) => err.message
+                        .contains(RegExp(r"'theActions' isn't used.")),
                     expectedPatchCount: 2,
                     input: withFluxComponentUsage('''
                       final theActions = FooActions();
@@ -1083,8 +1100,8 @@ void main() {
               test('unless the type(s) do not match (uses null instead):',
                   () async {
                 await testSuggestor(
-                  isExpectedError: (err) =>
-                      err.message.contains(RegExp(r'theStore|theActions')),
+                  isExpectedError: (err) => err.message
+                      .contains(RegExp(r"'(theStore|theActions)' isn't used.")),
                   expectedPatchCount: 2,
                   input: withFluxComponentUsage('''
                     main() {
@@ -1114,8 +1131,8 @@ void main() {
               group('and the type(s) match:', () {
                 test('store AND actions', () async {
                   await testSuggestor(
-                    isExpectedError: (err) =>
-                        err.message.contains(RegExp(r'theStore|theActions')),
+                    isExpectedError: (err) => err.message.contains(
+                        RegExp(r"'(theStore|theActions)' isn't used.")),
                     expectedPatchCount: 2,
                     input: withFluxComponentUsage('''
                       main() {
@@ -1144,7 +1161,8 @@ void main() {
 
                 test('store only', () async {
                   await testSuggestor(
-                    isExpectedError: (err) => err.message.contains('theStore'),
+                    isExpectedError: (err) =>
+                        err.message.contains(RegExp(r"'theStore' isn't used.")),
                     expectedPatchCount: 2,
                     input: withFluxComponentUsage('''
                       main() {
@@ -1171,8 +1189,8 @@ void main() {
 
                 test('actions only', () async {
                   await testSuggestor(
-                    isExpectedError: (err) =>
-                        err.message.contains('theActions'),
+                    isExpectedError: (err) => err.message
+                        .contains(RegExp(r"'theActions' isn't used.")),
                     expectedPatchCount: 2,
                     input: withFluxComponentUsage('''
                       main() {
