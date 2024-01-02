@@ -13,6 +13,8 @@
 // limitations under the License.
 
 String withOverReactAndWsdImports(String source) => /*language=dart*/ '''
+    import 'dart:html';
+    
     import 'package:over_react/over_react.dart';
     import 'package:web_skin_dart/component2/all.dart';
     import 'package:web_skin_dart/component2/all.dart' as wsd_v2;

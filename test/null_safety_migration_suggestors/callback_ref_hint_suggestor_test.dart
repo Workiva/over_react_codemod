@@ -15,8 +15,11 @@
 import 'package:over_react_codemod/src/null_safety_migration_suggestors/callback_ref_hint_suggestor.dart';
 import 'package:test/test.dart';
 
+import '../mui_suggestors/components/shared.dart';
 import '../resolved_file_context.dart';
 import '../util.dart';
+
+// todo add block function, and other test cases, non-ref prop names, mui/dom usages
 
 void main() {
   final resolvedContext = SharedAnalysisContext.wsd;
@@ -25,51 +28,166 @@ void main() {
   // (which is more common for the WSD context), it fails here instead of failing the first test.
   setUpAll(resolvedContext.warmUpAnalysis);
 
-  group('MuiButtonToolbarMigrator', () {
+  group('CallbackRefHintSuggestor', () {
     final testSuggestor = getSuggestorTester(
       CallbackRefHintSuggestor(),
       resolvedContext: resolvedContext,
     );
 
-    group('migrates WSD ButtonToolbars', () {
-      test('that are either unnamespaced or namespaced, and either v1 or v2',
-          () async {
+    group('adds nullability hint to ref prop typed parameters', () {
+      test('', () async {
         await testSuggestor(
-          input:/*language=dart*/ '''
-              import 'dart:html';
-        
-              import 'package:over_react/over_react.dart';
-              import 'package:web_skin_dart/component2/all.dart';
-              
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
               content() {
                 var ref;
                 (ButtonToolbar()..ref = (ButtonElement r) => ref = r)();
-                (ButtonToolbar()..ref = (r) => ref = r as ButtonElement)();
                 (ButtonToolbar()..ref = (ButtonElement r) { ref = r; })();
-                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement; })();
                 ref;
               }
-          ''',
-          // todo add block function, and other test cases, non-ref prop names
-          expectedOutput: /*language=dart*/ '''
-              import 'dart:html';
-        
-              import 'package:over_react/over_react.dart';
-              import 'package:web_skin_dart/component2/all.dart';
-              
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
               content() {
                 var ref;
                 (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = r)();
-                (ButtonToolbar()..ref = (r) => ref = r as ButtonElement /*?*/)();
                 (ButtonToolbar()..ref = (ButtonElement /*?*/ r) { ref = r; })();
-                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement /*?*/; })();
                 ref;
               }
-          ''',
+          '''),
         );
       });
 
+      test('for builders', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                var ref;
+                (ButtonToolbar()..ref = (ButtonElement r) => ref = r);
+                (ButtonToolbar()..ref = (ButtonElement r) { ref = r; });
+                ref;
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                var ref;
+                (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = r);
+                (ButtonToolbar()..ref = (ButtonElement /*?*/ r) { ref = r; });
+                ref;
+              }
+          '''),
+        );
+      });
+    });
 
+    group('adds nullability hint to casts in a callback ref body', () {
+      test('', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                var ref;
+                (ButtonToolbar()..ref = (r) => ref = r as ButtonElement)();
+                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement; })();
+                ref;
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                var ref;
+                (ButtonToolbar()..ref = (r) => ref = r as ButtonElement /*?*/)();
+                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement /*?*/; })();
+                ref;
+              }
+          '''),
+        );
+      });
+
+      test('for builders', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                var ref;
+                (ButtonToolbar()..ref = (r) => ref = r as ButtonElement);
+                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement; });
+                ref;
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                var ref;
+                (ButtonToolbar()..ref = (r) => ref = r as ButtonElement /*?*/);
+                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement /*?*/; });
+                ref;
+              }
+          '''),
+        );
+      });
+
+      test('only for casts of the ref param', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                var ref;
+                final a = 1;
+                (ButtonToolbar()
+                  ..ref = (r) { 
+                    ref = r as int; 
+                    ref = a as ButtonElement;
+                    ref as int;
+                    ref = r as ButtonElement;
+                })();
+                (ButtonToolbar()
+                  ..ref = (ButtonElement r) { 
+                    ref = r as int; 
+                    ref = a as ButtonElement;
+                })();
+                (ButtonToolbar()..ref = (ButtonElement r) => ref = a as ButtonElement)();
+                (ButtonToolbar()..ref = (_) => ref = a as ButtonElement)();
+                ref;
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                var ref;
+                final a = 1;
+                (ButtonToolbar()
+                  ..ref = (r) { 
+                    ref = r as int /*?*/; 
+                    ref = a as ButtonElement;
+                    ref as int;
+                    ref = r as ButtonElement /*?*/;
+                })();
+                (ButtonToolbar()
+                  ..ref = (ButtonElement /*?*/ r) { 
+                    ref = r as int /*?*/; 
+                    ref = a as ButtonElement;
+                })();
+                (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = a as ButtonElement)();
+                (ButtonToolbar()..ref = (_) => ref = a as ButtonElement)();
+                ref;
+              }
+          '''),
+        );
+      });
+    });
+
+    test('does not add hints if they already exist', () async {
+      await testSuggestor(
+        input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                var ref;
+                (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = r)();
+                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement /*?*/; })();
+                ref;
+              }
+          '''),
+        expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                var ref;
+                (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = r)();
+                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement /*?*/; })();
+                ref;
+              }
+          '''),
+      );
     });
   });
 }
