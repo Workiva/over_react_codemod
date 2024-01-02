@@ -47,6 +47,7 @@ executables:
   intl_message_migration:
   sort_intl:
   unify_package_rename:
+  null_safety_migration:
 
 dependency_validator:
   ignore:
