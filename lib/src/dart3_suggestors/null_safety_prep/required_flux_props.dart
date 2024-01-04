@@ -47,6 +47,14 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
   visitCascadeExpression(CascadeExpression node) {
     final cascadeWriteEl = node.staticType?.element;
     if (cascadeWriteEl is! ClassElement) return;
+    const typesToIgnore = {
+      '_PanelTitleProps',
+      'PanelTitleProps',
+      'PanelTitleV2Props'
+    };
+    if (typesToIgnore.contains(cascadeWriteEl.name)) {
+      return;
+    }
     final isReturnedAsDefaultProps = node.ancestors
             .whereType<MethodDeclaration>()
             .firstOrNull

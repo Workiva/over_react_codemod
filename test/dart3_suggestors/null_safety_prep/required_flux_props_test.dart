@@ -75,6 +75,20 @@ void main() {
       );
     });
 
+    test('leaves PanelTitle/PanelTitleV2 alone', () async {
+      await testSuggestor(
+        expectedPatchCount: 0,
+        input: withMockPanelTitleComponents(/*language=dart*/ r'''
+          main() {
+            final pt = (PanelTitle()..id = 'pt')();
+            final pt2 = (PanelTitleV2()..id = 'pt2')();
+            final pt3 = (_PanelTitle()..id = 'pt3')();
+            return [pt, pt2, pt3];
+          }
+        '''),
+      );
+    });
+
     @isTestGroup
     void sharedTests({required bool invokeBuilder}) {
       String maybeInvokeBuilder(String builderString) {
@@ -1582,4 +1596,30 @@ class NotFooComponent extends UiComponent2<NotFooProps> {
   @override
   render() => null;
 }''');
+}
+
+String withMockPanelTitleComponents(String source) {
+  return withOverReactImport('''$source
+  
+UiFactory<_PanelTitleProps> _PanelTitle = castUiFactory(_\$_PanelTitle); // ignore: undefined_identifier
+class _PanelTitleProps = UiProps with FluxUiPropsMixin<dynamic, dynamic>;
+class LegacyPanelTitleComponent extends FluxUiComponent2<_PanelTitleProps> {
+  @override
+  render() => null;
+}
+
+UiFactory<PanelTitleProps> PanelTitle = castUiFactory(_\$PanelTitle); // ignore: undefined_identifier
+class PanelTitleProps = UiProps with FluxUiPropsMixin<dynamic, dynamic>;
+class PanelTitleComponent extends FluxUiComponent2<PanelTitleProps> {
+  @override
+  render() => null;
+}
+
+UiFactory<PanelTitleV2Props> PanelTitleV2 = castUiFactory(_\$PanelTitleV2); // ignore: undefined_identifier
+class PanelTitleV2Props = UiProps with FluxUiPropsMixin<dynamic, dynamic>;
+class PanelTitleV2Component extends FluxUiComponent2<PanelTitleV2Props> {
+  @override
+  render() => null;
+}
+  ''');
 }
