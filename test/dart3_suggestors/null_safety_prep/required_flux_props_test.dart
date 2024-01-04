@@ -139,6 +139,34 @@ void main() {
             );
           });
 
+          test('unless the in-scope var is null', () async {
+            await testSuggestor(
+              isExpectedError: (err) =>
+                  err.message.contains(RegExp(r"'notTheActions' isn't used.")),
+              expectedPatchCount: 1,
+              input: withFluxComponentUsage('''
+                main() {
+                  final notTheActions = null;
+                  final theStore = FooStore();
+                  
+                  ${maybeInvokeBuilder('''Foo()..store = theStore''')}
+                }
+              '''),
+              expectedOutput: withFluxComponentUsage('''
+                main() {
+                  final notTheActions = null;
+                  final theStore = FooStore();
+
+                  ${maybeInvokeBuilder('''
+                  Foo()
+                    ..actions = null
+                    ..store = theStore
+                  ''')}
+                }
+              '''),
+            );
+          });
+
           test('unless TActions is dynamic', () async {
             await testSuggestor(
               isExpectedError: (err) =>
