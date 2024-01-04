@@ -81,6 +81,10 @@ void main() {
         return (!invokeBuilder ? builderString : '($builderString)()') + ';';
       }
 
+      String expectedTodo(String varName) {
+        return RequiredFluxProps.getTodoForPossiblyValidStoreVar(varName);
+      }
+
       group(
           'patches ${invokeBuilder ? 'invoked' : 'un-invoked'} builders that use FluxUiPropsMixin and',
           () {
@@ -691,8 +695,8 @@ void main() {
                   main() {
                     final theActions = FooActions();
     
-                    ${maybeInvokeBuilder('''Foo()
-                      ..store = theStore
+                    ${maybeInvokeBuilder('''Foo()${expectedTodo('theStore')}
+                      ..store = null
                       ..actions = theActions
                     ''')}
                   }
@@ -752,8 +756,8 @@ void main() {
                     final theStore = FooStore();
                     final theActions = FooActions();
     
-                    ${maybeInvokeBuilder('''Foo()
-                      ..store = theStore
+                    ${maybeInvokeBuilder('''Foo()${expectedTodo('theStore')}
+                      ..store = null
                       ..actions = theActions
                     ''')}
                   }
@@ -813,8 +817,8 @@ void main() {
                     final theActions = FooActions();
     
                     ${maybeInvokeBuilder('''
-                    Foo()
-                      ..store = theStore
+                    Foo()${expectedTodo('theStore')}
+                      ..store = null
                       ..actions = theActions
                     ''')}
                   }
@@ -876,7 +880,7 @@ void main() {
                     someMethod() {
                       ${maybeInvokeBuilder('''
                       Foo()
-                        ..store = theStore
+                        ..actions = theActions
                       ''')}
                     }
                   }
@@ -889,9 +893,9 @@ void main() {
                     
                     someMethod() {
                       ${maybeInvokeBuilder('''
-                      Foo()
+                      Foo()${expectedTodo('theStore')}
+                        ..store = null
                         ..actions = theActions
-                        ..store = theStore
                       ''')}
                     }
                   }
@@ -965,8 +969,8 @@ void main() {
                   final FooConsumer = uiFunction<FooConsumerProps>(
                     (localProps) {
                       someFunction() {
-                        return ${maybeInvokeBuilder('''Foo()
-                          ..store = localProps.store
+                        return ${maybeInvokeBuilder('''Foo()${expectedTodo('localProps.store')}
+                          ..store = null
                           ..actions = localProps.actions
                         ''')}
                       }
@@ -1043,8 +1047,8 @@ void main() {
                   class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
                   class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
                     someMethod() {
-                      return ${maybeInvokeBuilder('''Foo()
-                        ..store = props.store
+                      return ${maybeInvokeBuilder('''Foo()${expectedTodo('props.store')}
+                        ..store = null
                         ..actions = props.actions
                       ''')}
                     }
@@ -1131,8 +1135,8 @@ void main() {
                       final theStore = FooStore();
                       final theActions = FooActions();
                       main() {
-                        ${maybeInvokeBuilder('''Foo()
-                          ..store = theStore
+                        ${maybeInvokeBuilder('''Foo()${expectedTodo('theStore')}
+                          ..store = null
                           ..actions = theActions
                           ..id = '123'
                         ''')}
@@ -1157,8 +1161,8 @@ void main() {
                     expectedOutput: withFluxComponentUsage('''
                       final theStore = FooStore();
                       main() {
-                        ${maybeInvokeBuilder('''Foo()
-                          ..store = theStore
+                        ${maybeInvokeBuilder('''Foo()${expectedTodo('theStore')}
+                          ..store = null
                           ..actions = null
                           ..id = '123'
                         ''')}
@@ -1248,8 +1252,8 @@ void main() {
                         final theStore = FooStore();
                         final theActions = FooActions();
         
-                        ${maybeInvokeBuilder('''Foo()
-                          ..store = theStore
+                        ${maybeInvokeBuilder('''Foo()${expectedTodo('theStore')}
+                          ..store = null
                           ..actions = theActions
                           ..id = '123'
                         ''')}
@@ -1276,8 +1280,8 @@ void main() {
                       main() {
                         final theStore = FooStore();
         
-                        ${maybeInvokeBuilder('''Foo()
-                          ..store = theStore
+                        ${maybeInvokeBuilder('''Foo()${expectedTodo('theStore')}
+                          ..store = null
                           ..actions = null
                           ..id = '123'
                         ''')}
@@ -1383,8 +1387,8 @@ void main() {
                     final FooConsumer = uiFunction<FooConsumerProps>(
                       (localProps) {
                         someFunction() {
-                          return ${maybeInvokeBuilder('''Foo()
-                            ..store = localProps.store
+                          return ${maybeInvokeBuilder('''Foo()${expectedTodo('localProps.store')}
+                            ..store = null
                             ..actions = localProps.actions
                             ..id = '123'
                           ''')}
@@ -1463,8 +1467,8 @@ void main() {
                     class FooConsumerProps = UiProps with FluxUiPropsMixin<FooActions, FooStore>;
                     class FooConsumerComponent extends FluxUiComponent2<FooConsumerProps> {
                       someMethod() {
-                        return ${maybeInvokeBuilder('''Foo()
-                          ..store = props.store
+                        return ${maybeInvokeBuilder('''Foo()${expectedTodo('props.store')}
+                          ..store = null
                           ..actions = props.actions
                           ..id = '123'
                         ''')}

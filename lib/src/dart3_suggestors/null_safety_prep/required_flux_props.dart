@@ -18,6 +18,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/class_suggestor.dart';
 
@@ -36,6 +37,11 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
   ResolvedUnitResult? _result;
 
   static const fluxPropsMixinName = 'FluxUiPropsMixin';
+
+  @visibleForTesting
+  static String getTodoForPossiblyValidStoreVar(String fluxStoreVarName) {
+    return ' // TODO: There is a valid flux store value in scope that could be set here (`$fluxStoreVarName`). Should it be set?';
+  }
 
   @override
   visitCascadeExpression(CascadeExpression node) {
@@ -71,8 +77,13 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
     if (!storeAssigned) {
       storeAssigned = true;
       final storeValue =
-          _getNameOfVarOrFieldInScopeWithType(node, fluxStoreType) ?? 'null';
-      yieldNewCascadeSection(node, '..store = $storeValue');
+          _getNameOfVarOrFieldInScopeWithType(node, fluxStoreType);
+      if (storeValue != null) {
+        final todoComment = getTodoForPossiblyValidStoreVar(storeValue);
+        yieldNewCascadeSection(node, '$todoComment\n..store = null');
+      } else {
+        yieldNewCascadeSection(node, '..store = null');
+      }
     }
 
     if (!actionsAssigned) {
