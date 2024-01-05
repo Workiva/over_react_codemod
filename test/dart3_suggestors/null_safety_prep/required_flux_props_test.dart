@@ -89,6 +89,19 @@ void main() {
       );
     });
 
+    test('leaves PanelToolbars alone', () async {
+      await testSuggestor(
+        expectedPatchCount: 0,
+        input: withMockPanelToolbarComponents(/*language=dart*/ r'''
+          main() {
+            final pt = (PanelToolbar()..id = 'pt')();
+            final pt2 = (_PanelToolbar()..id = 'pt2')();
+            return [pt, pt2];
+          }
+        '''),
+      );
+    });
+
     @isTestGroup
     void sharedTests({required bool invokeBuilder}) {
       String maybeInvokeBuilder(String builderString) {
@@ -1618,6 +1631,24 @@ class PanelTitleComponent extends FluxUiComponent2<PanelTitleProps> {
 UiFactory<PanelTitleV2Props> PanelTitleV2 = castUiFactory(_\$PanelTitleV2); // ignore: undefined_identifier
 class PanelTitleV2Props = UiProps with FluxUiPropsMixin<dynamic, dynamic>;
 class PanelTitleV2Component extends FluxUiComponent2<PanelTitleV2Props> {
+  @override
+  render() => null;
+}
+  ''');
+}
+
+String withMockPanelToolbarComponents(String source) {
+  return withOverReactImport('''$source
+UiFactory<_PanelToolbarProps> _PanelToolbar = castUiFactory(_\$_PanelToolbar); // ignore: undefined_identifier
+class _PanelToolbarProps = UiProps with FluxUiPropsMixin<dynamic, dynamic>;
+class LegacyPanelToolbarComponent extends FluxUiComponent2<_PanelToolbarProps> {
+  @override
+  render() => null;
+}
+
+UiFactory<PanelToolbarProps> PanelToolbar = castUiFactory(_\$PanelToolbar); // ignore: undefined_identifier
+class PanelToolbarProps = UiProps with FluxUiPropsMixin<dynamic, dynamic>;
+class PanelToolbarComponent extends FluxUiComponent2<PanelToolbarProps> {
   @override
   render() => null;
 }

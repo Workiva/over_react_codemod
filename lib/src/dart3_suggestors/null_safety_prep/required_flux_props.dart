@@ -50,7 +50,9 @@ class RequiredFluxProps extends RecursiveAstVisitor with ClassSuggestor {
     const typesToIgnore = {
       '_PanelTitleProps',
       'PanelTitleProps',
-      'PanelTitleV2Props'
+      'PanelTitleV2Props',
+      '_PanelToolbarProps',
+      'PanelToolbarProps',
     };
     if (typesToIgnore.contains(cascadeWriteEl.name)) {
       return;
