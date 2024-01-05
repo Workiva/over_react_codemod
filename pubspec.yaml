@@ -42,6 +42,7 @@ executables:
   dart2_9_upgrade:
   dependency_validator_ignore:
   mui_migration:
+  required_flux_props:
   rmui_preparation:
   rmui_bundle_update:
   intl_message_migration:
