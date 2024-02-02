@@ -7,4 +7,14 @@ dependencies:
     hosted:
       name: web_skin_dart
       url: https://pub.workiva.org
-    version: ^2.56.0
+    version: ^2.70.1
+
+dependency_overrides:
+  over_react:
+    git:
+      url: https://github.com/Workiva/over_react.git
+      ref: v5_wip
+  over_react_test:
+    git:
+      url: https://github.com/Workiva/over_react_test.git
+      ref: v3_wip
