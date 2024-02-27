@@ -112,13 +112,13 @@ void main() {
           input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
               import 'package:web_skin_dart/ui_components.dart';
-              import 'package:web_skin_dart/component2/all.dart' as wsd2;
+              
           
               content() => wsd2.Button()();
           ''',
           expectedOutput: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
-              import 'package:web_skin_dart/component2/all.dart' as wsd2;
+              
           
               content() => wsd2.Button()();
           ''',
@@ -134,13 +134,13 @@ void main() {
           input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
               import 'package:web_skin_dart/ui_components.dart';
-              import 'package:web_skin_dart/component2/all.dart' as wsd2;
+              
           
               content() => wsd2.Button()();
           ''',
           expectedOutput: /*language=dart*/ '''
               import 'package:web_skin_dart/ui_components.dart';
-              import 'package:web_skin_dart/component2/all.dart' as wsd2;
+              
           
               content() => wsd2.Button()();
           ''',

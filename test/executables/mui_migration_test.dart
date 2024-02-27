@@ -129,7 +129,7 @@ dependencies:'''),
           script: muiCodemodScript,
           input: inputFiles(additionalFilesInLib: [
             d.file('usage2.dart', /*language=dart*/ '''
-              import 'package:web_skin_dart/component2/all.dart';
+              
 
               usage() => ButtonToolbar()(
                 Button()(),
@@ -142,7 +142,7 @@ dependencies:'''),
           expectedOutput: expectedOutputFiles(additionalFilesInLib: [
             d.file('usage2.dart', /*language=dart*/ '''
               import 'package:react_material_ui/react_material_ui.dart' as mui;
-import 'package:web_skin_dart/component2/all.dart';
+
 
               usage() => ButtonToolbar()(
                 mui.Button()(),
@@ -158,7 +158,7 @@ import 'package:web_skin_dart/component2/all.dart';
           script: muiCodemodScript,
           input: inputFiles(additionalFilesInLib: [
             d.file('usage2.dart', /*language=dart*/ '''
-              import 'package:web_skin_dart/component2/all.dart';
+              
 
               usage() => ButtonToolbar()(
                 Button()(),
@@ -171,7 +171,7 @@ import 'package:web_skin_dart/component2/all.dart';
           expectedOutput: expectedOutputFiles(additionalFilesInLib: [
             d.file('usage2.dart', /*language=dart*/ '''
               import 'package:react_material_ui/react_material_ui.dart' as mui;
-import 'package:web_skin_dart/component2/all.dart';
+
 
               usage() => mui.ButtonToolbar()(
                 mui.Button()(),
@@ -196,7 +196,7 @@ import 'package:web_skin_dart/component2/all.dart';
           script: muiCodemodScript,
           input: inputFiles(additionalFilesInLib: [
             d.file('usage2.dart', /*language=dart*/ '''
-              import 'package:web_skin_dart/component2/all.dart';
+              
 
               usage() => ButtonToolbar()(
                 Button()(),
