@@ -44,7 +44,6 @@ executables:
   null_safety_prep:
   mui_migration:
   required_flux_props:
-  dom_callback_null_args:
   rmui_preparation:
   rmui_bundle_update:
   intl_message_migration:
