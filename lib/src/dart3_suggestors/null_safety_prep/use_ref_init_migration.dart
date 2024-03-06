@@ -28,7 +28,8 @@ import 'package:codemod/codemod.dart';
 /// // After
 /// final ref = useRefInit(someNonNulLValue);
 /// ```
-class UseRefInitMigration extends RecursiveAstVisitor with AstVisitingSuggestor {
+class UseRefInitMigration extends RecursiveAstVisitor
+    with AstVisitingSuggestor {
   @override
   visitArgumentList(ArgumentList node) {
     super.visitArgumentList(node);
