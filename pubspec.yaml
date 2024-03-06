@@ -1,5 +1,5 @@
 name: over_react_codemod
-version: 2.29.0
+version: 2.30.0
 homepage: https://github.com/Workiva/over_react_codemod
 
 description: >
@@ -41,7 +41,9 @@ dev_dependencies:
 executables:
   dart2_9_upgrade:
   dependency_validator_ignore:
+  null_safety_prep:
   mui_migration:
+  required_flux_props:
   rmui_preparation:
   rmui_bundle_update:
   intl_message_migration:
