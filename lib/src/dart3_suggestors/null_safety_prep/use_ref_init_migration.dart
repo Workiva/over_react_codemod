@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:over_react_codemod/src/util/class_suggestor.dart';
+import 'package:codemod/codemod.dart';
 
 /// Suggestor that finds instances of `useRef` function invocations that
 /// pass an argument, and replaces them with `useRefInit` to prep for
@@ -29,9 +28,7 @@ import 'package:over_react_codemod/src/util/class_suggestor.dart';
 /// // After
 /// final ref = useRefInit(someNonNulLValue);
 /// ```
-class UseRefInitMigration extends RecursiveAstVisitor with ClassSuggestor {
-  ResolvedUnitResult? _result;
-
+class UseRefInitMigration extends RecursiveAstVisitor with AstVisitingSuggestor {
   @override
   visitArgumentList(ArgumentList node) {
     super.visitArgumentList(node);
@@ -50,15 +47,5 @@ class UseRefInitMigration extends RecursiveAstVisitor with ClassSuggestor {
             possibleInvocation.function.end);
       }
     }
-  }
-
-  @override
-  Future<void> generatePatches() async {
-    _result = await context.getResolvedUnit();
-    if (_result == null) {
-      throw Exception(
-          'Could not get resolved result for "${context.relativePath}"');
-    }
-    _result!.unit.accept(this);
   }
 }
