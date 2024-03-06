@@ -23,7 +23,7 @@ import 'package:over_react_codemod/src/util.dart';
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
-  pub global run over_react_codemod:dom_callback_null_args
+  pub global run over_react_codemod:null_safety_prep
 """;
 
 void main(List<String> args) async {
@@ -34,7 +34,9 @@ void main(List<String> args) async {
 
   exitCode = await runInteractiveCodemod(
     dartPaths,
-    ignoreable(UseRefInitMigration()),
+    aggregate([
+      UseRefInitMigration(),
+    ].map((s) => ignoreable(s))),
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,
