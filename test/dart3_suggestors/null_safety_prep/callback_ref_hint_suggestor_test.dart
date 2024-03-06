@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:over_react_codemod/src/null_safety_migration_suggestors/callback_ref_hint_suggestor.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/callback_ref_hint_suggestor.dart';
 import 'package:test/test.dart';
 
-import '../mui_suggestors/components/shared.dart';
-import '../resolved_file_context.dart';
-import '../util.dart';
+import '../../mui_suggestors/components/shared.dart';
+import '../../resolved_file_context.dart';
+import '../../util.dart';
 
 // todo add block function, and other test cases, non-ref prop names, mui/dom usages
 

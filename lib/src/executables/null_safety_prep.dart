@@ -20,7 +20,7 @@ import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/use_ref
 import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/util.dart';
 
-import '../null_safety_migration_suggestors/callback_ref_hint_suggestor.dart';
+import '../dart3_suggestors/null_safety_prep/callback_ref_hint_suggestor.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
