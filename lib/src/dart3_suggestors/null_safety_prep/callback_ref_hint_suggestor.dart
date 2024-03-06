@@ -35,13 +35,11 @@ class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
       if (prop.name.name == 'ref') {
         final rhs = prop.rightHandSide;
         if (rhs is FunctionExpression) {
-          // todo add fixme if there are more than one params
-
           // Add nullability hint to parameter if typed.
           final param = rhs.parameters?.parameters.first;
           if (param is SimpleFormalParameter) {
             final type = param.type;
-            if (type != null) {
+            if (type != null && !_hintAlreadyExists(type)) {
               yieldPatch(nullabilityHint, type.end, type.end);
             }
           }
@@ -73,12 +71,17 @@ class RefCastVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
-    // todo check here to match ref type to be sure
     final varName = node.expression.toSource();
-    if(varName == refParamName) {
+    if(varName == refParamName && !_hintAlreadyExists(node.type)) {
       locationsNeedingHints.add(node.type.end);
     }
   }
+}
+
+/// Whether the nullability hint already exists after [type].
+bool _hintAlreadyExists(TypeAnnotation type) {
+  // The nullability hint will follow the type so we need to check the next token to find the comment if it exists.
+  return type.endToken.next?.precedingComments?.value().contains(nullabilityHint) ?? false;
 }
 
 const nullabilityHint = '/*?*/';
