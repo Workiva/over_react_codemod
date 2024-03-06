@@ -26,7 +26,7 @@ void main() {
   // (which is more common for the WSD context), it fails here instead of failing the first test.
   setUpAll(resolvedContext.warmUpAnalysis);
 
-  group('DomCallbackNullArgs', () {
+  group('UseRefInitMigration', () {
     late SuggestorTester testSuggestor;
 
     setUp(() {
