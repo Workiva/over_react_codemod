@@ -169,6 +169,51 @@ void main() {
       });
     });
 
+    group('adds nullability hint to class ref variables', () {
+      test('', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              ButtonElement ref5;
+              content() {
+                ButtonElement ref2;
+                ButtonElement ref4;
+                (ButtonToolbar()..ref = (r) => ref5 = r)();
+                (ButtonToolbar()..ref = (r) {
+                  ButtonElement ref3;
+                  ref2 = r;
+                  ref3 = r as ButtonElement;
+                  final a = ButtonElement();
+                  ref4 = a;
+                  ref3;
+                });
+                ref5;
+                ref2;
+                ref4;
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                ButtonElement /*?*/ ref5;
+                ButtonElement /*?*/ ref2;
+                ButtonElement ref4;
+                (ButtonToolbar()..ref = (r) => ref5 = r)();
+                (ButtonToolbar()..ref = (r) {
+                  ButtonElement /*?*/ ref3;
+                  ref2 = r;
+                  ref3 = r as ButtonElement /*?*/;
+                  final a = 1;
+                  ref4 = a;
+                });
+                ref5;
+                ref2;
+                ref3;
+                ref4;
+              }
+          '''),
+        );
+      });
+    });
+
     test('does not add hints if they already exist', () async {
       await testSuggestor(
         input: withOverReactAndWsdImports(/*language=dart*/ '''
