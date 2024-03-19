@@ -175,7 +175,7 @@ void main() {
           input: withOverReactAndWsdImports(/*language=dart*/ '''
               ButtonElement ref5;
               content() {
-                ButtonElement ref2;
+                ButtonElement /*?*/ ref2;
                 ButtonElement ref4;
                 (ButtonToolbar()..ref = (r) => ref5 = r)();
                 (ButtonToolbar()..ref = (r) {
@@ -184,6 +184,8 @@ void main() {
                   ref3 = r as ButtonElement;
                   final a = ButtonElement();
                   ref4 = a;
+                  ref2 = r;
+                  ref5 = r;
                   ref3;
                 });
                 ref5;
@@ -192,8 +194,8 @@ void main() {
               }
           '''),
           expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              ButtonElement /*?*/ ref5;
               content() {
-                ButtonElement /*?*/ ref5;
                 ButtonElement /*?*/ ref2;
                 ButtonElement ref4;
                 (ButtonToolbar()..ref = (r) => ref5 = r)();
@@ -203,6 +205,7 @@ void main() {
                   ref3 = r as ButtonElement /*?*/;
                   final a = 1;
                   ref4 = a;
+                  ref2 = r;
                 });
                 ref5;
                 ref2;
