@@ -31,7 +31,27 @@ final _log = Logger('CallbackRefHintSuggestor');
 
 /// Suggestor to add nullability hints to ref types.
 ///
-/// todo doc comment examples
+/// (1) For ref prop param types:
+/// ```
+/// - (ButtonToolbar()..ref = (ButtonElement r) => ref = r)();
+/// + (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = r)();
+/// ```
+///
+/// (2) For ref variable declarations:
+/// ```
+/// - ButtonElement ref;
+/// + ButtonElement /*?*/ ref;
+/// (ButtonToolbar()..ref = (r) => ref = r)();
+/// ```
+///
+/// (3) For ref prop type casts:
+/// ```
+/// - (ButtonToolbar()..ref = (r) => ref = r as ButtonElement)();
+/// + (ButtonToolbar()..ref = (r) => ref = r as ButtonElement /*?*/)();
+/// ```
+///
+/// These hints are needed because the null-safety migration tool does not do
+/// well at inferring that ref types should be nullable.
 class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
     with ClassSuggestor {
   CallbackRefHintSuggestor();

@@ -19,8 +19,6 @@ import '../../mui_suggestors/components/shared.dart';
 import '../../resolved_file_context.dart';
 import '../../util.dart';
 
-// todo add block function, and other test cases, non-ref prop names, mui/dom usages
-
 void main() {
   final resolvedContext = SharedAnalysisContext.wsd;
 
@@ -41,7 +39,7 @@ void main() {
               content() {
                 var ref;
                 (ButtonToolbar()..ref = (ButtonElement r) => ref = r)();
-                (ButtonToolbar()..ref = (ButtonElement r) { ref = r; })();
+                (Dom.div()..ref = (ButtonElement r) { ref = r; })();
                 ref;
               }
           '''),
@@ -49,7 +47,7 @@ void main() {
               content() {
                 var ref;
                 (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = r)();
-                (ButtonToolbar()..ref = (ButtonElement /*?*/ r) { ref = r; })();
+                (Dom.div()..ref = (ButtonElement /*?*/ r) { ref = r; })();
                 ref;
               }
           '''),
@@ -62,7 +60,7 @@ void main() {
               content() {
                 var ref;
                 (ButtonToolbar()..ref = (ButtonElement r) => ref = r);
-                (ButtonToolbar()..ref = (ButtonElement r) { ref = r; });
+                (Dom.div()..ref = (ButtonElement r) { ref = r; });
                 ref;
               }
           '''),
@@ -70,7 +68,7 @@ void main() {
               content() {
                 var ref;
                 (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = r);
-                (ButtonToolbar()..ref = (ButtonElement /*?*/ r) { ref = r; });
+                (Dom.div()..ref = (ButtonElement /*?*/ r) { ref = r; });
                 ref;
               }
           '''),
@@ -85,7 +83,7 @@ void main() {
               content() {
                 var ref;
                 (ButtonToolbar()..ref = (r) => ref = r as ButtonElement)();
-                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement; })();
+                (Dom.div()..ref = (r) { ref = r as ButtonElement; })();
                 ref;
               }
           '''),
@@ -93,7 +91,7 @@ void main() {
               content() {
                 var ref;
                 (ButtonToolbar()..ref = (r) => ref = r as ButtonElement /*?*/)();
-                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement /*?*/; })();
+                (Dom.div()..ref = (r) { ref = r as ButtonElement /*?*/; })();
                 ref;
               }
           '''),
@@ -106,7 +104,7 @@ void main() {
               content() {
                 var ref;
                 (ButtonToolbar()..ref = (r) => ref = r as ButtonElement);
-                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement; });
+                (Dom.div()..ref = (r) { ref = r as ButtonElement; });
                 ref;
               }
           '''),
@@ -114,7 +112,7 @@ void main() {
               content() {
                 var ref;
                 (ButtonToolbar()..ref = (r) => ref = r as ButtonElement /*?*/);
-                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement /*?*/; });
+                (Dom.div()..ref = (r) { ref = r as ButtonElement /*?*/; });
                 ref;
               }
           '''),
@@ -134,7 +132,7 @@ void main() {
                     ref as int;
                     ref = r as ButtonElement;
                 })();
-                (ButtonToolbar()
+                (Dom.div()
                   ..ref = (ButtonElement r) { 
                     ref = r as int; 
                     ref = a as ButtonElement;
@@ -155,7 +153,7 @@ void main() {
                     ref as int;
                     ref = r as ButtonElement /*?*/;
                 })();
-                (ButtonToolbar()
+                (Dom.div()
                   ..ref = (ButtonElement /*?*/ r) { 
                     ref = r as int /*?*/; 
                     ref = a as ButtonElement;
@@ -178,7 +176,7 @@ void main() {
                 ButtonElement ref2;
                 ButtonElement ref3;
                 (ButtonToolbar()..ref = (r) => ref1 = r)();
-                (ButtonToolbar()..ref = (r) {
+                (Dom.div()..ref = (r) {
                   ButtonElement ref4;
                   ref2 = r;
                   final a = ButtonElement();
@@ -197,7 +195,7 @@ void main() {
                 ButtonElement /*?*/ ref2;
                 ButtonElement ref3;
                 (ButtonToolbar()..ref = (r) => ref1 = r)();
-                (ButtonToolbar()..ref = (r) {
+                (Dom.div()..ref = (r) {
                   ButtonElement /*?*/ ref4;
                   ref2 = r;
                   final a = ButtonElement();
@@ -249,7 +247,7 @@ void main() {
               content() {
                 ButtonElement /*?*/ ref;
                 (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = r)();
-                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement /*?*/; })();
+                (Dom.div()..ref = (r) { ref = r as ButtonElement /*?*/; })();
                 ref;
               }
           '''),
@@ -257,7 +255,26 @@ void main() {
               content() {
                 ButtonElement /*?*/ ref;
                 (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = r)();
-                (ButtonToolbar()..ref = (r) { ref = r as ButtonElement /*?*/; })();
+                (Dom.div()..ref = (r) { ref = r as ButtonElement /*?*/; })();
+                ref;
+              }
+          '''),
+      );
+    });
+
+    test('does not add hints for non-ref props', () async {
+      await testSuggestor(
+        input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                ButtonElement ref;
+                (ButtonToolbar()..onClick = (r) { ref = r as ButtonElement; })();
+                ref;
+              }
+          '''),
+        expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                ButtonElement ref;
+                (ButtonToolbar()..onClick = (r) { ref = r as ButtonElement; })();
                 ref;
               }
           '''),
