@@ -173,44 +173,70 @@ void main() {
       test('', () async {
         await testSuggestor(
           input: withOverReactAndWsdImports(/*language=dart*/ '''
-              ButtonElement ref5;
+              ButtonElement ref1;
               content() {
-                ButtonElement /*?*/ ref2;
-                ButtonElement ref4;
-                (ButtonToolbar()..ref = (r) => ref5 = r)();
+                ButtonElement ref2;
+                ButtonElement ref3;
+                (ButtonToolbar()..ref = (r) => ref1 = r)();
                 (ButtonToolbar()..ref = (r) {
-                  ButtonElement ref3;
+                  ButtonElement ref4;
                   ref2 = r;
-                  ref3 = r as ButtonElement;
                   final a = ButtonElement();
-                  ref4 = a;
-                  ref2 = r;
-                  ref5 = r;
-                  ref3;
+                  ref3 = a;
+                  ref4 = r;
+                  ref4;
                 });
-                ref5;
+                ref1;
                 ref2;
-                ref4;
+                ref3;
               }
           '''),
           expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
-              ButtonElement /*?*/ ref5;
+              ButtonElement /*?*/ ref1;
               content() {
                 ButtonElement /*?*/ ref2;
-                ButtonElement ref4;
-                (ButtonToolbar()..ref = (r) => ref5 = r)();
+                ButtonElement ref3;
+                (ButtonToolbar()..ref = (r) => ref1 = r)();
                 (ButtonToolbar()..ref = (r) {
-                  ButtonElement /*?*/ ref3;
+                  ButtonElement /*?*/ ref4;
                   ref2 = r;
-                  ref3 = r as ButtonElement /*?*/;
-                  final a = 1;
-                  ref4 = a;
-                  ref2 = r;
+                  final a = ButtonElement();
+                  ref3 = a;
+                  ref4 = r;
+                  ref4;
                 });
-                ref5;
+                ref1;
                 ref2;
                 ref3;
-                ref4;
+              }
+          '''),
+        );
+      });
+
+      test('unless there is no type on the declaration', () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                dynamic ref1;
+                var ref2;
+                (ButtonToolbar()..ref = (r) {
+                  ref1 = r;
+                  ref2 = r;
+                });
+                ref1;
+                ref2;
+              }
+          '''),
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              content() {
+                dynamic ref1;
+                var ref2;
+                (ButtonToolbar()..ref = (r) {
+                  ref1 = r;
+                  ref2 = r;
+                });
+                ref1;
+                ref2;
               }
           '''),
         );
@@ -221,7 +247,7 @@ void main() {
       await testSuggestor(
         input: withOverReactAndWsdImports(/*language=dart*/ '''
               content() {
-                var ref;
+                ButtonElement /*?*/ ref;
                 (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = r)();
                 (ButtonToolbar()..ref = (r) { ref = r as ButtonElement /*?*/; })();
                 ref;
@@ -229,7 +255,7 @@ void main() {
           '''),
         expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
               content() {
-                var ref;
+                ButtonElement /*?*/ ref;
                 (ButtonToolbar()..ref = (ButtonElement /*?*/ r) => ref = r)();
                 (ButtonToolbar()..ref = (r) { ref = r as ButtonElement /*?*/; })();
                 ref;
