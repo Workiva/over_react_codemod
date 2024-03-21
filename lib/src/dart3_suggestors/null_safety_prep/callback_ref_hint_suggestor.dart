@@ -18,7 +18,6 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
-import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -26,8 +25,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../../util.dart';
 import '../../util/class_suggestor.dart';
 import 'analyzer_plugin_utils.dart';
-
-final _log = Logger('CallbackRefHintSuggestor');
 
 /// Suggestor to add nullability hints to ref types.
 ///
@@ -137,8 +134,6 @@ class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
 
   @override
   Future<void> generatePatches() async {
-    _log.info('Resolving ${context.relativePath}...');
-
     final r = await context.getResolvedUnit();
     if (r == null) {
       throw Exception(
