@@ -20,6 +20,8 @@ import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/dom_cal
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/use_ref_init_migration.dart';
 import 'package:over_react_codemod/src/util.dart';
 
+import '../dart3_suggestors/null_safety_prep/callback_ref_hint_suggestor.dart';
+
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
   pub global activate over_react_codemod
@@ -37,6 +39,7 @@ void main(List<String> args) async {
     aggregate([
       UseRefInitMigration(),
       DomCallbackNullArgs(),
+      CallbackRefHintSuggestor(),
     ]),
     defaultYes: true,
     args: parsedArgs.rest,
