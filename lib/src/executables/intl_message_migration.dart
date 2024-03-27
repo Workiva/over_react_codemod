@@ -123,6 +123,7 @@ final parser = ArgParser()
 late ArgResults parsedArgs;
 
 void main(List<String> args) async {
+  printDeprecationNotice();
   parsedArgs = parser.parse(args);
   if (parsedArgs['help'] as bool) {
     printUsage();
@@ -154,6 +155,7 @@ void main(List<String> args) async {
     args: codemodArgs,
     additionalHelpOutput: parser.usage,
   );
+
   if (exitCode != 0) return;
   logWarning('^ Ignore the "codemod found no files" warning above for now.');
 
@@ -210,14 +212,32 @@ void main(List<String> args) async {
   }
 }
 
+void printDeprecationNotice() {
+  printInRed(
+      '***** Attention Users of over_react_codemod:intl_message_migration *****');
+  printInBlue(
+      '# This version of intl_migration is deprecated and will no longer receive updates.');
+  stderr.writeln(
+      '# We recommend switching to the dart_dev / dart_dev_workiva versions for intl_codemod, which provide improved functionality and support.');
+
+  /// TODO: The link to the wiki will be updated here once INTL-1792 done.
+  stderr.writeln(
+      '# Refer to the documentation https://wiki.atl.workiva.net/display/FEF/Internationalization of dart_dev / dart_dev_workiva for more information on using intl_codemod with dart_dev.');
+}
+
 void printInBlue(String text) {
   print(ansi.blue.wrap(text));
+}
+
+void printInRed(String text) {
+  print(ansi.red.wrap(text));
 }
 
 void printUsage() {
   stderr.writeln(
       'Migrates literal strings that seem user-visible in the package by wrapping them in Intl.message calls.');
-  stderr.writeln();
+
+  printDeprecationNotice();
   stderr.writeln('Usage:');
   stderr.writeln('    intl_message_migration [arguments]');
   stderr.writeln();
