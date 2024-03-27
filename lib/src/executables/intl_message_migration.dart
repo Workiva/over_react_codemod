@@ -213,12 +213,11 @@ void main(List<String> args) async {
 }
 
 void printDeprecationNotice() {
-  printInRed(
-      '***** Attention Users of over_react_codemod:intl_message_migration *****');
+  printInRed('***** Deprecation Notice *****');
   printInBlue(
-      '# This version of intl_migration is deprecated and will no longer receive updates.');
-  stderr.writeln(
-      '# We recommend switching to the dart_dev / dart_dev_workiva versions for intl_codemod, which provide improved functionality and support.');
+      '# over_react_codemod:intl_message_migration is deprecated and will no longer receive updates.');
+  stderr.writeln('# Instead, use the dart_dev or intl_tools commands:');
+  stderr.writeln('# dart_dev intl ...');
 
   /// TODO: The link to the wiki will be updated here once INTL-1792 done.
   stderr.writeln(
