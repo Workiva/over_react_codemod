@@ -181,9 +181,9 @@ void _dartScriptAdderTests(
                     dartHeaders: const [
                       "import 'package:web_skin/web_skin.dart';",
                       "import 'package:platform_detect/decorator.dart';",
-                      "import 'package:web_skin_dart/ui_core.dart';",
+                      "import 'package:over_react/over_react.dart';  import 'package:web_skin_dart/ui_core_utils.dart';",
                       "import 'package:over_react/over_react.dart';",
-                      "import 'package:web_skin_dart/ui_components.dart';",
+                      "import 'package:web_skin/web_skin.dart'; import 'package:web_skin_dart/constants.dart'; import 'package:web_skin_dart/shared.dart' hide getMeasuredTextWidth;",
                     ],
                     htmlHeaders: const [
                       '${scriptStrings.join('\',\n\'')}',
@@ -204,9 +204,9 @@ void _dartScriptAdderTests(
                     dartHeaders: const [
                       "import 'package:web_skin/web_skin.dart';",
                       "import 'package:platform_detect/decorator.dart';",
-                      "import 'package:web_skin_dart/ui_core.dart';",
+                      "import 'package:over_react/over_react.dart';  import 'package:web_skin_dart/ui_core_utils.dart';",
                       "import 'package:over_react/over_react.dart';",
-                      "import 'package:web_skin_dart/ui_components.dart';",
+                      "import 'package:web_skin/web_skin.dart'; import 'package:web_skin_dart/constants.dart'; import 'package:web_skin_dart/shared.dart' hide getMeasuredTextWidth;",
                     ],
                     htmlHeaders: const [
                       '${scriptStrings.join('\',\n\'')}',

@@ -95,7 +95,7 @@ void main() {
           input: '''
               import 'package:react_material_ui/react_material_ui.dart';
               import 'package:over_react/over_react.dart';
-              import 'package:web_skin_dart/ui_components.dart';
+              import 'package:web_skin/web_skin.dart'; import 'package:web_skin_dart/constants.dart'; import 'package:web_skin_dart/shared.dart' hide getMeasuredTextWidth;
               import 'package:react_material_ui/for_cp_use_only/styled.dart';
               import 'package:react_material_ui/components/mui_list.dart';
               import 'package:react_material_ui/styles/styled.dart';
@@ -112,7 +112,7 @@ void main() {
               '''unify_ui/styles/styled.dart';
               import 'package:'''
               '''unify_ui/unify_ui.dart';
-              import 'package:web_skin_dart/ui_components.dart';
+              import 'package:web_skin/web_skin.dart'; import 'package:web_skin_dart/constants.dart'; import 'package:web_skin_dart/shared.dart' hide getMeasuredTextWidth;
           
               content() => Dom.div()();
           ''',

@@ -48,7 +48,7 @@ void main() {
         await testSuggestor(
           input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
-              import 'package:web_skin_dart/ui_components.dart';
+              import 'package:web_skin/web_skin.dart'; import 'package:web_skin_dart/constants.dart'; import 'package:web_skin_dart/shared.dart' hide getMeasuredTextWidth;
           
               content() => Dom.div()();
           ''',
@@ -63,7 +63,7 @@ void main() {
       test('when it is the first import and token', () async {
         await testSuggestor(
           input: /*language=dart*/ '''
-              import 'package:web_skin_dart/ui_components.dart';
+              import 'package:web_skin/web_skin.dart'; import 'package:web_skin_dart/constants.dart'; import 'package:web_skin_dart/shared.dart' hide getMeasuredTextWidth;
               import 'package:over_react/over_react.dart';
           
               content() => Dom.div()();
@@ -81,7 +81,7 @@ void main() {
           input: /*language=dart*/ '''
               library lib;
           
-              import 'package:web_skin_dart/ui_components.dart';
+              import 'package:web_skin/web_skin.dart'; import 'package:web_skin_dart/constants.dart'; import 'package:web_skin_dart/shared.dart' hide getMeasuredTextWidth;
               import 'package:over_react/over_react.dart';
           
               content() => Dom.div()();
@@ -100,7 +100,7 @@ void main() {
         await testSuggestor(
           input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
-              import 'package:web_skin_dart/ui_components.dart';
+              import 'package:web_skin/web_skin.dart'; import 'package:web_skin_dart/constants.dart'; import 'package:web_skin_dart/shared.dart' hide getMeasuredTextWidth;
           
               content() => Button()();
           ''',
@@ -111,7 +111,7 @@ void main() {
         await testSuggestor(
           input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
-              import 'package:web_skin_dart/ui_components.dart';
+              import 'package:web_skin/web_skin.dart'; import 'package:web_skin_dart/constants.dart'; import 'package:web_skin_dart/shared.dart' hide getMeasuredTextWidth;
               import 'package:web_skin_dart/component2/all.dart' as wsd2;
           
               content() => wsd2.Button()();
@@ -133,13 +133,13 @@ void main() {
         await testSuggestor(
           input: /*language=dart*/ '''
               import 'package:over_react/over_react.dart';
-              import 'package:web_skin_dart/ui_components.dart';
+              import 'package:web_skin/web_skin.dart'; import 'package:web_skin_dart/constants.dart'; import 'package:web_skin_dart/shared.dart' hide getMeasuredTextWidth;
               import 'package:web_skin_dart/component2/all.dart' as wsd2;
           
               content() => wsd2.Button()();
           ''',
           expectedOutput: /*language=dart*/ '''
-              import 'package:web_skin_dart/ui_components.dart';
+              import 'package:web_skin/web_skin.dart'; import 'package:web_skin_dart/constants.dart'; import 'package:web_skin_dart/shared.dart' hide getMeasuredTextWidth;
               import 'package:web_skin_dart/component2/all.dart' as wsd2;
           
               content() => wsd2.Button()();
