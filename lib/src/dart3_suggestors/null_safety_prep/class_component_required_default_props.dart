@@ -16,6 +16,7 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -60,7 +61,7 @@ class ClassComponentRequiredDefaultPropsMigrator extends RecursiveAstVisitor<voi
       final isDefaultedToNull = prop.node.rightHandSide.staticType!.isDartCoreNull;
 
       // The `fieldEl.id` value is used for custom equality so that the `defaultedPropData` set only contains unique declarations.
-      defaultedPropData.add(DefaultedPropDeclaration(fieldEl.id, fieldDeclaration!, isDefaultedToNull));
+      defaultedPropData.add(DefaultedPropDeclaration(fieldEl.id, fieldDeclaration, isDefaultedToNull));
     }
 
     defaultedPropData.where((data) => !data.patchedDeclaration).forEach((data) {
@@ -86,29 +87,30 @@ class ClassComponentRequiredDefaultPropsMigrator extends RecursiveAstVisitor<voi
     });
 
     // Short-circuit if there are no default props set in this unit
-    if (defaultPropsAccessors.isEmpty && getDefaultPropsMethods.isEmpty) return;
-
-    compilationUnit.accept(this);
+    if (defaultPropsAccessors.isNotEmpty || getDefaultPropsMethods.isNotEmpty) {
+      r.unit.accept(this);
+    }
   }
 }
 
 class DefaultedPropDeclaration {
   final int id;
-  final VariableDeclaration _fieldDecl;
+  final VariableDeclaration? _fieldDecl;
   final bool isDefaultedToNull;
   final String name;
 
-  DefaultedPropDeclaration(this.id, VariableDeclaration fieldDeclaration, this.isDefaultedToNull)
+  DefaultedPropDeclaration(this.id, VariableDeclaration? fieldDeclaration, this.isDefaultedToNull)
       : _fieldDecl = fieldDeclaration,
         _patchedDeclaration = false,
-        name = '${fieldDeclaration.name.value()}';
+        name = '${fieldDeclaration?.name.value()}';
 
   /// Whether the declaration has been patched with the late / nullable hints.
   bool get patchedDeclaration => _patchedDeclaration;
   bool _patchedDeclaration;
 
   void patch(void Function(String updatedText, int startOffset, [int? endOffset]) handleYieldPatch, {Version? sdkVersion}) {
-    final propNameToken = _fieldDecl.name;
+    if (_fieldDecl == null) return;
+    final propNameToken = _fieldDecl!.name;
     final typeToken = propNameToken.previous;
     final startOffset = typeToken?.offset ?? propNameToken.offset;
     String late = '/*late*/';
@@ -119,7 +121,8 @@ class DefaultedPropDeclaration {
       nullability = isDefaultedToNull ? '?' : '';
     }
     // Gotta have a type to add the nullable `?` operator to - even if for some reason the prop decl. has no left side type.
-    String typeString = '${typeToken?.value().toString() ?? (isDefaultedToNull ? 'Object' : '')}$nullability';
+    String? typeString = typeToken?.type.stringValue ?? typeToken?.value().toString();
+    typeString = '${typeString ?? (isDefaultedToNull ? 'Object' : '')}$nullability';
 
     handleYieldPatch('$late $typeString $name', startOffset, propNameToken.end);
     _patchedDeclaration = true;

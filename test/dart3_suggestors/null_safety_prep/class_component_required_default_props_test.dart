@@ -41,7 +41,7 @@ void main() {
 
       test('patches defaulted props in mixins', () async {
         await testSuggestor(
-          expectedPatchCount: 3,
+          expectedPatchCount: 4,
           input: withOverReactImport(/*language=dart*/ r'''
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
@@ -52,6 +52,7 @@ void main() {
             }
             mixin SomeOtherPropsMixin on UiProps {
               num anotherDefaultedNonNullable;
+              Function defaultedNonNullableFn;
             }
             class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
             class FooComponent extends UiComponent2<FooProps> {
@@ -60,6 +61,7 @@ void main() {
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
+                ..defaultedNonNullableFn = () {}
               );
             
               @override
@@ -75,6 +77,7 @@ void main() {
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
+                ..defaultedNonNullableFn = () {}
               );
             
               @override
@@ -91,6 +94,7 @@ void main() {
             }
             mixin SomeOtherPropsMixin on UiProps {
               /*late*/ num/*!*/ anotherDefaultedNonNullable;
+              /*late*/ Function/*!*/ defaultedNonNullableFn;
             }
             class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
             class FooComponent extends UiComponent2<FooProps> {
@@ -99,6 +103,7 @@ void main() {
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
+                ..defaultedNonNullableFn = () {}
               );
             
               @override
@@ -114,6 +119,7 @@ void main() {
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
+                ..defaultedNonNullableFn = () {}
               );
             
               @override
