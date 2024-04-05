@@ -114,7 +114,7 @@ class DefaultedPropDeclaration {
     final type = (fieldDecl!.parent! as VariableDeclarationList).type;
     final propNameToken = fieldDecl!.name;
     String? late = type != null && requiredPropHintAlreadyExists(type) ? null : '/*late*/';
-    String? nullability = type != null && nullableHintAlreadyExists(type) ? null : '/*${isDefaultedToNull ? '?' : '!'}*/';
+    String? nullability = '/*${isDefaultedToNull ? '?' : '!'}*/';
     if (sdkVersion != null && VersionRange(min: Version.parse('2.19.0')).allows(sdkVersion)) {
       if (late != null) {
         // If the repo has opted into null safety, patch with the real thing instead of hints

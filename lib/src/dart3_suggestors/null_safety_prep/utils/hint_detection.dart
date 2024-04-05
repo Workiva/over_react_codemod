@@ -4,8 +4,17 @@ import 'package:analyzer/dart/ast/ast.dart';
 bool nullableHintAlreadyExists(TypeAnnotation type) {
   // The nullability hint will follow the type so we need to check the next token to find the comment if it exists.
   final commentsPrecedingType = type.endToken.next?.precedingComments?.value();
-  return commentsPrecedingType?.contains(RegExp(r'//\*\?|!\*//')) ?? false;
+  return commentsPrecedingType?.contains(nullableHint) ?? false;
 }
+const nullableHint = '/*?*/';
+
+/// Whether the non-nullable hint already exists after [type].
+bool nonNullableHintAlreadyExists(TypeAnnotation type) {
+  // The nullability hint will follow the type so we need to check the next token to find the comment if it exists.
+  final commentsPrecedingType = type.endToken.next?.precedingComments?.value();
+  return commentsPrecedingType?.contains(nonNullableHint) ?? false;
+}
+const nonNullableHint = '/*!*/';
 
 /// Whether the late hint already exists before [type]
 bool requiredPropHintAlreadyExists(TypeAnnotation type) {

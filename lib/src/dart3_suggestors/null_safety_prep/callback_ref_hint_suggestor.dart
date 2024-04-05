@@ -76,7 +76,7 @@ class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
         if (param is SimpleFormalParameter) {
           final type = param.type;
           if (type != null && !nullableHintAlreadyExists(type)) {
-            yieldPatch(nullabilityHint, type.end, type.end);
+            yieldPatch(nullableHint, type.end, type.end);
           }
         }
 
@@ -112,7 +112,7 @@ class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
                     if (varType != null &&
                         !nullableHintAlreadyExists(varType) &&
                         varType.toSource() != 'dynamic') {
-                      yieldPatch(nullabilityHint, varType.end, varType.end);
+                      yieldPatch(nullableHint, varType.end, varType.end);
                     }
                   }
                 }
@@ -126,7 +126,7 @@ class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
                   expression.expression.toSource() == refParamName &&
                   !nullableHintAlreadyExists(expression.type));
           for (final cast in refCasts) {
-            yieldPatch(nullabilityHint, cast.type.end, cast.type.end);
+            yieldPatch(nullableHint, cast.type.end, cast.type.end);
           }
         }
       }
@@ -144,5 +144,3 @@ class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
     result.unit.visitChildren(this);
   }
 }
-
-const nullabilityHint = '/*?*/';
