@@ -41,12 +41,13 @@ void main() {
 
       test('patches defaulted props in mixins', () async {
         await testSuggestor(
-          expectedPatchCount: 5,
+          expectedPatchCount: 6,
           input: withOverReactImport(/*language=dart*/ r'''
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
             mixin FooPropsMixin on UiProps {
               String notDefaulted;
+              /*late*/ String/*!*/ alreadyPatched;
               String defaultedNullable;
               num defaultedNonNullable;
             }
@@ -59,6 +60,7 @@ void main() {
             class FooComponent extends UiComponent2<FooProps> {
               @override
               get defaultProps => (newProps()
+                ..alreadyPatched = 'foo'
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
@@ -76,6 +78,7 @@ void main() {
             class FooLegacyComponent extends UiComponent<FooProps> {
               @override
               getDefaultProps() => (newProps()
+                ..alreadyPatched = 'foo'
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
@@ -92,6 +95,7 @@ void main() {
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
             mixin FooPropsMixin on UiProps {
               String notDefaulted;
+              /*late*/ String/*!*/ alreadyPatched;
               /*late*/ String/*?*/ defaultedNullable;
               /*late*/ num/*!*/ defaultedNonNullable;
             }
@@ -104,6 +108,7 @@ void main() {
             class FooComponent extends UiComponent2<FooProps> {
               @override
               get defaultProps => (newProps()
+                ..alreadyPatched = 'foo'
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
@@ -121,6 +126,7 @@ void main() {
             class FooLegacyComponent extends UiComponent<FooProps> {
               @override
               getDefaultProps() => (newProps()
+                ..alreadyPatched = 'foo'
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
@@ -204,11 +210,16 @@ void main() {
 
       test('patches defaulted props in mixins', () async {
         await testSuggestor(
-          expectedPatchCount: 3,
+          isExpectedError: (err) {
+            return err.message
+                .contains(RegExp(r"Unexpected text 'late'"));
+          },
+          expectedPatchCount: 4,
           input: withOverReactImport(/*language=dart*/ r'''
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
             mixin FooPropsMixin on UiProps {
+              late String alreadyPatched;
               String notDefaulted;
               String defaultedNullable;
               num defaultedNonNullable;
@@ -220,6 +231,7 @@ void main() {
             class FooComponent extends UiComponent2<FooProps> {
               @override
               get defaultProps => (newProps()
+                ..alreadyPatched = 'foo'
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
@@ -235,6 +247,7 @@ void main() {
             class FooLegacyComponent extends UiComponent<FooProps> {
               @override
               getDefaultProps() => (newProps()
+                ..alreadyPatched = 'foo'
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
@@ -248,6 +261,7 @@ void main() {
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
             mixin FooPropsMixin on UiProps {
+              late String alreadyPatched;
               String notDefaulted;
               late String? defaultedNullable;
               late num defaultedNonNullable;
@@ -259,6 +273,7 @@ void main() {
             class FooComponent extends UiComponent2<FooProps> {
               @override
               get defaultProps => (newProps()
+                ..alreadyPatched = 'foo'
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
@@ -274,6 +289,7 @@ void main() {
             class FooLegacyComponent extends UiComponent<FooProps> {
               @override
               getDefaultProps() => (newProps()
+                ..alreadyPatched = 'foo'
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
