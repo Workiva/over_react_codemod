@@ -111,8 +111,7 @@ class DefaultedPropDeclaration {
   void patch(void Function(String updatedText, int startOffset, [int? endOffset]) handleYieldPatch, {Version? sdkVersion}) {
     if (_fieldDecl == null) return;
     final propNameToken = _fieldDecl!.name;
-    final typeToken = propNameToken.previous;
-    final startOffset = typeToken?.offset ?? propNameToken.offset;
+    final type = (_fieldDecl!.parent! as VariableDeclarationList).type;
     String late = '/*late*/';
     String nullability = '/*${isDefaultedToNull ? '?' : '!'}*/';
     if (sdkVersion != null && VersionRange(min: Version.parse('2.19.0')).allows(sdkVersion)) {
@@ -120,11 +119,10 @@ class DefaultedPropDeclaration {
       late = 'late';
       nullability = isDefaultedToNull ? '?' : '';
     }
-    // Gotta have a type to add the nullable `?` operator to - even if for some reason the prop decl. has no left side type.
-    String? typeString = typeToken?.type.stringValue ?? typeToken?.value().toString();
-    typeString = '${typeString ?? (isDefaultedToNull ? 'Object' : '')}$nullability';
 
-    handleYieldPatch('$late $typeString $name', startOffset, propNameToken.end);
+    // Object added if type is null b/c we gotta have a type to add the nullable `?`/`!` hints to - even if for some reason the prop decl. has no left side type.
+    handleYieldPatch('$late ${type == null ? 'Object' : type.toString()}$nullability ', type?.offset ?? propNameToken.offset, propNameToken.offset);
+
     _patchedDeclaration = true;
   }
 

@@ -41,7 +41,7 @@ void main() {
 
       test('patches defaulted props in mixins', () async {
         await testSuggestor(
-          expectedPatchCount: 4,
+          expectedPatchCount: 5,
           input: withOverReactImport(/*language=dart*/ r'''
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
@@ -53,6 +53,7 @@ void main() {
             mixin SomeOtherPropsMixin on UiProps {
               num anotherDefaultedNonNullable;
               Function defaultedNonNullableFn;
+              List<num> defaultedNonNullableList;
             }
             class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
             class FooComponent extends UiComponent2<FooProps> {
@@ -62,6 +63,7 @@ void main() {
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
                 ..defaultedNonNullableFn = () {}
+                ..defaultedNonNullableList = []
               );
             
               @override
@@ -78,6 +80,7 @@ void main() {
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
                 ..defaultedNonNullableFn = () {}
+                ..defaultedNonNullableList = []
               );
             
               @override
@@ -95,6 +98,7 @@ void main() {
             mixin SomeOtherPropsMixin on UiProps {
               /*late*/ num/*!*/ anotherDefaultedNonNullable;
               /*late*/ Function/*!*/ defaultedNonNullableFn;
+              /*late*/ List<num>/*!*/ defaultedNonNullableList;
             }
             class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
             class FooComponent extends UiComponent2<FooProps> {
@@ -104,6 +108,7 @@ void main() {
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
                 ..defaultedNonNullableFn = () {}
+                ..defaultedNonNullableList = []
               );
             
               @override
@@ -120,6 +125,7 @@ void main() {
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
                 ..defaultedNonNullableFn = () {}
+                ..defaultedNonNullableList = []
               );
             
               @override
