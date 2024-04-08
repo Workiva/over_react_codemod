@@ -18,10 +18,13 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/utils/hint_detection.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:over_react_codemod/src/util/get_all_props.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../util.dart';
@@ -107,10 +110,18 @@ class ClassComponentRequiredDefaultPropsMigrator extends RecursiveAstVisitor<voi
       final fieldEl = (prop.node.writeElement! as PropertyAccessorElement).variable as FieldElement;
       // Short circuit before looking up the variable if we've already added it
       if (defaultedPropData.map((data) => data.id).contains(fieldEl.id)) continue;
+      final propsElement = node.staticType.tryCast<InterfaceType>()?.element;
+      if (propsElement == null) continue;
+      // For component1 boilerplate its possible that `fieldEl` won't be found using `lookUpVariable` below
+      // since its `enclosingElement` will be the generated abstract mixin. So we'll use `getAllProps` and
+      // cross reference the return value with the name of the `fieldEl` above to locate the actual prop
+      // declaration we want to patch.
+      final allProps = getAllProps(propsElement);
+      final matchingProp = allProps.singleWhereOrNull((element) => element.name == fieldEl.name);
+      if (matchingProp == null) continue;
 
       // NOTE: result.unit will only work if the declaration of the field is in this file
-      // FIXME: lookUpVariable does not work if the declaration is in a legacy Dart 1 boilerplate props class
-      final fieldDeclaration = lookUpVariable(fieldEl, result.unit);
+      final fieldDeclaration = lookUpVariable(matchingProp, result.unit);
       final isDefaultedToNull = prop.node.rightHandSide.staticType!.isDartCoreNull;
 
       // The `fieldEl.id` value is used for custom equality so that the `defaultedPropData` set only contains unique declarations.

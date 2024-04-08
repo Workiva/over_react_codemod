@@ -198,6 +198,80 @@ void main() {
           '''),
         );
       });
+
+      test('patches defaulted props in legacy classes using component1 boilerplate', () async {
+        await testSuggestor(
+          expectedPatchCount: 2,
+          input: withOverReactImport(/*language=dart*/ r'''
+            @Factory()
+            UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier
+            @Props()
+            class _$FooProps extends UiProps {
+              String notDefaulted;
+              String defaultedNullable;
+              num defaultedNonNullable;
+            }
+            @Component()
+            class FooComponent extends UiComponent<FooProps> {
+              @override
+              getDefaultProps() => (newProps()
+                ..defaultedNullable = null
+                ..defaultedNonNullable = 2.1
+              );
+            
+              @override
+              render() => null;
+            }
+            class FooProps extends _$FooProps
+                with
+                    // ignore: mixin_of_non_class, undefined_class
+                    _$FooPropsAccessorsMixin {
+              // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+              static const PropsMeta meta = _$metaForFooProps;
+            }
+            abstract class _$FooPropsAccessorsMixin implements _$FooProps {
+              set defaultedNullable(val) {}
+              get defaultedNullable => '';
+              set defaultedNonNullable(val) {}
+              get defaultedNonNullable => 1;
+            }
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ r'''
+            @Factory()
+            UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier
+            @Props()
+            class _$FooProps extends UiProps {
+              String notDefaulted;
+              /*late*/ String/*?*/ defaultedNullable;
+              /*late*/ num/*!*/ defaultedNonNullable;
+            }
+            @Component()
+            class FooComponent extends UiComponent<FooProps> {
+              @override
+              getDefaultProps() => (newProps()
+                ..defaultedNullable = null
+                ..defaultedNonNullable = 2.1
+              );
+            
+              @override
+              render() => null;
+            }
+            class FooProps extends _$FooProps
+                with
+                    // ignore: mixin_of_non_class, undefined_class
+                    _$FooPropsAccessorsMixin {
+              // ignore: const_initialized_with_non_constant_value, undefined_class, undefined_identifier
+              static const PropsMeta meta = _$metaForFooProps;
+            }
+            abstract class _$FooPropsAccessorsMixin implements _$FooProps {
+              set defaultedNullable(val) {}
+              get defaultedNullable => '';
+              set defaultedNonNullable(val) {}
+              get defaultedNonNullable => 1;
+            }
+          '''),
+        );
+      });
     });
 
     group('when sdkVersion is set to 2.19.6', () {
