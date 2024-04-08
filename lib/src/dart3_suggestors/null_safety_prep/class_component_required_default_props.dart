@@ -28,6 +28,57 @@ import '../../util.dart';
 import '../../util/class_suggestor.dart';
 import 'analyzer_plugin_utils.dart';
 
+/// Suggestor to assist with preparations for null-safety by adding
+/// "requiredness" (`late`) / nullability (`?`/`!`) hints to prop types
+/// based on their access within a class component's `defaultProps`.
+///
+/// If a prop is defaulted to a non-null value within `defaultProps`, the
+/// corresponding prop declaration will gain a `/*late*/` modifier hint to the
+/// left of the type, and a non-nullable type hint (`/*!*/`) to the right of
+/// the type to assist the `nnbd_migration:migrate` script when it attempts to
+/// infer a prop's nullability.
+///
+/// **Optionally**, an [sdkVersion] can be passed to the constructor.
+/// When set to a version that opts-in to Dart's null safety feature,
+/// the `late` / `?` type modifiers will be actual modifiers rather
+/// than commented hints. This should only be done using an explicit opt-in
+/// flag from the executable as most consumers that have migrated to null-safety
+/// will have already run this script prior to the null safety migration and thus
+/// the `/*late*/` / `/*?*/` hints will already be converted to actual modifiers.
+///
+/// **Before**
+/// ```dart
+/// mixin FooProps on UiProps {
+///   String defaultedNullable;
+///   num defaultedNonNullable;
+/// }
+/// class FooComponent extends UiComponent2<FooProps> {
+///   @override
+///   get defaultProps => (newProps()
+///     ..defaultedNullable = null
+///     ..defaultedNonNullable = 2.1
+///   );
+///
+///   // ...
+/// }
+/// ```
+///
+/// **After**
+/// ```dart
+/// mixin FooProps on UiProps {
+///   /*late*/ String/*?*/ defaultedNullable;
+///   /*late*/ num/*!*/ defaultedNonNullable;
+/// }
+/// class FooComponent extends UiComponent2<FooProps> {
+///   @override
+///   get defaultProps => (newProps()
+///     ..defaultedNullable = null
+///     ..defaultedNonNullable = 2.1
+///   );
+///
+///   // ...
+/// }
+/// ```
 class ClassComponentRequiredDefaultPropsMigrator extends RecursiveAstVisitor<void>
     with ClassSuggestor {
   final sdkVersion;
@@ -115,7 +166,7 @@ class DefaultedPropDeclaration {
     final propNameToken = fieldDecl!.name;
     String? late = type != null && requiredPropHintAlreadyExists(type) ? null : '/*late*/';
     String? nullability = '/*${isDefaultedToNull ? '?' : '!'}*/';
-    if (sdkVersion != null && VersionRange(min: Version.parse('2.19.0')).allows(sdkVersion)) {
+    if (sdkVersion != null && VersionRange(min: Version.parse('2.12.0')).allows(sdkVersion)) {
       if (late != null) {
         // If the repo has opted into null safety, patch with the real thing instead of hints
         late = 'late';
