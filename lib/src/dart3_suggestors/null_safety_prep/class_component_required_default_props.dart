@@ -187,13 +187,11 @@ class DefaultedPropDeclaration {
         }
       }
 
-      if (nullability != null) {
-        nullability = isDefaultedToNull ? '?' : '';
-      }
+      nullability = isDefaultedToNull ? '?' : '';
     }
 
     // Object added if type is null b/c we gotta have a type to add the nullable `?`/`!` hints to - even if for some reason the prop decl. has no left side type.
-    handleYieldPatch('${late ?? ''} ${type == null ? 'Object' : type.toString()}${nullability ?? ''} ', type?.offset ?? propNameToken.offset, propNameToken.offset);
+    handleYieldPatch('${late ?? ''} ${type == null ? 'Object' : type.toString()}$nullability ', type?.offset ?? propNameToken.offset, propNameToken.offset);
 
     _patchedDeclaration = true;
   }

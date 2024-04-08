@@ -16,7 +16,6 @@ import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/class_c
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
-import '../../mui_suggestors/components/shared.dart';
 import '../../resolved_file_context.dart';
 import '../../util.dart';
 import '../../util/component_usage_migrator_test.dart' show withOverReactImport;
