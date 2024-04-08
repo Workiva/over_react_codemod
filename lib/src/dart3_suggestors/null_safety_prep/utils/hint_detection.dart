@@ -17,7 +17,7 @@ bool nonNullableHintAlreadyExists(TypeAnnotation type) {
 const nonNullableHint = '/*!*/';
 
 /// Whether the late hint already exists before [type]
-bool requiredPropHintAlreadyExists(TypeAnnotation type) {
+bool requiredHintAlreadyExists(TypeAnnotation type) {
   final commentsBeforeType = type.beginToken.precedingComments?.value();
   return commentsBeforeType?.contains('/*late*/') ?? false;
 }

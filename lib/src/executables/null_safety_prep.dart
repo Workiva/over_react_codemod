@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/class_component_required_default_props.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/class_component_required_initial_state.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/dom_callback_null_args.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/use_ref_init_migration.dart';
 import 'package:over_react_codemod/src/util.dart';
@@ -42,6 +43,7 @@ void main(List<String> args) async {
       DomCallbackNullArgs(),
       CallbackRefHintSuggestor(),
       ClassComponentRequiredDefaultPropsMigrator(),
+      ClassComponentRequiredInitialStateMigrator(),
     ]),
     defaultYes: true,
     args: parsedArgs.rest,

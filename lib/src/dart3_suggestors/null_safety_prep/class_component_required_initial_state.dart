@@ -18,19 +18,20 @@
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/util/get_all_props.dart';
+import 'package:over_react_codemod/src/util/get_all_state.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'utils/class_component_required_fields.dart';
 
 /// Suggestor to assist with preparations for null-safety by adding
-/// "requiredness" (`late`) / nullability (`?`/`!`) hints to prop types
-/// based on their access within a class component's `defaultProps`.
+/// "requiredness" (`late`) / nullability (`?`/`!`) hints to state field types
+/// based on their access within a class component's `initialState`.
 ///
-/// If a prop is defaulted to a non-null value within `defaultProps`, the
-/// corresponding prop declaration will gain a `/*late*/` modifier hint to the
-/// left of the type, and a non-nullable type hint (`/*!*/`) to the right of
+/// If a piece of state is initialized to a non-null value within `initialState`,
+/// the corresponding declaration will gain a `/*late*/` modifier hint to
+/// the left of the type, and a non-nullable type hint (`/*!*/`) to the right of
 /// the type to assist the `nnbd_migration:migrate` script when it attempts to
-/// infer a prop's nullability.
+/// infer a state field's nullability.
 ///
 /// **Optionally**, an [sdkVersion] can be passed to the constructor.
 /// When set to a version that opts-in to Dart's null safety feature,
@@ -42,13 +43,13 @@ import 'utils/class_component_required_fields.dart';
 ///
 /// **Before**
 /// ```dart
-/// mixin FooProps on UiProps {
+/// mixin FooState on UiState {
 ///   String defaultedNullable;
 ///   num defaultedNonNullable;
 /// }
-/// class FooComponent extends UiComponent2<FooProps> {
+/// class FooComponent extends UiStatefulComponent2<FooProps> {
 ///   @override
-///   get defaultProps => (newProps()
+///   get initialState => (newState()
 ///     ..defaultedNullable = null
 ///     ..defaultedNonNullable = 2.1
 ///   );
@@ -59,13 +60,13 @@ import 'utils/class_component_required_fields.dart';
 ///
 /// **After**
 /// ```dart
-/// mixin FooProps on UiProps {
+/// mixin FooState on UiState {
 ///   /*late*/ String/*?*/ defaultedNullable;
 ///   /*late*/ num/*!*/ defaultedNonNullable;
 /// }
-/// class FooComponent extends UiComponent2<FooProps> {
+/// class FooComponent extends UiStatefulComponent2<FooProps> {
 ///   @override
-///   get defaultProps => (newProps()
+///   get initialState => (newState()
 ///     ..defaultedNullable = null
 ///     ..defaultedNonNullable = 2.1
 ///   );
@@ -73,25 +74,25 @@ import 'utils/class_component_required_fields.dart';
 ///   // ...
 /// }
 /// ```
-class ClassComponentRequiredDefaultPropsMigrator extends ClassComponentRequiredFieldsMigrator<PropAssignment> {
-  ClassComponentRequiredDefaultPropsMigrator([Version? sdkVersion]) : super('defaultProps', 'getDefaultProps', sdkVersion);
+class ClassComponentRequiredInitialStateMigrator extends ClassComponentRequiredFieldsMigrator<StateAssignment> {
+  ClassComponentRequiredInitialStateMigrator([Version? sdkVersion]) : super('initialState', 'getInitialState', sdkVersion);
 
   @override
   Future<void> visitCascadeExpression(CascadeExpression node) async {
     super.visitCascadeExpression(node);
 
-    final isDefaultProps = [relevantGetterName, relevantMethodName]
+    final isInitialState = [relevantGetterName, relevantMethodName]
         .contains(node.thisOrAncestorOfType<MethodDeclaration>()?.declaredElement?.name);
 
     // If this cascade is not assigning values to defaultProps, bail.
-    if (!isDefaultProps) return;
+    if (!isInitialState) return;
 
-    final cascadedDefaultProps = node.cascadeSections
+    final cascadedInitialState = node.cascadeSections
         .whereType<AssignmentExpression>()
         .where((assignment) => assignment.leftHandSide is PropertyAccess)
-        .map((assignment) => PropAssignment(assignment))
+        .map((assignment) => StateAssignment(assignment))
         .where((prop) => prop.node.writeElement?.displayName != null);
 
-    patchFieldDeclarations(getAllProps, cascadedDefaultProps, node);
+    patchFieldDeclarations(getAllState, cascadedInitialState, node);
   }
 }
