@@ -98,6 +98,7 @@ class ClassComponentRequiredDefaultPropsMigrator extends RecursiveAstVisitor<voi
     final isDefaultProps = ['defaultProps', 'getDefaultProps']
         .contains(node.thisOrAncestorOfType<MethodDeclaration>()?.declaredElement?.name);
 
+    // If this cascade is not assigning values to defaultProps, bail.
     if (!isDefaultProps) return;
 
     final cascadedDefaultProps = node.cascadeSections
@@ -107,30 +108,32 @@ class ClassComponentRequiredDefaultPropsMigrator extends RecursiveAstVisitor<voi
         .where((prop) => prop.node.writeElement?.displayName != null);
 
     for (final prop in cascadedDefaultProps) {
+      final isDefaultedToNull = prop.node.rightHandSide.staticType!.isDartCoreNull;
       final fieldEl = (prop.node.writeElement! as PropertyAccessorElement).variable as FieldElement;
       // Short circuit before looking up the variable if we've already added it
       if (defaultedPropData.map((data) => data.id).contains(fieldEl.id)) continue;
       final propsElement = node.staticType.tryCast<InterfaceType>()?.element;
       if (propsElement == null) continue;
-      // For component1 boilerplate its possible that `fieldEl` won't be found using `lookUpVariable` below
-      // since its `enclosingElement` will be the generated abstract mixin. So we'll use `getAllProps` and
-      // cross reference the return value with the name of the `fieldEl` above to locate the actual prop
-      // declaration we want to patch.
-      final allProps = getAllProps(propsElement);
-      final matchingProp = allProps.singleWhereOrNull((element) => element.name == fieldEl.name);
-      if (matchingProp == null) continue;
+      final fieldDeclaration = _getPropFieldDeclaration(propsElement: propsElement, fieldName: fieldEl.name);
 
-      // NOTE: result.unit will only work if the declaration of the field is in this file
-      final fieldDeclaration = lookUpVariable(matchingProp, result.unit);
-      final isDefaultedToNull = prop.node.rightHandSide.staticType!.isDartCoreNull;
-
-      // The `fieldEl.id` value is used for custom equality so that the `defaultedPropData` set only contains unique declarations.
       defaultedPropData.add(DefaultedPropDeclaration(fieldEl.id, fieldDeclaration, isDefaultedToNull));
     }
 
     defaultedPropData.where((data) => !data.patchedDeclaration).forEach((data) {
       data.patch(yieldPatch, sdkVersion: sdkVersion);
     });
+  }
+
+  VariableDeclaration? _getPropFieldDeclaration({required InterfaceElement propsElement, required String fieldName}) {
+    // For component1 boilerplate its possible that `fieldEl` won't be found using `lookUpVariable` below
+    // since its `enclosingElement` will be the generated abstract mixin. So we'll use `getAllProps` and
+    // cross reference the return value with the `fieldName`to locate the actual prop declaration we want to patch.
+    final siblingProps = getAllProps(propsElement);
+    final matchingProp = siblingProps.singleWhereOrNull((element) => element.name == fieldName);
+    if (matchingProp == null) return null;
+
+    // NOTE: result.unit will only work if the declaration of the field is in this file
+    return lookUpVariable(matchingProp, result.unit);
   }
 
   @override
