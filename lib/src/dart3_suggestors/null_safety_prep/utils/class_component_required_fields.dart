@@ -36,7 +36,7 @@ abstract class ClassComponentRequiredFieldsMigrator<Assignment extends PropOrSta
       // In this case, don't add an entry to `fieldData`.
       if (fieldDeclaration == null) continue;
 
-      fieldData.add(DefaultedOrInitializedDeclaration(fieldEl.id, fieldDeclaration, isDefaultedToNull));
+      fieldData.add(DefaultedOrInitializedDeclaration(fieldEl.id, fieldDeclaration, fieldEl, isDefaultedToNull));
     }
 
     fieldData.where((data) => !data.patchedDeclaration).forEach((data) {
@@ -74,10 +74,11 @@ abstract class ClassComponentRequiredFieldsMigrator<Assignment extends PropOrSta
 class DefaultedOrInitializedDeclaration {
   final int id;
   final VariableDeclaration fieldDecl;
+  final FieldElement fieldEl;
   final bool isDefaultedToNull;
   final String name;
 
-  DefaultedOrInitializedDeclaration(this.id, this.fieldDecl, this.isDefaultedToNull)
+  DefaultedOrInitializedDeclaration(this.id, this.fieldDecl, this.fieldEl, this.isDefaultedToNull)
       : _patchedDeclaration = false,
         name = '${fieldDecl.name.value()}';
 
@@ -112,9 +113,9 @@ class DefaultedOrInitializedDeclaration {
   @override
   bool operator ==(Object other) {
     // Use the id of the `FieldElement` for equality so that the set created in ClassComponentRequiredDefaultPropsMigrator filters out dupe instances.
-    return other is DefaultedOrInitializedDeclaration && other.id == this.id;
+    return other is DefaultedOrInitializedDeclaration && other.fieldEl == this.fieldEl;
   }
 
   @override
-  int get hashCode => this.id;
+  int get hashCode => this.fieldEl.hashCode;
 }
