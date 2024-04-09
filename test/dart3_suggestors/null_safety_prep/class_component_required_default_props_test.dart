@@ -140,6 +140,96 @@ void main() {
         );
       });
 
+      test('patches defaulted props in mixins when defaults are in the props mixin', () async {
+        await testSuggestor(
+          expectedPatchCount: 6,
+          input: withOverReactImport(/*language=dart*/ r'''
+            // ignore: undefined_identifier
+            UiFactory<FooProps> Foo = castUiFactory(_$Foo);
+            mixin FooPropsMixin on UiProps {
+              static final defaultProps = Foo()
+                ..alreadyPatched = 'foo'
+                ..defaultedNullable = null
+                ..defaultedNonNullable = 2.1
+                ..anotherDefaultedNonNullable = 1.1
+                ..defaultedNonNullableFn = () {}
+                ..defaultedNonNullableList = [];
+            
+              String notDefaulted;
+              /*late*/ String/*!*/ alreadyPatched;
+              String defaultedNullable;
+              num defaultedNonNullable;
+            }
+            mixin SomeOtherPropsMixin on UiProps {
+              num anotherDefaultedNonNullable;
+              Function defaultedNonNullableFn;
+              List<num> defaultedNonNullableList;
+            }
+            class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
+            class FooComponent extends UiComponent2<FooProps> {
+              @override
+              get defaultProps => FooPropsMixin.defaultProps;
+            
+              @override
+              render() => null;
+            }
+            
+            @Factory()
+            UiFactory<FooProps> FooLegacy = _$FooLegacy; // ignore: undefined_identifier
+            @Component()
+            class FooLegacyComponent extends UiComponent<FooProps> {
+              @override
+              getDefaultProps() => FooPropsMixin.defaultProps;
+            
+              @override
+              render() => null;
+            }
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ r'''
+            // ignore: undefined_identifier
+            UiFactory<FooProps> Foo = castUiFactory(_$Foo);
+            mixin FooPropsMixin on UiProps {
+              static final defaultProps = Foo()
+                ..alreadyPatched = 'foo'
+                ..defaultedNullable = null
+                ..defaultedNonNullable = 2.1
+                ..anotherDefaultedNonNullable = 1.1
+                ..defaultedNonNullableFn = () {}
+                ..defaultedNonNullableList = [];
+                
+              String notDefaulted;
+              /*late*/ String/*!*/ alreadyPatched;
+              /*late*/ String/*?*/ defaultedNullable;
+              /*late*/ num/*!*/ defaultedNonNullable;
+            }
+            mixin SomeOtherPropsMixin on UiProps {
+              /*late*/ num/*!*/ anotherDefaultedNonNullable;
+              /*late*/ Function/*!*/ defaultedNonNullableFn;
+              /*late*/ List<num>/*!*/ defaultedNonNullableList;
+            }
+            class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
+            class FooComponent extends UiComponent2<FooProps> {
+              @override
+              get defaultProps => FooPropsMixin.defaultProps;
+            
+              @override
+              render() => null;
+            }
+            
+            @Factory()
+            UiFactory<FooProps> FooLegacy = _$FooLegacy; // ignore: undefined_identifier
+            @Component()
+            class FooLegacyComponent extends UiComponent<FooProps> {
+              @override
+              getDefaultProps() => FooPropsMixin.defaultProps;
+            
+              @override
+              render() => null;
+            }
+          '''),
+        );
+      });
+
       test('patches defaulted props in legacy classes', () async {
         await testSuggestor(
           expectedPatchCount: 3,

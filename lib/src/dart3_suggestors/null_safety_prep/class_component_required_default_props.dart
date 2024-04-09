@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/util/get_all_props.dart';
@@ -76,12 +77,21 @@ import 'utils/class_component_required_fields.dart';
 class ClassComponentRequiredDefaultPropsMigrator extends ClassComponentRequiredFieldsMigrator<PropAssignment> {
   ClassComponentRequiredDefaultPropsMigrator([Version? sdkVersion]) : super('defaultProps', 'getDefaultProps', sdkVersion);
 
+  // FIXME: This doesn't handle `static defaultProps` declared in props mixins (e.g. wsd button)
   @override
   Future<void> visitCascadeExpression(CascadeExpression node) async {
     super.visitCascadeExpression(node);
 
-    final isDefaultProps = [relevantGetterName, relevantMethodName]
-        .contains(node.thisOrAncestorOfType<MethodDeclaration>()?.declaredElement?.name);
+    final isDefaultProps = node.ancestors.any((ancestor) {
+      if (ancestor is MethodDeclaration) {
+        return [relevantGetterName, relevantMethodName].contains(ancestor.declaredElement?.name);
+      }
+      if (ancestor is VariableDeclaration &&
+          (ancestor.parentFieldDeclaration?.isStatic ?? false)) {
+        return RegExp('$relevantGetterName', caseSensitive: false).hasMatch(ancestor.name.lexeme);
+      }
+      return false;
+    });
 
     // If this cascade is not assigning values to defaultProps, bail.
     if (!isDefaultProps) return;

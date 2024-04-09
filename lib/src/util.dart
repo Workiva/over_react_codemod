@@ -538,6 +538,13 @@ extension FileContextSourceHelper on FileContext {
       sourceText.substring(entity.offset, entity.end);
 }
 
+extension ParentFieldDeclExtension on VariableDeclaration {
+  FieldDeclaration? get parentFieldDeclaration {
+    final field = thisOrAncestorOfType<FieldDeclaration>();
+    return field != null && field.fields.variables.contains(this) ? field : null;
+  }
+}
+
 String blockComment(String contents) => '/*$contents*/';
 
 String lineComment(String contents) =>
