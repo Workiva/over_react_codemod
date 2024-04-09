@@ -89,8 +89,26 @@ class DefaultedOrInitializedDeclaration {
   void patch(void Function(String updatedText, int startOffset, [int? endOffset]) handleYieldPatch, {Version? sdkVersion}) {
     final type = (fieldDecl.parent! as VariableDeclarationList).type;
     final fieldNameToken = fieldDecl.name;
+    if (type != null && requiredHintAlreadyExists(type) && (nullableHintAlreadyExists(type) || nonNullableHintAlreadyExists(type))) {
+      // Short circuit - it has already been patched
+      _patchedDeclaration = true;
+      return;
+    }
+
     String? late = type != null && requiredHintAlreadyExists(type) ? null : '/*late*/';
-    String? nullability = '/*${isDefaultedToNull ? '?' : '!'}*/';
+    String nullability = '';
+    if (type != null) {
+      if (isDefaultedToNull) {
+        if (!nullableHintAlreadyExists(type)) {
+          nullability = nullableHint;
+        }
+      } else {
+        if (!nonNullableHintAlreadyExists(type)) {
+          nullability = nonNullableHint;
+        }
+      }
+    }
+
     if (sdkVersion != null && VersionRange(min: Version.parse('2.12.0')).allows(sdkVersion)) {
       if (late != null) {
         // If the repo has opted into null safety, patch with the real thing instead of hints
@@ -102,10 +120,18 @@ class DefaultedOrInitializedDeclaration {
       }
 
       nullability = isDefaultedToNull ? '?' : '';
+
+      if (late == null && nullability.isEmpty) {
+        // Short circuit - it has already been patched
+        _patchedDeclaration = true;
+        return;
+      }
     }
 
+    late = late ?? '';
     // Object added if type is null b/c we gotta have a type to add the nullable `?`/`!` hints to - even if for some reason the prop/state decl. has no left side type.
-    handleYieldPatch('${late ?? ''} ${type == null ? 'Object' : type.toString()}$nullability ', type?.offset ?? fieldNameToken.offset, fieldNameToken.offset);
+    final patchedType = type == null ? 'Object' : '${type.toString()}$nullability';
+    handleYieldPatch('$late $patchedType ', type?.offset ?? fieldNameToken.offset, fieldNameToken.offset);
 
     _patchedDeclaration = true;
   }

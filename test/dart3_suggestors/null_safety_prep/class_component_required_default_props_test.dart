@@ -40,7 +40,7 @@ void main() {
 
       test('patches defaulted props in mixins', () async {
         await testSuggestor(
-          expectedPatchCount: 6,
+          expectedPatchCount: 5,
           input: withOverReactImport(/*language=dart*/ r'''
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
@@ -142,7 +142,7 @@ void main() {
 
       test('patches defaulted props in mixins when defaults are in the props mixin', () async {
         await testSuggestor(
-          expectedPatchCount: 6,
+          expectedPatchCount: 5,
           input: withOverReactImport(/*language=dart*/ r'''
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
@@ -377,7 +377,7 @@ void main() {
             return err.message
                 .contains(RegExp(r"Unexpected text 'late'"));
           },
-          expectedPatchCount: 4,
+          expectedPatchCount: 3,
           input: withOverReactImport(/*language=dart*/ r'''
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
