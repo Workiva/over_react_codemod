@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:over_react_codemod/src/util.dart';
 
 /// Whether the nullability hint already exists after [type].
 bool nullableHintAlreadyExists(TypeAnnotation type) {
@@ -18,6 +19,8 @@ const nonNullableHint = '/*!*/';
 
 /// Whether the late hint already exists before [type]
 bool requiredHintAlreadyExists(TypeAnnotation type) {
-  final commentsBeforeType = type.beginToken.precedingComments?.value();
-  return commentsBeforeType?.contains('/*late*/') ?? false;
+  // Since the `/*late*/` comment is possibly adjacent to the prop declaration's doc comments,
+  // we have to recursively traverse the `precedingComments` in order to determine if the `/*late*/`
+  // comment actually exists.
+  return allComments(type.beginToken).any((t) => t.value() == '/*late*/');
 }

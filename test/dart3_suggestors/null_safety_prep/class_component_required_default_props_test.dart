@@ -46,7 +46,9 @@ void main() {
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
             mixin FooPropsMixin on UiProps {
               String notDefaulted;
+              /// This is a doc comment
               /*late*/ String/*!*/ alreadyPatched;
+              /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
               String defaultedNullable;
               num defaultedNonNullable;
             }
@@ -94,7 +96,9 @@ void main() {
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
             mixin FooPropsMixin on UiProps {
               String notDefaulted;
+              /// This is a doc comment
               /*late*/ String/*!*/ alreadyPatched;
+              /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
               /*late*/ String/*?*/ defaultedNullable;
               /*late*/ num/*!*/ defaultedNonNullable;
             }
@@ -382,6 +386,7 @@ void main() {
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
             mixin FooPropsMixin on UiProps {
+              /// This is a doc comment
               late String alreadyPatched;
               String notDefaulted;
               String defaultedNullable;
@@ -424,6 +429,7 @@ void main() {
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
             mixin FooPropsMixin on UiProps {
+              /// This is a doc comment
               late String alreadyPatched;
               String notDefaulted;
               late String? defaultedNullable;

@@ -46,7 +46,9 @@ void main() {
             mixin FooProps on UiProps {}
             mixin FooStateMixin on UiState {
               String notInitialized;
+              /// This is a doc comment
               /*late*/ String/*!*/ alreadyPatched;
+              /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
               String initializedNullable;
               num initializedNonNullable;
             }
@@ -95,7 +97,9 @@ void main() {
             mixin FooProps on UiProps {}
             mixin FooStateMixin on UiState {
               String notInitialized;
+              /// This is a doc comment
               /*late*/ String/*!*/ alreadyPatched;
+              /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
               /*late*/ String/*?*/ initializedNullable;
               /*late*/ num/*!*/ initializedNonNullable;
             }
