@@ -29,11 +29,12 @@ abstract class ClassComponentRequiredFieldsMigrator<Assignment extends PropOrSta
     for (final field in cascadedDefaultPropsOrInitialState) {
       final isDefaultedToNull = field.node.rightHandSide.staticType!.isDartCoreNull;
       final fieldEl = (field.node.writeElement! as PropertyAccessorElement).variable as FieldElement;
-      // Short circuit before looking up the variable if we've already added it
-      if (fieldData.map((data) => data.id).contains(fieldEl.id)) continue;
       final propsOrStateElement = node.staticType.tryCast<InterfaceType>()?.element;
       if (propsOrStateElement == null) continue;
       final fieldDeclaration = _getFieldDeclaration(getAll, propsOrStateElement: propsOrStateElement, fieldName: fieldEl.name);
+      // The field declaration is likely in another file which our logic currently doesn't handle.
+      // In this case, don't add an entry to `fieldData`.
+      if (fieldDeclaration == null) continue;
 
       fieldData.add(DefaultedOrInitializedDeclaration(fieldEl.id, fieldDeclaration, isDefaultedToNull));
     }
@@ -66,40 +67,27 @@ abstract class ClassComponentRequiredFieldsMigrator<Assignment extends PropOrSta
           'Could not get resolved result for "${context.relativePath}"');
     }
     result = r;
-    final compilationUnit = r.unit;
-
-    final accessors = <PropertyAccessorElement>[];
-    final methods = <MethodElement>[];
-    compilationUnit.declaredElement!.classes.forEach((c) {
-      accessors.addAll(c.accessors.where((a) => a.name == relevantGetterName));
-      methods.addAll(c.methods.where((m) => m.name == relevantMethodName));
-    });
-
-    // Short-circuit if there are no default props / initial state set in this unit
-    if (accessors.isNotEmpty || methods.isNotEmpty) {
-      r.unit.accept(this);
-    }
+    r.unit.accept(this);
   }
 }
 
 class DefaultedOrInitializedDeclaration {
   final int id;
-  final VariableDeclaration? fieldDecl;
+  final VariableDeclaration fieldDecl;
   final bool isDefaultedToNull;
   final String name;
 
   DefaultedOrInitializedDeclaration(this.id, this.fieldDecl, this.isDefaultedToNull)
       : _patchedDeclaration = false,
-        name = '${fieldDecl?.name.value()}';
+        name = '${fieldDecl.name.value()}';
 
   /// Whether the declaration has been patched with the late / nullable hints.
   bool get patchedDeclaration => _patchedDeclaration;
   bool _patchedDeclaration;
 
   void patch(void Function(String updatedText, int startOffset, [int? endOffset]) handleYieldPatch, {Version? sdkVersion}) {
-    if (fieldDecl == null) return;
-    final type = (fieldDecl!.parent! as VariableDeclarationList).type;
-    final fieldNameToken = fieldDecl!.name;
+    final type = (fieldDecl.parent! as VariableDeclarationList).type;
+    final fieldNameToken = fieldDecl.name;
     String? late = type != null && requiredHintAlreadyExists(type) ? null : '/*late*/';
     String? nullability = '/*${isDefaultedToNull ? '?' : '!'}*/';
     if (sdkVersion != null && VersionRange(min: Version.parse('2.12.0')).allows(sdkVersion)) {
