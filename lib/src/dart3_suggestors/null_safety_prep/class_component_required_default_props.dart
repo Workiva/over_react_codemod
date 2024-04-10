@@ -74,8 +74,10 @@ import 'utils/class_component_required_fields.dart';
 ///   // ...
 /// }
 /// ```
-class ClassComponentRequiredDefaultPropsMigrator extends ClassComponentRequiredFieldsMigrator<PropAssignment> {
-  ClassComponentRequiredDefaultPropsMigrator([Version? sdkVersion]) : super('defaultProps', 'getDefaultProps', sdkVersion);
+class ClassComponentRequiredDefaultPropsMigrator
+    extends ClassComponentRequiredFieldsMigrator<PropAssignment> {
+  ClassComponentRequiredDefaultPropsMigrator([Version? sdkVersion])
+      : super('defaultProps', 'getDefaultProps', sdkVersion);
 
   // FIXME: This doesn't handle `static defaultProps` declared in props mixins (e.g. wsd button)
   @override
@@ -84,11 +86,13 @@ class ClassComponentRequiredDefaultPropsMigrator extends ClassComponentRequiredF
 
     final isDefaultProps = node.ancestors.any((ancestor) {
       if (ancestor is MethodDeclaration) {
-        return [relevantGetterName, relevantMethodName].contains(ancestor.declaredElement?.name);
+        return [relevantGetterName, relevantMethodName]
+            .contains(ancestor.declaredElement?.name);
       }
       if (ancestor is VariableDeclaration &&
           (ancestor.parentFieldDeclaration?.isStatic ?? false)) {
-        return RegExp('$relevantGetterName', caseSensitive: false).hasMatch(ancestor.name.lexeme);
+        return RegExp('$relevantGetterName', caseSensitive: false)
+            .hasMatch(ancestor.name.lexeme);
       }
       return false;
     });

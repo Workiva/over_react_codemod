@@ -541,7 +541,9 @@ extension FileContextSourceHelper on FileContext {
 extension ParentFieldDeclExtension on VariableDeclaration {
   FieldDeclaration? get parentFieldDeclaration {
     final field = thisOrAncestorOfType<FieldDeclaration>();
-    return field != null && field.fields.variables.contains(this) ? field : null;
+    return field != null && field.fields.variables.contains(this)
+        ? field
+        : null;
   }
 }
 

@@ -74,15 +74,17 @@ import 'utils/class_component_required_fields.dart';
 ///   // ...
 /// }
 /// ```
-class ClassComponentRequiredInitialStateMigrator extends ClassComponentRequiredFieldsMigrator<StateAssignment> {
-  ClassComponentRequiredInitialStateMigrator([Version? sdkVersion]) : super('initialState', 'getInitialState', sdkVersion);
+class ClassComponentRequiredInitialStateMigrator
+    extends ClassComponentRequiredFieldsMigrator<StateAssignment> {
+  ClassComponentRequiredInitialStateMigrator([Version? sdkVersion])
+      : super('initialState', 'getInitialState', sdkVersion);
 
   @override
   Future<void> visitCascadeExpression(CascadeExpression node) async {
     super.visitCascadeExpression(node);
 
-    final isInitialState = [relevantGetterName, relevantMethodName]
-        .contains(node.thisOrAncestorOfType<MethodDeclaration>()?.declaredElement?.name);
+    final isInitialState = [relevantGetterName, relevantMethodName].contains(
+        node.thisOrAncestorOfType<MethodDeclaration>()?.declaredElement?.name);
 
     // If this cascade is not assigning values to defaultProps, bail.
     if (!isInitialState) return;

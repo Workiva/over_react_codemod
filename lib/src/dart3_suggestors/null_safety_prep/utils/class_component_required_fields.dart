@@ -14,29 +14,40 @@ import '../../../util/class_suggestor.dart';
 import '../analyzer_plugin_utils.dart';
 
 /// A class shared by the suggestors that manage defaultProps/initialState.
-abstract class ClassComponentRequiredFieldsMigrator<Assignment extends PropOrStateAssignment> extends RecursiveAstVisitor<void>
-    with ClassSuggestor {
+abstract class ClassComponentRequiredFieldsMigrator<
+        Assignment extends PropOrStateAssignment>
+    extends RecursiveAstVisitor<void> with ClassSuggestor {
   final String relevantGetterName;
   final String relevantMethodName;
   final Version? sdkVersion;
 
-  ClassComponentRequiredFieldsMigrator(this.relevantGetterName, this.relevantMethodName, [this.sdkVersion]);
+  ClassComponentRequiredFieldsMigrator(
+      this.relevantGetterName, this.relevantMethodName,
+      [this.sdkVersion]);
 
   late ResolvedUnitResult result;
   final Set<DefaultedOrInitializedDeclaration> fieldData = {};
 
-  void patchFieldDeclarations(List<FieldElement> Function(InterfaceElement) getAll, Iterable<Assignment> cascadedDefaultPropsOrInitialState, CascadeExpression node) {
+  void patchFieldDeclarations(
+      List<FieldElement> Function(InterfaceElement) getAll,
+      Iterable<Assignment> cascadedDefaultPropsOrInitialState,
+      CascadeExpression node) {
     for (final field in cascadedDefaultPropsOrInitialState) {
-      final isDefaultedToNull = field.node.rightHandSide.staticType!.isDartCoreNull;
-      final fieldEl = (field.node.writeElement! as PropertyAccessorElement).variable as FieldElement;
-      final propsOrStateElement = node.staticType.tryCast<InterfaceType>()?.element;
+      final isDefaultedToNull =
+          field.node.rightHandSide.staticType!.isDartCoreNull;
+      final fieldEl = (field.node.writeElement! as PropertyAccessorElement)
+          .variable as FieldElement;
+      final propsOrStateElement =
+          node.staticType.tryCast<InterfaceType>()?.element;
       if (propsOrStateElement == null) continue;
-      final fieldDeclaration = _getFieldDeclaration(getAll, propsOrStateElement: propsOrStateElement, fieldName: fieldEl.name);
+      final fieldDeclaration = _getFieldDeclaration(getAll,
+          propsOrStateElement: propsOrStateElement, fieldName: fieldEl.name);
       // The field declaration is likely in another file which our logic currently doesn't handle.
       // In this case, don't add an entry to `fieldData`.
       if (fieldDeclaration == null) continue;
 
-      fieldData.add(DefaultedOrInitializedDeclaration(fieldEl.id, fieldDeclaration, fieldEl, isDefaultedToNull));
+      fieldData.add(DefaultedOrInitializedDeclaration(
+          fieldEl.id, fieldDeclaration, fieldEl, isDefaultedToNull));
     }
 
     fieldData.where((data) => !data.patchedDeclaration).forEach((data) {
@@ -44,15 +55,16 @@ abstract class ClassComponentRequiredFieldsMigrator<Assignment extends PropOrSta
     });
   }
 
-  VariableDeclaration? _getFieldDeclaration(List<FieldElement> Function(InterfaceElement) getAll, {
-    required InterfaceElement propsOrStateElement,
-    required String fieldName
-  }) {
+  VariableDeclaration? _getFieldDeclaration(
+      List<FieldElement> Function(InterfaceElement) getAll,
+      {required InterfaceElement propsOrStateElement,
+      required String fieldName}) {
     // For component1 boilerplate its possible that `fieldEl` won't be found using `lookUpVariable` below
     // since its `enclosingElement` will be the generated abstract mixin. So we'll use the provided `getAll` fn to
     // cross reference the return value with the `fieldName`to locate the actual prop/state field declaration we want to patch.
     final siblingFields = getAll(propsOrStateElement);
-    final matchingField = siblingFields.singleWhereOrNull((element) => element.name == fieldName);
+    final matchingField =
+        siblingFields.singleWhereOrNull((element) => element.name == fieldName);
     if (matchingField == null) return null;
 
     // NOTE: result.unit will only work if the declaration of the field is in this file
@@ -78,7 +90,8 @@ class DefaultedOrInitializedDeclaration {
   final bool isDefaultedToNull;
   final String name;
 
-  DefaultedOrInitializedDeclaration(this.id, this.fieldDecl, this.fieldEl, this.isDefaultedToNull)
+  DefaultedOrInitializedDeclaration(
+      this.id, this.fieldDecl, this.fieldEl, this.isDefaultedToNull)
       : _patchedDeclaration = false,
         name = '${fieldDecl.name.value()}';
 
@@ -86,16 +99,23 @@ class DefaultedOrInitializedDeclaration {
   bool get patchedDeclaration => _patchedDeclaration;
   bool _patchedDeclaration;
 
-  void patch(void Function(String updatedText, int startOffset, [int? endOffset]) handleYieldPatch, {Version? sdkVersion}) {
+  void patch(
+      void Function(String updatedText, int startOffset, [int? endOffset])
+          handleYieldPatch,
+      {Version? sdkVersion}) {
     final type = (fieldDecl.parent! as VariableDeclarationList).type;
     final fieldNameToken = fieldDecl.name;
-    if (type != null && requiredHintAlreadyExists(type) && (nullableHintAlreadyExists(type) || nonNullableHintAlreadyExists(type))) {
+    if (type != null &&
+        requiredHintAlreadyExists(type) &&
+        (nullableHintAlreadyExists(type) ||
+            nonNullableHintAlreadyExists(type))) {
       // Short circuit - it has already been patched
       _patchedDeclaration = true;
       return;
     }
 
-    String? late = type != null && requiredHintAlreadyExists(type) ? null : '/*late*/';
+    String? late =
+        type != null && requiredHintAlreadyExists(type) ? null : '/*late*/';
     String nullability = '';
     if (type != null) {
       if (isDefaultedToNull) {
@@ -109,7 +129,8 @@ class DefaultedOrInitializedDeclaration {
       }
     }
 
-    if (sdkVersion != null && VersionRange(min: Version.parse('2.12.0')).allows(sdkVersion)) {
+    if (sdkVersion != null &&
+        VersionRange(min: Version.parse('2.12.0')).allows(sdkVersion)) {
       if (late != null) {
         // If the repo has opted into null safety, patch with the real thing instead of hints
         late = 'late';
@@ -130,8 +151,10 @@ class DefaultedOrInitializedDeclaration {
 
     late = late ?? '';
     // Object added if type is null b/c we gotta have a type to add the nullable `?`/`!` hints to - even if for some reason the prop/state decl. has no left side type.
-    final patchedType = type == null ? 'Object' : '${type.toString()}$nullability';
-    handleYieldPatch('$late $patchedType ', type?.offset ?? fieldNameToken.offset, fieldNameToken.offset);
+    final patchedType =
+        type == null ? 'Object' : '${type.toString()}$nullability';
+    handleYieldPatch('$late $patchedType ',
+        type?.offset ?? fieldNameToken.offset, fieldNameToken.offset);
 
     _patchedDeclaration = true;
   }
@@ -139,7 +162,8 @@ class DefaultedOrInitializedDeclaration {
   @override
   bool operator ==(Object other) {
     // Use the id of the `FieldElement` for equality so that the set created in ClassComponentRequiredDefaultPropsMigrator filters out dupe instances.
-    return other is DefaultedOrInitializedDeclaration && other.fieldEl == this.fieldEl;
+    return other is DefaultedOrInitializedDeclaration &&
+        other.fieldEl == this.fieldEl;
   }
 
   @override

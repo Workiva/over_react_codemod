@@ -207,7 +207,9 @@ void main() {
         );
       });
 
-      test('patches defaulted props in legacy classes using component1 boilerplate', () async {
+      test(
+          'patches defaulted props in legacy classes using component1 boilerplate',
+          () async {
         await testSuggestor(
           expectedPatchCount: 2,
           input: withOverReactImport(/*language=dart*/ r'''

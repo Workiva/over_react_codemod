@@ -144,7 +144,9 @@ void main() {
         );
       });
 
-      test('patches defaulted props in mixins when defaults are in the props mixin', () async {
+      test(
+          'patches defaulted props in mixins when defaults are in the props mixin',
+          () async {
         await testSuggestor(
           expectedPatchCount: 5,
           input: withOverReactImport(/*language=dart*/ r'''
@@ -292,7 +294,9 @@ void main() {
         );
       });
 
-      test('patches defaulted props in legacy classes using component1 boilerplate', () async {
+      test(
+          'patches defaulted props in legacy classes using component1 boilerplate',
+          () async {
         await testSuggestor(
           expectedPatchCount: 2,
           input: withOverReactImport(/*language=dart*/ r'''
@@ -378,8 +382,7 @@ void main() {
       test('patches defaulted props in mixins', () async {
         await testSuggestor(
           isExpectedError: (err) {
-            return err.message
-                .contains(RegExp(r"Unexpected text 'late'"));
+            return err.message.contains(RegExp(r"Unexpected text 'late'"));
           },
           expectedPatchCount: 3,
           input: withOverReactImport(/*language=dart*/ r'''

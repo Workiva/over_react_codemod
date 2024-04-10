@@ -7,6 +7,7 @@ bool nullableHintAlreadyExists(TypeAnnotation type) {
   final commentsPrecedingType = type.endToken.next?.precedingComments?.value();
   return commentsPrecedingType?.contains(nullableHint) ?? false;
 }
+
 const nullableHint = '/*?*/';
 
 /// Whether the non-nullable hint already exists after [type].
@@ -15,6 +16,7 @@ bool nonNullableHintAlreadyExists(TypeAnnotation type) {
   final commentsPrecedingType = type.endToken.next?.precedingComments?.value();
   return commentsPrecedingType?.contains(nonNullableHint) ?? false;
 }
+
 const nonNullableHint = '/*!*/';
 
 /// Whether the late hint already exists before [type]

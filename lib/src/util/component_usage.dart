@@ -428,7 +428,8 @@ mixin PropOrStateAssignment on BuilderMemberAccess {
   Expression get rightHandSide => node.rightHandSide;
 }
 
-abstract class StateAssignment extends BuilderMemberAccess with PropOrStateAssignment {
+abstract class StateAssignment extends BuilderMemberAccess
+    with PropOrStateAssignment {
   factory StateAssignment(AssignmentExpression node) {
     if (node.leftHandSide is PropertyAccess) {
       return _PropertyAccessStateAssignment(node);
@@ -469,7 +470,8 @@ class _PropertyAccessStateAssignment extends StateAssignment {
 }
 
 /// An assignment of a property (usually a prop) on a [FluentComponentUsage] builder.
-abstract class PropAssignment extends BuilderMemberAccess with PropOrStateAssignment {
+abstract class PropAssignment extends BuilderMemberAccess
+    with PropOrStateAssignment {
   factory PropAssignment(AssignmentExpression node) {
     if (node.leftHandSide is PropertyAccess) {
       return _PropertyAccessPropAssignment(node);

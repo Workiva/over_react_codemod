@@ -39,8 +39,9 @@ List<FieldElement> getAllProps(InterfaceElement propsElement) {
   // There are two UiProps; one in component_base, and one in builder_helpers that extends from it.
   // Use the component_base one, since there are some edge-cases of props that don't extend from the
   // builder_helpers version.
-  final uiPropsElement = propsAndSupertypeElements.firstWhereOrNull(
-          (i) => i.name == 'UiProps' && i.library.name == 'over_react.component_declaration.component_base');
+  final uiPropsElement = propsAndSupertypeElements.firstWhereOrNull((i) =>
+      i.name == 'UiProps' &&
+      i.library.name == 'over_react.component_declaration.component_base');
 
   // If propsElement does not inherit from from UiProps, it could still be a legacy mixin that doesn't implement UiProps.
   // This check is only necessary to retrieve props when [propsElement] is itself a legacy mixin, and not when legacy
@@ -60,15 +61,16 @@ List<FieldElement> getAllProps(InterfaceElement propsElement) {
     if (uiPropsAndSupertypeElements?.contains(interface) ?? false) continue;
 
     // Filter out generated accessors mixins for legacy concrete props classes.
-    late final isFromGeneratedFile = interface.source.uri.path.endsWith('.over_react.g.dart');
+    late final isFromGeneratedFile =
+        interface.source.uri.path.endsWith('.over_react.g.dart');
     if (interface.name.endsWith('AccessorsMixin') && isFromGeneratedFile) {
       continue;
     }
 
-    final isMixinBasedPropsMixin =
-        interface is MixinElement && interface.superclassConstraints.any((s) => s.element.name == 'UiProps');
-    late final isLegacyPropsOrPropsMixinConsumerClass =
-        !isFromGeneratedFile && interface.metadata.any(_isPropsOrPropsMixinAnnotation);
+    final isMixinBasedPropsMixin = interface is MixinElement &&
+        interface.superclassConstraints.any((s) => s.element.name == 'UiProps');
+    late final isLegacyPropsOrPropsMixinConsumerClass = !isFromGeneratedFile &&
+        interface.metadata.any(_isPropsOrPropsMixinAnnotation);
 
     if (!isMixinBasedPropsMixin && !isLegacyPropsOrPropsMixinConsumerClass) {
       continue;
@@ -79,8 +81,11 @@ List<FieldElement> getAllProps(InterfaceElement propsElement) {
       if (field.isSynthetic) continue;
 
       final accessorAnnotation = _getAccessorAnnotation(field.metadata);
-      final isNoGenerate =
-          accessorAnnotation?.computeConstantValue()?.getField('doNotGenerate')?.toBoolValue() ?? false;
+      final isNoGenerate = accessorAnnotation
+              ?.computeConstantValue()
+              ?.getField('doNotGenerate')
+              ?.toBoolValue() ??
+          false;
       if (isNoGenerate) continue;
 
       allProps.add(field);
@@ -93,27 +98,32 @@ List<FieldElement> getAllProps(InterfaceElement propsElement) {
 bool _isPropsOrPropsMixinAnnotation(ElementAnnotation e) {
   // [2]
   final element = e.element;
-  return element is ConstructorElement && const {'Props', 'PropsMixin'}.contains(element.enclosingElement.name);
+  return element is ConstructorElement &&
+      const {'Props', 'PropsMixin'}.contains(element.enclosingElement.name);
 }
 
 bool _isPropsMixinAnnotation(ElementAnnotation e) {
   // [2]
   final element = e.element;
-  return element is ConstructorElement && element.enclosingElement.name == 'PropsMixin';
+  return element is ConstructorElement &&
+      element.enclosingElement.name == 'PropsMixin';
 }
 
 ElementAnnotation? _getAccessorAnnotation(List<ElementAnnotation> metadata) {
   return metadata.firstWhereOrNull((annotation) {
     // [2]
     final element = annotation.element;
-    return element is ConstructorElement && element.enclosingElement.name == 'Accessor';
+    return element is ConstructorElement &&
+        element.enclosingElement.name == 'Accessor';
   });
 }
 
 extension on InterfaceElement {
   // Two separate collection implementations to micro-optimize collection creation/iteration based on usage.
 
-  Set<InterfaceElement> get thisAndSupertypesSet => {this, for (final s in allSupertypes) s.element};
+  Set<InterfaceElement> get thisAndSupertypesSet =>
+      {this, for (final s in allSupertypes) s.element};
 
-  List<InterfaceElement> get thisAndSupertypesList => [this, for (final s in allSupertypes) s.element];
+  List<InterfaceElement> get thisAndSupertypesList =>
+      [this, for (final s in allSupertypes) s.element];
 }
