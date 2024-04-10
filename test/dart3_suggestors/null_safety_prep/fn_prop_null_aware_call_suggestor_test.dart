@@ -68,6 +68,28 @@ void main() {
             '''));
       });
 
+      test(
+          'unless the single condition is not a null check of the function being called',
+          () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport('''
+              final Foo = uiFunction<UiProps>(
+                (props) {
+                  final handleClick = useCallback<MouseEventCallback>((e) {
+                    if (1 > 0) {
+                      props.onClick(e);
+                    }
+                  }, [props.onClick]);
+                  
+                  return (Dom.button()..onClick = handleClick)();
+                },
+                UiFactoryConfig(displayName: 'Foo'),
+              );
+            '''),
+        );
+      });
+
       test('unless there are multiple conditions', () async {
         await testSuggestor(
           expectedPatchCount: 0,
@@ -117,6 +139,26 @@ void main() {
                 UiFactoryConfig(displayName: 'Foo'),
               );
             '''));
+      });
+
+      test(
+          'unless the single condition is not a null check of the function being called',
+          () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport('''
+              final Foo = uiFunction<UiProps>(
+                (props) {
+                  final handleClick = useCallback<MouseEventCallback>((e) {
+                    1 > 0 && props.onClick(e);
+                  }, [props.onClick]);
+                  
+                  return (Dom.button()..onClick = handleClick)();
+                },
+                UiFactoryConfig(displayName: 'Foo'),
+              );
+            '''),
+        );
       });
 
       test('unless there are multiple conditions', () async {
