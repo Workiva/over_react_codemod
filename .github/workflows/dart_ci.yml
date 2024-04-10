@@ -65,3 +65,9 @@ jobs:
           echo 'Running dart pub get in test fixtures beforehand to prevent concurrent `dart pub get`s in tests from failing'
           (cd test/test_fixtures/over_react_project && dart pub get)
           dart test --exclude-tags=wsd
+
+      - name: Create SBOM Release Asset
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./
+          format: cyclonedx-json
