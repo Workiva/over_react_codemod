@@ -101,8 +101,12 @@ class FnPropNullAwareCallSuggestor extends RecursiveAstVisitor
   /// after the null condition is checked.
   ExpressionStatement? _getPropFunctionExpressionBeingCalledConditionally(
       BinaryExpression condition) {
-    // if (props.fn != null) { ... }
     if (condition.parent is IfStatement) {
+      //
+      // Handles conditions of the form:
+      // if (props.fn != null) { ... }
+      //
+
       var propFunctionBeingNullChecked =
           _getPropFunctionBeingNullChecked(condition);
 
@@ -121,9 +125,12 @@ class FnPropNullAwareCallSuggestor extends RecursiveAstVisitor
             propFunctionBeingNullChecked?.staticElement?.declaration;
         return matches;
       }) as ExpressionStatement?;
-      // props.fn != null && ...
     } else if (condition.parent is ExpressionStatement &&
         condition.leftOperand is BinaryExpression) {
+      //
+      // Handles conditions of the form:
+      // props.fn != null && ...
+      //
       final propFunctionBeingNullChecked = _getPropFunctionBeingNullChecked(
           condition.leftOperand as BinaryExpression);
       if (propFunctionBeingNullChecked == null) return null;
