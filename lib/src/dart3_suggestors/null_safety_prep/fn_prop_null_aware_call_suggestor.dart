@@ -118,22 +118,15 @@ class FnPropNullAwareCallSuggestor extends RecursiveAstVisitor
         // There is an else-if statement present
         return null;
       }
-
-      return (ifStatement.thenStatement as Block)
-          .statements
-          .singleWhereOrNull((element) {
-        if (element is! ExpressionStatement) return false;
-        final expression = element.expression;
-        if (expression is! FunctionExpressionInvocation) return false;
-        final fn = expression.function;
-        if (fn is! PropertyAccess) return false;
-        final target = fn.target;
-        if (target is! SimpleIdentifier) return false;
-        if (target.name != 'props') return false;
-        final matches = fn.propertyName.staticElement?.declaration ==
-            propFunctionBeingNullChecked?.staticElement?.declaration;
-        return matches;
-      }) as ExpressionStatement?;
+      final thenStatement = ifStatement.thenStatement;
+      if (thenStatement is Block) {
+        return _getMatchingConditionalPropFunctionCallStatement(
+            thenStatement.statements, propFunctionBeingNullChecked);
+      } else if (thenStatement is ExpressionStatement) {
+        return _getMatchingConditionalPropFunctionCallStatement(
+            [thenStatement], propFunctionBeingNullChecked);
+      }
+      return null;
     } else if (condition.parent is ExpressionStatement &&
         condition.leftOperand is BinaryExpression) {
       //
@@ -158,6 +151,24 @@ class FnPropNullAwareCallSuggestor extends RecursiveAstVisitor
     }
 
     return null;
+  }
+
+  ExpressionStatement? _getMatchingConditionalPropFunctionCallStatement(
+      List<Statement> thenStatements,
+      SimpleIdentifier? propFunctionBeingNullChecked) {
+    return thenStatements.singleWhereOrNull((element) {
+      if (element is! ExpressionStatement) return false;
+      final expression = element.expression;
+      if (expression is! FunctionExpressionInvocation) return false;
+      final fn = expression.function;
+      if (fn is! PropertyAccess) return false;
+      final target = fn.target;
+      if (target is! SimpleIdentifier) return false;
+      if (target.name != 'props') return false;
+      final matches = fn.propertyName.staticElement?.declaration ==
+          propFunctionBeingNullChecked?.staticElement?.declaration;
+      return matches;
+    }) as ExpressionStatement?;
   }
 
   /// Returns the identifier for the function that is being
