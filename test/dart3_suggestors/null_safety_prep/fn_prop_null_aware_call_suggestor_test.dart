@@ -158,6 +158,28 @@ void main() {
         );
       });
 
+      test('unless the single condition does not involve props at all',
+          () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport('''
+              final Foo = uiFunction<UiProps>(
+                (props) {
+                  final bar = false;
+                  final handleClick = useCallback<MouseEventCallback>((e) {
+                    if (bar) {
+                      props.onClick(e);
+                    }
+                  }, [props.onClick]);
+                  
+                  return (Dom.button()..onClick = handleClick)();
+                },
+                UiFactoryConfig(displayName: 'Foo'),
+              );
+            '''),
+        );
+      });
+
       test('unless there are multiple conditions', () async {
         await testSuggestor(
           expectedPatchCount: 0,
@@ -167,6 +189,50 @@ void main() {
                   final handleClick = useCallback<MouseEventCallback>((e) {
                     if (props.onClick != null && props.onMouseEnter != null) {
                       props.onClick(e);
+                    }
+                  }, [props.onClick]);
+                  
+                  return (Dom.button()..onClick = handleClick)();
+                },
+                UiFactoryConfig(displayName: 'Foo'),
+              );
+            '''),
+        );
+      });
+
+      test('unless the relevant prop fn is returned within the then statement',
+          () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport('''
+              final Foo = uiFunction<UiProps>(
+                (props) {
+                  final handleClick = useCallback<MouseEventCallback>((e) {
+                    if (props.onClick != null) {
+                      return props.onClick(e);
+                    }
+                  }, [props.onClick]);
+                  
+                  return (Dom.button()..onClick = handleClick)();
+                },
+                UiFactoryConfig(displayName: 'Foo'),
+              );
+            '''),
+        );
+      });
+
+      test(
+          'unless the relevant prop fn is not called within the then statement',
+          () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport('''
+              final Foo = uiFunction<UiProps>(
+                (props) {
+                  final bar = useState(0);
+                  final handleClick = useCallback<MouseEventCallback>((e) {
+                    if (props.onClick != null) {
+                      bar.set(1);
                     }
                   }, [props.onClick]);
                   
