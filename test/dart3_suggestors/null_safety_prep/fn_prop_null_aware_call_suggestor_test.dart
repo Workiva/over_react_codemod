@@ -90,12 +90,58 @@ void main() {
         );
       });
 
+      test('unless there is an else condition', () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport('''
+              final Foo = uiFunction<UiProps>(
+                (props) {
+                  final bar = useState(0);
+                  final handleClick = useCallback<MouseEventCallback>((e) {
+                    if (props.onClick != null) {
+                      props.onClick(e);
+                    } else {
+                      bar.set(1);
+                    }
+                  }, [props.onClick]);
+                  
+                  return (Dom.button()..onClick = handleClick)(bar.value);
+                },
+                UiFactoryConfig(displayName: 'Foo'),
+              );
+            '''),
+        );
+      });
+
+      test('unless there is an else if condition', () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport('''
+              final Foo = uiFunction<UiProps>(
+                (props) {
+                  final bar = useState(0);
+                  final handleClick = useCallback<MouseEventCallback>((e) {
+                    if (props.onMouseEnter != null) {
+                      bar.set(1);
+                    } else if (props.onClick != null) {
+                      props.onClick(e);
+                    }
+                  }, [props.onClick]);
+                  
+                  return (Dom.button()..onClick = handleClick)(bar.value);
+                },
+                UiFactoryConfig(displayName: 'Foo'),
+              );
+            '''),
+        );
+      });
+
       test(
           'unless the single condition involves the function being called, but is not a null check',
-              () async {
-            await testSuggestor(
-              expectedPatchCount: 0,
-              input: withOverReactImport('''
+          () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport('''
               final Foo = uiFunction<UiProps>(
                 (props) {
                   final handleClick = useCallback<MouseEventCallback>((e) {
@@ -109,8 +155,8 @@ void main() {
                 UiFactoryConfig(displayName: 'Foo'),
               );
             '''),
-            );
-          });
+        );
+      });
 
       test('unless there are multiple conditions', () async {
         await testSuggestor(
@@ -185,10 +231,10 @@ void main() {
 
       test(
           'unless the single condition involves the function being called, but is not a null check',
-              () async {
-            await testSuggestor(
-              expectedPatchCount: 0,
-              input: withOverReactImport('''
+          () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport('''
               final Foo = uiFunction<UiProps>(
                 (props) {
                   final handleClick = useCallback<MouseEventCallback>((e) {
@@ -200,8 +246,8 @@ void main() {
                 UiFactoryConfig(displayName: 'Foo'),
               );
             '''),
-            );
-          });
+        );
+      });
 
       test('unless there are multiple conditions', () async {
         await testSuggestor(

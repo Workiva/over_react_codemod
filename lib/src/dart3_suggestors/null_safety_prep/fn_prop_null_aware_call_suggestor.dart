@@ -107,10 +107,19 @@ class FnPropNullAwareCallSuggestor extends RecursiveAstVisitor
       // if (props.fn != null) { ... }
       //
 
-      var propFunctionBeingNullChecked =
+      final propFunctionBeingNullChecked =
           _getPropFunctionBeingNullChecked(condition);
+      final ifStatement = condition.parent! as IfStatement;
+      if (ifStatement.elseStatement != null) return null;
+      if (ifStatement.parent
+              ?.thisOrAncestorOfType<IfStatement>()
+              ?.elseStatement !=
+          null) {
+        // There is an else-if statement present
+        return null;
+      }
 
-      return ((condition.parent! as IfStatement).thenStatement as Block)
+      return (ifStatement.thenStatement as Block)
           .statements
           .singleWhereOrNull((element) {
         if (element is! ExpressionStatement) return false;
