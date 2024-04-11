@@ -109,6 +109,8 @@ class FnPropNullAwareCallSuggestor extends RecursiveAstVisitor
 
       final propFunctionBeingNullChecked =
           _getPropFunctionBeingNullChecked(condition);
+      final parent = condition.parent;
+      if (parent is! IfStatement) return null;
       final ifStatement = condition.parent! as IfStatement;
       if (ifStatement.elseStatement != null) return null;
       if (ifStatement.parent
