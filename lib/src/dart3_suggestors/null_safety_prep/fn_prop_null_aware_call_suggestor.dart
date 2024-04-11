@@ -101,57 +101,28 @@ class FnPropNullAwareCallSuggestor extends RecursiveAstVisitor
   /// after the null condition is checked.
   ExpressionStatement? _getPropFunctionExpressionBeingCalledConditionally(
       BinaryExpression condition) {
-    if (condition.parent is IfStatement) {
-      //
-      // Handles conditions of the form:
-      // if (props.fn != null) { ... }
-      //
+    final parent = condition.parent;
+    if (parent is! IfStatement) return null;
 
-      final propFunctionBeingNullChecked =
-          _getPropFunctionBeingNullChecked(condition);
-      final parent = condition.parent;
-      if (parent is! IfStatement) return null;
-      final ifStatement = condition.parent! as IfStatement;
-      if (ifStatement.elseStatement != null) return null;
-      if (ifStatement.parent
-              ?.thisOrAncestorOfType<IfStatement>()
-              ?.elseStatement !=
-          null) {
-        // There is an else-if statement present
-        return null;
-      }
-      final thenStatement = ifStatement.thenStatement;
-      if (thenStatement is Block) {
-        return _getMatchingConditionalPropFunctionCallStatement(
-            thenStatement.statements, propFunctionBeingNullChecked);
-      } else if (thenStatement is ExpressionStatement) {
-        return _getMatchingConditionalPropFunctionCallStatement(
-            [thenStatement], propFunctionBeingNullChecked);
-      }
+    final propFunctionBeingNullChecked =
+        _getPropFunctionBeingNullChecked(condition);
+    final ifStatement = parent;
+    if (ifStatement.elseStatement != null) return null;
+    if (ifStatement.parent
+            ?.thisOrAncestorOfType<IfStatement>()
+            ?.elseStatement !=
+        null) {
+      // There is an else-if statement present
       return null;
-    } else if (condition.parent is ExpressionStatement &&
-        condition.leftOperand is BinaryExpression) {
-      //
-      // Handles conditions of the form:
-      // props.fn != null && ...
-      //
-      final propFunctionBeingNullChecked = _getPropFunctionBeingNullChecked(
-          condition.leftOperand as BinaryExpression);
-      if (propFunctionBeingNullChecked == null) return null;
-
-      if (condition.rightOperand is! FunctionExpressionInvocation) return null;
-      final fn =
-          (condition.rightOperand as FunctionExpressionInvocation).function;
-      if (fn is! PropertyAccess) return null;
-      final target = fn.target;
-      if (target is! SimpleIdentifier) return null;
-      if (target.name != 'props') return null;
-      final matches = fn.propertyName.staticElement?.declaration ==
-          propFunctionBeingNullChecked.staticElement?.declaration;
-      if (!matches) return null;
-      return condition.parent as ExpressionStatement?;
     }
-
+    final thenStatement = ifStatement.thenStatement;
+    if (thenStatement is Block) {
+      return _getMatchingConditionalPropFunctionCallStatement(
+          thenStatement.statements, propFunctionBeingNullChecked);
+    } else if (thenStatement is ExpressionStatement) {
+      return _getMatchingConditionalPropFunctionCallStatement(
+          [thenStatement], propFunctionBeingNullChecked);
+    }
     return null;
   }
 
