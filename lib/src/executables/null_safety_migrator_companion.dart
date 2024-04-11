@@ -16,8 +16,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/dom_callback_null_args.dart';
-import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/use_ref_init_migration.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/class_component_required_default_props.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/class_component_required_initial_state.dart';
 import 'package:over_react_codemod/src/util.dart';
 
 import '../dart3_suggestors/null_safety_prep/callback_ref_hint_suggestor.dart';
@@ -28,12 +28,11 @@ const _changesRequiredOutput = """
   pub global run over_react_codemod:null_safety_prep
 """;
 
-/// Codemods in this executable should be changes that teams
-/// can make ahead of moving forward with their null-safety migration.
+/// Codemods in this executable add nullability "hints" to assist with a
+/// null-safety migration.
 ///
-/// Codemods that do things like add nullability "hints" should be placed
-/// within `null_safety_migrator_companion` - and run only when a team is
-/// ready to move forward with a null-safety migration.
+/// If it has not already been run, the `null_safety_prep` codemod should
+/// also be run when migrating to null-safety.
 void main(List<String> args) async {
   final parser = ArgParser.allowAnything();
 
@@ -43,8 +42,9 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemod(
     dartPaths,
     aggregate([
-      UseRefInitMigration(),
-      DomCallbackNullArgs(),
+      CallbackRefHintSuggestor(),
+      ClassComponentRequiredDefaultPropsMigrator(),
+      ClassComponentRequiredInitialStateMigrator(),
     ]),
     defaultYes: true,
     args: parsedArgs.rest,
