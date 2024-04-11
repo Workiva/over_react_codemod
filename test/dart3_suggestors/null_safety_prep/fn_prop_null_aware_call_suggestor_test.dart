@@ -177,6 +177,28 @@ void main() {
             '''),
         );
       });
+
+      test('unless there are multiple statements within the then statement',
+          () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport('''
+              final Foo = uiFunction<UiProps>(
+                (props) {
+                  final handleClick = useCallback<MouseEventCallback>((e) {
+                    if (props.onClick != null) {
+                      props.onMouseEnter?.call(e);
+                      props.onClick(e);
+                    }
+                  }, [props.onClick, props.onMouseEnter]);
+                  
+                  return (Dom.button()..onClick = handleClick)();
+                },
+                UiFactoryConfig(displayName: 'Foo'),
+              );
+            '''),
+        );
+      });
     });
 
     group('handles inline if conditions', () {

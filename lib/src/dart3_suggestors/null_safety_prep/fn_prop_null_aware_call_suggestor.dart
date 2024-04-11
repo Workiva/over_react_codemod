@@ -17,7 +17,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:collection/collection.dart';
 import 'package:over_react_codemod/src/util/class_suggestor.dart';
 
 /// Suggestor that replaces conditional calls to functions declared in props
@@ -116,32 +115,33 @@ class FnPropNullAwareCallSuggestor extends RecursiveAstVisitor
       return null;
     }
     final thenStatement = ifStatement.thenStatement;
-    if (thenStatement is Block) {
-      return _getMatchingConditionalPropFunctionCallStatement(
-          thenStatement.statements, propFunctionBeingNullChecked);
+    if (thenStatement is Block && thenStatement.statements.length == 1) {
+      if (_isMatchingConditionalPropFunctionCallStatement(
+          thenStatement.statements.single, propFunctionBeingNullChecked)) {
+        return thenStatement.statements.single as ExpressionStatement?;
+      }
     } else if (thenStatement is ExpressionStatement) {
-      return _getMatchingConditionalPropFunctionCallStatement(
-          [thenStatement], propFunctionBeingNullChecked);
+      if (_isMatchingConditionalPropFunctionCallStatement(
+          thenStatement, propFunctionBeingNullChecked)) {
+        return thenStatement;
+      }
     }
     return null;
   }
 
-  ExpressionStatement? _getMatchingConditionalPropFunctionCallStatement(
-      List<Statement> thenStatements,
+  bool _isMatchingConditionalPropFunctionCallStatement(
+      Statement statementWithinThenStatement,
       SimpleIdentifier? propFunctionBeingNullChecked) {
-    return thenStatements.singleWhereOrNull((element) {
-      if (element is! ExpressionStatement) return false;
-      final expression = element.expression;
-      if (expression is! FunctionExpressionInvocation) return false;
-      final fn = expression.function;
-      if (fn is! PropertyAccess) return false;
-      final target = fn.target;
-      if (target is! SimpleIdentifier) return false;
-      if (target.name != 'props') return false;
-      final matches = fn.propertyName.staticElement?.declaration ==
-          propFunctionBeingNullChecked?.staticElement?.declaration;
-      return matches;
-    }) as ExpressionStatement?;
+    if (statementWithinThenStatement is! ExpressionStatement) return false;
+    final expression = statementWithinThenStatement.expression;
+    if (expression is! FunctionExpressionInvocation) return false;
+    final fn = expression.function;
+    if (fn is! PropertyAccess) return false;
+    final target = fn.target;
+    if (target is! SimpleIdentifier) return false;
+    if (target.name != 'props') return false;
+    return fn.propertyName.staticElement?.declaration ==
+        propFunctionBeingNullChecked?.staticElement?.declaration;
   }
 
   /// Returns the identifier for the function that is being
