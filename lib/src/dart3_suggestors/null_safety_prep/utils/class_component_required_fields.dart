@@ -61,7 +61,7 @@ abstract class ClassComponentRequiredFieldsMigrator<
       if (fieldDeclaration == null) continue;
 
       fieldData.add(DefaultedOrInitializedDeclaration(
-          fieldEl.id, fieldDeclaration, fieldEl, isDefaultedToNull));
+          fieldDeclaration, fieldEl, isDefaultedToNull));
     }
 
     fieldData.where((data) => !data.patchedDeclaration).forEach((data) {
@@ -98,14 +98,13 @@ abstract class ClassComponentRequiredFieldsMigrator<
 }
 
 class DefaultedOrInitializedDeclaration {
-  final int id;
   final VariableDeclaration fieldDecl;
   final FieldElement fieldEl;
   final bool isDefaultedToNull;
   final String name;
 
   DefaultedOrInitializedDeclaration(
-      this.id, this.fieldDecl, this.fieldEl, this.isDefaultedToNull)
+      this.fieldDecl, this.fieldEl, this.isDefaultedToNull)
       : _patchedDeclaration = false,
         name = '${fieldDecl.name.value()}';
 
