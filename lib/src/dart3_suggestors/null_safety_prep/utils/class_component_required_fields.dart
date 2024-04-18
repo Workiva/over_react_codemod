@@ -167,7 +167,7 @@ class DefaultedOrInitializedDeclaration {
     late = late ?? '';
     // Object added if type is null b/c we gotta have a type to add the nullable `?`/`!` hints to - even if for some reason the prop/state decl. has no left side type.
     final patchedType =
-        type == null ? 'Object' : '${type.toSource()}$nullability';
+        type == null ? 'dynamic' : '${type.toSource()}$nullability';
     handleYieldPatch('$late $patchedType ',
         type?.offset ?? fieldNameToken.offset, fieldNameToken.offset);
 
