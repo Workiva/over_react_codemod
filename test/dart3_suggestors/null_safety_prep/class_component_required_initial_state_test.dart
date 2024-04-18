@@ -208,7 +208,7 @@ void main() {
       });
 
       test(
-          'patches defaulted props in legacy classes using component1 boilerplate',
+          'patches initialized state in legacy classes using component1 boilerplate',
           () async {
         await testSuggestor(
           expectedPatchCount: 2,
