@@ -17,6 +17,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/class_suggestor.dart';
 
 /// Suggestor that replaces conditional calls to functions declared in props
@@ -107,11 +108,9 @@ class FnPropNullAwareCallSuggestor extends RecursiveAstVisitor
         _getPropFunctionBeingNullChecked(condition);
     final ifStatement = parent;
     if (ifStatement.elseStatement != null) return null;
-    if (ifStatement.parent
-            ?.thisOrAncestorOfType<IfStatement>()
-            ?.elseStatement !=
-        null) {
-      // There is an else-if statement present
+    if (ifStatement.parent?.tryCast<IfStatement>()?.elseStatement ==
+        ifStatement) {
+      // ifStatement is an else-if
       return null;
     }
     final thenStatement = ifStatement.thenStatement;
