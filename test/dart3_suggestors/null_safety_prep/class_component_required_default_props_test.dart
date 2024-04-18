@@ -72,24 +72,6 @@ void main() {
               @override
               render() => null;
             }
-            
-            @Factory()
-            UiFactory<FooProps> FooLegacy = _$FooLegacy; // ignore: undefined_identifier
-            @Component()
-            class FooLegacyComponent extends UiComponent<FooProps> {
-              @override
-              getDefaultProps() => (newProps()
-                ..alreadyPatched = 'foo'
-                ..defaultedNullable = null
-                ..defaultedNonNullable = 2.1
-                ..anotherDefaultedNonNullable = 1.1
-                ..defaultedNonNullableFn = () {}
-                ..defaultedNonNullableList = []
-              );
-            
-              @override
-              render() => null;
-            }
           '''),
           expectedOutput: withOverReactImport(/*language=dart*/ r'''
             // ignore: undefined_identifier
@@ -111,24 +93,6 @@ void main() {
             class FooComponent extends UiComponent2<FooProps> {
               @override
               get defaultProps => (newProps()
-                ..alreadyPatched = 'foo'
-                ..defaultedNullable = null
-                ..defaultedNonNullable = 2.1
-                ..anotherDefaultedNonNullable = 1.1
-                ..defaultedNonNullableFn = () {}
-                ..defaultedNonNullableList = []
-              );
-            
-              @override
-              render() => null;
-            }
-            
-            @Factory()
-            UiFactory<FooProps> FooLegacy = _$FooLegacy; // ignore: undefined_identifier
-            @Component()
-            class FooLegacyComponent extends UiComponent<FooProps> {
-              @override
-              getDefaultProps() => (newProps()
                 ..alreadyPatched = 'foo'
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
