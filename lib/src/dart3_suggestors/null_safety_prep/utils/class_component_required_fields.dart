@@ -87,6 +87,8 @@ abstract class ClassComponentRequiredFieldsMigrator<
 
   @override
   Future<void> generatePatches() async {
+    // Clear so we don't share state across CompilationUnits
+    fieldData.clear();
     final r = await context.getResolvedUnit();
     if (r == null) {
       throw Exception(
