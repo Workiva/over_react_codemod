@@ -79,7 +79,6 @@ class ClassComponentRequiredDefaultPropsMigrator
   ClassComponentRequiredDefaultPropsMigrator([Version? sdkVersion])
       : super('defaultProps', 'getDefaultProps', sdkVersion);
 
-  // FIXME: This doesn't handle `static defaultProps` declared in props mixins (e.g. wsd button)
   @override
   Future<void> visitCascadeExpression(CascadeExpression node) async {
     super.visitCascadeExpression(node);

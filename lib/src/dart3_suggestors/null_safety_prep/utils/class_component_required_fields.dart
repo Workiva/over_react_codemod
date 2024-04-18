@@ -177,7 +177,6 @@ class DefaultedOrInitializedDeclaration {
 
   @override
   bool operator ==(Object other) {
-    // Use the id of the `FieldElement` for equality so that the set created in ClassComponentRequiredDefaultPropsMigrator filters out dupe instances.
     return other is DefaultedOrInitializedDeclaration &&
         other.fieldEl == this.fieldEl;
   }
