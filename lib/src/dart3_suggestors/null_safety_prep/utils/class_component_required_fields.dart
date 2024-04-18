@@ -108,7 +108,7 @@ class DefaultedOrInitializedDeclaration {
   DefaultedOrInitializedDeclaration(
       this.fieldDecl, this.fieldEl, this.isDefaultedToNull)
       : _patchedDeclaration = false,
-        name = '${fieldDecl.name.value()}';
+        name = '${fieldDecl.name.lexeme}';
 
   /// Whether the declaration has been patched with the late / nullable hints.
   bool get patchedDeclaration => _patchedDeclaration;
