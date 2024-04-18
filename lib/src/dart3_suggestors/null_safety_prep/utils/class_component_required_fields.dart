@@ -33,6 +33,13 @@ abstract class ClassComponentRequiredFieldsMigrator<
     extends RecursiveAstVisitor<void> with ClassSuggestor {
   final String relevantGetterName;
   final String relevantMethodName;
+
+  /// When set to a version that opts-in to Dart's null safety feature,
+  /// the `late` / `?` type modifiers will be actual modifiers rather
+  /// than commented hints. This should only be done using an explicit opt-in
+  /// flag from the executable as most consumers that have migrated to null-safety
+  /// will have already run this script prior to the null safety migration and thus
+  /// the `/*late*/` / `/*?*/` hints will already be converted to actual modifiers.
   final Version? sdkVersion;
 
   ClassComponentRequiredFieldsMigrator(
