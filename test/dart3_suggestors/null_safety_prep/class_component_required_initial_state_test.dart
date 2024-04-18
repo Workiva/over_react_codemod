@@ -72,24 +72,6 @@ void main() {
               @override
               render() => null;
             }
-            
-            @Factory()
-            UiFactory<FooProps> FooLegacy = _$FooLegacy; // ignore: undefined_identifier
-            @Component()
-            class FooLegacyComponent extends UiStatefulComponent<FooProps, FooState> {
-              @override
-              getInitialState() => (newState()
-                ..alreadyPatched = 'foo'
-                ..initializedNullable = null
-                ..initializedNonNullable = 2.1
-                ..anotherInitializedNonNullable = 1.1
-                ..initializedNonNullableFn = () {}
-                ..initializedNonNullableList = []
-              );
-            
-              @override
-              render() => null;
-            }
           '''),
           expectedOutput: withOverReactImport(/*language=dart*/ r'''
             // ignore: undefined_identifier
@@ -112,24 +94,6 @@ void main() {
             class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
               @override
               get initialState => (newState()
-                ..alreadyPatched = 'foo'
-                ..initializedNullable = null
-                ..initializedNonNullable = 2.1
-                ..anotherInitializedNonNullable = 1.1
-                ..initializedNonNullableFn = () {}
-                ..initializedNonNullableList = []
-              );
-            
-              @override
-              render() => null;
-            }
-            
-            @Factory()
-            UiFactory<FooProps> FooLegacy = _$FooLegacy; // ignore: undefined_identifier
-            @Component()
-            class FooLegacyComponent extends UiStatefulComponent<FooProps, FooState> {
-              @override
-              getInitialState() => (newState()
                 ..alreadyPatched = 'foo'
                 ..initializedNullable = null
                 ..initializedNonNullable = 2.1
