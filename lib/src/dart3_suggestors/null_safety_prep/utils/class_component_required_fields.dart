@@ -118,7 +118,9 @@ class DefaultedOrInitializedDeclaration {
       void Function(String updatedText, int startOffset, [int? endOffset])
           handleYieldPatch,
       {Version? sdkVersion}) {
-    final type = (fieldDecl.parent! as VariableDeclarationList).type;
+    final parent = fieldDecl.parent! as VariableDeclarationList;
+    final keyword = parent.keyword; // e.g. var
+    final type = parent.type;
     final fieldNameToken = fieldDecl.name;
     if (type != null &&
         requiredHintAlreadyExists(type) &&
@@ -132,15 +134,13 @@ class DefaultedOrInitializedDeclaration {
     String? late =
         type != null && requiredHintAlreadyExists(type) ? null : '/*late*/';
     String nullability = '';
-    if (type != null) {
-      if (isDefaultedToNull) {
-        if (!nullableHintAlreadyExists(type)) {
-          nullability = nullableHint;
-        }
-      } else {
-        if (!nonNullableHintAlreadyExists(type)) {
-          nullability = nonNullableHint;
-        }
+    if (isDefaultedToNull) {
+      if (type == null || !nullableHintAlreadyExists(type)) {
+        nullability = nullableHint;
+      }
+    } else {
+      if (type == null || !nonNullableHintAlreadyExists(type)) {
+        nullability = nonNullableHint;
       }
     }
 
@@ -165,11 +165,12 @@ class DefaultedOrInitializedDeclaration {
     }
 
     late = late ?? '';
-    // Object added if type is null b/c we gotta have a type to add the nullable `?`/`!` hints to - even if for some reason the prop/state decl. has no left side type.
+    // dynamic added if type is null b/c we gotta have a type to add the nullable `?`/`!` hints to - even if for some reason the prop/state decl. has no left side type.
     final patchedType =
-        type == null ? 'dynamic' : '${type.toSource()}$nullability';
-    handleYieldPatch('$late $patchedType ',
-        type?.offset ?? fieldNameToken.offset, fieldNameToken.offset);
+        type == null ? 'dynamic$nullability' : '${type.toSource()}$nullability';
+    final startOffset =
+        type?.offset ?? keyword?.offset ?? fieldNameToken.offset;
+    handleYieldPatch('$late $patchedType ', startOffset, fieldNameToken.offset);
 
     _patchedDeclaration = true;
   }

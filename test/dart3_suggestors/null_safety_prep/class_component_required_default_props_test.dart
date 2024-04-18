@@ -40,7 +40,7 @@ void main() {
 
       test('patches defaulted props in mixins', () async {
         await testSuggestor(
-          expectedPatchCount: 5,
+          expectedPatchCount: 7,
           input: withOverReactImport(/*language=dart*/ r'''
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
@@ -51,6 +51,9 @@ void main() {
               /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
               String defaultedNullable;
               num defaultedNonNullable;
+              var untypedDefaultedNonNullable;
+              var untypedDefaultedNullable;
+              var untypedNotDefaulted;
             }
             mixin SomeOtherPropsMixin on UiProps {
               num anotherDefaultedNonNullable;
@@ -62,6 +65,8 @@ void main() {
               @override
               get defaultProps => (newProps()
                 ..alreadyPatched = 'foo'
+                ..untypedDefaultedNonNullable = 1
+                ..untypedDefaultedNullable = null
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
@@ -83,6 +88,9 @@ void main() {
               /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
               /*late*/ String/*?*/ defaultedNullable;
               /*late*/ num/*!*/ defaultedNonNullable;
+              /*late*/ dynamic/*!*/ untypedDefaultedNonNullable;
+              /*late*/ dynamic/*?*/ untypedDefaultedNullable;
+              var untypedNotDefaulted;
             }
             mixin SomeOtherPropsMixin on UiProps {
               /*late*/ num/*!*/ anotherDefaultedNonNullable;
@@ -94,6 +102,8 @@ void main() {
               @override
               get defaultProps => (newProps()
                 ..alreadyPatched = 'foo'
+                ..untypedDefaultedNonNullable = 1
+                ..untypedDefaultedNullable = null
                 ..defaultedNullable = null
                 ..defaultedNonNullable = 2.1
                 ..anotherDefaultedNonNullable = 1.1
