@@ -90,7 +90,7 @@ class ClassComponentRequiredDefaultPropsMigrator
       }
       if (ancestor is VariableDeclaration &&
           (ancestor.parentFieldDeclaration?.isStatic ?? false)) {
-        return RegExp('$relevantGetterName', caseSensitive: false)
+        return RegExp(RegExp.escape(relevantGetterName), caseSensitive: false)
             .hasMatch(ancestor.name.lexeme);
       }
       return false;
