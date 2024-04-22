@@ -59,7 +59,7 @@ abstract class ClassComponentRequiredFieldsMigrator<
       final fieldEl = (field.node.writeElement! as PropertyAccessorElement)
           .variable as FieldElement;
       final propsOrStateElement =
-          node.staticType.tryCast<InterfaceType>()?.element;
+          node.staticType?.typeOrBound.tryCast<InterfaceType>()?.element;
       if (propsOrStateElement == null) continue;
       final fieldDeclaration = _getFieldDeclaration(getAll,
           propsOrStateElement: propsOrStateElement, fieldName: fieldEl.name);

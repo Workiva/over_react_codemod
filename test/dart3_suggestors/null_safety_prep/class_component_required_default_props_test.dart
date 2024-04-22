@@ -210,6 +210,82 @@ void main() {
         );
       });
 
+      test('patches defaulted props in abstract classes', () async {
+        await testSuggestor(
+          expectedPatchCount: 7,
+          input: withOverReactImport(/*language=dart*/ r'''
+            mixin FooPropsMixin on UiProps {
+              String notDefaulted;
+              /// This is a doc comment
+              /*late*/ String/*!*/ alreadyPatched;
+              /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
+              String defaultedNullable;
+              num defaultedNonNullable;
+              var untypedDefaultedNonNullable;
+              var untypedDefaultedNullable;
+              var untypedNotDefaulted;
+            }
+            mixin SomeOtherPropsMixin on UiProps {
+              num anotherDefaultedNonNullable;
+              Function defaultedNonNullableFn;
+              List<num> defaultedNonNullableList;
+            }
+            class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
+            abstract class FooComponent<TProps extends FooProps> extends UiComponent2<TProps> {
+              @override
+              get defaultProps => (newProps()
+                ..alreadyPatched = 'foo'
+                ..untypedDefaultedNonNullable = 1
+                ..untypedDefaultedNullable = null
+                ..defaultedNullable = null
+                ..defaultedNonNullable = 2.1
+                ..anotherDefaultedNonNullable = 1.1
+                ..defaultedNonNullableFn = () {}
+                ..defaultedNonNullableList = []
+              );
+            
+              @override
+              render() => null;
+            }
+          '''),
+          expectedOutput: withOverReactImport(/*language=dart*/ r'''
+            mixin FooPropsMixin on UiProps {
+              String notDefaulted;
+              /// This is a doc comment
+              /*late*/ String/*!*/ alreadyPatched;
+              /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
+              /*late*/ String/*?*/ defaultedNullable;
+              /*late*/ num/*!*/ defaultedNonNullable;
+              /*late*/ dynamic/*!*/ untypedDefaultedNonNullable;
+              /*late*/ dynamic/*?*/ untypedDefaultedNullable;
+              var untypedNotDefaulted;
+            }
+            mixin SomeOtherPropsMixin on UiProps {
+              /*late*/ num/*!*/ anotherDefaultedNonNullable;
+              /*late*/ Function/*!*/ defaultedNonNullableFn;
+              /*late*/ List<num>/*!*/ defaultedNonNullableList;
+            }
+            class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
+            abstract class FooComponent<TProps extends FooProps> extends UiComponent2<TProps> {
+              @override
+              get defaultProps => (newProps()
+                ..alreadyPatched = 'foo'
+                ..untypedDefaultedNonNullable = 1
+                ..untypedDefaultedNullable = null
+                ..defaultedNullable = null
+                ..defaultedNonNullable = 2.1
+                ..anotherDefaultedNonNullable = 1.1
+                ..defaultedNonNullableFn = () {}
+                ..defaultedNonNullableList = []
+              );
+            
+              @override
+              render() => null;
+            }
+          '''),
+        );
+      });
+
       test('patches defaulted props in legacy classes', () async {
         await testSuggestor(
           expectedPatchCount: 3,
