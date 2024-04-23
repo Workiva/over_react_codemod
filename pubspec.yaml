@@ -41,6 +41,7 @@ dev_dependencies:
 executables:
   dart2_9_upgrade:
   dependency_validator_ignore:
+  null_safety_migrator_companion:
   null_safety_prep:
   mui_migration:
   required_flux_props:

@@ -18,6 +18,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/utils/hint_detection.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -74,8 +75,8 @@ class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
         final param = rhs.parameters?.parameters.first;
         if (param is SimpleFormalParameter) {
           final type = param.type;
-          if (type != null && !_hintAlreadyExists(type)) {
-            yieldPatch(nullabilityHint, type.end, type.end);
+          if (type != null && !nullableHintAlreadyExists(type)) {
+            yieldPatch(nullableHint, type.end, type.end);
           }
         }
 
@@ -109,9 +110,9 @@ class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
                         .tryCast<VariableDeclarationList>()
                         ?.type;
                     if (varType != null &&
-                        !_hintAlreadyExists(varType) &&
+                        !nullableHintAlreadyExists(varType) &&
                         varType.toSource() != 'dynamic') {
-                      yieldPatch(nullabilityHint, varType.end, varType.end);
+                      yieldPatch(nullableHint, varType.end, varType.end);
                     }
                   }
                 }
@@ -123,9 +124,9 @@ class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
           final refCasts = allDescendantsOfType<AsExpression>(rhs.body).where(
               (expression) =>
                   expression.expression.toSource() == refParamName &&
-                  !_hintAlreadyExists(expression.type));
+                  !nullableHintAlreadyExists(expression.type));
           for (final cast in refCasts) {
-            yieldPatch(nullabilityHint, cast.type.end, cast.type.end);
+            yieldPatch(nullableHint, cast.type.end, cast.type.end);
           }
         }
       }
@@ -143,14 +144,3 @@ class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
     result.unit.visitChildren(this);
   }
 }
-
-/// Whether the nullability hint already exists after [type].
-bool _hintAlreadyExists(TypeAnnotation type) {
-  // The nullability hint will follow the type so we need to check the next token to find the comment if it exists.
-  return type.endToken.next?.precedingComments
-          ?.value()
-          .contains(nullabilityHint) ??
-      false;
-}
-
-const nullabilityHint = '/*?*/';
