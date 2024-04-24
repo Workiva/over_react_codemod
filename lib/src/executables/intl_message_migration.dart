@@ -217,9 +217,9 @@ void printDeprecationNotice() {
   printInBlue(
       '# over_react_codemod:intl_message_migration is deprecated and will no longer receive updates.');
   stderr.writeln('# Instead, use the dart_dev or intl_tools commands:');
-  stderr.writeln('# dart_dev intl <subcommand>');
+  stderr.writeln('# dart_dev intl <subcommands>');
   stderr.writeln('# For example:  '
-      'dart_dev intl check');
+      'dart_dev intl {check|migrate|sort}');
   stderr.writeln(
       '# Refer to the documentation https://wiki.atl.workiva.net/display/FEF/Intl+Quick+Reference+Guide of dart_dev / dart_dev_workiva for more information on using intl_codemod with dart_dev.');
 }
