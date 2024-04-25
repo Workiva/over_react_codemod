@@ -382,22 +382,7 @@ class BuilderMethodInvocation extends BuilderMemberAccess {
   Identifier get methodName => node.methodName;
 }
 
-/// An assignment of a property (usually a prop) on a [FluentComponentUsage] builder.
-abstract class PropAssignment extends BuilderMemberAccess {
-  factory PropAssignment(AssignmentExpression node) {
-    if (node.leftHandSide is PropertyAccess) {
-      return _PropertyAccessPropAssignment(node);
-    }
-
-    throw ArgumentError.value(
-      node.leftHandSide,
-      'node.leftHandSide',
-      'Unhandled LHS node type',
-    );
-  }
-
-  PropAssignment._();
-
+mixin PropOrStateAssignment on BuilderMemberAccess {
   /// The name of the prop being assigned,
   /// or of the property on a prop being assigned.
   ///
@@ -441,6 +426,65 @@ abstract class PropAssignment extends BuilderMemberAccess {
 
   /// The expression for the right hand side of this assignment.
   Expression get rightHandSide => node.rightHandSide;
+}
+
+abstract class StateAssignment extends BuilderMemberAccess
+    with PropOrStateAssignment {
+  factory StateAssignment(AssignmentExpression node) {
+    if (node.leftHandSide is PropertyAccess) {
+      return _PropertyAccessStateAssignment(node);
+    }
+
+    throw ArgumentError.value(
+      node.leftHandSide,
+      'node.leftHandSide',
+      'Unhandled LHS node type',
+    );
+  }
+
+  StateAssignment._();
+}
+
+class _PropertyAccessStateAssignment extends StateAssignment {
+  /// The cascaded assignment expression that backs this assignment.
+  @override
+  final AssignmentExpression node;
+
+  _PropertyAccessStateAssignment(this.node)
+      : assert(node.leftHandSide is PropertyAccess),
+        super._();
+
+  /// The property access representing the left hand side of this assignment.
+  @override
+  PropertyAccess get leftHandSide => node.leftHandSide as PropertyAccess;
+
+  @override
+  SimpleIdentifier get name => leftHandSide.propertyName;
+
+  @override
+  Expression get target => leftHandSide.realTarget;
+
+  @override
+  SimpleIdentifier? get prefix =>
+      leftHandSide.target?.tryCast<PropertyAccess>()?.propertyName;
+}
+
+/// An assignment of a property (usually a prop) on a [FluentComponentUsage] builder.
+abstract class PropAssignment extends BuilderMemberAccess
+    with PropOrStateAssignment {
+  factory PropAssignment(AssignmentExpression node) {
+    if (node.leftHandSide is PropertyAccess) {
+      return _PropertyAccessPropAssignment(node);
+    }
+
+    throw ArgumentError.value(
+      node.leftHandSide,
+      'node.leftHandSide',
+      'Unhandled LHS node type',
+    );
+  }
+
+  PropAssignment._();
 }
 
 class _PropertyAccessPropAssignment extends PropAssignment {
