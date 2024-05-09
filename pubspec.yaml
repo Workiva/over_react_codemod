@@ -43,6 +43,7 @@ executables:
   dependency_validator_ignore:
   null_safety_migrator_companion:
   null_safety_prep:
+  make_props_nullable:
   mui_migration:
   required_flux_props:
   rmui_preparation:
