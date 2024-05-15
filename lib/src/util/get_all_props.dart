@@ -1,4 +1,4 @@
-// Taken from https://github.com/Workiva/over_react/blob/master/tools/analyzer_plugin/lib/src/util/prop_declarations/get_all_props.dart
+// Taken from https://github.com/Workiva/over_react/blob/5c6e1742949ce4e739f7923b799cc00b1118279b/tools/analyzer_plugin/lib/src/util/prop_declarations/get_all_props.dart
 
 // Copyright 2024 Workiva Inc.
 //
@@ -70,7 +70,7 @@ List<FieldElement> getAllProps(InterfaceElement propsElement) {
     final isMixinBasedPropsMixin = interface is MixinElement &&
         interface.superclassConstraints.any((s) => s.element.name == 'UiProps');
     late final isLegacyPropsOrPropsMixinConsumerClass = !isFromGeneratedFile &&
-        interface.metadata.any(_isPropsOrPropsMixinAnnotation);
+        interface.metadata.any(_isOneOfThePropsAnnotations);
 
     if (!isMixinBasedPropsMixin && !isLegacyPropsOrPropsMixinConsumerClass) {
       continue;
@@ -95,11 +95,12 @@ List<FieldElement> getAllProps(InterfaceElement propsElement) {
   return allProps;
 }
 
-bool _isPropsOrPropsMixinAnnotation(ElementAnnotation e) {
+bool _isOneOfThePropsAnnotations(ElementAnnotation e) {
   // [2]
   final element = e.element;
   return element is ConstructorElement &&
-      const {'Props', 'PropsMixin'}.contains(element.enclosingElement.name);
+      const {'Props', 'PropsMixin', 'AbstractProps'}
+          .contains(element.enclosingElement.name);
 }
 
 bool _isPropsMixinAnnotation(ElementAnnotation e) {
