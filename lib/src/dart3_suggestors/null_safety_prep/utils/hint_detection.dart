@@ -38,5 +38,5 @@ bool requiredHintAlreadyExists(TypeAnnotation type) {
   // Since the `/*late*/` comment is possibly adjacent to the prop declaration's doc comments,
   // we have to recursively traverse the `precedingComments` in order to determine if the `/*late*/`
   // comment actually exists.
-  return allComments(type.beginToken).any((t) => t.value() == '/*late*/');
+  return allCommentsForNode(type).any((t) => t.value() == '/*late*/');
 }
