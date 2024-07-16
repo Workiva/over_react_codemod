@@ -111,6 +111,7 @@ class PropRequirednessRecommender {
     if (propResults == null) return const PropRecommendation.optionalNoData();
 
     final isPublic = mixinResults.isPublic ?? false;
+    final publicOrPrivate = isPublic ? 'public' : 'private';
 
     final skipRate = mixinResults.usageSkipRate;
     final totalRequirednessRate = propResults.totalRate;
@@ -121,12 +122,19 @@ class PropRequirednessRecommender {
         isPublic ? publicRequirednessThreshold : privateRequirednessThreshold;
 
     if (skipRate > maxAllowedSkipRate) {
-      return PropRecommendation.optionalBelowThreshold(isPublic: isPublic);
+      final reason = 'skip rate $skipRate is above $maxAllowedSkipRate'
+          ' (max allowed skip rate for $publicOrPrivate props)';
+      return PropRecommendation.optional(reason: reason);
     }
 
-    return totalRequirednessRate >= requirednessThreshold
-        ? const PropRecommendation.required()
-        : PropRecommendation.optionalAboveSkipRate(isPublic: isPublic);
+    if (totalRequirednessRate < requirednessThreshold) {
+      final reason =
+          'requiredness rate $totalRequirednessRate is below $requirednessThreshold'
+          ' (requiredness threshold for $publicOrPrivate props)';
+      return PropRecommendation.optional(reason: reason);
+    } else {
+      return const PropRecommendation.required();
+    }
   }
 }
 
@@ -147,16 +155,6 @@ class PropRecommendation {
   const PropRecommendation.optional({this.reason}) : isRequired = false;
 
   const PropRecommendation.optionalNoData() : this.optional(reason: 'no data');
-
-  PropRecommendation.optionalBelowThreshold({required bool isPublic})
-      : this.optional(
-            reason: 'below requiredness threshold for'
-                ' ${isPublic ? 'public' : 'private'} props');
-
-  PropRecommendation.optionalAboveSkipRate({required bool isPublic})
-      : this.optional(
-            reason: 'above max skip rate for'
-                ' ${isPublic ? 'public' : 'private'} props');
 }
 
 String? getPackageName(Uri uri) {
