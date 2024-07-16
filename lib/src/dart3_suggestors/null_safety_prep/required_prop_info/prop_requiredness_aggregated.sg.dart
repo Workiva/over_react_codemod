@@ -7,7 +7,7 @@ class PropRequirednessResults {
   final bool excludeOtherDynamicUsages;
   final bool excludeUsagesWithForwarded;
 
-  final Map<String, Map<String, Map<String, PropResult>>> resultsByPropNameByMixinByPackage;
+  final Map<String, Map<String, MixinResult>> mixinResultsByIdByPackage;
 
   final MixinMetadata mixinMetadata;
 
@@ -17,7 +17,7 @@ class PropRequirednessResults {
   PropRequirednessResults({
     required this.excludeOtherDynamicUsages,
     required this.excludeUsagesWithForwarded,
-    required this.resultsByPropNameByMixinByPackage,
+    required this.mixinResultsByIdByPackage,
     required this.mixinMetadata,
   });
 
@@ -37,6 +37,27 @@ class MixinMetadata {
   factory MixinMetadata.fromJson(Map<String, dynamic> json) => _$MixinMetadataFromJson(json);
 
   Map<String, dynamic> toJson() => _$MixinMetadataToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false)
+class MixinResult {
+  final bool? isPublic;
+  final int usageSkipCount;
+  final num usageSkipRate;
+  final Map<String, PropResult> propResultsByName;
+  final List<String>? debugSkippedUsages;
+
+  MixinResult({
+    required this.isPublic,
+    required this.usageSkipCount,
+    required this.usageSkipRate,
+    required this.propResultsByName,
+    this.debugSkippedUsages,
+  });
+
+  factory MixinResult.fromJson(Map<String, dynamic> json) => _$MixinResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MixinResultToJson(this);
 }
 
 @JsonSerializable(includeIfNull: false)

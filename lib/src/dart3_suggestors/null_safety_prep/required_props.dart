@@ -98,16 +98,17 @@ class PropRequirednessRecommender {
     final packageName = getPackageName(propsElement.source!.uri);
     final propsId = uniqueElementId(propsElement);
 
-    final resultsByPropNameByMixin =
-        _propRequirednessResults.resultsByPropNameByMixinByPackage[packageName];
-    final resultsByPropName = resultsByPropNameByMixin?[propsId];
-    final results = resultsByPropName?[propName];
-    if (results == null) return PropRequirednessRecommendation.noData;
+    final mixinResults = _propRequirednessResults
+        .mixinResultsByIdByPackage[packageName]?[propsId];
+    if (mixinResults == null) return PropRequirednessRecommendation.noData;
+
+    final propResults = mixinResults.propResultsByName[propName];
+    if (propResults == null) return PropRequirednessRecommendation.noData;
 
     // FIXME need publicness data.
     // final isPublic = _propRequirednessResults.
 
-    return results.totalRate >= requirednessThreshold
+    return propResults.totalRate >= requirednessThreshold
         ? PropRequirednessRecommendation.required
         : PropRequirednessRecommendation.optional;
   }
