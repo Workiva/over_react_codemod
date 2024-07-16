@@ -59,6 +59,11 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
     final recommendation =
         _propRequirednessRecommender.getRecommendation(element);
 
+    // No data; probably not a prop.
+    if (recommendation == null) {
+      return;
+    }
+
     if (recommendation.isRequired) {
       // Don't unnecessarily annotate it as non-nullable;
       // let the migrator tool do that.
@@ -97,7 +102,7 @@ class PropRequirednessRecommender {
     });
   }
 
-  PropRecommendation getRecommendation(FieldElement propField) {
+  PropRecommendation? getRecommendation(FieldElement propField) {
     final propName = propField.name;
     final propsElement = propField.enclosingElement;
     final packageName = getPackageName(propsElement.source!.uri);
@@ -105,10 +110,10 @@ class PropRequirednessRecommender {
 
     final mixinResults = _propRequirednessResults
         .mixinResultsByIdByPackage[packageName]?[propsId];
-    if (mixinResults == null) return const PropRecommendation.optionalNoData();
+    if (mixinResults == null) return null;
 
     final propResults = mixinResults.propResultsByName[propName];
-    if (propResults == null) return const PropRecommendation.optionalNoData();
+    if (propResults == null) return null;
 
     final isPublic = mixinResults.isPublic ?? false;
     final publicOrPrivate = isPublic ? 'public' : 'private';
@@ -152,9 +157,8 @@ class PropRecommendation {
 
   const PropRecommendation.required({this.reason}) : isRequired = true;
 
-  const PropRecommendation.optional({this.reason}) : isRequired = false;
-
-  const PropRecommendation.optionalNoData() : this.optional(reason: 'no data');
+  const PropRecommendation.optional({required this.reason})
+      : isRequired = false;
 }
 
 String? getPackageName(Uri uri) {
