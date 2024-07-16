@@ -61,8 +61,13 @@ void main(List<String> args) async {
   final results = PropRequirednessResults.fromJson(jsonDecode(File(
           '/Users/greglittlefield/workspaces/wdesk_analysis_tools/prop_requiredness.json')
       .readAsStringSync()));
-  final recommender =
-      PropRequirednessRecommender(results, requirednessThreshold: 1);
+  final recommender = PropRequirednessRecommender(
+    results,
+    privateRequirednessThreshold: 0.95,
+    privateMaxAllowedSkipRate: 0.2,
+    publicRequirednessThreshold: 1,
+    publicMaxAllowedSkipRate: 0.05,
+  );
 
   exitCode = await runInteractiveCodemodSequence(
     dartPaths,

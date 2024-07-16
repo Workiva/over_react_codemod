@@ -59,22 +59,15 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
     final recommendation =
         _propRequirednessRecommender.getRecommendation(element);
 
-    switch (recommendation) {
-      case PropRequirednessRecommendation.noData:
-        break;
-      case PropRequirednessRecommendation.required:
-        // Don't unnecessarily annotate it as non-nullable;
-        // let the migrator tool do that.
-        final offset =
-            fieldDeclaration.firstTokenAfterCommentAndMetadata.offset;
-        yieldPatch('$lateHint ', offset, offset);
-
-        break;
-      case PropRequirednessRecommendation.optional:
-        if (type != null) {
-          yieldPatch(nullableHint, type.end, type.end);
-        }
-        break;
+    if (recommendation.isRequired) {
+      // Don't unnecessarily annotate it as non-nullable;
+      // let the migrator tool do that.
+      final offset = fieldDeclaration.firstTokenAfterCommentAndMetadata.offset;
+      yieldPatch('$lateHint ', offset, offset);
+    } else {
+      if (type != null) {
+        yieldPatch(nullableHint, type.end, type.end);
+      }
     }
   }
 }
@@ -82,17 +75,29 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
 class PropRequirednessRecommender {
   final PropRequirednessResults _propRequirednessResults;
 
-  final num requirednessThreshold;
+  final num privateRequirednessThreshold;
+  final num privateMaxAllowedSkipRate;
+  final num publicRequirednessThreshold;
+  final num publicMaxAllowedSkipRate;
 
-  PropRequirednessRecommender(this._propRequirednessResults,
-      {required this.requirednessThreshold}) {
-    if (!(requirednessThreshold >= 0 && requirednessThreshold <= 1)) {
-      throw ArgumentError.value(requirednessThreshold, 'requirednessThreshold',
-          'must be between 0 and 1 (inclusive)');
-    }
+  PropRequirednessRecommender(
+    this._propRequirednessResults, {
+    required this.privateRequirednessThreshold,
+    required this.privateMaxAllowedSkipRate,
+    required this.publicRequirednessThreshold,
+    required this.publicMaxAllowedSkipRate,
+  }) {
+    ({
+      'privateRequirednessThreshold': privateRequirednessThreshold,
+      'privateMaxAllowedSkipRate': privateMaxAllowedSkipRate,
+      'publicRequirednessThreshold': publicRequirednessThreshold,
+      'publicMaxAllowedSkipRate': publicMaxAllowedSkipRate,
+    }).forEach((name, value) {
+      _validateWithinRange(value, name: name, min: 0, max: 1);
+    });
   }
 
-  PropRequirednessRecommendation getRecommendation(FieldElement propField) {
+  PropRecommendation getRecommendation(FieldElement propField) {
     final propName = propField.name;
     final propsElement = propField.enclosingElement;
     final packageName = getPackageName(propsElement.source!.uri);
@@ -100,24 +105,58 @@ class PropRequirednessRecommender {
 
     final mixinResults = _propRequirednessResults
         .mixinResultsByIdByPackage[packageName]?[propsId];
-    if (mixinResults == null) return PropRequirednessRecommendation.noData;
+    if (mixinResults == null) return const PropRecommendation.optionalNoData();
 
     final propResults = mixinResults.propResultsByName[propName];
-    if (propResults == null) return PropRequirednessRecommendation.noData;
+    if (propResults == null) return const PropRecommendation.optionalNoData();
 
-    // FIXME need publicness data.
-    // final isPublic = _propRequirednessResults.
+    final isPublic = mixinResults.isPublic ?? false;
 
-    return propResults.totalRate >= requirednessThreshold
-        ? PropRequirednessRecommendation.required
-        : PropRequirednessRecommendation.optional;
+    final skipRate = mixinResults.usageSkipRate;
+    final totalRequirednessRate = propResults.totalRate;
+
+    final maxAllowedSkipRate =
+        isPublic ? publicMaxAllowedSkipRate : privateMaxAllowedSkipRate;
+    final requirednessThreshold =
+        isPublic ? publicRequirednessThreshold : privateRequirednessThreshold;
+
+    if (skipRate > maxAllowedSkipRate) {
+      return PropRecommendation.optionalBelowThreshold(isPublic: isPublic);
+    }
+
+    return totalRequirednessRate >= requirednessThreshold
+        ? const PropRecommendation.required()
+        : PropRecommendation.optionalAboveSkipRate(isPublic: isPublic);
   }
 }
 
-enum PropRequirednessRecommendation {
-  noData,
-  required,
-  optional,
+void _validateWithinRange(num value,
+    {required num min, required num max, required String name}) {
+  if (value < min || value > max) {
+    throw ArgumentError.value(
+        value, name, 'must be between $min and $max (inclusive)');
+  }
+}
+
+class PropRecommendation {
+  final bool isRequired;
+  final String? reason;
+
+  const PropRecommendation.required({this.reason}) : isRequired = true;
+
+  const PropRecommendation.optional({this.reason}) : isRequired = false;
+
+  const PropRecommendation.optionalNoData() : this.optional(reason: 'no data');
+
+  PropRecommendation.optionalBelowThreshold({required bool isPublic})
+      : this.optional(
+            reason: 'below requiredness threshold for'
+                ' ${isPublic ? 'public' : 'private'} props');
+
+  PropRecommendation.optionalAboveSkipRate({required bool isPublic})
+      : this.optional(
+            reason: 'above max skip rate for'
+                ' ${isPublic ? 'public' : 'private'} props');
 }
 
 String? getPackageName(Uri uri) {
