@@ -99,8 +99,27 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
     final recommendation =
         _propRequirednessRecommender.getRecommendation(element);
 
-    // No data; probably not a prop.
+    // No data; either not a prop, our data is outdated, or it's never actually set.
     if (recommendation == null) {
+      final isPropsClass = node.declaredElement?.enclosingElement
+              ?.tryCast<InterfaceElement>()
+              ?.allSupertypes
+              .any((s) => s.element.name == 'UiProps') ??
+          false;
+      if (isPropsClass) {
+        final commentContents =
+            "TODO(orcm.required_props): No data for prop; either it's unused, or"
+            " requiredness data was collected on a version before this prop was added.";
+        final offset =
+            fieldDeclaration.firstTokenAfterCommentAndMetadata.offset;
+        // Add back the indent we "stole" from the field by inserting our comment at its start.
+        yieldPatch(
+            lineComment(commentContents) + '  ', offset, offset);
+        // Mark as optional
+        if (type != null) {
+          yieldPatch(nullableHint, type.end, type.end);
+        }
+      }
       return;
     }
 
