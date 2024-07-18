@@ -37,6 +37,46 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    super.visitMixinDeclaration(node);
+    handleClassOrMixinElement(node, node.declaredElement);
+  }
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    super.visitClassDeclaration(node);
+    handleClassOrMixinElement(node, node.declaredElement);
+  }
+
+  void handleClassOrMixinElement(
+      NamedCompilationUnitMember node, InterfaceElement? element) {
+    if (element == null) return null;
+
+    // Add a comment to let consumers know that we didn't have good enough data
+    // to make requiredness decision.
+    final skipReason =
+        _propRequirednessRecommender.getMixinSkipRateReasonForElement(element);
+    if (skipReason != null) {
+      String formatAsPercent(num number) =>
+          '${(number * 100).toStringAsFixed(0)}%';
+
+      final skipRatePercent = formatAsPercent(skipReason.skipRate);
+      final maxAllowedSkipRatePercent =
+          formatAsPercent(skipReason.maxAllowedSkipRate);
+
+      final commentContents =
+          "TODO orcm.required_props: This codemod couldn't reliably determine requiredness for these props"
+          "\n because $skipRatePercent of usages of components with these props"
+          " (> max allowed $maxAllowedSkipRatePercent for ${skipReason.isPublic ? 'public' : 'private'} props)"
+          "\n either contained forwarded props or were otherwise too dynamic to analyze."
+          "\n It may be possible to upgrade some from optional to required, with some manual inspection and testing.";
+
+      final offset = node.firstTokenAfterCommentAndMetadata.offset;
+      yieldPatch(lineComment(commentContents), offset, offset);
+    }
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
 
@@ -104,42 +144,60 @@ class PropRequirednessRecommender {
 
   PropRecommendation? getRecommendation(FieldElement propField) {
     final propName = propField.name;
-    final propsElement = propField.enclosingElement;
-    final packageName = getPackageName(propsElement.source!.uri);
-    final propsId = uniqueElementId(propsElement);
 
-    final mixinResults = _propRequirednessResults
-        .mixinResultsByIdByPackage[packageName]?[propsId];
+    final mixinResults = _getMixinResult(propField.enclosingElement);
     if (mixinResults == null) return null;
 
     final propResults = mixinResults.propResultsByName[propName];
     if (propResults == null) return null;
 
-    final isPublic = mixinResults.isPublic ?? false;
-    final publicOrPrivate = isPublic ? 'public' : 'private';
+    final skipRateReason = _getMixinSkipRateReason(mixinResults);
+    if (skipRateReason != null) {
+      return PropRecommendation.optional(skipRateReason);
+    }
 
-    final skipRate = mixinResults.usageSkipRate;
     final totalRequirednessRate = propResults.totalRate;
 
-    final maxAllowedSkipRate =
-        isPublic ? publicMaxAllowedSkipRate : privateMaxAllowedSkipRate;
+    final isPublic = mixinResults.isPublic ?? false;
     final requirednessThreshold =
         isPublic ? publicRequirednessThreshold : privateRequirednessThreshold;
 
-    if (skipRate > maxAllowedSkipRate) {
-      final reason = 'skip rate $skipRate is above $maxAllowedSkipRate'
-          ' (max allowed skip rate for $publicOrPrivate props)';
-      return PropRecommendation.optional(reason: reason);
-    }
-
     if (totalRequirednessRate < requirednessThreshold) {
-      final reason =
-          'requiredness rate $totalRequirednessRate is below $requirednessThreshold'
-          ' (requiredness threshold for $publicOrPrivate props)';
-      return PropRecommendation.optional(reason: reason);
+      final reason = RequirednessThresholdOptionalReason();
+      return PropRecommendation.optional(reason);
     } else {
       return const PropRecommendation.required();
     }
+  }
+
+  MixinResult? _getMixinResult(Element propsElement) {
+    final packageName = getPackageName(propsElement.source!.uri);
+    final propsId = uniqueElementId(propsElement);
+    return _propRequirednessResults.mixinResultsByIdByPackage[packageName]
+        ?[propsId];
+  }
+
+  SkipRateOptionalReason? _getMixinSkipRateReason(MixinResult mixinResults) {
+    final skipRate = mixinResults.usageSkipRate;
+
+    final isPublic = mixinResults.isPublic ?? false;
+    final maxAllowedSkipRate =
+        isPublic ? publicMaxAllowedSkipRate : privateMaxAllowedSkipRate;
+
+    return skipRate > maxAllowedSkipRate
+        ? SkipRateOptionalReason(
+            skipRate: skipRate,
+            maxAllowedSkipRate: maxAllowedSkipRate,
+            isPublic: isPublic)
+        : null;
+  }
+
+  SkipRateOptionalReason? getMixinSkipRateReasonForElement(
+      Element propsElement) {
+    final mixinResults = _getMixinResult(propsElement);
+    if (mixinResults == null) return null;
+
+    return _getMixinSkipRateReason(mixinResults);
   }
 }
 
@@ -153,12 +211,31 @@ void _validateWithinRange(num value,
 
 class PropRecommendation {
   final bool isRequired;
-  final String? reason;
+  final OptionalReason? reason;
 
-  const PropRecommendation.required({this.reason}) : isRequired = true;
+  const PropRecommendation.required()
+      : isRequired = true,
+        reason = null;
 
-  const PropRecommendation.optional({required this.reason})
-      : isRequired = false;
+  const PropRecommendation.optional(this.reason) : isRequired = false;
+}
+
+abstract class OptionalReason {}
+
+class SkipRateOptionalReason extends OptionalReason {
+  final num skipRate;
+  final num maxAllowedSkipRate;
+  final bool isPublic;
+
+  SkipRateOptionalReason({
+    required this.skipRate,
+    required this.maxAllowedSkipRate,
+    required this.isPublic,
+  });
+}
+
+class RequirednessThresholdOptionalReason extends OptionalReason {
+  RequirednessThresholdOptionalReason();
 }
 
 String? getPackageName(Uri uri) {
