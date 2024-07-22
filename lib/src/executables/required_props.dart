@@ -17,7 +17,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_prop_info/prop_requiredness_aggregated.sg.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_prop_info/aggregated_data.sg.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_props.dart';
 import 'package:over_react_codemod/src/util.dart';
 

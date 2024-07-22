@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'prop_requiredness_aggregated.sg.g.dart';
+part 'aggregated_data.sg.g.dart';
 
 @JsonSerializable()
 class PropRequirednessResults {
@@ -41,14 +41,14 @@ class MixinMetadata {
 
 @JsonSerializable(includeIfNull: false)
 class MixinResult {
-  final bool? isPublic;
+  final Visibility visibility;
   final int usageSkipCount;
   final num usageSkipRate;
   final Map<String, PropResult> propResultsByName;
   final List<String>? debugSkippedUsages;
 
   MixinResult({
-    required this.isPublic,
+    required this.visibility,
     required this.usageSkipCount,
     required this.usageSkipRate,
     required this.propResultsByName,
@@ -85,4 +85,11 @@ class PropResult {
   factory PropResult.fromJson(Map<String, dynamic> json) => _$PropResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$PropResultToJson(this);
+}
+
+enum Visibility {
+  public,
+  indirectlyPublic,
+  private,
+  unknown,
 }

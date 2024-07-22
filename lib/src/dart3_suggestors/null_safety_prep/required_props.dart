@@ -15,7 +15,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_prop_info/prop_requiredness_aggregated.sg.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_prop_info/aggregated_data.sg.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/utils/hint_detection.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/class_suggestor.dart';
@@ -177,7 +177,7 @@ class PropRequirednessRecommender {
 
     final totalRequirednessRate = propResults.totalRate;
 
-    final isPublic = mixinResults.isPublic ?? false;
+    final isPublic = mixinResults.visibility.isPublicForUsages;
     final requirednessThreshold =
         isPublic ? publicRequirednessThreshold : privateRequirednessThreshold;
 
@@ -199,7 +199,7 @@ class PropRequirednessRecommender {
   SkipRateOptionalReason? _getMixinSkipRateReason(MixinResult mixinResults) {
     final skipRate = mixinResults.usageSkipRate;
 
-    final isPublic = mixinResults.isPublic ?? false;
+    final isPublic = mixinResults.visibility.isPublicForUsages;
     final maxAllowedSkipRate =
         isPublic ? publicMaxAllowedSkipRate : privateMaxAllowedSkipRate;
 
@@ -225,6 +225,31 @@ void _validateWithinRange(num value,
   if (value < min || value > max) {
     throw ArgumentError.value(
         value, name, 'must be between $min and $max (inclusive)');
+  }
+}
+
+extension on Visibility {
+  bool get isPublicForUsages {
+    switch(this) {
+      case Visibility.public:
+      case Visibility.indirectlyPublic:
+      case Visibility.unknown:
+        return true;
+      case Visibility.private:
+        return false;
+    }
+  }
+
+  // ignore: unused_element
+  bool get isPublicForMixingIn {
+    switch(this) {
+      case Visibility.public:
+      case Visibility.unknown:
+        return true;
+      case Visibility.indirectlyPublic:
+      case Visibility.private:
+        return false;
+    }
   }
 }
 
