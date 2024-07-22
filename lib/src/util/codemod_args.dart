@@ -23,9 +23,9 @@ import 'package:args/args.dart';
 /// For example:
 /// ```
 /// final originalArgs = [
-///   // Unrelated arguments
+///   // Unrelated options
 ///   '--baz=baz',
-///   // Multiple arguments of the same name
+///   // Multiple options of the same name
 ///   '--foo=1',
 ///   '--foo=2',
 ///   // Value as a separate argument
@@ -46,21 +46,24 @@ List<String> removeOptionArgs(
 /// Removes arguments corresponding to flags ('--'-prefixed arguments without values)
 /// with names [flagArgNames] from args.
 ///
+/// Supports multiple flags of the same name, and negatable flags (prefixed by 'no-').
+///
 /// For example:
 /// ```
 /// final originalArgs = [
 ///   // Unrelated arguments
 ///   '--flag-to-keep',
-///   // Multiple arguments of the same name
-///   '--flag-to-remove',
-///   '--flag-to-remove',
+///   // Multiple flags of the same name
+///   '--flag-to-remove-1',
+///   '--flag-to-remove-1',
+///   // Inverted flag the same name
+///   '--no-flag-to-remove-2',
 ///   'positionalArg',
 /// ];
-/// final updatedArgs = removeOptionArgs(originalArgs, ['--flag-to-remove']);
+/// final updatedArgs = removeOptionArgs(originalArgs, ['flag-to-remove-1', 'flag-to-remove-2']);
 /// print(updatedArgs); // ['--flag-to-keep', 'positionalArg']
 /// ```
-List<String> removeFlagArgs(
-    List<String> args, Iterable<String> flagArgNames) {
+List<String> removeFlagArgs(List<String> args, Iterable<String> flagArgNames) {
   return flagArgNames.fold(args, (updatedArgs, argName) {
     return _removeOptionOrFlagArgs(updatedArgs, argName, isOption: false);
   });
@@ -70,8 +73,9 @@ List<String> _removeOptionOrFlagArgs(List<String> args, String argName,
     {required bool isOption}) {
   final updatedArgs = [...args];
 
-  final argPattern =
-      RegExp(r'^' + RegExp.escape('--$argName') + (isOption ? r'(=|$)' : r'$'));
+  final argPattern = isOption
+      ? RegExp(r'^--' + RegExp.escape(argName) + r'(?:=|$)')
+      : RegExp(r'^--(?:no-)?' + RegExp.escape(argName) + r'$');
 
   int argIndex;
   while ((argIndex = updatedArgs.indexWhere(argPattern.hasMatch)) != -1) {
