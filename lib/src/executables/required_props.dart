@@ -21,13 +21,21 @@ import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/require
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_props.dart';
 import 'package:over_react_codemod/src/util.dart';
 
-const _changesRequiredOutput = """
-  To update your code, run the following commands in your repository:
-  pub global activate over_react_codemod
-  pub global run over_react_codemod:null_safety_prep
-""";
+import '../util/codemod_args.dart';
 
-const _requiredPropInfo = 'required-prop-info';
+class _Options {
+  static const privateRequirednessThreshold = 'private-requiredness-threshold';
+  static const privateMaxAllowedSkipRate = 'private-max-allowed-skip-rate';
+  static const publicRequirednessThreshold = 'public-requiredness-threshold';
+  static const publicMaxAllowedSkipRate = 'public-max-allowed-skip-rate';
+
+  static const all = {
+    privateRequirednessThreshold,
+    privateMaxAllowedSkipRate,
+    publicRequirednessThreshold,
+    publicMaxAllowedSkipRate
+  };
+}
 
 /// Codemods in this executable add nullability "hints" to assist with a
 /// null-safety migration.
@@ -35,27 +43,29 @@ const _requiredPropInfo = 'required-prop-info';
 /// If it has not already been run, the `null_safety_prep` codemod should
 /// also be run when migrating to null-safety.
 void main(List<String> args) async {
-  final parser = ArgParser()
-    ..addFlag('help',
-        abbr: 'h', negatable: false, help: 'Prints this help output')
-    ..addFlag('verbose',
-        abbr: 'v',
-        negatable: false,
-        help: 'Outputs all logging to stdout/stderr.')
-    ..addFlag(
-      'yes-to-all',
-      negatable: false,
-      help: 'Forces all patches accepted without prompting the user. '
-          'Useful for scripts.',
-    )
-    ..addSeparator('Boilerplate Upgrade Options:')
-    ..addFlag(_requiredPropInfo,
-        negatable: false,
+  final parser = argParserWithCodemodArgs()
+    ..addOption(_Options.privateRequirednessThreshold,
+        defaultsTo: (0.95).toString(),
         help:
-            'Checks to see if this repo already has some components using the latest boilerplate and sets'
-            'the codemod to fail on changes.');
+            'The minimum rate (0.0-1.0) a private prop must be set to be considered required.')
+    ..addOption(_Options.privateMaxAllowedSkipRate,
+        defaultsTo: (0.2).toString(),
+        help:
+            'The maximum allowed rate (0.0-1.0) of dynamic usages of private mixins, for which data collection was skipped.'
+            '\nIf above this, all props in a mixin will be made optional (with a TODO comment).')
+    ..addOption(_Options.publicRequirednessThreshold,
+        defaultsTo: (1).toString(),
+        help:
+            'The minimum rate (0.0-1.0) a public prop must be set to be considered required.')
+    ..addOption(_Options.publicMaxAllowedSkipRate,
+        defaultsTo: (0.05).toString(),
+        help:
+            'The maximum allowed rate (0.0-1.0) of dynamic usages of public mixins, for which data collection was skipped.'
+            '\nIf above this, all props in a mixin will be made optional (with a TODO comment).');
 
   final parsedArgs = parser.parse(args);
+  final codemodArgs = removeOptionArgs(args, _Options.all);
+
   final dartPaths = allDartPathsExceptHiddenAndGenerated();
 
   final results = PropRequirednessResults.fromJson(jsonDecode(File(
@@ -63,10 +73,14 @@ void main(List<String> args) async {
       .readAsStringSync()));
   final recommender = PropRequirednessRecommender(
     results,
-    privateRequirednessThreshold: 0.95,
-    privateMaxAllowedSkipRate: 0.2,
-    publicRequirednessThreshold: 1,
-    publicMaxAllowedSkipRate: 0.05,
+    privateRequirednessThreshold:
+        parsedArgs.argValueAsNumber(_Options.privateRequirednessThreshold),
+    privateMaxAllowedSkipRate:
+        parsedArgs.argValueAsNumber(_Options.privateMaxAllowedSkipRate),
+    publicRequirednessThreshold:
+        parsedArgs.argValueAsNumber(_Options.publicRequirednessThreshold),
+    publicMaxAllowedSkipRate:
+        parsedArgs.argValueAsNumber(_Options.publicMaxAllowedSkipRate),
   );
 
   exitCode = await runInteractiveCodemodSequence(
@@ -75,8 +89,11 @@ void main(List<String> args) async {
       RequiredPropsMigrator(recommender),
     ],
     defaultYes: true,
-    args: parsedArgs.rest,
+    args: codemodArgs,
     additionalHelpOutput: parser.usage,
-    changesRequiredOutput: _changesRequiredOutput,
   );
+}
+
+extension on ArgResults {
+  num argValueAsNumber(String name) => num.parse(this[name]);
 }
