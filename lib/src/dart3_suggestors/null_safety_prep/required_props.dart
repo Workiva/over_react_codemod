@@ -99,23 +99,30 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
     final recommendation =
         _propRequirednessRecommender.getRecommendation(element);
 
-    // No data; either not a prop, our data is outdated, or it's never actually set.
+    // No data; either not a prop, it's never actually set on any non-skipped usages, or our data is outdated.
     if (recommendation == null) {
-      final isPropsClass = node.declaredElement?.enclosingElement
-              ?.tryCast<InterfaceElement>()
-              ?.allSupertypes
-              .any((s) => s.element.name == 'UiProps') ??
-          false;
+      final skipReasonForEnclosingClass = _propRequirednessRecommender
+          .getMixinSkipRateReasonForElement(element.enclosingElement);
+
+      final isPropsClass = skipReasonForEnclosingClass != null ||
+          (node.declaredElement?.enclosingElement
+                  ?.tryCast<InterfaceElement>()
+                  ?.allSupertypes
+                  .any((s) => s.element.name == 'UiProps') ??
+              false);
       if (isPropsClass) {
-        final commentContents =
-            "TODO(orcm.required_props): No data for prop; either it's never set,"
-            " all places it was set were on dynamic usages,"
-            " or requiredness data was collected on a version before this prop was added.";
-        final offset =
-            fieldDeclaration.firstTokenAfterCommentAndMetadata.offset;
-        // Add back the indent we "stole" from the field by inserting our comment at its start.
-        yieldPatch(
-            lineComment(commentContents) + '  ', offset, offset);
+        // Don't comment about missing data if we're already making this optional
+        // because the class was skipped.
+        if (skipReasonForEnclosingClass != null) {
+          final commentContents =
+              "TODO(orcm.required_props): No data for prop; either it's never set,"
+              " all places it was set were on dynamic usages,"
+              " or requiredness data was collected on a version before this prop was added.";
+          final offset =
+              fieldDeclaration.firstTokenAfterCommentAndMetadata.offset;
+          // Add back the indent we "stole" from the field by inserting our comment at its start.
+          yieldPatch(lineComment(commentContents) + '  ', offset, offset);
+        }
         // Mark as optional
         if (type != null) {
           yieldPatch(nullableHint, type.end, type.end);
