@@ -111,9 +111,9 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
                   .any((s) => s.element.name == 'UiProps') ??
               false);
       if (isPropsClass) {
-        // Don't comment about missing data if we're already making this optional
+        // Only comment about missing data if we're not already making this optional
         // because the class was skipped.
-        if (skipReasonForEnclosingClass != null) {
+        if (skipReasonForEnclosingClass == null) {
           final commentContents =
               "TODO(orcm.required_props): No data for prop; either it's never set,"
               " all places it was set were on dynamic usages,"
