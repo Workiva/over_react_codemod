@@ -231,7 +231,7 @@ void _validateWithinRange(num value,
 
 extension on Visibility {
   bool get isPublicForUsages {
-    switch(this) {
+    switch (this) {
       case Visibility.public:
       case Visibility.indirectlyPublic:
       case Visibility.unknown:
@@ -243,7 +243,7 @@ extension on Visibility {
 
   // ignore: unused_element
   bool get isPublicForMixingIn {
-    switch(this) {
+    switch (this) {
       case Visibility.public:
       case Visibility.unknown:
         return true;
