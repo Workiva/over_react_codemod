@@ -13,8 +13,10 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:collection/collection.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_prop_info/aggregated_data.sg.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/utils/hint_detection.dart';
 import 'package:over_react_codemod/src/util.dart';
@@ -113,10 +115,21 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
       }
     }
 
-    if (_honorRequiredAnnotations) {
-      final hasRequiredPropAnnotation = fieldDeclaration.metadata.any((m) =>
-          const {'requiredProp', 'nullableRequiredProp'}.contains(m.name.name));
-      if (hasRequiredPropAnnotation) {
+    final requiredPropAnnotation = fieldDeclaration.metadata.firstWhereOrNull(
+        (m) => const {'requiredProp', 'nullableRequiredProp'}
+            .contains(m.name.name));
+
+    if (requiredPropAnnotation != null) {
+      // Always remove the annotation, since it can't be combined with late required props.
+      yieldPatch(
+          '',
+          requiredPropAnnotation.offset,
+          // Patch the whitespace up until the next token/comment, so that we take
+          // any newline along with this annotation.
+          requiredPropAnnotation.endToken.nextTokenOrCommentOffset ??
+              requiredPropAnnotation.end);
+
+      if (_honorRequiredAnnotations) {
         yieldLateHintPatch();
         return;
       }
@@ -160,6 +173,18 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
     } else {
       yieldOptionalHintPatch();
     }
+  }
+}
+
+extension on Token {
+  /// The offset of the next token or comment
+  /// (since comments can occur before the next token)
+  /// following this token, or null if nothing follows it.
+  int? get nextTokenOrCommentOffset {
+    final next = this.next;
+    if (next == null) return null;
+    final nextTokenOrComment = next.precedingComments ?? next;
+    return nextTokenOrComment.offset;
   }
 }
 
