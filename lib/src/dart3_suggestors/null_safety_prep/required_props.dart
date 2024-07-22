@@ -108,8 +108,9 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
           false;
       if (isPropsClass) {
         final commentContents =
-            "TODO(orcm.required_props): No data for prop; either it's unused, or"
-            " requiredness data was collected on a version before this prop was added.";
+            "TODO(orcm.required_props): No data for prop; either it's never set,"
+            " all places it was set were on dynamic usages,"
+            " or requiredness data was collected on a version before this prop was added.";
         final offset =
             fieldDeclaration.firstTokenAfterCommentAndMetadata.offset;
         // Add back the indent we "stole" from the field by inserting our comment at its start.
