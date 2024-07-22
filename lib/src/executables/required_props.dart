@@ -23,7 +23,7 @@ import 'package:over_react_codemod/src/util.dart';
 
 import '../util/codemod_args.dart';
 
-class _Options {
+abstract class _Options {
   static const privateRequirednessThreshold = 'private-requiredness-threshold';
   static const privateMaxAllowedSkipRate = 'private-max-allowed-skip-rate';
   static const publicRequirednessThreshold = 'public-requiredness-threshold';
@@ -37,6 +37,13 @@ class _Options {
   };
 }
 
+abstract class _Flags {
+  static const honorRequiredAnnotations = 'honor-required-annotations';
+  static const all = {
+    honorRequiredAnnotations,
+  };
+}
+
 /// Codemods in this executable add nullability "hints" to assist with a
 /// null-safety migration.
 ///
@@ -44,6 +51,10 @@ class _Options {
 /// also be run when migrating to null-safety.
 void main(List<String> args) async {
   final parser = argParserWithCodemodArgs()
+    ..addFlag(_Flags.honorRequiredAnnotations,
+        defaultsTo: true,
+        help: 'Whether to migrate @requiredProp and `@nullableRequiredProp` props to late required, regardless of usage data.'
+            '\nNote that @requiredProp has no effect on function components, so these annotations may be incorrect.')
     ..addOption(_Options.privateRequirednessThreshold,
         defaultsTo: (0.95).toString(),
         help:
@@ -64,7 +75,8 @@ void main(List<String> args) async {
             '\nIf above this, all props in a mixin will be made optional (with a TODO comment).');
 
   final parsedArgs = parser.parse(args);
-  final codemodArgs = removeOptionArgs(args, _Options.all);
+  final codemodArgs =
+      removeFlagArgs(removeOptionArgs(args, _Options.all), _Flags.all);
 
   final dartPaths = allDartPathsExceptHiddenAndGenerated();
 
@@ -86,7 +98,11 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemodSequence(
     dartPaths,
     [
-      RequiredPropsMigrator(recommender),
+      RequiredPropsMigrator(
+        recommender,
+        honorRequiredAnnotations:
+            parsedArgs[_Flags.honorRequiredAnnotations] as bool,
+      ),
     ],
     defaultYes: true,
     args: codemodArgs,

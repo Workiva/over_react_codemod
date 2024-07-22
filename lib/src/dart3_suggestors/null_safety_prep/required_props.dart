@@ -22,9 +22,13 @@ import 'package:over_react_codemod/src/util/class_suggestor.dart';
 
 class RequiredPropsMigrator extends RecursiveAstVisitor<void>
     with ClassSuggestor {
-  PropRequirednessRecommender _propRequirednessRecommender;
+  final PropRequirednessRecommender _propRequirednessRecommender;
+  final bool _honorRequiredAnnotations;
 
-  RequiredPropsMigrator(this._propRequirednessRecommender);
+  RequiredPropsMigrator(
+    this._propRequirednessRecommender, {
+    required bool honorRequiredAnnotations,
+  }) : _honorRequiredAnnotations = honorRequiredAnnotations;
 
   @override
   Future<void> generatePatches() async {
@@ -96,6 +100,28 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
       return;
     }
 
+    void yieldLateHintPatch() {
+      // Don't unnecessarily annotate it as non-nullable;
+      // let the migrator tool do that.
+      final offset = fieldDeclaration.firstTokenAfterCommentAndMetadata.offset;
+      yieldPatch('$lateHint ', offset, offset);
+    }
+
+    void yieldOptionalHintPatch() {
+      if (type != null) {
+        yieldPatch(nullableHint, type.end, type.end);
+      }
+    }
+
+    if (_honorRequiredAnnotations) {
+      final hasRequiredPropAnnotation = fieldDeclaration.metadata.any((m) =>
+          const {'requiredProp', 'nullableRequiredProp'}.contains(m.name.name));
+      if (hasRequiredPropAnnotation) {
+        yieldLateHintPatch();
+        return;
+      }
+    }
+
     final recommendation =
         _propRequirednessRecommender.getRecommendation(element);
 
@@ -124,22 +150,15 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
           yieldPatch(lineComment(commentContents) + '  ', offset, offset);
         }
         // Mark as optional
-        if (type != null) {
-          yieldPatch(nullableHint, type.end, type.end);
-        }
+        yieldOptionalHintPatch();
       }
       return;
     }
 
     if (recommendation.isRequired) {
-      // Don't unnecessarily annotate it as non-nullable;
-      // let the migrator tool do that.
-      final offset = fieldDeclaration.firstTokenAfterCommentAndMetadata.offset;
-      yieldPatch('$lateHint ', offset, offset);
+      yieldLateHintPatch();
     } else {
-      if (type != null) {
-        yieldPatch(nullableHint, type.end, type.end);
-      }
+      yieldOptionalHintPatch();
     }
   }
 }
