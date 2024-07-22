@@ -22,6 +22,8 @@ import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/utils/h
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/class_suggestor.dart';
 
+const _todoWithPrefix = 'TODO(orcm.required_props)';
+
 class RequiredPropsMigrator extends RecursiveAstVisitor<void>
     with ClassSuggestor {
   final PropRequirednessRecommender _propRequirednessRecommender;
@@ -71,7 +73,7 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
           formatAsPercent(skipReason.maxAllowedSkipRate);
 
       final commentContents =
-          "TODO orcm.required_props: This codemod couldn't reliably determine requiredness for these props"
+          "$_todoWithPrefix: This codemod couldn't reliably determine requiredness for these props"
           "\n because $skipRatePercent of usages of components with these props"
           " (> max allowed $maxAllowedSkipRatePercent for ${skipReason.isPublic ? 'public' : 'private'} props)"
           "\n either contained forwarded props or were otherwise too dynamic to analyze."
@@ -154,7 +156,7 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
         // because the class was skipped.
         if (skipReasonForEnclosingClass == null) {
           final commentContents =
-              "TODO(orcm.required_props): No data for prop; either it's never set,"
+              "$_todoWithPrefix: No data for prop; either it's never set,"
               " all places it was set were on dynamic usages,"
               " or requiredness data was collected on a version before this prop was added.";
           final offset =
