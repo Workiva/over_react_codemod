@@ -22,7 +22,7 @@ import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/require
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_props_suggestor.dart';
 import 'package:over_react_codemod/src/util.dart';
 
-import '../util/codemod_args.dart';
+import '../util/args.dart';
 
 abstract class _Options {
   static const privateRequirednessThreshold = 'private-requiredness-threshold';

@@ -74,15 +74,19 @@ List<String> _removeOptionOrFlagArgs(List<String> args, String argName,
   final updatedArgs = [...args];
 
   final argPattern = isOption
-      ? RegExp(r'^--' + RegExp.escape(argName) + r'(?:=|$)')
+      ? RegExp(r'^--' + RegExp.escape(argName) + r'(=|$)')
       : RegExp(r'^--(?:no-)?' + RegExp.escape(argName) + r'$');
 
   int argIndex;
   while ((argIndex = updatedArgs.indexWhere(argPattern.hasMatch)) != -1) {
     final matchingArg = updatedArgs[argIndex];
-    if (isOption &&
-        matchingArg.endsWith('=') &&
-        argIndex != updatedArgs.length - 1) {
+    bool isOptionWithMultiArgSyntax() {
+      if (isOption) return false;
+      final equalsOrEndGroup = argPattern.firstMatch(matchingArg)![1]!;
+      return equalsOrEndGroup != '=';
+    }
+
+    if (isOptionWithMultiArgSyntax() && argIndex != updatedArgs.length - 1) {
       updatedArgs.removeRange(argIndex, argIndex + 2);
     } else {
       updatedArgs.removeAt(argIndex);
