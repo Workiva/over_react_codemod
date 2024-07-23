@@ -22,7 +22,8 @@ Future<PackageResults> collectDataForUnits(
   final packageVersionDescriptionsByName = <String, String>{};
   final allUsages = <Usage>[];
   final allMixinUsagesByMixinId = <String, Set<String>>{};
-  final mixinIdsByVisibilityByPackage = <String, Map<Visibility, Set<String>>>{};
+  final mixinIdsByVisibilityByPackage =
+      <String, Map<Visibility, Set<String>>>{};
 
   await for (final unitResult in units) {
     if (unitResult.uri.path.endsWith('.over_react.g.dart')) continue;
@@ -45,7 +46,8 @@ Future<PackageResults> collectDataForUnits(
 
     if (packageName != rootPackageName) {
       if (!allowOtherPackageUnits) {
-        throw StateError('Expected all units to be part of package $rootPackageName,'
+        throw StateError(
+            'Expected all units to be part of package $rootPackageName,'
             ' but got one from package $packageName: ${unitResult.uri}');
       }
       otherPackagesProcessed.add(packageName);
@@ -89,8 +91,10 @@ Future<PackageResults> collectDataForUnits(
               .where((element) => element.isPublic)
               // Filter out non-props classes/mixins so we don't collect too much data.
               .map((element) {
-            final potentialPropsElement =
-                element.type.typeOrBound.tryCast<FunctionType>()?.returnType.element;
+            final potentialPropsElement = element.type.typeOrBound
+                .tryCast<FunctionType>()
+                ?.returnType
+                .element;
             if (potentialPropsElement != null &&
                 (potentialPropsElement.name?.contains('Props') ?? false)) {
               return uniqueElementId(potentialPropsElement);
@@ -99,8 +103,11 @@ Future<PackageResults> collectDataForUnits(
           }).whereNotNull());
     }
 
-    _collectMixinUsagesByMixin(unitElement).forEach((usedMixinId, usedByMixinIds) {
-      allMixinUsagesByMixinId.putIfAbsent(usedMixinId, () => {}).addAll(usedByMixinIds);
+    _collectMixinUsagesByMixin(unitElement)
+        .forEach((usedMixinId, usedByMixinIds) {
+      allMixinUsagesByMixinId
+          .putIfAbsent(usedMixinId, () => {})
+          .addAll(usedByMixinIds);
     });
   }
 
@@ -167,7 +174,8 @@ List<Usage> collectUsageDataForUnit({
               }
               return DynamicPropsCategory.other;
             case 'modifyProps':
-              if ((arg is MethodInvocation && arg.methodName.name == 'addPropsToForward') ||
+              if ((arg is MethodInvocation &&
+                      arg.methodName.name == 'addPropsToForward') ||
                   (arg is Identifier && arg.name == 'addUnconsumedProps')) {
                 return DynamicPropsCategory.forwarded;
               }
@@ -178,12 +186,14 @@ List<Usage> collectUsageDataForUnit({
         })
         .whereNotNull()
         .toSet();
-    final usageHasOtherDynamicProps = dynamicPropsCategories.contains(DynamicPropsCategory.other);
-    final usageHasForwardedProps = dynamicPropsCategories.contains(DynamicPropsCategory.forwarded);
+    final usageHasOtherDynamicProps =
+        dynamicPropsCategories.contains(DynamicPropsCategory.other);
+    final usageHasForwardedProps =
+        dynamicPropsCategories.contains(DynamicPropsCategory.forwarded);
 
-
-    final builderPropsType =
-        componentUsage.builder.staticType?.typeOrBound.element?.tryCast<InterfaceElement>();
+    final builderPropsType = componentUsage
+        .builder.staticType?.typeOrBound.element
+        ?.tryCast<InterfaceElement>();
     if (builderPropsType == null) {
       logger
           .warning('Could not resolve props; skipping usage. Usage: $usageId');
@@ -192,7 +202,8 @@ List<Usage> collectUsageDataForUnit({
 
     List<UsageMixinData> mixinData;
     {
-      final assignedProps = componentUsage.cascadedProps.where((p) => !p.isPrefixed).toSet();
+      final assignedProps =
+          componentUsage.cascadedProps.where((p) => !p.isPrefixed).toSet();
       final assignedPropNames = assignedProps.map((p) => p.name.name).toSet();
       final unaccountedForPropNames = {...assignedPropNames};
 
@@ -200,12 +211,14 @@ List<Usage> collectUsageDataForUnit({
 
       // [1] Use prop mixin elements and not the props, to account for setters that don't show up as prop fields
       //     (e.g., props that do conversion in getter/setter, props that alias other props).
-      final allPropMixins = getAllPropsClassesOrMixins(builderPropsType).toSet(); // [1]
+      final allPropMixins =
+          getAllPropsClassesOrMixins(builderPropsType).toSet(); // [1]
       mixinData = allPropMixins.map((mixin) {
         // [1]
         final mixinPropsSet = assignedPropNames
-            .where(
-                (propName) => mixin.getField(propName) != null || mixin.getSetter(propName) != null)
+            .where((propName) =>
+                mixin.getField(propName) != null ||
+                mixin.getSetter(propName) != null)
             .toSet();
         unaccountedForPropNames.removeAll(mixinPropsSet);
 
@@ -223,14 +236,17 @@ List<Usage> collectUsageDataForUnit({
         );
       }).toList();
 
-      final unaccountedForProps =
-          assignedProps.where((p) => unaccountedForPropNames.contains(p.name.name));
+      final unaccountedForProps = assignedProps
+          .where((p) => unaccountedForPropNames.contains(p.name.name));
       for (final prop in unaccountedForProps) {
         final propsMixin = prop.staticElement?.enclosingElement;
         if (propsMixin == null) continue;
 
-        if (const {'ReactPropsMixin', 'UbiquitousDomPropsMixin', 'CssClassPropsMixin'}
-            .contains(propsMixin.name)) {
+        if (const {
+          'ReactPropsMixin',
+          'UbiquitousDomPropsMixin',
+          'CssClassPropsMixin'
+        }.contains(propsMixin.name)) {
           continue;
         }
 
@@ -264,7 +280,8 @@ List<Usage> collectUsageDataForUnit({
   return allUsages;
 }
 
-Map<String, List<String>> _collectMixinUsagesByMixin(CompilationUnitElement unitElement) {
+Map<String, List<String>> _collectMixinUsagesByMixin(
+    CompilationUnitElement unitElement) {
   final mixinUsagesByMixin = <String, List<String>>{};
 
   for (final cl in [unitElement.classes, unitElement.mixins].expand((i) => i)) {
