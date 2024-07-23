@@ -426,6 +426,9 @@ mixin PropOrStateAssignment on BuilderMemberAccess {
 
   /// The expression for the right hand side of this assignment.
   Expression get rightHandSide => node.rightHandSide;
+
+  /// The element that declares the prop being assigned.
+  Element? get staticElement => node.writeElement;
 }
 
 abstract class StateAssignment extends BuilderMemberAccess

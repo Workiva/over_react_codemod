@@ -13,9 +13,8 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/element/element.dart';
-
-import 'vendor/prop_requiredness_data/aggregated_data.sg.dart';
-import 'vendor/prop_requiredness_data/unique_element_id.dart';
+import 'package:over_react_codemod/src/prop_requiredness/aggregated_data.sg.dart';
+import 'package:over_react_codemod/src/prop_requiredness/util.dart';
 
 /// A class that can provide recommendations for prop requiredness based on
 /// [PropRequirednessResults] data.
@@ -102,12 +101,6 @@ class PropRequirednessRecommender {
     return _getMixinSkipRateReason(mixinResults);
   }
 }
-
-String? getPackageName(Uri uri) {
-  if (uri.scheme == 'package') return uri.pathSegments[0];
-  return null;
-}
-
 
 void _validateWithinRange(num value,
     {required num min, required num max, required String name}) {
