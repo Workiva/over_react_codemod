@@ -33,7 +33,12 @@ Future<void> main(List<String> args) async {
 
   final parsedArgs = argParser.parse(args);
 
+  final logger = Logger('prop_requiredness.collect');
+  logger.info('Parsing/initializing package specs..');
   final packages = await Future.wait(parsedArgs.rest.map(parsePackageSpec));
+
+  logger.info('Done. Package specs: ${packages.map((p) => '\n- $p').join('')}');
+
   await collectDataForPackages(packages);
 }
 
