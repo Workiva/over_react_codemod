@@ -10,6 +10,7 @@ import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/vendor/over_react_analyzer_plugin/get_all_props.dart';
 
 import 'collected_data.sg.dart';
+import 'logging.dart';
 
 Future<PackageResults> collectDataForUnits(
   Stream<ResolvedUnitResult> units, {
@@ -29,7 +30,7 @@ Future<PackageResults> collectDataForUnits(
     if (unitResult.uri.path.endsWith('.over_react.g.dart')) continue;
     if (unitResult.libraryElement.isInSdk) continue;
 
-    // logProgress();
+    logProgress();
 
     //logger.finest('Processing ${unitResult.uri}');
 
