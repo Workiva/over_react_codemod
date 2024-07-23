@@ -3,24 +3,41 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:collection/collection.dart';
+import 'package:io/io.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/prop_requiredness/aggregated_data.sg.dart';
 import 'package:over_react_codemod/src/prop_requiredness/collected_data.sg.dart';
+import 'package:over_react_codemod/src/prop_requiredness/logging.dart';
 
 Future<void> main(List<String> args) async {
-  // Without this logger setup, logs won't be printed to the console
-  Logger.root.level = Level.FINE;
-  Logger.root.onRecord.listen((record) {
-    print(record);
-    if (record.error != null) print(record.error);
-    if (record.stackTrace != null) print(record.stackTrace);
-  });
+  final argParser = ArgParser()
+    ..addFlag('help', help: 'Print this usage information')
+    ..addOption(
+      'output',
+      abbr: 'o',
+      help: 'The file to write output to.',
+      valueHelp: 'path',
+      defaultsTo: 'prop_requiredness.json',
+    );
+  final parsedArgs = argParser.parse(args);
+  if (parsedArgs['help'] as bool) {
+    print(argParser.usage);
+    exit(ExitCode.success.code);
+  }
+  final outputFile = parsedArgs['output']!;
+  final filesToAggregate = parsedArgs.rest;
+  if (filesToAggregate.isEmpty) {
+    print('Must specify files to aggregate.\n${argParser.usage}');
+    exit(ExitCode.usage.code);
+  }
 
+  initLogging();
   final logger = Logger('prop_requiredness_aggregate');
 
   logger.info('Loading results from files specified in arguments...');
-  final allResults = args.map(File.new).map((file) {
+  final allResults = filesToAggregate.map(File.new).map((file) {
     final results = tryParseResults(file.readAsStringSync());
     if (results == null)
       throw Exception('Error parsing results for $file; is version outdated?');
@@ -57,9 +74,8 @@ Future<void> main(List<String> args) async {
   //   if (mixinIds.length > 1) logger.fine('$name: ${mixinIds.map((id) => '\n - $id').join('')}');
   // });
 
-  const jsonFile = 'prop_requiredness.json';
-  File(jsonFile).writeAsStringSync(jsonEncodeIndented(aggregated));
-  logger.info('Wrote JSON results to $jsonFile');
+  File(outputFile).writeAsStringSync(jsonEncodeIndented(aggregated));
+  logger.info('Wrote JSON results to $outputFile');
 }
 
 final jsonEncodeIndented = const JsonEncoder.withIndent('  ').convert;
