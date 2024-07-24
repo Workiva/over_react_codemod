@@ -3,14 +3,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/prop_requiredness/analysis.dart';
 import 'package:over_react_codemod/src/prop_requiredness/collect.dart';
 import 'package:over_react_codemod/src/prop_requiredness/collected_data.sg.dart';
-import 'package:over_react_codemod/src/prop_requiredness/package/git.dart';
-import 'package:over_react_codemod/src/prop_requiredness/package/local.dart';
+import 'package:over_react_codemod/src/prop_requiredness/package/parse_spec.dart';
 import 'package:over_react_codemod/src/prop_requiredness/package/spec.dart';
+import 'package:over_react_codemod/src/prop_requiredness/package/version_manager.dart';
 import 'package:over_react_codemod/src/util/command.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
@@ -33,39 +32,17 @@ Future<void> main(List<String> args) async {
 
   final parsedArgs = argParser.parse(args);
 
+  late final versionManager = PackageVersionManager.persistentSystemTemp();
+
   final logger = Logger('prop_requiredness.collect');
   logger.info('Parsing/initializing package specs..');
-  final packages = await Future.wait(parsedArgs.rest.map(parsePackageSpec));
+  final packages = await Future.wait(parsedArgs.rest.map((arg) {
+    return parsePackageSpec(arg, getVersionManager: () => versionManager);
+  }));
 
   logger.info('Done. Package specs: ${packages.map((p) => '\n- $p').join('')}');
 
   await collectDataForPackages(packages);
-}
-
-Future<PackageSpec> parsePackageSpec(String packageSpecString) async {
-  Never invalidPackageSpec([String additionalMessage = '']) =>
-      throw ArgumentError.value(packageSpecString,
-          'Could not parse package spec; expected Git URL or a local path$additionalMessage');
-
-  final uri = Uri.tryParse(packageSpecString);
-  if ((uri != null && uri.isScheme('https://')) ||
-      packageSpecString.startsWith('git@')) {
-    final parts = packageSpecString.split('#');
-    final repoUrl = parts[0];
-    var ref = parts.skip(1).firstOrNull ?? '';
-    if (ref.isEmpty) ref = 'HEAD';
-    return gitRefPackageSpec(repoUrl, ref);
-  }
-
-  if (uri != null && (!uri.hasScheme || uri.isScheme('file'))) {
-    final path = uri.toFilePath();
-    if (!Directory(path).existsSync()) {
-      invalidPackageSpec(' (path does not exist)');
-    }
-    return localPathPackageSpec(path);
-  }
-
-  invalidPackageSpec();
 }
 
 Future<void> collectDataForPackages(List<PackageSpec> packages) async {
