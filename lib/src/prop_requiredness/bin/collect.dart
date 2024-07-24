@@ -48,6 +48,10 @@ $packageSpecFormatsHelpText''');
 
   final outputDirectory = parsedArgs['output-directory'];
   final packageSpecStrings = parsedArgs.rest;
+  if (packageSpecStrings.isEmpty) {
+    print('Must specify package(s).\n${argParser.usage}');
+    exit(ExitCode.usage.code);
+  }
 
   initLogging();
 
