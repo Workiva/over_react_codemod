@@ -132,11 +132,10 @@ Future<CollectDataForPackageResult?> collectDataForPackage(
   outputDirectory ??= '.';
 
   final rootPackageName = package.packageName;
-  final logger =
-      Logger('prop_requiredness.$rootPackageName.${package.versionId}');
+  final logger = Logger('prop_requiredness.${package.packageAndVersionId}');
 
-  final outputFile =
-      File(p.normalize(p.join(outputDirectory, '${package.versionId}.json')));
+  final outputFile = File(p.normalize(
+      p.join(outputDirectory, '${package.packageAndVersionId}.json')));
 
   if (skipIfAlreadyCollected && outputFile.existsSync()) {
     final existingResults = tryParseResults(outputFile.readAsStringSync());
