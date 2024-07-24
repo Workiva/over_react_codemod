@@ -87,12 +87,13 @@ Future<PackageResults> collectDataForUnits(
           .putIfAbsent(packageName, () => {})
           .putIfAbsent(Visibility.indirectlyPublic, () => {})
           .addAll(unitResult.libraryElement.exportNamespace.definedNames.values
-              .whereType<TopLevelVariableElement>()
+              .whereType<PropertyAccessorElement>()
+              .where((element) => element.isGetter)
               // Note that this is public relative to the library, not necessarily the package.
               .where((element) => element.isPublic)
               // Filter out non-props classes/mixins so we don't collect too much data.
               .map((element) {
-            final potentialPropsElement = element.type.typeOrBound
+            final potentialPropsElement = element.returnType.typeOrBound
                 .tryCast<FunctionType>()
                 ?.returnType
                 .element;

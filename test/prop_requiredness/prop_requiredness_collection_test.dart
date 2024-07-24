@@ -21,6 +21,19 @@ main() {
     });
 
     group('collects expected data', () {
+      test('for visibility of props mixins', () {
+        const expectedVisibilities = {
+          'TestPrivateProps': Visibility.private,
+          'TestPublicProps': Visibility.public,
+          'TestFactoryOnlyExportedProps': Visibility.indirectlyPublic,
+        };
+        final actualVisibiilities = {
+          for (final name in expectedVisibilities.keys)
+            name: aggregated.mixinResultsByName(name).visibility
+        };
+        expect(actualVisibiilities, expectedVisibilities);
+      });
+
       group('for private props used within their own package:', () {
         test('set rate', () {
           final mixinResults =
