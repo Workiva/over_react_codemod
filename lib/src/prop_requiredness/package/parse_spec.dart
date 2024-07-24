@@ -7,6 +7,19 @@ import 'package:over_react_codemod/src/prop_requiredness/package/pub.dart';
 import 'package:over_react_codemod/src/prop_requiredness/package/spec.dart';
 import 'package:over_react_codemod/src/prop_requiredness/package/version_manager.dart';
 
+const packageSpecFormatsHelpText = r'''
+Supported package spec formats:
+- Hosted pub package with optional version (uses latest if omitted):
+    - `pub@pub.dev:over_react`
+    - `pub@pub.dev:over_react#5.2.0`
+- Git URL with optional revision:  
+    - `git@github.com:Workiva/over_react.git`
+    - `https://github.com/Workiva/over_react.git`
+    - `git@github.com:Workiva/over_react.git#5.2.0`
+- Local file path:
+    - `/path/to/over_react`
+    - `file:///path/to/over_react`''';
+
 Future<PackageSpec> parsePackageSpec(
   String packageSpecString, {
   required PackageVersionManager Function() getVersionManager,
@@ -15,17 +28,7 @@ Future<PackageSpec> parsePackageSpec(
       throw PackageSpecParseException('''
 Could not resolve package spec '$packageSpecString'.$additionalMessage 
 
-Allowed formats: 
-- Hosted pub package with optional version (uses latest if omitted):
-   - `pub@pub.dev:over_react`
-   - `pub@pub.dev:over_react#5.2.0`
-- Git URL with optional revision:  
-    - `git@github.com:Workiva/over_react.git`
-    - `https://github.com/Workiva/over_react.git`
-    - `git@github.com:Workiva/over_react.git#5.2.0`
-- Local file path:
-    - `/path/to/over_react`
-    - `file:///path/to/over_react`''');
+$packageSpecFormatsHelpText''');
 
   final uri = Uri.tryParse(packageSpecString);
   if ((uri != null && uri.isScheme('https://')) ||

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:io/io.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/prop_requiredness/analysis.dart';
 import 'package:over_react_codemod/src/prop_requiredness/collect.dart';
@@ -25,12 +26,23 @@ Future<void> main(List<String> args) async {
       ' it encounters certain code asserts are enabled.'
       ' Disable asserts to run this script successfully.');
 
-  // Without this logger setup, logs won't be printed to the console
-  initLogging();
-
-  final argParser = ArgParser();
-
+  final argParser = ArgParser()
+    ..addFlag('help', help: 'Print this usage information', negatable: false);
   final parsedArgs = argParser.parse(args);
+  if (parsedArgs['help'] as bool) {
+    print('''
+Collects prop usage data on the specified package(s). 
+This data can then be aggregated into prop requiredness results in aggregate.dart.
+
+Usage: <collect-script> <package_spec> [additional_package_specs...]
+
+${argParser.usage}
+
+$packageSpecFormatsHelpText''');
+    exit(ExitCode.success.code);
+  }
+
+  initLogging();
 
   late final versionManager = PackageVersionManager.persistentSystemTemp();
 

@@ -13,7 +13,7 @@ import 'package:over_react_codemod/src/prop_requiredness/logging.dart';
 
 Future<void> main(List<String> args) async {
   final argParser = ArgParser()
-    ..addFlag('help', help: 'Print this usage information')
+    ..addFlag('help', help: 'Print this usage information', negatable: false)
     ..addOption(
       'output',
       abbr: 'o',
