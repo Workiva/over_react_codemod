@@ -27,7 +27,11 @@ Future<void> main(List<String> args) async {
       ' Disable asserts to run this script successfully.');
 
   final argParser = ArgParser()
-    ..addFlag('help', help: 'Print this usage information', negatable: false);
+    ..addFlag('help', help: 'Print this usage information', negatable: false)
+    ..addOption('output-directory',
+        abbr: 'o',
+        help: 'The directory to output individual package results to.',
+        defaultsTo: '.');
   final parsedArgs = argParser.parse(args);
   if (parsedArgs['help'] as bool) {
     print('''
@@ -42,25 +46,22 @@ $packageSpecFormatsHelpText''');
     exit(ExitCode.success.code);
   }
 
+  final outputDirectory = parsedArgs['output-directory'];
+  final packageSpecStrings = parsedArgs.rest;
+
   initLogging();
 
   late final versionManager = PackageVersionManager.persistentSystemTemp();
 
   final logger = Logger('prop_requiredness.collect');
   logger.info('Parsing/initializing package specs..');
-  final packages = await Future.wait(parsedArgs.rest.map((arg) {
+  final packages = await Future.wait(packageSpecStrings.map((arg) {
     return parsePackageSpec(arg, getVersionManager: () => versionManager);
   }));
 
   logger.info('Done. Package specs: ${packages.map((p) => '\n- $p').join('')}');
 
-  await collectDataForPackages(packages);
-}
-
-Future<void> collectDataForPackages(List<PackageSpec> packages) async {
-  final logger = Logger('prop_requiredness');
-
-  logger.info('Processing packages and writing to $individualResultsDir...');
+  logger.info('Processing packages and writing to $outputDirectory...');
 
   final allResults = <CollectDataForPackageResult>[];
 
@@ -77,6 +78,7 @@ Future<void> collectDataForPackages(List<PackageSpec> packages) async {
       skipIfAlreadyCollected: false,
       skipIfNoUsages: false,
       packageFilter: (p) => !processedPackages.contains(p.name),
+      outputDirectory: outputDirectory,
     ))!;
     allResults.add(result);
     logger.info(result);
@@ -121,13 +123,16 @@ Future<CollectDataForPackageResult?> collectDataForPackage(
   bool Function(Package)? packageFilter,
   bool skipIfAlreadyCollected = true,
   bool skipIfNoUsages = true,
+  String? outputDirectory,
 }) async {
+  outputDirectory ??= '.';
+
   final rootPackageName = package.packageName;
   final logger =
       Logger('prop_requiredness.$rootPackageName.${package.versionId}');
 
-  final outputFile = File(p.join(
-      individualResultsDir, rootPackageName, '${package.versionId}.json'));
+  final outputFile =
+      File(p.normalize(p.join(outputDirectory, '${package.versionId}.json')));
 
   if (skipIfAlreadyCollected && outputFile.existsSync()) {
     final existingResults = tryParseResults(outputFile.readAsStringSync());
