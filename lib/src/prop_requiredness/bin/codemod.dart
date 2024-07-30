@@ -22,6 +22,7 @@ import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/require
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_props_suggestor.dart';
 import 'package:over_react_codemod/src/prop_requiredness/aggregated_data.sg.dart';
 import 'package:over_react_codemod/src/util.dart';
+import 'package:over_react_codemod/src/util/command_runner.dart';
 
 import '../../util/args.dart';
 
@@ -55,6 +56,9 @@ class CodemodCommand extends Command {
 
   @override
   String get name => 'codemod';
+
+  @override
+  String get invocation => '$invocationPrefix [<options>]';
 
   CodemodCommand() {
     argParser

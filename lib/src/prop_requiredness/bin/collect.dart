@@ -13,6 +13,7 @@ import 'package:over_react_codemod/src/prop_requiredness/package/parse_spec.dart
 import 'package:over_react_codemod/src/prop_requiredness/package/spec.dart';
 import 'package:over_react_codemod/src/prop_requiredness/package/version_manager.dart';
 import 'package:over_react_codemod/src/util/command.dart';
+import 'package:over_react_codemod/src/util/command_runner.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
@@ -28,7 +29,10 @@ class CollectCommand extends Command {
   String get name => 'collect';
 
   @override
-  String get usageFooter => packageSpecFormatsHelpText;
+  String get invocation => '$invocationPrefix [<options>] <package_spec> [<package_spec>...]';
+
+  @override
+  String get usageFooter => '\n$packageSpecFormatsHelpText';
 
   CollectCommand() {
     argParser
