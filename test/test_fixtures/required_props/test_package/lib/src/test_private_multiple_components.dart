@@ -10,8 +10,7 @@ mixin TestPrivateUsedByMultipleComponentsProps on UiProps {
 class TestMultiComponents1Props = UiProps
     with TestPrivateUsedByMultipleComponentsProps;
 
-UiFactory<TestPrivateUsedByMultipleComponentsProps> TestMultiComponents1 =
-    uiFunction(
+UiFactory<TestMultiComponents1Props> TestMultiComponents1 = uiFunction(
   (props) {},
   _$TestMultiComponents1Config, // ignore: undefined_identifier
 );
@@ -19,8 +18,7 @@ UiFactory<TestPrivateUsedByMultipleComponentsProps> TestMultiComponents1 =
 class TestMultiComponents2Props = UiProps
     with TestPrivateUsedByMultipleComponentsProps;
 
-UiFactory<TestPrivateUsedByMultipleComponentsProps> TestMultiComponents2 =
-    uiFunction(
+UiFactory<TestMultiComponents2Props> TestMultiComponents2 = uiFunction(
   (props) {},
   _$TestMultiComponents2Config, // ignore: undefined_identifier
 );

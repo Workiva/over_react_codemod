@@ -4,6 +4,7 @@ part 'test_public.g.dart';
 
 mixin TestPublicProps on UiProps {
   String set100percent;
+  String set20percent;
 }
 
 UiFactory<TestPublicProps> TestPublic = uiFunction(
@@ -12,7 +13,7 @@ UiFactory<TestPublicProps> TestPublic = uiFunction(
 );
 
 usages() {
-  (TestPublic()..set100percent = '')();
+  // 4 usages in this package, 1 in consuming package
   (TestPublic()..set100percent = '')();
   (TestPublic()..set100percent = '')();
   (TestPublic()..set100percent = '')();

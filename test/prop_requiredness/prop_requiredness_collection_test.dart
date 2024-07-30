@@ -139,7 +139,74 @@ main() {
         });
       });
 
-      test('for set rate (private props)', () {});
+      group('for public props used in multiple packages:', () {
+        test('set rate', () {
+          final mixinResults = aggregated.mixinResultsByName('TestPublicProps');
+          expect(
+            mixinResults.propResultsByName.mapValues((v) => v.totalRate),
+            allOf(
+              containsPair('set100percent', 1.0),
+              containsPair('set20percent', 0.2),
+            ),
+          );
+          expect(
+            mixinResults.propResultsByName.mapValues((v) => v.samePackageRate),
+            allOf(
+              containsPair('set100percent', 1.0),
+              containsPair('set20percent', anyOf(null, 0.0)),
+            ),
+          );
+          expect(
+            mixinResults.propResultsByName.mapValues((v) => v.otherPackageRate),
+            allOf(
+              containsPair('set100percent', 1.0),
+              containsPair('set20percent', 1.0),
+            ),
+          );
+
+          expect(mixinResults.usageSkipRate, 0);
+        });
+
+        test('set rate when used by multiple components', () {
+          final mixinResults = aggregated
+              .mixinResultsByName('TestPublicUsedByMultipleComponentsProps');
+
+          expect(
+            mixinResults.propResultsByName.mapValues((v) => v.totalRate),
+            allOf(
+              containsPair('set100percent', 1.0),
+              containsPair('set80percent', 0.8),
+              containsPair('set20percent', 0.2),
+            ),
+          );
+          expect(
+            mixinResults.propResultsByName.mapValues((v) => v.samePackageRate),
+            allOf(
+              containsPair('set100percent', 1.0),
+              containsPair('set80percent', 1.0),
+              containsPair('set20percent', 0.5),
+            ),
+          );
+          expect(
+            mixinResults.propResultsByName.mapValues((v) => v.otherPackageRate),
+            allOf(
+              containsPair('set100percent', 1.0),
+              containsPair('set80percent', 2 / 3),
+              containsPair('set20percent', anyOf(null, 0.0)),
+            ),
+          );
+          expect(mixinResults.usageSkipRate, 0);
+        });
+
+        group('skip rate:', () {
+          test('props that are never skipped', () {
+            final mixinResults =
+                aggregated.mixinResultsByName('TestPublicProps');
+            expect(mixinResults.usageSkipRate, 0);
+            expect(mixinResults.usageSkipCount, 0);
+          });
+        });
+      });
     });
     // Use a longer timeout since setupAll can be slow.
   }, timeout: Timeout(Duration(seconds: 60)));
