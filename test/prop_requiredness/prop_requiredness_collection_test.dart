@@ -207,6 +207,24 @@ main() {
           });
         });
       });
+
+      test('does not aggregate data for non-factory usages', () {
+        final mixinResults =
+            aggregated.mixinResultsByName('TestPrivateNonFactoryUsagesProps');
+        final propTotalRates =
+            mixinResults.propResultsByName.mapValues((v) => v.totalRate);
+        expect(
+          mixinResults.propResultsByName['set100percent'],
+          isA<PropResult>()
+              .having((r) => r.totalRate, 'totalRate', 1)
+              .having((r) => r.totalUsageCount, 'totalUsageCount', 1),
+          reason:
+              'test setup check: should contain data for the single factory-based usage',
+        );
+        expect(propTotalRates.keys.toList(), unorderedEquals(['set100percent']),
+            reason:
+                'should not contain data for non-factory usages and props set on them, such as `onlySetOnNonFactoryUsages`');
+      });
     });
     // Use a longer timeout since setupAll can be slow.
   }, timeout: Timeout(Duration(seconds: 60)));
