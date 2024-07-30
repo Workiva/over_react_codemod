@@ -65,7 +65,8 @@ $packageSpecFormatsHelpText''');
 
   logger.info('Done. Package specs: ${packages.map((p) => '\n- $p').join('')}');
 
-  logger.info('Processing packages and writing to $outputDirectory...');
+  logger.info(
+      "Processing packages and writing to directory '$outputDirectory'...");
 
   final allResults = <CollectDataForPackageResult>[];
 
