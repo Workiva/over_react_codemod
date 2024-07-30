@@ -236,8 +236,8 @@ Future<PropRequirednessResults> collectAndAggregateDataForTestPackage() async {
       Directory.systemTemp.createTempSync('prop-requiredness-test');
 
   final orcmRoot = findPackageRootFor(p.current);
-  final testPackagePath =
-      p.join(orcmRoot, 'test/test_fixtures/required_props/test_package');
+  final testPackagePath = p.join(
+      orcmRoot, 'test/test_fixtures/required_props/test_consuming_package');
 
   final collectOutputDirectory = Directory(p.join(tmpFolder.path, 'collected'));
 
