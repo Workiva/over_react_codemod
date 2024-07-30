@@ -11,6 +11,8 @@ import 'package:over_react_codemod/src/prop_requiredness/aggregated_data.sg.dart
 import 'package:over_react_codemod/src/prop_requiredness/collected_data.sg.dart';
 import 'package:over_react_codemod/src/prop_requiredness/logging.dart';
 
+const defaultAggregatedOutputFile = 'prop_requiredness.json';
+
 Future<void> main(List<String> args) async {
   final argParser = ArgParser()
     ..addFlag('help', help: 'Print this usage information', negatable: false)
@@ -19,14 +21,14 @@ Future<void> main(List<String> args) async {
       abbr: 'o',
       help: 'The file to write output to.',
       valueHelp: 'path',
-      defaultsTo: 'prop_requiredness.json',
+      defaultsTo: defaultAggregatedOutputFile,
     );
   final parsedArgs = argParser.parse(args);
   if (parsedArgs['help'] as bool) {
     print(argParser.usage);
     exit(ExitCode.success.code);
   }
-  final outputFile = parsedArgs['output']!;
+  final outputFile = parsedArgs['output']! as String;
   final filesToAggregate = parsedArgs.rest;
   if (filesToAggregate.isEmpty) {
     print('Must specify files to aggregate.\n${argParser.usage}');
@@ -37,15 +39,7 @@ Future<void> main(List<String> args) async {
   final logger = Logger('prop_requiredness_aggregate');
 
   logger.info('Loading results from files specified in arguments...');
-  final allResults = filesToAggregate.map(File.new).map((file) {
-    final results = tryParseResults(file.readAsStringSync());
-    if (results == null)
-      throw Exception('Error parsing results for $file; is version outdated?');
-    if (results.dataVersion != PackageResults.latestDataVersion) {
-      throw Exception('Outdated data version in $file');
-    }
-    return results;
-  }).toList();
+  final allResults = loadResultFiles(filesToAggregate);
 
   {
     // Gather some stats on how often different builder types show up.
@@ -100,6 +94,22 @@ extension<E> on Iterable<E> {
     }
     return groups;
   }
+}
+
+List<PackageResults> loadResultFiles(Iterable<String> resultFiles) {
+  return resultFiles.map(File.new).map((file) {
+    PackageResults results;
+    try {
+      results = PackageResults.fromJson(
+          (jsonDecode(file.readAsStringSync()) as Map).cast<String, dynamic>());
+    } catch (e, st) {
+      throw Exception('Error parsing results from file $file: $e\n$st');
+    }
+    if (results.dataVersion != PackageResults.latestDataVersion) {
+      throw Exception('Outdated data version in $file');
+    }
+    return results;
+  }).toList();
 }
 
 PropRequirednessResults aggregateData(

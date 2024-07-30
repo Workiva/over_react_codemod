@@ -240,28 +240,14 @@ Future<PropRequirednessResults> collectAndAggregateDataForTestPackage() async {
       orcmRoot, 'test/test_fixtures/required_props/test_consuming_package');
 
   final collectOutputDirectory = Directory(p.join(tmpFolder.path, 'collected'));
+  final aggregateOutputFile = File(p.join(tmpFolder.path, 'aggregated.json'));
 
   await runCommandAndThrowIfFailedInheritIo('dart', [
     'run',
     p.join(orcmRoot, 'bin/prop_requiredness/collect.dart'),
-    ...['--output-directory', collectOutputDirectory.path],
-    testPackagePath,
-  ]);
-
-  final collectOutputFile = collectOutputDirectory
-      .listSync()
-      .cast<File>()
-      .where((f) => p.extension(f.path) == '.json')
-      .single;
-
-  print('Aggregating data...');
-
-  final aggregateOutputFile = File(p.join(tmpFolder.path, 'aggregated.json'));
-  await runCommandAndThrowIfFailedInheritIo('dart', [
-    'run',
-    p.join(orcmRoot, 'bin/prop_requiredness/aggregate.dart'),
+    ...['--raw-data-output-directory', collectOutputDirectory.path],
     ...['--output', aggregateOutputFile.path],
-    collectOutputFile.path,
+    testPackagePath,
   ]);
 
   return PropRequirednessResults.fromJson(

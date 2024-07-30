@@ -6,6 +6,8 @@ import 'package:args/args.dart';
 import 'package:io/io.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/prop_requiredness/analysis.dart';
+import 'package:over_react_codemod/src/prop_requiredness/bin/aggregate.dart'
+    show aggregateData, loadResultFiles, defaultAggregatedOutputFile;
 import 'package:over_react_codemod/src/prop_requiredness/collect.dart';
 import 'package:over_react_codemod/src/prop_requiredness/collected_data.sg.dart';
 import 'package:over_react_codemod/src/prop_requiredness/package/parse_spec.dart';
@@ -28,15 +30,20 @@ Future<void> main(List<String> args) async {
 
   final argParser = ArgParser()
     ..addFlag('help', help: 'Print this usage information', negatable: false)
-    ..addOption('output-directory',
-        abbr: 'o',
-        help: 'The directory to output individual package results to.',
-        defaultsTo: '.');
+    ..addOption('raw-data-output-directory',
+        help: 'The directory to output individual package usage results to.',
+        defaultsTo: '.')
+    ..addOption(
+      'output',
+      abbr: 'o',
+      help: 'The file to write aggregated results to.',
+      valueHelp: 'path',
+      defaultsTo: defaultAggregatedOutputFile,
+    );
   final parsedArgs = argParser.parse(args);
   if (parsedArgs['help'] as bool) {
     print('''
-Collects prop usage data on the specified package(s). 
-This data can then be aggregated into prop requiredness results in aggregate.dart.
+Collects prop usage data on the specified package(s) and aggregates it, writing to $defaultAggregatedOutputFile.
 
 Usage: <collect-script> <package_spec> [additional_package_specs...]
 
@@ -46,7 +53,10 @@ $packageSpecFormatsHelpText''');
     exit(ExitCode.success.code);
   }
 
-  final outputDirectory = parsedArgs['output-directory'];
+  final aggregatedOutputFile = parsedArgs['output']! as String;
+
+  final rawDataOutputDirectory =
+      parsedArgs['raw-data-output-directory']! as String;
   final packageSpecStrings = parsedArgs.rest;
   if (packageSpecStrings.isEmpty) {
     print('Must specify package(s).\n${argParser.usage}');
@@ -66,7 +76,7 @@ $packageSpecFormatsHelpText''');
   logger.info('Done. Package specs: ${packages.map((p) => '\n- $p').join('')}');
 
   logger.info(
-      "Processing packages and writing to directory '$outputDirectory'...");
+      "Processing packages and writing raw data to directory '$rawDataOutputDirectory'...");
 
   final allResults = <CollectDataForPackageResult>[];
 
@@ -83,7 +93,7 @@ $packageSpecFormatsHelpText''');
       skipIfAlreadyCollected: false,
       skipIfNoUsages: false,
       packageFilter: (p) => !processedPackages.contains(p.name),
-      outputDirectory: outputDirectory,
+      outputDirectory: rawDataOutputDirectory,
     ))!;
     allResults.add(result);
     logger.info(result);
@@ -100,11 +110,22 @@ $packageSpecFormatsHelpText''');
   logger.info(
       'All result files: ${allResults.map((r) => r.outputFilePath).join(' ')}');
 
-  logger.info('Done!');
+  logger.info('Collection: done!');
 
-  logger.info('To aggregate data, run the following command:\n'
+  logger.info(
+      'Aggregating data... Same as running the following command manually:\n'
       '    dart run bin/prop_requiredness/aggregate.dart ${allResults.map((r) => r.outputFilePath).join(' ')}');
+
+  final aggregated =
+      aggregateData(loadResultFiles(allResults.map((r) => r.outputFilePath)));
+
+  File(aggregatedOutputFile)
+    ..parent.createSync(recursive: true)
+    ..writeAsStringSync(jsonEncodeIndented(aggregated));
+  logger.info('Wrote aggregated results to ${aggregatedOutputFile}');
 }
+
+final jsonEncodeIndented = const JsonEncoder.withIndent('  ').convert;
 
 class CollectDataForPackageResult {
   final String outputFilePath;
