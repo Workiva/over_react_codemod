@@ -29,6 +29,9 @@ final _debug = false;
 
 void main() {
   group('required_props data collection and codemod end-to-end behavior:', () {
+    final requiredPropsScript = p.join(
+        findPackageRootFor(p.current), 'bin/null_safety_required_props.dart');
+
     const name = 'test_package';
     late d.DirectoryDescriptor projectDir;
     late String dataFilePath;
@@ -46,18 +49,20 @@ void main() {
       dataFilePath = p.join(tmpDir.path, 'prop_requiredness.json');
 
       // TODO perhaps just run on original package dir?
-      final collectScript = p.join(
-          findPackageRootFor(p.current), 'bin/prop_requiredness/collect.dart');
-      await runCommandAndThrowIfFailed('dart',
-          [collectScript, '--output', dataFilePath, projectDir.io.path]);
+      await runCommandAndThrowIfFailed('dart', [
+        requiredPropsScript,
+        'collect',
+        '--output',
+        dataFilePath,
+        projectDir.io.path
+      ]);
     });
 
     test('adds hints as expected in different cases', () async {
-      final codemodScript = p.join(findPackageRootFor(p.current),
-          'bin/null_safety_migrator_required_props.dart');
       await testCodemod(
-        script: codemodScript,
+        script: requiredPropsScript,
         args: [
+          'codemod',
           '--prop-requiredness-data',
           dataFilePath,
           '--yes-to-all',

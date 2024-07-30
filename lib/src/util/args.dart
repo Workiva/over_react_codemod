@@ -98,11 +98,27 @@ List<String> _removeOptionOrFlagArgs(List<String> args, String argName,
 
 /// Returns a new ArgParser that redefines arguments supported in codemod's ArgParser,
 /// so that they can be forwarded along without consumers needing to use `--`.
-///
-/// Args are hidden them since codemod will show them in its help content.
-ArgParser argParserWithCodemodArgs() => ArgParser()
-  ..addFlag('help', abbr: 'h', negatable: false, hide: true)
-  ..addFlag('verbose', abbr: 'v', negatable: false, hide: true)
-  ..addFlag('yes-to-all', negatable: false, hide: true)
-  ..addFlag('fail-on-changes', negatable: false, hide: true)
-  ..addFlag('stderr-assume-tty', negatable: false, hide: true);
+void addCodemodArgs(ArgParser argParser) => argParser
+  ..addFlag(
+    'verbose',
+    abbr: 'v',
+    negatable: false,
+    help: 'Outputs all logging to stdout/stderr.',
+  )
+  ..addFlag(
+    'yes-to-all',
+    negatable: false,
+    help: 'Forces all patches accepted without prompting the user. '
+        'Useful for scripts.',
+  )
+  ..addFlag(
+    'fail-on-changes',
+    negatable: false,
+    help: 'Returns a non-zero exit code if there are changes to be made. '
+        'Will not make any changes (i.e. this is a dry-run).',
+  )
+  ..addFlag(
+    'stderr-assume-tty',
+    negatable: false,
+    help: 'Forces ansi color highlighting of stderr. Useful for debugging.',
+  );

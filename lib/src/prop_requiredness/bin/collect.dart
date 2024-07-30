@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:args/args.dart';
-import 'package:io/io.dart';
+import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/prop_requiredness/analysis.dart';
 import 'package:over_react_codemod/src/prop_requiredness/bin/aggregate.dart'
@@ -21,108 +20,106 @@ import '../logging.dart';
 
 const individualResultsDir = '.package-cache/prop_requiredness/';
 
-Future<void> main(List<String> args) async {
-  assert(
-      false,
-      'The analyzer can throw a "Bad state: Expected all legacy types" error when'
-      ' it encounters certain code asserts are enabled.'
-      ' Disable asserts to run this script successfully.');
+class CollectCommand extends Command {
+  @override
+  String get description => 'Collects prop usage data on the specified package(s) and aggregates it, writing to $defaultAggregatedOutputFile.';
 
-  final argParser = ArgParser()
-    ..addFlag('help', help: 'Print this usage information', negatable: false)
-    ..addOption('raw-data-output-directory',
-        help: 'The directory to output individual package usage results to.',
-        defaultsTo: '.')
-    ..addOption(
+  @override
+  String get name => 'collect';
+
+  @override
+  String get usageFooter => packageSpecFormatsHelpText;
+
+  CollectCommand() {
+    argParser
+      ..addOption('raw-data-output-directory',
+          help: 'The directory to output individual package usage results to.',
+          defaultsTo: '.')..addOption(
       'output',
       abbr: 'o',
       help: 'The file to write aggregated results to.',
       valueHelp: 'path',
       defaultsTo: defaultAggregatedOutputFile,
     );
-  final parsedArgs = argParser.parse(args);
-  if (parsedArgs['help'] as bool) {
-    print('''
-Collects prop usage data on the specified package(s) and aggregates it, writing to $defaultAggregatedOutputFile.
-
-Usage: <collect-script> <package_spec> [additional_package_specs...]
-
-${argParser.usage}
-
-$packageSpecFormatsHelpText''');
-    exit(ExitCode.success.code);
   }
 
-  final aggregatedOutputFile = parsedArgs['output']! as String;
+  @override
+  FutureOr? run() async {
+    final parsedArgs = this.argResults!;
 
-  final rawDataOutputDirectory =
-      parsedArgs['raw-data-output-directory']! as String;
-  final packageSpecStrings = parsedArgs.rest;
-  if (packageSpecStrings.isEmpty) {
-    print('Must specify package(s).\n${argParser.usage}');
-    exit(ExitCode.usage.code);
-  }
+    final aggregatedOutputFile = parsedArgs['output']! as String;
 
-  initLogging();
-
-  late final versionManager = PackageVersionManager.persistentSystemTemp();
-
-  final logger = Logger('prop_requiredness.collect');
-  logger.info('Parsing/initializing package specs..');
-  final packages = await Future.wait(packageSpecStrings.map((arg) {
-    return parsePackageSpec(arg, getVersionManager: () => versionManager);
-  }));
-
-  logger.info('Done. Package specs: ${packages.map((p) => '\n- $p').join('')}');
-
-  logger.info(
-      "Processing packages and writing raw data to directory '$rawDataOutputDirectory'...");
-
-  final allResults = <CollectDataForPackageResult>[];
-
-  final processedPackages = <String>{};
-  for (final packageSpec in packages) {
-    final packageName = packageSpec.packageName;
-    if (processedPackages.contains(packageName)) {
-      throw Exception('Already processed $packageName');
+    final rawDataOutputDirectory =
+    parsedArgs['raw-data-output-directory']! as String;
+    final packageSpecStrings = parsedArgs.rest;
+    if (packageSpecStrings.isEmpty) {
+      usageException('Must specify package(s).');
     }
 
-    final result = (await collectDataForPackage(
-      packageSpec,
-      processDependencyPackages: true,
-      skipIfAlreadyCollected: false,
-      skipIfNoUsages: false,
-      packageFilter: (p) => !processedPackages.contains(p.name),
-      outputDirectory: rawDataOutputDirectory,
-    ))!;
-    allResults.add(result);
-    logger.info(result);
-    for (final otherPackage in result.otherPackagesProcessed) {
-      if (processedPackages.contains(otherPackage)) {
-        throw Exception('$otherPackage was double-processed');
+    initLogging();
+
+    late final versionManager = PackageVersionManager.persistentSystemTemp();
+
+    final logger = Logger('prop_requiredness.collect');
+    logger.info('Parsing/initializing package specs..');
+    final packages = await Future.wait(packageSpecStrings.map((arg) {
+      return parsePackageSpec(arg, getVersionManager: () => versionManager);
+    }));
+
+    logger
+        .info('Done. Package specs: ${packages.map((p) => '\n- $p').join('')}');
+
+    logger.info(
+        "Processing packages and writing raw data to directory '$rawDataOutputDirectory'...");
+
+    final allResults = <CollectDataForPackageResult>[];
+
+    final processedPackages = <String>{};
+    for (final packageSpec in packages) {
+      final packageName = packageSpec.packageName;
+      if (processedPackages.contains(packageName)) {
+        throw Exception('Already processed $packageName');
       }
-      processedPackages.add(otherPackage);
+
+      final result = (await collectDataForPackage(
+        packageSpec,
+        processDependencyPackages: true,
+        skipIfAlreadyCollected: false,
+        skipIfNoUsages: false,
+        packageFilter: (p) => !processedPackages.contains(p.name),
+        outputDirectory: rawDataOutputDirectory,
+      ))!;
+      allResults.add(result);
+      logger.info(result);
+      for (final otherPackage in result.otherPackagesProcessed) {
+        if (processedPackages.contains(otherPackage)) {
+          throw Exception('$otherPackage was double-processed');
+        }
+        processedPackages.add(otherPackage);
+      }
+      processedPackages.add(packageName);
     }
-    processedPackages.add(packageName);
+
+    logger.info('All results:\n${allResults.map((r) => '- $r\n').join('')}');
+    logger.info(
+        'All result files: ${allResults.map((r) => r.outputFilePath).join(
+            ' ')}');
+
+    logger.info('Collection: done!');
+
+    logger.info(
+        'Aggregating data... Same as running the following command manually:\n'
+            '    dart run bin/prop_requiredness/aggregate.dart ${allResults
+            .map((r) => r.outputFilePath).join(' ')}');
+
+    final aggregated =
+    aggregateData(loadResultFiles(allResults.map((r) => r.outputFilePath)));
+
+    File(aggregatedOutputFile)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(jsonEncodeIndented(aggregated));
+    logger.info('Wrote aggregated results to ${aggregatedOutputFile}');
   }
-
-  logger.info('All results:\n${allResults.map((r) => '- $r\n').join('')}');
-  logger.info(
-      'All result files: ${allResults.map((r) => r.outputFilePath).join(' ')}');
-
-  logger.info('Collection: done!');
-
-  logger.info(
-      'Aggregating data... Same as running the following command manually:\n'
-      '    dart run bin/prop_requiredness/aggregate.dart ${allResults.map((r) => r.outputFilePath).join(' ')}');
-
-  final aggregated =
-      aggregateData(loadResultFiles(allResults.map((r) => r.outputFilePath)));
-
-  File(aggregatedOutputFile)
-    ..parent.createSync(recursive: true)
-    ..writeAsStringSync(jsonEncodeIndented(aggregated));
-  logger.info('Wrote aggregated results to ${aggregatedOutputFile}');
 }
 
 final jsonEncodeIndented = const JsonEncoder.withIndent('  ').convert;
@@ -138,19 +135,19 @@ class CollectDataForPackageResult {
 
   @override
   String toString() => 'CollectDataForPackageResult(${{
-        'outputFilePath': outputFilePath,
-        'otherPackagesProcessed': otherPackagesProcessed.toList(),
-      }})';
+    'outputFilePath': outputFilePath,
+    'otherPackagesProcessed': otherPackagesProcessed.toList(),
+  }})';
 }
 
-Future<CollectDataForPackageResult?> collectDataForPackage(
-  PackageSpec package, {
-  bool processDependencyPackages = false,
-  bool Function(Package)? packageFilter,
-  bool skipIfAlreadyCollected = true,
-  bool skipIfNoUsages = true,
-  String? outputDirectory,
-}) async {
+Future<CollectDataForPackageResult?> collectDataForPackage(PackageSpec package,
+    {
+      bool processDependencyPackages = false,
+      bool Function(Package)? packageFilter,
+      bool skipIfAlreadyCollected = true,
+      bool skipIfNoUsages = true,
+      String? outputDirectory,
+    }) async {
   outputDirectory ??= '.';
 
   final rootPackageName = package.packageName;

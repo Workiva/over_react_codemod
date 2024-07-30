@@ -12,4 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export 'package:over_react_codemod/src/executables/required_props.dart';
+export 'package:over_react_codemod/src/executables/null_safety_required_props.dart';

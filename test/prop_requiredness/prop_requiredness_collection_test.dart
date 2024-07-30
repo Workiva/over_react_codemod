@@ -244,7 +244,8 @@ Future<PropRequirednessResults> collectAndAggregateDataForTestPackage() async {
 
   await runCommandAndThrowIfFailedInheritIo('dart', [
     'run',
-    p.join(orcmRoot, 'bin/prop_requiredness/collect.dart'),
+    p.join(orcmRoot, 'bin/null_safety_required_props.dart'),
+    'collect',
     ...['--raw-data-output-directory', collectOutputDirectory.path],
     ...['--output', aggregateOutputFile.path],
     testPackagePath,
