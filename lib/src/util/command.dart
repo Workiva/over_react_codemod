@@ -5,7 +5,7 @@ Future<String> runCommandAndThrowIfFailed(String command, List<String> args,
   final result = await Process.run(command, args, workingDirectory: workingDirectory);
 
   if (result.exitCode != 0) {
-    throw ProcessException(command, args, result.stderr as String, result.exitCode);
+    throw ProcessException(command, args, '${result.stdout}${result.stderr}', result.exitCode);
   }
 
   return ((returnErr ? result.stderr : result.stdout) as String).trim();
