@@ -25,12 +25,14 @@ import 'package:over_react_codemod/src/util.dart';
 import '../util/args.dart';
 
 abstract class _Options {
+  static const propRequirednessData = 'prop-requiredness-data';
   static const privateRequirednessThreshold = 'private-requiredness-threshold';
   static const privateMaxAllowedSkipRate = 'private-max-allowed-skip-rate';
   static const publicRequirednessThreshold = 'public-requiredness-threshold';
   static const publicMaxAllowedSkipRate = 'public-max-allowed-skip-rate';
 
   static const all = {
+    propRequirednessData,
     privateRequirednessThreshold,
     privateMaxAllowedSkipRate,
     publicRequirednessThreshold,
@@ -52,9 +54,14 @@ abstract class _Flags {
 /// also be run when migrating to null-safety.
 void main(List<String> args) async {
   final parser = argParserWithCodemodArgs()
+    ..addOption(_Options.propRequirednessData,
+        help:
+            "The file containing prop requiredness data, collected via the 'over_react_codemod:collect' command.",
+        defaultsTo: 'prop_requiredness.json')
     ..addFlag(_Flags.honorRequiredAnnotations,
         defaultsTo: true,
-        help: 'Whether to migrate @requiredProp and `@nullableRequiredProp` props to late required, regardless of usage data.'
+        help:
+            'Whether to migrate @requiredProp and `@nullableRequiredProp` props to late required, regardless of usage data.'
             '\nNote that @requiredProp has no effect on function components, so these annotations may be incorrect.')
     ..addOption(_Options.privateRequirednessThreshold,
         defaultsTo: (0.95).toString(),
@@ -76,14 +83,15 @@ void main(List<String> args) async {
             '\nIf above this, all props in a mixin will be made optional (with a TODO comment).');
 
   final parsedArgs = parser.parse(args);
+  final propRequirednessDataFile =
+      parsedArgs[_Options.propRequirednessData]! as String;
   final codemodArgs =
       removeFlagArgs(removeOptionArgs(args, _Options.all), _Flags.all);
 
   final dartPaths = allDartPathsExceptHiddenAndGenerated();
 
-  final results = PropRequirednessResults.fromJson(jsonDecode(File(
-          '/Users/greglittlefield/workspaces/wdesk_analysis_tools/prop_requiredness.json')
-      .readAsStringSync()));
+  final results = PropRequirednessResults.fromJson(
+      jsonDecode(File(propRequirednessDataFile).readAsStringSync()));
   final recommender = PropRequirednessRecommender(
     results,
     privateRequirednessThreshold:
