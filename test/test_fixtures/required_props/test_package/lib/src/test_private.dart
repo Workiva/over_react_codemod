@@ -7,11 +7,6 @@ mixin TestPrivateProps on UiProps {
   String set80percent;
   String set20percent;
   String set0percent;
-
-  @requiredProp
-  String annotatedRequiredProp;
-  @nullableRequiredProp
-  String annotatedNullableRequiredProp;
 }
 
 UiFactory<TestPrivateProps> TestPrivate = uiFunction(

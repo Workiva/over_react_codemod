@@ -36,26 +36,29 @@ void main() {
     late d.DirectoryDescriptor projectDir;
     late String dataFilePath;
 
-    setUp(() async {
-      projectDir = d.DirectoryDescriptor.fromFilesystem(
-          name,
-          p.join(findPackageRootFor(p.current),
-              'test/test_fixtures/required_props/test_package'));
-
-      await projectDir.create();
-
+    setUpAll(() async {
+      print('setUpAll: Collecting data...');
       final tmpDir =
           Directory.systemTemp.createTempSync('required_props_codemod_test');
       dataFilePath = p.join(tmpDir.path, 'prop_requiredness.json');
-
-      // TODO perhaps just run on original package dir?
       await runCommandAndThrowIfFailed('dart', [
         requiredPropsScript,
         'collect',
         '--output',
         dataFilePath,
-        projectDir.io.path
+        p.join(findPackageRootFor(p.current),
+            'test/test_fixtures/required_props/test_package'),
       ]);
+      expect(File(dataFilePath).existsSync(), isTrue);
+      print('setUpAll: Done.');
+    });
+
+    setUp(() async {
+      projectDir = d.DirectoryDescriptor.fromFilesystem(
+          name,
+          p.join(findPackageRootFor(p.current),
+              'test/test_fixtures/required_props/test_package'));
+      await projectDir.create();
     });
 
     test('adds hints as expected in different cases', () async {
@@ -78,14 +81,71 @@ mixin TestPrivateProps on UiProps {
   String/*?*/ set20percent;
   // TODO(orcm.required_props): No data for prop; either it's never set, all places it was set were on dynamic usages, or requiredness data was collected on a version before this prop was added.
   String/*?*/ set0percent;
-
-  /*late*/ String annotatedRequiredProp;
-  /*late*/ String annotatedNullableRequiredProp;
 }''')),
             ]),
           ]),
         ]),
       );
+    });
+
+    group('makes props with required over_react annotations late', () {
+      test('by default', () async {
+        await testCodemod(
+          script: requiredPropsScript,
+          args: [
+            'codemod',
+            '--prop-requiredness-data',
+            dataFilePath,
+            '--yes-to-all',
+          ],
+          input: projectDir,
+          expectedOutput: d.dir(projectDir.name, [
+            d.dir('lib', [
+              d.dir('src', [
+                // Note that there's no to-do comment on annotatedRequiredPropNeverSet
+                // since we short-circuit the logic that inserts it when trusting the annotation.
+                d.file('test_required_annotations.dart', contains(r'''
+mixin TestRequiredAnnotationsProps on UiProps {
+  /*late*/ String annotatedRequiredProp;
+  /// Doc comment
+  /*late*/ String annotatedRequiredPropWithDocComment;
+  /*late*/ String annotatedNullableRequiredProp;
+  /*late*/ String annotatedRequiredPropNeverSet;
+}''')),
+              ]),
+            ]),
+          ]),
+        );
+      });
+
+      test('unless consumers pass --no-trust-required-annotation', () async {
+        await testCodemod(
+          script: requiredPropsScript,
+          args: [
+            'codemod',
+            '--prop-requiredness-data',
+            dataFilePath,
+            '--no-trust-required-annotations',
+            '--yes-to-all',
+          ],
+          input: projectDir,
+          expectedOutput: d.dir(projectDir.name, [
+            d.dir('lib', [
+              d.dir('src', [
+                d.file('test_required_annotations.dart', contains(r'''
+mixin TestRequiredAnnotationsProps on UiProps {
+  /*late*/ String annotatedRequiredProp;
+  /// Doc comment
+  /*late*/ String annotatedRequiredPropWithDocComment;
+  /*late*/ String annotatedNullableRequiredProp;
+  // TODO(orcm.required_props): No data for prop; either it's never set, all places it was set were on dynamic usages, or requiredness data was collected on a version before this prop was added.
+  String/*?*/ annotatedRequiredPropNeverSet;
+}''')),
+              ]),
+            ]),
+          ]),
+        );
+      });
     });
   }, timeout: Timeout(Duration(minutes: 2)));
 }
