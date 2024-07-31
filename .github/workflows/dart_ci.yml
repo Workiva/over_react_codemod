@@ -68,6 +68,8 @@ jobs:
 
       - name: Create SBOM Release Asset
         uses: anchore/sbom-action@v0
+        # This fails if it runs more than once within a given build
+        if: matrix.sdk != '2.18.7'
         with:
           path: ./
           format: cyclonedx-json
