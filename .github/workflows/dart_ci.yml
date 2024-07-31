@@ -41,6 +41,12 @@ jobs:
         run: dart analyze
         if: always() && steps.install.outcome == 'success'
 
+      - name: Ensure checked-in generated files are up to date
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          git diff --exit-code
+        if: always() && steps.install.outcome == 'success' && matrix.sdk == '2.19.6'
+
   test:
     runs-on: ubuntu-latest
     strategy:
