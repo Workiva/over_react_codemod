@@ -34,7 +34,34 @@ class CollectCommand extends Command {
       '$invocationPrefix [<options>] <package_spec> [<package_spec>...]';
 
   @override
-  String get usageFooter => '\n$packageSpecFormatsHelpText';
+  String get usageFooter =>
+      '\n$packageSpecFormatsHelpText\n\n$_usageInstructions';
+
+  String get _usageInstructions => r'''
+Instructions
+============
+
+To collect data, first identify the least-common consumers of your package.
+
+For example, say you're dealing with package A, which is directly consumed by packages B, E, and F, and so on:
+
+    A---B---C---D
+    |\     /
+    | E----
+    \
+     F---G---H'''
+      '''
+\n\nThe least-common consumers would be C (covers both B and E) and F, so we'd run:
+
+   $invocationPrefix pub@…:C pub@…:F
+
+Note: if F were to re-export members of A, which could potentially get used in G, we'd do G instead of F.
+
+   $invocationPrefix pub@…:C pub@…:G
+   
+Alternatively, you could just run on D and H from the start, but if they include more transitive dependencies,
+then the analysis step of the collection process will take a bit longer.
+''';
 
   CollectCommand() {
     argParser
