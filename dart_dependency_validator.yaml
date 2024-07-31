@@ -1,16 +1,5 @@
+exclude:
+  - 'test/test_fixtures/**'
 ignore:
-  - a_fake_package
-  - dart_style
   - meta
-  - over_react
-  - pedantic
-  - dart_dev
-  - platform_detect
-  - react
-  - react_material_ui
-  - somewhere_else
   - test_api
-  - test_project
-  - web_skin
-  - web_skin_dart
-  - z_fake_package
