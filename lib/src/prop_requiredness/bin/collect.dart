@@ -111,7 +111,7 @@ then the analysis step of the collection process will take a bit longer.
         .info('Done. Package specs: ${packages.map((p) => '\n- $p').join('')}');
 
     logger.info(
-        "Processing packages and writing raw data to directory '$rawDataOutputDirectory'...");
+        "Processing packages and writing raw usage data to directory '$rawDataOutputDirectory'...");
 
     final allResults = <CollectDataForPackageResult>[];
 
@@ -145,9 +145,7 @@ then the analysis step of the collection process will take a bit longer.
     logger.info(
         'All result files: ${allResults.map((r) => r.outputFilePath).join(' ')}');
 
-    logger.info(
-        'Aggregating data... Same as running the following command manually:\n'
-        '    dart run bin/prop_requiredness/aggregate.dart ${allResults.map((r) => r.outputFilePath).join(' ')}');
+    logger.info('Aggregating raw usage data...');
 
     final aggregated =
         aggregateData(loadResultFiles(allResults.map((r) => r.outputFilePath)));
@@ -155,7 +153,7 @@ then the analysis step of the collection process will take a bit longer.
     File(aggregatedOutputFile)
       ..parent.createSync(recursive: true)
       ..writeAsStringSync(jsonEncodeIndented(aggregated));
-    logger.info('Wrote aggregated results to ${aggregatedOutputFile}');
+    logger.info('Wrote aggregated prop requiredness data to ${aggregatedOutputFile}');
   }
 }
 
@@ -190,6 +188,8 @@ Future<CollectDataForPackageResult?> collectDataForPackage(
   final rootPackageName = package.packageName;
   final logger = Logger('prop_requiredness.${package.packageAndVersionId}');
 
+  logger.info("Collecting raw usage data for $rootPackageName...");
+
   final outputFile = File(p.normalize(
       p.join(outputDirectory, '${package.packageAndVersionId}.json')));
 
@@ -215,8 +215,6 @@ Future<CollectDataForPackageResult?> collectDataForPackage(
         "Skipping package $rootPackageName since it doesn't look like it contains over_react usages");
     return null;
   }
-
-  logger.fine("Collecting data for $rootPackageName...");
 
   // Get latest dependencies, to get latest versions of other packages.
   await runCommandAndThrowIfFailed('dart', ['pub', 'upgrade'],
