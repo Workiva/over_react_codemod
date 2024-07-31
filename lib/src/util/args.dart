@@ -81,7 +81,7 @@ List<String> _removeOptionOrFlagArgs(List<String> args, String argName,
   while ((argIndex = updatedArgs.indexWhere(argPattern.hasMatch)) != -1) {
     final matchingArg = updatedArgs[argIndex];
     bool isOptionWithMultiArgSyntax() {
-      if (isOption) return false;
+      if (!isOption) return false;
       final equalsOrEndGroup = argPattern.firstMatch(matchingArg)![1]!;
       return equalsOrEndGroup != '=';
     }
