@@ -23,13 +23,15 @@ const individualResultsDir = '.package-cache/prop_requiredness/';
 
 class CollectCommand extends Command {
   @override
-  String get description => 'Collects prop usage data on the specified package(s) and aggregates it, writing to $defaultAggregatedOutputFile.';
+  String get description =>
+      'Collects prop usage data on the specified package(s) and aggregates it, writing to $defaultAggregatedOutputFile.';
 
   @override
   String get name => 'collect';
 
   @override
-  String get invocation => '$invocationPrefix [<options>] <package_spec> [<package_spec>...]';
+  String get invocation =>
+      '$invocationPrefix [<options>] <package_spec> [<package_spec>...]';
 
   @override
   String get usageFooter => '\n$packageSpecFormatsHelpText';
@@ -38,13 +40,14 @@ class CollectCommand extends Command {
     argParser
       ..addOption('raw-data-output-directory',
           help: 'The directory to output individual package usage results to.',
-          defaultsTo: '.')..addOption(
-      'output',
-      abbr: 'o',
-      help: 'The file to write aggregated results to.',
-      valueHelp: 'path',
-      defaultsTo: defaultAggregatedOutputFile,
-    );
+          defaultsTo: '.')
+      ..addOption(
+        'output',
+        abbr: 'o',
+        help: 'The file to write aggregated results to.',
+        valueHelp: 'path',
+        defaultsTo: defaultAggregatedOutputFile,
+      );
   }
 
   @override
@@ -54,7 +57,7 @@ class CollectCommand extends Command {
     final aggregatedOutputFile = parsedArgs['output']! as String;
 
     final rawDataOutputDirectory =
-    parsedArgs['raw-data-output-directory']! as String;
+        parsedArgs['raw-data-output-directory']! as String;
     final packageSpecStrings = parsedArgs.rest;
     if (packageSpecStrings.isEmpty) {
       usageException('Must specify package(s).');
@@ -106,18 +109,16 @@ class CollectCommand extends Command {
 
     logger.info('All results:\n${allResults.map((r) => '- $r\n').join('')}');
     logger.info(
-        'All result files: ${allResults.map((r) => r.outputFilePath).join(
-            ' ')}');
+        'All result files: ${allResults.map((r) => r.outputFilePath).join(' ')}');
 
     logger.info('Collection: done!');
 
     logger.info(
         'Aggregating data... Same as running the following command manually:\n'
-            '    dart run bin/prop_requiredness/aggregate.dart ${allResults
-            .map((r) => r.outputFilePath).join(' ')}');
+        '    dart run bin/prop_requiredness/aggregate.dart ${allResults.map((r) => r.outputFilePath).join(' ')}');
 
     final aggregated =
-    aggregateData(loadResultFiles(allResults.map((r) => r.outputFilePath)));
+        aggregateData(loadResultFiles(allResults.map((r) => r.outputFilePath)));
 
     File(aggregatedOutputFile)
       ..parent.createSync(recursive: true)
@@ -139,19 +140,19 @@ class CollectDataForPackageResult {
 
   @override
   String toString() => 'CollectDataForPackageResult(${{
-    'outputFilePath': outputFilePath,
-    'otherPackagesProcessed': otherPackagesProcessed.toList(),
-  }})';
+        'outputFilePath': outputFilePath,
+        'otherPackagesProcessed': otherPackagesProcessed.toList(),
+      }})';
 }
 
-Future<CollectDataForPackageResult?> collectDataForPackage(PackageSpec package,
-    {
-      bool processDependencyPackages = false,
-      bool Function(Package)? packageFilter,
-      bool skipIfAlreadyCollected = true,
-      bool skipIfNoUsages = true,
-      String? outputDirectory,
-    }) async {
+Future<CollectDataForPackageResult?> collectDataForPackage(
+  PackageSpec package, {
+  bool processDependencyPackages = false,
+  bool Function(Package)? packageFilter,
+  bool skipIfAlreadyCollected = true,
+  bool skipIfNoUsages = true,
+  String? outputDirectory,
+}) async {
   outputDirectory ??= '.';
 
   final rootPackageName = package.packageName;
