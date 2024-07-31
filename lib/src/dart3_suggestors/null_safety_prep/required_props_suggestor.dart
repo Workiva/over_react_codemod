@@ -28,12 +28,12 @@ const _todoWithPrefix = 'TODO(orcm.required_props)';
 class RequiredPropsMigrator extends RecursiveAstVisitor<void>
     with ClassSuggestor {
   final PropRequirednessRecommender _propRequirednessRecommender;
-  final bool _honorRequiredAnnotations;
+  final bool _trustRequiredAnnotations;
 
   RequiredPropsMigrator(
     this._propRequirednessRecommender, {
-    required bool honorRequiredAnnotations,
-  }) : _honorRequiredAnnotations = honorRequiredAnnotations;
+    required bool trustRequiredAnnotations,
+  }) : _trustRequiredAnnotations = trustRequiredAnnotations;
 
   @override
   Future<void> generatePatches() async {
@@ -132,7 +132,7 @@ class RequiredPropsMigrator extends RecursiveAstVisitor<void>
           requiredPropAnnotation.endToken.nextTokenOrCommentOffset ??
               requiredPropAnnotation.end);
 
-      if (_honorRequiredAnnotations) {
+      if (_trustRequiredAnnotations) {
         yieldLateHintPatch();
         return;
       }

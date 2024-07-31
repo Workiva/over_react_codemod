@@ -45,9 +45,9 @@ abstract class _Options {
 }
 
 abstract class _Flags {
-  static const honorRequiredAnnotations = 'honor-required-annotations';
+  static const trustRequiredAnnotations = 'trust-required-annotations';
   static const all = {
-    honorRequiredAnnotations,
+    trustRequiredAnnotations,
   };
 }
 
@@ -67,7 +67,7 @@ class CodemodCommand extends Command {
           help:
               "The file containing prop requiredness data, collected via the 'over_react_codemod:collect' command.",
           defaultsTo: 'prop_requiredness.json')
-      ..addFlag(_Flags.honorRequiredAnnotations,
+      ..addFlag(_Flags.trustRequiredAnnotations,
           defaultsTo: true,
           help:
               'Whether to migrate @requiredProp and `@nullableRequiredProp` props to late required, regardless of usage data.'
@@ -126,8 +126,8 @@ class CodemodCommand extends Command {
       [
         RequiredPropsMigrator(
           recommender,
-          honorRequiredAnnotations:
-              parsedArgs[_Flags.honorRequiredAnnotations] as bool,
+          trustRequiredAnnotations:
+              parsedArgs[_Flags.trustRequiredAnnotations] as bool,
         ),
       ],
       defaultYes: true,
