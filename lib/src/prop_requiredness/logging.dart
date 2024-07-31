@@ -12,7 +12,7 @@ void logProgress([String character = '.']) {
 }
 
 void initLogging({bool verbose = false}) {
-  Logger.root.level = verbose ? Level.FINE : Level.INFO;
+  Logger.root.level = verbose ? Level.FINEST : Level.INFO;
   Logger.root.onRecord.listen((record) {
     if (lastLogWasProgress) stderr.writeln();
     lastLogWasProgress = false;
