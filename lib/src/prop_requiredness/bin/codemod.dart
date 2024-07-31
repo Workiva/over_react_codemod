@@ -23,6 +23,7 @@ import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/require
 import 'package:over_react_codemod/src/prop_requiredness/aggregated_data.sg.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/command_runner.dart';
+import 'package:over_react_codemod/src/util/package_util.dart';
 
 import '../../util/args.dart';
 
@@ -102,6 +103,8 @@ class CodemodCommand extends Command {
     final codemodArgs = removeFlagArgs(
         removeOptionArgs(parsedArgs.arguments, _Options.all), _Flags.all);
 
+    final packageRoot = findPackageRootFor('.');
+    await runPubGetIfNeeded(packageRoot);
     final dartPaths = allDartPathsExceptHiddenAndGenerated();
 
     final results = PropRequirednessResults.fromJson(
