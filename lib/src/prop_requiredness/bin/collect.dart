@@ -74,6 +74,12 @@ then the analysis step of the collection process will take a bit longer.
         help: 'The file to write aggregated results to.',
         valueHelp: 'path',
         defaultsTo: defaultAggregatedOutputFile,
+      )
+      ..addFlag(
+        'verbose',
+        defaultsTo: false,
+        negatable: false,
+        help: 'Enable verbose output.',
       );
   }
 
@@ -82,6 +88,7 @@ then the analysis step of the collection process will take a bit longer.
     final parsedArgs = this.argResults!;
 
     final aggregatedOutputFile = parsedArgs['output']! as String;
+    final verbose = parsedArgs['verbose']! as bool;
 
     final rawDataOutputDirectory =
         parsedArgs['raw-data-output-directory']! as String;
@@ -90,12 +97,12 @@ then the analysis step of the collection process will take a bit longer.
       usageException('Must specify package(s).');
     }
 
-    initLogging();
+    initLogging(verbose: verbose);
 
     late final versionManager = PackageVersionManager.persistentSystemTemp();
 
     final logger = Logger('prop_requiredness.collect');
-    logger.info('Parsing/initializing package specs..');
+    logger.info('Parsing/initializing package specs...');
     final packages = await Future.wait(packageSpecStrings.map((arg) {
       return parsePackageSpec(arg, getVersionManager: () => versionManager);
     }));
@@ -124,7 +131,7 @@ then the analysis step of the collection process will take a bit longer.
         outputDirectory: rawDataOutputDirectory,
       ))!;
       allResults.add(result);
-      logger.info(result);
+      logger.fine(result);
       for (final otherPackage in result.otherPackagesProcessed) {
         if (processedPackages.contains(otherPackage)) {
           throw Exception('$otherPackage was double-processed');
@@ -133,12 +140,10 @@ then the analysis step of the collection process will take a bit longer.
       }
       processedPackages.add(packageName);
     }
-
-    logger.info('All results:\n${allResults.map((r) => '- $r\n').join('')}');
+    logger.info('Done!');
+    logger.fine('All results:\n${allResults.map((r) => '- $r\n').join('')}');
     logger.info(
         'All result files: ${allResults.map((r) => r.outputFilePath).join(' ')}');
-
-    logger.info('Collection: done!');
 
     logger.info(
         'Aggregating data... Same as running the following command manually:\n'
@@ -231,7 +236,7 @@ Future<CollectDataForPackageResult?> collectDataForPackage(
 
   outputFile.parent.createSync(recursive: true);
   outputFile.writeAsStringSync(jsonEncode(results));
-  logger.info('Wrote data to ${outputFile.path}');
+  logger.fine('Wrote data to ${outputFile.path}');
 
   return CollectDataForPackageResult(
     outputFilePath: outputFile.path,

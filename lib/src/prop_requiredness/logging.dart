@@ -10,13 +10,12 @@ void logProgress([String character = '.']) {
   stderr.write(character);
 }
 
-void initLogging() {
-  Logger.root.level = Level.FINE;
+void initLogging({bool verbose = false}) {
+  Logger.root.level = verbose ? Level.FINE : Level.INFO;
   Logger.root.onRecord.listen((record) {
     if (lastLogWasProgress) stderr.writeln();
     lastLogWasProgress = false;
-
-    print(record);
+    print(verbose ? record : record.message);
     if (record.error != null) print(record.error);
     if (record.stackTrace != null) print(record.stackTrace);
   });

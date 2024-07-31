@@ -246,7 +246,7 @@ PropRequirednessResults aggregateData(
   const unsetThreshold = 0.9;
   const otherNames = {'renderInput', 'options'};
   logger.finer(
-      'Collecting usages where props weren\'t set, using threshold $unsetThreshold');
+      'Collecting debug usages where props weren\'t set, using threshold $unsetThreshold');
   for (final usage in allUsages) {
     if (getUsageSkipReason(usage) != null) continue;
 
