@@ -107,6 +107,7 @@ mixin TestPrivateProps on UiProps {
                 d.file('test_required_annotations.dart', contains(r'''
 mixin TestRequiredAnnotationsProps on UiProps {
   /*late*/ String annotatedRequiredProp;
+
   /// Doc comment
   /*late*/ String annotatedRequiredPropWithDocComment;
   /*late*/ String annotatedNullableRequiredProp;
@@ -135,6 +136,7 @@ mixin TestRequiredAnnotationsProps on UiProps {
                 d.file('test_required_annotations.dart', contains(r'''
 mixin TestRequiredAnnotationsProps on UiProps {
   /*late*/ String annotatedRequiredProp;
+
   /// Doc comment
   /*late*/ String annotatedRequiredPropWithDocComment;
   /*late*/ String annotatedNullableRequiredProp;
