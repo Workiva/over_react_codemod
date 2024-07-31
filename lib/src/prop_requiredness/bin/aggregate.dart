@@ -164,7 +164,7 @@ PropRequirednessResults aggregateData(
               mixinIdsByVisibilityByPackage[mixinPackage];
           if (mixinIdsByVisibility != null &&
               getVisibilityForMixinIdOrCompanion(mixinIdsByVisibility,
-                      mixinId: mixinId, mixinName: mixinName) !=
+                      mixinId: mixinId, mixinName: mixinName) ==
                   null) {
             mismatchedMixinIdsByUsagePackage
                 .putIfAbsent(usagePackage, () => {})
