@@ -19,7 +19,8 @@ Future<PackageInfo> getPackageInfo(PackageSpec package) async {
   final pubspecContent = await pubspecFile.readAsString();
 
   final libDirectory = p.canonicalize(p.join(directory.path, 'lib'));
-  final canonicalizedPaths = allDartFilesWithin(libDirectory).map(p.canonicalize).toList();
+  final canonicalizedPaths =
+      allDartFilesWithin(libDirectory).map(p.canonicalize).toList();
   if (canonicalizedPaths.isEmpty) {
     throw Exception(
         "No Dart files found in lib directory '$libDirectory'. Something probably went wrong.");
@@ -60,7 +61,8 @@ Stream<ResolvedUnitResult> getResolvedLibUnitsForPackage(
   required bool includeDependencyPackages,
   bool Function(Package)? packageFilter,
 }) async* {
-  final logger = Logger('getResolvedLibUnitsForPackage.${package.packageAndVersionId}');
+  final logger =
+      Logger('getResolvedLibUnitsForPackage.${package.packageAndVersionId}');
 
   final analyzeStopWatch = Stopwatch()..start();
 
@@ -77,14 +79,18 @@ Stream<ResolvedUnitResult> getResolvedLibUnitsForPackage(
           'No packages file found for context with root ${context.contextRoot.workspace.root}');
     }
     final resourceProvider = context.contextRoot.resourceProvider;
-    final packageConfig = await loadPackageConfigUri(packagesFile.toUri(), loader: (uri) async {
-      return resourceProvider.getFile(resourceProvider.pathContext.fromUri(uri)).readAsBytesSync();
+    final packageConfig =
+        await loadPackageConfigUri(packagesFile.toUri(), loader: (uri) async {
+      return resourceProvider
+          .getFile(resourceProvider.pathContext.fromUri(uri))
+          .readAsBytesSync();
     });
     final otherPackageRootPaths = packageConfig.packages
         .where((p) => p.name != package.packageName)
         .where((p) => packageFilter?.call(p) ?? true)
         .map((p) => resourceProvider.pathContext.fromUri(p.packageUriRoot));
-    otherPackagesFiles = otherPackageRootPaths.map(p.canonicalize).expand(allDartFilesWithin);
+    otherPackagesFiles =
+        otherPackageRootPaths.map(p.canonicalize).expand(allDartFilesWithin);
   }
 
   final filesToAnalyze = [
@@ -109,7 +115,7 @@ Stream<ResolvedUnitResult> getResolvedLibUnitsForPackage(
     }
   }
 
-  logger.finer('Done. Analysis (and async iteration) took ${analyzeStopWatch.elapsed}');
+  logger.finer(
+      'Done. Analysis (and async iteration) took ${analyzeStopWatch.elapsed}');
   analyzeStopWatch.stop();
 }
-

@@ -153,7 +153,8 @@ then the analysis step of the collection process will take a bit longer.
     File(aggregatedOutputFile)
       ..parent.createSync(recursive: true)
       ..writeAsStringSync(jsonEncodeIndented(aggregated));
-    logger.info('Wrote aggregated prop requiredness data to ${aggregatedOutputFile}');
+    logger.info(
+        'Wrote aggregated prop requiredness data to ${aggregatedOutputFile}');
   }
 }
 

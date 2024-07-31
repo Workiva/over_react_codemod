@@ -5,6 +5,7 @@ part 'test_required_annotations.over_react.g.dart';
 mixin TestRequiredAnnotationsProps on UiProps {
   @requiredProp
   String annotatedRequiredProp;
+
   /// Doc comment
   @requiredProp
   String annotatedRequiredPropWithDocComment;
@@ -23,6 +24,5 @@ usages() {
   (TestRequiredAnnotations()
     ..annotatedRequiredProp = ''
     ..annotatedRequiredPropWithDocComment = ''
-    ..annotatedNullableRequiredProp = ''
-  )();
+    ..annotatedNullableRequiredProp = '')();
 }

@@ -20,7 +20,8 @@ class PackageResults {
   final Map<String, Map<Visibility, Set<String>>> mixinIdsByVisibilityByPackage;
   final Map<String, Set<String>> allMixinUsagesByMixinId;
 
-  factory PackageResults.fromJson(Map<String, dynamic> json) => _$PackageResultsFromJson(json);
+  factory PackageResults.fromJson(Map<String, dynamic> json) =>
+      _$PackageResultsFromJson(json);
 
   PackageResults({
     required this.dataVersion,
@@ -37,7 +38,8 @@ class PackageResults {
 
 PackageResults? tryParseResults(String potentialJson) {
   try {
-    return PackageResults.fromJson((jsonDecode(potentialJson) as Map).cast<String, dynamic>());
+    return PackageResults.fromJson(
+        (jsonDecode(potentialJson) as Map).cast<String, dynamic>());
   } catch (_) {
     return null;
   }
@@ -76,7 +78,8 @@ class UsageDebugInfo {
 
   UsageDebugInfo({required this.usageBuilderSource});
 
-  factory UsageDebugInfo.fromJson(Map<String, dynamic> json) => _$UsageDebugInfoFromJson(json);
+  factory UsageDebugInfo.fromJson(Map<String, dynamic> json) =>
+      _$UsageDebugInfoFromJson(json);
 
   Map<String, dynamic> toJson() => _$UsageDebugInfoToJson(this);
 }
@@ -95,7 +98,8 @@ class UsageMixinData {
     required this.mixinPropsSet,
   });
 
-  factory UsageMixinData.fromJson(Map<String, dynamic> json) => _$UsageMixinDataFromJson(json);
+  factory UsageMixinData.fromJson(Map<String, dynamic> json) =>
+      _$UsageMixinDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$UsageMixinDataToJson(this);
 }

@@ -9,14 +9,16 @@ import 'package:collection/collection.dart';
 //     Possibly due to the `LibraryElementImpl? get library => thisOrAncestorOfType();` impl,
 //     and an inefficient `thisOrAncestorOfType` impl: https://github.com/dart-lang/sdk/issues/53255
 
-Iterable<InterfaceElement> getAllPropsClassesOrMixins(InterfaceElement propsElement) sync* {
+Iterable<InterfaceElement> getAllPropsClassesOrMixins(
+    InterfaceElement propsElement) sync* {
   final propsAndSupertypeElements = propsElement.thisAndSupertypesList;
 
   // There are two UiProps; one in component_base, and one in builder_helpers that extends from it.
   // Use the component_base one, since there are some edge-cases of props that don't extend from the
   // builder_helpers version.
   final uiPropsElement = propsAndSupertypeElements.firstWhereOrNull((i) =>
-      i.name == 'UiProps' && i.library.name == 'over_react.component_declaration.component_base');
+      i.name == 'UiProps' &&
+      i.library.name == 'over_react.component_declaration.component_base');
 
   // If propsElement does not inherit from from UiProps, it could still be a legacy mixin that doesn't implement UiProps.
   // This check is only necessary to retrieve props when [propsElement] is itself a legacy mixin, and not when legacy
@@ -35,15 +37,16 @@ Iterable<InterfaceElement> getAllPropsClassesOrMixins(InterfaceElement propsElem
     if (uiPropsAndSupertypeElements?.contains(interface) ?? false) continue;
 
     // Filter out generated accessors mixins for legacy concrete props classes.
-    late final isFromGeneratedFile = interface.source.uri.path.endsWith('.over_react.g.dart');
+    late final isFromGeneratedFile =
+        interface.source.uri.path.endsWith('.over_react.g.dart');
     if (interface.name.endsWith('AccessorsMixin') && isFromGeneratedFile) {
       continue;
     }
 
     final isMixinBasedPropsMixin = interface is MixinElement &&
         interface.superclassConstraints.any((s) => s.element.name == 'UiProps');
-    late final isLegacyPropsOrPropsMixinConsumerClass =
-        !isFromGeneratedFile && interface.metadata.any(_isOneOfThePropsAnnotations);
+    late final isLegacyPropsOrPropsMixinConsumerClass = !isFromGeneratedFile &&
+        interface.metadata.any(_isOneOfThePropsAnnotations);
 
     if (!isMixinBasedPropsMixin && !isLegacyPropsOrPropsMixinConsumerClass) {
       continue;
@@ -53,15 +56,18 @@ Iterable<InterfaceElement> getAllPropsClassesOrMixins(InterfaceElement propsElem
   }
 }
 
-Iterable<FieldElement> getPropsDeclaredInMixin(InterfaceElement interface) sync* {
+Iterable<FieldElement> getPropsDeclaredInMixin(
+    InterfaceElement interface) sync* {
   for (final field in interface.fields) {
     if (field.isStatic) continue;
     if (field.isSynthetic) continue;
 
     final accessorAnnotation = _getAccessorAnnotation(field.metadata);
-    final isNoGenerate =
-        accessorAnnotation?.computeConstantValue()?.getField('doNotGenerate')?.toBoolValue() ??
-            false;
+    final isNoGenerate = accessorAnnotation
+            ?.computeConstantValue()
+            ?.getField('doNotGenerate')
+            ?.toBoolValue() ??
+        false;
     if (isNoGenerate) continue;
 
     yield field;
@@ -86,20 +92,23 @@ bool _isOneOfThePropsAnnotations(ElementAnnotation e) {
   // [2]
   final element = e.element;
   return element is ConstructorElement &&
-      const {'Props', 'PropsMixin', 'AbstractProps'}.contains(element.enclosingElement.name);
+      const {'Props', 'PropsMixin', 'AbstractProps'}
+          .contains(element.enclosingElement.name);
 }
 
 bool _isPropsMixinAnnotation(ElementAnnotation e) {
   // [2]
   final element = e.element;
-  return element is ConstructorElement && element.enclosingElement.name == 'PropsMixin';
+  return element is ConstructorElement &&
+      element.enclosingElement.name == 'PropsMixin';
 }
 
 ElementAnnotation? _getAccessorAnnotation(List<ElementAnnotation> metadata) {
   return metadata.firstWhereOrNull((annotation) {
     // [2]
     final element = annotation.element;
-    return element is ConstructorElement && element.enclosingElement.name == 'Accessor';
+    return element is ConstructorElement &&
+        element.enclosingElement.name == 'Accessor';
   });
 }
 

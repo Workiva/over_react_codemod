@@ -27,7 +27,6 @@ import 'package:over_react_codemod/src/util/package_util.dart';
 
 import '../../util/args.dart';
 
-
 abstract class _Options {
   static const propRequirednessData = 'prop-requiredness-data';
   static const privateRequirednessThreshold = 'private-requiredness-threshold';

@@ -190,4 +190,3 @@ extension on Token {
     return nextTokenOrComment.offset;
   }
 }
-
