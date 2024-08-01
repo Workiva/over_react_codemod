@@ -8,7 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 main() {
-  group('prop requiredness data collection', () {
+  group('null_safety_required_props collect command', () {
     late PropRequirednessResults aggregated;
 
     setUpAll(() async {

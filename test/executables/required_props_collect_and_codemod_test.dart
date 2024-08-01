@@ -28,7 +28,9 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 final _debug = false;
 
 void main() {
-  group('required_props data collection and codemod end-to-end behavior:', () {
+  group(
+      'null_safety_required_props collect and codemod command, end-to-end behavior:',
+      () {
     final requiredPropsScript = p.join(
         findPackageRootFor(p.current), 'bin/null_safety_required_props.dart');
 
