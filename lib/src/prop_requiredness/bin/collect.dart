@@ -4,9 +4,8 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/prop_requiredness/aggregate.dart';
 import 'package:over_react_codemod/src/prop_requiredness/analysis.dart';
-import 'package:over_react_codemod/src/prop_requiredness/bin/aggregate.dart'
-    show aggregateData, loadResultFiles, defaultAggregatedOutputFile;
 import 'package:over_react_codemod/src/prop_requiredness/collect.dart';
 import 'package:over_react_codemod/src/prop_requiredness/collected_data.sg.dart';
 import 'package:over_react_codemod/src/prop_requiredness/package/parse_spec.dart';
