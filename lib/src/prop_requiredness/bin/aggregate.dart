@@ -13,6 +13,14 @@ import 'package:over_react_codemod/src/prop_requiredness/logging.dart';
 
 const defaultAggregatedOutputFile = 'prop_requiredness.json';
 
+/// Aggregates individual data files, like what the collect command does,
+/// but as a standalone command.
+///
+/// This is leftover from before the collect command also aggregated data,
+/// and is not publicly exposed, but is left in place just in case for
+/// debugging purposes and potential future use.
+///
+/// Also outputs some additional statistics.
 Future<void> main(List<String> args) async {
   final argParser = ArgParser()
     ..addFlag('help', help: 'Print this usage information', negatable: false)
@@ -112,6 +120,8 @@ List<PackageResults> loadResultFiles(Iterable<String> resultFiles) {
   }).toList();
 }
 
+/// Aggregates individual prop usage data from [allResults] into prop
+/// requiredness data.
 PropRequirednessResults aggregateData(
   List<PackageResults> allResults, {
   bool excludeOtherDynamicUsages = true,
