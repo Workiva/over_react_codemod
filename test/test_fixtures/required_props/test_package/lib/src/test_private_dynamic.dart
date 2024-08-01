@@ -12,6 +12,9 @@ UiFactory<TestPrivateDynamicProps> TestPrivateDynamic = uiFunction(
 );
 
 void dynamicUsages(Map props, void Function(Map) propsModifier) {
+  // Test all dynamic usage cases.
+  // 75% of usages are dynamic.
+
   // One non-dynamic usage to help assert we're collecting data properly.
   (TestPrivateDynamic()..set100percent = '')();
 
@@ -37,6 +40,8 @@ UiFactory<TestPrivateForwardedProps> TestPrivateForwarded = uiFunction(
 
 abstract class ForwardedUsagesComponent extends UiComponent2 {
   void forwardedUsages() {
+    // Test all forwarded usage cases.
+
     // One non-dynamic usage to help assert we're collecting data properly.
     (TestPrivateForwarded()..set100percent = '')();
 

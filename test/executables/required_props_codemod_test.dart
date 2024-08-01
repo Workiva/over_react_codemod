@@ -198,6 +198,76 @@ mixin TestPublicUsedByMultipleComponentsProps on UiProps {
         ]),
       );
     });
+
+    group('allows customizing skip thresholds via command line options', () {
+      // Don't test both private and public above/below the threshold,
+      // so that tests ensure the private/public numbers don't get mixed up somewhere along the way.
+      test('private props below threshold, public above', () async {
+        await testCodemod(
+          script: requiredPropsScript,
+          args: [
+            'codemod',
+            '--prop-requiredness-data',
+            dataFilePath,
+            '--private-max-allowed-skip-rate=0.12',
+            '--public-max-allowed-skip-rate=0.9',
+            '--yes-to-all',
+          ],
+          input: projectDir,
+          expectedOutput: d.dir(projectDir.name, [
+            d.dir('lib', [
+              d.dir('src', [
+                d.file('test_private_dynamic.dart', contains('''
+// TODO(orcm.required_props): This codemod couldn't reliably determine requiredness for these props
+//  because 75% of usages of components with these props (> max allowed 12% for private props)
+//  either contained forwarded props or were otherwise too dynamic to analyze.
+//  It may be possible to upgrade some from optional to required, with some manual inspection and testing.
+mixin TestPrivateDynamicProps on UiProps {
+  String/*?*/ set100percent;
+}''')),
+                d.file('test_public_dynamic.dart', contains('''
+mixin TestPublicDynamicProps on UiProps {
+  /*late*/ String set100percent;
+}'''))
+              ]),
+            ]),
+          ]),
+        );
+      });
+
+      test('private props below threshold, public above', () async {
+        await testCodemod(
+          script: requiredPropsScript,
+          args: [
+            'codemod',
+            '--prop-requiredness-data',
+            dataFilePath,
+            '--private-max-allowed-skip-rate=0.9',
+            '--public-max-allowed-skip-rate=0.34',
+            '--yes-to-all',
+          ],
+          input: projectDir,
+          expectedOutput: d.dir(projectDir.name, [
+            d.dir('lib', [
+              d.dir('src', [
+                d.file('test_private_dynamic.dart', contains('''
+mixin TestPrivateDynamicProps on UiProps {
+  /*late*/ String set100percent;
+}''')),
+                d.file('test_public_dynamic.dart', contains('''
+// TODO(orcm.required_props): This codemod couldn't reliably determine requiredness for these props
+//  because 80% of usages of components with these props (> max allowed 34% for public props)
+//  either contained forwarded props or were otherwise too dynamic to analyze.
+//  It may be possible to upgrade some from optional to required, with some manual inspection and testing.
+mixin TestPublicDynamicProps on UiProps {
+  String/*?*/ set100percent;
+}'''))
+              ]),
+            ]),
+          ]),
+        );
+      });
+    });
   }, timeout: Timeout(Duration(minutes: 2)));
 }
 
