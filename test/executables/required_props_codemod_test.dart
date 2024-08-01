@@ -47,7 +47,7 @@ void main() {
         '--output',
         dataFilePath,
         p.join(findPackageRootFor(p.current),
-            'test/test_fixtures/required_props/test_package'),
+            'test/test_fixtures/required_props/test_consuming_package'),
       ]);
       expect(File(dataFilePath).existsSync(), isTrue);
       print('setUpAll: Done.');
@@ -60,6 +60,9 @@ void main() {
               'test/test_fixtures/required_props/test_package'));
       await projectDir.create();
     });
+
+    const noDataTodoComment =
+        r"// TODO(orcm.required_props): No data for prop; either it's never set, all places it was set were on dynamic usages, or requiredness data was collected on a version before this prop was added.";
 
     test('adds hints as expected in different cases', () async {
       await testCodemod(
@@ -74,13 +77,21 @@ void main() {
         expectedOutput: d.dir(projectDir.name, [
           d.dir('lib', [
             d.dir('src', [
-              d.file('test_private.dart', contains(r'''
+              d.file('test_private.dart', contains('''
 mixin TestPrivateProps on UiProps {
   /*late*/ String set100percent;
   String/*?*/ set80percent;
   String/*?*/ set20percent;
-  // TODO(orcm.required_props): No data for prop; either it's never set, all places it was set were on dynamic usages, or requiredness data was collected on a version before this prop was added.
+  $noDataTodoComment
   String/*?*/ set0percent;
+}''')),
+              d.file('test_private_dynamic.dart', contains('''
+// TODO(orcm.required_props): This codemod couldn't reliably determine requiredness for these props
+//  because 75% of usages of components with these props (> max allowed 20% for private props)
+//  either contained forwarded props or were otherwise too dynamic to analyze.
+//  It may be possible to upgrade some from optional to required, with some manual inspection and testing.
+mixin TestPrivateDynamicProps on UiProps {
+  String/*?*/ set100percent;
 }''')),
             ]),
           ]),
@@ -104,7 +115,7 @@ mixin TestPrivateProps on UiProps {
               d.dir('src', [
                 // Note that there's no to-do comment on annotatedRequiredPropNeverSet
                 // since we short-circuit the logic that inserts it when trusting the annotation.
-                d.file('test_required_annotations.dart', contains(r'''
+                d.file('test_required_annotations.dart', contains('''
 mixin TestRequiredAnnotationsProps on UiProps {
   /*late*/ String annotatedRequiredProp;
 
@@ -133,14 +144,14 @@ mixin TestRequiredAnnotationsProps on UiProps {
           expectedOutput: d.dir(projectDir.name, [
             d.dir('lib', [
               d.dir('src', [
-                d.file('test_required_annotations.dart', contains(r'''
+                d.file('test_required_annotations.dart', contains('''
 mixin TestRequiredAnnotationsProps on UiProps {
   /*late*/ String annotatedRequiredProp;
 
   /// Doc comment
   /*late*/ String annotatedRequiredPropWithDocComment;
   /*late*/ String annotatedNullableRequiredProp;
-  // TODO(orcm.required_props): No data for prop; either it's never set, all places it was set were on dynamic usages, or requiredness data was collected on a version before this prop was added.
+  $noDataTodoComment
   String/*?*/ annotatedRequiredPropNeverSet;
 }''')),
               ]),
@@ -148,6 +159,44 @@ mixin TestRequiredAnnotationsProps on UiProps {
           ]),
         );
       });
+    });
+
+    test('allows customizing requiredness thresholds via command line options',
+        () async {
+      await testCodemod(
+        script: requiredPropsScript,
+        args: [
+          'codemod',
+          '--prop-requiredness-data',
+          dataFilePath,
+          '--private-requiredness-threshold=0.1',
+          '--public-requiredness-threshold=0.7',
+          '--yes-to-all',
+        ],
+        input: projectDir,
+        expectedOutput: d.dir(projectDir.name, [
+          d.dir('lib', [
+            d.dir('src', [
+              d.file('test_private.dart', contains('''
+mixin TestPrivateProps on UiProps {
+  /*late*/ String set100percent;
+  /*late*/ String set80percent;
+  /*late*/ String set20percent;
+  $noDataTodoComment
+  String/*?*/ set0percent;
+}''')),
+              d.file('test_public_multiple_components.dart', contains('''
+mixin TestPublicUsedByMultipleComponentsProps on UiProps {
+  /*late*/ String set100percent;
+  /*late*/ String set80percent;
+  String/*?*/ set20percent;
+  $noDataTodoComment
+  String/*?*/ set0percent;
+}'''))
+            ]),
+          ]),
+        ]),
+      );
     });
   }, timeout: Timeout(Duration(minutes: 2)));
 }
