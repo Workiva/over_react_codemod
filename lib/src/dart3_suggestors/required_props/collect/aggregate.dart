@@ -4,8 +4,8 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/prop_requiredness/aggregated_data.sg.dart';
-import 'package:over_react_codemod/src/prop_requiredness/collected_data.sg.dart';
+import 'aggregated_data.sg.dart';
+import 'collected_data.sg.dart';
 
 const defaultAggregatedOutputFile = 'prop_requiredness.json';
 

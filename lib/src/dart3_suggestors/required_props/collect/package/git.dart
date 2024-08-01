@@ -2,10 +2,11 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/prop_requiredness/package/spec.dart';
 import 'package:over_react_codemod/src/util/command.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
+
+import './spec.dart';
 
 Future<PackageSpec> gitRefPackageSpec(String repoUrl, String gitRef) async {
   final cloneDirectory = await gitClone(repoUrl);

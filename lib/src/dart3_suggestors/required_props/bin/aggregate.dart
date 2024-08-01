@@ -5,8 +5,8 @@ import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:io/io.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/prop_requiredness/aggregate.dart';
-import 'package:over_react_codemod/src/prop_requiredness/logging.dart';
+import '../collect/aggregate.dart';
+import '../collect/logging.dart';
 
 /// Aggregates individual data files, like what the collect command does,
 /// but as a standalone command.

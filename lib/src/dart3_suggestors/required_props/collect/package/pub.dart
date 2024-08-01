@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:over_react_codemod/src/prop_requiredness/package/metadata.dart';
 import 'package:path/path.dart' as p;
 
+import 'metadata.dart';
 import 'spec.dart';
 import 'version_manager.dart';
 

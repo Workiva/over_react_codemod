@@ -4,13 +4,13 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/prop_requiredness/util.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/vendor/over_react_analyzer_plugin/get_all_props.dart';
 
 import 'collected_data.sg.dart';
 import 'logging.dart';
+import 'util.dart';
 
 Future<PackageResults> collectDataForUnits(
   Stream<ResolvedUnitResult> units, {

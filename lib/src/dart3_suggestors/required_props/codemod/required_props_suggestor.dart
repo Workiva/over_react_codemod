@@ -21,7 +21,7 @@ import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/utils/h
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/class_suggestor.dart';
 
-import 'required_props/recommender.dart';
+import 'recommender.dart';
 
 const _todoWithPrefix = 'TODO(orcm.required_props)';
 

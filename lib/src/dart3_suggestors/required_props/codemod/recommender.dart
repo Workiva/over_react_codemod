@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:over_react_codemod/src/prop_requiredness/aggregated_data.sg.dart';
-import 'package:over_react_codemod/src/prop_requiredness/util.dart';
+import '../collect/aggregated_data.sg.dart';
+import '../collect/util.dart';
 
 /// A class that can provide recommendations for prop requiredness based on
 /// [PropRequirednessResults] data.

@@ -16,8 +16,8 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
-import 'package:over_react_codemod/src/prop_requiredness/bin/codemod.dart';
-import 'package:over_react_codemod/src/prop_requiredness/bin/collect.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/required_props/bin/codemod.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/required_props/bin/collect.dart';
 
 void main(List<String> args) async {
   final runner = CommandRunner("null_safety_required_props",

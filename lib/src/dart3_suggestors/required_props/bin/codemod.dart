@@ -18,14 +18,14 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_props/recommender.dart';
-import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/required_props_suggestor.dart';
-import 'package:over_react_codemod/src/prop_requiredness/aggregated_data.sg.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/required_props/codemod/required_props_suggestor.dart';
 import 'package:over_react_codemod/src/util.dart';
+import 'package:over_react_codemod/src/util/args.dart';
 import 'package:over_react_codemod/src/util/command_runner.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 
-import '../../util/args.dart';
+import '../codemod/recommender.dart';
+import '../collect/aggregated_data.sg.dart';
 
 abstract class _Options {
   static const propRequirednessData = 'prop-requiredness-data';

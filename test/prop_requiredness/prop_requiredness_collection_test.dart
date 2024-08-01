@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:over_react_codemod/src/prop_requiredness/aggregated_data.sg.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/required_props/collect/aggregated_data.sg.dart';
 import 'package:over_react_codemod/src/util/command.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;

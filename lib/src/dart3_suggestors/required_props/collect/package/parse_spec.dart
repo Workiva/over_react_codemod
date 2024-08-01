@@ -1,11 +1,12 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:over_react_codemod/src/prop_requiredness/package/git.dart';
-import 'package:over_react_codemod/src/prop_requiredness/package/local.dart';
-import 'package:over_react_codemod/src/prop_requiredness/package/pub.dart';
-import 'package:over_react_codemod/src/prop_requiredness/package/spec.dart';
-import 'package:over_react_codemod/src/prop_requiredness/package/version_manager.dart';
+
+import 'git.dart';
+import 'local.dart';
+import 'pub.dart';
+import 'spec.dart';
+import 'version_manager.dart';
 
 const packageSpecFormatsHelpText = r'''
 Supported package spec formats:

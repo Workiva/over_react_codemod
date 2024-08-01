@@ -4,19 +4,19 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
-import 'package:over_react_codemod/src/prop_requiredness/aggregate.dart';
-import 'package:over_react_codemod/src/prop_requiredness/analysis.dart';
-import 'package:over_react_codemod/src/prop_requiredness/collect.dart';
-import 'package:over_react_codemod/src/prop_requiredness/collected_data.sg.dart';
-import 'package:over_react_codemod/src/prop_requiredness/package/parse_spec.dart';
-import 'package:over_react_codemod/src/prop_requiredness/package/spec.dart';
-import 'package:over_react_codemod/src/prop_requiredness/package/version_manager.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/required_props/collect/aggregate.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/required_props/collect/analysis.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/required_props/collect/collect.dart';
 import 'package:over_react_codemod/src/util/command.dart';
 import 'package:over_react_codemod/src/util/command_runner.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
-import '../logging.dart';
+import '../collect/collected_data.sg.dart';
+import '../collect/logging.dart';
+import '../collect/package/parse_spec.dart';
+import '../collect/package/spec.dart';
+import '../collect/package/version_manager.dart';
 
 const individualResultsDir = '.package-cache/prop_requiredness/';
 
