@@ -239,14 +239,12 @@ Future<PropRequirednessResults> collectAndAggregateDataForTestPackage() async {
   final testPackagePath = p.join(
       orcmRoot, 'test/test_fixtures/required_props/test_consuming_package');
 
-  final collectOutputDirectory = Directory(p.join(tmpFolder.path, 'collected'));
   final aggregateOutputFile = File(p.join(tmpFolder.path, 'aggregated.json'));
 
   await runCommandAndThrowIfFailedInheritIo('dart', [
     'run',
     p.join(orcmRoot, 'bin/null_safety_required_props.dart'),
     'collect',
-    ...['--raw-data-output-directory', collectOutputDirectory.path],
     ...['--output', aggregateOutputFile.path],
     testPackagePath,
   ]);

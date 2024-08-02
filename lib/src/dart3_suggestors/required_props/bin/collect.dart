@@ -64,9 +64,10 @@ then the analysis step of the collection process will take a bit longer.
 
   CollectCommand() {
     argParser
-      ..addOption('raw-data-output-directory',
-          help: 'The directory to output individual package usage results to.',
-          defaultsTo: '.')
+      ..addOption(
+        'raw-data-output-directory',
+        help: 'An optional directory to output raw usage data file to.',
+      )
       ..addOption(
         'output',
         abbr: 'o',
@@ -89,8 +90,9 @@ then the analysis step of the collection process will take a bit longer.
     final aggregatedOutputFile = parsedArgs['output']! as String;
     final verbose = parsedArgs['verbose']! as bool;
 
-    final rawDataOutputDirectory =
-        parsedArgs['raw-data-output-directory']! as String;
+    var rawDataOutputDirectory =
+        parsedArgs['raw-data-output-directory'] as String?;
+
     final packageSpecStrings = parsedArgs.rest;
     if (packageSpecStrings.isEmpty) {
       usageException('Must specify package(s).');
@@ -109,8 +111,11 @@ then the analysis step of the collection process will take a bit longer.
     logger
         .info('Done. Package specs: ${packages.map((p) => '\n- $p').join('')}');
 
-    logger.info(
-        "Processing packages and writing raw usage data to directory '$rawDataOutputDirectory'...");
+    logger.info('Processing packages...');
+    if (rawDataOutputDirectory != null) {
+      logger.info(
+          "Writing raw usage data to directory '$rawDataOutputDirectory'...");
+    }
 
     final allResults = <CollectDataForPackageResult>[];
 
@@ -131,7 +136,7 @@ then the analysis step of the collection process will take a bit longer.
       ))!;
       allResults.add(result);
       logger.fine(result);
-      for (final otherPackage in result.otherPackagesProcessed) {
+      for (final otherPackage in result.results.otherPackageNames) {
         if (processedPackages.contains(otherPackage)) {
           throw Exception('$otherPackage was double-processed');
         }
@@ -146,8 +151,7 @@ then the analysis step of the collection process will take a bit longer.
 
     logger.info('Aggregating raw usage data...');
 
-    final aggregated =
-        aggregateData(loadResultFiles(allResults.map((r) => r.outputFilePath)));
+    final aggregated = aggregateData(allResults.map((r) => r.results).toList());
 
     File(aggregatedOutputFile)
       ..parent.createSync(recursive: true)
@@ -160,18 +164,18 @@ then the analysis step of the collection process will take a bit longer.
 final jsonEncodeIndented = const JsonEncoder.withIndent('  ').convert;
 
 class CollectDataForPackageResult {
-  final String outputFilePath;
-  final Set<String> otherPackagesProcessed;
+  final PackageResults results;
+  final String? outputFilePath;
 
   CollectDataForPackageResult({
+    required this.results,
     required this.outputFilePath,
-    required this.otherPackagesProcessed,
   });
 
   @override
   String toString() => 'CollectDataForPackageResult(${{
         'outputFilePath': outputFilePath,
-        'otherPackagesProcessed': otherPackagesProcessed.toList(),
+        'results.otherPackageNames': results.otherPackageNames.toList(),
       }})';
 }
 
@@ -183,25 +187,26 @@ Future<CollectDataForPackageResult?> collectDataForPackage(
   bool skipIfNoUsages = true,
   String? outputDirectory,
 }) async {
-  outputDirectory ??= '.';
-
   final rootPackageName = package.packageName;
   final logger = Logger('prop_requiredness.${package.packageAndVersionId}');
 
   logger.info("Collecting raw usage data for $rootPackageName...");
 
-  final outputFile = File(p.normalize(
-      p.join(outputDirectory, '${package.packageAndVersionId}.json')));
+  File? outputFile;
+  if (outputDirectory != null) {
+    outputFile = File(p.normalize(
+        p.join(outputDirectory, '${package.packageAndVersionId}.json')));
 
-  if (skipIfAlreadyCollected && outputFile.existsSync()) {
-    final existingResults = tryParseResults(outputFile.readAsStringSync());
-    if (existingResults != null &&
-        existingResults.dataVersion == PackageResults.latestDataVersion) {
-      logger.info('Skipping since data already exists: ${outputFile.path}');
-      return CollectDataForPackageResult(
-        outputFilePath: outputFile.path,
-        otherPackagesProcessed: existingResults.otherPackageNames,
-      );
+    if (skipIfAlreadyCollected && outputFile.existsSync()) {
+      final existingResults = tryParseResults(outputFile.readAsStringSync());
+      if (existingResults != null &&
+          existingResults.dataVersion == PackageResults.latestDataVersion) {
+        logger.info('Skipping since data already exists: ${outputFile.path}');
+        return CollectDataForPackageResult(
+          results: existingResults,
+          outputFilePath: outputFile.path,
+        );
+      }
     }
   }
 
@@ -232,13 +237,15 @@ Future<CollectDataForPackageResult?> collectDataForPackage(
   results.packageVersionDescriptionsByName[rootPackageName] =
       package.sourceDescription;
 
-  outputFile.parent.createSync(recursive: true);
-  outputFile.writeAsStringSync(jsonEncode(results));
-  logger.fine('Wrote data to ${outputFile.path}');
+  if (outputFile != null) {
+    outputFile.parent.createSync(recursive: true);
+    outputFile.writeAsStringSync(jsonEncode(results));
+    logger.fine('Wrote data to ${outputFile.path}');
+  }
 
   return CollectDataForPackageResult(
-    outputFilePath: outputFile.path,
-    otherPackagesProcessed: results.otherPackageNames,
+    results: results,
+    outputFilePath: outputFile?.path,
   );
 }
 
