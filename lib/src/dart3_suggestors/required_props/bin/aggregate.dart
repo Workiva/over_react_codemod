@@ -75,7 +75,6 @@ Future<void> main(List<String> args) async {
   logger.info('Wrote JSON results to $outputFile');
 }
 
-
 extension<E> on Iterable<E> {
   Map<T, int> countBy<T>(T Function(E) getBucket) {
     final counts = <T, int>{};
