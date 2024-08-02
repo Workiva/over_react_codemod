@@ -234,6 +234,7 @@ Future<PropRequirednessResults> collectAndAggregateDataForTestPackage() async {
   print('Collecting data (this may take a while)...');
   final tmpFolder =
       Directory.systemTemp.createTempSync('prop-requiredness-test');
+  addTearDown(tmpFolder.delete);
 
   final orcmRoot = findPackageRootFor(p.current);
   final testPackagePath = p.join(
