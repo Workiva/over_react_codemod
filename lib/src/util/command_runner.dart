@@ -48,13 +48,19 @@ extension CommandExtension on Command {
   /// Returns the first part of the default string returned by [Command.invocation],
   /// containing the string of nested executables/commands needed to run this command,
   /// without the `<subcommand>` or `arguments` portion.
-  String get invocationPrefix {
-    final parents = [name];
-    for (var command = parent; command != null; command = command.parent) {
-      parents.add(command.name);
-    }
-    parents.add(runner!.executableName);
+  String get invocationPrefix => [parentInvocationPrefix, name].join(' ');
 
-    return parents.reversed.join(' ');
+  /// Same as [invocationPrefix], but doesn't include the current command.
+  String get parentInvocationPrefix => <String>[
+        ...parentCommands.map((p) => p.name),
+        runner!.executableName,
+      ].reversed.join(' ');
+
+  Iterable<Command> get parentCommands sync* {
+    final parent = this.parent;
+    if (parent == null) return;
+
+    yield parent;
+    yield* parent.parentCommands;
   }
 }

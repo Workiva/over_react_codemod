@@ -61,6 +61,33 @@ class CodemodCommand extends Command {
   @override
   String get invocation => '$invocationPrefix [<options>]';
 
+  @override
+  String get usageFooter => '''
+\nInstructions
+============
+
+1. First, run the 'collect' command to collect data on usages of props declared
+   in your package (see that command's --help for instructions).
+
+    $parentInvocationPrefix collect --help
+    
+2. Run this command within the package you want to update:
+
+    $invocationPrefix
+
+3. Inspect the TODO comments left over from the codemod. If you want to adjust
+   any thresholds or re-collect data, discard changes before re-running the codemod.
+
+4. Commit the changes made by the codemod.
+
+5. Proceed with using the Dart null safety migrator tool to migrate your code.
+
+6. Review TODO comments, adjusting requiredness if desired. You can use a 
+   find-replace with the following regex to remove them:
+   
+       ${r'^ *// TODO\(orcm.required_props\):.+(?:\n *//  .+)*'}
+''';
+
   CodemodCommand() {
     argParser
       ..addOption(_Options.propRequirednessData,

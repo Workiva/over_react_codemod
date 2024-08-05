@@ -50,30 +50,41 @@ class CollectCommand extends Command {
   String get usageFooter =>
       '\n$packageSpecFormatsHelpText\n\n$_usageInstructions';
 
-  String get _usageInstructions => r'''
+  String get _usageInstructions => '''
 Instructions
 ============
 
-To collect data, first identify the least-common consumers of your package.
+1. First, identify the least-common consumers of your package.
 
-For example, say you're dealing with package A, which is directly consumed by packages B, E, and F, and so on:
-
-    A---B---C---D
-    |\     /
-    | E----
-    \
-     F---G---H'''
-      '''
-\n\nThe least-common consumers would be C (covers both B and E) and F, so we'd run:
-
-   $invocationPrefix pub@…:C pub@…:F
-
-Note: if F were to re-export members of A, which could potentially get used in G, we'd do G instead of F.
-
-   $invocationPrefix pub@…:C pub@…:G
+   For example, say we're dealing with package A, which is directly consumed by
+   packages B, E, and F, and so on:
    
-Alternatively, you could just run on D and H from the start, but if they include more transitive dependencies,
-then the analysis step of the collection process will take a bit longer.
+       ${r'A---B---C---D'}
+       ${r'|\     /'}
+       ${r'| E----'}
+       ${r'\'}
+       ${r' F---G---H'}
+
+   The least-common consumers would be C (covers both B and E) and F, so we'd run:
+   
+      $invocationPrefix pub@…:C pub@…:F
+   
+   Note: if F were to re-export members of A, which could potentially get used
+   in G, we'd do G instead of F.
+   
+      $invocationPrefix pub@…:C pub@…:G
+      
+   Alternatively, we could just run on D and H from the start, but if those 
+   packages include more transitive dependencies, then the analysis step of the
+   collection process will take a bit longer.
+
+2. Run the '$invocationPrefix' command with the packages from step 1.
+
+3. Use the `codemod` command within the package you want to update
+   (see that command's --help for instructions):
+
+      cd my_package
+      $parentInvocationPrefix codemod --help
 ''';
 
   CollectCommand() {
