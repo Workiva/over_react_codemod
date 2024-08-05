@@ -18,7 +18,7 @@
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:over_react_codemod/src/util/get_all_props.dart';
+import 'package:over_react_codemod/src/vendor/over_react_analyzer_plugin/get_all_props.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'utils/class_component_required_fields.dart';

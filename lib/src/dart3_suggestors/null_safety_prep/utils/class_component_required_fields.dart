@@ -50,7 +50,7 @@ abstract class ClassComponentRequiredFieldsMigrator<
   final Set<DefaultedOrInitializedDeclaration> fieldData = {};
 
   void patchFieldDeclarations(
-      List<FieldElement> Function(InterfaceElement) getAll,
+      Iterable<FieldElement> Function(InterfaceElement) getAll,
       Iterable<Assignment> cascadedDefaultPropsOrInitialState,
       CascadeExpression node) {
     for (final field in cascadedDefaultPropsOrInitialState) {
@@ -77,7 +77,7 @@ abstract class ClassComponentRequiredFieldsMigrator<
   }
 
   VariableDeclaration? _getFieldDeclaration(
-      List<FieldElement> Function(InterfaceElement) getAll,
+      Iterable<FieldElement> Function(InterfaceElement) getAll,
       {required InterfaceElement propsOrStateElement,
       required String fieldName}) {
     // For component1 boilerplate its possible that `fieldEl` won't be found using `lookUpVariable` below
