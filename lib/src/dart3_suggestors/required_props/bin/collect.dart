@@ -37,7 +37,7 @@ const individualResultsDir = '.package-cache/prop_requiredness/';
 class CollectCommand extends Command {
   @override
   String get description =>
-      'Collects prop usage data on the specified package(s) and aggregates it, writing to $defaultAggregatedOutputFile.';
+      'Collects requiredness data for all OverReact props based on usages in the specified packages and all their transitive dependencies.';
 
   @override
   String get name => 'collect';

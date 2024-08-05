@@ -52,7 +52,8 @@ abstract class _Flags {
 
 class CodemodCommand extends Command {
   @override
-  String get description => 'Updates code using prop requiredness data';
+  String get description =>
+      "Adds null safety migrator hints to OverReact props using prop requiredness data from 'collect' command.";
 
   @override
   String get name => 'codemod';
