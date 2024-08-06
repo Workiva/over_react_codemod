@@ -5,4 +5,4 @@ analyzer:
     missing_required_param: error
     must_call_super: error
   exclude:
-    - test/test_fixtures
+    - test/test_fixtures/**

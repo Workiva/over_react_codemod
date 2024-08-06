@@ -1,5 +1,3 @@
-// Taken from https://github.com/Workiva/over_react/blob/5c6e1742949ce4e739f7923b799cc00b1118279b/tools/analyzer_plugin/lib/src/util/prop_declarations/get_all_props.dart
-
 // Copyright 2024 Workiva Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,26 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Adapted from https://github.com/Workiva/over_react/blob/9079dff9405448ddaa5743a0ae408c4e0a056cec/tools/analyzer_plugin/lib/src/util/prop_declarations/get_all_props.dart
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
 
 // Performance optimization notes:
-// [1] Building a list here is slightly more optimal than using a generator.
-//
 // [2] Ideally we'd check the library and package here,
 //     but for some reason accessing `.library` is pretty inefficient.
 //     Possibly due to the `LibraryElementImpl? get library => thisOrAncestorOfType();` impl,
 //     and an inefficient `thisOrAncestorOfType` impl: https://github.com/dart-lang/sdk/issues/53255
 
-/// Returns all props defined in a props class/mixin [propsElement] as well as all of its supertypes,
-/// except for those shared by all UiProps instances by default (e.g., ReactPropsMixin, UbiquitousDomPropsMixin,
-/// and CssClassPropsMixin's key, ref, children, className, id, onClick, etc.).
-///
-/// Each returned field will be the consumer-declared prop field, and the list will not contain overrides
-/// from generated over_react parts.
-///
-/// Excludes any fields annotated with `@doNotGenerate`.
-List<FieldElement> getAllProps(InterfaceElement propsElement) {
+Iterable<InterfaceElement> getAllPropsClassesOrMixins(
+    InterfaceElement propsElement) sync* {
   final propsAndSupertypeElements = propsElement.thisAndSupertypesList;
 
   // There are two UiProps; one in component_base, and one in builder_helpers that extends from it.
@@ -49,12 +40,11 @@ List<FieldElement> getAllProps(InterfaceElement propsElement) {
   final inheritsFromUiProps = uiPropsElement != null;
   late final isPropsMixin = propsElement.metadata.any(_isPropsMixinAnnotation);
   if (!inheritsFromUiProps && !isPropsMixin) {
-    return [];
+    return;
   }
 
   final uiPropsAndSupertypeElements = uiPropsElement?.thisAndSupertypesSet;
 
-  final allProps = <FieldElement>[]; // [1]
   for (final interface in propsAndSupertypeElements) {
     // Don't process UiProps or its supertypes
     // (Object, Map, MapBase, MapViewMixin, PropsMapViewMixin, ReactPropsMixin, UbiquitousDomPropsMixin, CssClassPropsMixin, ...)
@@ -76,23 +66,40 @@ List<FieldElement> getAllProps(InterfaceElement propsElement) {
       continue;
     }
 
-    for (final field in interface.fields) {
-      if (field.isStatic) continue;
-      if (field.isSynthetic) continue;
-
-      final accessorAnnotation = _getAccessorAnnotation(field.metadata);
-      final isNoGenerate = accessorAnnotation
-              ?.computeConstantValue()
-              ?.getField('doNotGenerate')
-              ?.toBoolValue() ??
-          false;
-      if (isNoGenerate) continue;
-
-      allProps.add(field);
-    }
+    yield interface;
   }
+}
 
-  return allProps;
+Iterable<FieldElement> getPropsDeclaredInMixin(
+    InterfaceElement interface) sync* {
+  for (final field in interface.fields) {
+    if (field.isStatic) continue;
+    if (field.isSynthetic) continue;
+
+    final accessorAnnotation = _getAccessorAnnotation(field.metadata);
+    final isNoGenerate = accessorAnnotation
+            ?.computeConstantValue()
+            ?.getField('doNotGenerate')
+            ?.toBoolValue() ??
+        false;
+    if (isNoGenerate) continue;
+
+    yield field;
+  }
+}
+
+/// Returns all props defined in a props class/mixin [propsElement] as well as all of its supertypes,
+/// except for those shared by all UiProps instances by default (e.g., ReactPropsMixin, UbiquitousDomPropsMixin,
+/// and CssClassPropsMixin's key, ref, children, className, id, onClick, etc.).
+///
+/// Each returned field will be the consumer-declared prop field, and the list will not contain overrides
+/// from generated over_react parts.
+///
+/// Excludes any fields annotated with `@doNotGenerate`.
+Iterable<FieldElement> getAllProps(InterfaceElement propsElement) sync* {
+  for (final interface in getAllPropsClassesOrMixins(propsElement)) {
+    yield* getPropsDeclaredInMixin(interface);
+  }
 }
 
 bool _isOneOfThePropsAnnotations(ElementAnnotation e) {
