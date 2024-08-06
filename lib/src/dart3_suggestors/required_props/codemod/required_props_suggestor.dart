@@ -99,9 +99,7 @@ class RequiredPropsSuggestor extends RecursiveAstVisitor<void>
 
     final type = fieldDeclaration.fields.type;
     if (type != null &&
-        (requiredHintAlreadyExists(type) ||
-            nullableHintAlreadyExists(type) ||
-            nonNullableHintAlreadyExists(type))) {
+        (requiredHintAlreadyExists(type) || nullableHintAlreadyExists(type))) {
       return;
     }
 

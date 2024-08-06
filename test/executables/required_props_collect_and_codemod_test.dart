@@ -95,6 +95,13 @@ mixin TestPrivateProps on UiProps {
 mixin TestPrivateDynamicProps on UiProps {
   String/*?*/ set100percent;
 }''')),
+              d.file('test_private_existing_hints.dart', contains('''
+mixin TestPrivateExistingHintsProps on UiProps {
+  /*late*/ String set100percentWithoutHint;
+  /*late*/ String set100percent;
+  String/*?*/ set80percent;
+  String/*?*/ set0percent;
+}''')),
             ]),
           ]),
         ]),
