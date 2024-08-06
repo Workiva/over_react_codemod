@@ -4,10 +4,9 @@ part 'test_private.over_react.g.dart';
 
 mixin TestPrivateExistingHintsProps on UiProps {
   String set100percentWithoutHint;
-
   /*late*/ String set100percent;
-  String /*?*/ set80percent;
-  String /*?*/ set0percent;
+  String/*?*/ set80percent;
+  String/*?*/ set0percent;
 }
 
 UiFactory<TestPrivateExistingHintsProps> TestPrivateExistingHints = uiFunction(
