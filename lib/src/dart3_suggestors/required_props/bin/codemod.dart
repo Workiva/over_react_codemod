@@ -151,7 +151,7 @@ class CodemodCommand extends Command {
     exitCode = await runInteractiveCodemodSequence(
       dartPaths,
       [
-        RequiredPropsMigrator(
+        RequiredPropsSuggestor(
           recommender,
           trustRequiredAnnotations:
               parsedArgs[_Flags.trustRequiredAnnotations] as bool,

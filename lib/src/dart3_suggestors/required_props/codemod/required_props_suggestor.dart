@@ -25,12 +25,12 @@ import 'recommender.dart';
 
 const _todoWithPrefix = 'TODO(orcm.required_props)';
 
-class RequiredPropsMigrator extends RecursiveAstVisitor<void>
+class RequiredPropsSuggestor extends RecursiveAstVisitor<void>
     with ClassSuggestor {
   final PropRequirednessRecommender _propRequirednessRecommender;
   final bool _trustRequiredAnnotations;
 
-  RequiredPropsMigrator(
+  RequiredPropsSuggestor(
     this._propRequirednessRecommender, {
     required bool trustRequiredAnnotations,
   }) : _trustRequiredAnnotations = trustRequiredAnnotations;
