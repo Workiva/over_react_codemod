@@ -281,7 +281,6 @@ Future<CollectDataForPackageResult?> collectDataForPackage(
   packageVersionDescriptionsByName[rootPackageName] = package.sourceDescription;
   logger.info('Package versions: ${packageVersionDescriptionsByName}');
 
-
   logger.info("Analyzing and collecting raw usage data...");
   final units = getResolvedLibUnitsForPackage(package,
       includeDependencyPackages: processDependencyPackages,
