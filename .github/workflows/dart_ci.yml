@@ -34,7 +34,7 @@ jobs:
         if: always() && steps.install.outcome == 'success'
 
       - name: Validate formatting
-        run: dart format --set-exit-if-changed .
+        run: dart run dart_dev format --check
         if: always() && steps.install.outcome == 'success' && matrix.sdk == '2.18.7'
 
       - name: Analyze project source
