@@ -32,8 +32,6 @@ import '../collect/package/parse_spec.dart';
 import '../collect/package/spec.dart';
 import '../collect/package/version_manager.dart';
 
-const individualResultsDir = '.package-cache/prop_requiredness/';
-
 class CollectCommand extends Command {
   @override
   String get description =>

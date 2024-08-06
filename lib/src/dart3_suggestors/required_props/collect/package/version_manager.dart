@@ -19,6 +19,8 @@ import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/util/command.dart';
 import 'package:path/path.dart' as p;
 
+import 'temp.dart';
+
 // -------------------------------------------------------------------------------
 //
 // Packages downloading and extracting
@@ -33,10 +35,10 @@ class PackageVersionManager {
   PackageVersionManager(this._cachePath);
 
   factory PackageVersionManager.persistentSystemTemp() {
-    final tmpDirectory = Directory(p.join(
-        Directory.systemTemp.path, 'over_react_codemod_version_manager'));
-    tmpDirectory.createSync(recursive: true);
-    return PackageVersionManager(tmpDirectory.path);
+    final directory =
+        Directory(p.join(packageTempDirectory().path, 'version_manager'))
+          ..createSync(recursive: true);
+    return PackageVersionManager(directory.path);
   }
 
   String get _downloadsFolder => p.join(_cachePath, 'downloads');

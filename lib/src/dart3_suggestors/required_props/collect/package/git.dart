@@ -20,7 +20,8 @@ import 'package:over_react_codemod/src/util/command.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
-import './spec.dart';
+import 'spec.dart';
+import 'temp.dart';
 
 Future<PackageSpec> gitRefPackageSpec(String repoUrl, String gitRef) async {
   final cloneDirectory = await gitClone(repoUrl);
@@ -57,14 +58,16 @@ Future<PackageSpec> gitRefPackageSpec(String repoUrl, String gitRef) async {
   );
 }
 
-Future<Directory> gitClone(String repoUrl) async {
+Future<Directory> gitClone(String repoUrl, {String? parentDirectory}) async {
+  parentDirectory ??= packageTempDirectory().path;
+
   // 'git@example.com/foo/bar.git' -> ['foo', 'bar.git']
   // 'https://example.com/foo/bar.git' -> ['foo', 'bar.git']
   final cloneSubdirectory =
       p.joinAll(repoUrl.split(':').last.split('/').takeLast(2));
 
   final cloneDirectory =
-      Directory(p.join('.package-cache/clones', cloneSubdirectory));
+      Directory(p.join(parentDirectory, cloneSubdirectory));
   if (!cloneDirectory.existsSync()) {
     cloneDirectory.parent.createSync(recursive: true);
     Logger('gitClone').fine('Cloning $repoUrl...');
