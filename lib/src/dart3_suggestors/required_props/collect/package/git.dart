@@ -66,8 +66,7 @@ Future<Directory> gitClone(String repoUrl, {String? parentDirectory}) async {
   final cloneSubdirectory =
       p.joinAll(repoUrl.split(':').last.split('/').takeLast(2));
 
-  final cloneDirectory =
-      Directory(p.join(parentDirectory, cloneSubdirectory));
+  final cloneDirectory = Directory(p.join(parentDirectory, cloneSubdirectory));
   if (!cloneDirectory.existsSync()) {
     cloneDirectory.parent.createSync(recursive: true);
     Logger('gitClone').fine('Cloning $repoUrl...');
