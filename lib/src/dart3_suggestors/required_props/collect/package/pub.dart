@@ -21,11 +21,13 @@ import 'spec.dart';
 import 'version_manager.dart';
 
 PackageSpec packageSpecFromPackageVersion(
-    PackageVersion version, PackageVersionManager versionManager) {
+    PackageVersion version, PackageVersionManager versionManager,
+    {String? sourceDescription}) {
+  sourceDescription ??= version.toString();
   return PackageSpec(
     packageName: version.packageName,
     versionId: version.version,
-    sourceDescription: version.toString(),
+    sourceDescription: sourceDescription,
     getDirectory: () => versionManager.getExtractedFolder(version),
   );
 }
@@ -42,11 +44,16 @@ Future<PackageSpec> pubPackageSpec({
   required PackageVersionManager versionManager,
   required String host,
 }) async {
-  version ??= await getLatestVersionOfPackage(packageName, host: host);
+  final useLatest = version == null;
+
   final packageVersion = PackageVersion(
     hostUrl: host,
     packageName: packageName,
-    version: version,
+    version: useLatest
+        ? await getLatestVersionOfPackage(packageName, host: host)
+        : version,
   );
-  return packageSpecFromPackageVersion(packageVersion, versionManager);
+  return packageSpecFromPackageVersion(packageVersion, versionManager,
+      sourceDescription:
+          useLatest ? '$packageVersion (latest version)' : '$packageVersion');
 }
