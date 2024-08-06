@@ -5,14 +5,17 @@ part 'test_required_annotations.over_react.g.dart';
 mixin TestRequiredAnnotationsProps on UiProps {
   @requiredProp
   String annotatedRequiredProp;
+  @nullableRequiredProp
+  String annotatedNullableRequiredProp;
+
+  @requiredProp
+  String annotatedRequiredPropSet50Percent;
+  @requiredProp
+  String annotatedRequiredPropSet0Percent;
 
   /// Doc comment
   @requiredProp
   String annotatedRequiredPropWithDocComment;
-  @nullableRequiredProp
-  String annotatedNullableRequiredProp;
-  @requiredProp
-  String annotatedRequiredPropNeverSet;
 }
 
 UiFactory<TestRequiredAnnotationsProps> TestRequiredAnnotations = uiFunction(
@@ -23,6 +26,11 @@ UiFactory<TestRequiredAnnotationsProps> TestRequiredAnnotations = uiFunction(
 usages() {
   (TestRequiredAnnotations()
     ..annotatedRequiredProp = ''
+    ..annotatedNullableRequiredProp = ''
+    ..annotatedRequiredPropWithDocComment = '')();
+  (TestRequiredAnnotations()
+    ..annotatedRequiredProp = ''
+    ..annotatedNullableRequiredProp = ''
     ..annotatedRequiredPropWithDocComment = ''
-    ..annotatedNullableRequiredProp = '')();
+    ..annotatedRequiredPropSet50Percent = '')();
 }

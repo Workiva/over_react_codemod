@@ -115,16 +115,18 @@ mixin TestPrivateDynamicProps on UiProps {
           expectedOutput: d.dir(projectDir.name, [
             d.dir('lib', [
               d.dir('src', [
-                // Note that there's no to-do comment on annotatedRequiredPropNeverSet
+                // Note that there's no to-do comment on annotatedRequiredPropSet0Percent
                 // since we short-circuit the logic that inserts it when trusting the annotation.
                 d.file('test_required_annotations.dart', contains('''
 mixin TestRequiredAnnotationsProps on UiProps {
   /*late*/ String annotatedRequiredProp;
+  /*late*/ String annotatedNullableRequiredProp;
+
+  /*late*/ String annotatedRequiredPropSet50Percent;
+  /*late*/ String annotatedRequiredPropSet0Percent;
 
   /// Doc comment
   /*late*/ String annotatedRequiredPropWithDocComment;
-  /*late*/ String annotatedNullableRequiredProp;
-  /*late*/ String annotatedRequiredPropNeverSet;
 }''')),
               ]),
             ]),
@@ -149,12 +151,14 @@ mixin TestRequiredAnnotationsProps on UiProps {
                 d.file('test_required_annotations.dart', contains('''
 mixin TestRequiredAnnotationsProps on UiProps {
   /*late*/ String annotatedRequiredProp;
+  /*late*/ String annotatedNullableRequiredProp;
+
+  String/*?*/ annotatedRequiredPropSet50Percent;
+  $noDataTodoComment
+  String/*?*/ annotatedRequiredPropSet0Percent;
 
   /// Doc comment
   /*late*/ String annotatedRequiredPropWithDocComment;
-  /*late*/ String annotatedNullableRequiredProp;
-  $noDataTodoComment
-  String/*?*/ annotatedRequiredPropNeverSet;
 }''')),
               ]),
             ]),
