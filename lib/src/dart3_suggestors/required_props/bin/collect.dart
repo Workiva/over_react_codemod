@@ -52,7 +52,10 @@ class CollectCommand extends Command {
 Instructions
 ============
 
-1. First, identify the least-common consumers of your package.
+1. First, identify the least-common consumer(s) of OverReact components exposed by your package.
+
+   (If all your package's components are private, you can skip the rest of this step,
+   step and just use your package).
 
    For example, say we're dealing with package A, which is directly consumed by
    packages B, E, and F, and so on:
@@ -75,10 +78,20 @@ Instructions
    Alternatively, we could just run on D and H from the start, but if those 
    packages include more transitive dependencies, then the analysis step of the
    collection process will take a bit longer.
+   
+2. If step 1 yielded more than one package, make sure all of them can resolve to
+   the latest version of your package. 
+   
+   If they can't, then data may be missing for recently-added props, or could be
+   incorrect if props in your package were moved to different files. 
+   
+   If you're not sure, try cloning those packages and providing them as local 
+   paths. 
 
-2. Run the '$invocationPrefix' command with the packages from step 1.
+3. Run the '$invocationPrefix' command with the packages from step 1, using
+   one of the package specifier formats listed above.
 
-3. Use the `codemod` command within the package you want to update
+4. Use the `codemod` command within the package you want to update
    (see that command's --help for instructions):
 
       cd my_package
