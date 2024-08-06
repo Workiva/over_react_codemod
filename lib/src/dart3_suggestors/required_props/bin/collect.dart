@@ -25,6 +25,7 @@ import 'package:over_react_codemod/src/util/command.dart';
 import 'package:over_react_codemod/src/util/command_runner.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
+import 'package:yaml/yaml.dart';
 
 import '../collect/collected_data.sg.dart';
 import '../collect/logging.dart';
@@ -157,6 +158,7 @@ Instructions
 
     final processedPackages = <String>{};
     for (final packageSpec in packages) {
+      logger.info('Processing $packageSpec...');
       final packageName = packageSpec.packageName;
       if (processedPackages.contains(packageName)) {
         throw Exception('Already processed $packageName');
@@ -226,8 +228,6 @@ Future<CollectDataForPackageResult?> collectDataForPackage(
   final rootPackageName = package.packageName;
   final logger = Logger('prop_requiredness.${package.packageAndVersionId}');
 
-  logger.info("Collecting raw usage data for $rootPackageName...");
-
   File? outputFile;
   if (outputDirectory != null) {
     outputFile = File(p.normalize(
@@ -257,10 +257,29 @@ Future<CollectDataForPackageResult?> collectDataForPackage(
     return null;
   }
 
+  logger.info('Performing pub upgrade to get newer versions of packages...');
   // Get latest dependencies, to get latest versions of other packages.
   await runCommandAndThrowIfFailed('dart', ['pub', 'upgrade'],
       workingDirectory: packageInfo.root);
 
+  final packageVersionDescriptionsByName = <String, String>{
+    rootPackageName: package.sourceDescription,
+  };
+  final pubspecLock = loadYaml(
+      File(p.join(packageInfo.root, 'pubspec.lock')).readAsStringSync()) as Map;
+  (pubspecLock['packages'] as Map)
+      .cast<String, Map>()
+      .forEach((packageName, info) {
+    final version = info['version'] as String?;
+    if (version != null) {
+      packageVersionDescriptionsByName.putIfAbsent(packageName, () => version);
+    }
+  });
+  packageVersionDescriptionsByName[rootPackageName] = package.sourceDescription;
+  logger.info('Package versions: ${packageVersionDescriptionsByName}');
+
+
+  logger.info("Analyzing and collecting raw usage data...");
   final units = getResolvedLibUnitsForPackage(package,
       includeDependencyPackages: processDependencyPackages,
       packageFilter: packageFilter);
@@ -270,8 +289,8 @@ Future<CollectDataForPackageResult?> collectDataForPackage(
     rootPackageName: rootPackageName,
     allowOtherPackageUnits: processDependencyPackages,
   );
-  results.packageVersionDescriptionsByName[rootPackageName] =
-      package.sourceDescription;
+  results.packageVersionDescriptionsByName
+      .addAll(packageVersionDescriptionsByName);
 
   if (outputFile != null) {
     outputFile.parent.createSync(recursive: true);

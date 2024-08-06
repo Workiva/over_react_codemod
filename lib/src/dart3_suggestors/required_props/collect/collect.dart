@@ -68,14 +68,6 @@ Future<PackageResults> collectDataForUnits(
       otherPackagesProcessed.add(packageName);
     }
 
-    // TODO add version descriptions back in
-    // if (packageVersionDescriptionsByName[packageName] == null) {
-    //   final versionDescription = packageInfo?.version;
-    //   if (versionDescription != null) {
-    //     packageVersionDescriptionsByName[packageName] = versionDescription;
-    //   }
-    // }
-
     allUsages.addAll(collectUsageDataForUnit(
       unitResult: unitResult,
       packageName: packageName,
