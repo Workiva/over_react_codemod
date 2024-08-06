@@ -86,8 +86,11 @@ Instructions
    If they can't, then data may be missing for recently-added props, or could be
    incorrect if props in your package were moved to different files. 
    
-   If you're not sure, try cloning those packages and providing them as local 
-   paths. 
+   If you're not sure, try either:
+   - Cloning those packages, ensuring they resolve to the latest locally, 
+     and providing them as local path package specs.
+   - Running the command and verifying the package versions in the command output
+     line up. 
 
 3. Run the '$invocationPrefix' command with the packages from step 1, using
    one of the package specifier formats listed above.
