@@ -1,4 +1,4 @@
-## [2.24.0](https://github.com/Workiva/over_react_codemod/compare/2.24.0....2.23.0)
+## 2.32.0
 
 - Add `null_safety_required_props` executable to help [migrate over_react props to nulls safety](https://github.com/Workiva/over_react/blob/master/doc/null_safety/null_safe_migration.md)
 
