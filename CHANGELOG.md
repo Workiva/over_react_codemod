@@ -6,6 +6,39 @@
 - Fix outdated `dart2_upgrade` instructions in README
 - Update dev_dependencies, switch to mocktail
 
+## 2.31.0
+- Add `null_safety_prep` and `null_safety_migrator_companion` executables to help [migrate over_react consumers to nulls safety](https://github.com/Workiva/over_react/blob/master/doc/null_safety/null_safe_migration.md)
+
+## 2.30.0
+- Add `required_flux_props` codemod to prepare consumers for [over_react 5.0.0](https://github.com/Workiva/over_react/blob/5.0.0/CHANGELOG.md#500)
+- Add `sort_intl` executable for sorting messages in INTL files
+- Add `unify_package_rename` executable
+
+## 2.29.0
+- Update `pub get` commands to `dart pub get`
+- Improve error messages in `intl_message_migration`
+
+## 2.28.0
+- Exclude CamelCaseWords and Period.Separated.Uppercase.Words in `intl_migrator` codemod
+
+## 2.27.0
+- intl_suggestors improvements
+  - Handle non-arrow intl functions
+  - Handle ignore comments preceded by other comments
+- Update analyzer package minimum to 5.0.0
+
+## 2.26.0
+- Limit meta dependency to avoid 1.10.0
+
+## 2.25.0
+- Improve single line ignore comments in intl codemod
+
+## 2.24.0
+- intl codemod:
+    - Implement ignore comments for const strings
+    - Add an explanatory comment on codemod-generated files
+    - Give a better error message when something in the intl file is not a method
+
 ## [2.23.0](https://github.com/Workiva/over_react_codemod/compare/2.23.0....2.22.0)
 
 - Update bundle updater codemod to include link tags 
