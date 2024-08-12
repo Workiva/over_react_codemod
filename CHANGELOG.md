@@ -1,54 +1,54 @@
-## [2.23.0(https://github.com/Workiva/over_react_codemod/compare/2.23.0....2.22.0)
+## [2.23.0](https://github.com/Workiva/over_react_codemod/compare/2.23.0....2.22.0)
 
 - Update bundle updater codemod to include link tags 
 
-## [2.22.0(https://github.com/Workiva/over_react_codemod/compare/2.22.0....2.21.0)
+## [2.22.0](https://github.com/Workiva/over_react_codemod/compare/2.22.0....2.21.0)
 
 - Fix for creating two copies of identical messages when they used double quotes
 
-## [2.21.0(https://github.com/Workiva/over_react_codemod/compare/2.21.0....2.20.0)
+## [2.21.0](https://github.com/Workiva/over_react_codemod/compare/2.21.0....2.20.0)
 
 - Fix names when writing the _intl.dart file
 
-## [2.20.0(https://github.com/Workiva/over_react_codemod/compare/2.20.0....2.19.0)
+## [2.20.0](https://github.com/Workiva/over_react_codemod/compare/2.20.0....2.19.0)
 
 - Attempt to reduce merge conflicts on _intl.dart files
 
-## [2.19.0(https://github.com/Workiva/over_react_codemod/compare/2.19.0....2.18.0)
+## [2.19.0](https://github.com/Workiva/over_react_codemod/compare/2.19.0....2.18.0)
 
 - Update the glob for pubspecs to pick up things like empty_pubspec.yaml
 
-## [2.18.0(https://github.com/Workiva/over_react_codemod/compare/2.18.0....2.17.0)
+## [2.18.0](https://github.com/Workiva/over_react_codemod/compare/2.18.0....2.17.0)
 
 - add shouldAddDependencies to bundle updater codemod
 
-## [2.17.0(https://github.com/Workiva/over_react_codemod/compare/2.17.0....2.16.0)
+## [2.17.0](https://github.com/Workiva/over_react_codemod/compare/2.17.0....2.16.0)
 
 - Change parameters typed Function in formattedMessage calls to Object
 
-## [2.16.0(https://github.com/Workiva/over_react_codemod/compare/2.16.0....2.15.0)
+## [2.16.0](https://github.com/Workiva/over_react_codemod/compare/2.16.0....2.15.0)
 
 - Batch change to update consumers to new RMUI ESM bundle
 
-## [2.15.0(https://github.com/Workiva/over_react_codemod/compare/2.15.0....2.14.0)
+## [2.15.0](https://github.com/Workiva/over_react_codemod/compare/2.15.0....2.14.0)
 
 - Migrate calls to addContextMenuItem
 - Fix the ignore for static-only classes to be for the file
 
-## [2.14.0(https://github.com/Workiva/over_react_codemod/compare/2.14.0....2.13.0)
+## [2.14.0](https://github.com/Workiva/over_react_codemod/compare/2.14.0....2.13.0)
 
 - Add nicer logging to codemod dryrun check 
 
-## [2.13.0(https://github.com/Workiva/over_react_codemod/compare/2.13.0....2.12.0)
+## [2.13.0](https://github.com/Workiva/over_react_codemod/compare/2.13.0....2.12.0)
 
 - Add a --[no]-prune-unused flag to remove methods that appear to be ununused
   from the _intl.dart file.
 
-## [2.12.0(https://github.com/Workiva/over_react_codemod/compare/2.12.0....2.10.1)
+## [2.12.0](https://github.com/Workiva/over_react_codemod/compare/2.12.0....2.10.1)
 
 - Add a --[no]-migrate-components option for intl\_message\_migration
 
-## [2.10.1(https://github.com/Workiva/over_react_codemod/compare/2.10.1....2.10.0)
+## [2.10.1](https://github.com/Workiva/over_react_codemod/compare/2.10.1....2.10.0)
 
 - Switch the import in _intl.dart generated classes to be w\_intl/intl\_wrapper.dart
 
