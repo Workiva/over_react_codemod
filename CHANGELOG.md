@@ -1,3 +1,11 @@
+## [2.24.0](https://github.com/Workiva/over_react_codemod/compare/2.24.0....2.23.0)
+
+- Add `null_safety_required_props` executable to help [migrate over_react props to nulls safety](https://github.com/Workiva/over_react/blob/master/doc/null_safety/null_safe_migration.md)
+
+#### Changes that don't affect package consumers
+- Fix outdated `dart2_upgrade` instructions in README
+- Update dev_dependencies, switch to mocktail
+
 ## [2.23.0](https://github.com/Workiva/over_react_codemod/compare/2.23.0....2.22.0)
 
 - Update bundle updater codemod to include link tags 
