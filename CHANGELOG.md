@@ -1,13 +1,17 @@
-## 2.32.0
-
+## 2.33.0
 - Add `null_safety_required_props` executable to help [migrate over_react props to nulls safety](https://github.com/Workiva/over_react/blob/master/doc/null_safety/null_safe_migration.md)
 
 #### Changes that don't affect package consumers
 - Fix outdated `dart2_upgrade` instructions in README
 - Update dev_dependencies, switch to mocktail
 
+## 2.32.0
+- `null_safety_prep` codemod - Migrate conditional prop function calls
+- `intl_migration` codemod - add deprecation message
+- Add `null_safety_migrator_companion` codemod to help [migrate over_react consumers to null safety](https://github.com/Workiva/over_react/blob/master/doc/null_safety/null_safe_migration.md)
+
 ## 2.31.0
-- Add `null_safety_prep` and `null_safety_migrator_companion` executables to help [migrate over_react consumers to nulls safety](https://github.com/Workiva/over_react/blob/master/doc/null_safety/null_safe_migration.md)
+- Add `null_safety_prep` codemod to help [migrate over_react consumers to null safety](https://github.com/Workiva/over_react/blob/master/doc/null_safety/null_safe_migration.md)
 
 ## 2.30.0
 - Add `required_flux_props` codemod to prepare consumers for [over_react 5.0.0](https://github.com/Workiva/over_react/blob/5.0.0/CHANGELOG.md#500)
