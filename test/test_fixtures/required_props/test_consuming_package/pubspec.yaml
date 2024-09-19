@@ -5,3 +5,14 @@ dependencies:
   over_react: ^5.0.0
   test_package:
     path: ../test_package
+
+dependency_overrides:
+  unify_ui:
+    git:
+      url: https://github.com/Workiva/react_material_ui.git
+      ref: null-safety-integration-branch-dev
+  react_material_ui:
+    git:
+      url: https://github.com/Workiva/react_material_ui.git
+      ref: null-safety-integration-branch-dev
+      path: react_material_ui
