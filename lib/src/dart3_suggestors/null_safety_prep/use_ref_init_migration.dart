@@ -15,6 +15,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
+import 'package:collection/collection.dart';
 
 /// Suggestor that finds instances of `useRef` function invocations that
 /// pass an argument, and replaces them with `useRefInit` to prep for
@@ -24,9 +25,11 @@ import 'package:codemod/codemod.dart';
 ///
 /// ```dart
 /// // Before
-/// final ref = useRef(someNonNulLValue);
+/// final ref1 = useRef(someNonNulLValue);
+/// final ref2 = useRef<Element>(null);
 /// // After
-/// final ref = useRefInit(someNonNulLValue);
+/// final ref1 = useRefInit(someNonNulLValue);
+/// final ref2 = useRef<Element>();
 /// ```
 class UseRefInitMigration extends RecursiveAstVisitor
     with AstVisitingSuggestor {
@@ -44,8 +47,14 @@ class UseRefInitMigration extends RecursiveAstVisitor
       }
 
       if (fnName == 'useRef') {
-        yieldPatch('useRefInit', possibleInvocation.function.offset,
-            possibleInvocation.function.end);
+        final argument = node.arguments.singleOrNull;
+        if (argument is NullLiteral) {
+          // Remove unnecessary null argument
+          yieldPatch('', argument.offset, argument.end);
+        } else {
+          yieldPatch('useRefInit', possibleInvocation.function.offset,
+              possibleInvocation.function.end);
+        }
       }
     }
   }
