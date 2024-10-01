@@ -104,5 +104,25 @@ void main() {
             '''),
       );
     });
+
+    test('removes unnecessary null arguments', () async {
+      await testSuggestor(
+        expectedPatchCount: 2,
+        input: withOverReactImport('''
+              useTestHook() {
+                final foo = useRef(null);
+                final bar = useRef<String>(null);
+                return [foo, bar];
+              }
+            '''),
+        expectedOutput: withOverReactImport('''
+              useTestHook() {
+                final foo = useRef();
+                final bar = useRef<String>();
+                return [foo, bar];
+              }
+            '''),
+      );
+    });
   });
 }
