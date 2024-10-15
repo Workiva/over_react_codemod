@@ -23,7 +23,7 @@ part 'collected_data.sg.g.dart';
 
 @JsonSerializable()
 class PackageResults {
-  static String latestDataVersion = '13';
+  static String latestDataVersion = '14';
 
   final String dataVersion;
 
@@ -32,6 +32,7 @@ class PackageResults {
   final Map<String, String> packageVersionDescriptionsByName;
   final List<Usage> usages;
   final Map<String, Map<Visibility, Set<String>>> mixinIdsByVisibilityByPackage;
+  final Map<String, Map<Visibility, Set<String>>> stateMixinIdsByVisibilityByPackage;
   final Map<String, Set<String>> allMixinUsagesByMixinId;
 
   factory PackageResults.fromJson(Map<String, dynamic> json) =>
@@ -44,6 +45,7 @@ class PackageResults {
     required this.packageVersionDescriptionsByName,
     required this.usages,
     required this.mixinIdsByVisibilityByPackage,
+    required this.stateMixinIdsByVisibilityByPackage,
     required this.allMixinUsagesByMixinId,
   });
 

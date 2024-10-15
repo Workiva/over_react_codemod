@@ -29,6 +29,16 @@ PackageResults _$PackageResultsFromJson(Map<String, dynamic> json) =>
                   (e as List<dynamic>).map((e) => e as String).toSet()),
             )),
       ),
+      stateMixinIdsByVisibilityByPackage:
+          (json['stateMixinIdsByVisibilityByPackage'] as Map<String, dynamic>)
+              .map(
+        (k, e) => MapEntry(
+            k,
+            (e as Map<String, dynamic>).map(
+              (k, e) => MapEntry($enumDecode(_$VisibilityEnumMap, k),
+                  (e as List<dynamic>).map((e) => e as String).toSet()),
+            )),
+      ),
       allMixinUsagesByMixinId:
           (json['allMixinUsagesByMixinId'] as Map<String, dynamic>).map(
         (k, e) =>
@@ -46,6 +56,9 @@ Map<String, dynamic> _$PackageResultsToJson(PackageResults instance) =>
       'usages': instance.usages,
       'mixinIdsByVisibilityByPackage': instance.mixinIdsByVisibilityByPackage
           .map((k, e) => MapEntry(k,
+              e.map((k, e) => MapEntry(_$VisibilityEnumMap[k]!, e.toList())))),
+      'stateMixinIdsByVisibilityByPackage':
+          instance.stateMixinIdsByVisibilityByPackage.map((k, e) => MapEntry(k,
               e.map((k, e) => MapEntry(_$VisibilityEnumMap[k]!, e.toList())))),
       'allMixinUsagesByMixinId': instance.allMixinUsagesByMixinId
           .map((k, e) => MapEntry(k, e.toList())),

@@ -52,6 +52,24 @@ PropRequirednessResults aggregateData(
 }) {
   final logger = Logger('aggregateData');
 
+  final stateMixinIdsByVisibilityByPackage = {
+    for (final result in allResults) ...result.stateMixinIdsByVisibilityByPackage,
+  };
+
+  print(stateMixinIdsByVisibilityByPackage);
+  print('package,publicStateCount');
+  var total = 0;
+  stateMixinIdsByVisibilityByPackage.forEach((package, mixinIdsByVisibility) {
+    final mixinIds = mixinIdsByVisibility[Visibility.public];
+    final count = mixinIds?.length ?? 0;
+    if (count == 0) return;
+
+    total += count;
+    print('$package,$count');
+  });
+  print('total,$total');
+
+
   logger.finer('Checking for duplicates...');
   // Validate that there are no duplicates in the data set
   {

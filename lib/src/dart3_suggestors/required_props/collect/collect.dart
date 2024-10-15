@@ -18,6 +18,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
+import 'package:over_react_codemod/src/intl_suggestors/utils.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/vendor/over_react_analyzer_plugin/get_all_props.dart';
@@ -38,6 +39,8 @@ Future<PackageResults> collectDataForUnits(
   final allUsages = <Usage>[];
   final allMixinUsagesByMixinId = <String, Set<String>>{};
   final mixinIdsByVisibilityByPackage =
+      <String, Map<Visibility, Set<String>>>{};
+  final stateMixinIdsByVisibilityByPackage =
       <String, Map<Visibility, Set<String>>>{};
 
   await for (final unitResult in units) {
@@ -88,6 +91,18 @@ Future<PackageResults> collectDataForUnits(
               .where((element) => element.name.contains('Props'))
               .map(uniqueElementId));
 
+      stateMixinIdsByVisibilityByPackage
+          .putIfAbsent(packageName, () => {})
+          .putIfAbsent(Visibility.public, () => {})
+          // Add exported state classes.
+          .addAll(unitResult.libraryElement.exportNamespace.definedNames.values
+              .whereType<InterfaceElement>()
+              // Note that this is public relative to the library, not necessarily the package.
+              .where((element) => element.isPublic)
+              // Filter out non-state classes/mixins so we don't collect too much data.
+              .where((element) => element.isStateClass)
+              .map(uniqueElementId));
+
       // Add factories that indirectly expose props classes.
       mixinIdsByVisibilityByPackage
           .putIfAbsent(packageName, () => {})
@@ -126,6 +141,7 @@ Future<PackageResults> collectDataForUnits(
     dataVersion: PackageResults.latestDataVersion,
     usages: allUsages,
     mixinIdsByVisibilityByPackage: mixinIdsByVisibilityByPackage,
+    stateMixinIdsByVisibilityByPackage: stateMixinIdsByVisibilityByPackage,
     allMixinUsagesByMixinId: allMixinUsagesByMixinId,
   );
 }

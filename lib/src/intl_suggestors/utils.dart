@@ -283,6 +283,9 @@ extension ReactTypes$Element on Element /*?*/ {
 
   bool get isPropsClass =>
       isOrIsSubtypeOfTypeFromPackage('UiProps', 'over_react');
+
+  bool get isStateClass =>
+      isOrIsSubtypeOfTypeFromPackage('UiState', 'over_react');
 }
 
 extension DartHtmlTypes$Element on Element /*?*/ {
