@@ -25,6 +25,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../../util/class_suggestor.dart';
+import '../../required_props/codemod/recommender.dart';
 import '../analyzer_plugin_utils.dart';
 
 /// A class shared by the suggestors that manage defaultProps/initialState.
@@ -52,7 +53,8 @@ abstract class ClassComponentRequiredFieldsMigrator<
   void patchFieldDeclarations(
       Iterable<FieldElement> Function(InterfaceElement) getAll,
       Iterable<Assignment> cascadedDefaultPropsOrInitialState,
-      CascadeExpression node) {
+      CascadeExpression node, [PropRequirednessRecommender? _propRequirednessRecommender]) {
+
     for (final field in cascadedDefaultPropsOrInitialState) {
       final isDefaultedToNull =
           field.node.rightHandSide.staticType!.isDartCoreNull;
@@ -66,6 +68,14 @@ abstract class ClassComponentRequiredFieldsMigrator<
       // The field declaration is likely in another file which our logic currently doesn't handle.
       // In this case, don't add an entry to `fieldData`.
       if (fieldDeclaration == null) continue;
+      final element = fieldDeclaration.declaredElement;
+
+      // Don't set as required if the prop is publicly exported.
+      if(_propRequirednessRecommender != null && element is FieldElement) {
+        final isPublic = _propRequirednessRecommender
+            .getRecommendation(element)?.reason?.isPublic ?? false;
+        if(isPublic) continue;
+      }
 
       fieldData.add(DefaultedOrInitializedDeclaration(
           fieldDeclaration, fieldEl, isDefaultedToNull));

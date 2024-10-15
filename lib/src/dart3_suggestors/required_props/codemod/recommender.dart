@@ -64,7 +64,7 @@ class PropRequirednessRecommender {
         isPublic ? publicRequirednessThreshold : privateRequirednessThreshold;
 
     if (totalRequirednessRate < requirednessThreshold) {
-      final reason = RequirednessThresholdOptionalReason();
+      final reason = RequirednessThresholdOptionalReason(isPublic: isPublic);
       return PropRecommendation.optional(reason);
     } else {
       return const PropRecommendation.required();
@@ -146,11 +146,14 @@ class PropRecommendation {
   const PropRecommendation.optional(this.reason) : isRequired = false;
 }
 
-abstract class OptionalReason {}
+abstract class OptionalReason {
+  abstract final bool isPublic;
+}
 
 class SkipRateOptionalReason extends OptionalReason {
   final num skipRate;
   final num maxAllowedSkipRate;
+  @override
   final bool isPublic;
 
   SkipRateOptionalReason({
@@ -161,5 +164,8 @@ class SkipRateOptionalReason extends OptionalReason {
 }
 
 class RequirednessThresholdOptionalReason extends OptionalReason {
-  RequirednessThresholdOptionalReason();
+  @override
+  final bool isPublic;
+
+  RequirednessThresholdOptionalReason({required this.isPublic});
 }
