@@ -87,6 +87,24 @@ mixin TestPrivateProps on UiProps {
   $noDataTodoComment
   String/*?*/ set0percent;
 }''')),
+              d.file('test_class_component_defaults.dart', contains('''
+mixin TestPrivatePropsMixin on UiProps {
+  String/*?*/ notDefaultedOptional;
+  /*late*/ String notDefaultedAlwaysSet;
+  /*late*/ String/*?*/ defaultedNullable;
+  /*late*/ num/*!*/ defaultedNonNullable;
+}
+
+mixin SomeOtherPropsMixin on UiProps {
+  /*late*/ num/*!*/ anotherDefaultedNonNullable;
+}''')),
+              d.file('test_class_component_defaults.dart', contains('''
+mixin TestPublic2PropsMixin on UiProps {
+  String/*?*/ notDefaultedOptional;
+  /*late*/ String notDefaultedAlwaysSet;
+  String/*?*/ defaultedNullable;
+  num/*?*/ defaultedNonNullable;
+}''')),
               d.file('test_private_dynamic.dart', contains('''
 // TODO(orcm.required_props): This codemod couldn't reliably determine requiredness for these props
 //  because 75% of usages of components with these props (> max allowed 20% for private props)
