@@ -13,7 +13,8 @@ mixin SomeOtherPropsMixin on UiProps {
   num anotherDefaultedNonNullable;
 }
 
-class TestPrivateProps = UiProps with TestPrivatePropsMixin, SomeOtherPropsMixin;
+class TestPrivateProps = UiProps
+    with TestPrivatePropsMixin, SomeOtherPropsMixin;
 
 UiFactory<TestPrivateProps> TestPrivate =
     castUiFactory(_$TestPrivate); // ignore: undefined_identifier
@@ -37,10 +38,11 @@ mixin TestPublic2PropsMixin on UiProps {
   num defaultedNonNullable;
 }
 
-class TestPublic2Props = UiProps with TestPublic2PropsMixin, SomeOtherPropsMixin;
+class TestPublic2Props = UiProps
+    with TestPublic2PropsMixin, SomeOtherPropsMixin;
 
 UiFactory<TestPublic2Props> TestPublic2 =
-castUiFactory(_$TestPublic2); // ignore: undefined_identifier
+    castUiFactory(_$TestPublic2); // ignore: undefined_identifier
 
 class TestPublic2Component extends UiComponent2<TestPublic2Props> {
   @override
@@ -61,9 +63,14 @@ usages() {
     ..notDefaultedAlwaysSet = 'abc'
     ..defaultedNullable = 'abc'
     ..defaultedNonNullable = 1
-    ..anotherDefaultedNonNullable = 2)();
+    ..anotherDefaultedNonNullable = 2
+  )();
   (TestPublic2()..notDefaultedAlwaysSet = 'abc')();
-  (TestPublic2()..notDefaultedAlwaysSet = 'abc'..notDefaultedOptional = 'abc'..defaultedNullable = 'abc'
+  (TestPublic2()
+    ..notDefaultedAlwaysSet = 'abc'
+    ..notDefaultedOptional = 'abc'
+    ..defaultedNullable = 'abc'
     ..defaultedNonNullable = 1
-    ..anotherDefaultedNonNullable = 2)();
+    ..anotherDefaultedNonNullable = 2
+  )();
 }

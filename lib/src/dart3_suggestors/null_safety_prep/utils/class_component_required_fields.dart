@@ -53,8 +53,8 @@ abstract class ClassComponentRequiredFieldsMigrator<
   void patchFieldDeclarations(
       Iterable<FieldElement> Function(InterfaceElement) getAll,
       Iterable<Assignment> cascadedDefaultPropsOrInitialState,
-      CascadeExpression node, [PropRequirednessRecommender? _propRequirednessRecommender]) {
-
+      CascadeExpression node,
+      [PropRequirednessRecommender? _propRequirednessRecommender]) {
     for (final field in cascadedDefaultPropsOrInitialState) {
       final isDefaultedToNull =
           field.node.rightHandSide.staticType!.isDartCoreNull;
@@ -71,10 +71,13 @@ abstract class ClassComponentRequiredFieldsMigrator<
       final element = fieldDeclaration.declaredElement;
 
       // Don't set as required if the prop is publicly exported.
-      if(_propRequirednessRecommender != null && element is FieldElement) {
+      if (_propRequirednessRecommender != null && element is FieldElement) {
         final isPublic = _propRequirednessRecommender
-            .getRecommendation(element)?.reason?.isPublic ?? false;
-        if(isPublic) continue;
+                .getRecommendation(element)
+                ?.reason
+                ?.isPublic ??
+            false;
+        if (isPublic) continue;
       }
 
       fieldData.add(DefaultedOrInitializedDeclaration(

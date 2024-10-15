@@ -79,7 +79,8 @@ class ClassComponentRequiredDefaultPropsMigrator
     extends ClassComponentRequiredFieldsMigrator<PropAssignment> {
   final PropRequirednessRecommender? _propRequirednessRecommender;
 
-  ClassComponentRequiredDefaultPropsMigrator([Version? sdkVersion, this._propRequirednessRecommender])
+  ClassComponentRequiredDefaultPropsMigrator(
+      [Version? sdkVersion, this._propRequirednessRecommender])
       : super('defaultProps', 'getDefaultProps', sdkVersion);
 
   @override
@@ -108,6 +109,7 @@ class ClassComponentRequiredDefaultPropsMigrator
         .map((assignment) => PropAssignment(assignment))
         .where((prop) => prop.node.writeElement?.displayName != null);
 
-    patchFieldDeclarations(getAllProps, cascadedDefaultProps, node, _propRequirednessRecommender);
+    patchFieldDeclarations(
+        getAllProps, cascadedDefaultProps, node, _propRequirednessRecommender);
   }
 }
