@@ -38,7 +38,7 @@ void main() {
 
     test('patches state fields in mixins', () async {
       await testSuggestor(
-        // expectedPatchCount: 5,
+        expectedPatchCount: 3,
         input: withOverReactImport(/*language=dart*/ r'''
             // ignore: undefined_identifier
             UiFactory<FooProps> Foo = castUiFactory(_$Foo);
@@ -92,7 +92,7 @@ void main() {
 
     test('patches initialized state in legacy classes', () async {
       await testSuggestor(
-        // expectedPatchCount: 3,
+        expectedPatchCount: 3,
         input: withOverReactImport(/*language=dart*/ r'''
             @Factory()
             UiFactory<FooProps> Foo = _$Foo; // ignore: undefined_identifier
