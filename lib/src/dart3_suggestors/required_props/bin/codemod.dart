@@ -153,15 +153,6 @@ class CodemodCommand extends Command {
       dartPaths,
       [
         ClassComponentRequiredDefaultPropsMigrator(null, recommender),
-      ],
-      defaultYes: true,
-      args: codemodArgs,
-      additionalHelpOutput: argParser.usage,
-    );
-
-    exitCode = await runInteractiveCodemodSequence(
-      dartPaths,
-      [
         RequiredPropsSuggestor(
           recommender,
           trustRequiredAnnotations:
