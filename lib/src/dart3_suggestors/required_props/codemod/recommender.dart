@@ -64,7 +64,7 @@ class PropRequirednessRecommender {
         isPublic ? publicRequirednessThreshold : privateRequirednessThreshold;
 
     if (totalRequirednessRate < requirednessThreshold) {
-      final reason = RequirednessThresholdOptionalReason(isPublic: isPublic);
+      final reason = RequirednessThresholdOptionalReason();
       return PropRecommendation.optional(reason);
     } else {
       return const PropRecommendation.required();
@@ -77,6 +77,9 @@ class PropRequirednessRecommender {
     return _propRequirednessResults.mixinResultsByIdByPackage[packageName]
         ?[propsId];
   }
+
+  bool isPropsPublicForMixingIn(Element propsElement) =>
+      _getMixinResult(propsElement)?.visibility.isPublicForMixingIn ?? false;
 
   SkipRateOptionalReason? _getMixinSkipRateReason(MixinResult mixinResults) {
     final skipRate = mixinResults.usageSkipRate;
@@ -146,14 +149,11 @@ class PropRecommendation {
   const PropRecommendation.optional(this.reason) : isRequired = false;
 }
 
-abstract class OptionalReason {
-  abstract final bool isPublic;
-}
+abstract class OptionalReason {}
 
 class SkipRateOptionalReason extends OptionalReason {
   final num skipRate;
   final num maxAllowedSkipRate;
-  @override
   final bool isPublic;
 
   SkipRateOptionalReason({
@@ -164,8 +164,5 @@ class SkipRateOptionalReason extends OptionalReason {
 }
 
 class RequirednessThresholdOptionalReason extends OptionalReason {
-  @override
-  final bool isPublic;
-
-  RequirednessThresholdOptionalReason({required this.isPublic});
+  RequirednessThresholdOptionalReason();
 }

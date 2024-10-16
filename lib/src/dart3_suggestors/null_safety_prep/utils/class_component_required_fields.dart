@@ -73,10 +73,7 @@ abstract class ClassComponentRequiredFieldsMigrator<
       // Don't set as required if the prop is publicly exported.
       if (_propRequirednessRecommender != null && element is FieldElement) {
         final isPublic = _propRequirednessRecommender
-                .getRecommendation(element)
-                ?.reason
-                ?.isPublic ??
-            false;
+            .isPropsPublicForMixingIn(element.enclosingElement);
         if (isPublic) continue;
       }
 
