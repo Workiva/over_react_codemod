@@ -90,7 +90,7 @@ void main() {
       );
     });
 
-    test('patches initialized state in legacy classes', () async {
+    test('patches state fields in legacy classes', () async {
       await testSuggestor(
         expectedPatchCount: 3,
         input: withOverReactImport(/*language=dart*/ r'''
