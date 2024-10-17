@@ -20,11 +20,13 @@ import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/class_c
 import 'package:over_react_codemod/src/util.dart';
 
 import '../dart3_suggestors/null_safety_prep/callback_ref_hint_suggestor.dart';
+import '../dart3_suggestors/null_safety_prep/state_mixin_suggestor.dart';
+import '../util/package_util.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
-  pub global activate over_react_codemod
-  pub global run over_react_codemod:null_safety_prep
+  dart pub global activate over_react_codemod
+  dart pub global run over_react_codemod:null_safety_migrator_companion
 """;
 
 /// Codemods in this executable add nullability "hints" to assist with a
@@ -36,14 +38,41 @@ void main(List<String> args) async {
   final parser = ArgParser.allowAnything();
 
   final parsedArgs = parser.parse(args);
+  final packageRoot = findPackageRootFor('.');
+  await runPubGetIfNeeded(packageRoot);
   final dartPaths = allDartPathsExceptHiddenAndGenerated();
 
-  exitCode = await runInteractiveCodemod(
+  exitCode = await runInteractiveCodemodSequence(
     dartPaths,
-    aggregate([
+    [
       CallbackRefHintSuggestor(),
+    ],
+    defaultYes: true,
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
+
+  if (exitCode != 0) return;
+
+  exitCode = await runInteractiveCodemodSequence(
+    dartPaths,
+    [
       ClassComponentRequiredInitialStateMigrator(),
-    ]),
+    ],
+    defaultYes: true,
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
+
+  if (exitCode != 0) return;
+
+  exitCode = await runInteractiveCodemodSequence(
+    dartPaths,
+    [
+      StateMixinSuggestor(),
+    ],
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,
