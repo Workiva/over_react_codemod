@@ -21,6 +21,7 @@ import 'package:over_react_codemod/src/util.dart';
 
 import '../dart3_suggestors/null_safety_prep/callback_ref_hint_suggestor.dart';
 import '../dart3_suggestors/null_safety_prep/state_mixin_suggestor.dart';
+import '../util/package_util.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
@@ -37,6 +38,8 @@ void main(List<String> args) async {
   final parser = ArgParser.allowAnything();
 
   final parsedArgs = parser.parse(args);
+  final packageRoot = findPackageRootFor('.');
+  await runPubGetIfNeeded(packageRoot);
   final dartPaths = allDartPathsExceptHiddenAndGenerated();
 
   exitCode = await runInteractiveCodemodSequence(
