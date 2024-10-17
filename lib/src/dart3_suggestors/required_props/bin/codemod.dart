@@ -24,6 +24,7 @@ import 'package:over_react_codemod/src/util/args.dart';
 import 'package:over_react_codemod/src/util/command_runner.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 
+import '../../null_safety_prep/class_component_required_default_props.dart';
 import '../codemod/recommender.dart';
 import '../collect/aggregated_data.sg.dart';
 
@@ -146,6 +147,16 @@ class CodemodCommand extends Command {
           parsedArgs.argValueAsNumber(_Options.publicRequirednessThreshold),
       publicMaxAllowedSkipRate:
           parsedArgs.argValueAsNumber(_Options.publicMaxAllowedSkipRate),
+    );
+
+    exitCode = await runInteractiveCodemodSequence(
+      dartPaths,
+      [
+        ClassComponentRequiredDefaultPropsMigrator(null, recommender),
+      ],
+      defaultYes: true,
+      args: codemodArgs,
+      additionalHelpOutput: argParser.usage,
     );
 
     exitCode = await runInteractiveCodemodSequence(
