@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/utils/props_utils.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/class_suggestor.dart';
@@ -37,56 +37,105 @@ import 'analyzer_plugin_utils.dart';
 /// props.onClick(createSyntheticMouseEvent());
 /// ```
 class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
-  late ResolvedUnitResult _result;
+  /// Running list of props that should be ignored per mixin that will all be added
+  /// at the end in [generatePatches].
+  final _ignoredPropsByMixin = <InterfaceElement, List<String>>{};
 
   @override
   visitCascadeExpression(CascadeExpression node) {
     super.visitCascadeExpression(node);
 
     // Verify the builder usage is within the `connect` method call.
-    final connect = node.thisOrAncestorMatching<MethodInvocation>((n) => n is MethodInvocation && n.methodName.name == 'connect');
-    if(connect == null) return;
+    final connect = node.thisOrAncestorMatching<MethodInvocation>(
+        (n) => n is MethodInvocation && n.methodName.name == 'connect');
+    if (connect == null) return;
 
     // Verify the builder usage is within one of the targeted connect args.
-    final connectArgs = connect.argumentList.arguments.whereType<NamedExpression>();
-    final connectArg = node.thisOrAncestorMatching<NamedExpression>((n) => n is NamedExpression && connectArgs.contains(n) && connectArgNames.contains(n.name.label.name));
-    if(connectArg == null) return;
+    final connectArgs =
+        connect.argumentList.arguments.whereType<NamedExpression>();
+    final connectArg = node.thisOrAncestorMatching<NamedExpression>((n) =>
+        n is NamedExpression &&
+        connectArgs.contains(n) &&
+        connectArgNames.contains(n.name.label.name));
+    if (connectArg == null) return;
 
     final cascadedProps = getCascadedProps(node).toList();
 
-    final ignoredPropsByMixin = <InterfaceElement, List<String>>{};
     for (final field in cascadedProps) {
       final propsElement =
           node.staticType?.typeOrBound.tryCast<InterfaceType>()?.element;
       if (propsElement == null) continue;
 
       final fieldName = field.name.name;
-      if (ignoredPropsByMixin[propsElement] != null) {
-        ignoredPropsByMixin[propsElement]!.add(fieldName);
+      if (_ignoredPropsByMixin[propsElement] != null) {
+        _ignoredPropsByMixin[propsElement]!.add(fieldName);
       } else {
-        ignoredPropsByMixin[propsElement] = [fieldName];
-      }
-    }
-
-    for(final propsClass in ignoredPropsByMixin.keys) {
-      final classNode = NodeLocator2(propsClass.nameOffset).searchWithin(_result.unit);
-      if(classNode != null) {
-        yieldPatch(
-            '@Props(disableRequiredPropValidation: {${ignoredPropsByMixin[propsClass]!.map((p) => '\'$p\'').join(', ')}})',
-            classNode.offset, classNode.offset);
+        _ignoredPropsByMixin[propsElement] = [fieldName];
       }
     }
   }
 
   @override
   Future<void> generatePatches() async {
-    final r = await context.getResolvedUnit();
-    if (r == null) {
+    _ignoredPropsByMixin.clear();
+    final result = await context.getResolvedUnit();
+    if (result == null) {
       throw Exception(
           'Could not get resolved result for "${context.relativePath}"');
     }
-    _result = r;
-    _result.unit.accept(this);
+    result.unit.accept(this);
+
+    // Add the patches at the end so that all the props to be ignored can be collected
+    // from the different args in `connect` before adding patches to avoid duplicate patches.
+    for (final propsClass in _ignoredPropsByMixin.keys) {
+      final propsToIgnore = _ignoredPropsByMixin[propsClass]!;
+      final classNode =
+          NodeLocator2(propsClass.nameOffset).searchWithin(result.unit);
+      if (classNode != null && classNode is NamedCompilationUnitMember) {
+        final existingAnnotation =
+            classNode.metadata.where((c) => c.name.name == 'Props').firstOrNull;
+        if (existingAnnotation == null) {
+          yieldPatch(
+              '@Props(disableRequiredPropValidation: {${propsToIgnore.map((p) => '\'$p\'').join(', ')}})',
+              classNode.offset,
+              classNode.offset);
+        } else {
+          final ignoreArg = existingAnnotation.arguments?.arguments
+              .whereType<NamedExpression>()
+              .where(
+                  (e) => e.name.label.name == 'disableRequiredPropValidation')
+              .firstOrNull;
+          if (ignoreArg == null) {
+            final offset = existingAnnotation.arguments?.leftParenthesis.end;
+            if (offset != null) {
+              yieldPatch(
+                  'disableRequiredPropValidation: {${propsToIgnore.map((p) => '\'$p\'').join(', ')}}${existingAnnotation.arguments?.arguments.isNotEmpty ?? false ? ', ' : ''}',
+                  offset,
+                  offset);
+            }
+          } else {
+            final existingList =
+                ignoreArg.expression.tryCast<SetOrMapLiteral>();
+            if (existingList != null) {
+              final alreadyIgnored = existingList.elements
+                  .whereType<SimpleStringLiteral>()
+                  .map((e) => e.stringValue)
+                  .toList();
+              final newPropsToIgnore =
+                  propsToIgnore.where((p) => !alreadyIgnored.contains(p));
+              if (newPropsToIgnore.isNotEmpty) {
+                final offset = existingList.leftBracket.end;
+                yieldPatch(
+                    '${newPropsToIgnore.map((p) => '\'$p\'').join(', ')}, ',
+                    offset,
+                    offset);
+              }
+            }
+          }
+        }
+      }
+    }
   }
+
   static const connectArgNames = ['mapStateToProps', 'mapDispatchToProps'];
 }

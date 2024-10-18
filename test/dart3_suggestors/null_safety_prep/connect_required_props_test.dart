@@ -26,8 +26,24 @@ void main() {
   // (which is more common for the WSD context), it fails here instead of failing the first test.
   setUpAll(resolvedContext.warmUpAnalysis);
 
-  group('ConnectRequiredProps', () {
+  group(
+      'ConnectRequiredProps - adds all connect props to disable required prop validation list',
+      () {
     late SuggestorTester testSuggestor;
+
+    String commonConnectFile(String source) {
+      return '''
+      $overReactImport
+      import 'package:over_react/over_react_redux.dart';
+        
+      // ignore: uri_has_not_been_generated
+      part 'main.over_react.g.dart';
+    
+      class FooState {
+        num count;
+      }
+      $source''';
+    }
 
     setUp(() {
       testSuggestor = getSuggestorTester(
@@ -36,21 +52,149 @@ void main() {
       );
     });
 
-    test(
-        'adds all connect props to disable required prop validation list',
-        () async {
+    test('', () async {
       await testSuggestor(
-        expectedPatchCount: 0,
-        input: withOverReactImport('''
-          import 'package:over_react/over_react_redux.dart';
-        
-          // ignore: uri_has_not_been_generated
-          part 'main.over_react.g.dart';
-        
-          class FooState {
-            /*late*/ num count;
+        input: commonConnectFile('''
+          mixin FooProps on UiProps {
+            num count;
+            Function() increment;
+            String abc;
           }
           
+          UiFactory<FooProps> Foo = connect<FooState, FooProps>(
+            mapStateToProps: (state) => (Foo()
+              ..addTestId('abc')
+              ..count = state.count
+            ),
+            mapDispatchToProps: (dispatch) => Foo()..increment = (() => null),
+          )(uiFunction((props) => (Foo()..abc = '1')(), _\$Foo));
+        '''),
+        expectedOutput: commonConnectFile('''
+          @Props(disableRequiredPropValidation: {'count', 'increment'})
+          mixin FooProps on UiProps {
+            num count;
+            Function() increment;
+            String abc;
+          }
+          
+          UiFactory<FooProps> Foo = connect<FooState, FooProps>(
+            mapStateToProps: (state) => (Foo()
+              ..addTestId('abc')
+              ..count = state.count
+            ),
+            mapDispatchToProps: (dispatch) => Foo()..increment = (() => null),
+          )(uiFunction((props) => (Foo()..abc = '1')(), _\$Foo));
+        '''),
+      );
+    });
+
+    test('for multiple mixins', () async {
+      await testSuggestor(
+        input: commonConnectFile('''
+          mixin FooPropsMixin on UiProps {
+            /*late*/ num count;
+            Function()/*?*/  increment;
+            String abc;
+          }
+          
+          mixin OtherPropsMixin on UiProps {
+            String a;
+            String b;
+          }
+          
+          class FooProps = UiProps with FooPropsMixin, OtherPropsMixin;
+          
+          UiFactory<FooProps> Foo = connect<FooState, FooProps>(
+            mapStateToProps: (state) => (Foo()
+              ..addTestId('abc')
+              ..count = state.count
+              ..a = '1'
+            ),
+            mapDispatchToProps: (dispatch) => Foo()..increment = (() => null),
+          )(uiFunction((props) => (Foo()..abc = '1'..b = '2')(), _\$Foo));
+        '''),
+        expectedOutput: commonConnectFile('''
+          mixin FooPropsMixin on UiProps {
+            /*late*/ num count;
+            Function()/*?*/  increment;
+            String abc;
+          }
+          
+          mixin OtherPropsMixin on UiProps {
+            String a;
+            String b;
+          }
+          
+          @Props(disableRequiredPropValidation: {'count', 'increment'})
+          class FooProps = UiProps with FooPropsMixin, OtherPropsMixin;
+          
+          UiFactory<FooProps> Foo = connect<FooState, FooProps>(
+            mapStateToProps: (state) => (Foo()
+              ..addTestId('abc')
+              ..count = state.count
+              ..a = '1'
+            ),
+            mapDispatchToProps: (dispatch) => Foo()..increment = (() => null),
+          )(uiFunction((props) => (Foo()..abc = '1'..b = '2')(), _\$Foo));
+        '''),
+      );
+    });
+
+    group('adds to existing annotations', () {
+      Future<void> testAnnotations(
+          {required String input, required String expectedOutput}) async {
+        final connectBoilerplate = '''
+          mixin FooProps on UiProps {
+            num connectProp1;
+            Function() connectProp2;
+            String nonConnectProp;
+          }
+          
+          UiFactory<FooProps> Foo = connect<FooState, FooProps>(
+            mapStateToProps: (state) => (Foo()..connectProp1 = 1),
+            mapDispatchToProps: (dispatch) => Foo()..connectProp2 = (() => null),
+          )(uiFunction((props) => (Foo()..nonConnectProp = '1')(), _\$Foo));
+        ''';
+        await testSuggestor(
+          input: commonConnectFile('''
+          $input
+          $connectBoilerplate
+        '''),
+          expectedOutput: commonConnectFile('''
+          $expectedOutput
+          $connectBoilerplate
+        '''),
+        );
+      }
+
+      test('', () async {
+        await testAnnotations(
+          input: '@Props()',
+          expectedOutput:
+              '@Props(disableRequiredPropValidation: {\'connectProp1\', \'connectProp2\'})',
+        );
+      });
+
+      test('with other args', () async {
+        await testAnnotations(
+          input: '@Props(keyNamespace: \'\')',
+          expectedOutput:
+              '@Props(disableRequiredPropValidation: {\'connectProp1\', \'connectProp2\'}, keyNamespace: \'\')',
+        );
+      });
+
+      test('with disableRequiredPropValidation', () async {
+        await testAnnotations(
+          input: '@Props(disableRequiredPropValidation: {\'connectProp1\'})',
+          expectedOutput:
+              '@Props(disableRequiredPropValidation: {\'connectProp2\', \'connectProp1\'})',
+        );
+      });
+    });
+
+    test('recognizes different arg formats', () async {
+      await testSuggestor(
+        input: commonConnectFile('''
           mixin FooProps on UiProps {
             /*late*/ num count;
             Function()/*?*/  increment;
@@ -58,23 +202,20 @@ void main() {
           }
           
           UiFactory<FooProps> Foo = connect<FooState, FooProps>(
-            mapStateToProps: (state) => (Foo()
-              ..count = state.count
-            ),
-            mapDispatchToProps: (dispatch) => (Foo()
-              ..increment = (() => null)
-            ),
+            mapStateToProps: (state) {
+              return (Foo()
+                ..count = state.count
+              );
+            },
+            mapDispatchToProps: (dispatch) {
+              final foo = (Foo()
+                ..increment = (() => null)
+              );
+              return foo;
+            },
           )(_\$Foo);
         '''),
-        expectedOutput: withOverReactImport('''
-          import 'package:over_react/over_react_redux.dart';
-        
-          part 'main.over_react.g.dart';
-        
-          class FooState {
-            /*late*/ num count;
-          }
-          
+        expectedOutput: commonConnectFile('''
           @Props(disableRequiredPropValidation: {'count', 'increment'})
           mixin FooProps on UiProps {
             /*late*/ num count;
@@ -83,12 +224,46 @@ void main() {
           }
           
           UiFactory<FooProps> Foo = connect<FooState, FooProps>(
-            mapStateToProps: (state) => (Foo()
+            mapStateToProps: (state) {
+              return (Foo()
+                ..count = state.count
+              );
+            },
+            mapDispatchToProps: (dispatch) {
+              final foo = (Foo()
+                ..increment = (() => dispatch(IncrementAction()))
+              );
+              return foo;
+            },
+          )(_\$Foo);
+        '''),
+      );
+    });
+
+    test('does not cover certain unlikely edge cases', () async {
+      await testSuggestor(
+        expectedPatchCount: 0,
+        input: commonConnectFile('''
+          mixin FooProps on UiProps {
+            /*late*/ num count;
+            Function()/*?*/  increment;
+            String abc;
+          }
+          
+          final _mapStateToProps =  (state) {
+            return (Foo()
               ..count = state.count
-            ),
-            mapDispatchToProps: (dispatch) => (Foo()
-              ..increment = (() => dispatch(IncrementAction()))
-            ),
+            );
+          };
+          
+          UiFactory<FooProps> Foo = connect<FooState, FooProps>(
+            mapStateToProps: _mapStateToProps,
+            mapDispatchToProps: (dispatch) {
+              final foo = (Foo()
+                ..increment = (() => null)
+              );
+              return foo;
+            },
           )(_\$Foo);
         '''),
       );
