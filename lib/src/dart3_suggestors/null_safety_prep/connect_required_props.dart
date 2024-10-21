@@ -23,19 +23,8 @@ import 'package:over_react_codemod/src/util/class_suggestor.dart';
 
 import 'analyzer_plugin_utils.dart';
 
-// todo update
-/// Suggestor that replaces a `null` literal argument passed to a "DOM" callback
-/// with a generated `SyntheticEvent` object of the expected type.
-///
-/// Example:
-///
-/// ```dart
-/// final props = domProps();
-/// // Before
-/// props.onClick(null);
-/// // After
-/// props.onClick(createSyntheticMouseEvent());
-/// ```
+/// Suggestor that adds `@Props(disableRequiredPropValidation: {...})` annotations
+/// for props that are set in `connect` components.
 class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
   /// Running list of props that should be ignored per mixin that will all be added
   /// at the end in [generatePatches].
@@ -66,6 +55,7 @@ class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
           node.staticType?.typeOrBound.tryCast<InterfaceType>()?.element;
       if (propsElement == null) continue;
 
+      // Keep a running list of props to ignore per props mixin.
       final fieldName = field.name.name;
       if (_ignoredPropsByMixin[propsElement] != null) {
         _ignoredPropsByMixin[propsElement]!.add(fieldName);
@@ -94,28 +84,33 @@ class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
       if (classNode != null && classNode is NamedCompilationUnitMember) {
         final existingAnnotation =
             classNode.metadata.where((c) => c.name.name == 'Props').firstOrNull;
+
         if (existingAnnotation == null) {
+          // Add full @Props annotation if it doesn't exist.
           yieldPatch(
-              '@Props(disableRequiredPropValidation: {${propsToIgnore.map((p) => '\'$p\'').join(', ')}})',
+              '@Props($annotationArg: {${propsToIgnore.map((p) => '\'$p\'').join(', ')}})',
               classNode.offset,
               classNode.offset);
         } else {
-          final ignoreArg = existingAnnotation.arguments?.arguments
+          final existingAnnotationArg = existingAnnotation.arguments?.arguments
               .whereType<NamedExpression>()
-              .where(
-                  (e) => e.name.label.name == 'disableRequiredPropValidation')
+              .where((e) => e.name.label.name == annotationArg)
               .firstOrNull;
-          if (ignoreArg == null) {
+
+          if (existingAnnotationArg == null) {
+            // Add disable validation arg to existing @Props annotation.
             final offset = existingAnnotation.arguments?.leftParenthesis.end;
             if (offset != null) {
               yieldPatch(
-                  'disableRequiredPropValidation: {${propsToIgnore.map((p) => '\'$p\'').join(', ')}}${existingAnnotation.arguments?.arguments.isNotEmpty ?? false ? ', ' : ''}',
+                  '$annotationArg: {${propsToIgnore.map((p) => '\'$p\'').join(', ')}}${existingAnnotation.arguments?.arguments.isNotEmpty ?? false ? ', ' : ''}',
                   offset,
                   offset);
             }
           } else {
+            // Add props to disable validation for to the existing list of disabled
+            // props in the @Props annotation if they aren't already listed.
             final existingList =
-                ignoreArg.expression.tryCast<SetOrMapLiteral>();
+                existingAnnotationArg.expression.tryCast<SetOrMapLiteral>();
             if (existingList != null) {
               final alreadyIgnored = existingList.elements
                   .whereType<SimpleStringLiteral>()
@@ -138,4 +133,5 @@ class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
   }
 
   static const connectArgNames = ['mapStateToProps', 'mapDispatchToProps'];
+  static const annotationArg = 'disableRequiredPropValidation';
 }
