@@ -132,6 +132,11 @@ class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
     }
   }
 
-  static const connectArgNames = ['mapStateToProps', 'mapDispatchToProps'];
+  static const connectArgNames = [
+    'mapStateToProps',
+    'mapStateToPropsWithOwnProps',
+    'mapDispatchToProps',
+    'mapDispatchToPropsWithOwnProps',
+  ];
   static const annotationArg = 'disableRequiredPropValidation';
 }

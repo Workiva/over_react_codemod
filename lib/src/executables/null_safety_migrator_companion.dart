@@ -18,6 +18,7 @@ import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/class_component_required_default_props.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/class_component_required_initial_state.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/connect_required_props.dart';
 import 'package:over_react_codemod/src/util.dart';
 
 import '../dart3_suggestors/null_safety_prep/callback_ref_hint_suggestor.dart';
@@ -42,9 +43,7 @@ void main(List<String> args) async {
   exitCode = await runInteractiveCodemod(
     dartPaths,
     aggregate([
-      CallbackRefHintSuggestor(),
-      ClassComponentRequiredDefaultPropsMigrator(),
-      ClassComponentRequiredInitialStateMigrator(),
+      ConnectRequiredProps(),
     ]),
     defaultYes: true,
     args: parsedArgs.rest,
