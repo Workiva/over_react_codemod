@@ -88,7 +88,7 @@ class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
         if (existingAnnotation == null) {
           // Add full @Props annotation if it doesn't exist.
           yieldPatch(
-              '@Props($annotationArg: {${propsToIgnore.map((p) => '\'$p\'').join(', ')}})',
+              '@Props($annotationArg: {${propsToIgnore.map((p) => '\'$p\'').join(', ')}})\n',
               classNode.offset,
               classNode.offset);
         } else {

@@ -46,8 +46,10 @@ void main() {
           d.dir('lib', [
             d.dir('src', [
               d.file('test_state.dart', contains('''
+@Props(disableRequiredPropValidation: {\'prop1\'})
 mixin FooProps on UiProps {
   int prop1;
+  int prop2;
 }
 
 mixin FooState on UiState {
