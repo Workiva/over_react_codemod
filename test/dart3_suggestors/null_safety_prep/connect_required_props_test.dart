@@ -195,6 +195,34 @@ void main() {
       );
     });
 
+    test('only adds props used in specific connect args', () async {
+      final input = '''
+          mixin FooProps on UiProps {
+            num propInMapStateToProps;
+            num propInMapStateToPropsWithOwnProps;
+            num propInMapDispatchToProps;
+            num propInMapDispatchToPropsWithOwnProps;
+            num propInMergeProps;
+            String notUsed;
+          }
+          
+          UiFactory<FooProps> Foo = connect<FooState, FooProps>(
+            mapStateToProps: (_) => (Foo()..propInMapStateToProps = 1),
+            mapStateToPropsWithOwnProps: (_, __) => (Foo()..propInMapStateToPropsWithOwnProps = 1),
+            mapDispatchToProps: (_) => (Foo()..propInMapDispatchToProps = 1),
+            mapDispatchToPropsWithOwnProps: (_, __) => (Foo()..propInMapDispatchToPropsWithOwnProps = 1),
+            mergeProps: (_, __, ___) => (Foo()..propInMergeProps = 1),
+          )(_\$Foo);
+        ''';
+      await testSuggestor(
+        input: commonConnectFile(input),
+        expectedOutput: commonConnectFile('''
+          @Props(disableRequiredPropValidation: {'propInMapStateToProps', 'propInMapStateToPropsWithOwnProps', 'propInMapDispatchToProps', 'propInMapDispatchToPropsWithOwnProps'})
+          $input
+        '''),
+      );
+    });
+
     test('does not cover certain unlikely edge cases', () async {
       final input = '''
           mixin FooProps on UiProps {
