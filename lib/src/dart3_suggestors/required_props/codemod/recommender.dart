@@ -78,6 +78,9 @@ class PropRequirednessRecommender {
         ?[propsId];
   }
 
+  bool isPropsPublicForMixingIn(Element propsElement) =>
+      _getMixinResult(propsElement)?.visibility.isPublicForMixingIn ?? false;
+
   SkipRateOptionalReason? _getMixinSkipRateReason(MixinResult mixinResults) {
     final skipRate = mixinResults.usageSkipRate;
 

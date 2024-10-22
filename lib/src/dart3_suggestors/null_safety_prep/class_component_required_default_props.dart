@@ -22,6 +22,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:over_react_codemod/src/vendor/over_react_analyzer_plugin/get_all_props.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../required_props/codemod/recommender.dart';
 import 'utils/class_component_required_fields.dart';
 
 /// Suggestor to assist with preparations for null-safety by adding
@@ -77,7 +78,10 @@ import 'utils/class_component_required_fields.dart';
 /// ```
 class ClassComponentRequiredDefaultPropsMigrator
     extends ClassComponentRequiredFieldsMigrator<PropAssignment> {
-  ClassComponentRequiredDefaultPropsMigrator([Version? sdkVersion])
+  final PropRequirednessRecommender? _propRequirednessRecommender;
+
+  ClassComponentRequiredDefaultPropsMigrator(
+      [Version? sdkVersion, this._propRequirednessRecommender])
       : super('defaultProps', 'getDefaultProps', sdkVersion);
 
   @override
@@ -102,6 +106,7 @@ class ClassComponentRequiredDefaultPropsMigrator
 
     final cascadedDefaultProps = getCascadedProps(node);
 
-    patchFieldDeclarations(getAllProps, cascadedDefaultProps, node);
+    patchFieldDeclarations(
+        getAllProps, cascadedDefaultProps, node, _propRequirednessRecommender);
   }
 }
