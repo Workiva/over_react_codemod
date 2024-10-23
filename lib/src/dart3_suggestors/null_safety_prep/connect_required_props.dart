@@ -58,7 +58,9 @@ class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
       // Keep a running list of props to ignore per props mixin.
       final fieldName = field.name.name;
       if (_ignoredPropsByMixin[propsElement] != null) {
-        _ignoredPropsByMixin[propsElement]!.add(fieldName);
+        if (!_ignoredPropsByMixin[propsElement]!.contains(fieldName)) {
+          _ignoredPropsByMixin[propsElement]!.add(fieldName);
+        }
       } else {
         _ignoredPropsByMixin[propsElement] = [fieldName];
       }

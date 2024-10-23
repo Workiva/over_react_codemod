@@ -56,7 +56,8 @@ void main() {
       final input = '''
           mixin FooProps on UiProps {
             num setInMapStateToProps;
-            Function() SetInMapDispatchToProps;
+            Function() setInMapDispatchToProps;
+            num setInBoth;
             String notSetInConnect;
           }
           
@@ -64,15 +65,16 @@ void main() {
             mapStateToProps: (state) => (Foo()
               ..addTestId('abc')
               ..setInMapStateToProps = state.count
+              ..setInBoth = 1
             ),
-            mapDispatchToProps: (dispatch) => Foo()..SetInMapDispatchToProps = (() => null),
+            mapDispatchToProps: (dispatch) => Foo()..setInMapDispatchToProps = (() => null)..setInBoth = 1,
           )(uiFunction((props) => (Foo()..notSetInConnect = '1')(), _\$Foo));
         ''';
 
       await testSuggestor(
         input: commonConnectFile(input),
         expectedOutput: commonConnectFile('''
-          @Props(disableRequiredPropValidation: {'setInMapStateToProps', 'SetInMapDispatchToProps'})
+          @Props(disableRequiredPropValidation: {'setInMapStateToProps', 'setInBoth', 'setInMapDispatchToProps'})
           $input
         '''),
       );
