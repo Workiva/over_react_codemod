@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/utils/props_utils.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -103,11 +104,7 @@ class ClassComponentRequiredDefaultPropsMigrator
     // If this cascade is not assigning values to defaultProps, bail.
     if (!isDefaultProps) return;
 
-    final cascadedDefaultProps = node.cascadeSections
-        .whereType<AssignmentExpression>()
-        .where((assignment) => assignment.leftHandSide is PropertyAccess)
-        .map((assignment) => PropAssignment(assignment))
-        .where((prop) => prop.node.writeElement?.displayName != null);
+    final cascadedDefaultProps = getCascadedProps(node);
 
     patchFieldDeclarations(
         getAllProps, cascadedDefaultProps, node, _propRequirednessRecommender);

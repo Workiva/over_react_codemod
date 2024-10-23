@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/class_component_required_initial_state.dart';
+import 'package:over_react_codemod/src/dart3_suggestors/null_safety_prep/connect_required_props.dart';
 import 'package:over_react_codemod/src/util.dart';
 
 import '../dart3_suggestors/null_safety_prep/callback_ref_hint_suggestor.dart';
@@ -72,6 +73,19 @@ void main(List<String> args) async {
     dartPaths,
     [
       StateMixinSuggestor(),
+    ],
+    defaultYes: true,
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
+
+  if (exitCode != 0) return;
+
+  exitCode = await runInteractiveCodemodSequence(
+    dartPaths,
+    [
+      ConnectRequiredProps(),
     ],
     defaultYes: true,
     args: parsedArgs.rest,

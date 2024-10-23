@@ -1,15 +1,18 @@
 import 'dart:html';
 
 import 'package:over_react/over_react.dart';
+import 'package:over_react/over_react_redux.dart';
 
 // ignore: uri_has_not_been_generated
 part 'test_state.over_react.g.dart';
 
-UiFactory<FooProps> Foo =
-    castUiFactory(_$Foo); // ignore: undefined_identifier
+UiFactory<FooProps> Foo = connect<FooState, FooProps>(
+  mapStateToPropsWithOwnProps: (state, props) => Foo()..prop1 = 1,
+)(castUiFactory(_$Foo)); // ignore: undefined_identifier
 
 mixin FooProps on UiProps {
   int prop1;
+  int prop2;
 }
 
 mixin FooState on UiState {
