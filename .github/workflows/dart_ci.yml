@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk: [ 2.18.7, 2.19.6 ]
+        sdk: [ 2.19.6 ]
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v0.2
@@ -35,7 +35,7 @@ jobs:
 
       - name: Validate formatting
         run: dart run dart_dev format --check
-        if: always() && steps.install.outcome == 'success' && matrix.sdk == '2.18.7'
+        if: always() && steps.install.outcome == 'success'
 
       - name: Analyze project source
         run: dart analyze
@@ -45,14 +45,14 @@ jobs:
         run: |
           dart run build_runner build --delete-conflicting-outputs
           git diff --exit-code
-        if: always() && steps.install.outcome == 'success' && matrix.sdk == '2.19.6'
+        if: always() && steps.install.outcome == 'success'
 
   test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        sdk: [ 2.18.7, 2.19.6 ]
+        sdk: [ 2.19.6 ]
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v0.2
@@ -74,8 +74,6 @@ jobs:
 
       - name: Create SBOM Release Asset
         uses: anchore/sbom-action@v0
-        # This fails if it runs more than once within a given build
-        if: matrix.sdk != '2.18.7'
         with:
           path: ./
           format: cyclonedx-json
