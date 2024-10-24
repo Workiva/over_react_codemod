@@ -1,3 +1,13 @@
+## 2.34.0
+- Null safety codemod improvements
+    - Add required prop validation ignores for `connect`-ed props, matching (see more info in [migration guide](https://github.com/Workiva/over_react/blob/master/doc/null_safety/null_safe_migration.md#connect))
+    - Don't add migrator tool hint comments to files that have already been migrated to null safety  
+    - Only make defaulted class component props required when they're not public, to avoid breakages and align with [migration guide guidance](https://github.com/Workiva/over_react/blob/master/doc/null_safety/null_safe_migration.md#prop-requiredness-and-nullability)
+      - Note: defaulted prop hints are now added via the `null_safety_required_props` executable instead of via `null_safety_migrator_companion`
+    - Add optional (`/*?*/`) hint to non-defaulted state fields, just like for props
+    - `useRef<…>(null)` is now migrated to `useRef<…>()` instead of `useRefInit<…>(null)` (the old behavior wasn't problematic, just not as clean as it could have been)
+- Unpin `meta` dependency
+
 ## 2.33.0
 - Add `null_safety_required_props` executable to help [migrate over_react props to nulls safety](https://github.com/Workiva/over_react/blob/master/doc/null_safety/null_safe_migration.md)
 
