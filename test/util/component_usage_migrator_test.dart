@@ -1690,8 +1690,8 @@ class GenericMigrator extends ComponentUsageMigrator {
 
 const overReactImport = "import 'package:over_react/over_react.dart';";
 
-String withOverReactImport(String source) {
-  return '$overReactImport\n$source';
+String withOverReactImport(String source, {String filePrefix = ''}) {
+  return '$filePrefix$overReactImport\n$source';
 }
 
 String fileWithCascadeOnUsage(String cascade) {

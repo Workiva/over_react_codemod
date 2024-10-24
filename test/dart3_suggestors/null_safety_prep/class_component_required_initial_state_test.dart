@@ -265,5 +265,128 @@ void main() {
         );
       });
     });
+
+    group('makes no update if file is already on a null safe Dart version', () {
+      final resolvedContext = SharedAnalysisContext.overReactNullSafe;
+
+      // Warm up analysis in a setUpAll so that if getting the resolved AST times out
+      // (which is more common for the WSD context), it fails here instead of failing the first test.
+      setUpAll(resolvedContext.warmUpAnalysis);
+
+      late SuggestorTester nullSafeTestSuggestor;
+
+      setUp(() {
+        nullSafeTestSuggestor = getSuggestorTester(
+          ClassComponentRequiredInitialStateMigrator(),
+          resolvedContext: resolvedContext,
+        );
+      });
+
+      test('', () async {
+        await nullSafeTestSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport(/*language=dart*/ r'''
+            // ignore: undefined_identifier
+            UiFactory<FooProps> Foo = castUiFactory(_$Foo);
+            mixin FooProps on UiProps {}
+            mixin FooStateMixin on UiState {
+              String? state1;
+              /// This is a doc comment
+              String? state2;
+            }
+            mixin SomeOtherStateMixin on UiState {
+              late num? state3;
+            }
+            class FooState = UiState with FooStateMixin, SomeOtherStateMixin;
+            class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+              @override
+              get initialState => (newState()
+                ..state1 = 'foo'
+                ..state3 = null
+              );
+            
+              @override
+              render() => null;
+            }
+          '''),
+        );
+      });
+
+      test('unless there is a lang version comment', () async {
+        await nullSafeTestSuggestor(
+          expectedPatchCount: 5,
+          input: withOverReactImport(/*language=dart*/ r'''
+            // ignore: undefined_identifier
+            UiFactory<FooProps> Foo = castUiFactory(_$Foo);
+            mixin FooProps on UiProps {}
+            mixin FooStateMixin on UiState {
+              String notInitialized;
+              /// This is a doc comment
+              /*late*/ String/*!*/ alreadyPatched;
+              /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
+              String initializedNullable;
+              num initializedNonNullable;
+            }
+            mixin SomeOtherStateMixin on UiState {
+              num anotherInitializedNonNullable;
+              Function initializedNonNullableFn;
+              List<num> initializedNonNullableList;
+            }
+            class FooState = UiState with FooStateMixin, SomeOtherStateMixin;
+            class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+              @override
+              get initialState => (newState()
+                ..alreadyPatched = 'foo'
+                ..initializedNullable = null
+                ..initializedNonNullable = 2.1
+                ..anotherInitializedNonNullable = 1.1
+                ..initializedNonNullableFn = () {}
+                ..initializedNonNullableList = []
+              );
+            
+              @override
+              render() => null;
+            }
+          ''', filePrefix: '// @dart=2.11\n'),
+          expectedOutput: withOverReactImport(/*language=dart*/ r'''
+            // ignore: undefined_identifier
+            UiFactory<FooProps> Foo = castUiFactory(_$Foo);
+            mixin FooProps on UiProps {}
+            mixin FooStateMixin on UiState {
+              String notInitialized;
+              /// This is a doc comment
+              /*late*/ String/*!*/ alreadyPatched;
+              /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
+              /*late*/ String/*?*/ initializedNullable;
+              /*late*/ num/*!*/ initializedNonNullable;
+            }
+            mixin SomeOtherStateMixin on UiState {
+              /*late*/ num/*!*/ anotherInitializedNonNullable;
+              /*late*/ Function/*!*/ initializedNonNullableFn;
+              /*late*/ List<num>/*!*/ initializedNonNullableList;
+            }
+            class FooState = UiState with FooStateMixin, SomeOtherStateMixin;
+            class FooComponent extends UiStatefulComponent2<FooProps, FooState> {
+              @override
+              get initialState => (newState()
+                ..alreadyPatched = 'foo'
+                ..initializedNullable = null
+                ..initializedNonNullable = 2.1
+                ..anotherInitializedNonNullable = 1.1
+                ..initializedNonNullableFn = () {}
+                ..initializedNonNullableList = []
+              );
+            
+              @override
+              render() => null;
+            }
+          ''', filePrefix: '// @dart=2.11\n'),
+          // Ignore error on language version comment.
+          isExpectedError: (error) =>
+          error.errorCode.name.toLowerCase() ==
+              'illegal_language_version_override',
+        );
+      });
+    });
   });
 }
