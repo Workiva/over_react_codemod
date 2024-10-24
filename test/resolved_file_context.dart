@@ -51,6 +51,12 @@ class SharedAnalysisContext {
   static final overReact = SharedAnalysisContext(p.join(
       findPackageRootFor(p.current), 'test/test_fixtures/over_react_project'));
 
+  /// A context root located at `test/test_fixtures/over_react_null_safe_project`
+  /// that depends on the `over_react` package and a null-safe Dart version.
+  static final overReactNullSafe = SharedAnalysisContext(p.join(
+      findPackageRootFor(p.current),
+      'test/test_fixtures/over_react_null_safe_project'));
+
   /// A context root located at `test/test_fixtures/over_react_project`
   /// that depends on the internal `web_skin_dart` package (as well as `over_react`).
   static final wsd = SharedAnalysisContext(
