@@ -8,7 +8,7 @@ part 'test_state.over_react.g.dart';
 
 UiFactory<FooProps> Foo = connect<FooState, FooProps>(
   mapStateToPropsWithOwnProps: (state, props) => Foo()..prop1 = 1,
-)(castUiFactory(_$Hoc)); // ignore: undefined_identifier
+)(castUiFactory(_$Foo)); // ignore: undefined_identifier
 
 mixin FooProps on UiProps {
   int prop1;

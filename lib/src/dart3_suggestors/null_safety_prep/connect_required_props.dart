@@ -28,7 +28,7 @@ import 'analyzer_plugin_utils.dart';
 class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
   /// Running list of props that should be ignored per mixin that will all be added
   /// at the end in [generatePatches].
-  final _ignoredPropsByMixin = <InterfaceElement, List<String>>{};
+  final _ignoredPropsByMixin = <InterfaceElement, Set<String>>{};
 
   @override
   visitCascadeExpression(CascadeExpression node) {
@@ -57,13 +57,7 @@ class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
 
       // Keep a running list of props to ignore per props mixin.
       final fieldName = field.name.name;
-      if (_ignoredPropsByMixin[propsElement] != null) {
-        if (!_ignoredPropsByMixin[propsElement]!.contains(fieldName)) {
-          _ignoredPropsByMixin[propsElement]!.add(fieldName);
-        }
-      } else {
-        _ignoredPropsByMixin[propsElement] = [fieldName];
-      }
+      _ignoredPropsByMixin.putIfAbsent(propsElement, () => {}).add(fieldName);
     }
   }
 
@@ -83,8 +77,7 @@ class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
 
     // Add the patches at the end so that all the props to be ignored can be collected
     // from the different args in `connect` before adding patches to avoid duplicate patches.
-    for (final propsClass in _ignoredPropsByMixin.keys) {
-      final propsToIgnore = _ignoredPropsByMixin[propsClass]!;
+    _ignoredPropsByMixin.forEach((propsClass, propsToIgnore) {
       final classNode =
           NodeLocator2(propsClass.nameOffset).searchWithin(result.unit);
       if (classNode != null && classNode is NamedCompilationUnitMember) {
@@ -135,7 +128,7 @@ class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
           }
         }
       }
-    }
+    });
   }
 
   static const connectArgNames = [
