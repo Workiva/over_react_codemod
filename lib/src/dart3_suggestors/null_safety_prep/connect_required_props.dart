@@ -75,6 +75,10 @@ class ConnectRequiredProps extends RecursiveAstVisitor with ClassSuggestor {
       throw Exception(
           'Could not get resolved result for "${context.relativePath}"');
     }
+    // Don't make any updates if the file is already null safe.
+    if (result.libraryElement.isNonNullableByDefault) {
+      return;
+    }
     result.unit.accept(this);
 
     // Add the patches at the end so that all the props to be ignored can be collected

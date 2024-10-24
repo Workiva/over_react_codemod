@@ -31,8 +31,9 @@ void main() {
       () {
     late SuggestorTester testSuggestor;
 
-    String commonConnectFile(String source) {
+    String commonConnectFile(String source, {String filePrefix = ''}) {
       return '''
+      $filePrefix
       $overReactImport
       import 'package:over_react/over_react_redux.dart';
         
@@ -257,6 +258,87 @@ void main() {
           $input
         '''),
       );
+    });
+
+    group('makes no update if file is already on a null safe Dart version', () {
+      final resolvedContext = SharedAnalysisContext.overReactNullSafe;
+
+      // Warm up analysis in a setUpAll so that if getting the resolved AST times out
+      // (which is more common for the WSD context), it fails here instead of failing the first test.
+      setUpAll(resolvedContext.warmUpAnalysis);
+
+      late SuggestorTester nullSafeTestSuggestor;
+
+      setUp(() {
+        nullSafeTestSuggestor = getSuggestorTester(
+          ConnectRequiredProps(),
+          resolvedContext: resolvedContext,
+        );
+      });
+
+      test('', () async {
+        await nullSafeTestSuggestor(
+          expectedPatchCount: 0,
+          input: '''
+      $overReactImport
+      import 'package:over_react/over_react_redux.dart';
+        
+      // ignore: uri_has_not_been_generated
+      part 'main.over_react.g.dart';
+    
+      class FooState {
+        num? count;
+      }
+      
+      mixin FooProps on UiProps {
+        num? setInMapStateToProps;
+        Function()? setInMapDispatchToProps;
+        late num setInBoth;
+        String? notSetInConnect;
+      }
+      
+      UiFactory<FooProps> Foo = connect<FooState, FooProps>(
+        mapStateToProps: (state) => (Foo()
+          ..addTestId('abc')
+          ..setInMapStateToProps = state.count
+          ..setInBoth = 1
+        ),
+        mapDispatchToProps: (dispatch) => Foo()..setInMapDispatchToProps = (() => null)..setInBoth = 1,
+      )(uiFunction((props) => (Foo()..notSetInConnect = '1')(), _\$Foo));''',
+        );
+      });
+
+      test('unless there is a lang version comment', () async {
+        final input = '''
+          mixin FooProps on UiProps {
+            num setInMapStateToProps;
+            Function() setInMapDispatchToProps;
+            num setInBoth;
+            String notSetInConnect;
+          }
+          
+          UiFactory<FooProps> Foo = connect<FooState, FooProps>(
+            mapStateToProps: (state) => (Foo()
+              ..addTestId('abc')
+              ..setInMapStateToProps = state.count
+              ..setInBoth = 1
+            ),
+            mapDispatchToProps: (dispatch) => Foo()..setInMapDispatchToProps = (() => null)..setInBoth = 1,
+          )(uiFunction((props) => (Foo()..notSetInConnect = '1')(), _\$Foo));
+        ''';
+
+        await nullSafeTestSuggestor(
+          input: commonConnectFile(input, filePrefix: '// @dart=2.11'),
+          expectedOutput: commonConnectFile('''
+          @Props(disableRequiredPropValidation: {'setInMapStateToProps', 'setInBoth', 'setInMapDispatchToProps'})
+          $input
+        ''', filePrefix: '// @dart=2.11'),
+          // Ignore error on language version comment.
+          isExpectedError: (error) =>
+              error.errorCode.name.toLowerCase() ==
+              'illegal_language_version_override',
+        );
+      });
     });
   });
 }
