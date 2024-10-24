@@ -582,5 +582,135 @@ void main() {
         );
       });
     });
+
+    group('makes no update if file is already on a null safe Dart version', () {
+      final resolvedContext = SharedAnalysisContext.overReactNullSafe;
+
+      // Warm up analysis in a setUpAll so that if getting the resolved AST times out
+      // (which is more common for the WSD context), it fails here instead of failing the first test.
+      setUpAll(resolvedContext.warmUpAnalysis);
+
+      late SuggestorTester nullSafeTestSuggestor;
+
+      setUp(() {
+        nullSafeTestSuggestor = getSuggestorTester(
+          ClassComponentRequiredDefaultPropsMigrator(),
+          resolvedContext: resolvedContext,
+        );
+      });
+
+      test('', () async {
+        await nullSafeTestSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport(/*language=dart*/ r'''
+            // ignore: undefined_identifier
+            UiFactory<FooProps> Foo = castUiFactory(_$Foo);
+            mixin FooPropsMixin on UiProps {
+              String? prop1;
+              late String prop2;
+              num? prop3;
+            }
+            mixin SomeOtherPropsMixin on UiProps {
+              num? prop4;
+            }
+            class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
+            class FooComponent extends UiComponent2<FooProps> {
+              @override
+              get defaultProps => (newProps()
+                ..prop2 = 'foo'
+                ..prop3 = 1
+                ..prop4 = null
+              );
+            
+              @override
+              render() => null;
+            }
+          '''),
+        );
+      });
+
+      test('unless there is a lang version comment', () async {
+        await nullSafeTestSuggestor(
+          input: withOverReactImport(/*language=dart*/ r'''
+            // ignore: undefined_identifier
+            UiFactory<FooProps> Foo = castUiFactory(_$Foo);
+            mixin FooPropsMixin on UiProps {
+              String notDefaulted;
+              /// This is a doc comment
+              /*late*/ String/*!*/ alreadyPatched;
+              /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
+              String defaultedNullable;
+              num defaultedNonNullable;
+              var untypedDefaultedNonNullable;
+              var untypedDefaultedNullable;
+              var untypedNotDefaulted;
+            }
+            mixin SomeOtherPropsMixin on UiProps {
+              num anotherDefaultedNonNullable;
+              Function defaultedNonNullableFn;
+              List<num> defaultedNonNullableList;
+            }
+            class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
+            class FooComponent extends UiComponent2<FooProps> {
+              @override
+              get defaultProps => (newProps()
+                ..alreadyPatched = 'foo'
+                ..untypedDefaultedNonNullable = 1
+                ..untypedDefaultedNullable = null
+                ..defaultedNullable = null
+                ..defaultedNonNullable = 2.1
+                ..anotherDefaultedNonNullable = 1.1
+                ..defaultedNonNullableFn = () {}
+                ..defaultedNonNullableList = []
+              );
+            
+              @override
+              render() => null;
+            }
+          ''', filePrefix: '// @dart=2.11\n'),
+          expectedOutput: withOverReactImport(/*language=dart*/ r'''
+            // ignore: undefined_identifier
+            UiFactory<FooProps> Foo = castUiFactory(_$Foo);
+            mixin FooPropsMixin on UiProps {
+              String notDefaulted;
+              /// This is a doc comment
+              /*late*/ String/*!*/ alreadyPatched;
+              /*late*/ String/*!*/ alreadyPatchedButNoDocComment;
+              /*late*/ String/*?*/ defaultedNullable;
+              /*late*/ num/*!*/ defaultedNonNullable;
+              /*late*/ dynamic/*!*/ untypedDefaultedNonNullable;
+              /*late*/ dynamic/*?*/ untypedDefaultedNullable;
+              var untypedNotDefaulted;
+            }
+            mixin SomeOtherPropsMixin on UiProps {
+              /*late*/ num/*!*/ anotherDefaultedNonNullable;
+              /*late*/ Function/*!*/ defaultedNonNullableFn;
+              /*late*/ List<num>/*!*/ defaultedNonNullableList;
+            }
+            class FooProps = UiProps with FooPropsMixin, SomeOtherPropsMixin;
+            class FooComponent extends UiComponent2<FooProps> {
+              @override
+              get defaultProps => (newProps()
+                ..alreadyPatched = 'foo'
+                ..untypedDefaultedNonNullable = 1
+                ..untypedDefaultedNullable = null
+                ..defaultedNullable = null
+                ..defaultedNonNullable = 2.1
+                ..anotherDefaultedNonNullable = 1.1
+                ..defaultedNonNullableFn = () {}
+                ..defaultedNonNullableList = []
+              );
+            
+              @override
+              render() => null;
+            }
+          ''', filePrefix: '// @dart=2.11\n'),
+          // Ignore error on language version comment.
+          isExpectedError: (error) =>
+              error.errorCode.name.toLowerCase() ==
+              'illegal_language_version_override',
+        );
+      });
+    });
   });
 }

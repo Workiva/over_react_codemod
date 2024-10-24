@@ -299,6 +299,76 @@ mixin TestPublicDynamicProps on UiProps {
         );
       });
     });
+
+    group(
+        'null_safety_required_props makes no update if file is already on a null safe Dart version',
+        () {
+      late d.DirectoryDescriptor nullSafeProjectDir;
+
+      setUp(() async {
+        nullSafeProjectDir = d.DirectoryDescriptor.fromFilesystem(
+            name,
+            p.join(findPackageRootFor(p.current),
+                'test/test_fixtures/over_react_null_safe_project'));
+        await nullSafeProjectDir.create();
+      });
+
+      test('', () async {
+        await testCodemod(
+          script: requiredPropsScript,
+          args: [
+            'codemod',
+            '--prop-requiredness-data',
+            dataFilePath,
+            '--yes-to-all',
+          ],
+          input: nullSafeProjectDir,
+          expectedOutput: d.dir(nullSafeProjectDir.name, [
+            d.dir('lib', [
+              d.dir('src', [
+                d.file('test_null_safe.dart', contains('''
+mixin TestPrivateProps on UiProps {
+  late String set100percent;
+  String? set80percent;
+  String? set20percent;
+  String? set0percent;
+}''')),
+              ]),
+            ]),
+          ]),
+        );
+      });
+
+      test('unless there is a lang version comment', () async {
+        await testCodemod(
+          script: requiredPropsScript,
+          args: [
+            'codemod',
+            '--prop-requiredness-data',
+            dataFilePath,
+            '--yes-to-all',
+          ],
+          input: nullSafeProjectDir,
+          expectedOutput: d.dir(nullSafeProjectDir.name, [
+            d.dir('lib', [
+              d.dir('src', [
+                d.file('test_lang_version_comment.dart', contains('''
+mixin TestPrivateProps on UiProps {
+  $noDataTodoComment
+  String/*?*/ set100percent;
+  $noDataTodoComment
+  String/*?*/ set80percent;
+  $noDataTodoComment
+  String/*?*/ set20percent;
+  $noDataTodoComment
+  String/*?*/ set0percent;
+}''')),
+              ]),
+            ]),
+          ]),
+        );
+      });
+    });
   }, timeout: Timeout(Duration(minutes: 2)));
 }
 

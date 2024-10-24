@@ -80,6 +80,11 @@ class ClassComponentRequiredInitialStateMigrator
 
   @override
   Future<void> visitCascadeExpression(CascadeExpression node) async {
+    // Don't make any updates if the file is already null safe.
+    if (result.libraryElement.isNonNullableByDefault) {
+      return;
+    }
+
     super.visitCascadeExpression(node);
 
     final isInitialState = [relevantGetterName, relevantMethodName].contains(

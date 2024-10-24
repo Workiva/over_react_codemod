@@ -141,6 +141,11 @@ class CallbackRefHintSuggestor extends RecursiveAstVisitor<void>
           'Could not get resolved result for "${context.relativePath}"');
     }
     result = r;
+    // Don't make any updates if the file is already null safe.
+    if (result.libraryElement.isNonNullableByDefault) {
+      return;
+    }
+
     result.unit.visitChildren(this);
   }
 }
