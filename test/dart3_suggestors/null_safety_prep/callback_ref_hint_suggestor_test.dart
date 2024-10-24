@@ -18,6 +18,7 @@ import 'package:test/test.dart';
 import '../../mui_suggestors/components/shared.dart';
 import '../../resolved_file_context.dart';
 import '../../util.dart';
+import '../../util/component_usage_migrator_test.dart';
 
 void main() {
   final resolvedContext = SharedAnalysisContext.wsd;
@@ -279,6 +280,65 @@ void main() {
               }
           '''),
       );
+    });
+
+    group('makes no update if file is already on a null safe Dart version', () {
+      final resolvedContext = SharedAnalysisContext.overReactNullSafe;
+
+      // Warm up analysis in a setUpAll so that if getting the resolved AST times out
+      // (which is more common for the WSD context), it fails here instead of failing the first test.
+      setUpAll(resolvedContext.warmUpAnalysis);
+
+      late SuggestorTester nullSafeTestSuggestor;
+
+      setUp(() {
+        nullSafeTestSuggestor = getSuggestorTester(
+          CallbackRefHintSuggestor(),
+          resolvedContext: resolvedContext,
+        );
+      });
+
+      test('', () async {
+        await nullSafeTestSuggestor(
+          expectedPatchCount: 0,
+          input: withOverReactImport(/*language=dart*/ '''
+              import 'dart:html';
+              
+              content() {
+                var ref;
+                (Dom.div()..ref = (ButtonElement r) { ref = r; })();
+                ref;
+              }
+          '''),
+        );
+      });
+
+      test('unless there is a lang version comment', () async {
+        await nullSafeTestSuggestor(
+          input: withOverReactImport(/*language=dart*/ '''
+              import 'dart:html';
+              
+              content() {
+                var ref;
+                (Dom.div()..ref = (ButtonElement r) { ref = r; })();
+                ref;
+              }
+          ''', filePrefix: '// @dart=2.11\n'),
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
+              import 'dart:html';
+              
+              content() {
+                var ref;
+                (Dom.div()..ref = (ButtonElement /*?*/ r) { ref = r; })();
+                ref;
+              }
+          ''', filePrefix: '// @dart=2.11\n'),
+          // Ignore error on language version comment.
+          isExpectedError: (error) =>
+              error.errorCode.name.toLowerCase() ==
+              'illegal_language_version_override',
+        );
+      });
     });
   }, tags: 'wsd');
 }

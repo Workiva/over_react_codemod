@@ -383,7 +383,7 @@ void main() {
           ''', filePrefix: '// @dart=2.11\n'),
           // Ignore error on language version comment.
           isExpectedError: (error) =>
-          error.errorCode.name.toLowerCase() ==
+              error.errorCode.name.toLowerCase() ==
               'illegal_language_version_override',
         );
       });
