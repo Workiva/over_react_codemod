@@ -30,38 +30,11 @@ final _log = Logger('UnifyRenameSuggestor');
 ///
 /// - Rename specific components and objects
 /// - Update WSD ButtonColor usages
-/// - Rename import namespaces 'mui' => 'unify'
 /// - Add fix me comments for manual checks
 ///
 /// Also see migration guide: https://github.com/Workiva/react_material_ui/tree/master/react_material_ui#how-to-migrate-from-reactmaterialui-to-unifyui
 class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
   UnifyRenameSuggestor();
-
-  @override
-  visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-
-    // Replace 'mui' namespaces usage with 'unify' for method invocations.
-    final uri = node.methodName.staticElement?.source?.uri;
-    if (uri != null &&
-        (isUriWithinPackage(uri, 'react_material_ui') ||
-            isUriWithinPackage(uri, 'unify_ui'))) {
-      final importNamespace = node.target;
-      if (importNamespace != null) {
-        final newImportNamespace = rmuiImportsToUpdate
-            .where((import) =>
-                import.possibleMuiNamespaces
-                    ?.contains(importNamespace.toSource()) ??
-                false)
-            .singleOrNull
-            ?.namespace;
-        if (newImportNamespace != null) {
-          yieldPatch(
-              newImportNamespace, importNamespace.offset, importNamespace.end);
-        }
-      }
-    }
-  }
 
   @override
   visitIdentifier(Identifier node) {
@@ -125,16 +98,6 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
           yieldWsdRenamePatchIfApplicable(
               parent, identifier?.name, parent.propertyName.name);
         }
-      }
-
-      // Replace 'mui' namespaces usage with 'unify'.
-      final newNamespace = rmuiImportsToUpdate
-          .where((import) =>
-              import.possibleMuiNamespaces?.contains(prefix?.name) ?? false)
-          .singleOrNull
-          ?.namespace;
-      if (prefix != null && newNamespace != null && !isFromWsdEntrypoint) {
-        yieldPatch(newNamespace, prefix.offset, prefix.end);
       }
 
       // Add comments for components that need manual verification.
