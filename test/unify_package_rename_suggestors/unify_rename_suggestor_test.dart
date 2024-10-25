@@ -428,6 +428,5 @@ void main() {
         );
       });
     });
-    // Run in private Skynet unit tests with wsd-related tests.
-  }, tags: 'wsd');
+  });
 }

@@ -180,7 +180,7 @@ someMoreStrings() => (mui.Button()..aria.label='orange')('aquamarine');''')
         expectedExitCode: 1, body: (out, err) {
       expect(err, contains('Only part files were specified'));
     });
-  }, tags: 'wsd');
+  });
 
   group('limit paths', () {
     var all = ['lib/src/a.dart', 'lib/b.dart', 'lib/src/a/c.dart'];

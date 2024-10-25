@@ -311,7 +311,7 @@ dependencies:
 
     // Set a longer timeout since some of these need to `pub get` and resolve WSD.
     // Even with a primed pub cache, the longest of these tests take ~35 seconds locally.
-  }, tags: 'wsd', timeout: Timeout(Duration(minutes: 2)));
+  }, timeout: Timeout(Duration(minutes: 2)));
 }
 
 d.DirectoryDescriptor inputFiles(
