@@ -23,8 +23,6 @@ void main() {
       importRenamerSuggestorBuilder(
         oldPackageName: 'react_material_ui',
         newPackageName: 'unify_ui',
-        oldPackageNamespace: 'mui',
-        newPackageNamespace: 'unify',
       ),
     );
 
@@ -79,9 +77,9 @@ void main() {
           ''',
           expectedOutput: '''
               import 'package:'''
-              '''unify_ui/styles/styled.dart' as unify;
+              '''unify_ui/styles/styled.dart' as mui;
               import 'package:'''
-              '''unify_ui/unify_ui.dart' as unify;
+              '''unify_ui/unify_ui.dart' as mui;
           
               content() => Dom.div()();
           ''',
@@ -141,15 +139,15 @@ void main() {
               import 'package:'''
               '''unify_ui/components/alert.dart' as something_else;
               import 'package:'''
-              '''unify_ui/components/badge.dart' as unify;
+              '''unify_ui/components/badge.dart' as mui;
               import 'package:'''
-              '''unify_ui/styles/theme_provider.dart' as unify_theme show UnifyThemeProvider;
+              '''unify_ui/styles/theme_provider.dart' as mui_theme show UnifyThemeProvider;
               import 'package:'''
-              '''unify_ui/unify_ui.dart' as unify;
+              '''unify_ui/unify_ui.dart' as mui;
               import 'package:'''
-              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_unify;
+              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_mui;
               import 'package:'''
-              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_unify;
+              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
           
               content() => Dom.div()();
           ''',
@@ -173,11 +171,11 @@ void main() {
               import 'package:'''
               '''unify_ui/components/badge.dart' show Badge hide BadgeColor;
               import 'package:'''
-              '''unify_ui/styles/theme_provider.dart' as unify_theme show UnifyThemeProvider;
+              '''unify_ui/styles/theme_provider.dart' as mui_theme show UnifyThemeProvider;
               import 'package:'''
               '''unify_ui/unify_ui.dart' hide Alert;
               import 'package:'''
-              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_unify hide Alert show LinearProgress;
+              '''unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha hide Alert show LinearProgress;
               
               content() => Dom.div()();
           ''',
@@ -210,8 +208,6 @@ void main() {
           importRenamerSuggestorBuilder(
             oldPackageName: 'old',
             newPackageName: 'new',
-            oldPackageNamespace: 'o',
-            newPackageNamespace: 'n',
           ),
         );
         await testSuggestor(
@@ -228,7 +224,7 @@ void main() {
               import 'package:'''
               '''new/components/badge.dart';
               import 'package:'''
-              '''new/old.dart' as n;
+              '''new/old.dart' as o;
               import 'package:over_react/over_react.dart';
           
               content() => Dom.div()();

@@ -14,20 +14,13 @@
 
 /// Info on a unify_ui import.
 class UnifyImportInfo {
-  UnifyImportInfo(this.uri,
-      {this.rmuiUri,
-      this.namespace,
-      this.possibleMuiNamespaces,
-      this.showHideInfo});
+  UnifyImportInfo(this.uri, {this.rmuiUri, this.namespace, this.showHideInfo});
 
   /// Unify import URI.
   String uri;
 
   /// Recommended Unify version of the import namespace, if applicable.
   String? namespace;
-
-  /// List of common RMUI versions of the namespace for the import, if applicable.
-  List<String>? possibleMuiNamespaces;
 
   /// Previous RMUI import URI (if it's different from the unify_ui path).
   String? rmuiUri;
@@ -44,15 +37,11 @@ final rmuiImportsToUpdate = [
   UnifyImportInfo(
     'package:unify_ui/unify_ui.dart',
     rmuiUri: 'package:react_material_ui/react_material_ui.dart',
-    namespace: 'unify',
-    possibleMuiNamespaces: ['mui', 'rmui'],
   ),
   UnifyImportInfo(
     'package:unify_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart',
     rmuiUri:
         'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart',
-    namespace: 'alpha_unify',
-    possibleMuiNamespaces: ['alpha_mui', 'mui_alpha'],
   ),
   UnifyImportInfo(
     'package:unify_ui/components/list.dart',
@@ -62,10 +51,10 @@ final rmuiImportsToUpdate = [
     'package:unify_ui/styles/styled.dart',
     rmuiUri: 'package:react_material_ui/for_cp_use_only/styled.dart',
   ),
-  UnifyImportInfo('package:unify_ui/styles/theme_provider.dart',
-      rmuiUri: 'package:react_material_ui/styles/theme_provider.dart',
-      namespace: 'unify_theme',
-      possibleMuiNamespaces: ['mui_theme'])
+  UnifyImportInfo(
+    'package:unify_ui/styles/theme_provider.dart',
+    rmuiUri: 'package:react_material_ui/styles/theme_provider.dart',
+  )
 ];
 
 /// A map of RMUI component names to their new names in unify_ui.

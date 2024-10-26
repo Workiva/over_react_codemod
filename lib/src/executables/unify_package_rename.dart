@@ -100,8 +100,6 @@ void main(List<String> args) async {
       importRenamerSuggestorBuilder(
         oldPackageName: 'react_material_ui',
         newPackageName: 'unify_ui',
-        oldPackageNamespace: 'mui',
-        newPackageNamespace: 'unify',
       )
     ]),
     // Remove any left over unused imports.

@@ -31,10 +31,9 @@ void main() {
       resolvedContext: resolvedContext,
     );
 
-    test('does not update namespaces',
-          () async {
-        await testSuggestor(
-          input: /*language=dart*/ '''
+    test('does not update namespaces', () async {
+      await testSuggestor(
+        input: /*language=dart*/ '''
     import 'package:react_material_ui/react_material_ui.dart' as mui;
     import 'package:react_material_ui/react_material_ui.dart' as abc;
     import 'package:react_material_ui/styles/color_utils.dart' as mui;
@@ -49,7 +48,7 @@ void main() {
       abc.Button()();
     }
 ''',
-        );
+      );
     });
 
     group('renames', () {
@@ -255,5 +254,6 @@ void main() {
         );
       });
     });
-  });
+    // Run in private Skynet unit tests with wsd-related tests.
+  }, tags: 'wsd');
 }
