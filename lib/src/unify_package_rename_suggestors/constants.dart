@@ -50,10 +50,6 @@ final rmuiImportsToUpdate = [
   UnifyImportInfo(
     'package:unify_ui/styles/styled.dart',
     rmuiUri: 'package:react_material_ui/for_cp_use_only/styled.dart',
-  ),
-  UnifyImportInfo(
-    'package:unify_ui/styles/theme_provider.dart',
-    rmuiUri: 'package:react_material_ui/styles/theme_provider.dart',
   )
 ];
 

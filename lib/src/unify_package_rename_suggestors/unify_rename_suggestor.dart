@@ -15,7 +15,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:codemod/codemod.dart';
-import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 
 import '../util.dart';
@@ -104,7 +103,12 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
       if (identifier?.name == 'Badge' || identifier?.name == 'LinearProgress') {
         yieldInsertionPatch(
             lineComment(
-                'FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.'),
+                'FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, manually QA this component and remove this FIXME; otherwise, migrate this component back to Web Skin Dart.'),
+            node.offset);
+      } else if (identifier?.name == 'Alert') {
+        yieldInsertionPatch(
+            lineComment(
+                'FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.'),
             node.offset);
       }
     }
