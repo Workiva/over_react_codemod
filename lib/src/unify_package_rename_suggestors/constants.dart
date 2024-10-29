@@ -50,6 +50,11 @@ final rmuiImportsToUpdate = [
   UnifyImportInfo(
     'package:unify_ui/styles/styled.dart',
     rmuiUri: 'package:react_material_ui/for_cp_use_only/styled.dart',
+  ),
+  UnifyImportInfo(
+    'package:unify_ui/components/usage_must_be_approved_by_unify_team_for_legal_reasons/data_grid_premium.dart',
+    rmuiUri:
+        'package:react_material_ui/components/usage_must_be_approved_by_unify_team_for_legal_reasons_rmui/data_grid_premium.dart',
   )
 ];
 
