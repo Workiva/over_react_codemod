@@ -71,18 +71,20 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
         // Update WSD constant properties objects to use the WSD versions if applicable.
         yieldWsdRenamePatchIfApplicable(
             Expression node, String? objectName, String? propertyName) {
-          const alertConstantNames = [
+          const wsdConstantNames = [
             'AlertSize',
             'AlertColor',
             'AlertVariant',
-            'AlertSeverity'
+            'AlertSeverity',
+            'LinkButtonType',
+            'LinkButtonSize',
           ];
           if (objectName == 'ButtonColor' &&
               (propertyName?.startsWith('wsd') ?? false)) {
             isFromWsdEntrypoint = true;
             yieldPatch('$unifyWsdNamespace.WsdButtonColor.$propertyName',
                 node.offset, node.end);
-          } else if (alertConstantNames.contains(objectName)) {
+          } else if (wsdConstantNames.contains(objectName)) {
             isFromWsdEntrypoint = true;
             yieldPatch('$unifyWsdNamespace.Wsd$objectName.$propertyName',
                 node.offset, node.end);
@@ -105,10 +107,11 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
             lineComment(
                 'FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, manually QA this component and remove this FIXME; otherwise, migrate this component back to Web Skin Dart.'),
             node.offset);
-      } else if (identifier?.name == 'Alert') {
+      } else if (identifier?.name == 'Alert' ||
+          identifier?.name == 'AlertPropsMixin') {
         yieldInsertionPatch(
             lineComment(
-                'FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.'),
+                'FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `${identifier?.name}` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.'),
             node.offset);
       }
     }
