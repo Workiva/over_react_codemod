@@ -89,31 +89,32 @@ void main() {
     import 'package:react_material_ui/react_material_ui.dart';
     import 'package:react_material_ui/react_material_ui.dart' as random_rmui_namespace;
     import 'package:react_material_ui/components/providers/workiva_mui_theme_provider.dart';
+    import 'package:unify_ui/components/wsd.dart';
 
     content() {
       // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
-      unify_wsd.WsdAlert()();
+      WsdAlert()();
       // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
-      unify_wsd.WsdAlert();
+      WsdAlert();
       // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
-      unify_wsd.WsdAlert;
+      WsdAlert;
       // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `AlertPropsMixin` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
-      unify_wsd.WsdAlertPropsMixin;
-      unify_wsd.WsdAlertSize.small;
-      unify_wsd.WsdAlertSize.small;
-      unify_wsd.WsdLinkButtonSize.small;
-      unify_wsd.WsdLinkButtonType.submit;
-      unify_wsd.WsdAlertSeverity.error;
-      unify_wsd.WsdAlertColor.warning;
-      unify_wsd.WsdAlertVariant.outlined;
-      unify_wsd.WsdLinkButtonSize.xxsmall;
+      WsdAlertPropsMixin;
+      WsdAlertSize.small;
+      WsdAlertSize.small;
+      WsdLinkButtonSize.small;
+      WsdLinkButtonType.submit;
+      WsdAlertSeverity.error;
+      WsdAlertColor.warning;
+      WsdAlertVariant.outlined;
+      WsdLinkButtonSize.xxsmall;
       // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
-      unify_wsd.WsdAlert()();
+      WsdAlert()();
       // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
-      unify_wsd.WsdAlert()();
-      unify_wsd.WsdLinkButton()();
-      unify_wsd.WsdLinkButton()();
-      unify_wsd.WsdLinkButton()();
+      WsdAlert()();
+      WsdLinkButton()();
+      WsdLinkButton()();
+      WsdLinkButton()();
       mui.UnifyList()();
       UnifyList()();
       random_rmui_namespace.UnifyList()();
@@ -176,16 +177,17 @@ void main() {
           expectedOutput: /*language=dart*/ '''
     import 'package:react_material_ui/react_material_ui.dart' as mui;
     import 'package:react_material_ui/react_material_ui.dart';
+    import 'package:unify_ui/components/wsd.dart';
     
     content() {
       mui.ButtonColor.success;
-      unify_wsd.WsdButtonColor.wsdBtnInverse;
-      unify_wsd.WsdButtonColor.wsdBtnLight;
-      unify_wsd.WsdButtonColor.wsdBtnWhite;
+      WsdButtonColor.wsdBtnInverse;
+      WsdButtonColor.wsdBtnLight;
+      WsdButtonColor.wsdBtnWhite;
       ButtonColor.success;
-      unify_wsd.WsdButtonColor.wsdBtnInverse;
-      unify_wsd.WsdButtonColor.wsdBtnLight;
-      unify_wsd.WsdButtonColor.wsdBtnWhite;
+      WsdButtonColor.wsdBtnInverse;
+      WsdButtonColor.wsdBtnLight;
+      WsdButtonColor.wsdBtnWhite;
     }
 ''',
         );

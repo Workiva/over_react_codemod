@@ -20,12 +20,10 @@ import 'package:over_react_codemod/src/executables/mui_migration.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/constants.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/dart_script_updater.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/html_script_updater.dart';
-import 'package:over_react_codemod/src/unify_package_rename_suggestors/constants.dart';
 import 'package:over_react_codemod/src/unify_package_rename_suggestors/import_renamer.dart';
 import 'package:over_react_codemod/src/unify_package_rename_suggestors/unify_rename_suggestor.dart';
 import 'package:over_react_codemod/src/util.dart';
 
-import '../util/importer.dart';
 import '../util/unused_import_remover.dart';
 
 const _changesRequiredOutput = """
@@ -88,13 +86,6 @@ void main(List<String> args) async {
   exitCode = await runCodemods([
     // Make main rename updates.
     CodemodInfo(paths: dartPaths, sequence: [UnifyRenameSuggestor()]),
-    // Add WSD entrypoint imports as needed.
-    CodemodInfo(paths: dartPaths, sequence: [
-      importerSuggestorBuilder(
-        importUri: unifyWsdUri,
-        importNamespace: unifyWsdNamespace,
-      )
-    ]),
     // Update rmui imports to unify.
     CodemodInfo(paths: dartPaths, sequence: [
       importRenamerSuggestorBuilder(

@@ -20,6 +20,7 @@ import 'package:logging/logging.dart';
 import '../util.dart';
 import '../util/class_suggestor.dart';
 import '../util/element_type_helpers.dart';
+import '../util/importer.dart';
 import 'constants.dart';
 
 final _log = Logger('UnifyRenameSuggestor');
@@ -34,6 +35,9 @@ final _log = Logger('UnifyRenameSuggestor');
 /// Also see migration guide: https://github.com/Workiva/react_material_ui/tree/master/react_material_ui#how-to-migrate-from-reactmaterialui-to-unifyui
 class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
   UnifyRenameSuggestor();
+
+  /// Whether or not to add [unifyWsdUri] import.
+  late bool needsWsdImport;
 
   @override
   visitIdentifier(Identifier node) {
@@ -54,13 +58,11 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
             isUriWithinPackage(uri, 'unify_ui'))) {
       // Update components and objects that were renamed in unify_ui.
       final newName = rmuiToUnifyIdentifierRenames[identifier?.name];
-      var isFromWsdEntrypoint = newName?.startsWith('Wsd') ?? false;
       if (identifier != null && newName != null) {
-        if (isFromWsdEntrypoint) {
-          // Overwrite or add import namespace for components that will be imported from the separate
-          // unify_ui/components/wsd.dart entrypoint so we can keep the namespace of the import
-          // we add consistent with the components that use it.
-          yieldPatch('$unifyWsdNamespace.$newName', node.offset, node.end);
+        if (newName.startsWith('Wsd')) {
+          needsWsdImport = true;
+          // Overwrite namespace as well because wsd import will be added with no namespace.
+          yieldPatch(newName, node.offset, node.end);
         } else {
           yieldPatch(newName, identifier.offset, identifier.end);
         }
@@ -81,13 +83,11 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
           ];
           if (objectName == 'ButtonColor' &&
               (propertyName?.startsWith('wsd') ?? false)) {
-            isFromWsdEntrypoint = true;
-            yieldPatch('$unifyWsdNamespace.WsdButtonColor.$propertyName',
-                node.offset, node.end);
+            needsWsdImport = true;
+            yieldPatch('WsdButtonColor.$propertyName', node.offset, node.end);
           } else if (wsdConstantNames.contains(objectName)) {
-            isFromWsdEntrypoint = true;
-            yieldPatch('$unifyWsdNamespace.Wsd$objectName.$propertyName',
-                node.offset, node.end);
+            needsWsdImport = true;
+            yieldPatch('Wsd$objectName.$propertyName', node.offset, node.end);
           }
         }
 
@@ -126,7 +126,19 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
       throw Exception(
           'Could not get resolved result for "${context.relativePath}"');
     }
+    needsWsdImport = false;
     result.unit.visitChildren(this);
+
+    if (needsWsdImport) {
+      final insertInfo = insertionLocationForPackageImport(
+          unifyWsdUri, result.unit, result.lineInfo);
+      yieldPatch(
+          insertInfo.leadingNewlines +
+              "import '$unifyWsdUri';" +
+              insertInfo.trailingNewlines,
+          insertInfo.offset,
+          insertInfo.offset);
+    }
   }
 
   @override
