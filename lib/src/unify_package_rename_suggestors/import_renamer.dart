@@ -62,10 +62,9 @@ Suggestor importRenamerSuggestorBuilder({
         // Collect info on new imports to add.
         newImportsInfo.add(UnifyImportInfo(newImportUri,
             namespace: namespace,
-            showHideInfo: import.combinators
-                .map((c) => c.toSource())
-                .toList()
-                .join(' ')));
+            showHideInfo: import.combinators.isEmpty
+                ? null
+                : import.combinators.map((c) => c.toSource()).join(' ')));
       }
 
       final prevTokenEnd = import.beginToken.previous?.end;
