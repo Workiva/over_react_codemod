@@ -8,3 +8,8 @@ dependencies:
       name: react_material_ui
       url: https://pub.workiva.org
     version: ^1.214.2
+  unify_ui:
+    hosted:
+      name: unify_ui
+      url: https://pub.workiva.org
+    version: ^1.218.0
