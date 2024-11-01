@@ -1,3 +1,8 @@
+## 2.35.0
+- Updates to `unify_package_rename` codemod in preparation for migration
+  - No longer update import namespaces
+  - Refine FIXME comments and other small improvements
+
 ## 2.34.0
 - Null safety codemod improvements
     - Don't add migrator tool hint comments to files that have already been migrated to null safety  
