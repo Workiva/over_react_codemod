@@ -22,8 +22,6 @@ import 'constants.dart';
 Suggestor importRenamerSuggestorBuilder({
   required String oldPackageName,
   required String newPackageName,
-  required String oldPackageNamespace,
-  required String newPackageNamespace,
 }) {
   return (context) async* {
     final libraryResult = await context.getResolvedLibrary();
@@ -52,33 +50,21 @@ Suggestor importRenamerSuggestorBuilder({
       final namespace = import.prefix?.name;
       var newImportUri = importUri?.replaceFirst(
           'package:$oldPackageName/', 'package:$newPackageName/');
-      var newNamespace =
-          namespace == oldPackageNamespace ? newPackageNamespace : namespace;
 
       // Check for special cases where the unify_ui import path does not match the previous RMUI path.
       final specialCaseRmuiImport =
           rmuiImportsToUpdate.where((i) => importUri == i.rmuiUri);
       if (specialCaseRmuiImport.isNotEmpty) {
         newImportUri = specialCaseRmuiImport.single.uri;
-
-        final specialCaseNamespace = specialCaseRmuiImport.single.namespace;
-        if (namespace != null &&
-            specialCaseNamespace != null &&
-            (specialCaseRmuiImport.single.possibleMuiNamespaces
-                    ?.contains(namespace) ??
-                false)) {
-          newNamespace = specialCaseNamespace;
-        }
       }
 
       if (newImportUri != null) {
         // Collect info on new imports to add.
         newImportsInfo.add(UnifyImportInfo(newImportUri,
-            namespace: newNamespace,
-            showHideInfo: import.combinators
-                .map((c) => c.toSource())
-                .toList()
-                .join(' ')));
+            namespace: namespace,
+            showHideInfo: import.combinators.isEmpty
+                ? null
+                : import.combinators.map((c) => c.toSource()).join(' ')));
       }
 
       final prevTokenEnd = import.beginToken.previous?.end;

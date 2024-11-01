@@ -31,198 +31,24 @@ void main() {
       resolvedContext: resolvedContext,
     );
 
-    group('namespace on component usage', () {
-      test('mui namespace from react_material_ui is migrated to unify',
-          () async {
-        await testSuggestor(
-          input: /*language=dart*/ '''
+    test('does not update namespaces', () async {
+      await testSuggestor(
+        input: /*language=dart*/ '''
     import 'package:react_material_ui/react_material_ui.dart' as mui;
+    import 'package:react_material_ui/react_material_ui.dart' as abc;
     import 'package:react_material_ui/styles/color_utils.dart' as mui;
+    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_mui;
     
     content() {
       mui.Button()();
-      mui.Checkbox()();
       mui.ButtonColor.success;
       mui.useTheme();
       mui.UnifyIcons.expandMore()();
-      mui.Button;
-      mui.Button();
-      mui.darken('abc', 1);
-    }
-''',
-          expectedOutput: /*language=dart*/ '''
-    import 'package:react_material_ui/react_material_ui.dart' as mui;
-    import 'package:react_material_ui/styles/color_utils.dart' as mui;
-    
-    content() {
-      unify.Button()();
-      unify.Checkbox()();
-      unify.ButtonColor.success;
-      unify.useTheme();
-      unify.UnifyIcons.expandMore()();
-      unify.Button;
-      unify.Button();
-      unify.darken('abc', 1);
-    }
-''',
-        );
-      });
-
-      test('alpha namespace from react_material_ui is migrated to unify',
-          () async {
-        await testSuggestor(
-          input: /*language=dart*/ '''
-    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_mui;
-    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
-    
-    content() {
       alpha_mui.Rating()();
-      mui_alpha.Rating()();
-      alpha_mui.TimelinePosition.left;
-      alpha_mui.useGridApiRef();
-      alpha_mui.Popper;
-      alpha_mui.Popper();
-      mui_alpha.TimelinePosition.left;
-      mui_alpha.useGridApiRef();
-      mui_alpha.Popper;
-      mui_alpha.Popper();
-    }
-''',
-          expectedOutput: /*language=dart*/ '''
-    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as alpha_mui;
-    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as mui_alpha;
-    
-    content() {
-      alpha_unify.Rating()();
-      alpha_unify.Rating()();
-      alpha_unify.TimelinePosition.left;
-      alpha_unify.useGridApiRef();
-      alpha_unify.Popper;
-      alpha_unify.Popper();
-      alpha_unify.TimelinePosition.left;
-      alpha_unify.useGridApiRef();
-      alpha_unify.Popper;
-      alpha_unify.Popper();
-    }
-''',
-        );
-      });
-
-      test('nested component implementations', () async {
-        await testSuggestor(
-          input: /*language=dart*/ '''
-    import 'package:react_material_ui/react_material_ui.dart' as mui;
-    import 'package:over_react/over_react.dart';
-    
-    content() {
-      Fragment()(mui.ButtonToolbar()(
-        (mui.Button()..color = mui.ButtonColor.wsdBtnLight)('Foo'),
-        (mui.Button()
-          ..size = mui.ButtonSize.small
-          ..color = mui.ButtonColor.primary
-        )(
-          'Bar',
-        ),
-      ));
-      
-      return (mui.Autocomplete()
-        ..componentsProps = {
-          'popper': mui.Popper()..placement = 'top-end',
-          'popupIndicator': mui.IconButton()..sx = {'width': '20px'},
-        }
-        ..sx = {
-          'color': (mui.Theme theme) =>
-                  mui.getThemePalette(theme).common.white
-        }
-        ..renderInput = mui.wrapRenderInput((textFieldProps) => (mui.TextField()
-          ..addProps(textFieldProps)
-          ..InputLabelProps = (mui.InputLabel()
-            ..shrink = false)
-        )())
-      );
-    }
-''',
-          expectedOutput: /*language=dart*/ '''
-    import 'package:react_material_ui/react_material_ui.dart' as mui;
-    import 'package:over_react/over_react.dart';
-    
-    content() {
-      Fragment()(unify.ButtonToolbar()(
-        (unify.Button()..color = unify_wsd.WsdButtonColor.wsdBtnLight)('Foo'),
-        (unify.Button()
-          ..size = unify.ButtonSize.small
-          ..color = unify.ButtonColor.primary
-        )(
-          'Bar',
-        ),
-      ));
-      
-      return (unify.Autocomplete()
-        ..componentsProps = {
-          'popper': unify.Popper()..placement = 'top-end',
-          'popupIndicator': unify.IconButton()..sx = {'width': '20px'},
-        }
-        ..sx = {
-          'color': (unify.Theme theme) =>
-                  unify.getThemePalette(theme).common.white
-        }
-        ..renderInput = unify.wrapRenderInput((textFieldProps) => (unify.TextField()
-          ..addProps(textFieldProps)
-          ..InputLabelProps = (unify.InputLabel()
-            ..shrink = false)
-        )())
-      );
-    }
-''',
-        );
-      });
-
-      test('mui namespace from a different package is not migrated', () async {
-        await testSuggestor(
-          input: /*language=dart*/ '''
-    import 'package:over_react/over_react.dart' as mui;
-    import 'package:over_react/over_react.dart' as alpha_mui;
-    import 'package:over_react/over_react.dart' as mui_alpha;
-    
-    content() {
-      mui.Fragment()();
-      alpha_mui.Fragment()();
-      mui_alpha.Fragment()();
-      mui.useRef();
-    }
-''',
-        );
-      });
-
-      test('non-mui namespace on a react_material_ui import', () async {
-        await testSuggestor(
-          input: /*language=dart*/ '''
-    import 'package:react_material_ui/react_material_ui.dart' as abc;
-    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as other;
-    import 'package:react_material_ui/z_alpha_may_break_at_runtime_do_not_release_to_customers.dart' as something;
-    
-    content() {
       abc.Button()();
-      abc.Checkbox()();
-      other.Rating;
-      something.Rating();
     }
 ''',
-        );
-      });
-
-      test('no namespace on a react_material_ui import', () async {
-        await testSuggestor(
-          input: /*language=dart*/ '''
-    import 'package:react_material_ui/react_material_ui.dart';
-    
-    content() {
-      Button()();
-      Checkbox()();
-    }
-''',
-        );
-      });
+      );
     });
 
     group('renames', () {
@@ -238,11 +64,15 @@ void main() {
       mui.Alert()();
       mui.Alert();
       mui.Alert;
+      mui.AlertPropsMixin;
       mui.AlertSize.small;
       AlertSize.small;
+      LinkButtonSize.small;
+      LinkButtonType.submit;
       AlertSeverity.error;
       mui.AlertColor.warning;
       mui.AlertVariant.outlined;
+      mui.LinkButtonSize.xxsmall;
       Alert()();
       random_rmui_namespace.Alert()();
       mui.LinkButton()();
@@ -259,22 +89,33 @@ void main() {
     import 'package:react_material_ui/react_material_ui.dart';
     import 'package:react_material_ui/react_material_ui.dart' as random_rmui_namespace;
     import 'package:react_material_ui/components/providers/workiva_mui_theme_provider.dart';
+    import 'package:unify_ui/components/wsd.dart';
 
     content() {
-      unify_wsd.WsdAlert()();
-      unify_wsd.WsdAlert();
-      unify_wsd.WsdAlert;
-      unify_wsd.WsdAlertSize.small;
-      unify_wsd.WsdAlertSize.small;
-      unify_wsd.WsdAlertSeverity.error;
-      unify_wsd.WsdAlertColor.warning;
-      unify_wsd.WsdAlertVariant.outlined;
-      unify_wsd.WsdAlert()();
-      unify_wsd.WsdAlert()();
-      unify_wsd.WsdLinkButton()();
-      unify_wsd.WsdLinkButton()();
-      unify_wsd.WsdLinkButton()();
-      unify.UnifyList()();
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
+      WsdAlert()();
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
+      WsdAlert();
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
+      WsdAlert;
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `AlertPropsMixin` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
+      WsdAlertPropsMixin;
+      WsdAlertSize.small;
+      WsdAlertSize.small;
+      WsdLinkButtonSize.small;
+      WsdLinkButtonType.submit;
+      WsdAlertSeverity.error;
+      WsdAlertColor.warning;
+      WsdAlertVariant.outlined;
+      WsdLinkButtonSize.xxsmall;
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
+      WsdAlert()();
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `Alert` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.
+      WsdAlert()();
+      WsdLinkButton()();
+      WsdLinkButton()();
+      WsdLinkButton()();
+      mui.UnifyList()();
       UnifyList()();
       random_rmui_namespace.UnifyList()();
       UnifyThemeProvider()();
@@ -305,8 +146,8 @@ void main() {
     import 'package:react_material_ui/react_material_ui.dart' as random_rmui_namespace;
     
     content() {
-      unify.AutocompleteChangeDetails;
-      unify.AutocompleteChangeDetails();
+      mui.AutocompleteChangeDetails;
+      mui.AutocompleteChangeDetails();
       random_rmui_namespace.BackdropObject;
       BadgeOriginHorizontal;
       MenuPopoverOrigin();
@@ -336,16 +177,17 @@ void main() {
           expectedOutput: /*language=dart*/ '''
     import 'package:react_material_ui/react_material_ui.dart' as mui;
     import 'package:react_material_ui/react_material_ui.dart';
+    import 'package:unify_ui/components/wsd.dart';
     
     content() {
-      unify.ButtonColor.success;
-      unify_wsd.WsdButtonColor.wsdBtnInverse;
-      unify_wsd.WsdButtonColor.wsdBtnLight;
-      unify_wsd.WsdButtonColor.wsdBtnWhite;
+      mui.ButtonColor.success;
+      WsdButtonColor.wsdBtnInverse;
+      WsdButtonColor.wsdBtnLight;
+      WsdButtonColor.wsdBtnWhite;
       ButtonColor.success;
-      unify_wsd.WsdButtonColor.wsdBtnInverse;
-      unify_wsd.WsdButtonColor.wsdBtnLight;
-      unify_wsd.WsdButtonColor.wsdBtnWhite;
+      WsdButtonColor.wsdBtnInverse;
+      WsdButtonColor.wsdBtnLight;
+      WsdButtonColor.wsdBtnWhite;
     }
 ''',
         );
@@ -398,13 +240,13 @@ void main() {
     import 'package:react_material_ui/react_material_ui.dart';
 
     content() {
-      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
-      unify.Badge()();
-      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, manually QA this component and remove this FIXME; otherwise, migrate this component back to Web Skin Dart.
+      mui.Badge()();
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, manually QA this component and remove this FIXME; otherwise, migrate this component back to Web Skin Dart.
       Badge()();
-      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
-      unify.LinearProgress()();
-      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, remove this FIXME - no action is required; otherwise, migrate this component back to Web Skin Dart.
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, manually QA this component and remove this FIXME; otherwise, migrate this component back to Web Skin Dart.
+      mui.LinearProgress()();
+      // FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, manually QA this component and remove this FIXME; otherwise, migrate this component back to Web Skin Dart.
       LinearProgress()();
     }
 ''',
