@@ -3,11 +3,6 @@ environment:
   sdk: '>=2.11.0 <3.0.0'
 dependencies:
   over_react: ^5.0.0
-  react_material_ui:
-    hosted:
-      name: react_material_ui
-      url: https://pub.workiva.org
-    version: ^1.214.2
   unify_ui:
     hosted:
       name: unify_ui
