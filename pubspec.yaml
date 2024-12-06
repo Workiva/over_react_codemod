@@ -55,3 +55,6 @@ executables:
   intl_message_migration:
   sort_intl:
   unify_package_rename:
+
+dependency_overrides:
+  uuid: 4.2.2
