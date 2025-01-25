@@ -7,4 +7,4 @@ dependencies:
     hosted:
       name: web_skin_dart
       url: https://pub.workiva.org
-    version: '>=2.56.0 <4.0.0'
+    version: ^3.0.0
