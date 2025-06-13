@@ -55,3 +55,13 @@ executables:
   intl_message_migration:
   sort_intl:
   unify_package_rename:
+
+dependency_overrides:
+  dart_dev_workiva:
+    git:
+      url: https://github.com/Workiva/dart_dev_workiva.git
+      ref: override-unify-ui-files-for-mui-v7
+  unify_ui:
+    git:
+      url: https://github.com/Workiva/unify_ui.git
+      ref: consumable_integration/mui-v7-spike
