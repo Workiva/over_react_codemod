@@ -23,8 +23,11 @@ import 'constants.dart';
 class HtmlScriptUpdater {
   final String existingScriptPath;
   final String newScriptPath;
+  /// Whether or not to update attributes on script/link tags (like type/crossorigin)
+  /// while also updating the script path.
+  final bool updateAttributes;
 
-  HtmlScriptUpdater(this.existingScriptPath, this.newScriptPath);
+  HtmlScriptUpdater(this.existingScriptPath, this.newScriptPath, {this.updateAttributes = true});
 
   Stream<Patch> call(FileContext context) async* {
     final relevantScriptTags = [
@@ -49,64 +52,69 @@ class HtmlScriptUpdater {
 
     final patches = <Patch>[];
 
+       if(updateAttributes) {
     // Add type="module" attribute to script tag.
-    for (final scriptTagMatch in relevantScriptTags) {
-      final scriptTag = scriptTagMatch.group(0);
-      if (scriptTag == null) continue;
-      final typeAttributes = getAttributePattern('type').allMatches(scriptTag);
-      if (typeAttributes.isNotEmpty) {
-        final attribute = typeAttributes.first;
-        final value = attribute.group(1);
-        if (value == 'module') {
-          continue;
-        } else {
-          // If the value of the type attribute is not "module", overwrite it.
-          patches.add(Patch(
-            typeModuleAttribute,
-            scriptTagMatch.start + attribute.start,
-            scriptTagMatch.start + attribute.end,
-          ));
-        }
-      } else {
-        // If the type attribute does not exist, add it.
-        final srcAttribute = getAttributePattern('src').allMatches(scriptTag);
-        patches.add(Patch(
-          ' ${typeModuleAttribute}',
-          scriptTagMatch.start + srcAttribute.first.end,
-          scriptTagMatch.start + srcAttribute.first.end,
-        ));
-      }
-    }
+         for (final scriptTagMatch in relevantScriptTags) {
+           final scriptTag = scriptTagMatch.group(0);
+           if (scriptTag == null) continue;
+           final typeAttributes =
+           getAttributePattern('type').allMatches(scriptTag);
+           if (typeAttributes.isNotEmpty) {
+             final attribute = typeAttributes.first;
+             final value = attribute.group(1);
+             if (value == 'module') {
+               continue;
+             } else {
+               // If the value of the type attribute is not "module", overwrite it.
+               patches.add(Patch(
+                 typeModuleAttribute,
+                 scriptTagMatch.start + attribute.start,
+                 scriptTagMatch.start + attribute.end,
+               ));
+             }
+           } else {
+             // If the type attribute does not exist, add it.
+             final srcAttribute = getAttributePattern('src').allMatches(
+                 scriptTag);
+             patches.add(Patch(
+               ' ${typeModuleAttribute}',
+               scriptTagMatch.start + srcAttribute.first.end,
+               scriptTagMatch.start + srcAttribute.first.end,
+             ));
+           }
+         }
 
-    // Add crossorigin="" attribute to link tag.
-    for (final linkTagToMatch in relevantLinkTags) {
-      final linkTag = linkTagToMatch.group(0);
-      if (linkTag == null) continue;
-      final crossOriginAttributes =
-          getAttributePattern('crossorigin').allMatches(linkTag);
-      if (crossOriginAttributes.isNotEmpty) {
-        final attribute = crossOriginAttributes.first;
-        final value = attribute.group(1);
-        if (value == '') {
-          continue;
-        } else {
-          // If the value of the crossorigin attribute is not "", overwrite it.
-          patches.add(Patch(
-            crossOriginAttribute,
-            linkTagToMatch.start + attribute.start,
-            linkTagToMatch.start + attribute.end,
-          ));
-        }
-      } else {
-        // If the crossorigin attribute does not exist, add it.
-        final hrefAttribute = getAttributePattern('href').allMatches(linkTag);
-        patches.add(Patch(
-          ' ${crossOriginAttribute}',
-          linkTagToMatch.start + hrefAttribute.first.end,
-          linkTagToMatch.start + hrefAttribute.first.end,
-        ));
-      }
-    }
+         // Add crossorigin="" attribute to link tag.
+         for (final linkTagToMatch in relevantLinkTags) {
+           final linkTag = linkTagToMatch.group(0);
+           if (linkTag == null) continue;
+           final crossOriginAttributes =
+           getAttributePattern('crossorigin').allMatches(linkTag);
+           if (crossOriginAttributes.isNotEmpty) {
+             final attribute = crossOriginAttributes.first;
+             final value = attribute.group(1);
+             if (value == '') {
+               continue;
+             } else {
+               // If the value of the crossorigin attribute is not "", overwrite it.
+               patches.add(Patch(
+                 crossOriginAttribute,
+                 linkTagToMatch.start + attribute.start,
+                 linkTagToMatch.start + attribute.end,
+               ));
+             }
+           } else {
+             // If the crossorigin attribute does not exist, add it.
+             final hrefAttribute = getAttributePattern('href').allMatches(
+                 linkTag);
+             patches.add(Patch(
+               ' ${crossOriginAttribute}',
+               linkTagToMatch.start + hrefAttribute.first.end,
+               linkTagToMatch.start + hrefAttribute.first.end,
+             ));
+           }
+         }
+       }
 
     // Update existing path to new path.
     final scriptMatches = existingScriptPath.allMatches(context.sourceText);
