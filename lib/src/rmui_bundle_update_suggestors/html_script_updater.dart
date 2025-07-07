@@ -70,10 +70,7 @@ class HtmlScriptUpdater {
           tag.end,
         ));
       });
-      yield* Stream.fromIterable(patches);
-      return;
-    }
-
+    } else{
       if (updateAttributes) {
         // Add type="module" attribute to script tag.
         for (final scriptTagMatch in relevantScriptTags) {
@@ -136,6 +133,7 @@ class HtmlScriptUpdater {
             ));
           }
         }
+      }
 
       // Update existing path to new path.
       final scriptMatches = existingScriptPath.allMatches(context.sourceText);

@@ -266,10 +266,10 @@ void main() {
     });
 
     test('removeTag arg', () async {
-      final removeTagSuggestor = getSuggestorTester(HtmlScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated, removeTag: true));
+      final removeTagSuggestor = getSuggestorTester(HtmlScriptUpdater.remove(rmuiBundleDev));
 
         await removeTagSuggestor(
-          expectedPatchCount: 5,
+          expectedPatchCount: 4,
           shouldDartfmtOutput: false,
           input: ''
               '<script src="$rmuiBundleDev"></script>\n'
@@ -278,10 +278,11 @@ void main() {
               '<link rel="preload" href="${rmuiBundleDev}abc" as="script">\n'
               '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
               '<script src="${rmuiBundleDevUpdated}abc" type="module"></script>\n'
-              '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
+              '<link rel="preload" href="$rmuiBundleDev" crossorigin="" as="script">\n'
               '',
           expectedOutput: '\n\n\n'
-              '<link rel="preload" href="${rmuiBundleDev}abc" as="script">\n\n'
+              '<link rel="preload" href="${rmuiBundleDev}abc" as="script">\n'
+              '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
               '<script src="${rmuiBundleDevUpdated}abc" type="module"></script>\n'
               '',
         );

@@ -16,7 +16,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/constants.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/dart_script_updater.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/html_script_updater.dart';
 import 'package:over_react_codemod/src/util.dart';
