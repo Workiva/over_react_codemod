@@ -34,7 +34,9 @@ void main(List<String> args) async {
   // Update react.js bundle files to React 18 versions in html files
   exitCode = await runInteractiveCodemodSequence(
     allHtmlPathsIncludingTemplates(),
-    react17to18ReactJsScriptNames.keys.map((key) => HtmlScriptUpdater(key, react17to18ReactJsScriptNames[key]!, updateAttributes: false)),
+    react17to18ReactJsScriptNames.keys.map((key) => HtmlScriptUpdater(
+        key, react17to18ReactJsScriptNames[key]!,
+        updateAttributes: false)),
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,
@@ -46,7 +48,8 @@ void main(List<String> args) async {
   // Remove React 17 react_dom bundle files in html files
   exitCode = await runInteractiveCodemodSequence(
     allHtmlPathsIncludingTemplates(),
-    react17ReactDomJsOnlyScriptNames.map((name) => HtmlScriptUpdater.remove(name)),
+    react17ReactDomJsOnlyScriptNames
+        .map((name) => HtmlScriptUpdater.remove(name)),
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,
@@ -58,7 +61,9 @@ void main(List<String> args) async {
   // Update react.js bundle files to React 18 versions in Dart files
   exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
-    react17to18ReactJsScriptNames.keys.map((key) => DartScriptUpdater(key, react17to18ReactJsScriptNames[key]!, updateAttributes: false)),
+    react17to18ReactJsScriptNames.keys.map((key) => DartScriptUpdater(
+        key, react17to18ReactJsScriptNames[key]!,
+        updateAttributes: false)),
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,
@@ -68,7 +73,8 @@ void main(List<String> args) async {
   // Remove React 17 react_dom bundle files in html files
   exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
-    react17ReactDomJsOnlyScriptNames.map((name) => DartScriptUpdater.remove(name)),
+    react17ReactDomJsOnlyScriptNames
+        .map((name) => DartScriptUpdater.remove(name)),
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,

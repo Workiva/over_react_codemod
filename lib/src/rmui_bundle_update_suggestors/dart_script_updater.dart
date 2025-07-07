@@ -27,12 +27,14 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
     with AstVisitingSuggestor {
   final String existingScriptPath;
   late final String newScriptPath;
+
   /// Whether or not to update attributes on script/link tags (like type/crossorigin)
   /// while also updating the script path.
   late final bool updateAttributes;
   late final bool removeTag;
 
-  DartScriptUpdater(this.existingScriptPath, this.newScriptPath, {this.updateAttributes = true}) {
+  DartScriptUpdater(this.existingScriptPath, this.newScriptPath,
+      {this.updateAttributes = true}) {
     removeTag = false;
   }
 
@@ -52,19 +54,25 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
       ...Script(pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(stringValue),
-      ...?(!removeTag ? Script(pathSubpattern: newScriptPath).pattern.allMatches(stringValue): null)
+      ...?(!removeTag
+          ? Script(pathSubpattern: newScriptPath)
+              .pattern
+              .allMatches(stringValue)
+          : null)
     ];
     final relevantLinkTags = [
       ...Link(pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(stringValue),
-      ...?(!removeTag ? Link(pathSubpattern: newScriptPath).pattern.allMatches(stringValue) : null)
+      ...?(!removeTag
+          ? Link(pathSubpattern: newScriptPath).pattern.allMatches(stringValue)
+          : null)
     ];
 
     // Do not update if neither the existingScriptPath nor newScriptPath are in the file.
     if (relevantScriptTags.isEmpty && relevantLinkTags.isEmpty) return;
 
-    if(removeTag) {
+    if (removeTag) {
       [...relevantScriptTags, ...relevantLinkTags].forEach((tag) async {
         yieldPatch(
           '',
@@ -75,7 +83,7 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (updateAttributes){
+    if (updateAttributes) {
       // Add type="module" attribute to script tag.
       for (final scriptTagMatch in relevantScriptTags) {
         final scriptTag = scriptTagMatch.group(0);

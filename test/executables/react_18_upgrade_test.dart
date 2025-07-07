@@ -12,12 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:async/async.dart';
-import 'package:codemod/src/run_interactive_codemod.dart' show codemodArgParser;
-import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/util/package_util.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -28,11 +22,10 @@ import 'mui_migration_test.dart';
 void main() {
   group('react_18_upgrade executable', () {
     final react18CodemodScript =
-    p.join(findPackageRootFor(p.current), 'bin/react_18_upgrade.dart');
+        p.join(findPackageRootFor(p.current), 'bin/react_18_upgrade.dart');
 
     group('updates script tags', () {
-      testCodemod(
-          'dev',
+      testCodemod('dev',
           script: react18CodemodScript,
           input: d.dir('project', [
             d.file('dev.html', /*language=html*/ '''
@@ -52,8 +45,7 @@ void main() {
           ]),
           args: ['--yes-to-all']);
 
-      testCodemod(
-          'prod',
+      testCodemod('prod',
           script: react18CodemodScript,
           input: d.dir('project', [
             d.file('prod.html', /*language=html*/ '''
@@ -75,8 +67,7 @@ void main() {
     });
 
     group('updates link tags', () {
-      testCodemod(
-          'dev',
+      testCodemod('dev',
           script: react18CodemodScript,
           input: d.dir('project', [
             d.file('dev.html', /*language=html*/ '''
@@ -96,8 +87,7 @@ void main() {
           ]),
           args: ['--yes-to-all']);
 
-      testCodemod(
-          'prod',
+      testCodemod('prod',
           script: react18CodemodScript,
           input: d.dir('project', [
             d.file('prod.html', /*language=html*/ '''
@@ -119,8 +109,7 @@ void main() {
     });
 
     group('in Dart files', () {
-      testCodemod(
-          'list',
+      testCodemod('list',
           script: react18CodemodScript,
           input: d.dir('project', [
             d.file('main.dart', /*language=dart*/ '''
@@ -168,7 +157,7 @@ void main() {
 <script src="packages/react/js/react.min.js"></script>''')
         ]),
         args: ['--fail-on-changes'], body: (out, err) {
-          expect(out, contains('No changes needed.'));
-        });
+      expect(out, contains('No changes needed.'));
+    });
   });
 }

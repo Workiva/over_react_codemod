@@ -286,7 +286,10 @@ void main() {
     });
 
     test('updateAttributes arg', () async {
-      final updateSuggestor = getSuggestorTester(DartScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated, updateAttributes: false),);
+      final updateSuggestor = getSuggestorTester(
+        DartScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated,
+            updateAttributes: false),
+      );
 
       await updateSuggestor(
         expectedPatchCount: 2,
@@ -302,10 +305,12 @@ void main() {
                 '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
               ];
             ''',
-      );});
+      );
+    });
 
     test('remove constructor', () async {
-      final removeTagSuggestor = getSuggestorTester(DartScriptUpdater.remove(rmuiBundleDev));
+      final removeTagSuggestor =
+          getSuggestorTester(DartScriptUpdater.remove(rmuiBundleDev));
 
       await removeTagSuggestor(
         expectedPatchCount: 2,
@@ -323,6 +328,7 @@ void main() {
                 '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
               ];
             ''',
-      );});
+      );
+    });
   });
 }

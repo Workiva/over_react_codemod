@@ -23,12 +23,14 @@ import 'constants.dart';
 class HtmlScriptUpdater {
   final String existingScriptPath;
   late final String newScriptPath;
+
   /// Whether or not to update attributes on script/link tags (like type/crossorigin)
   /// while also updating the script path.
   late final bool updateAttributes;
   late final bool removeTag;
 
-  HtmlScriptUpdater(this.existingScriptPath, this.newScriptPath, {this.updateAttributes = true}) {
+  HtmlScriptUpdater(this.existingScriptPath, this.newScriptPath,
+      {this.updateAttributes = true}) {
     removeTag = false;
   }
 
@@ -44,17 +46,21 @@ class HtmlScriptUpdater {
       ...Script(pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(context.sourceText),
-      ...?(!removeTag ? Script(pathSubpattern: newScriptPath)
-          .pattern
-          .allMatches(context.sourceText) : null)
+      ...?(!removeTag
+          ? Script(pathSubpattern: newScriptPath)
+              .pattern
+              .allMatches(context.sourceText)
+          : null)
     ];
     final relevantLinkTags = [
       ...Link(pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(context.sourceText),
-      ...?(!removeTag ? Link(pathSubpattern: newScriptPath)
-          .pattern
-          .allMatches(context.sourceText) : null)
+      ...?(!removeTag
+          ? Link(pathSubpattern: newScriptPath)
+              .pattern
+              .allMatches(context.sourceText)
+          : null)
     ];
 
     // Do not update if neither the existingScriptPath nor newScriptPath are in the file.
@@ -62,7 +68,7 @@ class HtmlScriptUpdater {
 
     final patches = <Patch>[];
 
-    if(removeTag) {
+    if (removeTag) {
       [...relevantScriptTags, ...relevantLinkTags].forEach((tag) async {
         patches.add(Patch(
           '',
@@ -70,7 +76,7 @@ class HtmlScriptUpdater {
           tag.end,
         ));
       });
-    } else{
+    } else {
       if (updateAttributes) {
         // Add type="module" attribute to script tag.
         for (final scriptTagMatch in relevantScriptTags) {
