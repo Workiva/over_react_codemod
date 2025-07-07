@@ -43,7 +43,7 @@ class Script {
   RegExp get pattern => RegExp(
       r'(?<preceding_whitespace>[^\S\r\n]*)<script.*src="(?<path_prefix>.*)' +
           pathSubpattern +
-          r'".*</script>');
+          r'".*</script>(?<trailing_new_line>\n*)');
 
   @override
   String toString() =>

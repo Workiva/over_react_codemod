@@ -23,7 +23,7 @@ import 'package:over_react_codemod/src/util.dart';
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
   dart pub global activate over_react_codemod
-  dart pub global run over_react_codemod:rmui_bundle_update
+  dart pub global run over_react_codemod:react_18_upgrade
 """;
 
 void main(List<String> args) async {

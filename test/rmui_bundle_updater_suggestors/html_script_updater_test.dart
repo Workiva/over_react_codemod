@@ -281,7 +281,7 @@ void main() {
             '<script src="${rmuiBundleDevUpdated}abc" type="module"></script>\n'
             '<link rel="preload" href="$rmuiBundleDev" crossorigin="" as="script">\n'
             '',
-        expectedOutput: '\n\n\n'
+        expectedOutput: ''
             '<link rel="preload" href="${rmuiBundleDev}abc" as="script">\n'
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
             '<script src="${rmuiBundleDevUpdated}abc" type="module"></script>\n'
