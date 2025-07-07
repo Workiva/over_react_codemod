@@ -22,30 +22,39 @@ import 'constants.dart';
 /// Meant to be run on HTML files (use [DartScriptUpdater] to run on Dart files).
 class HtmlScriptUpdater {
   final String existingScriptPath;
-  final String newScriptPath;
+  late final String newScriptPath;
   /// Whether or not to update attributes on script/link tags (like type/crossorigin)
   /// while also updating the script path.
-  final bool updateAttributes;
-  final bool removeTag;
+  late final bool updateAttributes;
+  late final bool removeTag;
 
-  HtmlScriptUpdater(this.existingScriptPath, this.newScriptPath, {this.updateAttributes = true, this.removeTag = false});
+  HtmlScriptUpdater(this.existingScriptPath, this.newScriptPath, {this.updateAttributes = true}) {
+    removeTag = false;
+  }
+
+  /// Use this constructor to remove the whole tag instead of updating it.
+  HtmlScriptUpdater.remove(this.existingScriptPath) {
+    removeTag = true;
+    updateAttributes = false;
+    newScriptPath = 'will be ignored';
+  }
 
   Stream<Patch> call(FileContext context) async* {
     final relevantScriptTags = [
       ...Script(pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(context.sourceText),
-      ...Script(pathSubpattern: newScriptPath)
+      ...?(!removeTag ? Script(pathSubpattern: newScriptPath)
           .pattern
-          .allMatches(context.sourceText)
+          .allMatches(context.sourceText) : null)
     ];
     final relevantLinkTags = [
       ...Link(pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(context.sourceText),
-      ...Link(pathSubpattern: newScriptPath)
+      ...?(!removeTag ? Link(pathSubpattern: newScriptPath)
           .pattern
-          .allMatches(context.sourceText)
+          .allMatches(context.sourceText) : null)
     ];
 
     // Do not update if neither the existingScriptPath nor newScriptPath are in the file.
@@ -61,7 +70,10 @@ class HtmlScriptUpdater {
           tag.end,
         ));
       });
-    } else{
+      yield* Stream.fromIterable(patches);
+      return;
+    }
+
       if (updateAttributes) {
         // Add type="module" attribute to script tag.
         for (final scriptTagMatch in relevantScriptTags) {
@@ -124,7 +136,6 @@ class HtmlScriptUpdater {
             ));
           }
         }
-      }
 
       // Update existing path to new path.
       final scriptMatches = existingScriptPath.allMatches(context.sourceText);

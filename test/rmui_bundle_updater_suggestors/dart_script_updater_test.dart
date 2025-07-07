@@ -284,5 +284,45 @@ void main() {
             ''',
       );
     });
+
+    test('updateAttributes arg', () async {
+      final updateSuggestor = getSuggestorTester(DartScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated, updateAttributes: false),);
+
+      await updateSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="$rmuiBundleDev"></script>',
+                '<link rel="preload" href="$rmuiBundleDev" as="script">',
+              ];
+            ''',
+        expectedOutput: '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="$rmuiBundleDevUpdated"></script>',
+                '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+              ];
+            ''',
+      );});
+
+    test('remove constructor', () async {
+      final removeTagSuggestor = getSuggestorTester(DartScriptUpdater.remove(rmuiBundleDev));
+
+      await removeTagSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="$rmuiBundleDev"></script>',
+                '<link rel="preload" href="$rmuiBundleDev" as="script">',
+                '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+                '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
+              ];
+            ''',
+        expectedOutput: '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+                '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
+              ];
+            ''',
+      );});
   });
 }

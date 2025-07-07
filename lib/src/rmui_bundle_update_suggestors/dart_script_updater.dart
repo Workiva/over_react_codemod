@@ -26,9 +26,22 @@ import 'constants.dart';
 class DartScriptUpdater extends RecursiveAstVisitor<void>
     with AstVisitingSuggestor {
   final String existingScriptPath;
-  final String newScriptPath;
+  late final String newScriptPath;
+  /// Whether or not to update attributes on script/link tags (like type/crossorigin)
+  /// while also updating the script path.
+  late final bool updateAttributes;
+  late final bool removeTag;
 
-  DartScriptUpdater(this.existingScriptPath, this.newScriptPath);
+  DartScriptUpdater(this.existingScriptPath, this.newScriptPath, {this.updateAttributes = true}) {
+    removeTag = false;
+  }
+
+  /// Use this constructor to remove the whole tag instead of updating it.
+  DartScriptUpdater.remove(this.existingScriptPath) {
+    removeTag = true;
+    updateAttributes = false;
+    newScriptPath = 'will be ignored';
+  }
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
@@ -39,74 +52,88 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
       ...Script(pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(stringValue),
-      ...Script(pathSubpattern: newScriptPath).pattern.allMatches(stringValue)
+      ...?(!removeTag ? Script(pathSubpattern: newScriptPath).pattern.allMatches(stringValue): null)
     ];
     final relevantLinkTags = [
       ...Link(pathSubpattern: existingScriptPath)
           .pattern
           .allMatches(stringValue),
-      ...Link(pathSubpattern: newScriptPath).pattern.allMatches(stringValue)
+      ...?(!removeTag ? Link(pathSubpattern: newScriptPath).pattern.allMatches(stringValue) : null)
     ];
 
     // Do not update if neither the existingScriptPath nor newScriptPath are in the file.
     if (relevantScriptTags.isEmpty && relevantLinkTags.isEmpty) return;
 
-    // Add type="module" attribute to script tag.
-    for (final scriptTagMatch in relevantScriptTags) {
-      final scriptTag = scriptTagMatch.group(0);
-      if (scriptTag == null) continue;
-      final typeAttributes = getAttributePattern('type').allMatches(scriptTag);
-      if (typeAttributes.isNotEmpty) {
-        final attribute = typeAttributes.first;
-        final value = attribute.group(1);
-        if (value == 'module') {
-          continue;
-        } else {
-          // If the value of the type attribute is not "module", overwrite it.
-          yieldPatch(
-            typeModuleAttribute,
-            node.offset + scriptTagMatch.start + attribute.start,
-            node.offset + scriptTagMatch.start + attribute.end,
-          );
-        }
-      } else {
-        // If the type attribute does not exist, add it.
-        final srcAttribute = getAttributePattern('src').allMatches(scriptTag);
+    if(removeTag) {
+      [...relevantScriptTags, ...relevantLinkTags].forEach((tag) async {
         yieldPatch(
-          ' ${typeModuleAttribute}',
-          node.offset + scriptTagMatch.start + srcAttribute.first.end,
-          node.offset + scriptTagMatch.start + srcAttribute.first.end,
+          '',
+          node.offset,
+          node.end + (node.literal.next.toString() == ',' ? 1 : 0),
         );
-      }
+      });
+      return;
     }
 
-    // Add crossorigin="" attribute to link tag.
-    for (final linkTagMatch in relevantLinkTags) {
-      final linkTag = linkTagMatch.group(0);
-      if (linkTag == null) continue;
-      final crossOriginAttributes =
-          getAttributePattern('crossorigin').allMatches(linkTag);
-      if (crossOriginAttributes.isNotEmpty) {
-        final attribute = crossOriginAttributes.first;
-        final value = attribute.group(1);
-        if (value == '') {
-          continue;
+    if (updateAttributes){
+      // Add type="module" attribute to script tag.
+      for (final scriptTagMatch in relevantScriptTags) {
+        final scriptTag = scriptTagMatch.group(0);
+        if (scriptTag == null) continue;
+        final typeAttributes =
+            getAttributePattern('type').allMatches(scriptTag);
+        if (typeAttributes.isNotEmpty) {
+          final attribute = typeAttributes.first;
+          final value = attribute.group(1);
+          if (value == 'module') {
+            continue;
+          } else {
+            // If the value of the type attribute is not "module", overwrite it.
+            yieldPatch(
+              typeModuleAttribute,
+              node.offset + scriptTagMatch.start + attribute.start,
+              node.offset + scriptTagMatch.start + attribute.end,
+            );
+          }
         } else {
-          // If the value of the crossorigin attribute is not "", overwrite it.
+          // If the type attribute does not exist, add it.
+          final srcAttribute = getAttributePattern('src').allMatches(scriptTag);
           yieldPatch(
-            crossOriginAttribute,
-            node.offset + linkTagMatch.start + attribute.start,
-            node.offset + linkTagMatch.start + attribute.end,
+            ' ${typeModuleAttribute}',
+            node.offset + scriptTagMatch.start + srcAttribute.first.end,
+            node.offset + scriptTagMatch.start + srcAttribute.first.end,
           );
         }
-      } else {
-        // If the crossorigin attribute does not exist, add it.
-        final hrefAttribute = getAttributePattern('href').allMatches(linkTag);
-        yieldPatch(
-          ' ${crossOriginAttribute}',
-          node.offset + linkTagMatch.start + hrefAttribute.first.end,
-          node.offset + linkTagMatch.start + hrefAttribute.first.end,
-        );
+      }
+
+      // Add crossorigin="" attribute to link tag.
+      for (final linkTagMatch in relevantLinkTags) {
+        final linkTag = linkTagMatch.group(0);
+        if (linkTag == null) continue;
+        final crossOriginAttributes =
+            getAttributePattern('crossorigin').allMatches(linkTag);
+        if (crossOriginAttributes.isNotEmpty) {
+          final attribute = crossOriginAttributes.first;
+          final value = attribute.group(1);
+          if (value == '') {
+            continue;
+          } else {
+            // If the value of the crossorigin attribute is not "", overwrite it.
+            yieldPatch(
+              crossOriginAttribute,
+              node.offset + linkTagMatch.start + attribute.start,
+              node.offset + linkTagMatch.start + attribute.end,
+            );
+          }
+        } else {
+          // If the crossorigin attribute does not exist, add it.
+          final hrefAttribute = getAttributePattern('href').allMatches(linkTag);
+          yieldPatch(
+            ' ${crossOriginAttribute}',
+            node.offset + linkTagMatch.start + hrefAttribute.first.end,
+            node.offset + linkTagMatch.start + hrefAttribute.first.end,
+          );
+        }
       }
     }
 

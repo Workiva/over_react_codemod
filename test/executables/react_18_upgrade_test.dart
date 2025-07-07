@@ -35,7 +35,6 @@ void main() {
           'dev',
           script: react18CodemodScript,
           input: d.dir('project', [
-            // todo add link versions
             d.file('dev.html', /*language=html*/ '''
 <script src="packages/react/react.js"></script>
         <script src="packages/react/react_dom.js"></script>'''),
@@ -80,7 +79,6 @@ void main() {
           'dev',
           script: react18CodemodScript,
           input: d.dir('project', [
-            // todo add link versions
             d.file('dev.html', /*language=html*/ '''
 <link href="packages/react/react.js">
         <link href="packages/react/react_dom.js">'''),
@@ -116,6 +114,31 @@ void main() {
             d.file('prod_with_addons.html', /*language=html*/ '''
 <link href="packages/react/js/react.min.js">
         ''')
+          ]),
+          args: ['--yes-to-all']);
+    });
+
+    group('in Dart files', () {
+      testCodemod(
+          'list',
+          script: react18CodemodScript,
+          input: d.dir('project', [
+            d.file('main.dart', /*language=dart*/ '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="packages/react/react.js"></script>',
+                '<script src="packages/react/react_dom.js"></script>',
+                '<link rel="preload" href="packages/react/react.js" as="script">',
+                '<link rel="preload" href="packages/react/react_dom.js" as="script">',
+              ];
+            ''')
+          ]),
+          expectedOutput: d.dir('project', [
+            d.file('main.dart', /*language=dart*/ '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="packages/react/js/react.dev.js"></script>',
+                '<link rel="preload" href="packages/react/js/react.dev.js" as="script">',
+              ];
+            ''')
           ]),
           args: ['--yes-to-all']);
     });

@@ -16,14 +16,10 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:codemod/codemod.dart';
-import 'package:over_react_codemod/src/ignoreable.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/constants.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/dart_script_updater.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/html_script_updater.dart';
 import 'package:over_react_codemod/src/util.dart';
-import 'package:over_react_codemod/src/util/pubspec_upgrader.dart';
-
-import '../react_18_upgrade_suggestors/constants.dart';
 
 const _changesRequiredOutput = """
   To update your code, run the following commands in your repository:
@@ -36,7 +32,7 @@ void main(List<String> args) async {
 
   final parsedArgs = parser.parse(args);
 
-  // Update react.js bundle files to React 18 versions
+  // Update react.js bundle files to React 18 versions in html files
   exitCode = await runInteractiveCodemodSequence(
     allHtmlPathsIncludingTemplates(),
     react17to18ReactJsScriptNames.keys.map((key) => HtmlScriptUpdater(key, react17to18ReactJsScriptNames[key]!, updateAttributes: false)),
@@ -48,11 +44,10 @@ void main(List<String> args) async {
 
   if (exitCode != 0) return;
 
-  // Remove React 17 react_dom bundle files
+  // Remove React 17 react_dom bundle files in html files
   exitCode = await runInteractiveCodemodSequence(
     allHtmlPathsIncludingTemplates(),
-    // todo clean up this api
-    react17ReactDomJsOnlyScriptNames.map((name) => HtmlScriptUpdater(name, 'abc', removeTag: true)),
+    react17ReactDomJsOnlyScriptNames.map((name) => HtmlScriptUpdater.remove(name)),
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,
@@ -61,16 +56,37 @@ void main(List<String> args) async {
 
   if (exitCode != 0) return;
 
-  // Update RMUI bundle script to all Dart files.
+  // Update react.js bundle files to React 18 versions in Dart files
   exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
-    [
-      DartScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated),
-      DartScriptUpdater(rmuiBundleProd, rmuiBundleProdUpdated),
-    ],
+    react17to18ReactJsScriptNames.keys.map((key) => DartScriptUpdater(key, react17to18ReactJsScriptNames[key]!, updateAttributes: false)),
+    defaultYes: true,
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
+
+  // Remove React 17 react_dom bundle files in html files
+  exitCode = await runInteractiveCodemodSequence(
+    allDartPathsExceptHidden(),
+    react17ReactDomJsOnlyScriptNames.map((name) => DartScriptUpdater.remove(name)),
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,
     changesRequiredOutput: _changesRequiredOutput,
   );
 }
+
+const reactPath = 'packages/react/';
+
+const react17to18ReactJsScriptNames = {
+  '${reactPath}react.js': '${reactPath}js/react.dev.js',
+  '${reactPath}react_with_addons.js': '${reactPath}js/react.dev.js',
+  '${reactPath}react_prod.js': '${reactPath}js/react.min.js',
+  '${reactPath}react_with_react_dom_prod.js': '${reactPath}js/react.min.js',
+};
+
+const react17ReactDomJsOnlyScriptNames = [
+  '${reactPath}react_dom.js',
+  '${reactPath}react_dom_prod.js',
+];
