@@ -36,10 +36,23 @@ void main(List<String> args) async {
 
   final parsedArgs = parser.parse(args);
 
-  // Update RMUI bundle script to all HTML files (and templates).
+  // Update react.js bundle files to React 18 versions
   exitCode = await runInteractiveCodemodSequence(
     allHtmlPathsIncludingTemplates(),
     react17to18ReactJsScriptNames.keys.map((key) => HtmlScriptUpdater(key, react17to18ReactJsScriptNames[key]!, updateAttributes: false)),
+    defaultYes: true,
+    args: parsedArgs.rest,
+    additionalHelpOutput: parser.usage,
+    changesRequiredOutput: _changesRequiredOutput,
+  );
+
+  if (exitCode != 0) return;
+
+  // Remove React 17 react_dom bundle files
+  exitCode = await runInteractiveCodemodSequence(
+    allHtmlPathsIncludingTemplates(),
+    // todo clean up this api
+    react17ReactDomJsOnlyScriptNames.map((name) => HtmlScriptUpdater(name, 'abc', removeTag: true)),
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,
