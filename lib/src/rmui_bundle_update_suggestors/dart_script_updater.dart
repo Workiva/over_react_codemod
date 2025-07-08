@@ -78,6 +78,7 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
         final tagStart = node.offset + tag.start;
         final possibleCommaEnd = node.literal.next.toString() == ',' ? 1 : 0;
         final isTagSameAsNode =
+            // Check if the only difference between [tag] and [node] is the quotes around [node].
             tagStart - node.offset <= 1 && node.end - tagEnd <= 1;
 
         yieldPatch(
