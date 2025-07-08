@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html';
-
 import 'package:codemod/codemod.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/constants.dart';
 import 'package:over_react_codemod/src/rmui_bundle_update_suggestors/dart_script_updater.dart';
 import 'package:test/test.dart';
 
-import '../../bin/react_18_upgrade.dart';
 import '../util.dart';
 
 void main() {
