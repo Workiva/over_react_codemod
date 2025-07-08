@@ -74,10 +74,17 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
 
     if (removeTag) {
       [...relevantScriptTags, ...relevantLinkTags].forEach((tag) async {
+        final tagEnd = node.offset + tag.end;
+        final tagStart = node.offset + tag.start;
+        final possibleCommaEnd = node.literal.next.toString() == ',' ? 1 : 0;
+        // If the tag end is also the node end, then also remove the end quote and comma if it exists.
+        final patchEnd = node.end - tagEnd <= 1 ? (node.end + possibleCommaEnd) : tagEnd;
+        final patchStart = tagStart - node.offset  <= 1 ? node.offset : tagStart;
+
         yieldPatch(
           '',
-          node.offset,
-          node.end + (node.literal.next.toString() == ',' ? 1 : 0),
+          patchStart,
+          patchEnd,
         );
       });
       return;

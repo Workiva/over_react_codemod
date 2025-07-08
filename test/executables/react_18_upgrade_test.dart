@@ -132,6 +132,52 @@ void main() {
             ''')
           ]),
           args: ['--yes-to-all']);
+
+      testCodemod('string const',
+          script: react18CodemodScript,
+          input: d.dir('project', [
+            d.file('main.dart', r'''
+              const expectedWithReact = \'\'\'
+                <!DOCTYPE html>
+                <html>
+                <head>
+                <title>{{testName}}</title>
+                <script src="packages/react/react_with_addons.js"></script>
+                <script src="packages/react/react_dom.js"></script>
+                <script src="packages/unify_ui/js/unify-ui.browser.dev.esm.js" type="module"></script>
+                <script src="packages/react_testing_library/js/react-testing-library.js"></script>
+                <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
+                <!--<script type="application/dart" src="generated_runner_test.dart"></script>-->
+                {{testScript}}
+                <script src="packages/test/dart.js"></script>
+                </head>
+                <body></body>
+                </html>
+              \'\'\';
+            ''')
+          ]),
+          expectedOutput: d.dir('project', [
+            d.file('main.dart', r'''
+              const expectedWithReact = \'\'\'
+                <!DOCTYPE html>
+                <html>
+                <head>
+                <title>{{testName}}</title>
+                <script src="packages/react/react_with_addons.js"></script>
+                <script src="packages/react/react_dom.js"></script>
+                <script src="packages/unify_ui/js/unify-ui.browser.dev.esm.js" type="module"></script>
+                <script src="packages/react_testing_library/js/react-testing-library.js"></script>
+                <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
+                <!--<script type="application/dart" src="generated_runner_test.dart"></script>-->
+                {{testScript}}
+                <script src="packages/test/dart.js"></script>
+                </head>
+                <body></body>
+                </html>
+              \'\'\';
+            ''')
+          ]),
+          args: ['--yes-to-all']);
     });
 
     testCodemod('--fail-on-changes exits with 0 when no changes needed',
