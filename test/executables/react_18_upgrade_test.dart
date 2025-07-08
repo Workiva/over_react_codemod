@@ -136,7 +136,7 @@ void main() {
       testCodemod('string const',
           script: react18CodemodScript,
           input: d.dir('project', [
-            d.file('main.dart', r'''
+            d.file('main.dart', '''
               const expectedWithReact = \'\'\'
                 <!DOCTYPE html>
                 <html>
@@ -157,14 +157,13 @@ void main() {
             ''')
           ]),
           expectedOutput: d.dir('project', [
-            d.file('main.dart', r'''
+            d.file('main.dart', '''
               const expectedWithReact = \'\'\'
                 <!DOCTYPE html>
                 <html>
                 <head>
                 <title>{{testName}}</title>
-                <script src="packages/react/react_with_addons.js"></script>
-                <script src="packages/react/react_dom.js"></script>
+                <script src="packages/react/js/react.dev.js"></script>
                 <script src="packages/unify_ui/js/unify-ui.browser.dev.esm.js" type="module"></script>
                 <script src="packages/react_testing_library/js/react-testing-library.js"></script>
                 <!--In order to debug unit tests, use application/dart rather than x-dart-test-->

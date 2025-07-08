@@ -359,10 +359,10 @@ void main() {
       final removeTagSuggestor =
           getSuggestorTester(DartScriptUpdater.remove(rmuiBundleDev));
 
-    test('list', () async {
-      await removeTagSuggestor(
-        expectedPatchCount: 3,
-        input: '''
+      test('list', () async {
+        await removeTagSuggestor(
+          expectedPatchCount: 3,
+          input: '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDev"></script>',
                 '<link rel="preload" href="$rmuiBundleDev" as="script">',
@@ -371,19 +371,19 @@ void main() {
                 '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
               ];
             ''',
-        expectedOutput: '''
+          expectedOutput: '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDevUpdated" type="module"></script>',
                 '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
               ];
             ''',
-      );
-    });
+        );
+      });
 
-    test('string const', () async {
-      await removeTagSuggestor(
-        expectedPatchCount: 1,
-        input: '''
+      test('string const', () async {
+        await removeTagSuggestor(
+          expectedPatchCount: 1,
+          input: '''
           const expectedWithReact = \'\'\'
             <!DOCTYPE html>
             <html>
@@ -402,7 +402,7 @@ void main() {
             </html>
           \'\'\';
         ''',
-        expectedOutput: '''
+          expectedOutput: '''
           const expectedWithReact = \'\'\'
             <!DOCTYPE html>
             <html>
@@ -420,8 +420,8 @@ void main() {
             </html>
           \'\'\';
         ''',
-      );
-    });
+        );
+      });
     });
   });
 }
