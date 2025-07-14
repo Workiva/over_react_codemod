@@ -1,3 +1,11 @@
+## 2.37.0
+- React 18 rollout codemod: `react_18_upgrade` to update React JS file paths from the React 17 to React 18 versions.
+- Raise other dependency minimums: `uuid`, `web_skin_dart`
+
+## 2.36.0
+- Raise min Dart sdk to 2.19.0
+- Raise other dependency minimums: `meta`
+
 ## 2.35.0
 - Updates to `unify_package_rename` codemod in preparation for migration
   - No longer update import namespaces
