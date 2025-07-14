@@ -22,24 +22,22 @@ import 'constants.dart';
 /// Meant to be run on HTML files (use [DartScriptUpdater] to run on Dart files).
 class HtmlScriptUpdater {
   final String existingScriptPath;
-  late final String newScriptPath;
+  final String newScriptPath;
 
   /// Whether or not to update attributes on script/link tags (like type/crossorigin)
   /// while also updating the script path.
-  late final bool updateAttributes;
-  late final bool removeTag;
+  final bool updateAttributes;
+  final bool removeTag;
 
   HtmlScriptUpdater(this.existingScriptPath, this.newScriptPath,
-      {this.updateAttributes = true}) {
-    removeTag = false;
-  }
+      {this.updateAttributes = true})
+      : removeTag = false;
 
   /// Use this constructor to remove the whole tag instead of updating it.
-  HtmlScriptUpdater.remove(this.existingScriptPath) {
-    removeTag = true;
-    updateAttributes = false;
-    newScriptPath = 'will be ignored';
-  }
+  HtmlScriptUpdater.remove(this.existingScriptPath)
+      : removeTag = true,
+        updateAttributes = false,
+        newScriptPath = 'will be ignored';
 
   Stream<Patch> call(FileContext context) async* {
     final relevantScriptTags = [
@@ -69,13 +67,13 @@ class HtmlScriptUpdater {
     final patches = <Patch>[];
 
     if (removeTag) {
-      [...relevantScriptTags, ...relevantLinkTags].forEach((tag) async {
+      for (final tag in [...relevantScriptTags, ...relevantLinkTags]) {
         patches.add(Patch(
           '',
           tag.start,
           tag.end,
         ));
-      });
+      }
     } else {
       if (updateAttributes) {
         // Add type="module" attribute to script tag.

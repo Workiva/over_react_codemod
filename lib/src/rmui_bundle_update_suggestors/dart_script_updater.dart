@@ -26,24 +26,22 @@ import 'constants.dart';
 class DartScriptUpdater extends RecursiveAstVisitor<void>
     with AstVisitingSuggestor {
   final String existingScriptPath;
-  late final String newScriptPath;
+  final String newScriptPath;
 
   /// Whether or not to update attributes on script/link tags (like type/crossorigin)
   /// while also updating the script path.
-  late final bool updateAttributes;
-  late final bool removeTag;
+  final bool updateAttributes;
+  final bool removeTag;
 
   DartScriptUpdater(this.existingScriptPath, this.newScriptPath,
-      {this.updateAttributes = true}) {
-    removeTag = false;
-  }
+      {this.updateAttributes = true})
+      : removeTag = false;
 
   /// Use this constructor to remove the whole tag instead of updating it.
-  DartScriptUpdater.remove(this.existingScriptPath) {
-    removeTag = true;
-    updateAttributes = false;
-    newScriptPath = 'will be ignored';
-  }
+  DartScriptUpdater.remove(this.existingScriptPath)
+      : removeTag = true,
+        updateAttributes = false,
+        newScriptPath = 'will be ignored';
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
@@ -73,7 +71,7 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
     if (relevantScriptTags.isEmpty && relevantLinkTags.isEmpty) return;
 
     if (removeTag) {
-      [...relevantScriptTags, ...relevantLinkTags].forEach((tag) async {
+      for (final tag in [...relevantScriptTags, ...relevantLinkTags]) {
         final tagEnd = node.offset + tag.end;
         final tagStart = node.offset + tag.start;
         final possibleCommaEnd = node.literal.next.toString() == ',' ? 1 : 0;
@@ -85,10 +83,14 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
           '',
           // If [tag] spans the whole string literal in [node], then also include
           // the quotes and comma in the removal.
-          isTagSameAsNode ? node.offset : tagStart,
+          isTagSameAsNode
+              // Remove from the end of the previous token to take any preceding newline with it,
+              // so that we don't leave behind an empty line.
+              ? node.beginToken.previous?.end ?? node.offset
+              : tagStart,
           isTagSameAsNode ? (node.end + possibleCommaEnd) : tagEnd,
         );
-      });
+      }
       return;
     }
 

@@ -125,9 +125,7 @@ void main() {
             d.file('main.dart', /*language=dart*/ '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="packages/react/js/react.dev.js"></script>',
-                
                 '<link rel="preload" href="packages/react/js/react.dev.js" as="script">',
-                
               ];
             ''')
           ]),

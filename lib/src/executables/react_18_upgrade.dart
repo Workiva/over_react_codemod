@@ -26,17 +26,30 @@ const _changesRequiredOutput = """
   dart pub global run over_react_codemod:react_18_upgrade
 """;
 
+/// Updates React JS paths in HTML and Dart files from the React 17 versions to the React 18 versions.
 void main(List<String> args) async {
   final parser = ArgParser.allowAnything();
 
   final parsedArgs = parser.parse(args);
 
-  // Update react.js bundle files to React 18 versions in html files
+  // Work around allowAnything not allowing you to pass flags.
+  if (parsedArgs.arguments.contains('--help')) {
+    // Print command description; flags and other output will get printed via runInteractiveCodemodSequence.
+    print(
+        'Updates React JS paths in HTML and Dart files from the React 17 versions to the React 18 versions.\n');
+  }
+
   exitCode = await runInteractiveCodemodSequence(
     allHtmlPathsIncludingTemplates(),
-    react17to18ReactJsScriptNames.keys.map((key) => HtmlScriptUpdater(
-        key, react17to18ReactJsScriptNames[key]!,
-        updateAttributes: false)),
+    [
+      // Update react.js bundle files to React 18 versions in html files
+      ...react17to18ReactJsScriptNames.keys.map((key) => HtmlScriptUpdater(
+          key, react17to18ReactJsScriptNames[key]!,
+          updateAttributes: false)),
+      // Remove React 17 react_dom bundle files in html files
+      ...react17ReactDomJsOnlyScriptNames
+          .map((name) => HtmlScriptUpdater.remove(name)),
+    ],
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,
@@ -45,36 +58,17 @@ void main(List<String> args) async {
 
   if (exitCode != 0) return;
 
-  // Remove React 17 react_dom bundle files in html files
-  exitCode = await runInteractiveCodemodSequence(
-    allHtmlPathsIncludingTemplates(),
-    react17ReactDomJsOnlyScriptNames
-        .map((name) => HtmlScriptUpdater.remove(name)),
-    defaultYes: true,
-    args: parsedArgs.rest,
-    additionalHelpOutput: parser.usage,
-    changesRequiredOutput: _changesRequiredOutput,
-  );
-
-  if (exitCode != 0) return;
-
-  // Update react.js bundle files to React 18 versions in Dart files
   exitCode = await runInteractiveCodemodSequence(
     allDartPathsExceptHidden(),
-    react17to18ReactJsScriptNames.keys.map((key) => DartScriptUpdater(
-        key, react17to18ReactJsScriptNames[key]!,
-        updateAttributes: false)),
-    defaultYes: true,
-    args: parsedArgs.rest,
-    additionalHelpOutput: parser.usage,
-    changesRequiredOutput: _changesRequiredOutput,
-  );
-
-  // Remove React 17 react_dom bundle files in html files
-  exitCode = await runInteractiveCodemodSequence(
-    allDartPathsExceptHidden(),
-    react17ReactDomJsOnlyScriptNames
-        .map((name) => DartScriptUpdater.remove(name)),
+    [
+      // Update react.js bundle files to React 18 versions in Dart files
+      ...react17to18ReactJsScriptNames.keys.map((key) => DartScriptUpdater(
+          key, react17to18ReactJsScriptNames[key]!,
+          updateAttributes: false)),
+      // Remove React 17 react_dom bundle files in Dart files
+      ...react17ReactDomJsOnlyScriptNames
+          .map((name) => DartScriptUpdater.remove(name)),
+    ],
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,
