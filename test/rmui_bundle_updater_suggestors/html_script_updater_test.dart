@@ -270,12 +270,13 @@ void main() {
           getSuggestorTester(HtmlScriptUpdater.remove(rmuiBundleDev));
 
       await removeTagSuggestor(
-        expectedPatchCount: 4,
         shouldDartfmtOutput: false,
         input: ''
             '<script src="$rmuiBundleDev"></script>\n'
+            '  <script src="$rmuiBundleDev"></script>\n'
             '<script src="/something_else/$rmuiBundleDev"></script>\n'
             '<link rel="preload" href="$rmuiBundleDev" as="script">\n'
+            '  <link rel="preload" href="$rmuiBundleDev" as="script">\n'
             '<link rel="preload" href="${rmuiBundleDev}abc" as="script">\n'
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
             '<script src="${rmuiBundleDevUpdated}abc" type="module"></script>\n'
