@@ -240,11 +240,11 @@ void main() {
         expectedPatchCount: 4,
         shouldDartfmtOutput: false,
         input: ''
-            '<script src="$rmuiBundleDev"></script>\n'
+            '<script src="/directory/$rmuiBundleDev"></script>\n'
             '<script src="$rmuiBundleProd"></script>\n'
             '',
         expectedOutput: ''
-            '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
+            '<script src="/directory/$rmuiBundleDevUpdated" type="module"></script>\n'
             '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
             '',
       );
@@ -261,6 +261,31 @@ void main() {
         expectedOutput: ''
             '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">\n'
+            '',
+      );
+    });
+
+    test('removeTag arg', () async {
+      final removeTagSuggestor =
+          getSuggestorTester(HtmlScriptUpdater.remove(rmuiBundleDev));
+
+      await removeTagSuggestor(
+        shouldDartfmtOutput: false,
+        input: ''
+            '<script src="$rmuiBundleDev"></script>\n'
+            '  <script src="$rmuiBundleDev"></script>\n'
+            '<script src="/something_else/$rmuiBundleDev"></script>\n'
+            '<link rel="preload" href="$rmuiBundleDev" as="script">\n'
+            '  <link rel="preload" href="$rmuiBundleDev" as="script">\n'
+            '<link rel="preload" href="${rmuiBundleDev}abc" as="script">\n'
+            '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
+            '<script src="${rmuiBundleDevUpdated}abc" type="module"></script>\n'
+            '<link rel="preload" href="$rmuiBundleDev" crossorigin="" as="script">\n'
+            '',
+        expectedOutput: ''
+            '<link rel="preload" href="${rmuiBundleDev}abc" as="script">\n'
+            '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
+            '<script src="${rmuiBundleDevUpdated}abc" type="module"></script>\n'
             '',
       );
     });

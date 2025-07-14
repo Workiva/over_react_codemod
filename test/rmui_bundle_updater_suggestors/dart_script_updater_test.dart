@@ -284,5 +284,141 @@ void main() {
             ''',
       );
     });
+
+    test('string const', () async {
+      await testSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+          const expectedWithReact = \'\'\'
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <title>{{testName}}</title>
+            <script src="packages/react/react_with_addons.js"></script>
+            <script src="packages/react/react_dom.js"></script>
+            <script src="$rmuiBundleDev"></script>
+            <script src="packages/react_testing_library/js/react-testing-library.js"></script>
+            <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
+            <!--<script type="application/dart" src="generated_runner_test.dart"></script>-->
+              {{testScript}}
+              <script src="packages/test/dart.js"></script>
+            </head>
+            <body></body>
+            </html>
+          \'\'\';
+        ''',
+        expectedOutput: '''
+          const expectedWithReact = \'\'\'
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <title>{{testName}}</title>
+            <script src="packages/react/react_with_addons.js"></script>
+            <script src="packages/react/react_dom.js"></script>
+            <script src="$rmuiBundleDevUpdated" type="module"></script>
+            <script src="packages/react_testing_library/js/react-testing-library.js"></script>
+            <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
+            <!--<script type="application/dart" src="generated_runner_test.dart"></script>-->
+              {{testScript}}
+              <script src="packages/test/dart.js"></script>
+            </head>
+            <body></body>
+            </html>
+          \'\'\';
+        ''',
+      );
+    });
+
+    test('updateAttributes arg', () async {
+      final updateSuggestor = getSuggestorTester(
+        DartScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated,
+            updateAttributes: false),
+      );
+
+      await updateSuggestor(
+        expectedPatchCount: 2,
+        input: '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="$rmuiBundleDev"></script>',
+                '<link rel="preload" href="$rmuiBundleDev" as="script">',
+              ];
+            ''',
+        expectedOutput: '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="$rmuiBundleDevUpdated"></script>',
+                '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
+              ];
+            ''',
+      );
+    });
+
+    group('remove constructor', () {
+      final removeTagSuggestor =
+          getSuggestorTester(DartScriptUpdater.remove(rmuiBundleDev));
+
+      test('list', () async {
+        await removeTagSuggestor(
+          expectedPatchCount: 3,
+          input: '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="$rmuiBundleDev"></script>',
+                '<link rel="preload" href="$rmuiBundleDev" as="script">',
+                '<link rel="preload" href="/package/$rmuiBundleDev" as="script">',
+                '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+                '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
+              ];
+            ''',
+          expectedOutput: '''
+              List<String> _reactHtmlHeaders = const [
+                '<script src="$rmuiBundleDevUpdated" type="module"></script>',
+                '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
+              ];
+            ''',
+        );
+      });
+
+      test('string const', () async {
+        await removeTagSuggestor(
+          expectedPatchCount: 1,
+          input: '''
+          const expectedWithReact = \'\'\'
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <title>{{testName}}</title>
+            <script src="packages/react/react_with_addons.js"></script>
+            <script src="packages/react/react_dom.js"></script>
+            <script src="$rmuiBundleDev"></script>
+            <script src="packages/react_testing_library/js/react-testing-library.js"></script>
+            <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
+            <!--<script type="application/dart" src="generated_runner_test.dart"></script>-->
+              {{testScript}}
+              <script src="packages/test/dart.js"></script>
+            </head>
+            <body></body>
+            </html>
+          \'\'\';
+        ''',
+          expectedOutput: '''
+          const expectedWithReact = \'\'\'
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <title>{{testName}}</title>
+            <script src="packages/react/react_with_addons.js"></script>
+            <script src="packages/react/react_dom.js"></script>
+            <script src="packages/react_testing_library/js/react-testing-library.js"></script>
+            <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
+            <!--<script type="application/dart" src="generated_runner_test.dart"></script>-->
+              {{testScript}}
+              <script src="packages/test/dart.js"></script>
+            </head>
+            <body></body>
+            </html>
+          \'\'\';
+        ''',
+        );
+      });
+    });
   });
 }
