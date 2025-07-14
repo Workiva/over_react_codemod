@@ -80,10 +80,10 @@ void main() {
           expectedOutput: d.dir('project', [
             d.file('dev.html', /*language=html*/ '''
 <link href="packages/react/js/react.dev.js">
-        '''),
+'''),
             d.file('dev_with_addons.html', /*language=html*/ '''
 <link href="packages/react/js/react.dev.js">
-        '''),
+'''),
           ]),
           args: ['--yes-to-all']);
 
@@ -100,10 +100,10 @@ void main() {
           expectedOutput: d.dir('project', [
             d.file('prod.html', /*language=html*/ '''
 <link href="packages/react/js/react.min.js">
-        '''),
+'''),
             d.file('prod_with_addons.html', /*language=html*/ '''
 <link href="packages/react/js/react.min.js">
-        ''')
+''')
           ]),
           args: ['--yes-to-all']);
     });
