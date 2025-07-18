@@ -405,8 +405,7 @@ void main() {
             <html>
             <head>
             <title>{{testName}}</title>
-            <script src="packages/react/react_with_addons.js"></script>
-            <script src="packages/react/react_dom.js"></script>
+            <script src="packages/react/js/react.dev.js"></script>
             <script src="packages/react_testing_library/js/react-testing-library.js"></script>
             <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
             <!--<script type="application/dart" src="generated_runner_test.dart"></script>-->
