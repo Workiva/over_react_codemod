@@ -2,6 +2,6 @@ name: test_consuming_package
 environment:
   sdk: '>=2.11.0 <3.0.0'
 dependencies:
-  over_react: ^5.0.0
+  over_react: ^5.4.5
   test_package:
     path: ../test_package

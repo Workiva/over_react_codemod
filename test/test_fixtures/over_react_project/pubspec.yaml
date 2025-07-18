@@ -2,4 +2,4 @@ name: over_react_project
 environment:
   sdk: '>=2.11.0 <3.0.0'
 dependencies:
-  over_react: ^5.0.0
+  over_react: ^5.4.5
