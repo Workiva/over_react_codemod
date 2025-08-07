@@ -1,3 +1,6 @@
+## 2.37.1
+- Use gha-dart-oss
+
 ## 2.37.0
 - React 18 rollout codemod: `react_18_upgrade` to update React JS file paths from the React 17 to React 18 versions.
 - Raise other dependency minimums: `uuid`, `web_skin_dart`

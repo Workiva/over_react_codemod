@@ -5,5 +5,6 @@ final config = {
   'format': FormatTool()
     ..exclude = [
       Glob('test/test_fixtures/**'),
-    ]
+    ],
+  'analyze': AnalyzeTool(),
 };
