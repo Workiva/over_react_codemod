@@ -23,7 +23,7 @@ typedef YieldPatch = void Function(String replacement, int startingOffset,
     [int? endingOffset]);
 
 const semverReportNotAvailable =
-    'Semver report not avgit cheailable; this class is assumed to be public and thus will not be updated.';
+    'Semver report not available; this class is assumed to be public and thus will not be updated.';
 
 final logger = Logger('over_react_codemod.boilerplate_upgrade.semver_helper');
 
