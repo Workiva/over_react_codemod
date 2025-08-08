@@ -15,7 +15,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:codemod/codemod.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/util.dart';
@@ -24,7 +23,7 @@ typedef YieldPatch = void Function(String replacement, int startingOffset,
     [int? endingOffset]);
 
 const semverReportNotAvailable =
-    'Semver report not available; this class is assumed to be public and thus will not be updated.';
+    'Semver report not avgit cheailable; this class is assumed to be public and thus will not be updated.';
 
 final logger = Logger('over_react_codemod.boilerplate_upgrade.semver_helper');
 
