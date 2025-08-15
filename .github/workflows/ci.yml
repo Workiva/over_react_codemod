@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'test_consume_*'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  checks:
+    uses: Workiva/gha-dart-oss/.github/workflows/checks.yaml@v0.1.12
+    with:
+      additional-checks: |
+        no_entrypoint_imports
+
+  build:
+    uses: Workiva/gha-dart-oss/.github/workflows/build.yaml@v0.1.12
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [ 2.19.6 ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v0.2
+        with:
+          sdk: ${{ matrix.sdk }}
+
+      - name: Print Dart SDK version
+        run: dart --version
+
+      - id: install
+        name: Install dependencies
+        run: dart pub get --no-precompile
+
+      - name: Ensure checked-in generated files are up to date
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          git diff --exit-code
+        if: always() && steps.install.outcome == 'success'
+
+      - name: Run tests
+        run: |
+          echo 'Running dart pub get in test fixtures beforehand to prevent concurrent `dart pub get`s in tests from failing'
+          (cd test/test_fixtures/over_react_project && dart pub get)
+          dart test --exclude-tags=wsd
