@@ -29,11 +29,11 @@ void main() {
           script: react18CodemodScript,
           input: d.dir('project', [
             d.file('dev.html', /*language=html*/ '''
-<script src="packages/react/react.js"></script>
-        <script src="packages/react/react_dom.js"></script>'''),
+<script src="packages/react/js/react.dev.js"></script>
+'''),
             d.file('dev_with_addons.html', /*language=html*/ '''
-<script src="packages/react/react_with_addons.js"></script>
-        <script src="packages/react/react_dom.js"></script>'''),
+<script src="packages/react/js/react.dev.js"></script>
+'''),
           ]),
           expectedOutput: d.dir('project', [
             d.file('dev.html', /*language=html*/ '''
@@ -49,11 +49,11 @@ void main() {
           script: react18CodemodScript,
           input: d.dir('project', [
             d.file('prod.html', /*language=html*/ '''
-<script src="packages/react/react_prod.js"></script>
-        <script src="packages/react/react_dom_prod.js"></script>'''),
+<script src="packages/react/js/react.min.js"></script>
+'''),
             d.file('prod_with_addons.html', /*language=html*/ '''
-<script src="packages/react/react_with_react_dom_prod.js"></script>
-        <script src="packages/react/react_dom_prod.js"></script>''')
+<script src="packages/react/js/react.min.js"></script>
+''')
           ]),
           expectedOutput: d.dir('project', [
             d.file('prod.html', /*language=html*/ '''
@@ -71,11 +71,11 @@ void main() {
           script: react18CodemodScript,
           input: d.dir('project', [
             d.file('dev.html', /*language=html*/ '''
-<link href="packages/react/react.js">
-        <link href="packages/react/react_dom.js">'''),
+<link href="packages/react/js/react.dev.js">
+'''),
             d.file('dev_with_addons.html', /*language=html*/ '''
-<link href="packages/react/react_with_addons.js">
-        <link href="packages/react/react_dom.js">'''),
+<link href="packages/react/js/react.dev.js">
+'''),
           ]),
           expectedOutput: d.dir('project', [
             d.file('dev.html', /*language=html*/ '''
@@ -91,11 +91,11 @@ void main() {
           script: react18CodemodScript,
           input: d.dir('project', [
             d.file('prod.html', /*language=html*/ '''
-<link href="packages/react/react_prod.js">
-        <link href="packages/react/react_dom_prod.js">'''),
+<link href="packages/react/js/react.min.js">
+'''),
             d.file('prod_with_addons.html', /*language=html*/ '''
-<link href="packages/react/react_with_react_dom_prod.js">
-        <link href="packages/react/react_dom_prod.js">''')
+<link href="packages/react/js/react.min.js">
+''')
           ]),
           expectedOutput: d.dir('project', [
             d.file('prod.html', /*language=html*/ '''
@@ -114,10 +114,10 @@ void main() {
           input: d.dir('project', [
             d.file('main.dart', /*language=dart*/ '''
               List<String> _reactHtmlHeaders = const [
-                '<script src="packages/react/react.js"></script>',
-                '<script src="packages/react/react_dom.js"></script>',
-                '<link rel="preload" href="packages/react/react.js" as="script">',
-                '<link rel="preload" href="packages/react/react_dom.js" as="script">',
+                '<script src="packages/react/js/react.dev.js"></script>',
+                '',
+                '<link rel="preload" href="packages/react/js/react.dev.js" as="script">',
+                '',
               ];
             ''')
           ]),
@@ -140,8 +140,7 @@ void main() {
                 <html>
                 <head>
                 <title>{{testName}}</title>
-                <script src="packages/react/react_with_addons.js"></script>
-                <script src="packages/react/react_dom.js"></script>
+                <script src="packages/react/js/react.dev.js"></script>
                 <script src="packages/unify_ui/js/unify-ui.browser.dev.esm.js" type="module"></script>
                 <script src="packages/react_testing_library/js/react-testing-library.js"></script>
                 <!--In order to debug unit tests, use application/dart rather than x-dart-test-->
