@@ -100,6 +100,14 @@ This ignore mechanism works with any of the changes that the codemods in this
 package will try to suggest.
 
 
+## Environment Support
+
+The codemod tool supports multiple deployment environments. Test fixtures include examples for:
+- `sandbox.wdesk.com` - Sandbox environment
+- `ca.wdesk.com` - CA production environment (prod-ca)
+
+When generating HTML or Dart code with preconnect links, ensure URLs follow the appropriate environment pattern.
+
 ## Authoring codemods
 
 ### Resources
