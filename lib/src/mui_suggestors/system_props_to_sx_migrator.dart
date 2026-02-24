@@ -22,13 +22,39 @@ import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 import 'package:over_react_codemod/src/util/element_type_helpers.dart';
 
-/// A suggestor that migrates MUI system props to the `sx` prop.
+/// A suggestor that migrates deprecated MUI system props to the `sx` prop,
+/// ensuring that existing `sx` prop values are preserved and merged correctly.
 ///
-/// MUI System props (such as `mt={*}`, `bgcolor={*}`, and more) have been deprecated
-/// in MUI v6 in favor of the `sx` prop.
+/// ### Example migration
 ///
-/// This migrator detects components that use system props and moves those props
-/// to the `sx` prop, ensuring that existing `sx` prop values are preserved and merged correctly.
+/// Before:
+/// ```dart
+/// (Box()..m = 2)();
+/// (Box()
+///   ..m = 2
+///   ..sx = {'color': '#f00'}
+/// )()
+/// (Box()
+///   ..m = 2
+///   ..addProps(props.getPropsToForward())
+/// )()
+/// ```
+///
+/// After
+/// ```dart
+/// (Box()..sx = {'m': 2})()
+/// (Box()..sx = {
+///   'm': 2,
+///   'color': '#f00'
+/// })()
+/// (Box()
+///   ..addProps(props.getPropsToForward())
+///   ..sx = {
+///     'm': 2,
+///     ...?props.sx,
+///   }
+/// )()
+/// ```
 class SystemPropsToSxMigrator extends ComponentUsageMigrator {
   @override
   String get fixmePrefix => 'FIXME(mui_system_props_migration)';
