@@ -154,7 +154,9 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
             ? ','
             : '';
         yieldPatch(
-            ', ${migratedSystemPropEntries.join(', ')}$maybeTrailingComma}', value.end, value.end);
+            ', ${migratedSystemPropEntries.join(', ')}$maybeTrailingComma}',
+            value.end,
+            value.end);
       }
     } else {
       final forwardedPropSources = _getForwardedPropSources(usage);
@@ -250,8 +252,7 @@ List<_ForwardedPropSource> _getForwardedPropSources(
           case 'addAll':
           case 'addProps':
             if (arg is MethodInvocation &&
-                (arg.methodName.name == 'getPropsToForward' ||
-                    arg.methodName.name == 'copyUnconsumedProps')) {
+                arg.methodName.name == 'getPropsToForward') {
               return _ForwardedPropSource(c, arg.realTarget);
             }
             return _ForwardedPropSource(c, arg);
@@ -275,7 +276,6 @@ List<_ForwardedPropSource> _getForwardedPropSources(
 
 const _componentsWithDeprecatedSystemProps = {
   'Box',
-  'Container',
   'Grid',
   'Stack',
   'Typography',
