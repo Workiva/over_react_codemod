@@ -67,6 +67,12 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
   @override
   get shouldFlagClassName => false;
 
+  bool isFirstTokenOnLine(Token token) {
+    final sourceFile = context.sourceFile;
+    final lineStart = sourceFile.getOffset(sourceFile.getLine(token.offset));
+    return sourceFile.getText(lineStart, token.offset).trim().isEmpty;
+  }
+
   @override
   void migrateUsage(FluentComponentUsage usage) {
     super.migrateUsage(usage);
@@ -96,23 +102,47 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
     if (deprecatedSystemProps.isEmpty) return;
 
-    // FIXME comments don't come with props
+    var hasAnyComments = false;
 
-    final migratedSystemPropEntries = deprecatedSystemProps.map((prop) {
+    final migratedSystemPropEntries = <String>[];
+    for (final prop in deprecatedSystemProps) {
       final propName = prop.name.name;
       final propValue = context.sourceFile
           .getText(prop.rightHandSide.offset, prop.rightHandSide.end);
-      return "'$propName': $propValue";
-    });
 
-    // Remove all system props
-    for (final prop in deprecatedSystemProps) {
-      yieldRemovePropPatch(prop);
+      // Carry over comments before the node
+      // (we won't try to handle end-of-line comments).
+      final beforeComments = allCommentsForNode(prop.node)
+          // Don't include end-of-line comments that should stay with the previous line.
+          .skipWhile((comment) => !isFirstTokenOnLine(comment))
+          .toList();
+
+      if (beforeComments.isNotEmpty) hasAnyComments = true;
+
+      final commentSource = beforeComments.isEmpty
+          ? ''
+          // Get full comment text, and trim trailing newline/whitespace
+          : context.sourceFile
+              .getText(
+                  beforeComments.first.offset, beforeComments.last.end)
+              .trimRight();
+
+      // Create new sx entry
+      migratedSystemPropEntries.add([
+        if (commentSource.isNotEmpty) '\n $commentSource',
+        "'$propName': $propValue"
+      ].join('\n'));
+
+      // Remove old system prop
+      yieldPatch('', beforeComments.firstOrNull?.offset ?? prop.node.offset,
+          prop.node.end);
     }
 
     bool shouldForceMultiline(
         {required int elementCount, required int charCount}) {
-      return elementCount >= 3 || (elementCount > 1 && charCount >= 20);
+      return hasAnyComments ||
+          elementCount >= 3 ||
+          (elementCount > 1 && charCount >= 20);
     }
 
     if (existingSxProp != null) {
@@ -240,6 +270,8 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
     }
   }
 }
+
+enum CommentLocation { ownLine, endOfLine, other }
 
 class _ForwardedPropSource {
   final BuilderMethodInvocation cascadedMethod;

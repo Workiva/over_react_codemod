@@ -785,6 +785,231 @@ void main() {
       });
     });
 
+    group('preserves comments before system props:', () {
+      test('single line comment before single system prop', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    // Add margin
+                    ..mt = 2
+                  )();
+          '''),
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    ..sx = {
+                      // Add margin
+                      'mt': 2,
+                    }
+                  )();
+          '''),
+        );
+      });
+
+      test('single line comment before one of multiple system props', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    ..mt = 2
+                    // Add padding
+                    ..p = 3
+                  )();
+          '''),
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    ..sx = {
+                      'mt': 2, 
+                      // Add padding
+                      'p': 3,
+                    }
+                  )();
+          '''),
+        );
+      });
+
+      test('multiple comments before different system props', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    // Top margin
+                    ..mt = 2
+                    // Horizontal padding
+                    ..px = 3
+                    // Background color
+                    ..bgcolor = 'blue'
+                  )();
+          '''),
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    ..sx = {
+                      // Top margin
+                      'mt': 2, 
+                      // Horizontal padding
+                      'px': 3, 
+                      // Background color
+                      'bgcolor': 'blue',
+                    }
+                  )();
+          '''),
+        );
+      });
+
+      test('multi-line comment before system prop', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    /* This is a longer comment
+                       explaining the margin */
+                    ..mt = 2
+                  )();
+          '''),
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    ..sx = {
+                      /* This is a longer comment
+                       explaining the margin */
+                      'mt': 2,
+                    }
+                  )();
+          '''),
+        );
+      });
+
+      test('comment before system prop with existing sx', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    ..sx = {'border': '1px solid black'}
+                    // Add margin
+                    ..mt = 2
+                  )();
+          '''),
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    ..sx = {
+                      'border': '1px solid black', 
+                      // Add margin
+                      'mt': 2,
+                    }
+                  )();
+          '''),
+        );
+      });
+
+      test('comments before system props mixed with non-system props', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    ..id = 'test'
+                    // Spacing
+                    ..mt = 2
+                    ..className = 'custom'
+                    // More spacing
+                    ..p = 3
+                  )();
+          '''),
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    ..id = 'test'
+                    ..className = 'custom'
+                    ..sx = {
+                      // Spacing
+                      'mt': 2, 
+                      // More spacing
+                      'p': 3,
+                    }
+                  )();
+          '''),
+        );
+      });
+
+      test('comment before system prop with forwarding', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content(BoxProps props) => 
+                  (Box()
+                    ..addProps(props)
+                    // Override margin
+                    ..mt = 2
+                  )();
+          '''),
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content(BoxProps props) => 
+                  (Box()
+                    ..addProps(props)
+                    ..sx = {
+                      ...?props.sx, 
+                      // Override margin
+                      'mt': 2,
+                    }
+                  )();
+          '''),
+        );
+      });
+
+      test('inline comment on same line as system prop', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    ..mt = 2 // top margin
+                    ..p = 3
+                  )();
+          '''),
+          // Inline comment behavior here isn't great, but it's too much effort
+          // to deal with in this codemod.
+          // Just verify the codemod doesn't break or do anything too outlandish.
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                   // top margin
+                    ..sx = {'mt': 2, 'p': 3}
+                  )();
+          '''),
+        );
+      });
+
+      test('multiple comment types with system props', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                    // Line comment
+                    ..mt = 2 // inline comment
+                    /* Block comment */
+                    ..p = 3
+                  )();
+          '''),
+          // Inline comment behavior here isn't great, but it's too much effort
+          // to deal with in this codemod.
+          // Just verify the codemod doesn't break or do anything too outlandish.
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content() => 
+                  (Box()
+                   // inline comment
+                    ..sx = {
+                      // Line comment
+                      'mt': 2,
+                      /* Block comment */
+                      'p': 3,
+                    }
+                  )();
+          '''),
+        );
+      });
+    });
+
     group('handles different component types with system props:', () {
       test('Box', () async {
         await testSuggestor(
