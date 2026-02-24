@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -150,7 +152,8 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
     } else {
       final forwardedPropSources = _getForwardedPropSources(usage);
       final mightForwardSx = forwardedPropSources.any((source) {
-        final type = source?.staticType?.typeOrBound.tryCast<InterfaceType>();
+        final type = source.propsExpression?.staticType?.typeOrBound
+            .tryCast<InterfaceType>();
         if (type != null &&
             type.isPropsClass &&
             type.element.name != 'UiProps') {
@@ -161,10 +164,11 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
       final String? additionalSxElement;
       final bool needsFixme;
+
+
       if (mightForwardSx) {
         var canGetForwardedSx = false;
-
-        final forwardedProps = forwardedPropSources.singleOrNull;
+        final forwardedProps = forwardedPropSources.singleOrNull?.propsExpression;
         if (forwardedProps != null &&
             (forwardedProps is Identifier ||
                 forwardedProps is PropertyAccess)) {
@@ -204,45 +208,62 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           ? ','
           : '';
 
-      final insertionLocation = deprecatedSystemProps.last.node.end;
+      // Insert after any forwarded props to ensure sx isn't overwritten,
+      // and where the last system prop used to be to preserve the location and reduce diffs.
+      final insertionLocation = [
+        ...forwardedPropSources.map((source) => source.cascadedMethod.node.end),
+        deprecatedSystemProps.last.node.end
+      ].reduce(max);
+
       yieldPatch('$fixme..sx = {${elements.join(', ')}$maybeTrailingComma}',
           insertionLocation, insertionLocation);
     }
   }
 }
 
+class _ForwardedPropSource {
+  final BuilderMethodInvocation cascadedMethod;
+  final Expression? propsExpression;
+
+  _ForwardedPropSource(this.cascadedMethod, this.propsExpression);
+}
+
 /// Returns the set of expressions that are sources of props forwarded to the component in [usage],
 /// or `null` for sources that were detected but don't cleanly map to a props expression.
-Set<Expression?> _getForwardedPropSources(FluentComponentUsage usage) {
-  return usage.cascadedMethodInvocations.expand<Expression?>((c) {
-    final methodName = c.methodName.name;
-    late final arg = c.node.argumentList.arguments.firstOrNull;
+List<_ForwardedPropSource> _getForwardedPropSources(
+    FluentComponentUsage usage) {
+  return usage.cascadedMethodInvocations
+      .map((c) {
+        final methodName = c.methodName.name;
+        late final arg = c.node.argumentList.arguments.firstOrNull;
 
-    switch (methodName) {
-      case 'addUnconsumedProps':
-        return [null];
-      case 'addAll':
-      case 'addProps':
-        if (arg is MethodInvocation &&
-            (arg.methodName.name == 'getPropsToForward' ||
-                arg.methodName.name == 'copyUnconsumedProps')) {
-          return [arg.realTarget];
+        switch (methodName) {
+          case 'addUnconsumedProps':
+            return _ForwardedPropSource(c, null);
+          case 'addAll':
+          case 'addProps':
+            if (arg is MethodInvocation &&
+                (arg.methodName.name == 'getPropsToForward' ||
+                    arg.methodName.name == 'copyUnconsumedProps')) {
+              return _ForwardedPropSource(c, arg.realTarget);
+            }
+            return _ForwardedPropSource(c, arg);
+          case 'modifyProps':
+            if ((arg is MethodInvocation &&
+                arg.methodName.name == 'addPropsToForward')) {
+              return _ForwardedPropSource(c, arg.realTarget);
+            }
+            if (arg is Identifier && arg.name == 'addUnconsumedProps') {
+              return _ForwardedPropSource(c, null);
+            }
+            return _ForwardedPropSource(c, null);
+          default:
+            // Not a method that forwards props.
+            return null;
         }
-        return [arg];
-      case 'modifyProps':
-        if ((arg is MethodInvocation &&
-            arg.methodName.name == 'addPropsToForward')) {
-          return [arg.realTarget];
-        }
-        if (arg is Identifier && arg.name == 'addUnconsumedProps') {
-          return [null];
-        }
-        return [null];
-      default:
-        // Not a method that forwards props.
-        return [];
-    }
-  }).toSet();
+      })
+      .whereNotNull()
+      .toList();
 }
 
 const _componentsWithDeprecatedSystemProps = {
