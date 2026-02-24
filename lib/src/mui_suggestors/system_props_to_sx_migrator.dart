@@ -133,13 +133,20 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           prop.node.end);
     }
 
-    bool shouldForceMultiline(List<String> mapElements) =>
-        // Force multiline if there are a certain number of entries, or...
-        mapElements.length >= 3 ||
-        // there's more than one entry and the line is getting too long, or...
-        (mapElements.length > 1 && mapElements.join(', ').length >= 20) ||
-        // any entry is multiline (including comments).
-        mapElements.any((e) => e.contains('\n'));
+    final forwardedPropSources = _getForwardedPropSources(usage);
+
+
+    final fixmes = <String>[];
+    if (forwardedPropSources.isNotEmpty) {
+      fixmes.add(
+          'Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.'
+              '\n Double-check that this new behavior is okay.');
+    }
+
+    String getFixmesSource() => fixmes
+        // Indents with a single space so that dartfmt doesn't make it stick to the beginning of the line.
+        .map((f) => '\n' + lineComment('$fixmePrefix - $f', indent: ' '))
+        .join('');
 
     if (existingSxProp != null) {
       //
@@ -151,7 +158,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
         // Insert before, to preserve existing behavior where any spread sx trumped these styles.
         // Add a leading newline to ensure comments don't get stuck to the opening braces.
-        yieldPatch('\n${migratedSystemPropEntries.join(',\n')},',
+        yieldPatch('${getFixmesSource()}\n${migratedSystemPropEntries.join(',\n')},',
             value.leftBracket.end, value.leftBracket.end);
         // Force a multiline in all cases by ensuring there's a trailing comma.
         final hadTrailingComma =
@@ -169,9 +176,9 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
             type.nullabilitySuffix == NullabilitySuffix.none;
         final spread = '...${nonNullable ? '' : '?'}';
         // Insert before spread, to preserve existing behavior where any forwarded sx trumped these styles.
-        yieldPatch('{\n${migratedSystemPropEntries.join(', ')}, $spread',
+        yieldPatch('{${getFixmesSource()}\n${migratedSystemPropEntries.join(', ')}, $spread',
             value.offset, value.offset);
-        final maybeTrailingComma = shouldForceMultiline([
+        final maybeTrailingComma = _shouldForceMultiline([
           ...migratedSystemPropEntries,
           '$spread${context.sourceFor(value)}',
         ])
@@ -184,9 +191,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       // Case 2: add new sx prop assignment
 
       final String? forwardedSxSpread;
-      final fixmes = <String>[];
 
-      final forwardedPropSources = _getForwardedPropSources(usage);
       final mightForwardSx = forwardedPropSources.any((source) {
         final type = source.propsExpression?.staticType?.typeOrBound
             .tryCast<InterfaceType>();
@@ -227,7 +232,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         ...migratedSystemPropEntries,
         if (forwardedSxSpread != null) forwardedSxSpread,
       ];
-      final maybeTrailingComma = shouldForceMultiline(elements) ? ',' : '';
+      final maybeTrailingComma = _shouldForceMultiline(elements) ? ',' : '';
 
       final forwardingEnds =
           forwardedPropSources.map((s) => s.cascadedMethod.node.end).toList();
@@ -244,21 +249,23 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       if (firstForwardingEnd != null &&
           insertionLocation >= firstForwardingEnd &&
           systemPropEnds.any((system) => system < firstForwardingEnd)) {
-        fixmes.add(
-            'Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.'
-            '\n Double-check that this new behavior is okay.');
       }
 
-      final fixmesSource = fixmes
-          // Indents with a single space so that dartfmt doesn't make it stick to the beginning of the line.
-          .map((f) => '\n' + lineComment('$fixmePrefix - $f', indent: ' '))
-          .join('');
       yieldPatch(
-          '$fixmesSource..sx = {${elements.join(', ')}$maybeTrailingComma}',
+          '${getFixmesSource()}..sx = {${elements.join(', ')}$maybeTrailingComma}',
           insertionLocation,
           insertionLocation);
     }
   }
+
+  static bool _shouldForceMultiline(List<String> mapElements) =>
+      // Force multiline if there are a certain number of entries, or...
+      mapElements.length >= 3 ||
+      // there's more than one entry and the line is getting too long, or...
+      (mapElements.length > 1 && mapElements.join(', ').length >= 20) ||
+      // any entry is multiline (including comments).
+      mapElements.any((e) => e.contains('\n'));
+
 }
 
 enum CommentLocation { ownLine, endOfLine, other }

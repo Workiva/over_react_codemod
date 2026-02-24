@@ -223,31 +223,6 @@ void main() {
       });
     });
 
-    test('adds a fixme when there are forwarded props and an existing sx', () async {
-      await testSuggestor(
-        input: withHeader(/*language=dart*/ '''
-            content(BoxProps props) =>
-                (Box()
-                  ..addProps(props)
-                  ..sx = {'border': '1px solid black'}
-                  ..mt = 2
-                )();
-        '''),
-        expectedOutput: withHeader(/*language=dart*/ '''
-            content(BoxProps props) =>
-                (Box()
-                  ..addProps(props)
-                  ..sx = {
-                     // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
-                     //  Double-check that this new behavior is okay.
-                    'mt': 2,
-                    'border': '1px solid black', 
-                  }
-                )();
-        '''),
-      );
-    });
-
     group('merges in sx from forwarded props', () {
       group('forwarded with', () {
         test('addProps', () async {
@@ -634,10 +609,87 @@ void main() {
       );
     });
 
+    group('adds a fixme when there are forwarded props and', () {
+      test('an existing sx map literal', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content(BoxProps props) =>
+                  (Box()
+                    ..addProps(props)
+                    ..sx = {'border': '1px solid black'}
+                    ..mt = 2
+                  )();
+          '''),
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content(BoxProps props) =>
+                  (Box()
+                    ..addProps(props)
+                    ..sx = {
+                       // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
+                       //  Double-check that this new behavior is okay.
 
+                      'mt': 2, 'border': '1px solid black', 
+                    }
+                  )();
+          '''),
+        );
+      });
+
+      test('an existing sx value', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content(BoxProps props) =>
+                  (Box()
+                    ..addProps(props)
+                    ..sx = getSx()
+                    ..mt = 2
+                  )();
+              Map getSx() => {'color': 'red'};
+          '''),
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content(BoxProps props) =>
+                  (Box()
+                    ..addProps(props)
+                    ..sx = {
+                      // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
+                      //  Double-check that this new behavior is okay.
+                     
+                      'mt': 2, ...getSx()
+                    }
+                  )();
+              Map getSx() => {'color': 'red'};
+          '''),
+        );
+      });
+
+      test('no existing sx', () async {
+        await testSuggestor(
+          input: withHeader(/*language=dart*/ '''
+              content(BoxProps props) =>
+                  (Box()
+                    ..addProps(props)
+                    ..mt = 2
+                  )();
+          '''),
+          expectedOutput: withHeader(/*language=dart*/ '''
+              content(BoxProps props) =>
+                  (Box()
+                    ..addProps(props)
+                    
+                     // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
+                     //  Double-check that this new behavior is okay.
+                    ..sx = {
+                      'mt': 2, 
+                      ...?props.sx,
+                    }
+                  )();
+          '''),
+        );
+      });
+    });
 
     group('insertion location:', () {
-      test('inserts after prop forwarding to avoid being overwritten, with a comment', () async {
+      test('inserts after prop forwarding to avoid being overwritten', () async {
         await testSuggestor(
           input: withHeader(/*language=dart*/ '''
               content(BoxProps props) =>
