@@ -239,7 +239,7 @@ List<_ForwardedPropSource> _getForwardedPropSources(
 
         switch (methodName) {
           case 'addUnconsumedProps':
-            return _ForwardedPropSource(c, null);
+            return _ForwardedPropSource(c, arg);
           case 'addAll':
           case 'addProps':
             if (arg is MethodInvocation &&
