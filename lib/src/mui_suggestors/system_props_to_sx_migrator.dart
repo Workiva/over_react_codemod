@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:math';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -172,7 +170,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       });
 
       final String? additionalSxElement;
-      final bool needsFixme;
+      final fixmes = <String>[];
 
       if (mightForwardSx) {
         var canGetForwardedSx = false;
@@ -192,20 +190,14 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
         if (canGetForwardedSx) {
           additionalSxElement = '...?${forwardedProps!.toSource()}.sx';
-          needsFixme = false;
         } else {
           additionalSxElement = null;
-          needsFixme = true;
+          fixmes.add(
+              'merge in any sx prop forwarded to this component, if needed');
         }
       } else {
         additionalSxElement = null;
-        needsFixme = false;
       }
-      final fixme = needsFixme
-          ? '\n ' +
-              lineComment(
-                  '$fixmePrefix - merge in any sx prop forwarded to this component, if needed')
-          : '';
 
       final elements = [
         if (additionalSxElement != null) additionalSxElement,
@@ -217,15 +209,31 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           ? ','
           : '';
 
+      final forwardingEnds =
+          forwardedPropSources.map((s) => s.cascadedMethod.node.end).toList();
+      final systemPropEnds =
+          deprecatedSystemProps.map((p) => p.node.end).toList();
+
       // Insert after any forwarded props to ensure sx isn't overwritten,
       // and where the last system prop used to be to preserve the location and reduce diffs.
-      final insertionLocation = [
-        ...forwardedPropSources.map((source) => source.cascadedMethod.node.end),
-        deprecatedSystemProps.last.node.end
-      ].reduce(max);
+      final insertionLocation = [...forwardingEnds, ...systemPropEnds].max;
 
-      yieldPatch('$fixme..sx = {${elements.join(', ')}$maybeTrailingComma}',
-          insertionLocation, insertionLocation);
+      // Add a note to check for potential behavior changes when system props
+      // used to come before prop forwarding, but now get added in sx after.
+      final firstForwardingEnd = forwardingEnds.minOrNull;
+      if (firstForwardingEnd != null &&
+          insertionLocation >= firstForwardingEnd &&
+          systemPropEnds.any((system) => system < firstForwardingEnd)) {
+        fixmes.add(
+            'Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence. Double-check that this new behavior is okay.');
+      }
+
+      final fixmesSource =
+          fixmes.map((f) => '\n ' + lineComment('$fixmePrefix - $f')).join('');
+      yieldPatch(
+          '$fixmesSource..sx = {${elements.join(', ')}$maybeTrailingComma}',
+          insertionLocation,
+          insertionLocation);
     }
   }
 }
