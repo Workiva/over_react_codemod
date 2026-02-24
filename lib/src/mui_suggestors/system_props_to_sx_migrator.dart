@@ -143,10 +143,15 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
               '\n Double-check that this new behavior is okay.');
     }
 
-    String getFixmesSource() => fixmes
-        // Indents with a single space so that dartfmt doesn't make it stick to the beginning of the line.
-        .map((f) => '\n' + lineComment('$fixmePrefix - $f', indent: ' '))
-        .join('');
+    String getFixmesSource() {
+      if (fixmes.isEmpty) return '';
+      // Add a leading newline to ensure comments don't get stuck to the previous line.
+      return '\n' +
+          fixmes
+              // Indent with a single space so that dartfmt doesn't make it stick to the beginning of the line.
+              .map((f) => lineComment('$fixmePrefix - $f', indent: ' '))
+              .join('');
+    }
 
     if (existingSxProp != null) {
       //

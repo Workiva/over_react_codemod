@@ -245,6 +245,8 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props)
+                      
+                      $sxPrecedenceFixme
                       ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
@@ -264,6 +266,8 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..addAll(props)
+                      
+                      $sxPrecedenceFixme
                       ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
@@ -283,6 +287,8 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props.getPropsToForward())
+                      
+                      $sxPrecedenceFixme
                       ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
@@ -302,6 +308,8 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..modifyProps(props.addPropsToForward())
+                      
+                      $sxPrecedenceFixme
                       ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
@@ -326,6 +334,8 @@ void main() {
                   (Box()
                     ..addProps(props)
                     ..addTestId('test-id')
+                    
+                    $sxPrecedenceFixme
                     ..sx = {'mt': 2, ...?props.sx,}
                   )();
           '''),
@@ -348,6 +358,7 @@ void main() {
                   (Box()
                     ..modifyProps((_) {})
   
+                    $sxPrecedenceFixme
                     $sxMergeFixme
                     ..sx = {
                       'mt': 2
@@ -374,6 +385,7 @@ void main() {
                     (Box()
                       ..addProps(copyUnconsumedProps())
   
+                      $sxPrecedenceFixme
                       $sxMergeFixme
                       ..sx = {
                         'mt': 2
@@ -400,6 +412,7 @@ void main() {
                   (Box()
                     ..addAll(props)
                     
+                    $sxPrecedenceFixme
                     $sxMergeFixme
                     ..sx = {
                       'mt': 2
@@ -425,6 +438,7 @@ void main() {
                   (Box()
                     ..addAll(props)
                     
+                    $sxPrecedenceFixme
                     $sxMergeFixme
                     ..sx = {
                       'mt': 2
@@ -450,6 +464,7 @@ void main() {
                   (Box()
                     ..addAll(props)
                     
+                    $sxPrecedenceFixme
                     $sxMergeFixme
                     ..sx = {
                       'mt': 2
@@ -478,6 +493,7 @@ void main() {
                   ..addProps(props)
                   ..addProps(props2)
 
+                  $sxPrecedenceFixme
                   $sxMergeFixme
                   ..sx = {
                     'mt': 2
@@ -780,6 +796,7 @@ void main() {
                   (Box()
                     ..addProps(props1)
                     ..addProps(props2)
+                    $sxPrecedenceFixme
                     $sxMergeFixme
                     ..sx = {'mt': 2, 'p': 3}
                   )();
@@ -1020,6 +1037,8 @@ void main() {
               content(BoxProps props) => 
                   (Box()
                     ..addProps(props)
+                    
+                    $sxPrecedenceFixme
                     ..sx = {
                       // Override margin
                       'mt': 2, ...?props.sx, 
