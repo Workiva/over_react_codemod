@@ -225,11 +225,14 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           insertionLocation >= firstForwardingEnd &&
           systemPropEnds.any((system) => system < firstForwardingEnd)) {
         fixmes.add(
-            'Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence. Double-check that this new behavior is okay.');
+            'Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.'
+            '\n Double-check that this new behavior is okay, and update logic as needed (e.g., merging in props.sx after these styles instead of before).');
       }
 
-      final fixmesSource =
-          fixmes.map((f) => '\n ' + lineComment('$fixmePrefix - $f')).join('');
+      final fixmesSource = fixmes
+          // Indents with a single space so that dartfmt doesn't make it stick to the beginning of the line.
+          .map((f) => '\n' + lineComment('$fixmePrefix - $f', indent: ' '))
+          .join('');
       yieldPatch(
           '$fixmesSource..sx = {${elements.join(', ')}$maybeTrailingComma}',
           insertionLocation,

@@ -641,7 +641,8 @@ void main() {
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
-                     // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence. Double-check that this new behavior is okay.
+                     // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
+                     //  Double-check that this new behavior is okay, and update logic as needed (e.g., merging in props.sx after these styles instead of before).
                     ..sx = {...?props.sx, 'mt': 2,}
                     ..id = 'test'
                   )();
@@ -688,7 +689,8 @@ void main() {
                   (Box()
                     ..addProps(props)
                     
-                    // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence. Double-check that this new behavior is okay.
+                    // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
+                    //  Double-check that this new behavior is okay, and update logic as needed (e.g., merging in props.sx after these styles instead of before).
                     ..sx = {...?props.sx, 'mt': 2, 'p': 3,}
                   )();
           '''),
