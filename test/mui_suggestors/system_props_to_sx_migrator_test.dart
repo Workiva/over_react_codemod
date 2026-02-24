@@ -582,9 +582,8 @@ void main() {
     test('respects orcm_ignore comments', () async {
       await testSuggestor(
         input: withHeader(/*language=dart*/ '''
-            content() => 
-                // orcm_ignore
-                (Box()..mt = 2)();
+            // orcm_ignore
+            content() => (Box()..mt = 2)();
         '''),
       );
     });
@@ -606,10 +605,7 @@ void main() {
         () async {
       await testSuggestor(
         input: withHeader(/*language=dart*/ '''
-            content() => 
-                (TextField()
-                  ..color = ''
-                )();
+            content() => (TextField()..color = '')();
         '''),
       );
     });
@@ -792,12 +788,10 @@ void main() {
       test('Box', () async {
         await testSuggestor(
           input: withHeader(/*language=dart*/ '''
-              content() => 
-                  (Box()..mt = 2)();
+              content() => (Box()..mt = 2)();
           '''),
           expectedOutput: withHeader(/*language=dart*/ '''
-              content() => 
-                  (Box()..sx = {'mt': 2})();
+              content() => (Box()..sx = {'mt': 2})();
           '''),
         );
       });
@@ -805,12 +799,10 @@ void main() {
       test('Grid', () async {
         await testSuggestor(
           input: withHeader(/*language=dart*/ '''
-              content() => 
-                  (Grid()..mt = 2)();
+              content() => (Grid()..mt = 2)();
           '''),
           expectedOutput: withHeader(/*language=dart*/ '''
-              content() => 
-                  (Grid()..sx = {'mt': 2})();
+              content() => (Grid()..sx = {'mt': 2})();
           '''),
         );
       });
@@ -818,12 +810,10 @@ void main() {
       test('Stack', () async {
         await testSuggestor(
           input: withHeader(/*language=dart*/ '''
-              content() => 
-                  (Stack()..mt = 2)();
+              content() => (Stack()..mt = 2)();
           '''),
           expectedOutput: withHeader(/*language=dart*/ '''
-              content() => 
-                  (Stack()..sx = {'mt': 2})();
+              content() => (Stack()..sx = {'mt': 2})();
           '''),
         );
       });
@@ -831,12 +821,10 @@ void main() {
       test('Typography', () async {
         await testSuggestor(
           input: withHeader(/*language=dart*/ '''
-              content() => 
-                  (Typography()..mt = 2)();
+              content() => (Typography()..mt = 2)();
           '''),
           expectedOutput: withHeader(/*language=dart*/ '''
-              content() => 
-                  (Typography()..sx = {'mt': 2})();
+              content() => (Typography()..sx = {'mt': 2})();
           '''),
         );
       });
