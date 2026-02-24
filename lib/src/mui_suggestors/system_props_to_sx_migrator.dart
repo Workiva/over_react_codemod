@@ -135,12 +135,11 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
     final forwardedPropSources = _getForwardedPropSources(usage);
 
-
     final fixmes = <String>[];
     if (forwardedPropSources.isNotEmpty) {
       fixmes.add(
           'Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.'
-              '\n Double-check that this new behavior is okay.');
+          '\n Double-check that this new behavior is okay.');
     }
 
     String getFixmesSource() {
@@ -163,8 +162,10 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
         // Insert before, to preserve existing behavior where any spread sx trumped these styles.
         // Add a leading newline to ensure comments don't get stuck to the opening braces.
-        yieldPatch('${getFixmesSource()}\n${migratedSystemPropEntries.join(',\n')},',
-            value.leftBracket.end, value.leftBracket.end);
+        yieldPatch(
+            '${getFixmesSource()}\n${migratedSystemPropEntries.join(',\n')},',
+            value.leftBracket.end,
+            value.leftBracket.end);
         // Force a multiline in all cases by ensuring there's a trailing comma.
         final hadTrailingComma =
             value.rightBracket.previous?.type == TokenType.COMMA;
@@ -181,8 +182,10 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
             type.nullabilitySuffix == NullabilitySuffix.none;
         final spread = '...${nonNullable ? '' : '?'}';
         // Insert before spread, to preserve existing behavior where any forwarded sx trumped these styles.
-        yieldPatch('{${getFixmesSource()}\n${migratedSystemPropEntries.join(', ')}, $spread',
-            value.offset, value.offset);
+        yieldPatch(
+            '{${getFixmesSource()}\n${migratedSystemPropEntries.join(', ')}, $spread',
+            value.offset,
+            value.offset);
         final maybeTrailingComma = _shouldForceMultiline([
           ...migratedSystemPropEntries,
           '$spread${context.sourceFor(value)}',
@@ -253,8 +256,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       final firstForwardingEnd = forwardingEnds.minOrNull;
       if (firstForwardingEnd != null &&
           insertionLocation >= firstForwardingEnd &&
-          systemPropEnds.any((system) => system < firstForwardingEnd)) {
-      }
+          systemPropEnds.any((system) => system < firstForwardingEnd)) {}
 
       yieldPatch(
           '${getFixmesSource()}..sx = {${elements.join(', ')}$maybeTrailingComma}',
@@ -270,7 +272,6 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       (mapElements.length > 1 && mapElements.join(', ').length >= 20) ||
       // any entry is multiline (including comments).
       mapElements.any((e) => e.contains('\n'));
-
 }
 
 enum CommentLocation { ownLine, endOfLine, other }
