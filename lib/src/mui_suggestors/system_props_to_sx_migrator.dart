@@ -137,9 +137,17 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
     final fixmes = <String>[];
     if (forwardedPropSources.isNotEmpty) {
-      fixmes.add(
-          'Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.'
-          '\n Double-check that this new behavior is okay.');
+      final propForwardingOffsets =
+          forwardedPropSources.map((s) => s.cascadedMethod.node.end).toList();
+      final systemPropOffsets =
+          deprecatedSystemProps.map((p) => p.node.end).toList();
+      final anySystemPropSetBeforeForwarding =
+          systemPropOffsets.min < propForwardingOffsets.max;
+      if (anySystemPropSetBeforeForwarding) {
+        fixmes.add(
+            'Previously, it was possible for forwarded system props to overwrite these styles, but not anymore since sx takes precedence over system props.'
+            '\n Double-check that this new behavior is okay.');
+      }
     }
 
     String getFixmesSource() {
@@ -229,7 +237,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         } else {
           forwardedSxSpread = null;
           fixmes.add(
-              'merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)');
+              'spread in any sx prop forwarded to this component above, if needed (spread should go after these new styles to preserve behavior)');
         }
       } else {
         forwardedSxSpread = null;

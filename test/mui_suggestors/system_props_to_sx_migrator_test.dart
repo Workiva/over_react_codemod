@@ -29,11 +29,11 @@ void main() {
     );
 
     const sxPrecedenceFixme =
-        '// FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.'
+        '// FIXME(mui_system_props_migration) - Previously, it was possible for forwarded system props to overwrite these styles, but not anymore since sx takes precedence over system props.'
         '\n //  Double-check that this new behavior is okay.';
 
     const sxMergeFixme =
-        '// FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)';
+        '// FIXME(mui_system_props_migration) - spread in any sx prop forwarded to this component above, if needed (spread should go after these new styles to preserve behavior)';
 
     test('migrates single system prop to sx', () async {
       await testSuggestor(
@@ -245,8 +245,6 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props)
-                      
-                      $sxPrecedenceFixme
                       ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
@@ -266,8 +264,6 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..addAll(props)
-                      
-                      $sxPrecedenceFixme
                       ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
@@ -287,8 +283,6 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props.getPropsToForward())
-                      
-                      $sxPrecedenceFixme
                       ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
@@ -308,8 +302,6 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..modifyProps(props.addPropsToForward())
-                      
-                      $sxPrecedenceFixme
                       ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
@@ -334,8 +326,6 @@ void main() {
                   (Box()
                     ..addProps(props)
                     ..addTestId('test-id')
-                    
-                    $sxPrecedenceFixme
                     ..sx = {'mt': 2, ...?props.sx,}
                   )();
           '''),
@@ -358,7 +348,6 @@ void main() {
                   (Box()
                     ..modifyProps((_) {})
   
-                    $sxPrecedenceFixme
                     $sxMergeFixme
                     ..sx = {
                       'mt': 2
@@ -385,7 +374,6 @@ void main() {
                     (Box()
                       ..addProps(copyUnconsumedProps())
   
-                      $sxPrecedenceFixme
                       $sxMergeFixme
                       ..sx = {
                         'mt': 2
@@ -411,8 +399,7 @@ void main() {
                 content(Map props) {
                   (Box()
                     ..addAll(props)
-                    
-                    $sxPrecedenceFixme
+
                     $sxMergeFixme
                     ..sx = {
                       'mt': 2
@@ -437,8 +424,7 @@ void main() {
                 content(UiProps props) {
                   (Box()
                     ..addAll(props)
-                    
-                    $sxPrecedenceFixme
+
                     $sxMergeFixme
                     ..sx = {
                       'mt': 2
@@ -463,8 +449,7 @@ void main() {
                 content(dynamic props) {
                   (Box()
                     ..addAll(props)
-                    
-                    $sxPrecedenceFixme
+
                     $sxMergeFixme
                     ..sx = {
                       'mt': 2
@@ -493,7 +478,6 @@ void main() {
                   ..addProps(props)
                   ..addProps(props2)
 
-                  $sxPrecedenceFixme
                   $sxMergeFixme
                   ..sx = {
                     'mt': 2
@@ -632,15 +616,16 @@ void main() {
       );
     });
 
-    group('adds a fixme when there are forwarded props and', () {
+    group('adds a fixme when there are forwarded props after system props and',
+        () {
       test('an existing sx map literal', () async {
         await testSuggestor(
           input: withHeader('''
               content(BoxProps props) =>
                   (Box()
+                    ..mt = 2
                     ..addProps(props)
                     ..sx = {'border': '1px solid black'}
-                    ..mt = 2
                   )();
           '''),
           expectedOutput: withHeader('''
@@ -662,9 +647,9 @@ void main() {
           input: withHeader('''
               content(BoxProps props) =>
                   (Box()
+                    ..mt = 2
                     ..addProps(props)
                     ..sx = getSx()
-                    ..mt = 2
                   )();
               Map getSx() => {'color': 'red'};
           '''),
@@ -688,15 +673,14 @@ void main() {
           input: withHeader('''
               content(BoxProps props) =>
                   (Box()
-                    ..addProps(props)
                     ..mt = 2
+                    ..addProps(props)
                   )();
           '''),
           expectedOutput: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
-                    
                      $sxPrecedenceFixme
                     ..sx = {
                       'mt': 2, 
@@ -1037,8 +1021,7 @@ void main() {
               content(BoxProps props) => 
                   (Box()
                     ..addProps(props)
-                    
-                    $sxPrecedenceFixme
+
                     ..sx = {
                       // Override margin
                       'mt': 2, ...?props.sx, 
