@@ -97,6 +97,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       }
     }
 
+    // No system props to migrate; bail out for this usage.
     if (systemProps.isEmpty) return;
 
     final migratedSystemPropEntries = <String>[];
@@ -130,7 +131,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           prop.node.end);
     }
 
-    final propForwardingSources = _getPropForwardingSources(usage);
+    final propForwardingSources = _detectPropForwardingSources(usage);
 
     final fixmes = <String>[];
     if (propForwardingSources.isNotEmpty) {
@@ -205,7 +206,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       final String? forwardedSxSpread;
 
       final mightForwardSx = propForwardingSources.any((source) {
-        final type = source.propsExpression?.staticType?.typeOrBound
+        final type = source.sourceProps?.staticType?.typeOrBound
             .tryCast<InterfaceType>();
         if (type != null &&
             type.isPropsClass &&
@@ -218,7 +219,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       if (mightForwardSx) {
         // Try to access the forwarded sx prop to merge it in.
         bool canSafelyGetForwardedSx;
-        final props = propForwardingSources.singleOrNull?.propsExpression;
+        final props = propForwardingSources.singleOrNull?.sourceProps;
         if (props != null && (props is Identifier || props is PropertyAccess)) {
           final propsElement =
               props.staticType?.typeOrBound.tryCast<InterfaceType>()?.element;
@@ -270,18 +271,29 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       mapElements.any((e) => e.contains('\n'));
 }
 
-enum CommentLocation { ownLine, endOfLine, other }
-
-class _PropForwardingSource {
+/// A source of props being added (spread) to a component usage.
+class _PropSpreadSource {
+  /// The cascaded invocation that adds props.
   final BuilderMethodInvocation cascadedMethod;
-  final Expression? propsExpression;
 
-  _PropForwardingSource(this.cascadedMethod, this.propsExpression);
+  /// And expression representing the source of the props being spread,
+  /// or null if the source is more complex or could not be resolved.
+  ///
+  /// Handles common prop forwarding expressions, returning the original
+  /// expression that the subsetted forwarded props are coming from.
+  ///
+  /// For example, this expression would be:
+  ///
+  /// - for `..addAll(getSomeProps())` - `getSomeProps()`
+  /// - for `..addProps(props.getPropsToForward({FooProps}))` - `props`
+  /// - for `..modifyProps(somePropsModifier)` - props
+  final Expression? sourceProps;
+
+  _PropSpreadSource(this.cascadedMethod, this.sourceProps);
 }
 
-/// Returns the set of expressions that are sources of props forwarded to the component in [usage],
-/// or `null` for sources that were detected but don't cleanly map to a props expression.
-List<_PropForwardingSource> _getPropForwardingSources(
+/// Returns the sources of props being added or spread to [usage].
+List<_PropSpreadSource> _detectPropForwardingSources(
     FluentComponentUsage usage) {
   return usage.cascadedMethodInvocations
       .map((c) {
@@ -290,23 +302,23 @@ List<_PropForwardingSource> _getPropForwardingSources(
 
         switch (methodName) {
           case 'addUnconsumedProps':
-            return _PropForwardingSource(c, arg);
+            return _PropSpreadSource(c, arg);
           case 'addAll':
           case 'addProps':
             if (arg is MethodInvocation &&
                 arg.methodName.name == 'getPropsToForward') {
-              return _PropForwardingSource(c, arg.realTarget);
+              return _PropSpreadSource(c, arg.realTarget);
             }
-            return _PropForwardingSource(c, arg);
+            return _PropSpreadSource(c, arg);
           case 'modifyProps':
             if ((arg is MethodInvocation &&
                 arg.methodName.name == 'addPropsToForward')) {
-              return _PropForwardingSource(c, arg.realTarget);
+              return _PropSpreadSource(c, arg.realTarget);
             }
             if (arg is Identifier && arg.name == 'addUnconsumedProps') {
-              return _PropForwardingSource(c, null);
+              return _PropSpreadSource(c, null);
             }
-            return _PropForwardingSource(c, null);
+            return _PropSpreadSource(c, null);
           default:
             // Not a method that forwards props.
             return null;
