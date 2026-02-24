@@ -102,8 +102,6 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
     if (deprecatedSystemProps.isEmpty) return;
 
-    var hasAnyComments = false;
-
     final migratedSystemPropEntries = <String>[];
     for (final prop in deprecatedSystemProps) {
       final propName = prop.name.name;
@@ -117,14 +115,11 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           .skipWhile((comment) => !isFirstTokenOnLine(comment))
           .toList();
 
-      if (beforeComments.isNotEmpty) hasAnyComments = true;
-
       final commentSource = beforeComments.isEmpty
           ? ''
           // Get full comment text, and trim trailing newline/whitespace
           : context.sourceFile
-              .getText(
-                  beforeComments.first.offset, beforeComments.last.end)
+              .getText(beforeComments.first.offset, beforeComments.last.end)
               .trimRight();
 
       // Create new sx entry
@@ -138,12 +133,13 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           prop.node.end);
     }
 
-    bool shouldForceMultiline(
-        {required int elementCount, required int charCount}) {
-      return hasAnyComments ||
-          elementCount >= 3 ||
-          (elementCount > 1 && charCount >= 20);
-    }
+    bool shouldForceMultiline(List<String> mapElements) =>
+        // Force multiline if there are a certain number of entries, or...
+        mapElements.length >= 3 ||
+        // there's more than one entry and the line is getting too long, or...
+        (mapElements.length > 1 && mapElements.join(', ').length >= 20) ||
+        // any entry is multiline (including comments).
+        mapElements.any((e) => e.contains('\n'));
 
     if (existingSxProp != null) {
       // FIXME before vs after
@@ -156,12 +152,10 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         final maybePrecedingComma =
             !hadTrailingComma && value.elements.isNotEmpty ? ', ' : '';
         final maybeTrailingComma = hadTrailingComma ||
-                shouldForceMultiline(
-                  elementCount:
-                      value.elements.length + migratedSystemPropEntries.length,
-                  charCount: value.toSource().length +
-                      migratedSystemPropEntries.join(', ').length,
-                )
+                shouldForceMultiline([
+                  ...value.elements.map((e) => context.sourceFor(e)),
+                  ...migratedSystemPropEntries,
+                ])
             ? ','
             : '';
         yieldPatch(
@@ -173,12 +167,12 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         final nonNullable = type != null &&
             type is! DynamicType &&
             type.nullabilitySuffix == NullabilitySuffix.none;
-        yieldPatch('{...${nonNullable ? '' : '?'}', value.offset, value.offset);
-        final maybeTrailingComma = shouldForceMultiline(
-                elementCount: migratedSystemPropEntries.length + 1,
-                charCount: [value.toSource(), ...migratedSystemPropEntries]
-                    .join(', ')
-                    .length)
+        final spread = '...${nonNullable ? '' : '?'}';
+        yieldPatch('{$spread', value.offset, value.offset);
+        final maybeTrailingComma = shouldForceMultiline([
+          '$spread${context.sourceFor(value)}',
+          ...migratedSystemPropEntries,
+        ])
             ? ','
             : '';
         yieldPatch(
@@ -219,7 +213,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         }
 
         if (canGetForwardedSx) {
-          additionalSxElement = '...?${forwardedProps!.toSource()}.sx';
+          additionalSxElement = '...?${context.sourceFor(forwardedProps!)}.sx';
         } else {
           additionalSxElement = null;
           fixmes.add(
@@ -233,11 +227,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         if (additionalSxElement != null) additionalSxElement,
         ...migratedSystemPropEntries,
       ];
-      final maybeTrailingComma = shouldForceMultiline(
-              elementCount: elements.length,
-              charCount: elements.join(', ').length)
-          ? ','
-          : '';
+      final maybeTrailingComma = shouldForceMultiline(elements) ? ',' : '';
 
       final forwardingEnds =
           forwardedPropSources.map((s) => s.cascadedMethod.node.end).toList();

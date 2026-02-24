@@ -167,7 +167,10 @@ void main() {
           expectedOutput: withHeader(/*language=dart*/ '''
               content(BoxProps props) =>
                   (Box()
-                    ..sx = {...?getSx(), 'mt': 2}
+                    ..sx = {
+                      ...?getSx(), 
+                      'mt': 2,
+                    }
                   )();
               Map? getSx() => {'color': 'red'};
           '''),
@@ -207,7 +210,10 @@ void main() {
           expectedOutput: withHeader(/*language=dart*/ '''
               content(BoxProps props) =>
                   (Box()
-                    ..sx = {...?getSx(), 'mt': 2}
+                    ..sx = {
+                      ...?getSx(), 
+                      'mt': 2,
+                    }
                   )();
               dynamic getSx() => {'color': 'red'};
           '''),
