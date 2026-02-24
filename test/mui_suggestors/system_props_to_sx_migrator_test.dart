@@ -28,6 +28,13 @@ void main() {
       resolvedContext: resolvedContext,
     );
 
+    const sxPrecedenceFixme =
+        '// FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.'
+        '\n //  Double-check that this new behavior is okay.';
+
+    const sxMergeFixme =
+        '// FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)';
+
     test('migrates single system prop to sx', () async {
       await testSuggestor(
         input: withHeader('''
@@ -341,7 +348,7 @@ void main() {
                   (Box()
                     ..modifyProps((_) {})
   
-                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
+                    $sxMergeFixme
                     ..sx = {
                       'mt': 2
                     }
@@ -367,7 +374,7 @@ void main() {
                     (Box()
                       ..addProps(copyUnconsumedProps())
   
-                      // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
+                      $sxMergeFixme
                       ..sx = {
                         'mt': 2
                       }
@@ -393,7 +400,7 @@ void main() {
                   (Box()
                     ..addAll(props)
                     
-                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
+                    $sxMergeFixme
                     ..sx = {
                       'mt': 2
                     }
@@ -418,7 +425,7 @@ void main() {
                   (Box()
                     ..addAll(props)
                     
-                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
+                    $sxMergeFixme
                     ..sx = {
                       'mt': 2
                     }
@@ -443,7 +450,7 @@ void main() {
                   (Box()
                     ..addAll(props)
                     
-                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
+                    $sxMergeFixme
                     ..sx = {
                       'mt': 2
                     }
@@ -471,7 +478,7 @@ void main() {
                   ..addProps(props)
                   ..addProps(props2)
 
-                  // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
+                  $sxMergeFixme
                   ..sx = {
                     'mt': 2
                   }
@@ -625,8 +632,7 @@ void main() {
                   (Box()
                     ..addProps(props)
                     ..sx = {
-                       // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
-                       //  Double-check that this new behavior is okay.
+                       $sxPrecedenceFixme
 
                       'mt': 2, 'border': '1px solid black', 
                     }
@@ -651,8 +657,7 @@ void main() {
                   (Box()
                     ..addProps(props)
                     ..sx = {
-                      // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
-                      //  Double-check that this new behavior is okay.
+                      $sxPrecedenceFixme
                      
                       'mt': 2, ...getSx()
                     }
@@ -676,8 +681,7 @@ void main() {
                   (Box()
                     ..addProps(props)
                     
-                     // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
-                     //  Double-check that this new behavior is okay.
+                     $sxPrecedenceFixme
                     ..sx = {
                       'mt': 2, 
                       ...?props.sx,
@@ -704,8 +708,7 @@ void main() {
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
-                     // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
-                     //  Double-check that this new behavior is okay.
+                     $sxPrecedenceFixme
                     ..sx = {'mt': 2, ...?props.sx,}
                     ..id = 'test'
                   )();
@@ -754,8 +757,7 @@ void main() {
                   (Box()
                     ..addProps(props)
                     
-                    // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
-                    //  Double-check that this new behavior is okay.
+                    $sxPrecedenceFixme
                     ..sx = {'mt': 2, 'p': 3, ...?props.sx,}
                   )();
           '''),
@@ -778,7 +780,7 @@ void main() {
                   (Box()
                     ..addProps(props1)
                     ..addProps(props2)
-                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
+                    $sxMergeFixme
                     ..sx = {'mt': 2, 'p': 3}
                   )();
           '''),
