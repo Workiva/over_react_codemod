@@ -1128,7 +1128,7 @@ void main() {
         );
       });
     });
-  });
+  }, tags: 'wsd');
 }
 
 String withHeader(String source) => '''
