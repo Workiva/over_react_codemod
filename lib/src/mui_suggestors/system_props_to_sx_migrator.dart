@@ -114,7 +114,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
     bool shouldForceMultiline(
         {required int elementCount, required int charCount}) {
-      return elementCount >= 3 || (elementCount > 1 && charCount >= 30);
+      return elementCount >= 3 || (elementCount > 1 && charCount >= 20);
     }
 
     if (existingSxProp != null) {
@@ -146,8 +146,15 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
             type is! DynamicType &&
             type.nullabilitySuffix == NullabilitySuffix.none;
         yieldPatch('{...${nonNullable ? '' : '?'}', value.offset, value.offset);
+        final maybeTrailingComma = shouldForceMultiline(
+                elementCount: migratedSystemPropEntries.length + 1,
+                charCount: [value.toSource(), ...migratedSystemPropEntries]
+                    .join(', ')
+                    .length)
+            ? ','
+            : '';
         yieldPatch(
-            ', ${migratedSystemPropEntries.join(', ')}}', value.end, value.end);
+            ', ${migratedSystemPropEntries.join(', ')}$maybeTrailingComma}', value.end, value.end);
       }
     } else {
       final forwardedPropSources = _getForwardedPropSources(usage);
@@ -165,10 +172,10 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       final String? additionalSxElement;
       final bool needsFixme;
 
-
       if (mightForwardSx) {
         var canGetForwardedSx = false;
-        final forwardedProps = forwardedPropSources.singleOrNull?.propsExpression;
+        final forwardedProps =
+            forwardedPropSources.singleOrNull?.propsExpression;
         if (forwardedProps != null &&
             (forwardedProps is Identifier ||
                 forwardedProps is PropertyAccess)) {
