@@ -30,11 +30,11 @@ void main() {
 
     test('migrates single system prop to sx', () async {
       await testSuggestor(
-        input: withHeader(/*language=dart*/ '''
+        input: withHeader('''
             content() => 
                 (Box()..mt = 2)();
         '''),
-        expectedOutput: withHeader(/*language=dart*/ '''
+        expectedOutput: withHeader('''
             content() => 
                 (Box()..sx = {'mt': 2})();
         '''),
@@ -43,7 +43,7 @@ void main() {
 
     test('migrates multiple system props', () async {
       await testSuggestor(
-        input: withHeader(/*language=dart*/ '''
+        input: withHeader('''
             content() => 
                 (Box()
                   ..mt = 2
@@ -51,7 +51,7 @@ void main() {
                   ..bgcolor = 'primary.main'
                 )();
         '''),
-        expectedOutput: withHeader(/*language=dart*/ '''
+        expectedOutput: withHeader('''
             content() => 
                 (Box()
                   ..sx = {
@@ -67,14 +67,14 @@ void main() {
     group('merges with existing sx map literal', () {
       test('without trailing commas', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..sx = {'border': '1px solid black'}
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = { 
@@ -88,7 +88,7 @@ void main() {
 
       test('with trailing commas', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..sx = {
@@ -97,7 +97,7 @@ void main() {
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = { 
@@ -111,14 +111,14 @@ void main() {
 
       test('that is empty', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..sx = {}
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = {
@@ -131,7 +131,7 @@ void main() {
 
       test('with multiple existing entries', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..sx = {
@@ -141,7 +141,7 @@ void main() {
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = { 
@@ -158,7 +158,7 @@ void main() {
     group('merges with forwarded sx prop using spread:', () {
       test('nullable', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = getSx()
@@ -166,7 +166,7 @@ void main() {
                   )();
               Map? getSx() => {'color': 'red'};
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = {
@@ -181,7 +181,7 @@ void main() {
 
       test('non-nullable', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = getSx()
@@ -189,7 +189,7 @@ void main() {
                   )();
               Map getSx() => {'color': 'red'};
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = {'mt': 2, ...getSx()}
@@ -201,7 +201,7 @@ void main() {
 
       test('dynamic', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = getSx()
@@ -209,7 +209,7 @@ void main() {
                   )();
               dynamic getSx() => {'color': 'red'};
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = {
@@ -227,14 +227,14 @@ void main() {
       group('forwarded with', () {
         test('addProps', () async {
           await testSuggestor(
-            input: withHeader(/*language=dart*/ '''
+            input: withHeader('''
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props)
                       ..mt = 2
                     )();
             '''),
-            expectedOutput: withHeader(/*language=dart*/ '''
+            expectedOutput: withHeader('''
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props)
@@ -246,14 +246,14 @@ void main() {
 
         test('addAll', () async {
           await testSuggestor(
-            input: withHeader(/*language=dart*/ '''
+            input: withHeader('''
                 content(BoxProps props) =>
                     (Box()
                       ..addAll(props)
                       ..mt = 2
                     )();
             '''),
-            expectedOutput: withHeader(/*language=dart*/ '''
+            expectedOutput: withHeader('''
                 content(BoxProps props) =>
                     (Box()
                       ..addAll(props)
@@ -265,14 +265,14 @@ void main() {
 
         test('getPropsToForward', () async {
           await testSuggestor(
-            input: withHeader(/*language=dart*/ '''
+            input: withHeader('''
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props.getPropsToForward())
                       ..mt = 2
                     )();
             '''),
-            expectedOutput: withHeader(/*language=dart*/ '''
+            expectedOutput: withHeader('''
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props.getPropsToForward())
@@ -284,14 +284,14 @@ void main() {
 
         test('addPropsToForward', () async {
           await testSuggestor(
-            input: withHeader(/*language=dart*/ '''
+            input: withHeader('''
                 content(BoxProps props) =>
                     (Box()
                       ..modifyProps(props.addPropsToForward())
                       ..mt = 2
                     )();
             '''),
-            expectedOutput: withHeader(/*language=dart*/ '''
+            expectedOutput: withHeader('''
                 content(BoxProps props) =>
                     (Box()
                       ..modifyProps(props.addPropsToForward())
@@ -306,7 +306,7 @@ void main() {
       test('even when there are other unrelated calls in the cascade',
           () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -314,7 +314,7 @@ void main() {
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -329,14 +329,14 @@ void main() {
     group('adds FIXME comment when forwarding is ambiguous:', () {
       test('modifyProps with unknown function', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..modifyProps((_) {})
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..modifyProps((_) {})
@@ -352,7 +352,7 @@ void main() {
 
       test('copyUnconsumedProps', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               abstract class FooComponent extends UiComponent2 {
                 content(BoxProps props) =>
                     (Box()
@@ -361,7 +361,7 @@ void main() {
                     )();
               }
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               abstract class FooComponent extends UiComponent2 {
                 content(BoxProps props) =>
                     (Box()
@@ -380,7 +380,7 @@ void main() {
       group('generic props:', () {
         test('Map', () async {
           await testSuggestor(
-            input: withHeader(/*language=dart*/ '''
+            input: withHeader('''
                 content(Map props) {
                   (Box()
                     ..addAll(props)
@@ -388,7 +388,7 @@ void main() {
                   )();
                 }
             '''),
-            expectedOutput: withHeader(/*language=dart*/ '''
+            expectedOutput: withHeader('''
                 content(Map props) {
                   (Box()
                     ..addAll(props)
@@ -405,7 +405,7 @@ void main() {
 
         test('UiProps', () async {
           await testSuggestor(
-            input: withHeader(/*language=dart*/ '''
+            input: withHeader('''
                 content(UiProps props) {
                   (Box()
                     ..addAll(props)
@@ -413,7 +413,7 @@ void main() {
                   )();
                 }
             '''),
-            expectedOutput: withHeader(/*language=dart*/ '''
+            expectedOutput: withHeader('''
                 content(UiProps props) {
                   (Box()
                     ..addAll(props)
@@ -430,7 +430,7 @@ void main() {
 
         test('dynamic', () async {
           await testSuggestor(
-            input: withHeader(/*language=dart*/ '''
+            input: withHeader('''
                 content(dynamic props) {
                   (Box()
                     ..addAll(props)
@@ -438,7 +438,7 @@ void main() {
                   )();
                 }
             '''),
-            expectedOutput: withHeader(/*language=dart*/ '''
+            expectedOutput: withHeader('''
                 content(dynamic props) {
                   (Box()
                     ..addAll(props)
@@ -456,7 +456,7 @@ void main() {
 
       test('multiple prop forwarding calls', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props, BoxProps props2) {
                 (Box()
                   ..addProps(props)
@@ -465,7 +465,7 @@ void main() {
                 )();
               }
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props, BoxProps props2) {
                 (Box()
                   ..addProps(props)
@@ -484,7 +484,7 @@ void main() {
 
     test('handles complex prop values with expressions', () async {
       await testSuggestor(
-        input: withHeader(/*language=dart*/ '''
+        input: withHeader('''
             content(bool condition) {
               (Box()
                 ..mt = condition ? 2 : 4
@@ -493,7 +493,7 @@ void main() {
             }
             int getSpacing() => 3;
         '''),
-        expectedOutput: withHeader(/*language=dart*/ '''
+        expectedOutput: withHeader('''
             content(bool condition) {
               (Box()
                 ..sx = {
@@ -509,13 +509,13 @@ void main() {
 
     test('handles responsive system prop values', () async {
       await testSuggestor(
-        input: withHeader(/*language=dart*/ '''
+        input: withHeader('''
             content() => 
                 (Box()
                   ..mt = {'xs': 1, 'sm': 2, 'md': 3}
                 )();
         '''),
-        expectedOutput: withHeader(/*language=dart*/ '''
+        expectedOutput: withHeader('''
             content() => 
                 (Box()
                   ..sx = {'mt': {'xs': 1, 'sm': 2, 'md': 3}}
@@ -526,7 +526,7 @@ void main() {
 
     test('preserves non-system props', () async {
       await testSuggestor(
-        input: withHeader(/*language=dart*/ '''
+        input: withHeader('''
             content() => 
                 (Box()
                   ..id = 'test'
@@ -535,7 +535,7 @@ void main() {
                   ..onClick = (_) {}
                 )();
         '''),
-        expectedOutput: withHeader(/*language=dart*/ '''
+        expectedOutput: withHeader('''
             content() => 
                 (Box()
                   ..id = 'test'
@@ -549,13 +549,13 @@ void main() {
 
     test('handles multiple components in the same file', () async {
       await testSuggestor(
-        input: withHeader(/*language=dart*/ '''
+        input: withHeader('''
             content() {
               (Box()..mt = 2)();
               (Box()..p = 3)();
             }
         '''),
-        expectedOutput: withHeader(/*language=dart*/ '''
+        expectedOutput: withHeader('''
             content() { 
               (Box()..sx = {'mt': 2})();
               (Box()..sx = {'p': 3})();
@@ -566,7 +566,7 @@ void main() {
 
     test('respects orcm_ignore comments', () async {
       await testSuggestor(
-        input: withHeader(/*language=dart*/ '''
+        input: withHeader('''
             // orcm_ignore
             content() => (Box()..mt = 2)();
         '''),
@@ -576,7 +576,7 @@ void main() {
     test('does not migrate components without deprecated system props',
         () async {
       await testSuggestor(
-        input: withHeader(/*language=dart*/ '''
+        input: withHeader('''
             content() => 
                 (Box()
                   ..id = 'test'
@@ -589,7 +589,7 @@ void main() {
     test('does not migrate deprecated props with the same name as system props',
         () async {
       await testSuggestor(
-        input: withHeader(/*language=dart*/ '''
+        input: withHeader('''
             content() => (TextField()..color = '')();
         '''),
       );
@@ -597,7 +597,7 @@ void main() {
 
     test('does not flag unrelated cascades with FIXMEs', () async {
       await testSuggestor(
-        input: withHeader(/*language=dart*/ '''
+        input: withHeader('''
             content() => 
                 (Box()
                   ..addProp('foo', 'bar')
@@ -612,7 +612,7 @@ void main() {
     group('adds a fixme when there are forwarded props and', () {
       test('an existing sx map literal', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -620,7 +620,7 @@ void main() {
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -637,7 +637,7 @@ void main() {
 
       test('an existing sx value', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -646,7 +646,7 @@ void main() {
                   )();
               Map getSx() => {'color': 'red'};
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -664,14 +664,14 @@ void main() {
 
       test('no existing sx', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -691,7 +691,7 @@ void main() {
     group('insertion location:', () {
       test('inserts after prop forwarding to avoid being overwritten', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
@@ -699,7 +699,7 @@ void main() {
                     ..id = 'test'
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -714,7 +714,7 @@ void main() {
 
       test('inserts at location of last system prop when no prop forwarding', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..id = 'first'
@@ -724,7 +724,7 @@ void main() {
                     ..onClick = (_) {}
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..id = 'first'
@@ -738,7 +738,7 @@ void main() {
 
       test('inserts after latest of (forwarding or last system prop)', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
@@ -746,7 +746,7 @@ void main() {
                     ..p = 3
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -761,7 +761,7 @@ void main() {
 
       test('inserts after all forwarding calls when multiple exist', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props1, BoxProps props2) =>
                   (Box()
                     ..addProps(props1)
@@ -770,7 +770,7 @@ void main() {
                     ..addProps(props2)
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props1, BoxProps props2) =>
                   (Box()
                     ..addProps(props1)
@@ -786,14 +786,14 @@ void main() {
     group('multiline formatting:', () {
       test('uses single line for short sx maps (< 3 elements)', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..mt = 2
                     ..p = 3
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = {'mt': 2, 'p': 3}
@@ -804,7 +804,7 @@ void main() {
 
       test('uses multiline for 3+ elements', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..mt = 2
@@ -812,7 +812,7 @@ void main() {
                     ..mb = 4
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = {
@@ -827,14 +827,14 @@ void main() {
 
       test('uses multiline for long content (>= 20 chars with 2+ elements)', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..mt = 2
                     ..bgcolor = 'verylongcolor.main'
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = {
@@ -850,14 +850,14 @@ void main() {
     group('preserves comments before system props:', () {
       test('single line comment before single system prop', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     // Add margin
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = {
@@ -871,7 +871,7 @@ void main() {
 
       test('single line comment before one of multiple system props', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..mt = 2
@@ -879,7 +879,7 @@ void main() {
                     ..p = 3
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = {
@@ -894,7 +894,7 @@ void main() {
 
       test('multiple comments before different system props', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     // Top margin
@@ -905,7 +905,7 @@ void main() {
                     ..bgcolor = 'blue'
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = {
@@ -923,7 +923,7 @@ void main() {
 
       test('multi-line comment before system prop', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     /* This is a longer comment
@@ -931,7 +931,7 @@ void main() {
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = {
@@ -946,7 +946,7 @@ void main() {
 
       test('comment before system prop with existing sx', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..sx = {'border': '1px solid black'}
@@ -956,7 +956,7 @@ void main() {
           '''),
           // Not sure why dartfmt allows two entries like this with trailing commas
           // on the same line, but it is what it is.
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..sx = {
@@ -970,7 +970,7 @@ void main() {
 
       test('comments before system props mixed with non-system props', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..id = 'test'
@@ -981,7 +981,7 @@ void main() {
                     ..p = 3
                   )();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                     ..id = 'test'
@@ -999,7 +999,7 @@ void main() {
 
       test('comment before system prop with forwarding', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content(BoxProps props) => 
                   (Box()
                     ..addProps(props)
@@ -1009,7 +1009,7 @@ void main() {
           '''),
           // Not sure why dartfmt allows two entries like this with trailing commas
           // on the same line, but it is what it is.
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content(BoxProps props) => 
                   (Box()
                     ..addProps(props)
@@ -1024,7 +1024,7 @@ void main() {
 
       test('inline comment on same line as system prop', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     ..mt = 2 // top margin
@@ -1034,7 +1034,7 @@ void main() {
           // Inline comment behavior here isn't great, but it's too much effort
           // to deal with in this codemod.
           // Just verify the codemod doesn't break or do anything too outlandish.
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                    // top margin
@@ -1046,7 +1046,7 @@ void main() {
 
       test('multiple comment types with system props', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => 
                   (Box()
                     // Line comment
@@ -1058,7 +1058,7 @@ void main() {
           // Inline comment behavior here isn't great, but it's too much effort
           // to deal with in this codemod.
           // Just verify the codemod doesn't break or do anything too outlandish.
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => 
                   (Box()
                    // inline comment
@@ -1077,10 +1077,10 @@ void main() {
     group('handles different component types with system props:', () {
       test('Box', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => (Box()..mt = 2)();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => (Box()..sx = {'mt': 2})();
           '''),
         );
@@ -1088,10 +1088,10 @@ void main() {
 
       test('Grid', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => (Grid()..mt = 2)();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => (Grid()..sx = {'mt': 2})();
           '''),
         );
@@ -1099,10 +1099,10 @@ void main() {
 
       test('Stack', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => (Stack()..mt = 2)();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => (Stack()..sx = {'mt': 2})();
           '''),
         );
@@ -1110,10 +1110,10 @@ void main() {
 
       test('Typography', () async {
         await testSuggestor(
-          input: withHeader(/*language=dart*/ '''
+          input: withHeader('''
               content() => (Typography()..mt = 2)();
           '''),
-          expectedOutput: withHeader(/*language=dart*/ '''
+          expectedOutput: withHeader('''
               content() => (Typography()..sx = {'mt': 2})();
           '''),
         );
