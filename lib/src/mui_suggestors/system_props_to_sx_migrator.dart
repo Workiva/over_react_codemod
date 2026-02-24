@@ -114,7 +114,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
     bool shouldForceMultiline(
         {required int elementCount, required int charCount}) {
-      return elementCount >= 3 || charCount >= 60;
+      return elementCount >= 3 || (elementCount > 1 && charCount >= 30);
     }
 
     if (existingSxProp != null) {

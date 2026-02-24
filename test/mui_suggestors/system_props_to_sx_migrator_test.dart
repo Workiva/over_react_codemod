@@ -82,7 +82,10 @@ void main() {
           expectedOutput: withHeader('''
               content() {
                 (Box()
-                  ..sx = {'border': '1px solid black', 'mt': 2}
+                  ..sx = {
+                    'border': '1px solid black', 
+                    'mt': 2,
+                  }
                 )();
               }
           '''),
@@ -409,7 +412,10 @@ void main() {
         expectedOutput: withHeader('''
             content(bool condition) {
               (Box()
-                ..sx = {'mt': condition ? 2 : 4, 'p': getSpacing()}
+                ..sx = {
+                  'mt': condition ? 2 : 4, 
+                  'p': getSpacing(),
+                }
               )();
             }
             int getSpacing() => 3;
