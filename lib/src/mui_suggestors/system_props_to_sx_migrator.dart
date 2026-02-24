@@ -77,7 +77,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
   void migrateUsage(FluentComponentUsage usage) {
     super.migrateUsage(usage);
 
-    final deprecatedSystemProps = <PropAssignment>[];
+    final systemProps = <PropAssignment>[];
     PropAssignment? existingSxProp;
 
     // Identify system props and existing sx prop
@@ -86,24 +86,21 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       if (propName == 'sx') {
         existingSxProp = prop;
       } else if (_systemPropNames.contains(propName)) {
-        final propElement = prop.staticElement?.nonSynthetic;
-        final enclosingElement = propElement?.enclosingElement;
-        late final componentName =
-            enclosingElement?.name?.replaceAll(RegExp(r'Props(Mixin)?$'), '');
-        if (propElement != null &&
-            propElement.hasDeprecated &&
-            enclosingElement != null &&
+        final propClassElement = prop.staticElement?.enclosingElement;
+        final componentName =
+            propClassElement?.name?.replaceAll(RegExp(r'Props(Mixin)?$'), '');
+        if (propClassElement != null &&
             _componentsWithDeprecatedSystemProps.contains(componentName) &&
-            enclosingElement.isDeclaredInPackage('unify_ui')) {
-          deprecatedSystemProps.add(prop);
+            propClassElement.isDeclaredInPackage('unify_ui')) {
+          systemProps.add(prop);
         }
       }
     }
 
-    if (deprecatedSystemProps.isEmpty) return;
+    if (systemProps.isEmpty) return;
 
     final migratedSystemPropEntries = <String>[];
-    for (final prop in deprecatedSystemProps) {
+    for (final prop in systemProps) {
       final propName = prop.name.name;
       final propValue = context.sourceFile
           .getText(prop.rightHandSide.offset, prop.rightHandSide.end);
@@ -133,14 +130,13 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           prop.node.end);
     }
 
-    final forwardedPropSources = _getForwardedPropSources(usage);
+    final propForwardingSources = _getPropForwardingSources(usage);
 
     final fixmes = <String>[];
-    if (forwardedPropSources.isNotEmpty) {
+    if (propForwardingSources.isNotEmpty) {
       final propForwardingOffsets =
-          forwardedPropSources.map((s) => s.cascadedMethod.node.end).toList();
-      final systemPropOffsets =
-          deprecatedSystemProps.map((p) => p.node.end).toList();
+          propForwardingSources.map((s) => s.cascadedMethod.node.end).toList();
+      final systemPropOffsets = systemProps.map((p) => p.node.end).toList();
       final anySystemPropSetBeforeForwarding =
           systemPropOffsets.min < propForwardingOffsets.max;
       if (anySystemPropSetBeforeForwarding) {
@@ -208,7 +204,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
       final String? forwardedSxSpread;
 
-      final mightForwardSx = forwardedPropSources.any((source) {
+      final mightForwardSx = propForwardingSources.any((source) {
         final type = source.propsExpression?.staticType?.typeOrBound
             .tryCast<InterfaceType>();
         if (type != null &&
@@ -222,7 +218,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       if (mightForwardSx) {
         // Try to access the forwarded sx prop to merge it in.
         bool canSafelyGetForwardedSx;
-        final props = forwardedPropSources.singleOrNull?.propsExpression;
+        final props = propForwardingSources.singleOrNull?.propsExpression;
         if (props != null && (props is Identifier || props is PropertyAccess)) {
           final propsElement =
               props.staticType?.typeOrBound.tryCast<InterfaceType>()?.element;
@@ -254,8 +250,8 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       // or where the last system prop used to be to preserve the location and reduce diffs,
       // whichever is later.
       final insertionLocation = [
-        ...forwardedPropSources.map((s) => s.cascadedMethod.node.end),
-        ...deprecatedSystemProps.map((p) => p.node.end)
+        ...propForwardingSources.map((s) => s.cascadedMethod.node.end),
+        ...systemProps.map((p) => p.node.end)
       ].max;
 
       yieldPatch(
@@ -276,16 +272,16 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
 enum CommentLocation { ownLine, endOfLine, other }
 
-class _ForwardedPropSource {
+class _PropForwardingSource {
   final BuilderMethodInvocation cascadedMethod;
   final Expression? propsExpression;
 
-  _ForwardedPropSource(this.cascadedMethod, this.propsExpression);
+  _PropForwardingSource(this.cascadedMethod, this.propsExpression);
 }
 
 /// Returns the set of expressions that are sources of props forwarded to the component in [usage],
 /// or `null` for sources that were detected but don't cleanly map to a props expression.
-List<_ForwardedPropSource> _getForwardedPropSources(
+List<_PropForwardingSource> _getPropForwardingSources(
     FluentComponentUsage usage) {
   return usage.cascadedMethodInvocations
       .map((c) {
@@ -294,23 +290,23 @@ List<_ForwardedPropSource> _getForwardedPropSources(
 
         switch (methodName) {
           case 'addUnconsumedProps':
-            return _ForwardedPropSource(c, arg);
+            return _PropForwardingSource(c, arg);
           case 'addAll':
           case 'addProps':
             if (arg is MethodInvocation &&
                 arg.methodName.name == 'getPropsToForward') {
-              return _ForwardedPropSource(c, arg.realTarget);
+              return _PropForwardingSource(c, arg.realTarget);
             }
-            return _ForwardedPropSource(c, arg);
+            return _PropForwardingSource(c, arg);
           case 'modifyProps':
             if ((arg is MethodInvocation &&
                 arg.methodName.name == 'addPropsToForward')) {
-              return _ForwardedPropSource(c, arg.realTarget);
+              return _PropForwardingSource(c, arg.realTarget);
             }
             if (arg is Identifier && arg.name == 'addUnconsumedProps') {
-              return _ForwardedPropSource(c, null);
+              return _PropForwardingSource(c, null);
             }
-            return _ForwardedPropSource(c, null);
+            return _PropForwardingSource(c, null);
           default:
             // Not a method that forwards props.
             return null;
