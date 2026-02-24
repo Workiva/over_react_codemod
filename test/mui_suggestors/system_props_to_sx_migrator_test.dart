@@ -136,6 +136,33 @@ void main() {
           '''),
         );
       });
+
+      test('with multiple existing entries', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content() {
+                (Box()
+                  ..sx = {
+                    'backgroundColor': 'white',
+                    'color': 'blue',
+                  }
+                  ..mt = 2
+                )();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content() {
+                (Box()
+                  ..sx = {
+                    'backgroundColor': 'white',
+                    'color': 'blue', 
+                    'mt': 2,
+                  }
+                )();
+              }
+          '''),
+        );
+      });
     });
 
     group('merges with forwarded sx prop using spread:', () {
@@ -206,89 +233,116 @@ void main() {
       });
     });
 
+    test('does not consider forwarding with an existing sx', () async {
+      await testSuggestor(
+        input: withHeader('''
+            content(BoxProps props) {
+              (Box()
+                ..addProps(props)
+                ..sx = {'border': '1px solid black'}
+                ..mt = 2
+              )();
+            }
+        '''),
+        expectedOutput: withHeader('''
+            content(BoxProps props) {
+              (Box()
+                ..addProps(props)
+                ..sx = {
+                  'border': '1px solid black', 
+                  'mt': 2,
+                }
+              )();
+            }
+        '''),
+      );
+    });
+
     group('merges in sx from forwarded props', () {
-      test('from addProps', () async {
-        await testSuggestor(
-          input: withHeader('''
-              content(BoxProps props) {
-                (Box()
-                  ..addProps(props)
-                  ..mt = 2
-                )();
-              }
-          '''),
-          expectedOutput: withHeader('''
-              content(BoxProps props) {
-                (Box()
-                  ..addProps(props)
-                  ..sx = {...?props.sx, 'mt': 2}
-                )();
-              }
-          '''),
-        );
-      });
+      group('forwarded with', () {
+        test('addProps', () async {
+          await testSuggestor(
+            input: withHeader('''
+                content(BoxProps props) {
+                  (Box()
+                    ..addProps(props)
+                    ..mt = 2
+                  )();
+                }
+            '''),
+            expectedOutput: withHeader('''
+                content(BoxProps props) {
+                  (Box()
+                    ..addProps(props)
+                    ..sx = {...?props.sx, 'mt': 2,}
+                  )();
+                }
+            '''),
+          );
+        });
 
-      test('from addAll', () async {
-        await testSuggestor(
-          input: withHeader('''
-              content(BoxProps props) {
-                (Box()
-                  ..addAll(props)
-                  ..mt = 2
-                )();
-              }
-          '''),
-          expectedOutput: withHeader('''
-              content(BoxProps props) {
-                (Box()
-                  ..addAll(props)
-                  ..sx = {...?props.sx, 'mt': 2}
-                )();
-              }
-          '''),
-        );
-      });
+        test('addAll', () async {
+          await testSuggestor(
+            input: withHeader('''
+                content(BoxProps props) {
+                  (Box()
+                    ..addAll(props)
+                    ..mt = 2
+                  )();
+                }
+            '''),
+            expectedOutput: withHeader('''
+                content(BoxProps props) {
+                  (Box()
+                    ..addAll(props)
+                    ..sx = {...?props.sx, 'mt': 2,}
+                  )();
+                }
+            '''),
+          );
+        });
 
-      test('from getPropsToForward', () async {
-        await testSuggestor(
-          input: withHeader('''
-              content(BoxProps props) {
-                (Box()
-                  ..addProps(props.getPropsToForward())
-                  ..mt = 2
-                )();
-              }
-          '''),
-          expectedOutput: withHeader('''
-              content(BoxProps props) {
-                (Box()
-                  ..addProps(props.getPropsToForward())
-                  ..sx = {...?props.sx, 'mt': 2}
-                )();
-              }
-          '''),
-        );
-      });
+        test('getPropsToForward', () async {
+          await testSuggestor(
+            input: withHeader('''
+                content(BoxProps props) {
+                  (Box()
+                    ..addProps(props.getPropsToForward())
+                    ..mt = 2
+                  )();
+                }
+            '''),
+            expectedOutput: withHeader('''
+                content(BoxProps props) {
+                  (Box()
+                    ..addProps(props.getPropsToForward())
+                    ..sx = {...?props.sx, 'mt': 2,}
+                  )();
+                }
+            '''),
+          );
+        });
 
-      test('from addPropsToForward', () async {
-        await testSuggestor(
-          input: withHeader('''
-              content(BoxProps props) {
-                (Box()
-                  ..modifyProps(props.addPropsToForward())
-                  ..mt = 2
-                )();
-              }
-          '''),
-          expectedOutput: withHeader('''
-              content(BoxProps props) {
-                (Box()
-                  ..modifyProps(props.addPropsToForward())
-                  ..sx = {...?props.sx, 'mt': 2}
-                )();
-              }
-          '''),
-        );
+        test('addPropsToForward', () async {
+          await testSuggestor(
+            input: withHeader('''
+                content(BoxProps props) {
+                  (Box()
+                    ..modifyProps(props.addPropsToForward())
+                    ..mt = 2
+                  )();
+                }
+            '''),
+            expectedOutput: withHeader('''
+                content(BoxProps props) {
+                  (Box()
+                    ..modifyProps(props.addPropsToForward())
+                    ..sx = {...?props.sx, 'mt': 2,}
+                  )();
+                }
+            '''),
+          );
+        });
       });
 
       // Regression test
@@ -309,7 +363,7 @@ void main() {
                 (Box()
                   ..addProps(props)
                   ..addTestId('test-id')
-                  ..sx = {...?props.sx, 'mt': 2}
+                  ..sx = {...?props.sx, 'mt': 2,}
                 )();
               }
           '''),
@@ -318,6 +372,60 @@ void main() {
     });
 
     group('adds FIXME comment when forwarding is ambiguous:', () {
+      test('modifyProps with unknown function', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content(BoxProps props) {
+                (Box()
+                  ..modifyProps((_) {})
+                  ..mt = 2
+                )();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content(BoxProps props) {
+                (Box()
+                  ..modifyProps((_) {})
+
+                  // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component, if needed
+                  ..sx = {
+                    'mt': 2
+                  }
+                )();
+              }
+          '''),
+        );
+      });
+
+      test('copyUnconsumedProps', () async {
+        await testSuggestor(
+          input: withHeader('''
+              abstract class FooComponent extends UiComponent2 {
+                content(BoxProps props) {
+                  (Box()
+                    ..addProps(copyUnconsumedProps())
+                    ..mt = 2
+                  )();
+                }
+              }
+          '''),
+          expectedOutput: withHeader('''
+              abstract class FooComponent extends UiComponent2 {
+                content(BoxProps props) {
+                  (Box()
+                    ..addProps(copyUnconsumedProps())
+
+                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component, if needed
+                    ..sx = {
+                      'mt': 2
+                    }
+                  )();
+                }
+              }
+          '''),
+        );
+      });
+
       group('generic props:', () {
         test('Map', () async {
           await testSuggestor(
@@ -356,6 +464,31 @@ void main() {
             '''),
             expectedOutput: withHeader('''
                 content(UiProps props) {
+                  (Box()
+                    ..addAll(props)
+                    
+                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component, if needed
+                    ..sx = {
+                      'mt': 2
+                    }
+                  )();
+                }
+            '''),
+          );
+        });
+
+        test('dynamic', () async {
+          await testSuggestor(
+            input: withHeader('''
+                content(dynamic props) {
+                  (Box()
+                    ..addAll(props)
+                    ..mt = 2
+                  )();
+                }
+            '''),
+            expectedOutput: withHeader('''
+                content(dynamic props) {
                   (Box()
                     ..addAll(props)
                     
@@ -535,6 +668,242 @@ void main() {
             }
         '''),
       );
+    });
+
+
+
+    group('insertion location:', () {
+      test('inserts after prop forwarding to avoid being overwritten, with a comment', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content(BoxProps props) {
+                (Box()
+                  ..mt = 2
+                  ..addProps(props)
+                  ..id = 'test'
+                )();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content(BoxProps props) {
+                (Box()
+                  ..addProps(props)
+                   
+                   // FIXME(mui_system_props_migration) - forwarded props used to be able to override these system props; double-check merge ordering
+                  ..sx = {...?props.sx, 'mt': 2,}
+                  ..id = 'test'
+                )();
+              }
+          '''),
+        );
+      });
+
+      test('inserts at location of last system prop when no prop forwarding', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content() {
+                (Box()
+                  ..id = 'first'
+                  ..mt = 2
+                  ..className = 'middle'
+                  ..p = 3
+                  ..onClick = (_) {}
+                )();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content() {
+                (Box()
+                  ..id = 'first'
+                  ..className = 'middle'
+                  ..sx = {'mt': 2, 'p': 3}
+                  ..onClick = (_) {}
+                )();
+              }
+          '''),
+        );
+      });
+
+      test('inserts after latest of (forwarding or last system prop)', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content(BoxProps props) {
+                (Box()
+                  ..mt = 2
+                  ..addProps(props)
+                  ..p = 3
+                )();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content(BoxProps props) {
+                (Box()
+                  ..addProps(props)
+                  
+                  // FIXME(mui_system_props_migration) - forwarded props used to be able to override these system props; double-check merge ordering
+                  ..sx = {...?props.sx, 'mt': 2, 'p': 3,}
+                )();
+              }
+          '''),
+        );
+      });
+
+      test('inserts after all forwarding calls when multiple exist', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content(BoxProps props1, BoxProps props2) {
+                (Box()
+                  ..addProps(props1)
+                  ..mt = 2
+                  ..p = 3
+                  ..addProps(props2)
+                )();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content(BoxProps props1, BoxProps props2) {
+                (Box()
+                  ..addProps(props1)
+                  ..addProps(props2)
+                  // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component, if needed
+                  ..sx = {'mt': 2, 'p': 3}
+                )();
+              }
+          '''),
+        );
+      });
+    });
+
+    group('multiline formatting:', () {
+      test('uses single line for short sx maps (< 3 elements)', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content() {
+                (Box()
+                  ..mt = 2
+                  ..p = 3
+                )();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content() {
+                (Box()
+                  ..sx = {'mt': 2, 'p': 3}
+                )();
+              }
+          '''),
+        );
+      });
+
+      test('uses multiline for 3+ elements', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content() {
+                (Box()
+                  ..mt = 2
+                  ..p = 3
+                  ..mb = 4
+                )();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content() {
+                (Box()
+                  ..sx = {
+                    'mt': 2, 
+                    'p': 3, 
+                    'mb': 4,
+                  }
+                )();
+              }
+          '''),
+        );
+      });
+
+      test('uses multiline for long content (>= 20 chars with 2+ elements)', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content() {
+                (Box()
+                  ..mt = 2
+                  ..bgcolor = 'verylongcolor.main'
+                )();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content() {
+                (Box()
+                  ..sx = {
+                    'mt': 2, 
+                    'bgcolor': 'verylongcolor.main',
+                  }
+                )();
+              }
+          '''),
+        );
+      });
+    });
+
+    group('handles different component types with system props:', () {
+      test('Box', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content() {
+                (Box()..mt = 2)();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content() {
+                (Box()..sx = {'mt': 2})();
+              }
+          '''),
+        );
+      });
+
+      test('Grid', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content() {
+                (Grid()..mt = 2)();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content() {
+                (Grid()..sx = {'mt': 2})();
+              }
+          '''),
+        );
+      });
+
+      test('Stack', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content() {
+                (Stack()..mt = 2)();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content() {
+                (Stack()..sx = {'mt': 2})();
+              }
+          '''),
+        );
+      });
+
+      test('Typography', () async {
+        await testSuggestor(
+          input: withHeader('''
+              content() {
+                (Typography()..mt = 2)();
+              }
+          '''),
+          expectedOutput: withHeader('''
+              content() {
+                (Typography()..sx = {'mt': 2})();
+              }
+          '''),
+        );
+      });
     });
   });
 }
