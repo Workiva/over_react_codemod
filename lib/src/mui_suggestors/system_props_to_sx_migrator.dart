@@ -141,7 +141,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           systemPropOffsets.min < propForwardingOffsets.max;
       if (anySystemPropSetBeforeForwarding) {
         fixmes.add(
-            'Previously, it was possible for forwarded system props to overwrite these styles, but not anymore since sx takes precedence over system props.'
+            'Previously, it was possible for forwarded system props to overwrite these migrated styles, but not anymore since sx takes precedence over any system props.'
             '\n Double-check that this new behavior is okay.');
       }
     }
@@ -233,7 +233,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         } else {
           forwardedSxSpread = null;
           fixmes.add(
-              'spread in any sx prop forwarded to this component above, if needed (spread should go after these new styles to preserve behavior)');
+              'spread in any sx prop forwarded to this component above, if needed (spread should go at the end of this map to preserve behavior)');
         }
       } else {
         forwardedSxSpread = null;
