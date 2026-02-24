@@ -689,7 +689,8 @@ void main() {
     });
 
     group('insertion location:', () {
-      test('inserts after prop forwarding to avoid being overwritten', () async {
+      test('inserts after prop forwarding to avoid being overwritten',
+          () async {
         await testSuggestor(
           input: withHeader('''
               content(BoxProps props) =>
@@ -712,7 +713,8 @@ void main() {
         );
       });
 
-      test('inserts at location of last system prop when no prop forwarding', () async {
+      test('inserts at location of last system prop when no prop forwarding',
+          () async {
         await testSuggestor(
           input: withHeader('''
               content() => 
@@ -736,7 +738,8 @@ void main() {
         );
       });
 
-      test('inserts after latest of (forwarding or last system prop)', () async {
+      test('inserts after latest of (forwarding or last system prop)',
+          () async {
         await testSuggestor(
           input: withHeader('''
               content(BoxProps props) =>
@@ -825,7 +828,8 @@ void main() {
         );
       });
 
-      test('uses multiline for long content (>= 20 chars with 2+ elements)', () async {
+      test('uses multiline for long content (>= 20 chars with 2+ elements)',
+          () async {
         await testSuggestor(
           input: withHeader('''
               content() => 
@@ -968,7 +972,8 @@ void main() {
         );
       });
 
-      test('comments before system props mixed with non-system props', () async {
+      test('comments before system props mixed with non-system props',
+          () async {
         await testSuggestor(
           input: withHeader('''
               content() => 
