@@ -8,3 +8,9 @@ dependencies:
       name: web_skin_dart
       url: https://pub.workiva.org
     version: ^3.0.0
+  unify_ui:
+    hosted:
+      name: unify_ui
+      url: https://pub.workiva.org
+    # First version system props were deprecated
+    version: ^2.20.5

@@ -49,6 +49,7 @@ executables:
   null_safety_required_props:
   null_safety_prep:
   mui_migration:
+  mui_system_props_migration:
   required_flux_props:
   rmui_preparation:
   rmui_bundle_update:
