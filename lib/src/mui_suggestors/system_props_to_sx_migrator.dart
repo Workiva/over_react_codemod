@@ -142,45 +142,50 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         mapElements.any((e) => e.contains('\n'));
 
     if (existingSxProp != null) {
-      // FIXME before vs after
+      //
+      // Case 1: add styles to existing sx prop value
       final value = existingSxProp.rightHandSide;
       if (value is SetOrMapLiteral && value.isMap) {
-        // Avoid inserting a double-comma if there's a trailing comma.
-        // While we're here, also preserve the trailing comma.
+        //
+        // Case 1a: add styles to existing sx map literal
+
+        // Insert before, to preserve existing behavior where any spread sx trumped these styles.
+        // Add a leading newline to ensure comments don't get stuck to the opening braces.
+        yieldPatch('\n${migratedSystemPropEntries.join(',\n')},',
+            value.leftBracket.end, value.leftBracket.end);
+        // Force a multiline in all cases by ensuring there's a trailing comma.
         final hadTrailingComma =
             value.rightBracket.previous?.type == TokenType.COMMA;
-        final maybePrecedingComma =
-            !hadTrailingComma && value.elements.isNotEmpty ? ', ' : '';
-        final maybeTrailingComma = hadTrailingComma ||
-                shouldForceMultiline([
-                  ...value.elements.map((e) => context.sourceFor(e)),
-                  ...migratedSystemPropEntries,
-                ])
-            ? ','
-            : '';
-        yieldPatch(
-            '$maybePrecedingComma${migratedSystemPropEntries.join(', ')}$maybeTrailingComma',
-            value.rightBracket.offset,
-            value.rightBracket.offset);
+        if (!hadTrailingComma && value.elements.isNotEmpty) {
+          yieldPatch(',', value.rightBracket.offset, value.rightBracket.offset);
+        }
       } else {
+        //
+        // Case 1b: spread existing sx value into a new map literal
+
         final type = value.staticType;
         final nonNullable = type != null &&
             type is! DynamicType &&
             type.nullabilitySuffix == NullabilitySuffix.none;
         final spread = '...${nonNullable ? '' : '?'}';
-        yieldPatch('{$spread', value.offset, value.offset);
+        // Insert before spread, to preserve existing behavior where any forwarded sx trumped these styles.
+        yieldPatch('{\n${migratedSystemPropEntries.join(', ')}, $spread',
+            value.offset, value.offset);
         final maybeTrailingComma = shouldForceMultiline([
-          '$spread${context.sourceFor(value)}',
           ...migratedSystemPropEntries,
+          '$spread${context.sourceFor(value)}',
         ])
             ? ','
             : '';
-        yieldPatch(
-            ', ${migratedSystemPropEntries.join(', ')}$maybeTrailingComma}',
-            value.end,
-            value.end);
+        yieldPatch('$maybeTrailingComma}', value.end, value.end);
       }
     } else {
+      //
+      // Case 2: add new sx prop assignment
+
+      final String? forwardedSxSpread;
+      final fixmes = <String>[];
+
       final forwardedPropSources = _getForwardedPropSources(usage);
       final mightForwardSx = forwardedPropSources.any((source) {
         final type = source.propsExpression?.staticType?.typeOrBound
@@ -193,39 +198,34 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         return true;
       });
 
-      final String? additionalSxElement;
-      final fixmes = <String>[];
-
       if (mightForwardSx) {
-        var canGetForwardedSx = false;
-        final forwardedProps =
-            forwardedPropSources.singleOrNull?.propsExpression;
-        if (forwardedProps != null &&
-            (forwardedProps is Identifier ||
-                forwardedProps is PropertyAccess)) {
-          final forwardedPropsType =
-              forwardedProps.staticType?.typeOrBound.tryCast<InterfaceType>();
-          if (forwardedPropsType?.element
-                  .lookUpGetter('sx', forwardedPropsType.element.library) !=
-              null) {
-            canGetForwardedSx = true;
-          }
+        // Try to access the forwarded sx prop to merge it in.
+        bool canSafelyGetForwardedSx;
+        final props = forwardedPropSources.singleOrNull?.propsExpression;
+        if (props != null && (props is Identifier || props is PropertyAccess)) {
+          final propsElement =
+              props.staticType?.typeOrBound.tryCast<InterfaceType>()?.element;
+          canSafelyGetForwardedSx =
+              propsElement?.lookUpGetter('sx', propsElement.library) != null;
+        } else {
+          canSafelyGetForwardedSx = false;
         }
 
-        if (canGetForwardedSx) {
-          additionalSxElement = '...?${context.sourceFor(forwardedProps!)}.sx';
+        if (canSafelyGetForwardedSx) {
+          forwardedSxSpread = '...?${context.sourceFor(props!)}.sx';
         } else {
-          additionalSxElement = null;
+          forwardedSxSpread = null;
           fixmes.add(
-              'merge in any sx prop forwarded to this component, if needed');
+              'merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)');
         }
       } else {
-        additionalSxElement = null;
+        forwardedSxSpread = null;
       }
 
       final elements = [
-        if (additionalSxElement != null) additionalSxElement,
+        // Insert before spread, to preserve existing behavior where any forwarded sx trumped these styles.
         ...migratedSystemPropEntries,
+        if (forwardedSxSpread != null) forwardedSxSpread,
       ];
       final maybeTrailingComma = shouldForceMultiline(elements) ? ',' : '';
 
@@ -246,7 +246,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           systemPropEnds.any((system) => system < firstForwardingEnd)) {
         fixmes.add(
             'Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.'
-            '\n Double-check that this new behavior is okay, and update logic as needed (e.g., merging in props.sx after these styles instead of before).');
+            '\n Double-check that this new behavior is okay.');
       }
 
       final fixmesSource = fixmes

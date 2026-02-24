@@ -77,9 +77,9 @@ void main() {
           expectedOutput: withHeader(/*language=dart*/ '''
               content() => 
                   (Box()
-                    ..sx = {
-                      'border': '1px solid black', 
+                    ..sx = { 
                       'mt': 2,
+                      'border': '1px solid black',
                     }
                   )();
           '''),
@@ -100,9 +100,9 @@ void main() {
           expectedOutput: withHeader(/*language=dart*/ '''
               content() => 
                   (Box()
-                    ..sx = {
-                      'border': '1px solid black', 
+                    ..sx = { 
                       'mt': 2,
+                      'border': '1px solid black',
                     }
                   )();
           '''),
@@ -121,7 +121,9 @@ void main() {
           expectedOutput: withHeader(/*language=dart*/ '''
               content() => 
                   (Box()
-                    ..sx = {'mt': 2}
+                    ..sx = {
+                      'mt': 2,
+                    }
                   )();
           '''),
         );
@@ -142,10 +144,10 @@ void main() {
           expectedOutput: withHeader(/*language=dart*/ '''
               content() => 
                   (Box()
-                    ..sx = {
-                      'backgroundColor': 'white',
-                      'color': 'blue', 
+                    ..sx = { 
                       'mt': 2,
+                      'backgroundColor': 'white',
+                      'color': 'blue',
                     }
                   )();
           '''),
@@ -168,8 +170,8 @@ void main() {
               content(BoxProps props) =>
                   (Box()
                     ..sx = {
-                      ...?getSx(), 
                       'mt': 2,
+                      ...?getSx(), 
                     }
                   )();
               Map? getSx() => {'color': 'red'};
@@ -190,7 +192,7 @@ void main() {
           expectedOutput: withHeader(/*language=dart*/ '''
               content(BoxProps props) =>
                   (Box()
-                    ..sx = {...getSx(), 'mt': 2}
+                    ..sx = {'mt': 2, ...getSx()}
                   )();
               Map getSx() => {'color': 'red'};
           '''),
@@ -211,8 +213,8 @@ void main() {
               content(BoxProps props) =>
                   (Box()
                     ..sx = {
-                      ...?getSx(), 
                       'mt': 2,
+                      ...?getSx(), 
                     }
                   )();
               dynamic getSx() => {'color': 'red'};
@@ -221,7 +223,7 @@ void main() {
       });
     });
 
-    test('does not consider forwarding with an existing sx', () async {
+    test('adds a fixme when there are forwarded props and an existing sx', () async {
       await testSuggestor(
         input: withHeader(/*language=dart*/ '''
             content(BoxProps props) =>
@@ -236,8 +238,10 @@ void main() {
                 (Box()
                   ..addProps(props)
                   ..sx = {
-                    'border': '1px solid black', 
+                     // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
+                     //  Double-check that this new behavior is okay.
                     'mt': 2,
+                    'border': '1px solid black', 
                   }
                 )();
         '''),
@@ -259,7 +263,7 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props)
-                      ..sx = {...?props.sx, 'mt': 2,}
+                      ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
           );
@@ -278,7 +282,7 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..addAll(props)
-                      ..sx = {...?props.sx, 'mt': 2,}
+                      ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
           );
@@ -297,7 +301,7 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props.getPropsToForward())
-                      ..sx = {...?props.sx, 'mt': 2,}
+                      ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
           );
@@ -316,7 +320,7 @@ void main() {
                 content(BoxProps props) =>
                     (Box()
                       ..modifyProps(props.addPropsToForward())
-                      ..sx = {...?props.sx, 'mt': 2,}
+                      ..sx = {'mt': 2, ...?props.sx,}
                     )();
             '''),
           );
@@ -340,7 +344,7 @@ void main() {
                   (Box()
                     ..addProps(props)
                     ..addTestId('test-id')
-                    ..sx = {...?props.sx, 'mt': 2,}
+                    ..sx = {'mt': 2, ...?props.sx,}
                   )();
           '''),
         );
@@ -362,7 +366,7 @@ void main() {
                   (Box()
                     ..modifyProps((_) {})
   
-                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component, if needed
+                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
                     ..sx = {
                       'mt': 2
                     }
@@ -388,7 +392,7 @@ void main() {
                     (Box()
                       ..addProps(copyUnconsumedProps())
   
-                      // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component, if needed
+                      // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
                       ..sx = {
                         'mt': 2
                       }
@@ -414,7 +418,7 @@ void main() {
                   (Box()
                     ..addAll(props)
                     
-                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component, if needed
+                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
                     ..sx = {
                       'mt': 2
                     }
@@ -439,7 +443,7 @@ void main() {
                   (Box()
                     ..addAll(props)
                     
-                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component, if needed
+                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
                     ..sx = {
                       'mt': 2
                     }
@@ -464,7 +468,7 @@ void main() {
                   (Box()
                     ..addAll(props)
                     
-                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component, if needed
+                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
                     ..sx = {
                       'mt': 2
                     }
@@ -492,7 +496,7 @@ void main() {
                   ..addProps(props)
                   ..addProps(props2)
 
-                  // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component, if needed
+                  // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
                   ..sx = {
                     'mt': 2
                   }
@@ -648,8 +652,8 @@ void main() {
                   (Box()
                     ..addProps(props)
                      // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
-                     //  Double-check that this new behavior is okay, and update logic as needed (e.g., merging in props.sx after these styles instead of before).
-                    ..sx = {...?props.sx, 'mt': 2,}
+                     //  Double-check that this new behavior is okay.
+                    ..sx = {'mt': 2, ...?props.sx,}
                     ..id = 'test'
                   )();
           '''),
@@ -696,8 +700,8 @@ void main() {
                     ..addProps(props)
                     
                     // FIXME(mui_system_props_migration) - Some of these system props used to be able to be overwritten by prop forwarding, but not anymore since sx takes precedence.
-                    //  Double-check that this new behavior is okay, and update logic as needed (e.g., merging in props.sx after these styles instead of before).
-                    ..sx = {...?props.sx, 'mt': 2, 'p': 3,}
+                    //  Double-check that this new behavior is okay.
+                    ..sx = {'mt': 2, 'p': 3, ...?props.sx,}
                   )();
           '''),
         );
@@ -719,7 +723,7 @@ void main() {
                   (Box()
                     ..addProps(props1)
                     ..addProps(props2)
-                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component, if needed
+                    // FIXME(mui_system_props_migration) - merge in any sx prop forwarded to this component if needed (after these new styles to preserve behavior)
                     ..sx = {'mt': 2, 'p': 3}
                   )();
           '''),
@@ -898,13 +902,14 @@ void main() {
                     ..mt = 2
                   )();
           '''),
+          // Not sure why dartfmt allows two entries like this with trailing commas
+          // on the same line, but it is what it is.
           expectedOutput: withHeader(/*language=dart*/ '''
               content() => 
                   (Box()
                     ..sx = {
-                      'border': '1px solid black', 
                       // Add margin
-                      'mt': 2,
+                      'mt': 2, 'border': '1px solid black',
                     }
                   )();
           '''),
@@ -950,14 +955,15 @@ void main() {
                     ..mt = 2
                   )();
           '''),
+          // Not sure why dartfmt allows two entries like this with trailing commas
+          // on the same line, but it is what it is.
           expectedOutput: withHeader(/*language=dart*/ '''
               content(BoxProps props) => 
                   (Box()
                     ..addProps(props)
                     ..sx = {
-                      ...?props.sx, 
                       // Override margin
-                      'mt': 2,
+                      'mt': 2, ...?props.sx, 
                     }
                   )();
           '''),
