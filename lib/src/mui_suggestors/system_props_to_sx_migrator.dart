@@ -242,21 +242,13 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       ];
       final maybeTrailingComma = _shouldForceMultiline(elements) ? ',' : '';
 
-      final forwardingEnds =
-          forwardedPropSources.map((s) => s.cascadedMethod.node.end).toList();
-      final systemPropEnds =
-          deprecatedSystemProps.map((p) => p.node.end).toList();
-
       // Insert after any forwarded props to ensure sx isn't overwritten,
-      // and where the last system prop used to be to preserve the location and reduce diffs.
-      final insertionLocation = [...forwardingEnds, ...systemPropEnds].max;
-
-      // Add a note to check for potential behavior changes when system props
-      // used to come before prop forwarding, but now get added in sx after.
-      final firstForwardingEnd = forwardingEnds.minOrNull;
-      if (firstForwardingEnd != null &&
-          insertionLocation >= firstForwardingEnd &&
-          systemPropEnds.any((system) => system < firstForwardingEnd)) {}
+      // or where the last system prop used to be to preserve the location and reduce diffs,
+      // whichever is later.
+      final insertionLocation = [
+        ...forwardedPropSources.map((s) => s.cascadedMethod.node.end),
+        ...deprecatedSystemProps.map((p) => p.node.end)
+      ].max;
 
       yieldPatch(
           '${getFixmesSource()}..sx = {${elements.join(', ')}$maybeTrailingComma}',
