@@ -20,7 +20,7 @@ import '../util.dart';
 
 void main() {
   group('SystemPropsToSxMigrator', () {
-    final resolvedContext = SharedAnalysisContext.wsd;
+    final resolvedContext = SharedAnalysisContext.muiStub;
     setUpAll(resolvedContext.warmUpAnalysis);
 
     final testSuggestor = getSuggestorTester(
@@ -1128,14 +1128,12 @@ void main() {
         );
       });
     });
-  }, tags: 'wsd');
+  });
 }
 
 String withHeader(String source) => '''
-  //@dart=2.19
-
   import 'package:over_react/over_react.dart';
-  import 'package:unify_ui/unify_ui.dart';
+  import 'package:mui_stub/components.dart';
   
   $source
 ''';

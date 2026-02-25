@@ -112,13 +112,15 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       if (propName == 'sx') {
         existingSxProp = prop;
       } else if (_systemPropNames.contains(propName)) {
-        final propClassElement = prop.staticElement?.enclosingElement;
-        final componentName =
-            propClassElement?.name?.replaceAll(RegExp(r'Props(Mixin)?$'), '');
-        if (propClassElement != null &&
-            _componentsWithDeprecatedSystemProps.contains(componentName) &&
-            propClassElement.isDeclaredInPackage('unify_ui')) {
-          systemProps.add(prop);
+        final propElement = prop.staticElement?.nonSynthetic;
+        final declaringPropsElement = propElement?.enclosingElement;
+        if (propElement != null && declaringPropsElement != null) {
+          final componentName = declaringPropsElement.name
+              ?.replaceAll(RegExp(r'Props(Mixin)?$'), '');
+          if (_componentsWithDeprecatedSystemProps.contains(componentName) &&
+              propElement.hasDeprecated) {
+            systemProps.add(prop);
+          }
         }
       }
     }
