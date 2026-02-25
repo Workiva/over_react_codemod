@@ -1,5 +1,0 @@
-name: mui_stub
-environment:
-  sdk: '>=2.19.0 <3.0.0'
-dependencies:
-  over_react: ^5.6.0
