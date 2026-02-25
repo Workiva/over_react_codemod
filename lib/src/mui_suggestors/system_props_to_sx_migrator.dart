@@ -95,12 +95,6 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
   @override
   get shouldFlagClassName => false;
 
-  bool isFirstTokenOnLine(Token token) {
-    final sourceFile = context.sourceFile;
-    final lineStart = sourceFile.getOffset(sourceFile.getLine(token.offset));
-    return sourceFile.getText(lineStart, token.offset).trim().isEmpty;
-  }
-
   @override
   void migrateUsage(FluentComponentUsage usage) {
     super.migrateUsage(usage);
@@ -128,17 +122,14 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
     // No system props to migrate; bail out for this usage.
     if (systemProps.isEmpty) return;
 
+    // Migrate system props to sx entries, and remove old system props.
     final migratedSystemPropEntries = <String>[];
     for (final prop in systemProps) {
-      final propName = prop.name.name;
-      final propValue = context.sourceFile
-          .getText(prop.rightHandSide.offset, prop.rightHandSide.end);
-
       // Carry over comments before the node
       // (we won't try to handle end-of-line comments).
       final beforeComments = allCommentsForNode(prop.node)
           // Don't include end-of-line comments that should stay with the previous line.
-          .skipWhile((comment) => !isFirstTokenOnLine(comment))
+          .skipWhile((comment) => !_isFirstTokenOnLine(comment))
           .toList();
 
       final commentSource = beforeComments.isEmpty
@@ -148,33 +139,33 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
               .getText(beforeComments.first.offset, beforeComments.last.end)
               .trimRight();
 
-      // Create new sx entry
       migratedSystemPropEntries.add([
         if (commentSource.isNotEmpty) '\n $commentSource',
-        "'$propName': $propValue"
+        "'${prop.name.name}': ${context.sourceFor(prop.rightHandSide)}"
       ].join('\n'));
 
-      // Remove old system prop
       yieldPatch('', beforeComments.firstOrNull?.offset ?? prop.node.offset,
           prop.node.end);
     }
 
     final propForwardingSources = _detectPropForwardingSources(usage);
 
-    final fixmes = <String>[];
+    final bool anySystemPropSetBeforeForwarding;
     if (propForwardingSources.isNotEmpty) {
       final propForwardingOffsets =
           propForwardingSources.map((s) => s.cascadedMethod.node.end).toList();
       final systemPropOffsets = systemProps.map((p) => p.node.end).toList();
-      final anySystemPropSetBeforeForwarding =
+      anySystemPropSetBeforeForwarding =
           systemPropOffsets.min < propForwardingOffsets.max;
-      if (anySystemPropSetBeforeForwarding) {
-        fixmes.add(
-            'Previously, it was possible for forwarded system props to overwrite these migrated styles, but not anymore since sx takes precedence over any system props.'
-            '\n Double-check that this new behavior is okay.');
-      }
+    } else {
+      anySystemPropSetBeforeForwarding = false;
     }
 
+    final fixmes = [
+      if (anySystemPropSetBeforeForwarding)
+        'Previously, it was possible for forwarded system props to overwrite these migrated styles, but not anymore since sx takes precedence over any system props.'
+            '\n Double-check that this new behavior is okay.',
+    ];
     String getFixmesSource() {
       if (fixmes.isEmpty) return '';
       // Add a leading newline to ensure comments don't get stuck to the previous line.
@@ -185,6 +176,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
               .join('');
     }
 
+    // Add or update sx prop wirth migrated system props.
     if (existingSxProp != null) {
       //
       // Case 1: add styles to existing sx prop value
@@ -239,9 +231,13 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         if (type != null &&
             type.isPropsClass &&
             type.element.name != 'UiProps') {
+          // It's a non-generic props class; check if it has `sx` prop.
           return type.element.lookUpGetter('sx', type.element.library) != null;
+        } else {
+          // The source props weren't available, or the expression is dynamic
+          // or a generic type (e.g., Map, UiProps), so we can't be sure it doesn't have sx.
+          return true;
         }
-        return true;
       });
 
       if (mightForwardSx) {
@@ -288,6 +284,12 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           insertionLocation,
           insertionLocation);
     }
+  }
+
+  bool _isFirstTokenOnLine(Token token) {
+    final sourceFile = context.sourceFile;
+    final lineStart = sourceFile.getOffset(sourceFile.getLine(token.offset));
+    return sourceFile.getText(lineStart, token.offset).trim().isEmpty;
   }
 
   static bool _shouldForceMultiline(List<String> mapElements) =>
