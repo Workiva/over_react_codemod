@@ -70,6 +70,11 @@ class SharedAnalysisContext {
   static final rmui = SharedAnalysisContext(
       p.join(findPackageRootFor(p.current), 'test/test_fixtures/rmui_project'));
 
+  /// A context root located at `test/test_fixtures/mui_stub_project`
+  /// that stubs out some MUI components using over_react.
+  static final muiStub = SharedAnalysisContext(
+      p.join(findPackageRootFor(p.current), 'test/test_fixtures/mui_stub_project'));
+
   /// The path to the package root in which test files will be created
   /// and resolved.
   final String _path;
