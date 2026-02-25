@@ -41,7 +41,7 @@ void main() {
       muiUri = Uri.file(muiFile.path).toString();
     });
 
-    String withHeader(String source) => '''
+    String withImports(String source) => '''
       //@dart=2.19
       import 'package:over_react/over_react.dart';
       import ${jsonEncode(muiUri.toString())};
@@ -65,7 +65,7 @@ void main() {
 
       setUpAll(() async {
         final file =
-            await resolvedContext.resolvedFileContextForTest(withHeader(''));
+            await resolvedContext.resolvedFileContextForTest(withImports(''));
         unit = (await file.getResolvedUnit())!;
       });
 
@@ -92,11 +92,11 @@ void main() {
 
     test('migrates single system prop to sx', () async {
       await testSuggestor(
-        input: withHeader('''
+        input: withImports('''
             content() => 
                 (Box()..mt = 2)();
         '''),
-        expectedOutput: withHeader('''
+        expectedOutput: withImports('''
             content() => 
                 (Box()..sx = {'mt': 2})();
         '''),
@@ -105,7 +105,7 @@ void main() {
 
     test('migrates multiple system props', () async {
       await testSuggestor(
-        input: withHeader('''
+        input: withImports('''
             content() => 
                 (Box()
                   ..mt = 2
@@ -113,7 +113,7 @@ void main() {
                   ..bgcolor = 'primary.main'
                 )();
         '''),
-        expectedOutput: withHeader('''
+        expectedOutput: withImports('''
             content() => 
                 (Box()
                   ..sx = {
@@ -129,14 +129,14 @@ void main() {
     group('merges with existing sx map literal', () {
       test('without trailing commas', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..sx = {'border': '1px solid black'}
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = { 
@@ -150,7 +150,7 @@ void main() {
 
       test('with trailing commas', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -159,7 +159,7 @@ void main() {
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = { 
@@ -173,14 +173,14 @@ void main() {
 
       test('that is empty', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..sx = {}
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -193,7 +193,7 @@ void main() {
 
       test('with multiple existing entries', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -203,7 +203,7 @@ void main() {
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = { 
@@ -220,7 +220,7 @@ void main() {
     group('merges with forwarded sx prop using spread:', () {
       test('nullable', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = getSx()
@@ -228,7 +228,7 @@ void main() {
                   )();
               Map? getSx() => {'color': 'red'};
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = {
@@ -243,7 +243,7 @@ void main() {
 
       test('non-nullable', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = getSx()
@@ -251,7 +251,7 @@ void main() {
                   )();
               Map getSx() => {'color': 'red'};
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = {'mt': 2, ...getSx()}
@@ -263,7 +263,7 @@ void main() {
 
       test('dynamic', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = getSx()
@@ -271,7 +271,7 @@ void main() {
                   )();
               dynamic getSx() => {'color': 'red'};
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..sx = {
@@ -289,14 +289,14 @@ void main() {
       group('forwarded with', () {
         test('addProps', () async {
           await testSuggestor(
-            input: withHeader('''
+            input: withImports('''
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props)
                       ..mt = 2
                     )();
             '''),
-            expectedOutput: withHeader('''
+            expectedOutput: withImports('''
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props)
@@ -308,14 +308,14 @@ void main() {
 
         test('addAll', () async {
           await testSuggestor(
-            input: withHeader('''
+            input: withImports('''
                 content(BoxProps props) =>
                     (Box()
                       ..addAll(props)
                       ..mt = 2
                     )();
             '''),
-            expectedOutput: withHeader('''
+            expectedOutput: withImports('''
                 content(BoxProps props) =>
                     (Box()
                       ..addAll(props)
@@ -327,14 +327,14 @@ void main() {
 
         test('getPropsToForward', () async {
           await testSuggestor(
-            input: withHeader('''
+            input: withImports('''
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props.getPropsToForward())
                       ..mt = 2
                     )();
             '''),
-            expectedOutput: withHeader('''
+            expectedOutput: withImports('''
                 content(BoxProps props) =>
                     (Box()
                       ..addProps(props.getPropsToForward())
@@ -346,14 +346,14 @@ void main() {
 
         test('addPropsToForward', () async {
           await testSuggestor(
-            input: withHeader('''
+            input: withImports('''
                 content(BoxProps props) =>
                     (Box()
                       ..modifyProps(props.addPropsToForward())
                       ..mt = 2
                     )();
             '''),
-            expectedOutput: withHeader('''
+            expectedOutput: withImports('''
                 content(BoxProps props) =>
                     (Box()
                       ..modifyProps(props.addPropsToForward())
@@ -368,7 +368,7 @@ void main() {
       test('even when there are other unrelated calls in the cascade',
           () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -376,7 +376,7 @@ void main() {
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -391,14 +391,14 @@ void main() {
     group('adds FIXME comment when forwarding is ambiguous:', () {
       test('modifyProps with unknown function', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..modifyProps((_) {})
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..modifyProps((_) {})
@@ -414,7 +414,7 @@ void main() {
 
       test('copyUnconsumedProps', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               abstract class FooComponent extends UiComponent2 {
                 content(BoxProps props) =>
                     (Box()
@@ -423,7 +423,7 @@ void main() {
                     )();
               }
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               abstract class FooComponent extends UiComponent2 {
                 content(BoxProps props) =>
                     (Box()
@@ -442,7 +442,7 @@ void main() {
       group('generic props:', () {
         test('Map', () async {
           await testSuggestor(
-            input: withHeader('''
+            input: withImports('''
                 content(Map props) {
                   (Box()
                     ..addAll(props)
@@ -450,7 +450,7 @@ void main() {
                   )();
                 }
             '''),
-            expectedOutput: withHeader('''
+            expectedOutput: withImports('''
                 content(Map props) {
                   (Box()
                     ..addAll(props)
@@ -467,7 +467,7 @@ void main() {
 
         test('UiProps', () async {
           await testSuggestor(
-            input: withHeader('''
+            input: withImports('''
                 content(UiProps props) {
                   (Box()
                     ..addAll(props)
@@ -475,7 +475,7 @@ void main() {
                   )();
                 }
             '''),
-            expectedOutput: withHeader('''
+            expectedOutput: withImports('''
                 content(UiProps props) {
                   (Box()
                     ..addAll(props)
@@ -492,7 +492,7 @@ void main() {
 
         test('dynamic', () async {
           await testSuggestor(
-            input: withHeader('''
+            input: withImports('''
                 content(dynamic props) {
                   (Box()
                     ..addAll(props)
@@ -500,7 +500,7 @@ void main() {
                   )();
                 }
             '''),
-            expectedOutput: withHeader('''
+            expectedOutput: withImports('''
                 content(dynamic props) {
                   (Box()
                     ..addAll(props)
@@ -518,7 +518,7 @@ void main() {
 
       test('multiple prop forwarding calls', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props, BoxProps props2) {
                 (Box()
                   ..addProps(props)
@@ -527,7 +527,7 @@ void main() {
                 )();
               }
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props, BoxProps props2) {
                 (Box()
                   ..addProps(props)
@@ -546,7 +546,7 @@ void main() {
 
     test('handles complex prop values with expressions', () async {
       await testSuggestor(
-        input: withHeader('''
+        input: withImports('''
             content(bool condition) {
               (Box()
                 ..mt = condition ? 2 : 4
@@ -555,7 +555,7 @@ void main() {
             }
             int getSpacing() => 3;
         '''),
-        expectedOutput: withHeader('''
+        expectedOutput: withImports('''
             content(bool condition) {
               (Box()
                 ..sx = {
@@ -571,13 +571,13 @@ void main() {
 
     test('handles responsive system prop values', () async {
       await testSuggestor(
-        input: withHeader('''
+        input: withImports('''
             content() => 
                 (Box()
                   ..mt = {'xs': 1, 'sm': 2, 'md': 3}
                 )();
         '''),
-        expectedOutput: withHeader('''
+        expectedOutput: withImports('''
             content() => 
                 (Box()
                   ..sx = {'mt': {'xs': 1, 'sm': 2, 'md': 3}}
@@ -588,7 +588,7 @@ void main() {
 
     test('preserves non-system props', () async {
       await testSuggestor(
-        input: withHeader('''
+        input: withImports('''
             content() => 
                 (Box()
                   ..id = 'test'
@@ -597,7 +597,7 @@ void main() {
                   ..onClick = (_) {}
                 )();
         '''),
-        expectedOutput: withHeader('''
+        expectedOutput: withImports('''
             content() => 
                 (Box()
                   ..id = 'test'
@@ -611,13 +611,13 @@ void main() {
 
     test('handles multiple components in the same file', () async {
       await testSuggestor(
-        input: withHeader('''
+        input: withImports('''
             content() {
               (Box()..mt = 2)();
               (Box()..p = 3)();
             }
         '''),
-        expectedOutput: withHeader('''
+        expectedOutput: withImports('''
             content() { 
               (Box()..sx = {'mt': 2})();
               (Box()..sx = {'p': 3})();
@@ -628,7 +628,7 @@ void main() {
 
     test('respects orcm_ignore comments', () async {
       await testSuggestor(
-        input: withHeader('''
+        input: withImports('''
             // orcm_ignore
             content() => (Box()..mt = 2)();
         '''),
@@ -638,7 +638,7 @@ void main() {
     test('does not migrate components without deprecated system props',
         () async {
       await testSuggestor(
-        input: withHeader('''
+        input: withImports('''
             content() => 
                 (Box()
                   ..id = 'test'
@@ -651,7 +651,7 @@ void main() {
     test('does not migrate deprecated props with the same name as system props',
         () async {
       await testSuggestor(
-        input: withHeader('''
+        input: withImports('''
             content() => (TextField()..color = '')();
         '''),
       );
@@ -659,7 +659,7 @@ void main() {
 
     test('does not flag unrelated cascades with FIXMEs', () async {
       await testSuggestor(
-        input: withHeader('''
+        input: withImports('''
             content() => 
                 (Box()
                   ..addProp('foo', 'bar')
@@ -675,7 +675,7 @@ void main() {
         () {
       test('an existing sx map literal', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
@@ -683,7 +683,7 @@ void main() {
                     ..sx = {'border': '1px solid black'}
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -699,7 +699,7 @@ void main() {
 
       test('an existing sx value', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
@@ -708,7 +708,7 @@ void main() {
                   )();
               Map getSx() => {'color': 'red'};
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -725,14 +725,14 @@ void main() {
 
       test('no existing sx', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
                     ..addProps(props)
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -751,7 +751,7 @@ void main() {
       test('inserts after prop forwarding to avoid being overwritten',
           () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
@@ -759,7 +759,7 @@ void main() {
                     ..id = 'test'
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -774,7 +774,7 @@ void main() {
       test('inserts at location of last system prop when no prop forwarding',
           () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..id = 'first'
@@ -784,7 +784,7 @@ void main() {
                     ..onClick = (_) {}
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..id = 'first'
@@ -799,7 +799,7 @@ void main() {
       test('inserts after latest of (forwarding or last system prop)',
           () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
@@ -807,7 +807,7 @@ void main() {
                     ..p = 3
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -821,7 +821,7 @@ void main() {
 
       test('inserts after all forwarding calls when multiple exist', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props1, BoxProps props2) =>
                   (Box()
                     ..addProps(props1)
@@ -830,7 +830,7 @@ void main() {
                     ..addProps(props2)
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props1, BoxProps props2) =>
                   (Box()
                     ..addProps(props1)
@@ -847,14 +847,14 @@ void main() {
     group('multiline formatting:', () {
       test('uses single line for short sx maps (< 3 elements)', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..mt = 2
                     ..p = 3
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = {'mt': 2, 'p': 3}
@@ -865,7 +865,7 @@ void main() {
 
       test('uses multiline for 3+ elements', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..mt = 2
@@ -873,7 +873,7 @@ void main() {
                     ..mb = 4
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -889,14 +889,14 @@ void main() {
       test('uses multiline for long content (>= 20 chars with 2+ elements)',
           () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..mt = 2
                     ..bgcolor = 'verylongcolor.main'
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -912,14 +912,14 @@ void main() {
     group('preserves comments before system props:', () {
       test('single line comment before single system prop', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     // Add margin
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -933,7 +933,7 @@ void main() {
 
       test('single line comment before one of multiple system props', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..mt = 2
@@ -941,7 +941,7 @@ void main() {
                     ..p = 3
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -956,7 +956,7 @@ void main() {
 
       test('multiple comments before different system props', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     // Top margin
@@ -967,7 +967,7 @@ void main() {
                     ..bgcolor = 'blue'
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -985,7 +985,7 @@ void main() {
 
       test('multi-line comment before system prop', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     /* This is a longer comment
@@ -993,7 +993,7 @@ void main() {
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -1008,7 +1008,7 @@ void main() {
 
       test('comment before system prop with existing sx', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..sx = {'border': '1px solid black'}
@@ -1018,7 +1018,7 @@ void main() {
           '''),
           // Not sure why dartfmt allows two entries like this with trailing commas
           // on the same line, but it is what it is.
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -1033,7 +1033,7 @@ void main() {
       test('comments before system props mixed with non-system props',
           () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..id = 'test'
@@ -1044,7 +1044,7 @@ void main() {
                     ..p = 3
                   )();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..id = 'test'
@@ -1062,7 +1062,7 @@ void main() {
 
       test('comment before system prop with forwarding', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content(BoxProps props) => 
                   (Box()
                     ..addProps(props)
@@ -1072,7 +1072,7 @@ void main() {
           '''),
           // Not sure why dartfmt allows two entries like this with trailing commas
           // on the same line, but it is what it is.
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content(BoxProps props) => 
                   (Box()
                     ..addProps(props)
@@ -1088,7 +1088,7 @@ void main() {
 
       test('inline comment on same line as system prop', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     ..mt = 2 // top margin
@@ -1098,7 +1098,7 @@ void main() {
           // Inline comment behavior here isn't great, but it's too much effort
           // to deal with in this codemod.
           // Just verify the codemod doesn't break or do anything too outlandish.
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                    // top margin
@@ -1110,7 +1110,7 @@ void main() {
 
       test('multiple comment types with system props', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => 
                   (Box()
                     // Line comment
@@ -1122,7 +1122,7 @@ void main() {
           // Inline comment behavior here isn't great, but it's too much effort
           // to deal with in this codemod.
           // Just verify the codemod doesn't break or do anything too outlandish.
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => 
                   (Box()
                    // inline comment
@@ -1141,10 +1141,10 @@ void main() {
     group('handles different component types with system props:', () {
       test('Box', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => (Box()..mt = 2)();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => (Box()..sx = {'mt': 2})();
           '''),
         );
@@ -1152,10 +1152,10 @@ void main() {
 
       test('Grid', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => (Grid()..mt = 2)();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => (Grid()..sx = {'mt': 2})();
           '''),
         );
@@ -1163,10 +1163,10 @@ void main() {
 
       test('Stack', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => (Stack()..mt = 2)();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => (Stack()..sx = {'mt': 2})();
           '''),
         );
@@ -1174,10 +1174,10 @@ void main() {
 
       test('Typography', () async {
         await testSuggestor(
-          input: withHeader('''
+          input: withImports('''
               content() => (Typography()..mt = 2)();
           '''),
-          expectedOutput: withHeader('''
+          expectedOutput: withImports('''
               content() => (Typography()..sx = {'mt': 2})();
           '''),
         );
