@@ -111,7 +111,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       final propName = prop.name.name;
       if (propName == 'sx') {
         existingSxProp = prop;
-      } else if (_systemPropNames.contains(propName)) {
+      } else if (systemPropNames.contains(propName)) {
         final propElement = prop.staticElement?.nonSynthetic;
         final declaringPropsElement = propElement?.enclosingElement;
         if (propElement != null && declaringPropsElement != null) {
@@ -363,7 +363,7 @@ const _componentsWithDeprecatedSystemProps = {
   'Typography',
 };
 
-const _systemPropNames = {
+const systemPropNames = {
   'm',
   'mt',
   'mr',

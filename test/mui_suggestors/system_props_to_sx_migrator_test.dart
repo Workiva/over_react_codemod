@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+
 import 'package:over_react_codemod/src/mui_suggestors/system_props_to_sx_migrator.dart';
 import 'package:test/test.dart';
 
@@ -20,13 +22,28 @@ import '../util.dart';
 
 void main() {
   group('SystemPropsToSxMigrator', () {
-    final resolvedContext = SharedAnalysisContext.muiStub;
-    setUpAll(resolvedContext.warmUpAnalysis);
+    final resolvedContext = SharedAnalysisContext.overReact;
 
-    final testSuggestor = getSuggestorTester(
-      SystemPropsToSxMigrator(),
-      resolvedContext: resolvedContext,
-    );
+    late String muiUri;
+
+    setUpAll(() async {
+      await resolvedContext.warmUpAnalysis();
+
+      // Set up a file with stubbed MUI components with system props, for the
+      // test inputs to import and the suggestor to detect.
+      final muiComponentsFile = await resolvedContext.resolvedFileContextForTest(
+        getStubMuiComponentSource(filenameWithoutExtension: 'mui_components'),
+        filename: 'mui_components.dart',
+      );
+      muiUri = Uri.file(muiComponentsFile.path).toString();
+    });
+
+    String withHeader(String source) => '''
+      //@dart=2.19
+      import 'package:over_react/over_react.dart';
+      import ${jsonEncode(muiUri.toString())};
+      $source
+    ''';
 
     const sxPrecedenceFixme =
         '// FIXME(mui_system_props_migration) - Previously, it was possible for forwarded system props to overwrite these migrated styles, but not anymore since sx takes precedence over any system props.'
@@ -34,6 +51,11 @@ void main() {
 
     const sxMergeFixme =
         '// FIXME(mui_system_props_migration) - spread in any sx prop forwarded to this component above, if needed (spread should go at the end of this map to preserve behavior)';
+
+    final testSuggestor = getSuggestorTester(
+      SystemPropsToSxMigrator(),
+      resolvedContext: resolvedContext,
+    );
 
     test('migrates single system prop to sx', () async {
       await testSuggestor(
@@ -1131,9 +1153,49 @@ void main() {
   });
 }
 
-String withHeader(String source) => '''
-  import 'package:over_react/over_react.dart';
-  import 'package:mui_stub/components.dart';
-  
-  $source
-''';
+String getStubMuiComponentSource({required String filenameWithoutExtension}) {
+  const componentsWithSystemProps = [
+    'Box',
+    'Stack',
+    'Grid',
+    'Typography',
+  ];
+  return '''
+      //@dart=2.19
+      import 'package:over_react/over_react.dart';
+      import 'package:over_react/js_component.dart';
+
+      // ignore: uri_has_not_been_generated
+      part '$filenameWithoutExtension.over_react.g.dart';
+      
+      ${componentsWithSystemProps.map(systemPropsComponentSource).join('\n\n')}
+      
+      UiFactory<TextFieldProps> TextField = uiFunction((_) {}, _\$TextFieldConfig);
+      
+      @Props(keyNamespace: '')
+      mixin TextFieldProps on UiProps {
+        @convertJsMapProp
+        Map? sx;
+      
+        @Deprecated('Deprecated, but not the same as the system props color')
+        dynamic color;
+      }
+  ''';
+}
+
+String systemPropsComponentSource(String componentName) {
+  final systemProps = systemPropNames
+      .map((propName) => "  @Deprecated('Use sx.') dynamic ${propName};")
+      .join('\n');
+  return '''
+      UiFactory<${componentName}Props> $componentName = uiFunction((_) {}, _\$${componentName}Config);
+      
+      @Props(keyNamespace: '')
+      mixin ${componentName}Props on UiProps {
+        @convertJsMapProp
+        Map? sx;
+      
+        ${systemProps}
+      }
+  ''';
+}
