@@ -14,6 +14,9 @@
 
 import 'dart:convert';
 
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:collection/collection.dart';
 import 'package:over_react_codemod/src/mui_suggestors/system_props_to_sx_migrator.dart';
 import 'package:test/test.dart';
 
@@ -56,6 +59,36 @@ void main() {
       SystemPropsToSxMigrator(),
       resolvedContext: resolvedContext,
     );
+
+    group('hasSxAndSomeSystemProps returns as expected for test props:', () {
+      late ResolvedUnitResult unit;
+
+      setUpAll(() async {
+        final file =
+            await resolvedContext.resolvedFileContextForTest(withHeader(''));
+        unit = (await file.getResolvedUnit())!;
+      });
+
+      InterfaceElement getProps(String propsName) =>
+          getImportedInterfaceElement(unit, propsName);
+
+      test('with system props', () async {
+        expect(
+          hasSxAndSomeSystemProps(getProps('BoxProps')),
+          isTrue,
+        );
+        expect(hasSxAndSomeSystemProps(getProps('GridProps')), isTrue);
+        expect(hasSxAndSomeSystemProps(getProps('StackProps')), isTrue);
+        expect(hasSxAndSomeSystemProps(getProps('TypographyProps')), isTrue);
+      });
+
+      test('without system props', () async {
+        // Test props with sx and a prop named like a system prop.
+        expect(hasSxAndSomeSystemProps(getProps('TextFieldProps')), isFalse);
+        // Some other props from over_react.
+        expect(hasSxAndSomeSystemProps(getProps('DomProps')), isFalse);
+      });
+    });
 
     test('migrates single system prop to sx', () async {
       await testSuggestor(
@@ -1156,8 +1189,8 @@ void main() {
 String getStubMuiLibrarySource({required String filenameWithoutExtension}) {
   final systemPropComponentsSource = [
     'Box',
-    'Stack',
     'Grid',
+    'Stack',
     'Typography',
   ].map((componentName) {
     return '''
@@ -1195,3 +1228,17 @@ String getStubMuiLibrarySource({required String filenameWithoutExtension}) {
       }
   ''';
 }
+
+// Borrowed from https://github.com/Workiva/over_react/blob/5.6.0/tools/analyzer_plugin/test/unit/util/prop_declaration/util.dart#L73-L78
+
+InterfaceElement getInterfaceElement(ResolvedUnitResult result, String name) =>
+    result.libraryElement.topLevelElements
+        .whereType<InterfaceElement>()
+        .singleWhere((e) => e.name == name);
+
+InterfaceElement getImportedInterfaceElement(
+        ResolvedUnitResult result, String name) =>
+    result.libraryElement.importedLibraries
+        .map((l) => l.exportNamespace.get(name))
+        .whereNotNull()
+        .single as InterfaceElement;
