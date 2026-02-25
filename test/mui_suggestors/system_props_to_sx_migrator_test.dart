@@ -31,11 +31,11 @@ void main() {
 
       // Set up a file with stubbed MUI components with system props, for the
       // test inputs to import and the suggestor to detect.
-      final muiComponentsFile = await resolvedContext.resolvedFileContextForTest(
-        getStubMuiComponentSource(filenameWithoutExtension: 'mui_components'),
+      final muiFile = await resolvedContext.resolvedFileContextForTest(
+        getStubMuiLibrarySource(filenameWithoutExtension: 'mui_components'),
         filename: 'mui_components.dart',
       );
-      muiUri = Uri.file(muiComponentsFile.path).toString();
+      muiUri = Uri.file(muiFile.path).toString();
     });
 
     String withHeader(String source) => '''
@@ -1153,13 +1153,26 @@ void main() {
   });
 }
 
-String getStubMuiComponentSource({required String filenameWithoutExtension}) {
-  const componentsWithSystemProps = [
+String getStubMuiLibrarySource({required String filenameWithoutExtension}) {
+  final systemPropComponentsSource = [
     'Box',
     'Stack',
     'Grid',
     'Typography',
-  ];
+  ].map((componentName) {
+    return '''
+      UiFactory<${componentName}Props> $componentName = uiFunction((_) {}, _\$${componentName}Config);
+      
+      @Props(keyNamespace: '')
+      mixin ${componentName}Props on UiProps {
+        @convertJsMapProp
+        Map? sx;
+      
+        ${systemPropNames.map((propName) => "  @Deprecated('Use sx.') dynamic ${propName};").join('\n')}
+      }
+  ''';
+  }).join('\n\n');
+
   return '''
       //@dart=2.19
       import 'package:over_react/over_react.dart';
@@ -1168,7 +1181,7 @@ String getStubMuiComponentSource({required String filenameWithoutExtension}) {
       // ignore: uri_has_not_been_generated
       part '$filenameWithoutExtension.over_react.g.dart';
       
-      ${componentsWithSystemProps.map(systemPropsComponentSource).join('\n\n')}
+      $systemPropComponentsSource
       
       UiFactory<TextFieldProps> TextField = uiFunction((_) {}, _\$TextFieldConfig);
       
@@ -1179,23 +1192,6 @@ String getStubMuiComponentSource({required String filenameWithoutExtension}) {
       
         @Deprecated('Deprecated, but not the same as the system props color')
         dynamic color;
-      }
-  ''';
-}
-
-String systemPropsComponentSource(String componentName) {
-  final systemProps = systemPropNames
-      .map((propName) => "  @Deprecated('Use sx.') dynamic ${propName};")
-      .join('\n');
-  return '''
-      UiFactory<${componentName}Props> $componentName = uiFunction((_) {}, _\$${componentName}Config);
-      
-      @Props(keyNamespace: '')
-      mixin ${componentName}Props on UiProps {
-        @convertJsMapProp
-        Map? sx;
-      
-        ${systemProps}
       }
   ''';
 }
