@@ -216,6 +216,34 @@ void main() {
           '''),
         );
       });
+
+      test('with an entry that has the same key as a migrated system prop',
+          () async {
+
+        await testSuggestor(
+          input: withImports('''
+              content() => 
+                  (Box()
+                    ..sx = {
+                      'mt': 1,
+                    }
+                    ..mt = 2
+                  )();
+          '''),
+          // This will result in duplicate keys in the map, but they're in the
+          // correct order to preserve the original behavior, and will result in
+          // a hint that there are duplicate entries.
+          expectedOutput: withImports('''
+              content() => 
+                  (Box()
+                    ..sx = { 
+                      'mt': 2,
+                      'mt': 1,
+                    }
+                  )();
+          '''),
+        );
+      });
     });
 
     group('merges with forwarded sx prop using spread:', () {

@@ -176,7 +176,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
               .join('');
     }
 
-    // Add or update sx prop wirth migrated system props.
+    // Add or update sx prop with migrated system props.
     if (existingSxProp != null) {
       //
       // Case 1: add styles to existing sx prop value
