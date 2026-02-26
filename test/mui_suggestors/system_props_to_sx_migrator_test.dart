@@ -17,6 +17,7 @@ import 'dart:convert';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
+import 'package:over_react_codemod/src/mui_suggestors/system_props.dart';
 import 'package:over_react_codemod/src/mui_suggestors/system_props_to_sx_migrator.dart';
 import 'package:test/test.dart';
 

@@ -14,15 +14,15 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:over_react_codemod/src/util.dart';
 import 'package:over_react_codemod/src/util/component_usage.dart';
 import 'package:over_react_codemod/src/util/component_usage_migrator.dart';
 import 'package:over_react_codemod/src/util/element_type_helpers.dart';
+
+import 'system_props.dart';
 
 /// A suggestor that migrates deprecated MUI system props to the `sx` prop,
 /// ensuring that existing `sx` prop values are preserved and merged correctly.
@@ -357,128 +357,3 @@ List<_PropSpreadSource> _detectPropForwardingSources(
       .whereNotNull()
       .toList();
 }
-
-/// Duck-types a component props class as a MUI-system-props-supporting props
-/// class by checking for the presence of an `sx` prop and at least one system prop.
-@visibleForTesting
-bool hasSxAndSomeSystemProps(InterfaceElement propsElement) {
-  const propsToCheck = [
-    'sx',
-    // The following items are arbitrary; we don't need to check for all system props,
-    // just a few to help prevent false positives where components have a prop or two
-    // that happens to match a system prop.
-    'bgcolor',
-    'm',
-    'letterSpacing',
-  ];
-
-  return propsToCheck.every((propName) =>
-      propsElement.lookUpGetter(propName, propsElement.library) != null);
-}
-
-@visibleForTesting
-const systemPropNames = {
-  'm',
-  'mt',
-  'mr',
-  'mb',
-  'ml',
-  'mx',
-  'my',
-  'p',
-  'pt',
-  'pr',
-  'pb',
-  'pl',
-  'px',
-  'py',
-  'width',
-  'maxWidth',
-  'minWidth',
-  'height',
-  'maxHeight',
-  'minHeight',
-  'boxSizing',
-  'display',
-  'displayPrint',
-  'overflow',
-  'textOverflow',
-  'visibility',
-  'whiteSpace',
-  'flexBasis',
-  'flexDirection',
-  'flexWrap',
-  'justifyContent',
-  'alignItems',
-  'alignContent',
-  'order',
-  'flex',
-  'flexGrow',
-  'flexShrink',
-  'alignSelf',
-  'justifyItems',
-  'justifySelf',
-  'gap',
-  'columnGap',
-  'rowGap',
-  'gridColumn',
-  'gridRow',
-  'gridAutoFlow',
-  'gridAutoColumns',
-  'gridAutoRows',
-  'gridTemplateColumns',
-  'gridTemplateRows',
-  'gridTemplateAreas',
-  'gridArea',
-  'bgcolor',
-  'color',
-  'zIndex',
-  'position',
-  'top',
-  'right',
-  'bottom',
-  'left',
-  'boxShadow',
-  'border',
-  'borderTop',
-  'borderRight',
-  'borderBottom',
-  'borderLeft',
-  'borderColor',
-  'borderRadius',
-  'fontFamily',
-  'fontSize',
-  'fontStyle',
-  'fontWeight',
-  'letterSpacing',
-  'lineHeight',
-  'textAlign',
-  'textTransform',
-  'margin',
-  'marginTop',
-  'marginRight',
-  'marginBottom',
-  'marginLeft',
-  'marginX',
-  'marginY',
-  'marginInline',
-  'marginInlineStart',
-  'marginInlineEnd',
-  'marginBlock',
-  'marginBlockStart',
-  'marginBlockEnd',
-  'padding',
-  'paddingTop',
-  'paddingRight',
-  'paddingBottom',
-  'paddingLeft',
-  'paddingX',
-  'paddingY',
-  'paddingInline',
-  'paddingInlineStart',
-  'paddingInlineEnd',
-  'paddingBlock',
-  'paddingBlockStart',
-  'paddingBlockEnd',
-  'typography',
-};
