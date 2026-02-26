@@ -219,7 +219,6 @@ void main() {
 
       test('with an entry that has the same key as a migrated system prop',
           () async {
-
         await testSuggestor(
           input: withImports('''
               content() => 
