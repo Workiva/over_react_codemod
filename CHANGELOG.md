@@ -1,4 +1,4 @@
-## Unreleased
+## 2.38.0
 - Add mui_system_props_migration codemod to migrate from system props to sx
 
 ## 2.37.1
