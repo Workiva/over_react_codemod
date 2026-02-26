@@ -549,5 +549,5 @@ extension ParentFieldDeclExtension on VariableDeclaration {
 
 String blockComment(String contents) => '/*$contents*/';
 
-String lineComment(String contents) =>
-    contents.split('\n').map((line) => '// $line\n').join('');
+String lineComment(String contents, {String indent = ''}) =>
+    contents.split('\n').map((line) => '$indent// $line\n').join('');
