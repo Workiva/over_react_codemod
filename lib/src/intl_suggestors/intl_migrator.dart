@@ -122,18 +122,19 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
       if (string.toUpperCase() == string) return;
       // Is the first character uppercase, excluding strings that start with two of the same
       // uppercase character, which has a good chance of being a date format (e.g. 'MM/dd/YYYY').
-      if (firstLetter != secondLetter &&
-          firstLetter.toLowerCase() != firstLetter) {
-        // Constant strings might be private.
-        var name = publicNameFor(node);
-        names.add(name);
-        final functionCall =
-            _messages.syntax.getterCall(literal, _className, name: name);
-        final functionDef =
-            _messages.syntax.getterDefinition(literal, _className, name: name);
-        yieldPatch('final String ${node.name} = $functionCall', start, end);
-        addMethodToClass(_messages, functionDef);
+      if (firstLetter == secondLetter &&
+          firstLetter.toUpperCase() == firstLetter) {
+        return;
       }
+      // Constant strings might be private.
+      var name = publicNameFor(node);
+      names.add(name);
+      final functionCall =
+          _messages.syntax.getterCall(literal, _className, name: name);
+      final functionDef =
+          _messages.syntax.getterDefinition(literal, _className, name: name);
+      yieldPatch('final String ${node.name} = $functionCall', start, end);
+      addMethodToClass(_messages, functionDef);
     }
   }
 
