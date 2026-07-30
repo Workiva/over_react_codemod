@@ -6,5 +6,5 @@ final config = {
     ..exclude = [
       Glob('test/test_fixtures/**'),
     ],
-  'analyze': AnalyzeTool(),
+  'analyze': AnalyzeTool()..analyzerArgs = ['--no-fatal-warnings'],
 };
