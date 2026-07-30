@@ -1,6 +1,6 @@
 name: rmui_project
 environment:
-  sdk: '>=3.12.0 <4.0.0'
+  sdk: '>=2.11.0 <3.0.0'
 dependencies:
   over_react: ^5.0.0
   react_material_ui:
