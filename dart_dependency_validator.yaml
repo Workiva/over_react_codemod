@@ -1,5 +1,6 @@
 exclude:
   - 'test/test_fixtures/**'
 ignore:
+  - dart_style
   - meta
   - test_api
