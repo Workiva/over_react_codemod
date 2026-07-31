@@ -50,7 +50,7 @@ Map<String, dynamic> _$MixinMetadataToJson(MixinMetadata instance) =>
 
 MixinResult _$MixinResultFromJson(Map<String, dynamic> json) => MixinResult(
       visibility: $enumDecode(_$VisibilityEnumMap, json['visibility']),
-      usageSkipCount: json['usageSkipCount'] as int,
+      usageSkipCount: (json['usageSkipCount'] as num).toInt(),
       usageSkipRate: json['usageSkipRate'] as num,
       propResultsByName:
           (json['propResultsByName'] as Map<String, dynamic>).map(
@@ -90,9 +90,9 @@ PropResult _$PropResultFromJson(Map<String, dynamic> json) => PropResult(
       samePackageRate: json['samePackageRate'] as num?,
       otherPackageRate: json['otherPackageRate'] as num?,
       totalRate: json['totalRate'] as num,
-      samePackageUsageCount: json['samePackageUsageCount'] as int,
-      otherPackageUsageCount: json['otherPackageUsageCount'] as int,
-      totalUsageCount: json['totalUsageCount'] as int,
+      samePackageUsageCount: (json['samePackageUsageCount'] as num).toInt(),
+      otherPackageUsageCount: (json['otherPackageUsageCount'] as num).toInt(),
+      totalUsageCount: (json['totalUsageCount'] as num).toInt(),
       debugSamePackageUnsetUsages:
           (json['debugSamePackageUnsetUsages'] as List<dynamic>?)
               ?.map((e) => e as String)
