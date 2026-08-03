@@ -1,3 +1,7 @@
+## Unreleased
+- Upgrade to Dart 3 SDK (`>=3.12.0 <4.0.0`)
+- Remove `null_safety_required_props` codemod and related fixtures (null-safety migration tooling no longer needed under Dart 3)
+
 ## 2.38.0
 - Add mui_system_props_migration codemod to migrate from system props to sx
 
