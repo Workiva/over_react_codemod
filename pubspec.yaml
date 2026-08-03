@@ -45,7 +45,6 @@ executables:
   dart2_9_upgrade:
   dependency_validator_ignore:
   null_safety_migrator_companion:
-  null_safety_required_props:
   null_safety_prep:
   mui_migration:
   mui_system_props_migration:
