@@ -49,22 +49,14 @@ class SharedAnalysisContext {
   ///
   /// Use this when possible over [wsd], since it resolves much faster.
   ///
-  /// Since this fixture is now Dart 3, some tests that exercise suggestors on
-  /// legacy pre-null-safe code patterns will encounter analysis errors (e.g.
-  /// uninitialized non-nullable fields). Those errors are suppressed via
-  /// [defaultIsExpectedError] so the tests can still run and verify suggestor
-  /// behavior.
+  /// Since this fixture is now Dart 3, tests that write Dart 2-style source
+  /// (uninitialized fields, nullable function calls, etc.) into it will produce
+  /// null-safety analysis errors. Those are suppressed via [defaultIsExpectedError]
+  /// so suggestor tests can still exercise pre-null-safe code patterns.
   static final overReact = SharedAnalysisContext(
       p.join(findPackageRootFor(p.current), 'test/test_fixtures/over_react_project'),
       defaultIsExpectedError: _isLegacyNullSafetyError);
 
-  /// Suppresses analysis errors that arise from Dart 2-style code patterns
-  /// when such code is written into a Dart 3 analysis context for testing.
-  ///
-  /// These errors are structural: the test source intentionally uses pre-null-safe
-  /// patterns (nullable function calls, null assignments, uninitialized fields,
-  /// override of nullable setters, etc.) to exercise suggestors that transform
-  /// them. They are not test setup errors.
   static bool _isLegacyNullSafetyError(AnalysisError error) {
     const legacyCodes = {
       'not_initialized_non_nullable_instance_field',
@@ -109,9 +101,7 @@ class SharedAnalysisContext {
   final String? customPubGetErrorMessage;
 
   /// An optional default error filter applied to every [resolvedFileContextForTest]
-  /// call on this context. Useful for suppressing analysis errors that are
-  /// structurally expected for a given fixture (e.g. pre-null-safe code patterns
-  /// in a Dart 3 fixture).
+  /// call. Merged with any caller-provided [isExpectedError].
   final IsExpectedError? defaultIsExpectedError;
 
   // Namespace the test path using a UUID so that concurrent runs
