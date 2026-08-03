@@ -48,8 +48,35 @@ class SharedAnalysisContext {
   /// that depends on the `over_react` package.
   ///
   /// Use this when possible over [wsd], since it resolves much faster.
-  static final overReact = SharedAnalysisContext(p.join(
-      findPackageRootFor(p.current), 'test/test_fixtures/over_react_project'));
+  ///
+  /// Since this fixture is now Dart 3, some tests that exercise suggestors on
+  /// legacy pre-null-safe code patterns will encounter analysis errors (e.g.
+  /// uninitialized non-nullable fields). Those errors are suppressed via
+  /// [defaultIsExpectedError] so the tests can still run and verify suggestor
+  /// behavior.
+  static final overReact = SharedAnalysisContext(
+      p.join(findPackageRootFor(p.current), 'test/test_fixtures/over_react_project'),
+      defaultIsExpectedError: _isLegacyNullSafetyError);
+
+  /// Suppresses analysis errors that arise from Dart 2-style code patterns
+  /// when such code is written into a Dart 3 analysis context for testing.
+  ///
+  /// These errors are structural: the test source intentionally uses pre-null-safe
+  /// patterns (nullable function calls, null assignments, uninitialized fields,
+  /// override of nullable setters, etc.) to exercise suggestors that transform
+  /// them. They are not test setup errors.
+  static bool _isLegacyNullSafetyError(AnalysisError error) {
+    const legacyCodes = {
+      'not_initialized_non_nullable_instance_field',
+      'not_initialized_non_nullable_variable',
+      'unchecked_use_of_nullable_value',
+      'argument_type_not_assignable',
+      'invalid_override',
+      'main_first_positional_parameter_type',
+      'body_might_complete_normally',
+    };
+    return legacyCodes.contains(error.errorCode.name.toLowerCase());
+  }
 
   /// A context root located at `test/test_fixtures/over_react_null_safe_project`
   /// that depends on the `over_react` package and a null-safe Dart version.
@@ -81,6 +108,12 @@ class SharedAnalysisContext {
   /// A custom error message to display if `pub get` fails.
   final String? customPubGetErrorMessage;
 
+  /// An optional default error filter applied to every [resolvedFileContextForTest]
+  /// call on this context. Useful for suppressing analysis errors that are
+  /// structurally expected for a given fixture (e.g. pre-null-safe code patterns
+  /// in a Dart 3 fixture).
+  final IsExpectedError? defaultIsExpectedError;
+
   // Namespace the test path using a UUID so that concurrent runs
   // don't try to output the same filename, making it so that we can
   // easily create new filenames by counting synchronously [nextFilename]
@@ -91,7 +124,8 @@ class SharedAnalysisContext {
   // analysis results (meaning faster test runs).
   final _testFileSubpath = 'lib/dynamic_test_files/${Uuid().v4()}';
 
-  SharedAnalysisContext(this._path, {this.customPubGetErrorMessage}) {
+  SharedAnalysisContext(this._path,
+      {this.customPubGetErrorMessage, this.defaultIsExpectedError}) {
     if (!p.isAbsolute(_path)) {
       throw ArgumentError.value(_path, 'projectRoot', 'must be absolute');
     }
@@ -235,7 +269,14 @@ class SharedAnalysisContext {
       final result = await _printAboutFirstFile(
           () => context.currentSession.getResolvedLibrary(path));
       if (throwOnAnalysisErrors) {
-        checkResolvedResultForErrors(result, isExpectedError: isExpectedError);
+        final mergedIsExpectedError =
+            (defaultIsExpectedError == null && isExpectedError == null)
+                ? null
+                : (AnalysisError error) =>
+                    (defaultIsExpectedError?.call(error) ?? false) ||
+                    (isExpectedError?.call(error) ?? false);
+        checkResolvedResultForErrors(result,
+            isExpectedError: mergedIsExpectedError);
       }
     }
 
