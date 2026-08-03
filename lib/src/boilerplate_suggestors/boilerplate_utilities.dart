@@ -123,7 +123,7 @@ class SemverHelper {
     }
 
     final locations = <String>[];
-    _exportList!.forEach((key, value) {
+    _exportList.forEach((key, value) {
       if (value['type'] == 'class' && value['grammar']['name'] == className) {
         locations.add(key);
       }

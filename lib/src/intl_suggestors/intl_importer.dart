@@ -148,7 +148,7 @@ _InsertionLocation _insertionLocationForPackageImport(
     final uriContent = importDirective.uri.stringValue;
     if (uriContent != null) {
       final uri = Uri.parse(uriContent);
-      return uri != null && uri.scheme != 'package' && uri.scheme != 'dart';
+      return uri.scheme != 'package' && uri.scheme != 'dart';
     }
     return true;
   });
