@@ -15,9 +15,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:codemod/codemod.dart';
-import 'package:logging/logging.dart';
-
-final _log = Logger('unusedWsdImportRemover');
 
 /// Creates a suggestor that removes unused [package] imports.
 Suggestor unusedImportRemoverSuggestorBuilder(String package) {

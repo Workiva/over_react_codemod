@@ -163,7 +163,7 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
 
     final fixmes = [
       if (anySystemPropSetBeforeForwarding)
-        'Previously, it was possible for forwarded system props to overwrite these migrated styles, but not anymore since sx takes precedence over any system props.'
+        'Previously, it was possible for forwarded system props to overwrite these migrated styles, but not anymore since sx takes precedence over any system props.' +
             '\n Double-check that this new behavior is okay.',
     ];
     String getFixmesSource() {

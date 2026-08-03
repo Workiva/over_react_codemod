@@ -16,9 +16,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:codemod/codemod.dart';
 import 'package:collection/collection.dart';
-import 'package:logging/logging.dart';
-
-final _log = Logger('muiImporter');
 
 /// Creates a suggestor that adds [importUri] imports in libraries that reference
 /// the [importNamespace] (including in parts) but don't yet import it.
