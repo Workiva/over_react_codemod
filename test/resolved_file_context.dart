@@ -80,6 +80,7 @@ class SharedAnalysisContext {
   /// that depends on the internal `web_skin_dart` package (as well as `over_react`).
   static final wsd = SharedAnalysisContext(
       p.join(findPackageRootFor(p.current), 'test/test_fixtures/wsd_project'),
+      defaultIsExpectedError: _isLegacyNullSafetyError,
       customPubGetErrorMessage:
           'If this fails to resolve in GitHub Actions, make sure your test or'
           ' test group is tagged with "wsd" so that it\'s only run in Skynet.');
@@ -87,7 +88,8 @@ class SharedAnalysisContext {
   /// A context root located at `test/test_fixtures/rmui_project`
   /// that depends on the `react_material_ui` package (as well as `over_react`).
   static final rmui = SharedAnalysisContext(
-      p.join(findPackageRootFor(p.current), 'test/test_fixtures/rmui_project'));
+      p.join(findPackageRootFor(p.current), 'test/test_fixtures/rmui_project'),
+      defaultIsExpectedError: _isLegacyNullSafetyError);
 
   /// The path to the package root in which test files will be created
   /// and resolved.
