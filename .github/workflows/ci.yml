@@ -13,18 +13,22 @@ jobs:
   checks:
     uses: Workiva/gha-dart-oss/.github/workflows/checks.yaml@v0.1.12
     with:
+      sdk: 3.12.2
+      format-check: false
       additional-checks: |
         no_entrypoint_imports
 
   build:
     uses: Workiva/gha-dart-oss/.github/workflows/build.yaml@v0.1.12
+    with:
+      sdk: 3.12.2
 
   test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        sdk: [ 2.19.6 ]
+        sdk: [ 3.12.2 ]
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v0.2

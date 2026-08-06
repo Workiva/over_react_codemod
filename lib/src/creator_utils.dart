@@ -206,7 +206,7 @@ class DartProjectCreatorTestConfig {
   }
 
   String get testName {
-    if (_testName != null) return _testName!;
+    if (_testName != null) return _testName;
 
     var name = 'returns exit code ${expectedExitCode} with ';
     if (pubspecCreators.isEmpty) {

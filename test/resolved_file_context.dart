@@ -48,8 +48,27 @@ class SharedAnalysisContext {
   /// that depends on the `over_react` package.
   ///
   /// Use this when possible over [wsd], since it resolves much faster.
-  static final overReact = SharedAnalysisContext(p.join(
-      findPackageRootFor(p.current), 'test/test_fixtures/over_react_project'));
+  ///
+  /// Since this fixture is now Dart 3, tests that write Dart 2-style source
+  /// (uninitialized fields, nullable function calls, etc.) into it will produce
+  /// null-safety analysis errors. Those are suppressed via [defaultIsExpectedError]
+  /// so suggestor tests can still exercise pre-null-safe code patterns.
+  static final overReact = SharedAnalysisContext(
+      p.join(findPackageRootFor(p.current), 'test/test_fixtures/over_react_project'),
+      defaultIsExpectedError: _isLegacyNullSafetyError);
+
+  static bool _isLegacyNullSafetyError(AnalysisError error) {
+    const legacyCodes = {
+      'not_initialized_non_nullable_instance_field',
+      'not_initialized_non_nullable_variable',
+      'unchecked_use_of_nullable_value',
+      'argument_type_not_assignable',
+      'invalid_override',
+      'main_first_positional_parameter_type',
+      'body_might_complete_normally',
+    };
+    return legacyCodes.contains(error.errorCode.name.toLowerCase());
+  }
 
   /// A context root located at `test/test_fixtures/over_react_null_safe_project`
   /// that depends on the `over_react` package and a null-safe Dart version.
@@ -61,6 +80,7 @@ class SharedAnalysisContext {
   /// that depends on the internal `web_skin_dart` package (as well as `over_react`).
   static final wsd = SharedAnalysisContext(
       p.join(findPackageRootFor(p.current), 'test/test_fixtures/wsd_project'),
+      defaultIsExpectedError: _isLegacyNullSafetyError,
       customPubGetErrorMessage:
           'If this fails to resolve in GitHub Actions, make sure your test or'
           ' test group is tagged with "wsd" so that it\'s only run in Skynet.');
@@ -68,7 +88,8 @@ class SharedAnalysisContext {
   /// A context root located at `test/test_fixtures/rmui_project`
   /// that depends on the `react_material_ui` package (as well as `over_react`).
   static final rmui = SharedAnalysisContext(
-      p.join(findPackageRootFor(p.current), 'test/test_fixtures/rmui_project'));
+      p.join(findPackageRootFor(p.current), 'test/test_fixtures/rmui_project'),
+      defaultIsExpectedError: _isLegacyNullSafetyError);
 
   /// The path to the package root in which test files will be created
   /// and resolved.
@@ -81,6 +102,10 @@ class SharedAnalysisContext {
   /// A custom error message to display if `pub get` fails.
   final String? customPubGetErrorMessage;
 
+  /// An optional default error filter applied to every [resolvedFileContextForTest]
+  /// call. Merged with any caller-provided [isExpectedError].
+  final IsExpectedError? defaultIsExpectedError;
+
   // Namespace the test path using a UUID so that concurrent runs
   // don't try to output the same filename, making it so that we can
   // easily create new filenames by counting synchronously [nextFilename]
@@ -91,7 +116,8 @@ class SharedAnalysisContext {
   // analysis results (meaning faster test runs).
   final _testFileSubpath = 'lib/dynamic_test_files/${Uuid().v4()}';
 
-  SharedAnalysisContext(this._path, {this.customPubGetErrorMessage}) {
+  SharedAnalysisContext(this._path,
+      {this.customPubGetErrorMessage, this.defaultIsExpectedError}) {
     if (!p.isAbsolute(_path)) {
       throw ArgumentError.value(_path, 'projectRoot', 'must be absolute');
     }
@@ -235,7 +261,14 @@ class SharedAnalysisContext {
       final result = await _printAboutFirstFile(
           () => context.currentSession.getResolvedLibrary(path));
       if (throwOnAnalysisErrors) {
-        checkResolvedResultForErrors(result, isExpectedError: isExpectedError);
+        final mergedIsExpectedError =
+            (defaultIsExpectedError == null && isExpectedError == null)
+                ? null
+                : (AnalysisError error) =>
+                    (defaultIsExpectedError?.call(error) ?? false) ||
+                    (isExpectedError?.call(error) ?? false);
+        checkResolvedResultForErrors(result,
+            isExpectedError: mergedIsExpectedError);
       }
     }
 

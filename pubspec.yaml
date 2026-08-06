@@ -8,7 +8,7 @@ description: >
 
 
 environment:
-  sdk: '>=2.19.0 <3.0.0'
+  sdk: '>=3.12.0 <4.0.0'
 
 dependencies:
   analyzer: ^5.0.0
@@ -16,10 +16,8 @@ dependencies:
   codemod: ^1.0.1
   collection: ^1.15.0
   glob: ^2.0.1
-  json_annotation: ^4.8.0
   logging: ^1.0.1
   meta: ^1.16.0
-  package_config: ^2.1.0
   path: ^1.8.0
   pub_semver: ^2.0.0
   source_span: ^1.8.1
@@ -27,7 +25,6 @@ dependencies:
   yaml_edit: ^2.0.0
   file: ^6.1.2
   io: ^1.0.0
-  w_transport: ^5.2.1
 
 dev_dependencies:
   async: ^2.0.0
@@ -45,12 +42,8 @@ dev_dependencies:
 executables:
   dart2_9_upgrade:
   dependency_validator_ignore:
-  null_safety_migrator_companion:
-  null_safety_required_props:
-  null_safety_prep:
   mui_migration:
   mui_system_props_migration:
-  required_flux_props:
   rmui_preparation:
   rmui_bundle_update:
   intl_message_migration:
