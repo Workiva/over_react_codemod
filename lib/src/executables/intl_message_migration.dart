@@ -72,13 +72,15 @@ final parser = ArgParser()
   ..addFlag(
     _yesToAllFlag,
     negatable: false,
-    help: 'Forces all patches accepted without prompting the user. '
+    help:
+        'Forces all patches accepted without prompting the user. '
         'Useful for scripts.',
   )
   ..addFlag(
     _failOnChangesFlag,
     negatable: false,
-    help: 'Returns a non-zero exit code if there are changes to be made. '
+    help:
+        'Returns a non-zero exit code if there are changes to be made. '
         'Will not make any changes (i.e. this is a dry-run).',
   )
   ..addFlag(
@@ -93,12 +95,14 @@ final parser = ArgParser()
     help:
         "Try to remove any messages in the generated _intl.dart file that aren't called.",
   )
-  ..addFlag(_noMigrate,
-      negatable: false,
-      defaultsTo: false,
-      help:
-          'Does not run any migrators, overriding any --migrate flags. Can still be used with --prune-unused, and '
-          'will force the messages file to be sorted and rewritten')
+  ..addFlag(
+    _noMigrate,
+    negatable: false,
+    defaultsTo: false,
+    help:
+        'Does not run any migrators, overriding any --migrate flags. Can still be used with --prune-unused, and '
+        'will force the messages file to be sorted and rewritten',
+  )
   ..addFlag(
     _migrateConstants,
     negatable: true,
@@ -163,14 +167,15 @@ void main(List<String> args) async {
   // those, and make sure they're absolute.
   var basicDartPaths = parsedArgs.rest.isEmpty ? ['lib'] : parsedArgs.rest;
   var dartPaths = [
-    for (var path in basicDartPaths) p.canonicalize(p.absolute(path))
+    for (var path in basicDartPaths) p.canonicalize(p.absolute(path)),
   ];
 
   // Work around parts being unresolved if you resolve them before their libraries.
   // TODO - reference analyzer issue for this once it's created
   final packageRoots = dartPaths.map(findPackageRootFor).toSet().toList();
-  packageRoots.sort((packageA, packageB) =>
-      p.split(packageB).length - p.split(packageA).length);
+  packageRoots.sort(
+    (packageA, packageB) => p.split(packageB).length - p.split(packageA).length,
+  );
 
   // TODO: Use packageConfig and utilities for reading that rather than manually parsing pubspec..
   Map<String, String> packageNameLookup = {
@@ -181,7 +186,7 @@ void main(List<String> args) async {
           .firstWhere((line) => line.startsWith('name'))
           .split(':')
           .last
-          .trim()
+          .trim(),
   };
 
   final processedPackages = Set<String>();
@@ -200,28 +205,39 @@ void main(List<String> args) async {
 
   for (String package in packageRoots) {
     await migratePackage(
-        package, packageNameLookup, processedPackages, codemodArgs, dartPaths);
+      package,
+      packageNameLookup,
+      processedPackages,
+      codemodArgs,
+      dartPaths,
+    );
   }
 
   if (exitCode != 0) {
     printInBlue(
-        'To resolve these changes, please execute the codemod locally by running :');
+      'To resolve these changes, please execute the codemod locally by running :',
+    );
     printInBlue('dart pub global activate --overwrite over_react_codemod');
     printInBlue(
-        'dart pub global run over_react_codemod:intl_message_migration');
+      'dart pub global run over_react_codemod:intl_message_migration',
+    );
   }
 }
 
 void printDeprecationNotice() {
   printInRed('***** Deprecation Notice *****');
   printInBlue(
-      '# over_react_codemod:intl_message_migration is deprecated and will no longer receive updates.');
+    '# over_react_codemod:intl_message_migration is deprecated and will no longer receive updates.',
+  );
   stderr.writeln('# Instead, use the dart_dev or intl_tools commands:');
   stderr.writeln('# dart_dev intl <subcommands>');
-  stderr.writeln('# For example:  '
-      'dart_dev intl {check|migrate|sort}');
   stderr.writeln(
-      '# Refer to the documentation https://wiki.atl.workiva.net/display/FEF/Intl+Quick+Reference+Guide of dart_dev / dart_dev_workiva for more information on using intl_codemod with dart_dev.');
+    '# For example:  '
+    'dart_dev intl {check|migrate|sort}',
+  );
+  stderr.writeln(
+    '# Refer to the documentation https://wiki.atl.workiva.net/display/FEF/Intl+Quick+Reference+Guide of dart_dev / dart_dev_workiva for more information on using intl_codemod with dart_dev.',
+  );
 }
 
 void printInBlue(String text) {
@@ -234,7 +250,8 @@ void printInRed(String text) {
 
 void printUsage() {
   stderr.writeln(
-      'Migrates literal strings that seem user-visible in the package by wrapping them in Intl.message calls.');
+    'Migrates literal strings that seem user-visible in the package by wrapping them in Intl.message calls.',
+  );
 
   stderr.writeln('Usage:');
   stderr.writeln('    intl_message_migration [arguments]');
@@ -276,11 +293,12 @@ Future<int> runCodemodSequences(
 ///
 /// We expect [paths] to be absolute.
 Future<void> migratePackage(
-    String package,
-    Map<String, String> packageNameLookup,
-    Set<String> processedPackages,
-    List<String> codemodArgs,
-    List<String> paths) async {
+  String package,
+  Map<String, String> packageNameLookup,
+  Set<String> processedPackages,
+  List<String> codemodArgs,
+  List<String> paths,
+) async {
   _log.info('Starting migration for $package');
 
   final packageRoot = p.basename(package);
@@ -288,8 +306,10 @@ Future<void> migratePackage(
   _log.info('Starting migration for $packageName');
   List<String> packageDartPaths;
   try {
-    packageDartPaths =
-        dartFilesToMigrateForPackage(package, processedPackages).toList();
+    packageDartPaths = dartFilesToMigrateForPackage(
+      package,
+      processedPackages,
+    ).toList();
   } on FileSystemException {
     _log.info('${package} does not have a lib directory, moving on...');
     return;
@@ -298,11 +318,18 @@ Future<void> migratePackage(
   packageDartPaths = limitPaths(packageDartPaths, allowed: paths);
   sortPartsLast(packageDartPaths);
 
-  final IntlMessages messages = IntlMessages(packageName,
-      directory: fs.currentDirectory, packagePath: package);
+  final IntlMessages messages = IntlMessages(
+    packageName,
+    directory: fs.currentDirectory,
+    packagePath: package,
+  );
 
-  exitCode =
-      await runMigrators(packageDartPaths, codemodArgs, messages, packageName);
+  exitCode = await runMigrators(
+    packageDartPaths,
+    codemodArgs,
+    messages,
+    packageName,
+  );
 
   processedPackages.add(package);
 
@@ -310,11 +337,17 @@ Future<void> migratePackage(
   messages.format();
 }
 
-Future<int> runMigrators(List<String> packageDartPaths,
-    List<String> codemodArgs, IntlMessages messages, String packageName) async {
+Future<int> runMigrators(
+  List<String> packageDartPaths,
+  List<String> codemodArgs,
+  IntlMessages messages,
+  String packageName,
+) async {
   final intlPropMigrator = IntlMigrator(messages.className, messages);
-  final constantStringMigrator =
-      ConstantStringMigrator(messages.className, messages);
+  final constantStringMigrator = ConstantStringMigrator(
+    messages.className,
+    messages,
+  );
   final displayNameMigrator = ConfigsMigrator(messages.className, messages);
   final importMigrator = (FileContext context) =>
       intlImporter(context, packageName, messages.className);
@@ -330,11 +363,14 @@ Future<int> runMigrators(List<String> packageDartPaths,
   ];
   List<List<Migrator>> thingsToRun = [
     if (!parsedArgs[_noMigrate]) ...migrators,
-    if (parsedArgs[_pruneUnused]) [usedMethodsChecker]
+    if (parsedArgs[_pruneUnused]) [usedMethodsChecker],
   ];
 
-  var result =
-      await runCodemodSequences(packageDartPaths, thingsToRun, codemodArgs);
+  var result = await runCodemodSequences(
+    packageDartPaths,
+    thingsToRun,
+    codemodArgs,
+  );
   return result;
 }
 
@@ -343,17 +379,18 @@ void sortPartsLast(List<String> dartPaths) {
 
   final isPartCache = <String, bool>{};
   bool isPart(String path) => isPartCache.putIfAbsent(path, () {
-        // parseString is much faster than using an AnalysisContextCollection
-        //  to get unresolved AST, at least in repos with many context roots.
-        final unit = parseString(
-                content: LocalFileSystem().file(path).readAsStringSync())
-            .unit;
-        return unit.directives.whereType<PartOfDirective>().isNotEmpty;
-      });
+    // parseString is much faster than using an AnalysisContextCollection
+    //  to get unresolved AST, at least in repos with many context roots.
+    final unit = parseString(
+      content: LocalFileSystem().file(path).readAsStringSync(),
+    ).unit;
+    return unit.directives.whereType<PartOfDirective>().isNotEmpty;
+  });
 
   if (dartPaths.isNotEmpty && dartPaths.every(isPart)) {
     logShout(
-        'Only part files were specified. The containing library must be included for any part file, as it is needed for analysis context');
+      'Only part files were specified. The containing library must be included for any part file, as it is needed for analysis context',
+    );
     exit(1);
   }
   dartPaths.sort((a, b) {
@@ -376,7 +413,8 @@ void sortDeepestFirst(Set<String> packageRoots) {
 
 Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
   _log.info(
-      'Running `pub get` if needed so that all Dart files can be resolved...');
+    'Running `pub get` if needed so that all Dart files can be resolved...',
+  );
   final packageRoots = files.map(findPackageRootFor).toSet();
   for (final packageRoot in packageRoots) {
     await runPubGetIfNeeded(packageRoot);
@@ -398,7 +436,9 @@ Iterable<String> dartFilesToMigrate() => Glob('**.dart', recursive: true)
     .map((e) => e.path);
 
 Iterable<String> dartFilesToMigrateForPackage(
-        String package, Set<String> processedPackages) =>
+  String package,
+  Set<String> processedPackages,
+) =>
     // Glob is peculiar about how it wants absolute Windows paths, so just query the
     // file system directly. It wants "posix-style", but no leading slash. So
     // C:/users/user/..., which is ugly to produce.
@@ -420,16 +460,18 @@ Iterable<String> dartFilesToMigrateForPackage(
         .toList();
 
 Iterable<String> experienceConfigDartFiles() => [
-      for (var f in Glob('**.dart', recursive: true).listSync())
-        if (f is File && f.path.contains('_experience_config.dart')) f.path
-    ];
+  for (var f in Glob('**.dart', recursive: true).listSync())
+    if (f is File && f.path.contains('_experience_config.dart')) f.path,
+];
 
 // Limit the paths we handle to those that were included in [paths]
-List<String> limitPaths(List<String> allPaths,
-        {required List<String> allowed}) =>
-    [
-      for (var path in allPaths)
-        if (allowed
-            .any((included) => included == path || p.isWithin(included, path)))
-          path
-    ];
+List<String> limitPaths(
+  List<String> allPaths, {
+  required List<String> allowed,
+}) => [
+  for (var path in allPaths)
+    if (allowed.any(
+      (included) => included == path || p.isWithin(included, path),
+    ))
+      path,
+];

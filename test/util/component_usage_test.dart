@@ -33,109 +33,134 @@ void main() {
         });
 
         group(
-            'accurately detects and collects information on usages of OverReact components:',
-            () {
-          group('components with no cascades:', () {
-            buildersToTest.forEach((name, builderSource) {
-              test('$name', () async {
-                final source = '${builderSource.source}()';
+          'accurately detects and collects information on usages of OverReact components:',
+          () {
+            group('components with no cascades:', () {
+              buildersToTest.forEach((name, builderSource) {
+                test('$name', () async {
+                  final source = '${builderSource.source}()';
 
-                final expressionNode = await parseInvocation(source,
-                    imports: builderSource.imports, isResolved: isResolved);
+                  final expressionNode = await parseInvocation(
+                    source,
+                    imports: builderSource.imports,
+                    isResolved: isResolved,
+                  );
+                  final componentUsage = getComponentUsage(expressionNode);
+
+                  checkComponentUsage(componentUsage, builderSource, source);
+                });
+              });
+            });
+
+            group('components with cascades:', () {
+              buildersToTest.forEach((name, builderSource) {
+                test('$name', () async {
+                  var cascadeSource = '${builderSource.source}..id = \'123\'';
+                  var source = '($cascadeSource)()';
+
+                  var expressionNode = await parseInvocation(
+                    source,
+                    imports: builderSource.imports,
+                    isResolved: isResolved,
+                  );
+                  var componentUsage = getComponentUsage(expressionNode);
+
+                  checkComponentUsage(
+                    componentUsage,
+                    builderSource,
+                    source,
+                    cascadeSource,
+                  );
+                });
+              });
+            });
+
+            group('components with no cascade but extra parens:', () {
+              buildersToTest.forEach((name, builderSource) {
+                test('$name', () async {
+                  var source = '(${builderSource.source})()';
+
+                  var expressionNode = await parseInvocation(
+                    source,
+                    imports: builderSource.imports,
+                    isResolved: isResolved,
+                  );
+                  var componentUsage = getComponentUsage(expressionNode);
+
+                  checkComponentUsage(componentUsage, builderSource, source);
+                });
+              });
+            });
+
+            // The not-resolved test case for this test is slightly redundant with
+            // some of the cases in the next group, but the resolved case is important here.
+            test(
+              'when containing a blocked method name (unless unresolved)',
+              () async {
+                const testCase = BuilderTestCase(
+                  source: 'toBuilder()',
+                  imports: fooComponents,
+                  componentName: 'Foo',
+                  unresolvedComponentName: 'toBuilder',
+                  factoryName: 'toBuilder',
+                  propsName: 'FooProps',
+                  isDom: false,
+                  isSvg: false,
+                );
+                final source = '(${testCase.source})()';
+
+                final expressionNode = await parseInvocation(
+                  source,
+                  imports: testCase.imports,
+                  isResolved: isResolved,
+                );
                 final componentUsage = getComponentUsage(expressionNode);
 
-                checkComponentUsage(componentUsage, builderSource, source);
-              });
-            });
-          });
-
-          group('components with cascades:', () {
-            buildersToTest.forEach((name, builderSource) {
-              test('$name', () async {
-                var cascadeSource = '${builderSource.source}..id = \'123\'';
-                var source = '($cascadeSource)()';
-
-                var expressionNode = await parseInvocation(source,
-                    imports: builderSource.imports, isResolved: isResolved);
-                var componentUsage = getComponentUsage(expressionNode);
-
-                checkComponentUsage(
-                    componentUsage, builderSource, source, cascadeSource);
-              });
-            });
-          });
-
-          group('components with no cascade but extra parens:', () {
-            buildersToTest.forEach((name, builderSource) {
-              test('$name', () async {
-                var source = '(${builderSource.source})()';
-
-                var expressionNode = await parseInvocation(source,
-                    imports: builderSource.imports, isResolved: isResolved);
-                var componentUsage = getComponentUsage(expressionNode);
-
-                checkComponentUsage(componentUsage, builderSource, source);
-              });
-            });
-          });
-
-          // The not-resolved test case for this test is slightly redundant with
-          // some of the cases in the next group, but the resolved case is important here.
-          test('when containing a blocked method name (unless unresolved)',
-              () async {
-            const testCase = BuilderTestCase(
-              source: 'toBuilder()',
-              imports: fooComponents,
-              componentName: 'Foo',
-              unresolvedComponentName: 'toBuilder',
-              factoryName: 'toBuilder',
-              propsName: 'FooProps',
-              isDom: false,
-              isSvg: false,
+                if (isResolved) {
+                  checkComponentUsage(componentUsage, testCase, source);
+                } else {
+                  expect(
+                    componentUsage,
+                    isNull,
+                    reason:
+                        'should not be detected as a usage when not resolved',
+                  );
+                }
+              },
             );
-            final source = '(${testCase.source})()';
-
-            final expressionNode = await parseInvocation(source,
-                imports: testCase.imports, isResolved: isResolved);
-            final componentUsage = getComponentUsage(expressionNode);
-
-            if (isResolved) {
-              checkComponentUsage(componentUsage, testCase, source);
-            } else {
-              expect(componentUsage, isNull,
-                  reason:
-                      'should not be detected as a usage when not resolved');
-            }
-          });
-        });
+          },
+        );
 
         group(
-            'returns null for invocations that are not fluent interface usages:',
-            () {
-          const {
-            'Dom.h1()': 'not full invocation',
-            'Foo()': 'not full invocation',
-            'fooFactory()': 'not full invocation',
-            'foo()': 'not a valid builder',
-            'foo.bar()': 'not a valid builder',
-            'foo().bar()': 'not a valid builder',
-            'foo.bar.baz()': 'not a valid builder',
-            'foo()()': 'not a valid builder',
-            '_foo()()': 'not a valid builder',
-            'toBuilder()': 'blocked method name',
-            'toBuilder()()': 'blocked method name',
-            'foo.toBuilder()': 'blocked method name',
-            'foo().toBuilder()': 'blocked method name',
-            'foo.bar.toBuilder()': 'blocked method name',
-          }.forEach((source, reason) {
-            test('`$source`', () async {
-              final expressionNode =
-                  await parseInvocation(source, isResolved: isResolved);
-              var componentUsage = getComponentUsage(expressionNode);
-              expect(componentUsage, isNull, reason: '$source is $reason');
+          'returns null for invocations that are not fluent interface usages:',
+          () {
+            const {
+              'Dom.h1()': 'not full invocation',
+              'Foo()': 'not full invocation',
+              'fooFactory()': 'not full invocation',
+              'foo()': 'not a valid builder',
+              'foo.bar()': 'not a valid builder',
+              'foo().bar()': 'not a valid builder',
+              'foo.bar.baz()': 'not a valid builder',
+              'foo()()': 'not a valid builder',
+              '_foo()()': 'not a valid builder',
+              'toBuilder()': 'blocked method name',
+              'toBuilder()()': 'blocked method name',
+              'foo.toBuilder()': 'blocked method name',
+              'foo().toBuilder()': 'blocked method name',
+              'foo.bar.toBuilder()': 'blocked method name',
+            }.forEach((source, reason) {
+              test('`$source`', () async {
+                final expressionNode = await parseInvocation(
+                  source,
+                  isResolved: isResolved,
+                );
+                var componentUsage = getComponentUsage(expressionNode);
+                expect(componentUsage, isNull, reason: '$source is $reason');
+              });
             });
-          });
-        });
+          },
+        );
       }
 
       group('when the AST is resolved', () {
@@ -162,53 +187,60 @@ void main() {
           });
         });
 
-        group('when there are multiple children, and only one is a component',
-            () {
+        group(
+          'when there are multiple children, and only one is a component',
+          () {
+            buildersToTest.forEach((name, builderSource) {
+              test('and the child component uses a $name', () async {
+                var childSource = '${builderSource.source}()';
+                var source =
+                    'SomeOtherComponent()("other child 1", $childSource, "other child 2")';
+
+                final expressionNode = await parseInvocation(source);
+
+                expect(hasChildComponent(expressionNode.argumentList), isTrue);
+              });
+            });
+          },
+        );
+      });
+
+      group(
+        'even when the components have any number of extra wrapping parens',
+        () {
           buildersToTest.forEach((name, builderSource) {
             test('and the child component uses a $name', () async {
               var childSource = '${builderSource.source}()';
-              var source =
-                  'SomeOtherComponent()("other child 1", $childSource, "other child 2")';
+              var childSourceWithExtraParens = '((($childSource)))';
+              var source = 'SomeOtherComponent()($childSourceWithExtraParens)';
 
               final expressionNode = await parseInvocation(source);
 
               expect(hasChildComponent(expressionNode.argumentList), isTrue);
             });
           });
-        });
-      });
-
-      group('even when the components have any number of extra wrapping parens',
-          () {
-        buildersToTest.forEach((name, builderSource) {
-          test('and the child component uses a $name', () async {
-            var childSource = '${builderSource.source}()';
-            var childSourceWithExtraParens = '((($childSource)))';
-            var source = 'SomeOtherComponent()($childSourceWithExtraParens)';
-
-            final expressionNode = await parseInvocation(source);
-
-            expect(hasChildComponent(expressionNode.argumentList), isTrue);
-          });
-        });
-      });
-
-      test('returns false when there are only non-component arguments',
-          () async {
-        var source = 'SomeOtherComponent()(1, "non-component child", {})';
-        final expressionNode = await parseInvocation(source);
-
-        expect(hasChildComponent(expressionNode.argumentList), isFalse);
-      });
+        },
+      );
 
       test(
-          'returns false when there are nested components, but no top-level ones',
-          () async {
-        var source = 'SomeOtherComponent()([Foo()()])';
-        final expressionNode = await parseInvocation(source);
+        'returns false when there are only non-component arguments',
+        () async {
+          var source = 'SomeOtherComponent()(1, "non-component child", {})';
+          final expressionNode = await parseInvocation(source);
 
-        expect(hasChildComponent(expressionNode.argumentList), isFalse);
-      });
+          expect(hasChildComponent(expressionNode.argumentList), isFalse);
+        },
+      );
+
+      test(
+        'returns false when there are nested components, but no top-level ones',
+        () async {
+          var source = 'SomeOtherComponent()([Foo()()])';
+          final expressionNode = await parseInvocation(source);
+
+          expect(hasChildComponent(expressionNode.argumentList), isFalse);
+        },
+      );
     });
 
     group('identifyUsage', () {
@@ -220,26 +252,36 @@ void main() {
             late InvocationExpression expressionNode;
 
             setUpAll(() async {
-              expressionNode = await parseInvocation(source,
-                  imports: builderSource.imports, isResolved: true);
+              expressionNode = await parseInvocation(
+                source,
+                imports: builderSource.imports,
+                isResolved: true,
+              );
             });
 
             test('node is a $name which is already a component usage', () {
               final componentUsage = identifyUsage(expressionNode);
               checkComponentUsage(
-                  componentUsage, builderSource, source, cascadeSource);
+                componentUsage,
+                builderSource,
+                source,
+                cascadeSource,
+              );
             });
 
             group('node inside $name', () {
               test('is props cascade expression', () {
-                final cascadeExpression = getComponentUsage(expressionNode)
-                    ?.cascadeExpression
-                    ?.cascadeSections
-                    .firstOrNull;
+                final cascadeExpression = getComponentUsage(
+                  expressionNode,
+                )?.cascadeExpression?.cascadeSections.firstOrNull;
                 expect(cascadeExpression?.toSource(), '..id = \'123\'');
                 final componentUsage = identifyUsage(cascadeExpression);
                 checkComponentUsage(
-                    componentUsage, builderSource, source, cascadeSource);
+                  componentUsage,
+                  builderSource,
+                  source,
+                  cascadeSource,
+                );
               });
 
               test('is a child should return null', () {
@@ -266,47 +308,60 @@ void main() {
               );
 
               expect(
-                  expressionNode.argumentList.arguments.firstOrNull, isNotNull);
-              expect(expressionNode.argumentList.arguments.firstOrNull,
-                  isA<InvocationExpression>());
-              childExpression = expressionNode
-                  .argumentList.arguments.firstOrNull as InvocationExpression?;
+                expressionNode.argumentList.arguments.firstOrNull,
+                isNotNull,
+              );
+              expect(
+                expressionNode.argumentList.arguments.firstOrNull,
+                isA<InvocationExpression>(),
+              );
+              childExpression =
+                  expressionNode.argumentList.arguments.firstOrNull
+                      as InvocationExpression?;
               expect(childExpression?.toSource(), childSource);
             });
 
             test('and node is the parent component', () {
               final componentUsage = identifyUsage(expressionNode);
               checkComponentUsage(
-                  componentUsage,
-                  BuilderTestCase(
-                    source: 'Bar()',
-                    imports: '',
-                    componentName: 'Bar',
-                    unresolvedComponentName: 'Bar',
-                    factoryName: 'Bar',
-                    propsName: 'BarProps',
-                    isDom: false,
-                    isSvg: false,
-                  ),
-                  nestedSource);
+                componentUsage,
+                BuilderTestCase(
+                  source: 'Bar()',
+                  imports: '',
+                  componentName: 'Bar',
+                  unresolvedComponentName: 'Bar',
+                  factoryName: 'Bar',
+                  propsName: 'BarProps',
+                  isDom: false,
+                  isSvg: false,
+                ),
+                nestedSource,
+              );
             });
 
             test('and node is the child component', () {
               final componentUsage = identifyUsage(childExpression);
               checkComponentUsage(
-                  componentUsage, builderSource, childSource, cascadeSource);
+                componentUsage,
+                builderSource,
+                childSource,
+                cascadeSource,
+              );
             });
 
             group('and the node inside the child component', () {
               test('is props cascade expression', () {
-                final cascadeExpression = getComponentUsage(childExpression!)
-                    ?.cascadeExpression
-                    ?.cascadeSections
-                    .firstOrNull;
+                final cascadeExpression = getComponentUsage(
+                  childExpression!,
+                )?.cascadeExpression?.cascadeSections.firstOrNull;
                 expect(cascadeExpression?.toSource(), '..id = \'123\'');
                 final componentUsage = identifyUsage(cascadeExpression);
                 checkComponentUsage(
-                    componentUsage, builderSource, childSource, cascadeSource);
+                  componentUsage,
+                  builderSource,
+                  childSource,
+                  cascadeSource,
+                );
               });
 
               test('is a child should return null', () {
@@ -351,15 +406,17 @@ void main() {
         }
 
         test('and node is an invocation expression', () async {
-          final expressionNode =
-              await parseInvocation('Foo.foo(() => \'abc\')');
+          final expressionNode = await parseInvocation(
+            'Foo.foo(() => \'abc\')',
+          );
           final componentUsage = identifyUsage(expressionNode);
           expect(componentUsage, isNull);
         });
 
         test('and node is an argument of an invocation expression', () async {
-          final expressionNode =
-              await parseInvocation('Foo.foo(() => \'abc\')');
+          final expressionNode = await parseInvocation(
+            'Foo.foo(() => \'abc\')',
+          );
           final arg = expressionNode.argumentList.arguments.firstOrNull;
           expect(arg, isNotNull);
           final componentUsage = identifyUsage(arg);
@@ -384,8 +441,11 @@ void main() {
                 componentUsage?.factoryTopLevelVariableElement,
                 // Only resolved component factories will have `factoryTopLevelVariableElement`
                 name.contains('component factory')
-                    ? isA<TopLevelVariableElement>().having((f) => f.name,
-                        'name', equals(builderSource.componentName))
+                    ? isA<TopLevelVariableElement>().having(
+                        (f) => f.name,
+                        'name',
+                        equals(builderSource.componentName),
+                      )
                     : isNull,
               );
             });
@@ -393,9 +453,11 @@ void main() {
         });
 
         test('when the AST is not resolved', () async {
-          final usage = getComponentUsage(await parseInvocation(r'''
+          final usage = getComponentUsage(
+            await parseInvocation(r'''
                 Foo()()
-            '''))!;
+            '''),
+          )!;
 
           expect(usage.factoryTopLevelVariableElement, isNull);
         });
@@ -414,24 +476,30 @@ void main() {
 
               expect(
                 componentUsage.propsClassElement,
-                isA<InterfaceElement>()
-                    .having((c) => c.name, 'name', builderSource.propsName),
+                isA<InterfaceElement>().having(
+                  (c) => c.name,
+                  'name',
+                  builderSource.propsName,
+                ),
               );
               expect(
                 componentUsage.builderType,
                 isA<DartType>().having(
-                    (t) => t.getDisplayString(withNullability: false),
-                    'display name',
-                    builderSource.propsName),
+                  (t) => t.getDisplayString(withNullability: false),
+                  'display name',
+                  builderSource.propsName,
+                ),
               );
             });
           });
         });
 
         test('when the AST is not resolved', () async {
-          final usage = getComponentUsage(await parseInvocation(r'''
+          final usage = getComponentUsage(
+            await parseInvocation(r'''
                 Foo()()
-            '''))!;
+            '''),
+          )!;
 
           expect(usage.propsClassElement, isNull);
           expect(usage.builderType, isNull);
@@ -443,7 +511,8 @@ void main() {
           late FluentComponentUsage usage;
 
           setUpAll(() async {
-            usage = getComponentUsage(await parseInvocation('''
+            usage = getComponentUsage(
+              await parseInvocation('''
                 (Foo()
                   ..setter1 = null
                   ..getter1
@@ -464,92 +533,111 @@ void main() {
                   ..["indexRead2"]
                   ..methodInvocation2(null)
                 )()
-            ''', isResolved: isResolved))!;
+            ''', isResolved: isResolved),
+            )!;
           });
 
-          group('return the expected values for different types of cascades',
-              () {
-            test('cascadedSetters', () {
-              expect(usage.cascadedProps, [
-                isA<PropAssignment>().havingStringName('setter1'),
-                isA<PropAssignment>().havingStringName('prefixedSetter1'),
-                isA<PropAssignment>().havingStringName('setter2'),
-                isA<PropAssignment>().havingStringName('prefixedSetter2'),
-              ]);
-            });
+          group(
+            'return the expected values for different types of cascades',
+            () {
+              test('cascadedSetters', () {
+                expect(usage.cascadedProps, [
+                  isA<PropAssignment>().havingStringName('setter1'),
+                  isA<PropAssignment>().havingStringName('prefixedSetter1'),
+                  isA<PropAssignment>().havingStringName('setter2'),
+                  isA<PropAssignment>().havingStringName('prefixedSetter2'),
+                ]);
+              });
 
-            test('cascadedGetters', () {
-              expect(usage.cascadedGetters, [
-                isA<PropRead>().havingStringName('getter1'),
-                isA<PropRead>().havingStringName('prefixedGetter1'),
-                isA<PropRead>().havingStringName('getter2'),
-                isA<PropRead>().havingStringName('prefixedGetter2'),
-              ]);
-            });
+              test('cascadedGetters', () {
+                expect(usage.cascadedGetters, [
+                  isA<PropRead>().havingStringName('getter1'),
+                  isA<PropRead>().havingStringName('prefixedGetter1'),
+                  isA<PropRead>().havingStringName('getter2'),
+                  isA<PropRead>().havingStringName('prefixedGetter2'),
+                ]);
+              });
 
-            test('cascadedIndexAssignments', () {
-              expect(usage.cascadedIndexAssignments, [
-                isA<IndexPropAssignment>()
-                    .havingIndexValueSource('"indexAssignment1"'),
-                isA<IndexPropAssignment>()
-                    .havingIndexValueSource('"indexAssignment2"'),
-              ]);
-            });
+              test('cascadedIndexAssignments', () {
+                expect(usage.cascadedIndexAssignments, [
+                  isA<IndexPropAssignment>().havingIndexValueSource(
+                    '"indexAssignment1"',
+                  ),
+                  isA<IndexPropAssignment>().havingIndexValueSource(
+                    '"indexAssignment2"',
+                  ),
+                ]);
+              });
 
-            test('cascadedMethodInvocations', () {
-              expect(usage.cascadedMethodInvocations, [
-                isA<BuilderMethodInvocation>()
-                    .havingStringName('methodInvocation1'),
-                isA<BuilderMethodInvocation>()
-                    .havingStringName('methodInvocation2'),
-              ]);
-            });
-          });
+              test('cascadedMethodInvocations', () {
+                expect(usage.cascadedMethodInvocations, [
+                  isA<BuilderMethodInvocation>().havingStringName(
+                    'methodInvocation1',
+                  ),
+                  isA<BuilderMethodInvocation>().havingStringName(
+                    'methodInvocation2',
+                  ),
+                ]);
+              });
+            },
+          );
 
           test(
-              'cascadedMembers returns all values for different types of cascades,'
-              ' in the order they appeared in the original source', () {
-            expect(usage.cascadedMembers, [
-              // "1"s
-              isA<PropAssignment>().havingStringName('setter1'),
-              isA<PropRead>().havingStringName('getter1'),
-              isA<PropAssignment>().havingStringName('prefixedSetter1'),
-              isA<PropRead>().havingStringName('prefixedGetter1'),
-              isA<IndexPropAssignment>()
-                  .havingIndexValueSource('"indexAssignment1"'),
-              isA<BuilderMemberAccess>().havingSource('..["indexRead1"]'),
-              isA<BuilderMethodInvocation>()
-                  .havingStringName('methodInvocation1'),
-              // "2"s
-              isA<PropAssignment>().havingStringName('setter2'),
-              isA<PropRead>().havingStringName('getter2'),
-              isA<PropAssignment>().havingStringName('prefixedSetter2'),
-              isA<PropRead>().havingStringName('prefixedGetter2'),
-              isA<IndexPropAssignment>()
-                  .havingIndexValueSource('"indexAssignment2"'),
-              isA<BuilderMemberAccess>().havingSource('..["indexRead2"]'),
-              isA<BuilderMethodInvocation>()
-                  .havingStringName('methodInvocation2'),
-            ]);
-            expect(
-                usage.cascadedMembers, hasLength(usage.cascadeSections.length),
-                reason: 'all cascade sections should map to a cascaded member');
-          });
+            'cascadedMembers returns all values for different types of cascades,'
+            ' in the order they appeared in the original source',
+            () {
+              expect(usage.cascadedMembers, [
+                // "1"s
+                isA<PropAssignment>().havingStringName('setter1'),
+                isA<PropRead>().havingStringName('getter1'),
+                isA<PropAssignment>().havingStringName('prefixedSetter1'),
+                isA<PropRead>().havingStringName('prefixedGetter1'),
+                isA<IndexPropAssignment>().havingIndexValueSource(
+                  '"indexAssignment1"',
+                ),
+                isA<BuilderMemberAccess>().havingSource('..["indexRead1"]'),
+                isA<BuilderMethodInvocation>().havingStringName(
+                  'methodInvocation1',
+                ),
+                // "2"s
+                isA<PropAssignment>().havingStringName('setter2'),
+                isA<PropRead>().havingStringName('getter2'),
+                isA<PropAssignment>().havingStringName('prefixedSetter2'),
+                isA<PropRead>().havingStringName('prefixedGetter2'),
+                isA<IndexPropAssignment>().havingIndexValueSource(
+                  '"indexAssignment2"',
+                ),
+                isA<BuilderMemberAccess>().havingSource('..["indexRead2"]'),
+                isA<BuilderMethodInvocation>().havingStringName(
+                  'methodInvocation2',
+                ),
+              ]);
+              expect(
+                usage.cascadedMembers,
+                hasLength(usage.cascadeSections.length),
+                reason: 'all cascade sections should map to a cascaded member',
+              );
+            },
+          );
         });
 
         group('children', () {
           test('no arguments', () async {
-            final usage = getComponentUsage(await parseInvocation('''
+            final usage = getComponentUsage(
+              await parseInvocation('''
                 Foo()()
-            ''', isResolved: isResolved))!;
+            ''', isResolved: isResolved),
+            )!;
             expect(usage.children, isEmpty);
           });
 
           group('variadic children', () {
             test('single argument', () async {
-              final usage = getComponentUsage(await parseInvocation('''
+              final usage = getComponentUsage(
+                await parseInvocation('''
                   Foo()(Dom.h1()())
-              ''', isResolved: isResolved))!;
+              ''', isResolved: isResolved),
+              )!;
               expect(usage.children, [
                 isA<ExpressionComponentChild>()
                     .havingSource('Dom.h1()()')
@@ -558,9 +646,11 @@ void main() {
             });
 
             test('multiple arguments', () async {
-              final usage = getComponentUsage(await parseInvocation('''
+              final usage = getComponentUsage(
+                await parseInvocation('''
                   Foo()(Dom.h1()(), 2, "3")
-              ''', isResolved: isResolved))!;
+              ''', isResolved: isResolved),
+              )!;
               expect(usage.children, [
                 isA<ExpressionComponentChild>()
                     .havingSource('Dom.h1()()')
@@ -577,9 +667,11 @@ void main() {
 
           group('children within single list literal', () {
             test('containing only expressions', () async {
-              final usage = getComponentUsage(await parseInvocation('''
+              final usage = getComponentUsage(
+                await parseInvocation('''
                   Foo()([Dom.h1()(), 2, "3"])
-              ''', isResolved: isResolved))!;
+              ''', isResolved: isResolved),
+              )!;
               expect(usage.children, [
                 isA<ExpressionComponentChild>()
                     .havingSource('Dom.h1()()')
@@ -594,7 +686,8 @@ void main() {
             });
 
             test('containing expressions and collection elements', () async {
-              final usage = getComponentUsage(await parseInvocation('''
+              final usage = getComponentUsage(
+                await parseInvocation('''
                   Foo()([
                     "expression",
                     ...someChildren,
@@ -602,27 +695,34 @@ void main() {
                     if (condition) ...someChildren,
                     for (final item in items) renderChild(child),
                   ])
-              ''', isResolved: isResolved))!;
+              ''', isResolved: isResolved),
+              )!;
               expect(usage.children, [
                 isA<ExpressionComponentChild>()
                     .havingSource('"expression"')
                     .havingIsVariadic(isFalse),
-                isA<CollectionElementComponentChild>()
-                    .havingSource('...someChildren'),
-                isA<CollectionElementComponentChild>()
-                    .havingSource('if (condition) someChild'),
-                isA<CollectionElementComponentChild>()
-                    .havingSource('if (condition) ...someChildren'),
                 isA<CollectionElementComponentChild>().havingSource(
-                    'for (final item in items) renderChild(child)'),
+                  '...someChildren',
+                ),
+                isA<CollectionElementComponentChild>().havingSource(
+                  'if (condition) someChild',
+                ),
+                isA<CollectionElementComponentChild>().havingSource(
+                  'if (condition) ...someChildren',
+                ),
+                isA<CollectionElementComponentChild>().havingSource(
+                  'for (final item in items) renderChild(child)',
+                ),
               ]);
             });
           });
 
           test('children within multiple list literals', () async {
-            final usage = getComponentUsage(await parseInvocation('''
+            final usage = getComponentUsage(
+              await parseInvocation('''
                 Foo()([1, 2], [3, 4])
-            ''', isResolved: isResolved))!;
+            ''', isResolved: isResolved),
+            )!;
             expect(usage.children, [
               isA<ExpressionComponentChild>()
                   .havingSource('[1, 2]')
@@ -633,27 +733,33 @@ void main() {
             ]);
           });
 
-          test('children within multiple list literals within a list literal',
-              () async {
-            final usage = getComponentUsage(await parseInvocation('''
+          test(
+            'children within multiple list literals within a list literal',
+            () async {
+              final usage = getComponentUsage(
+                await parseInvocation('''
                 Foo()([[1, 2], [3, 4]])
-            ''', isResolved: isResolved))!;
-            expect(usage.children, [
-              isA<ExpressionComponentChild>()
-                  .havingSource('[1, 2]')
-                  .havingIsVariadic(isFalse),
-              isA<ExpressionComponentChild>()
-                  .havingSource('[3, 4]')
-                  .havingIsVariadic(isFalse),
-            ]);
-          });
+            ''', isResolved: isResolved),
+              )!;
+              expect(usage.children, [
+                isA<ExpressionComponentChild>()
+                    .havingSource('[1, 2]')
+                    .havingIsVariadic(isFalse),
+                isA<ExpressionComponentChild>()
+                    .havingSource('[3, 4]')
+                    .havingIsVariadic(isFalse),
+              ]);
+            },
+          );
         });
 
         group('PropAssignment getters return the correct values', () {
           test('for a simple prop', () async {
-            final assignment = getComponentUsage(await parseInvocation('''
+            final assignment = getComponentUsage(
+              await parseInvocation('''
                 (Foo()..cascadedProp = null)()
-            ''', isResolved: isResolved))!.cascadedProps.single;
+            ''', isResolved: isResolved),
+            )!.cascadedProps.single;
 
             expect(assignment.node, hasSource('..cascadedProp = null'));
             expect(assignment.name.name, 'cascadedProp');
@@ -666,9 +772,11 @@ void main() {
           });
 
           test('for a prefixed prop', () async {
-            final assignment = getComponentUsage(await parseInvocation('''
+            final assignment = getComponentUsage(
+              await parseInvocation('''
                 (Foo()..dom.role = null)()
-            ''', isResolved: isResolved))!.cascadedProps.single;
+            ''', isResolved: isResolved),
+            )!.cascadedProps.single;
 
             expect(assignment.node, hasSource('..dom.role = null'));
             expect(assignment.name.name, 'role');
@@ -683,18 +791,22 @@ void main() {
 
         group('PropAccess getters return the correct values', () {
           test('for a simple access', () async {
-            final getter = getComponentUsage(await parseInvocation('''
+            final getter = getComponentUsage(
+              await parseInvocation('''
                 (Foo()..bar)()
-            ''', isResolved: isResolved))!.cascadedGetters.single;
+            ''', isResolved: isResolved),
+            )!.cascadedGetters.single;
 
             expect(getter.node, hasSource('..bar'));
             expect(getter.name, hasSource('bar'));
           });
 
           test('for a prefixed access', () async {
-            final getter = getComponentUsage(await parseInvocation('''
+            final getter = getComponentUsage(
+              await parseInvocation('''
                 (Foo()..bar.baz)()
-            ''', isResolved: isResolved))!.cascadedGetters.single;
+            ''', isResolved: isResolved),
+            )!.cascadedGetters.single;
 
             expect(getter.node, hasSource('..bar.baz'));
             expect(getter.name, hasSource('baz'));
@@ -702,9 +814,11 @@ void main() {
         });
 
         test('IndexPropAssignment getters return the correct values', () async {
-          final indexAssignment = getComponentUsage(await parseInvocation('''
+          final indexAssignment = getComponentUsage(
+            await parseInvocation('''
               (Foo()..["bar"] = null)()
-          ''', isResolved: isResolved))!.cascadedIndexAssignments.single;
+          ''', isResolved: isResolved),
+          )!.cascadedIndexAssignments.single;
 
           expect(indexAssignment.node, hasSource('..["bar"] = null'));
           expect(indexAssignment.leftHandSide, hasSource('..["bar"]'));
@@ -712,15 +826,19 @@ void main() {
           expect(indexAssignment.rightHandSide, hasSource('null'));
         });
 
-        test('BuilderMethodInvocation getters return the correct values',
-            () async {
-          final invocation = getComponentUsage(await parseInvocation('''
+        test(
+          'BuilderMethodInvocation getters return the correct values',
+          () async {
+            final invocation = getComponentUsage(
+              await parseInvocation('''
               (Foo()..bar())()
-          ''', isResolved: isResolved))!.cascadedMethodInvocations.single;
+          ''', isResolved: isResolved),
+            )!.cascadedMethodInvocations.single;
 
-          expect(invocation.node, hasSource('..bar()'));
-          expect(invocation.methodName, hasSource('bar'));
-        });
+            expect(invocation.node, hasSource('..bar()'));
+            expect(invocation.methodName, hasSource('bar'));
+          },
+        );
       }
 
       group('when AST is not resolved', () => sharedTests(isResolved: false));
@@ -744,28 +862,42 @@ void main() {
 
         testCasesByName.forEach((name, source) {
           test(name, () async {
-            expect(typeCategoryForReactNode(await resolveExpression(source)),
-                ReactNodeTypeCategory.primitive);
+            expect(
+              typeCategoryForReactNode(await resolveExpression(source)),
+              ReactNodeTypeCategory.primitive,
+            );
           });
         });
       });
 
-      test('returns `.reactElement` for ReactElement-typed expressions:',
-          () async {
-        final expression = await sharedContext.parseExpression('Dom.div()()',
+      test(
+        'returns `.reactElement` for ReactElement-typed expressions:',
+        () async {
+          final expression = await sharedContext.parseExpression(
+            'Dom.div()()',
             isResolved: true,
-            imports: 'import "package:over_react/over_react.dart"');
-        expect(typeCategoryForReactNode(expression),
-            ReactNodeTypeCategory.reactElement);
-      });
+            imports: 'import "package:over_react/over_react.dart"',
+          );
+          expect(
+            typeCategoryForReactNode(expression),
+            ReactNodeTypeCategory.reactElement,
+          );
+        },
+      );
 
-      test('returns `.unknown` for expressions that could not be resolved:',
-          () async {
-        final expression = await sharedContext
-            .parseExpression('someUnresolvedIdentifier', isResolved: false);
-        expect(typeCategoryForReactNode(expression),
-            ReactNodeTypeCategory.unknown);
-      });
+      test(
+        'returns `.unknown` for expressions that could not be resolved:',
+        () async {
+          final expression = await sharedContext.parseExpression(
+            'someUnresolvedIdentifier',
+            isResolved: false,
+          );
+          expect(
+            typeCategoryForReactNode(expression),
+            ReactNodeTypeCategory.unknown,
+          );
+        },
+      );
 
       group('returns `.other` for other types:', () {
         const testCasesByName = {
@@ -776,8 +908,10 @@ void main() {
 
         testCasesByName.forEach((name, source) {
           test(name, () async {
-            expect(typeCategoryForReactNode(await resolveExpression(source)),
-                ReactNodeTypeCategory.other);
+            expect(
+              typeCategoryForReactNode(await resolveExpression(source)),
+              ReactNodeTypeCategory.other,
+            );
           });
         });
       });
@@ -827,30 +961,39 @@ extension<T extends ExpressionComponentChild> on TypeMatcher<T> {
       having((c) => c.isVariadic, 'isVariadic', matcher);
 }
 
-void checkComponentUsage(FluentComponentUsage? componentUsage,
-    BuilderTestCase builderSource, String source,
-    [String? cascadeSource]) {
+void checkComponentUsage(
+  FluentComponentUsage? componentUsage,
+  BuilderTestCase builderSource,
+  String source, [
+  String? cascadeSource,
+]) {
   expect(componentUsage, isNotNull);
   componentUsage!;
   expect(componentUsage.builder.toSource(), builderSource.source);
   expect(
     componentUsage.factory,
     isA<Identifier>().having(
-        (f) => f.name,
-        'name',
-        equals(componentUsage.isBuilderResolved
+      (f) => f.name,
+      'name',
+      equals(
+        componentUsage.isBuilderResolved
             ? builderSource.factoryName
             // Remove the import namespace for unresolved AST.
-            : builderSource.factoryName.split('.').last)),
+            : builderSource.factoryName.split('.').last,
+      ),
+    ),
   );
-  expect(componentUsage.propsName,
-      componentUsage.isBuilderResolved ? builderSource.propsName : isNull);
+  expect(
+    componentUsage.propsName,
+    componentUsage.isBuilderResolved ? builderSource.propsName : isNull,
+  );
   expect(componentUsage.node.toSource(), source);
   expect(
-      componentUsage.componentName,
-      componentUsage.isBuilderResolved
-          ? builderSource.componentName
-          : builderSource.unresolvedComponentName);
+    componentUsage.componentName,
+    componentUsage.isBuilderResolved
+        ? builderSource.componentName
+        : builderSource.unresolvedComponentName,
+  );
   if (componentUsage.isBuilderResolved) {
     expect(componentUsage.isDom, builderSource.isDom);
     expect(componentUsage.isSvg, builderSource.isSvg);
@@ -997,8 +1140,11 @@ Future<InvocationExpression> parseInvocation(
   if (parsedExpression is InvocationExpression) {
     return parsedExpression;
   }
-  throw ArgumentError.value(expression, 'expression',
-      'was not a InvocationExpression; was $parsedExpression');
+  throw ArgumentError.value(
+    expression,
+    'expression',
+    'was not a InvocationExpression; was $parsedExpression',
+  );
 }
 
 /// Parses [dartSource] and returns the unresolved AST, throwing if there are any syntax errors.

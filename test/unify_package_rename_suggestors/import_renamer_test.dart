@@ -51,7 +51,8 @@ void main() {
           
               content() => Dom.div()();
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
               import 'package:over_react/over_react.dart';
               import 'package:'''
               '''unify_ui/abc.dart';
@@ -75,7 +76,8 @@ void main() {
           
               content() => Dom.div()();
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
               import 'package:'''
               '''unify_ui/styles/styled.dart' as mui;
               import 'package:'''
@@ -87,10 +89,10 @@ void main() {
       });
 
       test(
-          'for special cases when the new file path is different from the old one',
-          () async {
-        await testSuggestor(
-          input: '''
+        'for special cases when the new file path is different from the old one',
+        () async {
+          await testSuggestor(
+            input: '''
               import 'package:react_material_ui/react_material_ui.dart';
               import 'package:over_react/over_react.dart';
               import 'package:web_skin_dart/ui_components.dart';
@@ -102,24 +104,26 @@ void main() {
           
               content() => Dom.div()();
           ''',
-          expectedOutput: '''
+            expectedOutput:
+                '''
               import 'package:over_react/over_react.dart';
               import 'package:'''
-              '''unify_ui/components/list.dart';
+                '''unify_ui/components/list.dart';
               import 'package:'''
-              '''unify_ui/components/usage_must_be_approved_by_unify_team_for_legal_reasons/data_grid_premium.dart';
+                '''unify_ui/components/usage_must_be_approved_by_unify_team_for_legal_reasons/data_grid_premium.dart';
               import 'package:'''
-              '''unify_ui/styles/styled.dart';
+                '''unify_ui/styles/styled.dart';
               import 'package:'''
-              '''unify_ui/styles/styled.dart';
+                '''unify_ui/styles/styled.dart';
               import 'package:'''
-              '''unify_ui/unify_ui.dart';
+                '''unify_ui/unify_ui.dart';
               import 'package:web_skin_dart/ui_components.dart';
           
               content() => Dom.div()();
           ''',
-        );
-      });
+          );
+        },
+      );
 
       test('with namespaces', () async {
         await testSuggestor(
@@ -136,7 +140,8 @@ void main() {
           
               content() => Dom.div()();
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
               library lib;
               
               import 'package:over_react/over_react.dart' as mui;
@@ -169,7 +174,8 @@ void main() {
           
               content() => Dom.div()();
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
               import 'package:'''
               '''unify_ui/components/alert.dart' as something_else show Alert;
               import 'package:'''
@@ -188,7 +194,8 @@ void main() {
 
       test('unless the imports are already updated to the new name', () async {
         await testSuggestor(
-          input: '''
+          input:
+              '''
               library lib;
           
               import 'package:'''
@@ -215,7 +222,8 @@ void main() {
           ),
         );
         await testSuggestor(
-          input: '''
+          input:
+              '''
               import 'package:over_react/over_react.dart';
               import 'package:'''
               '''old/old.dart' as o;
@@ -224,7 +232,8 @@ void main() {
           
               content() => Dom.div()();
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
               import 'package:'''
               '''new/components/badge.dart';
               import 'package:'''

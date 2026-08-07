@@ -47,14 +47,20 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         .whereType<LibraryDirective>()
         .toList();
 
-    final overReactImport = imports.lastWhereOrNull((dir) =>
-        dir.uri.stringValue == 'package:over_react/over_react.dart' ||
-        // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
-        dir.uri.stringValue == 'package:' 'web_skin_dart/ui_core.dart');
+    final overReactImport = imports.lastWhereOrNull(
+      (dir) =>
+          dir.uri.stringValue == 'package:over_react/over_react.dart' ||
+          // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
+          dir.uri.stringValue ==
+              'package:'
+                  'web_skin_dart/ui_core.dart',
+    );
 
-    final reactDomImport = imports.lastWhereOrNull((dir) =>
-        (dir.uri.stringValue == 'package:react/react_dom.dart' ||
-            dir.uri.stringValue == 'package:over_react/react_dom.dart'));
+    final reactDomImport = imports.lastWhereOrNull(
+      (dir) =>
+          (dir.uri.stringValue == 'package:react/react_dom.dart' ||
+          dir.uri.stringValue == 'package:over_react/react_dom.dart'),
+    );
 
     String? reactDomImportNamespace;
     bool isWrappedWithErrorBoundary = false;
@@ -65,9 +71,11 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       reactDomImportNamespace = reactDomImport.prefix?.name;
     }
 
-    final testAncestor = node.thisOrAncestorMatching((ancestor) =>
-        ancestor is MethodInvocation &&
-        const {'test', 'group'}.contains(ancestor.methodName.name));
+    final testAncestor = node.thisOrAncestorMatching(
+      (ancestor) =>
+          ancestor is MethodInvocation &&
+          const {'test', 'group'}.contains(ancestor.methodName.name),
+    );
     final inTest = testAncestor != null;
 
     if (node.methodName.name != 'render' ||
@@ -94,7 +102,10 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       }
       if (!isPartOf) {
         yieldPatch(
-            'import \'package:over_react/over_react.dart\';\n', offset, offset);
+          'import \'package:over_react/over_react.dart\';\n',
+          offset,
+          offset,
+        );
       }
     }
 
@@ -116,11 +127,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         renderFirstArg.offset,
         renderFirstArg.offset,
       );
-      yieldPatch(
-        ')',
-        renderFirstArg.end,
-        renderFirstArg.end,
-      );
+      yieldPatch(')', renderFirstArg.end, renderFirstArg.end);
     } else if (isWrappedWithErrorBoundary && overReactImport == null) {
       addOverReactPatch(reactDomImport?.offset);
     }
@@ -140,11 +147,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
       // Edit assignment
       if (parent is VariableDeclaration) {
         // Instances of this class are always children of the class [VariableDeclarationList]
-        yieldPatch(
-          ';',
-          parent.equals!.offset,
-          parent.equals!.end,
-        );
+        yieldPatch(';', parent.equals!.offset, parent.equals!.end);
 
         // Add this on the render call and not before the parent so that dupe
         // comments aren't added on subsequent runs.
@@ -158,11 +161,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
 
         refVariableName = parent.name.lexeme;
       } else if (parent is AssignmentExpression) {
-        yieldPatch(
-          '',
-          parent.offset,
-          parent.rightHandSide.offset,
-        );
+        yieldPatch('', parent.offset, parent.rightHandSide.offset);
 
         // Add this on the render call and not before the parent so that dupe
         // comments aren't added on subsequent runs.
@@ -184,11 +183,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         final builderExpression = usage.node.function;
 
         if (builderExpression is! ParenthesizedExpression) {
-          yieldPatch(
-            '(',
-            builderExpression.offset,
-            builderExpression.offset,
-          );
+          yieldPatch('(', builderExpression.offset, builderExpression.offset);
         }
 
         yieldPatch(
@@ -198,11 +193,7 @@ class ReactDomRenderMigrator extends GeneralizingAstVisitor
         );
 
         if (builderExpression is! ParenthesizedExpression) {
-          yieldPatch(
-            ')',
-            builderExpression.end,
-            builderExpression.end,
-          );
+          yieldPatch(')', builderExpression.end, builderExpression.end);
         }
       }
     } else if (parent is ArgumentList &&

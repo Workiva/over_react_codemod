@@ -39,11 +39,14 @@ main() {
 
         for (final usage in unresolvedUsages) {
           final migrator = GenericMigrator(
-              migrateUsage: boundExpectAsync2((_, __) {},
-                  count: 0,
-                  reason:
-                      'migrator should not be called for any of these usages;'
-                      ' it should throw first'));
+            migrateUsage: boundExpectAsync2(
+              (_, __) {},
+              count: 0,
+              reason:
+                  'migrator should not be called for any of these usages;'
+                  ' it should throw first',
+            ),
+          );
 
           final context = await sharedContext.resolvedFileContextForTest(
             // We're intentionally not importing over_react here since we don't
@@ -57,19 +60,23 @@ main() {
           );
           await expectLater(
             () async => await migrator(context).toList(),
-            throwsA(isA<Exception>().havingToStringValue(allOf(
-              contains('Builder static type could not be resolved'),
-              contains(usage),
-            ))),
+            throwsA(
+              isA<Exception>().havingToStringValue(
+                allOf(
+                  contains('Builder static type could not be resolved'),
+                  contains(usage),
+                ),
+              ),
+            ),
           );
         }
       });
 
       test(
-          'but not for resolved dynamic calls might look like unresolved usages',
-          () async {
-        // Valid dynamic calls that are resolved and just looks like usages
-        const source = /*language=dart*/ '''
+        'but not for resolved dynamic calls might look like unresolved usages',
+        () async {
+          // Valid dynamic calls that are resolved and just looks like usages
+          const source = /*language=dart*/ '''
             // Dynamic first and second invocation
             dynamic Foo1;
             usage1() => Foo1()();
@@ -87,25 +94,32 @@ main() {
             usage3_2() => builder3();
         ''';
 
-        final migrator = GenericMigrator(
-          migrateUsage: boundExpectAsync2((_, __) {},
-              count: 0, reason: 'these calls should not be detected as usages'),
-        );
-        // awaiting this is the best way to assert it does not throw, since
-        // returnsNormally doesn't work as intended with async functions.
-        await sharedContext.getPatches(migrator, source);
-      });
+          final migrator = GenericMigrator(
+            migrateUsage: boundExpectAsync2(
+              (_, __) {},
+              count: 0,
+              reason: 'these calls should not be detected as usages',
+            ),
+          );
+          // awaiting this is the best way to assert it does not throw, since
+          // returnsNormally doesn't work as intended with async functions.
+          await sharedContext.getPatches(migrator, source);
+        },
+      );
     });
 
     group('respects ignore comments, skipping shouldMigrateUsage when', () {
       group('a component usage is ignored', () {
         Future<List<FluentComponentUsage>> getShouldMigrateUsageCalls(
-            String source) async {
+          String source,
+        ) async {
           final calls = <FluentComponentUsage>[];
-          final migrator = GenericMigrator(shouldMigrateUsage: (_, usage) {
-            calls.add(usage);
-            return false;
-          });
+          final migrator = GenericMigrator(
+            shouldMigrateUsage: (_, usage) {
+              calls.add(usage);
+              return false;
+            },
+          );
           await sharedContext.getPatches(migrator, source);
           return calls;
         }
@@ -169,9 +183,10 @@ main() {
           ]);
         });
 
-        test('via a plain orcm_ignore_for_file comment somewhere in the file',
-            () async {
-          final source = withOverReactImport(/*language=dart*/ r'''
+        test(
+          'via a plain orcm_ignore_for_file comment somewhere in the file',
+          () async {
+            final source = withOverReactImport(/*language=dart*/ r'''
               // orcm_ignore_for_file
           
               usage() {
@@ -180,14 +195,15 @@ main() {
               }
           ''');
 
-          final calls = await getShouldMigrateUsageCalls(source);
-          expect(calls, isEmpty);
-        });
+            final calls = await getShouldMigrateUsageCalls(source);
+            expect(calls, isEmpty);
+          },
+        );
 
         test(
-            'via an orcm_ignore_for_file comment with args somewhere in the file',
-            () async {
-          final source = withOverReactImport(/*language=dart*/ r'''          
+          'via an orcm_ignore_for_file comment with args somewhere in the file',
+          () async {
+            final source = withOverReactImport(/*language=dart*/ r'''          
               // orcm_ignore_for_file: Foo
               // orcm_ignore_for_file: BarProps
               // orcm_ignore_for_file: Dom.div, Dom.span
@@ -219,12 +235,13 @@ main() {
               }
           ''');
 
-          final calls = await getShouldMigrateUsageCalls(source);
-          expect(calls.map((u) => u.builder.toSource()).toList(), [
-            'Qux()',
-            'Dom.a()',
-          ]);
-        });
+            final calls = await getShouldMigrateUsageCalls(source);
+            expect(calls.map((u) => u.builder.toSource()).toList(), [
+              'Qux()',
+              'Dom.a()',
+            ]);
+          },
+        );
       });
     });
 
@@ -380,10 +397,12 @@ main() {
         test('does not flag valid usages', () async {
           await testSuggestor(
             suggestor: GenericMigrator(
-              migrateUsage: boundExpectAsync2((_, __) {},
-                  // This suggestor gets run twice since idempotency is tested.
-                  count: 2,
-                  reason: 'should have run on the valid component usage'),
+              migrateUsage: boundExpectAsync2(
+                (_, __) {},
+                // This suggestor gets run twice since idempotency is tested.
+                count: 2,
+                reason: 'should have run on the valid component usage',
+              ),
             ),
             resolvedContext: sharedContext,
             input: withOverReactImport(/*language=dart*/ '''
@@ -507,9 +526,14 @@ main() {
       group('yieldInsertionPatch', () {
         test('yields a patch with the same start and end location', () async {
           await testSuggestor(
-            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-              migrator.yieldInsertionPatch('/*insertion*/', usage.node.offset);
-            }),
+            suggestor: GenericMigrator(
+              migrateUsage: (migrator, usage) {
+                migrator.yieldInsertionPatch(
+                  '/*insertion*/',
+                  usage.node.offset,
+                );
+              },
+            ),
             resolvedContext: sharedContext,
             input: withOverReactImport(/*language=dart*/ '''
                 content() => Dom.div()();
@@ -523,21 +547,24 @@ main() {
 
       group('yieldPatchOverNode', () {
         test(
-            'yields a patch with the same start and end position as the given node',
-            () async {
-          await testSuggestor(
-            suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-              migrator.yieldPatchOverNode('newBuilder', usage.builder);
-            }),
-            resolvedContext: sharedContext,
-            input: withOverReactImport(/*language=dart*/ '''
+          'yields a patch with the same start and end position as the given node',
+          () async {
+            await testSuggestor(
+              suggestor: GenericMigrator(
+                migrateUsage: (migrator, usage) {
+                  migrator.yieldPatchOverNode('newBuilder', usage.builder);
+                },
+              ),
+              resolvedContext: sharedContext,
+              input: withOverReactImport(/*language=dart*/ '''
                 content() => Dom.div()();
             '''),
-            expectedOutput: withOverReactImport(/*language=dart*/ '''
+              expectedOutput: withOverReactImport(/*language=dart*/ '''
                 content() => newBuilder();
             '''),
-          );
-        });
+            );
+          },
+        );
       });
 
       group('yieldAddPropPatch', yieldAddPropPatchTests);
@@ -559,20 +586,29 @@ main() {
 
   group('handleCascadedPropsByName', () {
     test('runs the migrator for each prop with a matching name', () async {
-      final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
-        handleCascadedPropsByName(usage, {
-          'onClick': boundExpectAsync1((p) {
-            expect(p.name.name, 'onClick');
-          }),
-          'href': boundExpectAsync1((p) {
-            expect(p.name.name, 'href');
-          }),
-          'target': boundExpectAsync1((_) {},
-              count: 0, reason: 'should not call props that are not present'),
-        }, catchAll: boundExpectAsync1((p) {
-          expect(p.name.name, 'id');
-        }));
-      });
+      final suggestor = GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          handleCascadedPropsByName(
+            usage,
+            {
+              'onClick': boundExpectAsync1((p) {
+                expect(p.name.name, 'onClick');
+              }),
+              'href': boundExpectAsync1((p) {
+                expect(p.name.name, 'href');
+              }),
+              'target': boundExpectAsync1(
+                (_) {},
+                count: 0,
+                reason: 'should not call props that are not present',
+              ),
+            },
+            catchAll: boundExpectAsync1((p) {
+              expect(p.name.name, 'id');
+            }),
+          );
+        },
+      );
       final source = withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div()
             ..onClick = (_) {}
@@ -584,30 +620,37 @@ main() {
     });
 
     test('throws when a prop does not exist on the props class', () async {
-      final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
-        handleCascadedPropsByName(usage, {
-          'notARealProp': (_) {},
-        });
-      });
+      final suggestor = GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          handleCascadedPropsByName(usage, {'notARealProp': (_) {}});
+        },
+      );
 
       final source = withOverReactImport('content() => Dom.div()();');
       expect(
-          () async => await sharedContext.getPatches(suggestor, source),
-          throwsA(isArgumentError.havingMessage(allOf(
-            contains("'migratorsByName' contains unknown prop name"),
-            contains("notARealProp"),
-          ))));
+        () async => await sharedContext.getPatches(suggestor, source),
+        throwsA(
+          isArgumentError.havingMessage(
+            allOf(
+              contains("'migratorsByName' contains unknown prop name"),
+              contains("notARealProp"),
+            ),
+          ),
+        ),
+      );
     });
   });
 
   group('getFirstPropByName', () {
     test('returns the first prop with a matching name', () async {
-      final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
-        final prop = getFirstPropWithName(usage, 'href');
-        expect(prop, isNotNull);
-        expect(prop!.name.name, 'href');
-        expect(prop.rightHandSide.toSource(), '"example.com/1"');
-      });
+      final suggestor = GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          final prop = getFirstPropWithName(usage, 'href');
+          expect(prop, isNotNull);
+          expect(prop!.name.name, 'href');
+          expect(prop.rightHandSide.toSource(), '"example.com/1"');
+        },
+      );
       final source = withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div()
             ..onClick = (_) {}
@@ -620,10 +663,12 @@ main() {
     });
 
     test('returns null when no prop matches the given name', () async {
-      final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
-        final prop = getFirstPropWithName(usage, 'href');
-        expect(prop, isNull);
-      });
+      final suggestor = GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          final prop = getFirstPropWithName(usage, 'href');
+          expect(prop, isNull);
+        },
+      );
       final source = withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div()
             ..onClick = (_) {}
@@ -634,17 +679,24 @@ main() {
     });
 
     test('throws when a prop does not exist on the props class', () async {
-      final suggestor = GenericMigrator(migrateUsage: (migrator, usage) {
-        getFirstPropWithName(usage, 'notARealProp');
-      });
+      final suggestor = GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          getFirstPropWithName(usage, 'notARealProp');
+        },
+      );
 
       final source = withOverReactImport('content() => Dom.div()();');
       expect(
-          () async => await sharedContext.getPatches(suggestor, source),
-          throwsA(isArgumentError.havingMessage(allOf(
-            contains("not statically available"),
-            contains("notARealProp"),
-          ))));
+        () async => await sharedContext.getPatches(suggestor, source),
+        throwsA(
+          isArgumentError.havingMessage(
+            allOf(
+              contains("not statically available"),
+              contains("notARealProp"),
+            ),
+          ),
+        ),
+      );
     });
   });
 }
@@ -653,9 +705,11 @@ main() {
 void yieldAddPropPatchTests() {
   test('when the builder is not parenthesized', () async {
     await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-      }),
+      suggestor: GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+        },
+      ),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
           content() => Dom.div()();
@@ -667,31 +721,36 @@ void yieldAddPropPatchTests() {
   });
 
   test(
-      'when the builder is not parenthesized and yieldAddPropPatch is called more than once',
-      () async {
-    await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-        migrator.yieldAddPropPatch(usage, '..bar = "bar"');
-      }),
-      resolvedContext: sharedContext,
-      input: withOverReactImport(/*language=dart*/ '''
+    'when the builder is not parenthesized and yieldAddPropPatch is called more than once',
+    () async {
+      await testSuggestor(
+        suggestor: GenericMigrator(
+          migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+            migrator.yieldAddPropPatch(usage, '..bar = "bar"');
+          },
+        ),
+        resolvedContext: sharedContext,
+        input: withOverReactImport(/*language=dart*/ '''
           content() => Dom.div()();
       '''),
-      expectedOutput: withOverReactImport(/*language=dart*/ '''
+        expectedOutput: withOverReactImport(/*language=dart*/ '''
           content() => ((Dom.div()
             ..foo = "foo"
             ..bar = "bar"
           ))();
       '''),
-    );
-  });
+      );
+    },
+  );
 
   test('when the builder is parenthesized with no cascade', () async {
     await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-      }),
+      suggestor: GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+        },
+      ),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div())();
@@ -704,14 +763,18 @@ void yieldAddPropPatchTests() {
 
   test('when the builder has a single cascade on one line', () async {
     await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        final getLine = migrator.context.sourceFile.getLine;
-        expect(getLine(usage.cascadeSections.single.offset),
+      suggestor: GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          final getLine = migrator.context.sourceFile.getLine;
+          expect(
+            getLine(usage.cascadeSections.single.offset),
             getLine(usage.builder.offset),
-            reason: 'cascade and builder should be on the same line');
+            reason: 'cascade and builder should be on the same line',
+          );
 
-        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-      }),
+          migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+        },
+      ),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div()..id = "some_id")();
@@ -727,14 +790,18 @@ void yieldAddPropPatchTests() {
 
   test('when the builder has a single cascade on a new line', () async {
     await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        final getLine = migrator.context.sourceFile.getLine;
-        expect(getLine(usage.cascadeSections.single.offset),
+      suggestor: GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          final getLine = migrator.context.sourceFile.getLine;
+          expect(
+            getLine(usage.cascadeSections.single.offset),
             isNot(getLine(usage.builder.offset)),
-            reason: 'cascade and builder should not be on the same line');
+            reason: 'cascade and builder should not be on the same line',
+          );
 
-        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-      }),
+          migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+        },
+      ),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div()
@@ -754,9 +821,11 @@ void yieldAddPropPatchTests() {
 
   test('when the builder has multiple cascaded sections', () async {
     await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-      }),
+      suggestor: GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+        },
+      ),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div()
@@ -777,9 +846,11 @@ void yieldAddPropPatchTests() {
   group('automatically places a prop in the best location', () {
     test('when there are no special case props', () async {
       await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-        }),
+        suggestor: GenericMigrator(
+          migrateUsage: (migrator, usage) {
+            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+          },
+        ),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
             content() => (Dom.div()
@@ -800,9 +871,11 @@ void yieldAddPropPatchTests() {
     group('when there are props that should remain last -', () {
       test('index assignment prop', () async {
         await testSuggestor(
-          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-          }),
+          suggestor: GenericMigrator(
+            migrateUsage: (migrator, usage) {
+              migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+            },
+          ),
           resolvedContext: sharedContext,
           input: withOverReactImport(/*language=dart*/ '''
               content() => (Dom.div()
@@ -822,9 +895,11 @@ void yieldAddPropPatchTests() {
 
       test('method invocation prop', () async {
         await testSuggestor(
-          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-          }),
+          suggestor: GenericMigrator(
+            migrateUsage: (migrator, usage) {
+              migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+            },
+          ),
           resolvedContext: sharedContext,
           input: withOverReactImport(/*language=dart*/ '''
               content() => (Dom.div()
@@ -844,9 +919,11 @@ void yieldAddPropPatchTests() {
 
       test('key prop', () async {
         await testSuggestor(
-          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-          }),
+          suggestor: GenericMigrator(
+            migrateUsage: (migrator, usage) {
+              migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+            },
+          ),
           resolvedContext: sharedContext,
           input: withOverReactImport(/*language=dart*/ '''
               content() => (Dom.div()
@@ -866,9 +943,11 @@ void yieldAddPropPatchTests() {
 
       test('ref prop', () async {
         await testSuggestor(
-          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-          }),
+          suggestor: GenericMigrator(
+            migrateUsage: (migrator, usage) {
+              migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+            },
+          ),
           resolvedContext: sharedContext,
           input: withOverReactImport(/*language=dart*/ '''
               final ref = createRef();
@@ -891,9 +970,11 @@ void yieldAddPropPatchTests() {
 
       test('but the prop is not last', () async {
         await testSuggestor(
-          suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-            migrator.yieldAddPropPatch(usage, '..foo = "foo"');
-          }),
+          suggestor: GenericMigrator(
+            migrateUsage: (migrator, usage) {
+              migrator.yieldAddPropPatch(usage, '..foo = "foo"');
+            },
+          ),
           resolvedContext: sharedContext,
           input: withOverReactImport(/*language=dart*/ '''
               content() => (Dom.div()
@@ -915,10 +996,15 @@ void yieldAddPropPatchTests() {
 
   test('when placement is NewPropPlacement.start', () async {
     await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        migrator.yieldAddPropPatch(usage, '..foo = "foo"',
-            placement: NewPropPlacement.start);
-      }),
+      suggestor: GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          migrator.yieldAddPropPatch(
+            usage,
+            '..foo = "foo"',
+            placement: NewPropPlacement.start,
+          );
+        },
+      ),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div()
@@ -938,10 +1024,15 @@ void yieldAddPropPatchTests() {
 
   test('when placement is NewPropPlacement.end', () async {
     await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        migrator.yieldAddPropPatch(usage, '..foo = "foo"',
-            placement: NewPropPlacement.end);
-      }),
+      suggestor: GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          migrator.yieldAddPropPatch(
+            usage,
+            '..foo = "foo"',
+            placement: NewPropPlacement.end,
+          );
+        },
+      ),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div()
@@ -966,9 +1057,11 @@ void yieldRemovePropPatchTests() {
   group('when the builder has more than one cascade section', () {
     test('and the first prop is removed', () async {
       await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldRemovePropPatch(usage.cascadedProps.first);
-        }),
+        suggestor: GenericMigrator(
+          migrateUsage: (migrator, usage) {
+            migrator.yieldRemovePropPatch(usage.cascadedProps.first);
+          },
+        ),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
             content() => (Dom.div()
@@ -988,9 +1081,11 @@ void yieldRemovePropPatchTests() {
 
     test('and a middle prop is removed', () async {
       await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldRemovePropPatch(usage.cascadedProps.elementAt(1));
-        }),
+        suggestor: GenericMigrator(
+          migrateUsage: (migrator, usage) {
+            migrator.yieldRemovePropPatch(usage.cascadedProps.elementAt(1));
+          },
+        ),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
             content() => (Dom.div()
@@ -1010,9 +1105,11 @@ void yieldRemovePropPatchTests() {
 
     test('and the last prop is removed', () async {
       await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldRemovePropPatch(usage.cascadedProps.last);
-        }),
+        suggestor: GenericMigrator(
+          migrateUsage: (migrator, usage) {
+            migrator.yieldRemovePropPatch(usage.cascadedProps.last);
+          },
+        ),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
             content() => (Dom.div()
@@ -1033,9 +1130,11 @@ void yieldRemovePropPatchTests() {
 
   test('when the builder has a single prop', () async {
     await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        migrator.yieldRemovePropPatch(usage.cascadedProps.single);
-      }),
+      suggestor: GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          migrator.yieldRemovePropPatch(usage.cascadedProps.single);
+        },
+      ),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div()
@@ -1052,17 +1151,21 @@ void yieldRemovePropPatchTests() {
 @isTestGroup
 void yieldBuilderMemberFixmePatchTests() {
   group(
-      'adds a FIXME comment to a cascaded member with a custom message,'
-      ' placing newlines properly so that the comment stays attached to the node after formatting',
-      () {
-    test('for the first cascade section', () async {
-      await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldBuilderMemberFixmePatch(
-              usage.cascadedMembers.first, 'custom comment');
-        }),
-        resolvedContext: sharedContext,
-        input: withOverReactImport(/*language=dart*/ '''
+    'adds a FIXME comment to a cascaded member with a custom message,'
+    ' placing newlines properly so that the comment stays attached to the node after formatting',
+    () {
+      test('for the first cascade section', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(
+            migrateUsage: (migrator, usage) {
+              migrator.yieldBuilderMemberFixmePatch(
+                usage.cascadedMembers.first,
+                'custom comment',
+              );
+            },
+          ),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
             content() {
               // Same line as builder
               (Dom.div()..id = '')();
@@ -1079,7 +1182,7 @@ void yieldBuilderMemberFixmePatchTests() {
               )();
             }
         '''),
-        expectedOutput: withOverReactImport(/*language=dart*/ '''
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
             content() {
               // Same line as builder
               (Dom.div()
@@ -1103,17 +1206,21 @@ void yieldBuilderMemberFixmePatchTests() {
               )();
             }
         '''),
-      );
-    });
+        );
+      });
 
-    test('for other cascade sections', () async {
-      await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldBuilderMemberFixmePatch(
-              usage.cascadedMembers.last, 'custom comment');
-        }),
-        resolvedContext: sharedContext,
-        input: withOverReactImport(/*language=dart*/ '''
+      test('for other cascade sections', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(
+            migrateUsage: (migrator, usage) {
+              migrator.yieldBuilderMemberFixmePatch(
+                usage.cascadedMembers.last,
+                'custom comment',
+              );
+            },
+          ),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
             content() {
               (Dom.div()
                 ..id = ''
@@ -1121,7 +1228,7 @@ void yieldBuilderMemberFixmePatchTests() {
               )();
             }
         '''),
-        expectedOutput: withOverReactImport(/*language=dart*/ '''
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
             content() {
               (Dom.div()
                 ..id = ''
@@ -1130,9 +1237,10 @@ void yieldBuilderMemberFixmePatchTests() {
               )();
             }
         '''),
-      );
-    });
-  });
+        );
+      });
+    },
+  );
 }
 
 /// The types of fix me comments that can be added to a particular prop.
@@ -1150,29 +1258,32 @@ const propFixmeMessage = <PropFixmeType, String>{
 };
 
 @isTestGroup
-void yieldPropFixmePatchTests(
-    {PropFixmeType fixmeType = PropFixmeType.custom}) {
+void yieldPropFixmePatchTests({
+  PropFixmeType fixmeType = PropFixmeType.custom,
+}) {
   final expectedMessage = propFixmeMessage[fixmeType] ?? 'custom comment';
 
   group(
-      'adds a FIXME comment to a cascaded prop with the prop name and a custom message,'
-      ' placing newlines properly so that the comment stays attached to the node after formatting',
-      () {
-    test('for the first prop', () async {
-      await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          final prop = usage.cascadedProps.first;
-          switch (fixmeType) {
-            case PropFixmeType.custom:
-              migrator.yieldPropFixmePatch(prop, expectedMessage);
-              break;
-            case PropFixmeType.manuallyMigrate:
-              migrator.yieldPropManualMigratePatch(prop);
-              break;
-          }
-        }),
-        resolvedContext: sharedContext,
-        input: withOverReactImport(/*language=dart*/ '''
+    'adds a FIXME comment to a cascaded prop with the prop name and a custom message,'
+    ' placing newlines properly so that the comment stays attached to the node after formatting',
+    () {
+      test('for the first prop', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(
+            migrateUsage: (migrator, usage) {
+              final prop = usage.cascadedProps.first;
+              switch (fixmeType) {
+                case PropFixmeType.custom:
+                  migrator.yieldPropFixmePatch(prop, expectedMessage);
+                  break;
+                case PropFixmeType.manuallyMigrate:
+                  migrator.yieldPropManualMigratePatch(prop);
+                  break;
+              }
+            },
+          ),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
             content() {
               // Same line as builder
               (Dom.div()..id = '')();
@@ -1189,7 +1300,7 @@ void yieldPropFixmePatchTests(
               )();
             }
         '''),
-        expectedOutput: withOverReactImport('''
+          expectedOutput: withOverReactImport('''
             content() {
               // Same line as builder
               (Dom.div()
@@ -1213,24 +1324,26 @@ void yieldPropFixmePatchTests(
               )();
             }
         '''),
-      );
-    });
+        );
+      });
 
-    test('for other props', () async {
-      await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          final prop = usage.cascadedProps.last;
-          switch (fixmeType) {
-            case PropFixmeType.custom:
-              migrator.yieldPropFixmePatch(prop, expectedMessage);
-              break;
-            case PropFixmeType.manuallyMigrate:
-              migrator.yieldPropManualMigratePatch(prop);
-              break;
-          }
-        }),
-        resolvedContext: sharedContext,
-        input: withOverReactImport(/*language=dart*/ '''
+      test('for other props', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(
+            migrateUsage: (migrator, usage) {
+              final prop = usage.cascadedProps.last;
+              switch (fixmeType) {
+                case PropFixmeType.custom:
+                  migrator.yieldPropFixmePatch(prop, expectedMessage);
+                  break;
+                case PropFixmeType.manuallyMigrate:
+                  migrator.yieldPropManualMigratePatch(prop);
+                  break;
+              }
+            },
+          ),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
             content() {
               (Dom.div()
                 ..id = ''
@@ -1238,7 +1351,7 @@ void yieldPropFixmePatchTests(
               )();
             }
         '''),
-        expectedOutput: withOverReactImport('''
+          expectedOutput: withOverReactImport('''
             content() {
               (Dom.div()
                 ..id = ''
@@ -1247,24 +1360,30 @@ void yieldPropFixmePatchTests(
               )();
             }
         '''),
-      );
-    });
-  });
+        );
+      });
+    },
+  );
 }
 
 @isTestGroup
 void yieldChildFixmePatchTests() {
   group(
-      'adds a FIXME comment to a cascaded member with a custom message,'
-      ' placing newlines properly so that the comment stays attached to the node after formatting',
-      () {
-    test('for the first child', () async {
-      await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldChildFixmePatch(usage.children.first, 'custom comment');
-        }),
-        resolvedContext: sharedContext,
-        input: withOverReactImport(/*language=dart*/ '''
+    'adds a FIXME comment to a cascaded member with a custom message,'
+    ' placing newlines properly so that the comment stays attached to the node after formatting',
+    () {
+      test('for the first child', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(
+            migrateUsage: (migrator, usage) {
+              migrator.yieldChildFixmePatch(
+                usage.children.first,
+                'custom comment',
+              );
+            },
+          ),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
             content() {
               // Same line as builder
               Dom.div()('child');
@@ -1288,7 +1407,7 @@ void yieldChildFixmePatchTests() {
               ]);
             }
         '''),
-        expectedOutput: withOverReactImport(/*language=dart*/ '''
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
             content() {
               // Same line as builder
               Dom.div()(
@@ -1321,16 +1440,21 @@ void yieldChildFixmePatchTests() {
               ]);
             }
         '''),
-      );
-    });
+        );
+      });
 
-    test('for other children', () async {
-      await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldChildFixmePatch(usage.children.last, 'custom comment');
-        }),
-        resolvedContext: sharedContext,
-        input: withOverReactImport(/*language=dart*/ '''
+      test('for other children', () async {
+        await testSuggestor(
+          suggestor: GenericMigrator(
+            migrateUsage: (migrator, usage) {
+              migrator.yieldChildFixmePatch(
+                usage.children.last,
+                'custom comment',
+              );
+            },
+          ),
+          resolvedContext: sharedContext,
+          input: withOverReactImport(/*language=dart*/ '''
             content() {
               // Same line as builder
               Dom.div()(1, 2);
@@ -1342,7 +1466,7 @@ void yieldChildFixmePatchTests() {
               );
             }
         '''),
-        expectedOutput: withOverReactImport(/*language=dart*/ '''
+          expectedOutput: withOverReactImport(/*language=dart*/ '''
             content() {
               // Same line as builder
               Dom.div()(
@@ -1358,17 +1482,20 @@ void yieldChildFixmePatchTests() {
               );
             }
         '''),
-      );
-    });
-  });
+        );
+      });
+    },
+  );
 }
 
 void yieldRemoveChildPatchTests() {
   test('when it is the only child', () async {
     await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        migrator.yieldRemoveChildPatch(usage.children.single.node);
-      }),
+      suggestor: GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          migrator.yieldRemoveChildPatch(usage.children.single.node);
+        },
+      ),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
           content() => [
@@ -1396,9 +1523,11 @@ void yieldRemoveChildPatchTests() {
   group('when there are multiple children', () {
     test('last child', () async {
       await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldRemoveChildPatch(usage.children.last.node);
-        }),
+        suggestor: GenericMigrator(
+          migrateUsage: (migrator, usage) {
+            migrator.yieldRemoveChildPatch(usage.children.last.node);
+          },
+        ),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
             content() => [
@@ -1431,9 +1560,11 @@ void yieldRemoveChildPatchTests() {
 
     test('first child', () async {
       await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldRemoveChildPatch(usage.children.first.node);
-        }),
+        suggestor: GenericMigrator(
+          migrateUsage: (migrator, usage) {
+            migrator.yieldRemoveChildPatch(usage.children.first.node);
+          },
+        ),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
             content() => [
@@ -1469,9 +1600,11 @@ void yieldRemoveChildPatchTests() {
 void yieldAddChildPatchTests() {
   test('when there are no existing children', () async {
     await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        migrator.yieldAddChildPatch(usage, 'Dom.div()(\'A child\')');
-      }),
+      suggestor: GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          migrator.yieldAddChildPatch(usage, 'Dom.div()(\'A child\')');
+        },
+      ),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
           content() => [
@@ -1495,9 +1628,11 @@ void yieldAddChildPatchTests() {
   group('when there are multiple children', () {
     test('and a string child is being added', () async {
       await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldAddChildPatch(usage, "'A child'");
-        }),
+        suggestor: GenericMigrator(
+          migrateUsage: (migrator, usage) {
+            migrator.yieldAddChildPatch(usage, "'A child'");
+          },
+        ),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
             content() => [
@@ -1534,9 +1669,11 @@ void yieldAddChildPatchTests() {
 
     test('and a basic component usage is being added', () async {
       await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldAddChildPatch(usage, 'Dom.div()(\'A child\')');
-        }),
+        suggestor: GenericMigrator(
+          migrateUsage: (migrator, usage) {
+            migrator.yieldAddChildPatch(usage, 'Dom.div()(\'A child\')');
+          },
+        ),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
             content() => [
@@ -1573,10 +1710,14 @@ void yieldAddChildPatchTests() {
 
     test('and a complicated component usage is being added', () async {
       await testSuggestor(
-        suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-          migrator.yieldAddChildPatch(usage,
-              '(Dom.div()..dom.href = content..style = {\'color\': \'blue\'})(\'A child\')');
-        }),
+        suggestor: GenericMigrator(
+          migrateUsage: (migrator, usage) {
+            migrator.yieldAddChildPatch(
+              usage,
+              '(Dom.div()..dom.href = content..style = {\'color\': \'blue\'})(\'A child\')',
+            );
+          },
+        ),
         resolvedContext: sharedContext,
         input: withOverReactImport(/*language=dart*/ '''
             content(dynamic content) => [
@@ -1616,12 +1757,18 @@ void yieldAddChildPatchTests() {
 void yieldPropPatchTests() {
   test('throws if neither arguments are specified', () async {
     await sharedContext.getPatches(
-      GenericMigrator(migrateUsage: boundExpectAsync2((migrator, usage) {
-        expect(
+      GenericMigrator(
+        migrateUsage: boundExpectAsync2((migrator, usage) {
+          expect(
             () => migrator.yieldPropPatch(usage.cascadedProps.first),
-            throwsA(isArgumentError
-                .havingToStringValue(contains('either newName or newRhs'))));
-      })),
+            throwsA(
+              isArgumentError.havingToStringValue(
+                contains('either newName or newRhs'),
+              ),
+            ),
+          );
+        }),
+      ),
       withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div()..id = "some_id" )();
       '''),
@@ -1630,15 +1777,19 @@ void yieldPropPatchTests() {
 
   test('inserts content', () async {
     await testSuggestor(
-      suggestor: GenericMigrator(migrateUsage: (migrator, usage) {
-        final propAt = usage.cascadedProps.elementAt;
-        migrator.yieldPropPatch(propAt(0), newName: 'newName0');
-        migrator.yieldPropPatch(propAt(1), newRhs: 'newRhs1');
-        migrator.yieldPropPatch(propAt(2),
+      suggestor: GenericMigrator(
+        migrateUsage: (migrator, usage) {
+          final propAt = usage.cascadedProps.elementAt;
+          migrator.yieldPropPatch(propAt(0), newName: 'newName0');
+          migrator.yieldPropPatch(propAt(1), newRhs: 'newRhs1');
+          migrator.yieldPropPatch(
+            propAt(2),
             newName: 'newName2',
             newRhs: 'newRhs2',
-            additionalCascadeSection: '..additionalCascade');
-      }),
+            additionalCascadeSection: '..additionalCascade',
+          );
+        },
+      ),
       resolvedContext: sharedContext,
       input: withOverReactImport(/*language=dart*/ '''
           content() => (Dom.div()
@@ -1659,10 +1810,10 @@ void yieldPropPatchTests() {
   });
 }
 
-typedef OnMigrateUsage = void Function(
-    GenericMigrator migrator, FluentComponentUsage usage);
-typedef OnShouldMigrateUsage = bool Function(
-    GenericMigrator migrator, FluentComponentUsage usage);
+typedef OnMigrateUsage =
+    void Function(GenericMigrator migrator, FluentComponentUsage usage);
+typedef OnShouldMigrateUsage =
+    bool Function(GenericMigrator migrator, FluentComponentUsage usage);
 
 class GenericMigrator extends ComponentUsageMigrator {
   final OnMigrateUsage? _onMigrateUsage;
@@ -1671,8 +1822,8 @@ class GenericMigrator extends ComponentUsageMigrator {
   GenericMigrator({
     OnMigrateUsage? migrateUsage,
     OnShouldMigrateUsage? shouldMigrateUsage,
-  })  : _onMigrateUsage = migrateUsage,
-        _onShouldMigrateUsage = shouldMigrateUsage;
+  }) : _onMigrateUsage = migrateUsage,
+       _onShouldMigrateUsage = shouldMigrateUsage;
 
   @override
   bool shouldMigrateUsage(usage) =>

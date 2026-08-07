@@ -40,8 +40,9 @@ class MuiInlineAlertMigrator extends ComponentUsageMigrator
       usesWsdFactory(usage, 'Alert') &&
       // If the alert has props related to the `toast` variant, don't try to
       // migrate it.
-      !usage.cascadedProps
-          .any((prop) => toastAlertProps.contains(prop.name.name));
+      !usage.cascadedProps.any(
+        (prop) => toastAlertProps.contains(prop.name.name),
+      );
 
   @override
   void migrateUsage(FluentComponentUsage usage) {
@@ -70,23 +71,24 @@ mixin AlertDisplayPropsMigrator on ComponentUsageMigrator {
     });
 
     if (severityFromWsdSkin != null) {
-      yieldPropPatch(
-        prop,
-        newName: 'severity',
-        newRhs: severityFromWsdSkin,
-      );
+      yieldPropPatch(prop, newName: 'severity', newRhs: severityFromWsdSkin);
       return;
     }
 
-    final usesInverseSkin =
-        isWsdStaticConstant(prop.rightHandSide, 'AlertSkin.INVERSE');
-    var migrateVariantToGray = usesInverseSkin ||
+    final usesInverseSkin = isWsdStaticConstant(
+      prop.rightHandSide,
+      'AlertSkin.INVERSE',
+    );
+    var migrateVariantToGray =
+        usesInverseSkin ||
         isWsdStaticConstant(prop.rightHandSide, 'AlertSkin.GRAY');
 
     if (migrateVariantToGray) {
       if (usesInverseSkin) {
-        yieldPropFixmePatch(prop,
-            'this prop was converted from the INVERSE skin and should be double checked');
+        yieldPropFixmePatch(
+          prop,
+          'this prop was converted from the INVERSE skin and should be double checked',
+        );
       }
 
       yieldPropPatch(
@@ -105,7 +107,9 @@ mixin AlertDisplayPropsMigrator on ComponentUsageMigrator {
 
     yieldRemovePropPatch(prop);
     yieldAddChildPatch(
-        usage, '$muiNs.AlertTitle()(${context.sourceFor(propValue)})');
+      usage,
+      '$muiNs.AlertTitle()(${context.sourceFor(propValue)})',
+    );
   }
 
   void migrateAlertSize(PropAssignment prop) {
@@ -118,10 +122,7 @@ mixin AlertDisplayPropsMigrator on ComponentUsageMigrator {
     });
 
     if (sizeFromWsdAlertSize != null) {
-      yieldPropPatch(
-        prop,
-        newRhs: sizeFromWsdAlertSize,
-      );
+      yieldPropPatch(prop, newRhs: sizeFromWsdAlertSize);
       return;
     }
 

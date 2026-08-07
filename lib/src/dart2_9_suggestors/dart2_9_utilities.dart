@@ -66,8 +66,9 @@ SimpleIdentifier? getGeneratedFactory(TopLevelVariableDeclaration node) {
       final generatedName = r'_$' + name;
       if (initializer is SimpleIdentifier && initializer.name == generatedName)
         return initializer;
-      return allDescendantsOfType<SimpleIdentifier>(initializer)
-          .firstWhereOrNull((identifier) => identifier.name == generatedName);
+      return allDescendantsOfType<SimpleIdentifier>(
+        initializer,
+      ).firstWhereOrNull((identifier) => identifier.name == generatedName);
     }
   }
 
@@ -80,8 +81,9 @@ bool isClassOrConnectedComponentFactory(TopLevelVariableDeclaration node) =>
 
 /// Returns whether or not [node] is in the legacy boilerplate syntax.
 bool isLegacyFactoryDecl(TopLevelVariableDeclaration node) {
-  final annotation = node.metadata
-      .firstWhereOrNull((m) => m.toSource().startsWith('@Factory'));
+  final annotation = node.metadata.firstWhereOrNull(
+    (m) => m.toSource().startsWith('@Factory'),
+  );
   return isClassOrConnectedComponentFactory(node) && annotation != null;
 }
 
@@ -110,14 +112,18 @@ bool isLegacyFactoryDecl(TopLevelVariableDeclaration node) {
 ///
 ///   `// ignore: invalid_assignment` => `// ignore: invalid_assignment`
 void removeIgnoreComment(
-    Token? comment, String ignoreToRemove, YieldPatch yieldPatch) {
+  Token? comment,
+  String ignoreToRemove,
+  YieldPatch yieldPatch,
+) {
   ArgumentError.checkNotNull(ignoreToRemove, 'ignoreToRemove');
   if (comment == null) return;
 
   final lexeme = comment.lexeme.replaceAll(' ', '').toLowerCase();
   if (lexeme.startsWith('//ignore:')) {
-    final ignoreList =
-        lexeme.replaceFirst(RegExp('\/\/ignore\:'), '').split(',');
+    final ignoreList = lexeme
+        .replaceFirst(RegExp('\/\/ignore\:'), '')
+        .split(',');
     if (ignoreList.contains(ignoreToRemove) && ignoreList.length == 1) {
       yieldPatch('', comment.previous?.end ?? comment.offset, comment.end);
     } else if (ignoreList.contains(ignoreToRemove)) {

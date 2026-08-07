@@ -36,11 +36,15 @@ main() {
 
     group('with shouldAlwaysUpdate false', () {
       final defaultTestSuggestor = getSuggestorTester(
-          PubspecOverReactUpgrader(parseVersionRange(versionRange)));
+        PubspecOverReactUpgrader(parseVersionRange(versionRange)),
+      );
 
-      final doNotAddDependencies = getSuggestorTester(PubspecOverReactUpgrader(
+      final doNotAddDependencies = getSuggestorTester(
+        PubspecOverReactUpgrader(
           parseVersionRange(versionRange),
-          shouldAddDependencies: false));
+          shouldAddDependencies: false,
+        ),
+      );
 
       sharedPubspecTest(
         testSuggestor: defaultTestSuggestor,
@@ -66,14 +70,16 @@ main() {
           expectedPatchCount: 1,
           shouldDartfmtOutput: false,
           validateContents: validatePubspecYaml,
-          input: ''
+          input:
+              ''
               'name: nothing\n'
               'version: 0.0.0\n'
               'dependencies:\n'
               '  over_react: ">=1.50.0 <2.0.0"\n'
               '  test: 1.5.1\n'
               '',
-          expectedOutput: ''
+          expectedOutput:
+              ''
               'name: nothing\n'
               'version: 0.0.0\n'
               'dependencies:\n'
@@ -89,7 +95,8 @@ main() {
             expectedPatchCount: 0,
             shouldDartfmtOutput: false,
             validateContents: validatePubspecYaml,
-            input: ''
+            input:
+                ''
                 'dependency_overrides:\n'
                 '  over_react:\n'
                 '    git:\n'
@@ -103,7 +110,8 @@ main() {
             expectedPatchCount: 0,
             shouldDartfmtOutput: false,
             validateContents: validatePubspecYaml,
-            input: ''
+            input:
+                ''
                 'dependency_overrides:\n'
                 '  over_react:\n'
                 '    path: ../\n',
@@ -114,8 +122,8 @@ main() {
 
     group('with shouldAlwaysUpdate true', () {
       final defaultTestSuggestor = getSuggestorTester(
-          PubspecOverReactUpgrader.alwaysUpdate(
-              parseVersionRange(versionRange)));
+        PubspecOverReactUpgrader.alwaysUpdate(parseVersionRange(versionRange)),
+      );
 
       sharedPubspecTest(
         testSuggestor: defaultTestSuggestor,
@@ -129,21 +137,24 @@ main() {
       group('does not attempt to update dependency_overrides', () {
         test('git', () async {
           await defaultTestSuggestor(
-              expectedPatchCount: 0,
-              shouldDartfmtOutput: false,
-              validateContents: validatePubspecYaml,
-              input: ''
-                  'dependency_overrides:\n'
-                  '  over_react:\n'
-                  '    git:\n'
-                  '      url: git@github.com:cleandart/react-dart.git\n'
-                  '      ref: 5.0.0-wip\n',
-              expectedOutput: ''
-                  'dependency_overrides:\n'
-                  '  over_react:\n'
-                  '    git:\n'
-                  '      url: git@github.com:cleandart/react-dart.git\n'
-                  '      ref: 5.0.0-wip\n');
+            expectedPatchCount: 0,
+            shouldDartfmtOutput: false,
+            validateContents: validatePubspecYaml,
+            input:
+                ''
+                'dependency_overrides:\n'
+                '  over_react:\n'
+                '    git:\n'
+                '      url: git@github.com:cleandart/react-dart.git\n'
+                '      ref: 5.0.0-wip\n',
+            expectedOutput:
+                ''
+                'dependency_overrides:\n'
+                '  over_react:\n'
+                '    git:\n'
+                '      url: git@github.com:cleandart/react-dart.git\n'
+                '      ref: 5.0.0-wip\n',
+          );
         });
 
         test('path', () async {
@@ -151,11 +162,13 @@ main() {
             expectedPatchCount: 0,
             shouldDartfmtOutput: false,
             validateContents: validatePubspecYaml,
-            input: ''
+            input:
+                ''
                 'dependency_overrides:\n'
                 '  over_react:\n'
                 '    path: ../\n',
-            expectedOutput: ''
+            expectedOutput:
+                ''
                 'dependency_overrides:\n'
                 '  over_react:\n'
                 '    path: ../\n',
@@ -170,8 +183,8 @@ String getExpectedOutput({bool? useMidVersionMin = false, String? hostedUrl}) {
   if (useMidVersionMin!) {
     final expected =
         VersionConstraint.parse('^2.0.0').allows(Version.parse(midRangeMark))
-            ? '^$midRangeMark'
-            : '">=$midRangeMark <3.0.0"';
+        ? '^$midRangeMark'
+        : '">=$midRangeMark <3.0.0"';
 
     return ''
         'dependencies:\n'

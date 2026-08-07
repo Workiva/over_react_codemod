@@ -65,13 +65,15 @@ void main(List<String> args) async {
     ..addFlag(
       _yesToAllFlag,
       negatable: false,
-      help: 'Forces all patches accepted without prompting the user. '
+      help:
+          'Forces all patches accepted without prompting the user. '
           'Useful for scripts.',
     )
     ..addFlag(
       _failOnChangesFlag,
       negatable: false,
-      help: 'Returns a non-zero exit code if there are changes to be made. '
+      help:
+          'Returns a non-zero exit code if there are changes to be made. '
           'Will not make any changes (i.e. this is a dry-run).',
     )
     ..addFlag(
@@ -83,13 +85,15 @@ void main(List<String> args) async {
     ..addOption(
       _rmuiVersionOption,
       defaultsTo: '1.1.1',
-      help: 'The react_material_ui version to use when adding it as'
+      help:
+          'The react_material_ui version to use when adding it as'
           ' a dependency via a "^" version constraint.',
     )
     ..addMultiOption(
       _componentOption,
       allowed: componentMigratorsByName.keys,
-      help: 'Choose which component migrators should be run. '
+      help:
+          'Choose which component migrators should be run. '
           'If no components are specified, all component migrators will be run.',
     );
 
@@ -97,7 +101,8 @@ void main(List<String> args) async {
 
   if (parsedArgs['help'] as bool) {
     stderr.writeln(
-        'Migrates web_skin_dart component usages to react_material_ui.');
+      'Migrates web_skin_dart component usages to react_material_ui.',
+    );
     stderr.writeln();
     stderr.writeln('Usage:');
     stderr.writeln('    mui_migration [arguments]');
@@ -191,7 +196,10 @@ void main(List<String> args) async {
     // output of previous migrators.
     [aggregate(migratorsToRun)],
     [
-      importerSuggestorBuilder(importUri: rmuiImportUri, importNamespace: muiNs)
+      importerSuggestorBuilder(
+        importUri: rmuiImportUri,
+        importNamespace: muiNs,
+      ),
     ],
     [unusedImportRemoverSuggestorBuilder('web_skin_dart')],
   ]);
@@ -201,10 +209,15 @@ void main(List<String> args) async {
   final rmuiVersionRange = parseVersionRange('^$rmuiVersion');
   exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
-    aggregate([
-      PubspecUpgrader('react_material_ui', rmuiVersionRange,
-          hostedUrl: 'https://pub.workiva.org'),
-    ].map((s) => ignoreable(s))),
+    aggregate(
+      [
+        PubspecUpgrader(
+          'react_material_ui',
+          rmuiVersionRange,
+          hostedUrl: 'https://pub.workiva.org',
+        ),
+      ].map((s) => ignoreable(s)),
+    ),
     defaultYes: true,
     args: codemodArgs,
     additionalHelpOutput: parser.usage,
@@ -217,11 +230,11 @@ void sortPartsLast(List<String> dartPaths) {
 
   final isPartCache = <String, bool>{};
   bool isPart(String path) => isPartCache.putIfAbsent(path, () {
-        // parseString is much faster than using an AnalysisContextCollection
-        //  to get unresolved AST, at least in repos with many context roots.
-        final unit = parseString(content: File(path).readAsStringSync()).unit;
-        return unit.directives.whereType<PartOfDirective>().isNotEmpty;
-      });
+    // parseString is much faster than using an AnalysisContextCollection
+    //  to get unresolved AST, at least in repos with many context roots.
+    final unit = parseString(content: File(path).readAsStringSync()).unit;
+    return unit.directives.whereType<PartOfDirective>().isNotEmpty;
+  });
 
   dartPaths.sort((a, b) {
     final isAPart = isPart(a);
@@ -235,7 +248,8 @@ void sortPartsLast(List<String> dartPaths) {
 
 Future<void> pubGetForAllPackageRoots(Iterable<String> files) async {
   _log.info(
-      'Running `pub get` if needed so that all Dart files can be resolved...');
+    'Running `pub get` if needed so that all Dart files can be resolved...',
+  );
   final packageRoots = files.map(findPackageRootFor).toSet();
   for (final packageRoot in packageRoots) {
     await runPubGetIfNeeded(packageRoot);

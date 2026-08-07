@@ -27,8 +27,10 @@ extension TypeHelpers on DartType {
     final element = typeOrBound.element;
     return element is InterfaceElement &&
         (element.isElementFromPackage(typeName, packageName) ||
-            element.allSupertypes.any((type) =>
-                type.element.isElementFromPackage(typeName, packageName)));
+            element.allSupertypes.any(
+              (type) =>
+                  type.element.isElementFromPackage(typeName, packageName),
+            ));
   }
 }
 

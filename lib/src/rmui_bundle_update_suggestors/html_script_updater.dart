@@ -29,36 +29,38 @@ class HtmlScriptUpdater {
   final bool updateAttributes;
   final bool removeTag;
 
-  HtmlScriptUpdater(this.existingScriptPath, this.newScriptPath,
-      {this.updateAttributes = true})
-      : removeTag = false;
+  HtmlScriptUpdater(
+    this.existingScriptPath,
+    this.newScriptPath, {
+    this.updateAttributes = true,
+  }) : removeTag = false;
 
   /// Use this constructor to remove the whole tag instead of updating it.
   HtmlScriptUpdater.remove(this.existingScriptPath)
-      : removeTag = true,
-        updateAttributes = false,
-        newScriptPath = 'will be ignored';
+    : removeTag = true,
+      updateAttributes = false,
+      newScriptPath = 'will be ignored';
 
   Stream<Patch> call(FileContext context) async* {
     final relevantScriptTags = [
-      ...Script(pathSubpattern: existingScriptPath)
-          .pattern
-          .allMatches(context.sourceText),
+      ...Script(
+        pathSubpattern: existingScriptPath,
+      ).pattern.allMatches(context.sourceText),
       ...?(!removeTag
-          ? Script(pathSubpattern: newScriptPath)
-              .pattern
-              .allMatches(context.sourceText)
-          : null)
+          ? Script(
+              pathSubpattern: newScriptPath,
+            ).pattern.allMatches(context.sourceText)
+          : null),
     ];
     final relevantLinkTags = [
-      ...Link(pathSubpattern: existingScriptPath)
-          .pattern
-          .allMatches(context.sourceText),
+      ...Link(
+        pathSubpattern: existingScriptPath,
+      ).pattern.allMatches(context.sourceText),
       ...?(!removeTag
-          ? Link(pathSubpattern: newScriptPath)
-              .pattern
-              .allMatches(context.sourceText)
-          : null)
+          ? Link(
+              pathSubpattern: newScriptPath,
+            ).pattern.allMatches(context.sourceText)
+          : null),
     ];
 
     // Do not update if neither the existingScriptPath nor newScriptPath are in the file.
@@ -68,11 +70,7 @@ class HtmlScriptUpdater {
 
     if (removeTag) {
       for (final tag in [...relevantScriptTags, ...relevantLinkTags]) {
-        patches.add(Patch(
-          '',
-          tag.start,
-          tag.end,
-        ));
+        patches.add(Patch('', tag.start, tag.end));
       }
     } else {
       if (updateAttributes) {
@@ -80,8 +78,9 @@ class HtmlScriptUpdater {
         for (final scriptTagMatch in relevantScriptTags) {
           final scriptTag = scriptTagMatch.group(0);
           if (scriptTag == null) continue;
-          final typeAttributes =
-              getAttributePattern('type').allMatches(scriptTag);
+          final typeAttributes = getAttributePattern(
+            'type',
+          ).allMatches(scriptTag);
           if (typeAttributes.isNotEmpty) {
             final attribute = typeAttributes.first;
             final value = attribute.group(1);
@@ -89,21 +88,26 @@ class HtmlScriptUpdater {
               continue;
             } else {
               // If the value of the type attribute is not "module", overwrite it.
-              patches.add(Patch(
-                typeModuleAttribute,
-                scriptTagMatch.start + attribute.start,
-                scriptTagMatch.start + attribute.end,
-              ));
+              patches.add(
+                Patch(
+                  typeModuleAttribute,
+                  scriptTagMatch.start + attribute.start,
+                  scriptTagMatch.start + attribute.end,
+                ),
+              );
             }
           } else {
             // If the type attribute does not exist, add it.
-            final srcAttribute =
-                getAttributePattern('src').allMatches(scriptTag);
-            patches.add(Patch(
-              ' ${typeModuleAttribute}',
-              scriptTagMatch.start + srcAttribute.first.end,
-              scriptTagMatch.start + srcAttribute.first.end,
-            ));
+            final srcAttribute = getAttributePattern(
+              'src',
+            ).allMatches(scriptTag);
+            patches.add(
+              Patch(
+                ' ${typeModuleAttribute}',
+                scriptTagMatch.start + srcAttribute.first.end,
+                scriptTagMatch.start + srcAttribute.first.end,
+              ),
+            );
           }
         }
 
@@ -111,8 +115,9 @@ class HtmlScriptUpdater {
         for (final linkTagToMatch in relevantLinkTags) {
           final linkTag = linkTagToMatch.group(0);
           if (linkTag == null) continue;
-          final crossOriginAttributes =
-              getAttributePattern('crossorigin').allMatches(linkTag);
+          final crossOriginAttributes = getAttributePattern(
+            'crossorigin',
+          ).allMatches(linkTag);
           if (crossOriginAttributes.isNotEmpty) {
             final attribute = crossOriginAttributes.first;
             final value = attribute.group(1);
@@ -120,21 +125,26 @@ class HtmlScriptUpdater {
               continue;
             } else {
               // If the value of the crossorigin attribute is not "", overwrite it.
-              patches.add(Patch(
-                crossOriginAttribute,
-                linkTagToMatch.start + attribute.start,
-                linkTagToMatch.start + attribute.end,
-              ));
+              patches.add(
+                Patch(
+                  crossOriginAttribute,
+                  linkTagToMatch.start + attribute.start,
+                  linkTagToMatch.start + attribute.end,
+                ),
+              );
             }
           } else {
             // If the crossorigin attribute does not exist, add it.
-            final hrefAttribute =
-                getAttributePattern('href').allMatches(linkTag);
-            patches.add(Patch(
-              ' ${crossOriginAttribute}',
-              linkTagToMatch.start + hrefAttribute.first.end,
-              linkTagToMatch.start + hrefAttribute.first.end,
-            ));
+            final hrefAttribute = getAttributePattern(
+              'href',
+            ).allMatches(linkTag);
+            patches.add(
+              Patch(
+                ' ${crossOriginAttribute}',
+                linkTagToMatch.start + hrefAttribute.first.end,
+                linkTagToMatch.start + hrefAttribute.first.end,
+              ),
+            );
           }
         }
       }
@@ -142,11 +152,7 @@ class HtmlScriptUpdater {
       // Update existing path to new path.
       final scriptMatches = existingScriptPath.allMatches(context.sourceText);
       scriptMatches.forEach((match) async {
-        patches.add(Patch(
-          newScriptPath,
-          match.start,
-          match.end,
-        ));
+        patches.add(Patch(newScriptPath, match.start, match.end));
       });
     }
 

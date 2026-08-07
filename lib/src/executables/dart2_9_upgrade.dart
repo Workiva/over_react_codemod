@@ -41,24 +41,33 @@ const _changesRequiredOutput = """
 
 void main(List<String> args) async {
   final parser = ArgParser()
-    ..addFlag('help',
-        abbr: 'h', negatable: false, help: 'Prints this help output')
-    ..addFlag('verbose',
-        abbr: 'v',
-        negatable: false,
-        help: 'Outputs all logging to stdout/stderr.')
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: 'Prints this help output',
+    )
+    ..addFlag(
+      'verbose',
+      abbr: 'v',
+      negatable: false,
+      help: 'Outputs all logging to stdout/stderr.',
+    )
     ..addFlag(
       'yes-to-all',
       negatable: false,
-      help: 'Forces all patches accepted without prompting the user. '
+      help:
+          'Forces all patches accepted without prompting the user. '
           'Useful for scripts.',
     )
     ..addSeparator('Boilerplate Upgrade Options:')
-    ..addFlag(_checkForTransitioning,
-        negatable: false,
-        help:
-            'Checks to see if this repo already has some components using the latest boilerplate and sets'
-            'the codemod to fail on changes.');
+    ..addFlag(
+      _checkForTransitioning,
+      negatable: false,
+      help:
+          'Checks to see if this repo already has some components using the latest boilerplate and sets'
+          'the codemod to fail on changes.',
+    );
 
   final parsedArgs = parser.parse(args);
   final checkForTransitioning = parsedArgs[_checkForTransitioning] ?? false;
@@ -97,28 +106,35 @@ void main(List<String> args) async {
 
     if (!latestBoilerplateVisitor.detectedLatestBoilerplate) {
       logger.info(
-          'Did not detect the latest boilerplate. This repo is not transitioning. Exiting codemod.');
+        'Did not detect the latest boilerplate. This repo is not transitioning. Exiting codemod.',
+      );
       exitCode = 0;
       return;
     } else {
       logger.info(
-          'Detected the latest boilerplate. Continuing codemod and setting --fail-on-changes.');
+        'Detected the latest boilerplate. Continuing codemod and setting --fail-on-changes.',
+      );
       args.add('--fail-on-changes');
     }
   }
 
-  final overReactVersionConstraint =
-      VersionConstraint.parse(overReactVersionRange);
+  final overReactVersionConstraint = VersionConstraint.parse(
+    overReactVersionRange,
+  );
 
   // If we're checking for transitioning and got to the point (i.e. there was
   // new boilerplate), ignore the pubspec.
   if (!checkForTransitioning) {
     exitCode = await runInteractiveCodemod(
       pubspecYamlPaths(),
-      aggregate([
-        PubspecOverReactUpgrader(overReactVersionConstraint as VersionRange,
-            shouldAddDependencies: false),
-      ].map((s) => ignoreable(s))),
+      aggregate(
+        [
+          PubspecOverReactUpgrader(
+            overReactVersionConstraint as VersionRange,
+            shouldAddDependencies: false,
+          ),
+        ].map((s) => ignoreable(s)),
+      ),
       // Only pass valid low level codemod flags
       args: args.where((a) => !a.contains(_checkForTransitioning)),
       defaultYes: true,
@@ -144,14 +160,18 @@ void main(List<String> args) async {
 
   if (checkForTransitioning && exitCode == 1) {
     logger.severe(
-        'This repo is transitioning and has both the new factory syntax and the old.');
+      'This repo is transitioning and has both the new factory syntax and the old.',
+    );
   }
 }
 
 extension on RecursiveAstVisitor {
   /// Iterates over all the files provided and inspects them.
-  void inspectAllPaths(Iterable<String> files,
-      {bool Function()? shortCircuitTest, required Logger logger}) {
+  void inspectAllPaths(
+    Iterable<String> files, {
+    bool Function()? shortCircuitTest,
+    required Logger logger,
+  }) {
     for (final filePath in files) {
       if (shortCircuitTest?.call() ?? false) continue;
 
@@ -182,7 +202,8 @@ extension on RecursiveAstVisitor {
 
       if (shortCircuitTest?.call() ?? false) {
         logger.info(
-            'Inspection complete and will now short circuit after inspecting ${file.path}');
+          'Inspection complete and will now short circuit after inspecting ${file.path}',
+        );
       }
     }
   }

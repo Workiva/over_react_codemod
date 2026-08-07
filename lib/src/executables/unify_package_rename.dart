@@ -44,9 +44,7 @@ void main(List<String> args) async {
   final parsedArgs = parser.parse(args);
 
   /// Runs a list of codemods one after the other and returns exit code 0 if any fail.
-  Future<int> runCodemods(
-    Iterable<CodemodInfo> codemods,
-  ) async {
+  Future<int> runCodemods(Iterable<CodemodInfo> codemods) async {
     for (final sequence in codemods) {
       final exitCode = await runInteractiveCodemodSequence(
         sequence.paths,
@@ -64,15 +62,21 @@ void main(List<String> args) async {
 
   exitCode = await runCodemods([
     // Update RMUI bundle script in all HTML files (and templates) to Unify bundle.
-    CodemodInfo(paths: allHtmlPathsIncludingTemplates(), sequence: [
-      HtmlScriptUpdater(rmuiBundleDevUpdated, unifyBundleDev),
-      HtmlScriptUpdater(rmuiBundleProdUpdated, unifyBundleProd),
-    ]),
+    CodemodInfo(
+      paths: allHtmlPathsIncludingTemplates(),
+      sequence: [
+        HtmlScriptUpdater(rmuiBundleDevUpdated, unifyBundleDev),
+        HtmlScriptUpdater(rmuiBundleProdUpdated, unifyBundleProd),
+      ],
+    ),
     // Update RMUI bundle script in all Dart files to Unify bundle.
-    CodemodInfo(paths: allDartPathsExceptHidden(), sequence: [
-      DartScriptUpdater(rmuiBundleDevUpdated, unifyBundleDev),
-      DartScriptUpdater(rmuiBundleProdUpdated, unifyBundleProd),
-    ]),
+    CodemodInfo(
+      paths: allDartPathsExceptHidden(),
+      sequence: [
+        DartScriptUpdater(rmuiBundleDevUpdated, unifyBundleDev),
+        DartScriptUpdater(rmuiBundleProdUpdated, unifyBundleProd),
+      ],
+    ),
   ]);
 
   if (exitCode != 0) return;
@@ -87,17 +91,23 @@ void main(List<String> args) async {
     // Make main rename updates.
     CodemodInfo(paths: dartPaths, sequence: [UnifyRenameSuggestor()]),
     // Update rmui imports to unify.
-    CodemodInfo(paths: dartPaths, sequence: [
-      importRenamerSuggestorBuilder(
-        oldPackageName: 'react_material_ui',
-        newPackageName: 'unify_ui',
-      )
-    ]),
+    CodemodInfo(
+      paths: dartPaths,
+      sequence: [
+        importRenamerSuggestorBuilder(
+          oldPackageName: 'react_material_ui',
+          newPackageName: 'unify_ui',
+        ),
+      ],
+    ),
     // Remove any left over unused imports.
-    CodemodInfo(paths: dartPaths, sequence: [
-      unusedImportRemoverSuggestorBuilder('react_material_ui'),
-      unusedImportRemoverSuggestorBuilder('unify_ui'),
-    ]),
+    CodemodInfo(
+      paths: dartPaths,
+      sequence: [
+        unusedImportRemoverSuggestorBuilder('react_material_ui'),
+        unusedImportRemoverSuggestorBuilder('unify_ui'),
+      ],
+    ),
   ]);
   if (exitCode != 0) return;
 }

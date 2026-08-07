@@ -8,13 +8,15 @@ class DartTempProjectCreator {
   late List<PubspecCreator> pubspecCreators;
   late String mainDartContents;
 
-  DartTempProjectCreator(
-      {PubspecCreator? pubspecCreator,
-      List<PubspecCreator>? pubspecCreators,
-      String? mainDartContents}) {
+  DartTempProjectCreator({
+    PubspecCreator? pubspecCreator,
+    List<PubspecCreator>? pubspecCreators,
+    String? mainDartContents,
+  }) {
     if (pubspecCreator != null && pubspecCreators != null) {
       throw ArgumentError(
-          'Cannot specify both pubspecCreator and pubspecCreators');
+        'Cannot specify both pubspecCreator and pubspecCreators',
+      );
     }
 
     this.pubspecCreators =
@@ -24,8 +26,9 @@ class DartTempProjectCreator {
     for (var pubspecCreator in pubspecCreators!) {
       pubspecCreator.create(dir.path);
     }
-    File(p.join(dir.path, 'main.dart'))
-        .writeAsStringSync(this.mainDartContents);
+    File(
+      p.join(dir.path, 'main.dart'),
+    ).writeAsStringSync(this.mainDartContents);
   }
 }
 
@@ -37,13 +40,14 @@ class PubspecCreator {
   final List<DependencyCreator> dependencies;
   final String path;
 
-  PubspecCreator(
-      {this.name = 'fake_package',
-      this.version = '0.0.0',
-      this.isPrivate = true,
-      this.sdkVersion = '">=2.4.0 <3.0.0"',
-      this.dependencies = const [],
-      this.path = ''});
+  PubspecCreator({
+    this.name = 'fake_package',
+    this.version = '0.0.0',
+    this.isPrivate = true,
+    this.sdkVersion = '">=2.4.0 <3.0.0"',
+    this.dependencies = const [],
+    this.path = '',
+  });
 
   void create(String rootDir) {
     final parentDir = p.join(rootDir, path);
@@ -59,10 +63,12 @@ class PubspecCreator {
     dependencies.addAll(new_dependencies);
   }
 
-  void addDependency(String name,
-      {String version = 'any',
-      bool asDev = false,
-      bool Function()? shouldAdd}) {
+  void addDependency(
+    String name, {
+    String version = 'any',
+    bool asDev = false,
+    bool Function()? shouldAdd,
+  }) {
     if (shouldAdd?.call() ?? true) {
       dependencies.add(DependencyCreator(name, version: version, asDev: asDev));
     }
@@ -81,17 +87,17 @@ class PubspecCreator {
         '  sdk: $sdkVersion\n' +
         (dependencies.isNotEmpty
             ? '\ndependencies: \n' +
-                dependencies
-                    .where((dep) => !(dep.asDev || dep.asOverride))
-                    .join('\n')
+                  dependencies
+                      .where((dep) => !(dep.asDev || dep.asOverride))
+                      .join('\n')
             : '') +
         (dependencies.any((dep) => dep.asDev)
             ? '\ndev_dependencies: \n' +
-                dependencies.where((dep) => dep.asDev).join('\n')
+                  dependencies.where((dep) => dep.asDev).join('\n')
             : '') +
         (dependencies.any((dep) => dep.asOverride)
             ? '\ndependency_overrides: \n' +
-                dependencies.where((dep) => dep.asOverride).join('\n')
+                  dependencies.where((dep) => dep.asOverride).join('\n')
             : '') +
         '\n';
   }
@@ -117,12 +123,14 @@ class DependencyCreator {
   }) : version = _versionWithQuotes(version) {
     if (pathOverride.isNotEmpty && gitOverride.isNotEmpty) {
       throw ArgumentError(
-          'Cannot provide both git and path overrides on single dep.');
+        'Cannot provide both git and path overrides on single dep.',
+      );
     }
   }
 
   factory DependencyCreator.fromOverrideConfig(
-      DependencyOverrideConfig config) {
+    DependencyOverrideConfig config,
+  ) {
     switch (config.type) {
       case ConfigType.simple:
         return DependencyCreator(
@@ -195,11 +203,12 @@ class DartProjectCreatorTestConfig {
     this.mainDartContents,
     List<PubspecCreator>? pubspecCreators,
     this.shouldRunCodemod = false,
-  })  : _testName = testName,
-        expectedExitCode = expectedExitCode ?? (shouldRunCodemod ? 1 : 0) {
+  }) : _testName = testName,
+       expectedExitCode = expectedExitCode ?? (shouldRunCodemod ? 1 : 0) {
     if (pubspecCreators != null && dependencies != null) {
       throw ArgumentError(
-          'Cannot specify both pubspecCreators and dependencies');
+        'Cannot specify both pubspecCreators and dependencies',
+      );
     }
     this.pubspecCreators =
         pubspecCreators ?? [PubspecCreator(dependencies: dependencies ?? [])];
@@ -212,19 +221,23 @@ class DartProjectCreatorTestConfig {
     if (pubspecCreators.isEmpty) {
       name += 'no pubspecs';
     } else {
-      name += pubspecCreators.map((creator) {
-        // Make it so that test names aren't multiline, trim/consolidate whitespace.
-        final humanReadableDependencies = creator.dependencies
-            .map((dep) => dep
-                .toString()
-                .trim()
-                .replaceAll('\n', '\\n')
-                .replaceAll(RegExp(r' +'), ' '))
-            .toList();
-        return 'pubspec'
-            ' at ${creator.path.isEmpty ? 'root' : 'path ${creator.path}/pubspec.yaml'}'
-            ' with dependencies: ${humanReadableDependencies}';
-      }).join(', ');
+      name += pubspecCreators
+          .map((creator) {
+            // Make it so that test names aren't multiline, trim/consolidate whitespace.
+            final humanReadableDependencies = creator.dependencies
+                .map(
+                  (dep) => dep
+                      .toString()
+                      .trim()
+                      .replaceAll('\n', '\\n')
+                      .replaceAll(RegExp(r' +'), ' '),
+                )
+                .toList();
+            return 'pubspec'
+                ' at ${creator.path.isEmpty ? 'root' : 'path ${creator.path}/pubspec.yaml'}'
+                ' with dependencies: ${humanReadableDependencies}';
+          })
+          .join(', ');
     }
     return name;
   }

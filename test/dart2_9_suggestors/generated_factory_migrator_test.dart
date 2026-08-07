@@ -61,7 +61,8 @@ main() {
         test('if already updated', () async {
           await testSuggestor(
             expectedPatchCount: 0,
-            input: '''
+            input:
+                '''
               UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); // ignore: undefined_identifier
             ''',
           );
@@ -74,7 +75,8 @@ main() {
           input: '''
             UiFactory<FooProps> Foo = _\$Foo; // ignore: undefined_identifier
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); // ignore: undefined_identifier
           ''',
         );
@@ -105,7 +107,8 @@ main() {
             // ignore: undefined_identifier
             UiFactory<BazProps> Baz = _\$Baz;
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); // ignore: undefined_identifier
 
             UiFactory<BarProps> Bar =
@@ -124,7 +127,8 @@ main() {
         test('if already updated', () async {
           await testSuggestor(
             expectedPatchCount: 0,
-            input: '''
+            input:
+                '''
               UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
                 mapStateToProps: (state) => (Foo()
                   ..foo = state.foo
@@ -159,7 +163,8 @@ main() {
               ),
             )(_\$Foo); // ignore: undefined_identifier
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             UiFactory<FooProps> Foo = connectFlux<SomeState, FooProps>(
               mapStateToProps: (state) => (Foo()
                 ..foo = state.foo
@@ -215,7 +220,8 @@ main() {
               ),
             )(_\$Foo); // ignore: undefined_identifier
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
               mapStateToProps: (state) => (Foo()
                 ..foo = state.foo
@@ -239,7 +245,8 @@ main() {
               _\$Foo, // ignore: undefined_identifier
             );
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
               mapStateToProps: (state) => (Foo()
                 ..foo = state.foo
@@ -266,7 +273,8 @@ main() {
               ),
             )(UnconnectedFoo);
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             UiFactory<FooProps> UnconnectedFoo = $castFunctionName(_\$UnconnectedFoo); // ignore: undefined_identifier
 
             UiFactory<FooProps> Foo =

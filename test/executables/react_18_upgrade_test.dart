@@ -21,120 +21,133 @@ import 'mui_migration_test.dart';
 
 void main() {
   group('react_18_upgrade executable', () {
-    final react18CodemodScript =
-        p.join(findPackageRootFor(p.current), 'bin/react_18_upgrade.dart');
+    final react18CodemodScript = p.join(
+      findPackageRootFor(p.current),
+      'bin/react_18_upgrade.dart',
+    );
 
     group('updates script tags', () {
-      testCodemod('dev',
-          script: react18CodemodScript,
-          input: d.dir('project', [
-            d.file('dev.html', /*language=html*/ '''
+      testCodemod(
+        'dev',
+        script: react18CodemodScript,
+        input: d.dir('project', [
+          d.file('dev.html', /*language=html*/ '''
 <script src="packages/react/react.js"></script>
         <script src="packages/react/react_dom.js"></script>'''),
-            d.file('dev_with_addons.html', /*language=html*/ '''
+          d.file('dev_with_addons.html', /*language=html*/ '''
 <script src="packages/react/react_with_addons.js"></script>
         <script src="packages/react/react_dom.js"></script>'''),
-          ]),
-          expectedOutput: d.dir('project', [
-            d.file('dev.html', /*language=html*/ '''
+        ]),
+        expectedOutput: d.dir('project', [
+          d.file('dev.html', /*language=html*/ '''
 <script src="packages/react/js/react.dev.js"></script>
 '''),
-            d.file('dev_with_addons.html', /*language=html*/ '''
+          d.file('dev_with_addons.html', /*language=html*/ '''
 <script src="packages/react/js/react.dev.js"></script>
 '''),
-          ]),
-          args: ['--yes-to-all']);
+        ]),
+        args: ['--yes-to-all'],
+      );
 
-      testCodemod('prod',
-          script: react18CodemodScript,
-          input: d.dir('project', [
-            d.file('prod.html', /*language=html*/ '''
+      testCodemod(
+        'prod',
+        script: react18CodemodScript,
+        input: d.dir('project', [
+          d.file('prod.html', /*language=html*/ '''
 <script src="packages/react/react_prod.js"></script>
         <script src="packages/react/react_dom_prod.js"></script>'''),
-            d.file('prod_with_addons.html', /*language=html*/ '''
+          d.file('prod_with_addons.html', /*language=html*/ '''
 <script src="packages/react/react_with_react_dom_prod.js"></script>
-        <script src="packages/react/react_dom_prod.js"></script>''')
-          ]),
-          expectedOutput: d.dir('project', [
-            d.file('prod.html', /*language=html*/ '''
+        <script src="packages/react/react_dom_prod.js"></script>'''),
+        ]),
+        expectedOutput: d.dir('project', [
+          d.file('prod.html', /*language=html*/ '''
 <script src="packages/react/js/react.min.js"></script>
 '''),
-            d.file('prod_with_addons.html', /*language=html*/ '''
+          d.file('prod_with_addons.html', /*language=html*/ '''
 <script src="packages/react/js/react.min.js"></script>
-''')
-          ]),
-          args: ['--yes-to-all']);
+'''),
+        ]),
+        args: ['--yes-to-all'],
+      );
     });
 
     group('updates link tags', () {
-      testCodemod('dev',
-          script: react18CodemodScript,
-          input: d.dir('project', [
-            d.file('dev.html', /*language=html*/ '''
+      testCodemod(
+        'dev',
+        script: react18CodemodScript,
+        input: d.dir('project', [
+          d.file('dev.html', /*language=html*/ '''
 <link href="packages/react/react.js">
         <link href="packages/react/react_dom.js">'''),
-            d.file('dev_with_addons.html', /*language=html*/ '''
+          d.file('dev_with_addons.html', /*language=html*/ '''
 <link href="packages/react/react_with_addons.js">
         <link href="packages/react/react_dom.js">'''),
-          ]),
-          expectedOutput: d.dir('project', [
-            d.file('dev.html', /*language=html*/ '''
+        ]),
+        expectedOutput: d.dir('project', [
+          d.file('dev.html', /*language=html*/ '''
 <link href="packages/react/js/react.dev.js">
 '''),
-            d.file('dev_with_addons.html', /*language=html*/ '''
+          d.file('dev_with_addons.html', /*language=html*/ '''
 <link href="packages/react/js/react.dev.js">
 '''),
-          ]),
-          args: ['--yes-to-all']);
+        ]),
+        args: ['--yes-to-all'],
+      );
 
-      testCodemod('prod',
-          script: react18CodemodScript,
-          input: d.dir('project', [
-            d.file('prod.html', /*language=html*/ '''
+      testCodemod(
+        'prod',
+        script: react18CodemodScript,
+        input: d.dir('project', [
+          d.file('prod.html', /*language=html*/ '''
 <link href="packages/react/react_prod.js">
         <link href="packages/react/react_dom_prod.js">'''),
-            d.file('prod_with_addons.html', /*language=html*/ '''
+          d.file('prod_with_addons.html', /*language=html*/ '''
 <link href="packages/react/react_with_react_dom_prod.js">
-        <link href="packages/react/react_dom_prod.js">''')
-          ]),
-          expectedOutput: d.dir('project', [
-            d.file('prod.html', /*language=html*/ '''
+        <link href="packages/react/react_dom_prod.js">'''),
+        ]),
+        expectedOutput: d.dir('project', [
+          d.file('prod.html', /*language=html*/ '''
 <link href="packages/react/js/react.min.js">
 '''),
-            d.file('prod_with_addons.html', /*language=html*/ '''
+          d.file('prod_with_addons.html', /*language=html*/ '''
 <link href="packages/react/js/react.min.js">
-''')
-          ]),
-          args: ['--yes-to-all']);
+'''),
+        ]),
+        args: ['--yes-to-all'],
+      );
     });
 
     group('in Dart files', () {
-      testCodemod('list',
-          script: react18CodemodScript,
-          input: d.dir('project', [
-            d.file('main.dart', /*language=dart*/ '''
+      testCodemod(
+        'list',
+        script: react18CodemodScript,
+        input: d.dir('project', [
+          d.file('main.dart', /*language=dart*/ '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="packages/react/react.js"></script>',
                 '<script src="packages/react/react_dom.js"></script>',
                 '<link rel="preload" href="packages/react/react.js" as="script">',
                 '<link rel="preload" href="packages/react/react_dom.js" as="script">',
               ];
-            ''')
-          ]),
-          expectedOutput: d.dir('project', [
-            d.file('main.dart', /*language=dart*/ '''
+            '''),
+        ]),
+        expectedOutput: d.dir('project', [
+          d.file('main.dart', /*language=dart*/ '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="packages/react/js/react.dev.js"></script>',
                 '<link rel="preload" href="packages/react/js/react.dev.js" as="script">',
               ];
-            ''')
-          ]),
-          args: ['--yes-to-all']);
+            '''),
+        ]),
+        args: ['--yes-to-all'],
+      );
 
-      testCodemod('string const',
-          script: react18CodemodScript,
-          input: d.dir('project', [
-            d.file('main.dart', '''
+      testCodemod(
+        'string const',
+        script: react18CodemodScript,
+        input: d.dir('project', [
+          d.file('main.dart', '''
               const expectedWithReact = \'\'\'
                 <!DOCTYPE html>
                 <html>
@@ -152,10 +165,10 @@ void main() {
                 <body></body>
                 </html>
               \'\'\';
-            ''')
-          ]),
-          expectedOutput: d.dir('project', [
-            d.file('main.dart', '''
+            '''),
+        ]),
+        expectedOutput: d.dir('project', [
+          d.file('main.dart', '''
               const expectedWithReact = \'\'\'
                 <!DOCTYPE html>
                 <html>
@@ -172,35 +185,39 @@ void main() {
                 <body></body>
                 </html>
               \'\'\';
-            ''')
-          ]),
-          args: ['--yes-to-all']);
+            '''),
+        ]),
+        args: ['--yes-to-all'],
+      );
     });
 
-    testCodemod('--fail-on-changes exits with 0 when no changes needed',
-        script: react18CodemodScript,
-        input: d.dir('project', [
-          d.file('dev.html', /*language=html*/ '''
+    testCodemod(
+      '--fail-on-changes exits with 0 when no changes needed',
+      script: react18CodemodScript,
+      input: d.dir('project', [
+        d.file('dev.html', /*language=html*/ '''
 <script src="packages/react/js/react.dev.js"></script>'''),
-          d.file('dev_with_addons.html', /*language=html*/ '''
+        d.file('dev_with_addons.html', /*language=html*/ '''
 <script src="packages/react/js/react.dev.js"></script>'''),
-          d.file('prod.html', /*language=html*/ '''
+        d.file('prod.html', /*language=html*/ '''
 <script src="packages/react/js/react.min.js"></script>'''),
-          d.file('prod_with_addons.html', /*language=html*/ '''
-<script src="packages/react/js/react.min.js"></script>''')
-        ]),
-        expectedOutput: d.dir('project', [
-          d.file('dev.html', /*language=html*/ '''
-<script src="packages/react/js/react.dev.js"></script>'''),
-          d.file('dev_with_addons.html', /*language=html*/ '''
-<script src="packages/react/js/react.dev.js"></script>'''),
-          d.file('prod.html', /*language=html*/ '''
+        d.file('prod_with_addons.html', /*language=html*/ '''
 <script src="packages/react/js/react.min.js"></script>'''),
-          d.file('prod_with_addons.html', /*language=html*/ '''
-<script src="packages/react/js/react.min.js"></script>''')
-        ]),
-        args: ['--fail-on-changes'], body: (out, err) {
-      expect(out, contains('No changes needed.'));
-    });
+      ]),
+      expectedOutput: d.dir('project', [
+        d.file('dev.html', /*language=html*/ '''
+<script src="packages/react/js/react.dev.js"></script>'''),
+        d.file('dev_with_addons.html', /*language=html*/ '''
+<script src="packages/react/js/react.dev.js"></script>'''),
+        d.file('prod.html', /*language=html*/ '''
+<script src="packages/react/js/react.min.js"></script>'''),
+        d.file('prod_with_addons.html', /*language=html*/ '''
+<script src="packages/react/js/react.min.js"></script>'''),
+      ]),
+      args: ['--fail-on-changes'],
+      body: (out, err) {
+        expect(out, contains('No changes needed.'));
+      },
+    );
   });
 }

@@ -36,19 +36,25 @@ void main(List<String> args) async {
   if (parsedArgs.arguments.contains('--help')) {
     // Print command description; flags and other output will get printed via runInteractiveCodemodSequence.
     print(
-        'Updates React JS paths in HTML and Dart files from the React 17 versions to the React 18 versions.\n');
+      'Updates React JS paths in HTML and Dart files from the React 17 versions to the React 18 versions.\n',
+    );
   }
 
   exitCode = await runInteractiveCodemodSequence(
     allHtmlPathsIncludingTemplates(),
     [
       // Update react.js bundle files to React 18 versions in html files
-      ...react17to18ReactJsScriptNames.keys.map((key) => HtmlScriptUpdater(
-          key, react17to18ReactJsScriptNames[key]!,
-          updateAttributes: false)),
+      ...react17to18ReactJsScriptNames.keys.map(
+        (key) => HtmlScriptUpdater(
+          key,
+          react17to18ReactJsScriptNames[key]!,
+          updateAttributes: false,
+        ),
+      ),
       // Remove React 17 react_dom bundle files in html files
-      ...react17ReactDomJsOnlyScriptNames
-          .map((name) => HtmlScriptUpdater.remove(name)),
+      ...react17ReactDomJsOnlyScriptNames.map(
+        (name) => HtmlScriptUpdater.remove(name),
+      ),
     ],
     defaultYes: true,
     args: parsedArgs.rest,
@@ -62,12 +68,17 @@ void main(List<String> args) async {
     allDartPathsExceptHidden(),
     [
       // Update react.js bundle files to React 18 versions in Dart files
-      ...react17to18ReactJsScriptNames.keys.map((key) => DartScriptUpdater(
-          key, react17to18ReactJsScriptNames[key]!,
-          updateAttributes: false)),
+      ...react17to18ReactJsScriptNames.keys.map(
+        (key) => DartScriptUpdater(
+          key,
+          react17to18ReactJsScriptNames[key]!,
+          updateAttributes: false,
+        ),
+      ),
       // Remove React 17 react_dom bundle files in Dart files
-      ...react17ReactDomJsOnlyScriptNames
-          .map((name) => DartScriptUpdater.remove(name)),
+      ...react17ReactDomJsOnlyScriptNames.map(
+        (name) => DartScriptUpdater.remove(name),
+      ),
     ],
     defaultYes: true,
     args: parsedArgs.rest,

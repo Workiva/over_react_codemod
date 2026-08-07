@@ -33,38 +33,48 @@ Suggestor importRenamerSuggestorBuilder({
     // Parts that have not been generated can show up as `exists = false` but also `isPart = false`,
     // so using the unitResults is a little trickier than using the libraryElement to get it.
     final mainLibraryUnitResult = libraryResult.units.singleWhere(
-        (unitResult) =>
-            unitResult.unit.declaredElement ==
-            libraryResult.element.definingCompilationUnit);
+      (unitResult) =>
+          unitResult.unit.declaredElement ==
+          libraryResult.element.definingCompilationUnit,
+    );
 
     // Look for imports with old package name.
     final importsToUpdate = mainLibraryUnitResult.unit.directives
         .whereType<ImportDirective>()
-        .where((import) =>
-            import.uri.stringValue?.startsWith('package:$oldPackageName/') ??
-            false);
+        .where(
+          (import) =>
+              import.uri.stringValue?.startsWith('package:$oldPackageName/') ??
+              false,
+        );
 
     final newImportsInfo = <UnifyImportInfo>[];
     for (final import in importsToUpdate) {
       final importUri = import.uri.stringValue;
       final namespace = import.prefix?.name;
       var newImportUri = importUri?.replaceFirst(
-          'package:$oldPackageName/', 'package:$newPackageName/');
+        'package:$oldPackageName/',
+        'package:$newPackageName/',
+      );
 
       // Check for special cases where the unify_ui import path does not match the previous RMUI path.
-      final specialCaseRmuiImport =
-          rmuiImportsToUpdate.where((i) => importUri == i.rmuiUri);
+      final specialCaseRmuiImport = rmuiImportsToUpdate.where(
+        (i) => importUri == i.rmuiUri,
+      );
       if (specialCaseRmuiImport.isNotEmpty) {
         newImportUri = specialCaseRmuiImport.single.uri;
       }
 
       if (newImportUri != null) {
         // Collect info on new imports to add.
-        newImportsInfo.add(UnifyImportInfo(newImportUri,
+        newImportsInfo.add(
+          UnifyImportInfo(
+            newImportUri,
             namespace: namespace,
             showHideInfo: import.combinators.isEmpty
                 ? null
-                : import.combinators.map((c) => c.toSource()).join(' ')));
+                : import.combinators.map((c) => c.toSource()).join(' '),
+          ),
+        );
       }
 
       final prevTokenEnd = import.beginToken.previous?.end;
@@ -82,14 +92,18 @@ Suggestor importRenamerSuggestorBuilder({
 
     // Add imports in their alphabetical positions.
     for (final importInfo in newImportsInfo) {
-      final insertInfo = insertionLocationForPackageImport(importInfo.uri,
-          mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
+      final insertInfo = insertionLocationForPackageImport(
+        importInfo.uri,
+        mainLibraryUnitResult.unit,
+        mainLibraryUnitResult.lineInfo,
+      );
       yield Patch(
-          insertInfo.leadingNewlines +
-              "import '${importInfo.uri}'${importInfo.namespace != null ? ' as ${importInfo.namespace}' : ''}${importInfo.showHideInfo != null ? ' ${importInfo.showHideInfo}' : ''};" +
-              insertInfo.trailingNewlines,
-          insertInfo.offset,
-          insertInfo.offset);
+        insertInfo.leadingNewlines +
+            "import '${importInfo.uri}'${importInfo.namespace != null ? ' as ${importInfo.namespace}' : ''}${importInfo.showHideInfo != null ? ' ${importInfo.showHideInfo}' : ''};" +
+            insertInfo.trailingNewlines,
+        insertInfo.offset,
+        insertInfo.offset,
+      );
     }
   };
 }

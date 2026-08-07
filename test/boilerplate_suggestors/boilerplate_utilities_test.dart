@@ -19,33 +19,33 @@ import 'package:test/test.dart';
 
 void main() {
   group('Boilerplate Utilities', () {
-    group('getSemverHelper() with isPublic() and getPublicExportLocations()',
-        () {
-      group('with --treat-all-components-as-private flag', () {
-        semverUtilitiesTestHelper(
-          shouldTreatAllComponentsAsPrivate: true,
-        );
-      });
-
-      group('json file does not exist', () {
-        semverUtilitiesTestHelper(
-          path: 'test/boilerplate_suggestors/does_not_exist.json',
-          isValidFilePath: false,
-        );
-
+    group(
+      'getSemverHelper() with isPublic() and getPublicExportLocations()',
+      () {
         group('with --treat-all-components-as-private flag', () {
+          semverUtilitiesTestHelper(shouldTreatAllComponentsAsPrivate: true);
+        });
+
+        group('json file does not exist', () {
           semverUtilitiesTestHelper(
             path: 'test/boilerplate_suggestors/does_not_exist.json',
-            shouldTreatAllComponentsAsPrivate: true,
             isValidFilePath: false,
           );
-        });
-      });
 
-      group('json file does exist', () {
-        semverUtilitiesTestHelper();
-      });
-    });
+          group('with --treat-all-components-as-private flag', () {
+            semverUtilitiesTestHelper(
+              path: 'test/boilerplate_suggestors/does_not_exist.json',
+              shouldTreatAllComponentsAsPrivate: true,
+              isValidFilePath: false,
+            );
+          });
+        });
+
+        group('json file does exist', () {
+          semverUtilitiesTestHelper();
+        });
+      },
+    );
   });
 }
 
@@ -57,16 +57,19 @@ void semverUtilitiesTestHelper({
   late SemverHelper semverHelper;
 
   setUpAll(() {
-    semverHelper = getSemverHelper(path,
-        shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate);
+    semverHelper = getSemverHelper(
+      path,
+      shouldTreatAllComponentsAsPrivate: shouldTreatAllComponentsAsPrivate,
+    );
   });
 
   test('correct warning', () {
     expect(
-        semverHelper.warning,
-        isValidFilePath || shouldTreatAllComponentsAsPrivate
-            ? isNull
-            : 'Could not find semver_report.json.');
+      semverHelper.warning,
+      isValidFilePath || shouldTreatAllComponentsAsPrivate
+          ? isNull
+          : 'Could not find semver_report.json.',
+    );
   });
 
   group('if props class is not in export list', () {
@@ -84,15 +87,17 @@ void semverUtilitiesTestHelper({
 
       unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
         expect(
-            semverHelper.getPublicExportLocations(
-                classNode, 'lib/src/foo.dart'),
-            isValidFilePath || shouldTreatAllComponentsAsPrivate
-                ? isEmpty
-                : [
-                    'Semver report not available; this class is assumed to be public and thus will not be updated.'
-                  ]);
-        expect(isPublic(classNode, semverHelper, 'lib/src/foo.dart'),
-            !isValidFilePath && !shouldTreatAllComponentsAsPrivate);
+          semverHelper.getPublicExportLocations(classNode, 'lib/src/foo.dart'),
+          isValidFilePath || shouldTreatAllComponentsAsPrivate
+              ? isEmpty
+              : [
+                  'Semver report not available; this class is assumed to be public and thus will not be updated.',
+                ],
+        );
+        expect(
+          isPublic(classNode, semverHelper, 'lib/src/foo.dart'),
+          !isValidFilePath && !shouldTreatAllComponentsAsPrivate,
+        );
       });
     });
 
@@ -110,9 +115,9 @@ void semverUtilitiesTestHelper({
 
       unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
         expect(
-            semverHelper.getPublicExportLocations(
-                classNode, 'web/src/foo.dart'),
-            isEmpty);
+          semverHelper.getPublicExportLocations(classNode, 'web/src/foo.dart'),
+          isEmpty,
+        );
         expect(isPublic(classNode, semverHelper, 'web/src/foo.dart'), isFalse);
       });
     });
@@ -127,12 +132,9 @@ void semverUtilitiesTestHelper({
         }
       ''';
     final expectedOutput = isValidFilePath
-        ? [
-            'lib/web_skin_dart.dart/BarProps',
-            'lib/another_file.dart/BarProps',
-          ]
+        ? ['lib/web_skin_dart.dart/BarProps', 'lib/another_file.dart/BarProps']
         : [
-            'Semver report not available; this class is assumed to be public and thus will not be updated.'
+            'Semver report not available; this class is assumed to be public and thus will not be updated.',
           ];
 
     final unit = parseString(content: input).unit;
@@ -140,10 +142,13 @@ void semverUtilitiesTestHelper({
 
     unit.declarations.whereType<ClassDeclaration>().forEach((classNode) {
       expect(
-          semverHelper.getPublicExportLocations(classNode, 'lib/src/foo.dart'),
-          shouldTreatAllComponentsAsPrivate ? isEmpty : expectedOutput);
-      expect(isPublic(classNode, semverHelper, 'lib/src/foo.dart'),
-          !shouldTreatAllComponentsAsPrivate);
+        semverHelper.getPublicExportLocations(classNode, 'lib/src/foo.dart'),
+        shouldTreatAllComponentsAsPrivate ? isEmpty : expectedOutput,
+      );
+      expect(
+        isPublic(classNode, semverHelper, 'lib/src/foo.dart'),
+        !shouldTreatAllComponentsAsPrivate,
+      );
     });
   });
 }

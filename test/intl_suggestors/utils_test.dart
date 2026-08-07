@@ -66,9 +66,12 @@ void main() {
         final fileStr = 'test1';
         final refStr = 'test2';
         final result = escapeApos(
-            'Now that you\'ve transitioned your $fileStr, you\'ll want to freeze $refStr or update permissions to prevent others from using $refStr.');
-        expect(result,
-            'Now that you\\\'ve transitioned your $fileStr, you\\\'ll want to freeze $refStr or update permissions to prevent others from using $refStr.');
+          'Now that you\'ve transitioned your $fileStr, you\'ll want to freeze $refStr or update permissions to prevent others from using $refStr.',
+        );
+        expect(
+          result,
+          'Now that you\\\'ve transitioned your $fileStr, you\\\'ll want to freeze $refStr or update permissions to prevent others from using $refStr.',
+        );
       });
     });
 
@@ -80,20 +83,27 @@ void main() {
       setUpAll(sharedContext.warmUpAnalysis);
 
       void runResults(
-          String testStr, bool isMultiline, String expectedResult) async {
+        String testStr,
+        bool isMultiline,
+        String expectedResult,
+      ) async {
         final parsedExpression = await sharedContext.parseExpression(testStr);
         expect(parsedExpression is StringInterpolation, isTrue);
 
         final parsedInterpolation = parsedExpression as StringInterpolation;
         expect(parsedInterpolation.isMultiline, isMultiline);
-        final testResult = IntlMessages('Test')
-            .syntax
-            .functionDefinition(parsedInterpolation, 'Namespace', "NamePrefix");
+        final testResult = IntlMessages('Test').syntax.functionDefinition(
+          parsedInterpolation,
+          'Namespace',
+          "NamePrefix",
+        );
         expect(testResult, expectedResult);
       }
 
       void ignoreSingleLineAndMultiline(
-          String testStr, bool isMultiline) async {
+        String testStr,
+        bool isMultiline,
+      ) async {
         final parsedExpression = await sharedContext.parseExpression(testStr);
         expect(parsedExpression is StringInterpolation, isTrue);
         var parsedInterpolation = parsedExpression as StringInterpolation;

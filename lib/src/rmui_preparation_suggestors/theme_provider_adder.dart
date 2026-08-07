@@ -55,13 +55,17 @@ class ThemeProviderAdder extends GeneralizingAstVisitor
         .toList()
         .isNotEmpty;
 
-    final themeProviderImport = imports.lastWhereOrNull((dir) =>
-        dir.uri.stringValue ==
-        'package:react_material_ui/styles/theme_provider.dart');
+    final themeProviderImport = imports.lastWhereOrNull(
+      (dir) =>
+          dir.uri.stringValue ==
+          'package:react_material_ui/styles/theme_provider.dart',
+    );
 
-    final reactDomImport = imports.lastWhereOrNull((dir) =>
-        (dir.uri.stringValue == 'package:react/react_dom.dart' ||
-            dir.uri.stringValue == 'package:over_react/react_dom.dart'));
+    final reactDomImport = imports.lastWhereOrNull(
+      (dir) =>
+          (dir.uri.stringValue == 'package:react/react_dom.dart' ||
+          dir.uri.stringValue == 'package:over_react/react_dom.dart'),
+    );
 
     // Don't update if no `react_dom.dart` import is found in the file or if
     // the namespace of the render call does not match the namespace of the
@@ -79,7 +83,8 @@ class ThemeProviderAdder extends GeneralizingAstVisitor
     if (!isPartOf && themeProviderImport == null) {
       if (reactDomImport == null) {
         throw StateError(
-            '`reactDomImport` should never be null here unless `isPartOf == true`');
+          '`reactDomImport` should never be null here unless `isPartOf == true`',
+        );
       }
       yieldPatch(
         '\nimport \'package:react_material_ui/styles/theme_provider.dart\';',

@@ -41,7 +41,8 @@ void main() {
       test('with a nested pubspec', () {
         expect(
           findPackageRootFor(
-              'test/test_fixtures/wsd_project/lib/analysis_warmup.dart'),
+            'test/test_fixtures/wsd_project/lib/analysis_warmup.dart',
+          ),
           equals('$currentPathFromRoot/test/test_fixtures/wsd_project'),
         );
       });
@@ -56,8 +57,11 @@ void main() {
       test('when a pubspec cannot be found', () {
         expect(
           () => findPackageRootFor('..'),
-          throwsA(isA<Exception>()
-              .havingToStringValue(contains('Could not find package root'))),
+          throwsA(
+            isA<Exception>().havingToStringValue(
+              contains('Could not find package root'),
+            ),
+          ),
         );
       });
     });
@@ -69,15 +73,17 @@ void main() {
         // Determine the expected ancestors of the current path from root.
         final segments = p.split(currentPathFromRoot);
         for (var i = 1; i < segments.length; i++) {
-          ancestorsOfPathFromRoot
-              .add(p.joinAll(segments.sublist(0, segments.length - i)));
+          ancestorsOfPathFromRoot.add(
+            p.joinAll(segments.sublist(0, segments.length - i)),
+          );
         }
       });
 
       test('for a nested file', () {
         expect(
           ancestorsOfPath(
-              'test/test_fixtures/wsd_project/lib/analysis_warmup.dart'),
+            'test/test_fixtures/wsd_project/lib/analysis_warmup.dart',
+          ),
           orderedEquals([
             '$currentPathFromRoot/test/test_fixtures/wsd_project/lib',
             '$currentPathFromRoot/test/test_fixtures/wsd_project',
@@ -102,10 +108,7 @@ void main() {
       });
 
       test('on the current directory', () {
-        expect(
-          ancestorsOfPath('.'),
-          orderedEquals(ancestorsOfPathFromRoot),
-        );
+        expect(ancestorsOfPath('.'), orderedEquals(ancestorsOfPathFromRoot));
       });
     });
 
@@ -118,15 +121,18 @@ void main() {
         filesInTopLevelDir = [
           File('$directory/some_place/some_file.dart'),
           File(
-              'test/test_fixtures/wsd_project/$directory/lib/analysis_warmup.dart'),
+            'test/test_fixtures/wsd_project/$directory/lib/analysis_warmup.dart',
+          ),
         ];
         filesNotInTopLevelBuildDir = [
           File('test/$directory/some_place/some_file.dart'),
           File('some_file.dart'),
           File(
-              'test/test_fixtures/$directory/wsd_project/lib/analysis_warmup.dart'),
+            'test/test_fixtures/$directory/wsd_project/lib/analysis_warmup.dart',
+          ),
           File(
-              'test/test_fixtures/wsd_project/lib/$directory/analysis_warmup.dart'),
+            'test/test_fixtures/wsd_project/lib/$directory/analysis_warmup.dart',
+          ),
         ];
       }
 

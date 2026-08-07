@@ -52,9 +52,9 @@ extension CommandExtension on Command {
 
   /// Same as [invocationPrefix], but doesn't include the current command.
   String get parentInvocationPrefix => <String>[
-        ...parentCommands.map((p) => p.name),
-        runner!.executableName,
-      ].reversed.join(' ');
+    ...parentCommands.map((p) => p.name),
+    runner!.executableName,
+  ].reversed.join(' ');
 
   Iterable<Command> get parentCommands sync* {
     final parent = this.parent;

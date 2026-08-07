@@ -48,7 +48,8 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
       return;
     }
 
-    final identifier = node.tryCast<SimpleIdentifier>() ??
+    final identifier =
+        node.tryCast<SimpleIdentifier>() ??
         node.tryCast<PrefixedIdentifier>()?.identifier;
     final uri = identifier?.staticElement?.source?.uri;
     final prefix = node.tryCast<PrefixedIdentifier>()?.prefix;
@@ -72,7 +73,10 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
       {
         // Update WSD constant properties objects to use the WSD versions if applicable.
         yieldWsdRenamePatchIfApplicable(
-            Expression node, String? objectName, String? propertyName) {
+          Expression node,
+          String? objectName,
+          String? propertyName,
+        ) {
           const wsdConstantNames = [
             'AlertSize',
             'AlertColor',
@@ -97,22 +101,29 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
         // Check for namespaced `mui.ButtonColor.wsd...` usage.
         if (node is PrefixedIdentifier && parent is PropertyAccess) {
           yieldWsdRenamePatchIfApplicable(
-              parent, identifier?.name, parent.propertyName.name);
+            parent,
+            identifier?.name,
+            parent.propertyName.name,
+          );
         }
       }
 
       // Add comments for components that need manual verification.
       if (identifier?.name == 'Badge' || identifier?.name == 'LinearProgress') {
         yieldInsertionPatch(
-            lineComment(
-                'FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, manually QA this component and remove this FIXME; otherwise, migrate this component back to Web Skin Dart.'),
-            node.offset);
+          lineComment(
+            'FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, manually QA this component and remove this FIXME; otherwise, migrate this component back to Web Skin Dart.',
+          ),
+          node.offset,
+        );
       } else if (identifier?.name == 'Alert' ||
           identifier?.name == 'AlertPropsMixin') {
         yieldInsertionPatch(
-            lineComment(
-                'FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `${identifier?.name}` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.'),
-            node.offset);
+          lineComment(
+            'FIXME(unify_package_rename) Check what theme provider is wrapping this component: if it is a UnifyThemeProvider, update this to `${identifier?.name}` from `unify_ui/components/alert.dart`, manually QA this component, and remove this FIXME; otherwise, remove this FIXME.',
+          ),
+          node.offset,
+        );
       }
     }
   }
@@ -124,20 +135,25 @@ class UnifyRenameSuggestor extends GeneralizingAstVisitor with ClassSuggestor {
     final result = await context.getResolvedUnit();
     if (result == null) {
       throw Exception(
-          'Could not get resolved result for "${context.relativePath}"');
+        'Could not get resolved result for "${context.relativePath}"',
+      );
     }
     needsWsdImport = false;
     result.unit.visitChildren(this);
 
     if (needsWsdImport) {
       final insertInfo = insertionLocationForPackageImport(
-          unifyWsdUri, result.unit, result.lineInfo);
+        unifyWsdUri,
+        result.unit,
+        result.lineInfo,
+      );
       yieldPatch(
-          insertInfo.leadingNewlines +
-              "import '$unifyWsdUri';" +
-              insertInfo.trailingNewlines,
-          insertInfo.offset,
-          insertInfo.offset);
+        insertInfo.leadingNewlines +
+            "import '$unifyWsdUri';" +
+            insertInfo.trailingNewlines,
+        insertInfo.offset,
+        insertInfo.offset,
+      );
     }
   }
 

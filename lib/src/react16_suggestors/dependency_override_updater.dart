@@ -22,10 +22,7 @@ import '../constants.dart';
 import '../creator_utils.dart';
 
 /// A reference to all the known override types.
-enum ConfigType {
-  simple,
-  git,
-}
+enum ConfigType { simple, git }
 
 /// A config representing an override to a git ref.
 ///
@@ -42,7 +39,7 @@ class GitOverrideConfig extends DependencyOverrideConfig {
   final String url;
 
   GitOverrideConfig({required String name, required this.url, this.ref})
-      : super(name, ConfigType.git);
+    : super(name, ConfigType.git);
 }
 
 /// A config representing an override to a simple version.
@@ -56,7 +53,7 @@ class SimpleOverrideConfig extends DependencyOverrideConfig {
   final String version;
 
   SimpleOverrideConfig({required String name, required this.version})
-      : super(name, ConfigType.simple);
+    : super(name, ConfigType.simple);
 }
 
 /// The base class for all dependency override configs.
@@ -78,8 +75,9 @@ class DependencyOverrideUpdater {
   });
 
   Stream<Patch> call(FileContext context) async* {
-    final dependencyOverrideSectionKey =
-        dependencyOverrideRegExp.firstMatch(context.sourceText);
+    final dependencyOverrideSectionKey = dependencyOverrideRegExp.firstMatch(
+      context.sourceText,
+    );
     final dependencyOverrideSectionStart =
         dependencyOverrideSectionKey?.start ?? -1;
     final dependenciesSectionStart =
@@ -88,7 +86,8 @@ class DependencyOverrideUpdater {
         devDependencyRegExp.firstMatch(context.sourceText)?.start ?? -1;
 
     bool _isDependencyMatchWithinDependencyOverridesSection(
-        RegExpMatch dependencyMatch) {
+      RegExpMatch dependencyMatch,
+    ) {
       if (dependencyOverrideSectionStart == -1) return false;
       if (dependencyMatch.start < dependencyOverrideSectionStart) return false;
       if (dependencyMatch.start > dependencyOverrideSectionStart) {
@@ -126,10 +125,12 @@ class DependencyOverrideUpdater {
 
     // Each override has its own object to keep track of what the dependency
     // override is and what it needs to be overridden with.
-    var reactDependencyOverride =
-        DependencyCreator.fromOverrideConfig(reactOverrideConfig);
-    var overReactDependencyOverride =
-        DependencyCreator.fromOverrideConfig(overReactOverrideConfig);
+    var reactDependencyOverride = DependencyCreator.fromOverrideConfig(
+      reactOverrideConfig,
+    );
+    var overReactDependencyOverride = DependencyCreator.fromOverrideConfig(
+      overReactOverrideConfig,
+    );
 
     final dependenciesToUpdate = [
       reactDependencyOverride,
@@ -145,7 +146,8 @@ class DependencyOverrideUpdater {
         throw Exception('Could not parse pubspec.yaml.$e\n$stackTrace');
       } else {
         throw Exception(
-            'Unexpected error loading pubspec.yaml.$e\n$stackTrace');
+          'Unexpected error loading pubspec.yaml.$e\n$stackTrace',
+        );
       }
     }
 
@@ -155,17 +157,26 @@ class DependencyOverrideUpdater {
 
       // This dependency override already exists with the exact version... get outta here.
       if (fileAlreadyContainsMatchingOverrideForDependency(
-          dependency: dependencyOverride, yamlContent: parsedYamlMap)) continue;
+        dependency: dependencyOverride,
+        yamlContent: parsedYamlMap,
+      ))
+        continue;
 
       if (fileAlreadyContainsOverrideForDependency(
-          dependency: dependencyOverride, yamlContent: parsedYamlMap)) {
+        dependency: dependencyOverride,
+        yamlContent: parsedYamlMap,
+      )) {
         // The regex that can be used to find the location of the override.
         final dependencyRegex = getDependencyRegEx(
-            dependency: dependencyName, yamlContent: parsedYamlMap);
+          dependency: dependencyName,
+          yamlContent: parsedYamlMap,
+        );
         final dependencyMatch = dependencyRegex
             .allMatches(context.sourceText)
-            .singleWhereOrNull((match) =>
-                _isDependencyMatchWithinDependencyOverridesSection(match));
+            .singleWhereOrNull(
+              (match) =>
+                  _isDependencyMatchWithinDependencyOverridesSection(match),
+            );
 
         if (dependencyMatch != null) {
           // startPoint is needed because a new line would be added to the
@@ -196,11 +207,7 @@ class DependencyOverrideUpdater {
         insertionOffset = context.sourceFile.getOffset(insertionLine);
 
         if (!shouldAddDependencyOverrideKey) {
-          yield Patch(
-            '$overrideString',
-            insertionOffset,
-            insertionOffset,
-          );
+          yield Patch('$overrideString', insertionOffset, insertionOffset);
         } else {
           yield Patch(
             '\n'
@@ -217,8 +224,10 @@ class DependencyOverrideUpdater {
   }
 }
 
-bool fileAlreadyContainsOverrideForDependency(
-    {required DependencyCreator dependency, required YamlMap? yamlContent}) {
+bool fileAlreadyContainsOverrideForDependency({
+  required DependencyCreator dependency,
+  required YamlMap? yamlContent,
+}) {
   if (yamlContent == null) return false;
 
   if (yamlContent['dependency_overrides'] != null) {
@@ -230,17 +239,24 @@ bool fileAlreadyContainsOverrideForDependency(
   return false;
 }
 
-bool fileAlreadyContainsMatchingOverrideForDependency(
-    {required DependencyCreator dependency, required YamlMap? yamlContent}) {
+bool fileAlreadyContainsMatchingOverrideForDependency({
+  required DependencyCreator dependency,
+  required YamlMap? yamlContent,
+}) {
   if (!fileAlreadyContainsOverrideForDependency(
-      dependency: dependency, yamlContent: yamlContent)) return false;
+    dependency: dependency,
+    yamlContent: yamlContent,
+  ))
+    return false;
   return yamlContent!['dependency_overrides'][dependency.name] ==
       dependency.version;
 }
 
 // Method that builds the RegEx that will match the dependency in the pubspec.
-RegExp getDependencyRegEx(
-    {required String dependency, required YamlMap? yamlContent}) {
+RegExp getDependencyRegEx({
+  required String dependency,
+  required YamlMap? yamlContent,
+}) {
   if (yamlContent == null) throw Exception('Invalid yaml content');
 
   if (yamlContent['dependency_overrides'] != null) {
@@ -249,8 +265,10 @@ RegExp getDependencyRegEx(
 
       if (dependencyValue is String) {
         // The override is simply specifying a new version.
-        return RegExp(r'''^\s*''' + dependency + r''':\s*(["']?)(.+)\1\s*$''',
-            multiLine: true);
+        return RegExp(
+          r'''^\s*''' + dependency + r''':\s*(["']?)(.+)\1\s*$''',
+          multiLine: true,
+        );
         // If the override uses git
       } else if (yamlContent['dependency_overrides'][dependency]['git'] !=
           null) {
@@ -259,21 +277,25 @@ RegExp getDependencyRegEx(
         if (yamlContent['dependency_overrides'][dependency]['git']['ref'] !=
             null) {
           return RegExp(
-              r'''^\s*(''' +
-                  dependency +
-                  r'''):\s*git:\s*url:\s*(.+)\s*ref:\s*(.+)$''',
-              multiLine: true);
+            r'''^\s*(''' +
+                dependency +
+                r'''):\s*git:\s*url:\s*(.+)\s*ref:\s*(.+)$''',
+            multiLine: true,
+          );
         } else {
           return RegExp(
-              r'''^\s*(''' + dependency + r'''):\s+git:\s+url:\s*(.+)$''',
-              multiLine: true);
+            r'''^\s*(''' + dependency + r'''):\s+git:\s+url:\s*(.+)$''',
+            multiLine: true,
+          );
         }
 
         // If the override uses path.
       } else if (yamlContent['dependency_overrides'][dependency]['path'] !=
           null) {
-        return RegExp(r'''^\s*(''' + dependency + r'''):\s+path:\s+(.+)$''',
-            multiLine: true);
+        return RegExp(
+          r'''^\s*(''' + dependency + r'''):\s+path:\s+(.+)$''',
+          multiLine: true,
+        );
       }
     }
   }

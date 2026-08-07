@@ -32,11 +32,14 @@ Map<String, String Function(String command)> contexts = {
 main() {
   group('V1DependencyUpdater', () {
     const addedDependency = 'an_added_dependency';
-    final testSuggestor =
-        getSuggestorTester(V1DependencyValidatorUpdater(addedDependency));
+    final testSuggestor = getSuggestorTester(
+      V1DependencyValidatorUpdater(addedDependency),
+    );
 
-    void sharedCommandTests(String contextName,
-        String Function(String command) getCommandWithinContext) {
+    void sharedCommandTests(
+      String contextName,
+      String Function(String command) getCommandWithinContext,
+    ) {
       group(contextName, () {
         test('makes no updates when there is no command', () async {
           await testSuggestor(
@@ -50,11 +53,13 @@ main() {
         group('adds the dependency when', () {
           test('there are no other args on the command', () async {
             await testSuggestor(
-                shouldDartfmtOutput: false,
-                expectedPatchCount: 1,
-                input: getCommandWithinContext(depValidatorCommand),
-                expectedOutput: getCommandWithinContext(
-                    '$depValidatorCommand -i $addedDependency'));
+              shouldDartfmtOutput: false,
+              expectedPatchCount: 1,
+              input: getCommandWithinContext(depValidatorCommand),
+              expectedOutput: getCommandWithinContext(
+                '$depValidatorCommand -i $addedDependency',
+              ),
+            );
           });
 
           test('the exclude flag is present', () async {
@@ -62,9 +67,11 @@ main() {
               shouldDartfmtOutput: false,
               expectedPatchCount: 1,
               input: getCommandWithinContext(
-                  '$depValidatorCommand -x app/,bin/,random/'),
+                '$depValidatorCommand -x app/,bin/,random/',
+              ),
               expectedOutput: getCommandWithinContext(
-                  '$depValidatorCommand -i $addedDependency -x app/,bin/,random/'),
+                '$depValidatorCommand -i $addedDependency -x app/,bin/,random/',
+              ),
             );
           });
 
@@ -73,9 +80,11 @@ main() {
               shouldDartfmtOutput: false,
               expectedPatchCount: 1,
               input: getCommandWithinContext(
-                  '$depValidatorCommand --no-fatal-unused -x app/,bin/,random/ --no-fatal-missing'),
+                '$depValidatorCommand --no-fatal-unused -x app/,bin/,random/ --no-fatal-missing',
+              ),
               expectedOutput: getCommandWithinContext(
-                  '$depValidatorCommand -i $addedDependency --no-fatal-unused -x app/,bin/,random/ --no-fatal-missing'),
+                '$depValidatorCommand -i $addedDependency --no-fatal-unused -x app/,bin/,random/ --no-fatal-missing',
+              ),
             );
           });
 
@@ -85,9 +94,11 @@ main() {
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
                 input: getCommandWithinContext(
-                    '$depValidatorCommand -i over_react'),
+                  '$depValidatorCommand -i over_react',
+                ),
                 expectedOutput: getCommandWithinContext(
-                    '$depValidatorCommand -i over_react,$addedDependency'),
+                  '$depValidatorCommand -i over_react,$addedDependency',
+                ),
               );
             });
 
@@ -96,9 +107,11 @@ main() {
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
                 input: getCommandWithinContext(
-                    '$depValidatorCommand -iover_react'),
+                  '$depValidatorCommand -iover_react',
+                ),
                 expectedOutput: getCommandWithinContext(
-                    '$depValidatorCommand -iover_react,$addedDependency'),
+                  '$depValidatorCommand -iover_react,$addedDependency',
+                ),
               );
             });
 
@@ -107,9 +120,11 @@ main() {
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
                 input: getCommandWithinContext(
-                    '$depValidatorCommand --ignore over_react'),
+                  '$depValidatorCommand --ignore over_react',
+                ),
                 expectedOutput: getCommandWithinContext(
-                    '$depValidatorCommand --ignore over_react,$addedDependency'),
+                  '$depValidatorCommand --ignore over_react,$addedDependency',
+                ),
               );
             });
 
@@ -118,9 +133,11 @@ main() {
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
                 input: getCommandWithinContext(
-                    '$depValidatorCommand --ignore=over_react'),
+                  '$depValidatorCommand --ignore=over_react',
+                ),
                 expectedOutput: getCommandWithinContext(
-                    '$depValidatorCommand --ignore=over_react,$addedDependency'),
+                  '$depValidatorCommand --ignore=over_react,$addedDependency',
+                ),
               );
             });
 
@@ -129,9 +146,11 @@ main() {
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
                 input: getCommandWithinContext(
-                    '$depValidatorCommand -i over_react,'),
+                  '$depValidatorCommand -i over_react,',
+                ),
                 expectedOutput: getCommandWithinContext(
-                    '$depValidatorCommand -i over_react,$addedDependency'),
+                  '$depValidatorCommand -i over_react,$addedDependency',
+                ),
               );
             });
 
@@ -140,9 +159,11 @@ main() {
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
                 input: getCommandWithinContext(
-                    '$depValidatorCommand -i over_react -x app/,bin/,random/ --no-fatal-missing'),
+                  '$depValidatorCommand -i over_react -x app/,bin/,random/ --no-fatal-missing',
+                ),
                 expectedOutput: getCommandWithinContext(
-                    '$depValidatorCommand -i over_react,$addedDependency -x app/,bin/,random/ --no-fatal-missing'),
+                  '$depValidatorCommand -i over_react,$addedDependency -x app/,bin/,random/ --no-fatal-missing',
+                ),
               );
             });
 
@@ -151,36 +172,42 @@ main() {
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
                 input: getCommandWithinContext(
-                    '$depValidatorCommand -x app/,bin/,random/ --no-fatal-missing -i over_react'),
+                  '$depValidatorCommand -x app/,bin/,random/ --no-fatal-missing -i over_react',
+                ),
                 expectedOutput: getCommandWithinContext(
-                    '$depValidatorCommand -x app/,bin/,random/ --no-fatal-missing -i over_react,$addedDependency'),
+                  '$depValidatorCommand -x app/,bin/,random/ --no-fatal-missing -i over_react,$addedDependency',
+                ),
               );
             });
 
-            test('when there are args on both sides of the ignore arg',
-                () async {
+            test('when there are args on both sides of the ignore arg', () async {
               await testSuggestor(
                 shouldDartfmtOutput: false,
                 expectedPatchCount: 1,
                 input: getCommandWithinContext(
-                    '$depValidatorCommand -x app/,bin/,random/ -i over_react --no-fatal-missing'),
+                  '$depValidatorCommand -x app/,bin/,random/ -i over_react --no-fatal-missing',
+                ),
                 expectedOutput: getCommandWithinContext(
-                    '$depValidatorCommand -x app/,bin/,random/ -i over_react,$addedDependency --no-fatal-missing'),
+                  '$depValidatorCommand -x app/,bin/,random/ -i over_react,$addedDependency --no-fatal-missing',
+                ),
               );
             });
 
             test(
-                'when the dependency name is part of an existing ignore dependency',
-                () async {
-              await testSuggestor(
-                shouldDartfmtOutput: false,
-                expectedPatchCount: 1,
-                input: getCommandWithinContext(
-                    '$depValidatorCommand -i ${addedDependency}_plus_more'),
-                expectedOutput: getCommandWithinContext(
-                    '$depValidatorCommand -i ${addedDependency}_plus_more,$addedDependency'),
-              );
-            });
+              'when the dependency name is part of an existing ignore dependency',
+              () async {
+                await testSuggestor(
+                  shouldDartfmtOutput: false,
+                  expectedPatchCount: 1,
+                  input: getCommandWithinContext(
+                    '$depValidatorCommand -i ${addedDependency}_plus_more',
+                  ),
+                  expectedOutput: getCommandWithinContext(
+                    '$depValidatorCommand -i ${addedDependency}_plus_more,$addedDependency',
+                  ),
+                );
+              },
+            );
           });
         });
       });
@@ -193,49 +220,58 @@ main() {
     test('adds to all locations within a file', () async {
       final getCommandWithinContext = contexts['basic-dockerfile'];
       await testSuggestor(
-          shouldDartfmtOutput: false,
-          expectedPatchCount: 2,
-          input: getCommandWithinContext!(
-              '$depValidatorCommand\n$depValidatorCommand'),
-          expectedOutput: getCommandWithinContext(
-              '$depValidatorCommand -i $addedDependency\n$depValidatorCommand -i $addedDependency'));
+        shouldDartfmtOutput: false,
+        expectedPatchCount: 2,
+        input: getCommandWithinContext!(
+          '$depValidatorCommand\n$depValidatorCommand',
+        ),
+        expectedOutput: getCommandWithinContext(
+          '$depValidatorCommand -i $addedDependency\n$depValidatorCommand -i $addedDependency',
+        ),
+      );
     });
 
     test('Adds a fixme if there are two ignore flags', () async {
       await testSuggestor(
-          shouldDartfmtOutput: false,
-          expectedPatchCount: 1,
-          input: '''
+        shouldDartfmtOutput: false,
+        expectedPatchCount: 1,
+        input:
+            '''
 RUN pub get
 RUN $depValidatorCommand -i over_react -x app/ -i over_react
 RUN dart format -l 80 --set-exit-if-changed lib/ test/
 RUN dart analyze --fatal-infos --fatal-warnings lib
 ''',
-          expectedOutput: '''
+        expectedOutput:
+            '''
 RUN pub get
 //FIXME: unexpected outcome; there should only be one ignore argument
 RUN $depValidatorCommand -i over_react -x app/ -i over_react
 RUN dart format -l 80 --set-exit-if-changed lib/ test/
 RUN dart analyze --fatal-infos --fatal-warnings lib
-''');
+''',
+      );
     });
   });
 }
 
-String basicDockerFile(String command) => '''
+String basicDockerFile(String command) =>
+    '''
 RUN pub get
 RUN $command
 RUN dart format -l 80 --set-exit-if-changed lib/ test/
 RUN dart analyze --fatal-infos --fatal-warnings lib
 ''';
 
-String chainedDockerfileCommand(String command) => '''
+String chainedDockerfileCommand(String command) =>
+    '''
 RUN pub get && \\
         $command && \\
         pub run dart_dev analyze
 ''';
 
-String dartCommand(String command) => '''
+String dartCommand(String command) =>
+    '''
 await Future.wait([
     run('$command',
         workingDirectory: analyzeDir),
@@ -243,7 +279,8 @@ await Future.wait([
   ]);
 ''';
 
-String dartDevTask(String command) => '''
+String dartDevTask(String command) =>
+    '''
 import 'package:dart_dev/dart_dev.dart'
     show dev, config, Environment, TestRunnerConfig;
 
@@ -276,7 +313,8 @@ main(List<String> args) async {
 }
 ''';
 
-String yamlScript(String command) => '''
+String yamlScript(String command) =>
+    '''
 language: dart
 
 dart:
@@ -291,7 +329,8 @@ script:
   - pub run test --concurrency=4 -p vm --reporter=expanded test/vm/
 ''';
 
-String yamlCiWorkflow(String command) => '''
+String yamlCiWorkflow(String command) =>
+    '''
 name: Dart CI
 
 on:
@@ -319,7 +358,8 @@ jobs:
         if: always() && steps.install.outcome == 'success'
 ''';
 
-String yamlSkynet(String command) => '''
+String yamlSkynet(String command) =>
+    '''
 ---
 # TODO: Remove this plan once the core checks cause failures.
 name: code_quality_analysis

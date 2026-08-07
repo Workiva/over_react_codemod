@@ -26,8 +26,8 @@ class PubspecReactUpdater extends PubspecUpgrader {
     VersionRange targetConstraint, {
     bool shouldAddDependencies = true,
   }) : super(
-          'react',
-          targetConstraint,
-          shouldAddDependencies: shouldAddDependencies,
-        );
+         'react',
+         targetConstraint,
+         shouldAddDependencies: shouldAddDependencies,
+       );
 }

@@ -24,10 +24,7 @@ import 'mui_migrator.dart';
 const _linkButtonSkin = 'ButtonSkin.LINK';
 const _outlineLinkButtonSkin = 'ButtonSkin.OUTLINE_LINK';
 
-const _linkButtonSkins = {
-  _linkButtonSkin,
-  _outlineLinkButtonSkin,
-};
+const _linkButtonSkins = {_linkButtonSkin, _outlineLinkButtonSkin};
 
 class MuiButtonMigrator extends ComponentUsageMigrator
     with MuiMigrator, ButtonDisplayPropsMigrator {
@@ -38,8 +35,11 @@ class MuiButtonMigrator extends ComponentUsageMigrator
   static bool isLinkButtonSkin(Expression expr) =>
       _linkButtonSkins.any((linkSkin) => isWsdStaticConstant(expr, linkSkin));
 
-  static bool isLikelyAssignedToButtonAddonProp(FluentComponentUsage usage) =>
-      usage.node.ancestors.whereType<AssignmentExpression>().map((e) {
+  static bool isLikelyAssignedToButtonAddonProp(
+    FluentComponentUsage usage,
+  ) => usage.node.ancestors
+      .whereType<AssignmentExpression>()
+      .map((e) {
         // Get the resolved name of the property being assigned so we don't have
         // to handle as many unresolved AST cases.
         final writeElement = e.writeElement;
@@ -48,7 +48,8 @@ class MuiButtonMigrator extends ComponentUsageMigrator
             // Use variable.name since PropertyAccessorElement's name has a trailing `=`
             ? writeElement.variable.name
             : writeElement.name;
-      }).any(const {'buttonBefore', 'buttonAfter'}.contains);
+      })
+      .any(const {'buttonBefore', 'buttonAfter'}.contains);
 
   @override
   bool shouldMigrateUsage(FluentComponentUsage usage) =>
@@ -64,8 +65,9 @@ class MuiButtonMigrator extends ComponentUsageMigrator
   void migrateUsage(FluentComponentUsage usage) {
     super.migrateUsage(usage);
 
-    final newFactory =
-        hasLinkButtonSkin(usage) ? '$muiNs.LinkButton' : '$muiNs.Button';
+    final newFactory = hasLinkButtonSkin(usage)
+        ? '$muiNs.LinkButton'
+        : '$muiNs.Button';
     yieldPatchOverNode(newFactory, usage.factory!);
 
     // Needed so we can  only attempt to migrate certain props if they're
@@ -92,8 +94,11 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       propsClassHasHitareaMixin =
           wsdComponentVersionForFactory(usage) != WsdComponentVersion.v1;
     } else if (usesWsdFactory(usage, 'FormResetInput')) {
-      yieldAddPropPatch(usage, "..type = ${_MuiButtonType.reset}",
-          placement: NewPropPlacement.end);
+      yieldAddPropPatch(
+        usage,
+        "..type = ${_MuiButtonType.reset}",
+        placement: NewPropPlacement.end,
+      );
 
       propsClassHasHitareaMixin =
           wsdComponentVersionForFactory(usage) != WsdComponentVersion.v1;
@@ -114,8 +119,10 @@ class MuiButtonMigrator extends ComponentUsageMigrator
 
       // Related to disabled state
       'isDisabled': (p) {
-        yieldPropFixmePatch(p,
-            'if this button has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element');
+        yieldPropFixmePatch(
+          p,
+          'if this button has mouse handlers that should fire when disabled or needs to show a tooltip/overlay when disabled, add a wrapper element',
+        );
         yieldPropPatch(p, newName: 'disabled');
       },
       if (propsClassHasHitareaMixin)
@@ -128,14 +135,16 @@ class MuiButtonMigrator extends ComponentUsageMigrator
 
       // Props that always need manual intervention.
       'isCallout': (p) => yieldPropFixmePatch(
-          p,
-          "this styling can be recreated using"
-          " `..sx = const {'textTransform': 'uppercase', 'fontWeight': 'bold'}`"),
+        p,
+        "this styling can be recreated using"
+        " `..sx = const {'textTransform': 'uppercase', 'fontWeight': 'bold'}`",
+      ),
       'pullRight': (p) => yieldPropFixmePatch(
-          p,
-          "this styling can be recreated using"
-          " `..sx = const {'float': 'right'}`"
-          " (or by adjusting the parent layout)"),
+        p,
+        "this styling can be recreated using"
+        " `..sx = const {'float': 'right'}`"
+        " (or by adjusting the parent layout)",
+      ),
     });
 
     // Only attempt to migrate these props if they're declared on the props class
@@ -152,16 +161,19 @@ class MuiButtonMigrator extends ComponentUsageMigrator
     // manually checked.
     if (context.sourceText.contains('DialogFooter')) {
       yieldUsageFixmePatch(
-          usage,
-          "check whether this button is nested inside a DialogFooter."
-          " If so, wrap it in a $muiNs.ButtonToolbar with `..sx = {'float': 'right'}`.");
+        usage,
+        "check whether this button is nested inside a DialogFooter."
+        " If so, wrap it in a $muiNs.ButtonToolbar with `..sx = {'float': 'right'}`.",
+      );
     }
-    if (context.sourceText
-        .contains(RegExp(r'\b(?:buttonBefore|buttonAfter)\b'))) {
+    if (context.sourceText.contains(
+      RegExp(r'\b(?:buttonBefore|buttonAfter)\b'),
+    )) {
       yieldUsageFixmePatch(
-          usage,
-          "check whether this button is assigned to a buttonBefore or buttonAfter prop."
-          " If so, revert the changes to this usage and add an `orcm_ignore` comment to it.");
+        usage,
+        "check whether this button is assigned to a buttonBefore or buttonAfter prop."
+        " If so, revert the changes to this usage and add an `orcm_ignore` comment to it.",
+      );
     }
   }
 
@@ -207,8 +219,10 @@ class MuiButtonMigrator extends ComponentUsageMigrator
   /// ```
   /// ..addProps(someValue)
   /// ```
-  String _cascadeFromMapPropValue(PropAssignment? assignment,
-      {required String destinationFactoryName}) {
+  String _cascadeFromMapPropValue(
+    PropAssignment? assignment, {
+    required String destinationFactoryName,
+  }) {
     if (assignment == null) return '';
 
     // If the RHS is a maps view using destinationFactoryName,
@@ -232,22 +246,28 @@ class MuiButtonMigrator extends ComponentUsageMigrator
     final tooltipContentProp = getFirstPropWithName(usage, 'tooltipContent');
     if (tooltipContentProp == null) return;
 
-    final tooltipContentSource =
-        context.sourceFor(tooltipContentProp.rightHandSide);
+    final tooltipContentSource = context.sourceFor(
+      tooltipContentProp.rightHandSide,
+    );
     yieldRemovePropPatch(tooltipContentProp);
 
-    final overlayTriggerPropsProp =
-        getFirstPropWithName(usage, 'overlayTriggerProps');
+    final overlayTriggerPropsProp = getFirstPropWithName(
+      usage,
+      'overlayTriggerProps',
+    );
     final overlayTriggerCascadeToAdd = _cascadeFromMapPropValue(
-        overlayTriggerPropsProp,
-        destinationFactoryName: 'OverlayTrigger');
+      overlayTriggerPropsProp,
+      destinationFactoryName: 'OverlayTrigger',
+    );
     if (overlayTriggerPropsProp != null) {
       yieldRemovePropPatch(overlayTriggerPropsProp);
     }
 
     final tooltipPropsProp = getFirstPropWithName(usage, 'tooltipProps');
-    final tooltipCascadeToAdd = _cascadeFromMapPropValue(tooltipPropsProp,
-        destinationFactoryName: 'Tooltip');
+    final tooltipCascadeToAdd = _cascadeFromMapPropValue(
+      tooltipPropsProp,
+      destinationFactoryName: 'Tooltip',
+    );
     if (tooltipPropsProp != null) {
       yieldRemovePropPatch(tooltipPropsProp);
     }
@@ -256,13 +276,14 @@ class MuiButtonMigrator extends ComponentUsageMigrator
         '${tooltipCascadeToAdd.isEmpty ? 'Tooltip()' : '(Tooltip()$tooltipCascadeToAdd)'}($tooltipContentSource)';
 
     yieldInsertionPatch(
-        '(OverlayTrigger()\n'
-        // Put this comment here instead of on OverlayTrigger since that might not format nicely
-        '  ${lineComment('$fixmePrefix - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger')}'
-        '..overlay2 = $overlaySource'
-        '$overlayTriggerCascadeToAdd'
-        ')(',
-        usage.node.offset);
+      '(OverlayTrigger()\n'
+      // Put this comment here instead of on OverlayTrigger since that might not format nicely
+      '  ${lineComment('$fixmePrefix - tooltip props - manually verify this new Tooltip and wrapper OverlayTrigger')}'
+      '..overlay2 = $overlaySource'
+      '$overlayTriggerCascadeToAdd'
+      ')(',
+      usage.node.offset,
+    );
     yieldInsertionPatch(',)', usage.node.end);
   }
 
@@ -277,9 +298,11 @@ class MuiButtonMigrator extends ComponentUsageMigrator
 
     // If it's a single child or `noText = true`, no moving is needed.
     if (usage.children.length == 1 ||
-        usage.cascadedProps.any((p) =>
-            p.name.name == 'noText' &&
-            p.rightHandSide.tryCast<BooleanLiteral>()?.value == true)) {
+        usage.cascadedProps.any(
+          (p) =>
+              p.name.name == 'noText' &&
+              p.rightHandSide.tryCast<BooleanLiteral>()?.value == true,
+        )) {
       return;
     }
 
@@ -287,9 +310,10 @@ class MuiButtonMigrator extends ComponentUsageMigrator
       final iconPropName = isFirst ? 'startIcon' : 'endIcon';
 
       void flagChild() => yieldChildFixmePatch(
-          child,
-          'Button child - manually verify that this child'
-          ' is not an icon that should be moved to `$iconPropName`');
+        child,
+        'Button child - manually verify that this child'
+        ' is not an icon that should be moved to `$iconPropName`',
+      );
 
       // Don't try to handle non-expression (collection element) children.
       if (child is! ExpressionComponentChild) {
@@ -320,7 +344,9 @@ class MuiButtonMigrator extends ComponentUsageMigrator
 
       if (usesWsdFactory(childAsUsage, 'Icon')) {
         yieldAddPropPatch(
-            usage, '..$iconPropName = ${context.sourceFor(child.node)}');
+          usage,
+          '..$iconPropName = ${context.sourceFor(child.node)}',
+        );
         yieldRemoveChildPatch(child.node);
       }
     }
@@ -337,8 +363,10 @@ class MuiButtonMigrator extends ComponentUsageMigrator
 const muiPrimaryColor = '$muiNs.ButtonColor.primary';
 
 mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
-  void migrateButtonSkin(PropAssignment prop,
-      {bool handleLinkVariants = false}) {
+  void migrateButtonSkin(
+    PropAssignment prop, {
+    bool handleLinkVariants = false,
+  }) {
     final rhs = prop.rightHandSide;
 
     const muiOutlineVariant = '$muiNs.ButtonVariant.outlined';
@@ -355,10 +383,12 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
     }
 
     if (isWsdStaticConstant(rhs, 'ButtonSkin.VANILLA')) {
-      yieldPropPatch(prop,
-          newName: 'color',
-          newRhs: '$muiNs.ButtonColor.inherit',
-          additionalCascadeSection: '..variant = $muiNs.ButtonVariant.text');
+      yieldPropPatch(
+        prop,
+        newName: 'color',
+        newRhs: '$muiNs.ButtonColor.inherit',
+        additionalCascadeSection: '..variant = $muiNs.ButtonVariant.text',
+      );
       return;
     }
 
@@ -374,11 +404,7 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
       'ButtonSkin.WARNING': '$muiNs.ButtonColor.warning',
     });
     if (colorFromWsdSkin != null) {
-      yieldPropPatch(
-        prop,
-        newName: 'color',
-        newRhs: colorFromWsdSkin,
-      );
+      yieldPropPatch(prop, newName: 'color', newRhs: colorFromWsdSkin);
       return;
     }
 
@@ -398,10 +424,12 @@ mixin ButtonDisplayPropsMigrator on ComponentUsageMigrator {
       'ButtonSkin.OUTLINE_WARNING': '$muiNs.ButtonColor.warning',
     });
     if (colorFromWsdOutlineSkin != null) {
-      yieldPropPatch(prop,
-          newName: 'color',
-          newRhs: colorFromWsdOutlineSkin,
-          additionalCascadeSection: '..variant = $muiOutlineVariant');
+      yieldPropPatch(
+        prop,
+        newName: 'color',
+        newRhs: colorFromWsdOutlineSkin,
+        additionalCascadeSection: '..variant = $muiOutlineVariant',
+      );
       return;
     }
 

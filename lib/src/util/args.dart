@@ -37,7 +37,9 @@ import 'package:args/args.dart';
 /// print(updatedArgs); // ['--baz=baz', 'positionalArg']
 /// ```
 List<String> removeOptionArgs(
-    List<String> args, Iterable<String> optionArgNames) {
+  List<String> args,
+  Iterable<String> optionArgNames,
+) {
   return optionArgNames.fold(args, (updatedArgs, argName) {
     return _removeOptionOrFlagArgs(updatedArgs, argName, isOption: true);
   });
@@ -69,8 +71,11 @@ List<String> removeFlagArgs(List<String> args, Iterable<String> flagArgNames) {
   });
 }
 
-List<String> _removeOptionOrFlagArgs(List<String> args, String argName,
-    {required bool isOption}) {
+List<String> _removeOptionOrFlagArgs(
+  List<String> args,
+  String argName, {
+  required bool isOption,
+}) {
   final updatedArgs = [...args];
 
   final argPattern = isOption
@@ -108,13 +113,15 @@ void addCodemodArgs(ArgParser argParser) => argParser
   ..addFlag(
     'yes-to-all',
     negatable: false,
-    help: 'Forces all patches accepted without prompting the user. '
+    help:
+        'Forces all patches accepted without prompting the user. '
         'Useful for scripts.',
   )
   ..addFlag(
     'fail-on-changes',
     negatable: false,
-    help: 'Returns a non-zero exit code if there are changes to be made. '
+    help:
+        'Returns a non-zero exit code if there are changes to be made. '
         'Will not make any changes (i.e. this is a dry-run).',
   )
   ..addFlag(

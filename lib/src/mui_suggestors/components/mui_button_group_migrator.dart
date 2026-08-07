@@ -43,9 +43,11 @@ class MuiButtonGroupMigrator extends ComponentUsageMigrator with MuiMigrator {
 
     final rhs = prop.rightHandSide;
     if (rhs is BooleanLiteral) {
-      yieldPropPatch(prop,
-          newName: 'orientation',
-          newRhs: rhs.value ? verticalOrientation : horizontalOrientation);
+      yieldPropPatch(
+        prop,
+        newName: 'orientation',
+        newRhs: rhs.value ? verticalOrientation : horizontalOrientation,
+      );
     } else {
       // Change
       //     ..isVertical = expression
@@ -53,7 +55,9 @@ class MuiButtonGroupMigrator extends ComponentUsageMigrator with MuiMigrator {
       //     ..orientation = expression ? mui.ButtonGroupOrientation.vertical : mui.ButtonGroupOrientation.horizontal
       yieldPropPatch(prop, newName: 'orientation');
       yieldInsertionPatch(
-          ' ? $verticalOrientation : $horizontalOrientation', rhs.end);
+        ' ? $verticalOrientation : $horizontalOrientation',
+        rhs.end,
+      );
     }
   }
 

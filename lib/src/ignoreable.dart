@@ -30,9 +30,9 @@ Suggestor ignoreable(Suggestor suggestor) {
         .map((match) => context.sourceFile.getLine(match.start));
 
     yield* suggestor(context)
-        // Skip patches that start on a line (or on a line immediately after a
-        // line) with an `// orcm_ignore` comment.
-        .where((patch) {
+    // Skip patches that start on a line (or on a line immediately after a
+    // line) with an `// orcm_ignore` comment.
+    .where((patch) {
       final startLine = context.sourceFile.getLine(patch.startOffset);
       return !ignoreLines.contains(startLine) &&
           !ignoreLines.contains(startLine - 1);

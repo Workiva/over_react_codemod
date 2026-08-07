@@ -50,23 +50,29 @@ class V1DependencyValidatorUpdater {
       final ignoreArgMatches = ignoreArgPattern.allMatches(allArgs);
 
       if (ignoreArgMatches.length > 1) {
-        final lineStart = context.sourceFile
-            .getOffset(context.sourceFile.getLine(match.start));
-        patches.add(Patch(
+        final lineStart = context.sourceFile.getOffset(
+          context.sourceFile.getLine(match.start),
+        );
+        patches.add(
+          Patch(
             '//FIXME: unexpected outcome; there should only be one ignore argument\n',
             lineStart,
-            lineStart));
+            lineStart,
+          ),
+        );
         return;
       } else if (ignoreArgMatches.length == 1) {
         var ignoreArgMatch = ignoreArgMatches.first.group(1);
 
         if (ignoreArgMatch == null) {
           throw StateError(
-              'Expected a regex matching group when parsing $allArgs');
+            'Expected a regex matching group when parsing $allArgs',
+          );
         }
 
-        final dependenciesListOffset =
-            ignoreArgMatches.first.group(0)!.indexOf(ignoreArgMatch);
+        final dependenciesListOffset = ignoreArgMatches.first
+            .group(0)!
+            .indexOf(ignoreArgMatch);
 
         final ignoredPackages = ignoreArgMatch.split(',');
         if (ignoredPackages.contains(dependency)) {
@@ -82,19 +88,26 @@ class V1DependencyValidatorUpdater {
         // commandArgsStart is where the any arguments will start being added to the command
         // ignoreArgMatches.first.start is where (within the command string) the ignore argument starts
         // dependenciesListOffset is to account for the arg flag (-i or --ignore)
-        final startingOffset = commandArgsStart +
+        final startingOffset =
+            commandArgsStart +
             ignoreArgMatches.first.start +
             dependenciesListOffset;
-        patches.add(Patch(ignoreArgMatch, startingOffset,
-            commandArgsStart + ignoreArgMatches.first.end));
+        patches.add(
+          Patch(
+            ignoreArgMatch,
+            startingOffset,
+            commandArgsStart + ignoreArgMatches.first.end,
+          ),
+        );
         return;
       } else {
         // This will inject the ignore arg right after the command itself, rather
         // at the end of existing args, because our regex is greedy and doesn't really
         // know when the command args end. Therefore the safest thing when there is no
         // existing ignore arg is to use the command string as the anchor.
-        patches
-            .add(Patch(' -i $dependency', commandArgsStart, commandArgsStart));
+        patches.add(
+          Patch(' -i $dependency', commandArgsStart, commandArgsStart),
+        );
       }
     });
 

@@ -21,7 +21,10 @@ import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 Stream<Patch> intlImporter(
-    FileContext context, String projectName, String className) async* {
+  FileContext context,
+  String projectName,
+  String className,
+) async* {
   final libraryResult = await context.getResolvedLibrary();
   if (libraryResult == null) {
     // Most likely a part and not a library.
@@ -30,9 +33,11 @@ Stream<Patch> intlImporter(
 
   // Parts that have not been generated can show up as `exists = false` but also `isPart = false`,
   // so using the unitResults is a little trickier than using the libraryElement to get it.
-  final mainLibraryUnitResult = libraryResult.units.singleWhere((unitResult) =>
-      unitResult.unit.declaredElement ==
-      libraryResult.element.definingCompilationUnit);
+  final mainLibraryUnitResult = libraryResult.units.singleWhere(
+    (unitResult) =>
+        unitResult.unit.declaredElement ==
+        libraryResult.element.definingCompilationUnit,
+  );
 
   final needsIntlImport = libraryResult.units
       .expand((unitResult) => unitResult.errors)
@@ -44,10 +49,15 @@ Stream<Patch> intlImporter(
   final intlFilePath = '/src/intl/${projectName}_intl.dart';
   final intlUri = 'package:${projectName}' + intlFilePath;
   final intlDirectory = path.join(context.root, intlFilePath);
-  final relativePathToIntlDir =
-      path.relative(intlDirectory, from: Directory.current.path);
+  final relativePathToIntlDir = path.relative(
+    intlDirectory,
+    from: Directory.current.path,
+  );
   final insertInfo = _insertionLocationForPackageImport(
-      intlUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
+    intlUri,
+    mainLibraryUnitResult.unit,
+    mainLibraryUnitResult.lineInfo,
+  );
 
   final importStatement = insertInfo.usePackageImports
       ? packageImport(intlUri, insertInfo)
@@ -62,7 +72,9 @@ String packageImport(String intlUri, _InsertionLocation insertInfo) =>
     insertInfo.trailingNewlines;
 
 String relativeImport(
-        String relativeImportPath, _InsertionLocation insertInfo) =>
+  String relativeImportPath,
+  _InsertionLocation insertInfo,
+) =>
     insertInfo.leadingNewlines +
     "import '$relativeImportPath';" +
     insertInfo.trailingNewlines;
@@ -90,16 +102,21 @@ class _InsertionLocation {
 /// otherwise inserting it in a new section relative to other imports
 /// or other directives.
 _InsertionLocation _insertionLocationForPackageImport(
-    String importUri, CompilationUnit unit, LineInfo lineInfo) {
+  String importUri,
+  CompilationUnit unit,
+  LineInfo lineInfo,
+) {
   final imports = unit.directives.whereType<ImportDirective>();
   final firstImport = imports.firstOrNull;
 
-  final dartImports =
-      imports.where((i) => i.uri.stringValue?.startsWith('dart:') ?? false);
+  final dartImports = imports.where(
+    (i) => i.uri.stringValue?.startsWith('dart:') ?? false,
+  );
   final lastDartImport = dartImports.lastOrNull;
 
-  final packageImports =
-      imports.where((i) => i.uri.stringValue?.startsWith('package:') ?? false);
+  final packageImports = imports.where(
+    (i) => i.uri.stringValue?.startsWith('package:') ?? false,
+  );
   final firstPackageImportSortedAfterNewImport = packageImports
       .where((i) => i.uri.stringValue!.compareTo(importUri) > 0)
       .firstOrNull;
@@ -107,8 +124,9 @@ _InsertionLocation _insertionLocationForPackageImport(
       .where((i) => i.uri.stringValue!.compareTo(importUri) < 0)
       .lastOrNull;
 
-  final firstNonImportDirective =
-      unit.directives.where((d) => d is! ImportDirective).firstOrNull;
+  final firstNonImportDirective = unit.directives
+      .where((d) => d is! ImportDirective)
+      .firstOrNull;
 
   final AstNode relativeNode;
   final bool insertAfter;
@@ -140,8 +158,11 @@ _InsertionLocation _insertionLocationForPackageImport(
   } else {
     // No directive to insert relative to; insert before the first member or
     // at the beginning of the file.
-    return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0,
-        trailingNewlineCount: 2, usePackageImports: true);
+    return _InsertionLocation(
+      unit.declarations.firstOrNull?.offset ?? 0,
+      trailingNewlineCount: 2,
+      usePackageImports: true,
+    );
   }
 
   hasOnlyPackageImports = !imports.any((importDirective) {
@@ -154,8 +175,9 @@ _InsertionLocation _insertionLocationForPackageImport(
   });
 
   return _InsertionLocation(
-      insertAfter ? relativeNode.end : relativeNode.offset,
-      leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
-      trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
-      usePackageImports: hasOnlyPackageImports);
+    insertAfter ? relativeNode.end : relativeNode.offset,
+    leadingNewlineCount: insertAfter ? (inOwnSection ? 2 : 1) : 0,
+    trailingNewlineCount: !insertAfter ? (inOwnSection ? 2 : 1) : 0,
+    usePackageImports: hasOnlyPackageImports,
+  );
 }

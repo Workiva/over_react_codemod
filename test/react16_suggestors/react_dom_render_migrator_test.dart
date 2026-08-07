@@ -69,7 +69,8 @@ main() {
             var instance = react_dom.render(Foo()(), mountNode);
           }
         ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -84,11 +85,12 @@ main() {
       );
     });
 
-    test('simple usage already wrapped with ErrorBoundary that has props',
-        () async {
-      await testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
+    test(
+      'simple usage already wrapped with ErrorBoundary that has props',
+      () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -97,8 +99,9 @@ main() {
             react_dom.render((ErrorBoundary()..prop = true)(foo), mountNode);
           }
         ''',
-      );
-    });
+        );
+      },
+    );
 
     test('simple usage assignment to existing variable', () async {
       await testSuggestor(
@@ -112,7 +115,8 @@ main() {
             instance = react_dom.render(Foo()(), mountNode);
           }
         ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -138,7 +142,8 @@ main() {
             var instance = getDartComponent(react_dom.render(Foo()(), mountNode));
           }
         ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -161,7 +166,8 @@ main() {
             return react_dom.render(Foo()(), mountNode);
           }
         ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -186,7 +192,8 @@ main() {
             )(), mountNode);
           }
         ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -216,7 +223,8 @@ main() {
             )(), mountNode);
           }
         ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -242,7 +250,8 @@ main() {
             void render() => react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
           }
         ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -265,7 +274,8 @@ main() {
             render() => react_dom.render((Foo()..ref = ((ref) => fooRef = ref))(), mountNode);
           }
         ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -290,7 +300,8 @@ main() {
             )(), mountNode);
           }
         ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -322,7 +333,8 @@ main() {
             instance4 = react_dom.render(foo, mountNode);
           }
         ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -348,7 +360,8 @@ main() {
     test('simple usage with validated ref', () async {
       await testSuggestor(
         expectedPatchCount: 0,
-        input: '''
+        input:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -366,7 +379,8 @@ main() {
     test('simple usage with unvalidated ref', () async {
       await testSuggestor(
         expectedPatchCount: 0,
-        input: '''
+        input:
+            '''
           import 'package:over_react/over_react.dart';
           import 'package:react/react_dom.dart' as react_dom;
 
@@ -518,35 +532,45 @@ main() {
       );
     });
 
-    test('no react_dom.dart import but usage has namespace in a `part of` file',
-        () async {
-      await testSuggestor(expectedPatchCount: 2, input: '''
+    test(
+      'no react_dom.dart import but usage has namespace in a `part of` file',
+      () async {
+        await testSuggestor(
+          expectedPatchCount: 2,
+          input: '''
           part of 'a_file.dart';
 
           main() {
             react_dom.render(Foo()(), mountNode);
           }
-        ''', expectedOutput: '''
+        ''',
+          expectedOutput: '''
           part of 'a_file.dart';
 
           main() {
             react_dom.render(ErrorBoundary()(Foo()()), mountNode);
           }
-        ''');
-    });
+        ''',
+        );
+      },
+    );
 
     test('no react_dom.dart import but usage has namespace', () async {
-      await testSuggestor(expectedPatchCount: 3, input: '''
+      await testSuggestor(
+        expectedPatchCount: 3,
+        input: '''
           main() {
             react_dom.render(Foo()(), mountNode);
           }
-        ''', expectedOutput: '''
+        ''',
+        expectedOutput: '''
           import 'package:over_react/over_react.dart';
 
           main() {
             react_dom.render(ErrorBoundary()(Foo()()), mountNode);
           }
-        ''');
+        ''',
+      );
     });
 
     test('no import of over_react but is wrapped with ErrorBoundary', () async {
@@ -571,30 +595,34 @@ main() {
     });
 
     // These tests strings are split by web_skin_dart to work around issues with dependency_validator.
-    test('doesnt add over_react if it imports web_skin_dart/ui_core instead',
-        () async {
-      await testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
+    test(
+      'doesnt add over_react if it imports web_skin_dart/ui_core instead',
+      () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input:
+              '''
           import 'package:'''
-            '''web_skin_dart/ui_core.dart';
+              '''web_skin_dart/ui_core.dart';
           import 'package:react/react_dom.dart';
 
           main() {
             render(ErrorBoundary()(Foo()()), mountNode);
           }
         ''',
-        expectedOutput: '''
+          expectedOutput:
+              '''
           import 'package:'''
-            '''web_skin_dart/ui_core.dart';
+              '''web_skin_dart/ui_core.dart';
           import 'package:react/react_dom.dart';
 
           main() {
             render(ErrorBoundary()(Foo()()), mountNode);
           }
         ''',
-      );
-    });
+        );
+      },
+    );
   });
 }
 

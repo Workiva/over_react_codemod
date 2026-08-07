@@ -38,8 +38,11 @@ class GeneratedFactoryMigrator extends RecursiveAstVisitor
         return;
       }
 
-      yieldPatch('$castFunctionName(', generatedFactory!.offset,
-          generatedFactory.offset);
+      yieldPatch(
+        '$castFunctionName(',
+        generatedFactory!.offset,
+        generatedFactory.offset,
+      );
       yieldPatch(')', generatedFactory.end, generatedFactory.end);
     }
   }

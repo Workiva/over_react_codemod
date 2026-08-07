@@ -19,8 +19,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:logging/logging.dart';
 import 'package:over_react_codemod/src/util.dart';
 
-typedef YieldPatch = void Function(String replacement, int startingOffset,
-    [int? endingOffset]);
+typedef YieldPatch =
+    void Function(String replacement, int startingOffset, [int? endingOffset]);
 
 const semverReportNotAvailable =
     'Semver report not available; this class is assumed to be public and thus will not be updated.';
@@ -36,8 +36,10 @@ final logger = Logger('over_react_codemod.boilerplate_upgrade.semver_helper');
 /// If [shouldTreatAllComponentsAsPrivate] is true, the returned [SemverHelper]
 /// assumes all classes passed to [getPublicExportLocations] are private
 /// (see: [SemverHelper.alwaysPrivate] constructor).
-SemverHelper getSemverHelper(String path,
-    {bool shouldTreatAllComponentsAsPrivate = false}) {
+SemverHelper getSemverHelper(
+  String path, {
+  bool shouldTreatAllComponentsAsPrivate = false,
+}) {
   if (shouldTreatAllComponentsAsPrivate) {
     return SemverHelper.alwaysPrivate();
   } else {
@@ -75,11 +77,7 @@ SemverHelper getSemverHelper(String path,
 }
 
 /// Returns whether or not [node] is publicly exported.
-bool isPublic(
-  ClassDeclaration node,
-  SemverHelper semverHelper,
-  String path,
-) {
+bool isPublic(ClassDeclaration node, SemverHelper semverHelper, String path) {
   return semverHelper.getPublicExportLocations(node, path).isNotEmpty;
 }
 
@@ -94,23 +92,18 @@ class SemverHelper {
 
   /// Used to ensure [getPublicExportLocations] always returns an empty list,
   /// treating all components as private.
-  SemverHelper.alwaysPrivate()
-      : _exportList = null,
-        _isAlwaysPrivate = true;
+  SemverHelper.alwaysPrivate() : _exportList = null, _isAlwaysPrivate = true;
 
   /// Used to ensure [getPublicExportLocations] always returns a non-empty list,
   /// treating all components as public.
   SemverHelper.alwaysPublic(this.warning)
-      : _exportList = null,
-        _isAlwaysPrivate = false;
+    : _exportList = null,
+      _isAlwaysPrivate = false;
 
   /// Returns a list of locations where [node] is publicly exported.
   ///
   /// If [node] is not publicly exported, returns an empty list.
-  List<String> getPublicExportLocations(
-    ClassDeclaration node,
-    String path,
-  ) {
+  List<String> getPublicExportLocations(ClassDeclaration node, String path) {
     final className = stripPrivateGeneratedPrefix(node.name.lexeme);
 
     if (!path.startsWith('lib/')) {

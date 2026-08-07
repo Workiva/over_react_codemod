@@ -18,17 +18,20 @@ import 'package:test/test.dart';
 
 import '../util.dart';
 
-const manualCheckedStyleMapString = '// [x] Check this box upon manual '
+const manualCheckedStyleMapString =
+    '// [x] Check this box upon manual '
     'validation that this style map uses a valid value for the keys that are '
     'numbers.';
 
-const manualCheckedRefString = '// [x] Check this box upon manual validation of'
+const manualCheckedRefString =
+    '// [x] Check this box upon manual validation of'
     ' this ref and its typing. $willBeRemovedCommentSuffix';
 
 main() {
   group('CommentRemover', () {
-    final testSuggestor =
-        getSuggestorTester(CommentRemover('Check this box', 'complete'));
+    final testSuggestor = getSuggestorTester(
+      CommentRemover('Check this box', 'complete'),
+    );
 
     test('does not update an empty file', () async {
       await testSuggestor(expectedPatchCount: 0, input: '');
@@ -50,7 +53,8 @@ main() {
         test('', () async {
           await testSuggestor(
             expectedPatchCount: 1,
-            input: '''
+            input:
+                '''
           class Test extends UiComponent {
             var aTest = Foo()
             $manualCheckedStyleMapString $willBeRemovedCommentSuffix
@@ -69,7 +73,8 @@ main() {
         test('nested under a function', () async {
           await testSuggestor(
             expectedPatchCount: 1,
-            input: '''
+            input:
+                '''
           class test extends UiComponent {
             dynamic function() {
               return Foo()
@@ -93,7 +98,8 @@ main() {
       test('updates when there is a multiline comment', () async {
         await testSuggestor(
           expectedPatchCount: 1,
-          input: '''
+          input:
+              '''
           class Test extends UiComponent {
             var aTest = Foo()
              $manualCheckedStyleMapString
@@ -111,12 +117,12 @@ main() {
         );
       });
 
-      test(
-          'updates when there is a multiline comment and a comment string is'
+      test('updates when there is a multiline comment and a comment string is'
           ' split', () async {
         await testSuggestor(
           expectedPatchCount: 1,
-          input: '''
+          input:
+              '''
           class Test extends UiComponent {
             var aTest = Foo()
              // [x] Check this box upon manual validation that this style map is
@@ -136,7 +142,8 @@ main() {
 
         await testSuggestor(
           expectedPatchCount: 1,
-          input: '''
+          input:
+              '''
           class Test extends UiComponent {
             var aTest = Foo()
              // [x] Check this box upon manual validation that this style map is
@@ -157,7 +164,8 @@ main() {
 
         await testSuggestor(
           expectedPatchCount: 1,
-          input: '''
+          input:
+              '''
           class Test extends UiComponent {
             var aTest = Foo()
              // [x] Check this box upon manual validation that this style map
@@ -179,7 +187,8 @@ main() {
       test('does not remove comments above', () async {
         await testSuggestor(
           expectedPatchCount: 1,
-          input: ''' 
+          input:
+              ''' 
           class Test extends UiComponent {
             var aTest = Foo()
              // A random comment that should not be removed.
@@ -202,7 +211,8 @@ main() {
       test('does not remove comments below', () async {
         await testSuggestor(
           expectedPatchCount: 1,
-          input: '''
+          input:
+              '''
           class Test extends UiComponent {
             var aTest = Foo()
              $manualCheckedStyleMapString
@@ -227,7 +237,8 @@ main() {
       test('updates when there is a basic comment', () async {
         await testSuggestor(
           expectedPatchCount: 1,
-          input: '''
+          input:
+              '''
             main() {
               var instance;
               $manualCheckedRefString
@@ -250,7 +261,8 @@ main() {
       test('updates when there is a multiline comment', () async {
         await testSuggestor(
           expectedPatchCount: 1,
-          input: '''
+          input:
+              '''
             main() {
               var instance;
               // [x] Check this box upon manual validation of

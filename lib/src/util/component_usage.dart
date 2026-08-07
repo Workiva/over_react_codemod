@@ -105,8 +105,8 @@ class FluentComponentUsage {
 
     final builder = this.builder;
     if (builder is MethodInvocation) {
-      final methodElement =
-          builder.methodName.staticElement?.tryCast<MethodElement>();
+      final methodElement = builder.methodName.staticElement
+          ?.tryCast<MethodElement>();
       if (methodElement != null && methodElement.isStatic) {
         final className = methodElement.enclosingElement.name;
         if (className != null) {
@@ -184,9 +184,9 @@ class FluentComponentUsage {
   ///
   /// See also: other `cascaded`* methods in this class.
   Iterable<BuilderMethodInvocation> get cascadedMethodInvocations =>
-      cascadeSections
-          .whereType<MethodInvocation>()
-          .map((methodInvocation) => BuilderMethodInvocation(methodInvocation));
+      cascadeSections.whereType<MethodInvocation>().map(
+        (methodInvocation) => BuilderMethodInvocation(methodInvocation),
+      );
 
   /// All the cascades on this usage's builder, each wrapped in one of the
   /// [BuilderMemberAccess] subtypes.
@@ -205,10 +205,7 @@ class FluentComponentUsage {
         .map((section) => OtherBuilderMemberAccess(section))
         .toList();
 
-    return [
-      ...allHandledMembers,
-      ...allUnhandledMembers,
-    ]
+    return [...allHandledMembers, ...allUnhandledMembers]
       // Order them in the order they appear by sorting based on the offset.
       ..sort((a, b) => a.node.offset.compareTo(b.node.offset));
   }
@@ -454,8 +451,8 @@ class _PropertyAccessStateAssignment extends StateAssignment {
   final AssignmentExpression node;
 
   _PropertyAccessStateAssignment(this.node)
-      : assert(node.leftHandSide is PropertyAccess),
-        super._();
+    : assert(node.leftHandSide is PropertyAccess),
+      super._();
 
   /// The property access representing the left hand side of this assignment.
   @override
@@ -496,8 +493,8 @@ class _PropertyAccessPropAssignment extends PropAssignment {
   final AssignmentExpression node;
 
   _PropertyAccessPropAssignment(this.node)
-      : assert(node.leftHandSide is PropertyAccess),
-        super._();
+    : assert(node.leftHandSide is PropertyAccess),
+      super._();
 
   /// The property access representing the left hand side of this assignment.
   @override
@@ -643,9 +640,11 @@ FluentComponentUsage? getComponentUsage(InvocationExpression node) {
         if (builderName != null) {
           isComponent =
               RegExp(r'(?:^|\.)Dom\.[a-z0-9]+$').hasMatch(builderName) ||
-                  RegExp(r'factory|builder', caseSensitive: false)
-                      .hasMatch(builderName) ||
-                  RegExp(r'(?:^|\.)[A-Z][^\.]*$').hasMatch(builderName);
+              RegExp(
+                r'factory|builder',
+                caseSensitive: false,
+              ).hasMatch(builderName) ||
+              RegExp(r'(?:^|\.)[A-Z][^\.]*$').hasMatch(builderName);
         } else {
           isComponent = false;
         }
@@ -657,8 +656,10 @@ FluentComponentUsage? getComponentUsage(InvocationExpression node) {
           methodNameBlockList.contains(builder.name)) {
         isComponent = false;
       } else {
-        isComponent =
-            RegExp(r'builder', caseSensitive: false).hasMatch(builder.name);
+        isComponent = RegExp(
+          r'builder',
+          caseSensitive: false,
+        ).hasMatch(builder.name);
       }
     } else {
       isComponent = false;

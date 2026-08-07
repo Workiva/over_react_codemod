@@ -138,16 +138,19 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     final result = await context.getResolvedUnit();
     if (result == null) {
       throw Exception(
-          'Could not get resolved result for "${context.relativePath}"');
+        'Could not get resolved result for "${context.relativePath}"',
+      );
     }
     final allUsages = <FluentComponentUsage>[];
     result.unit.accept(ComponentUsageVisitor(allUsages.add));
 
     for (final usage in allUsages) {
       if (_isIgnored(usage, result.unit)) {
-        _log.finest(context.sourceFile
-            .spanFor(usage.factory ?? usage.builder)
-            .message('Skipping ignored usage'));
+        _log.finest(
+          context.sourceFile
+              .spanFor(usage.factory ?? usage.builder)
+              .message('Skipping ignored usage'),
+        );
         continue;
       }
 
@@ -178,28 +181,33 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   /// This allows custom migration code to assume that all usages are fully resolved,
   /// and thus can rely on static typing and other static information being available.
   void _verifyUsageIsResolved(
-      FluentComponentUsage usage, ResolvedUnitResult result) {
+    FluentComponentUsage usage,
+    ResolvedUnitResult result,
+  ) {
     String errorsMessage() => result.errors.isEmpty
         ? ''
         : ' \nAnalysis errors in file:\n${prettyPrintErrors(result.errors)}\n'
-            // TODO - reference analyzer issue for this once it's created
-            'If this is a part file and all of its imported members seem to be unresolved,'
-            ' make sure its library is resolved first.';
+              // TODO - reference analyzer issue for this once it's created
+              'If this is a part file and all of its imported members seem to be unresolved,'
+              ' make sure its library is resolved first.';
     final staticType = usage.builder.staticType;
     if (staticType == null || staticType.isDynamic) {
       final typeDescription = staticType == null
           ? 'null'
           : 'type \'${staticType.getDisplayString(withNullability: false)}\'';
       throw _unresolvedException(
-          'Builder static type could not be resolved; was $typeDescription. ${errorsMessage()}',
-          usage.builder);
+        'Builder static type could not be resolved; was $typeDescription. ${errorsMessage()}',
+        usage.builder,
+      );
     }
     final factory = usage.factory;
     if (factory != null) {
       if (factory.staticType == null ||
           (factory is Identifier && factory.staticElement == null)) {
         throw _unresolvedException(
-            'Factory could not be resolved. ${errorsMessage()}', factory);
+          'Factory could not be resolved. ${errorsMessage()}',
+          factory,
+        );
       }
     }
   }
@@ -267,7 +275,9 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
               final expression = method.node.argumentList.arguments.firstOrNull;
               if (expression != null && !_isDataAttributePropKey(expression)) {
                 yieldBuilderMemberFixmePatch(
-                    method, '$name - manually verify prop key');
+                  method,
+                  '$name - manually verify prop key',
+                );
               }
             }
             break;
@@ -283,7 +293,9 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
       if (shouldFlagExtensionMembers && prop.isExtensionMethod) {
         // Flag extension methods, since they could do anything.
         yieldBuilderMemberFixmePatch(
-            prop, '${prop.name.name} (extension) - manually verify');
+          prop,
+          '${prop.name.name} (extension) - manually verify',
+        );
       } else if (shouldFlagRefProp && prop.name.name == 'ref') {
         // Flag refs, since their type is likely to change.
         yieldPropFixmePatch(prop, 'manually verify ref type is correct');
@@ -293,14 +305,18 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
           prop.prefix != null &&
           !safePropPrefixes.contains(prop.prefix!.name)) {
         yieldBuilderMemberFixmePatch(
-            prop, '${prop.prefix!.name} (prefix) - manually verify');
+          prop,
+          '${prop.prefix!.name} (prefix) - manually verify',
+        );
       }
     }
 
     for (final prop in usage.cascadedIndexAssignments) {
       if (shouldFlagUntypedSingleProp && !_isDataAttributePropKey(prop.index)) {
         yieldBuilderMemberFixmePatch(
-            prop, 'operator[]= - manually verify prop key');
+          prop,
+          'operator[]= - manually verify prop key',
+        );
       }
     }
 
@@ -308,7 +324,9 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
       if (shouldFlagExtensionMembers && prop.isExtensionMethod) {
         // Flag extension methods, since they could do anything.
         yieldBuilderMemberFixmePatch(
-            prop, '${prop.name.name} (extension) - manually verify');
+          prop,
+          '${prop.name.name} (extension) - manually verify',
+        );
       }
     }
   }
@@ -334,17 +352,21 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   ///
   /// Automatically adds parentheses around the builder if they don't already
   /// exist.
-  void yieldAddPropPatch(FluentComponentUsage usage, String newPropCascade,
-      {NewPropPlacement placement = NewPropPlacement.auto}) {
+  void yieldAddPropPatch(
+    FluentComponentUsage usage,
+    String newPropCascade, {
+    NewPropPlacement placement = NewPropPlacement.auto,
+  }) {
     final function = usage.node.function;
     if (function is ParenthesizedExpression) {
-      int getInsertionOffsetWithinBuilderOnNextLineIfPossible(int offset) =>
-          min(
-            context.sourceFile.getOffsetOfLineAfter(offset),
-            // Ensure this position isn't outside of the cascade parens
-            // (e.g., single-line cascade, multiline cascade with non-aligned right paren).
-            function.rightParenthesis.offset,
-          );
+      int getInsertionOffsetWithinBuilderOnNextLineIfPossible(
+        int offset,
+      ) => min(
+        context.sourceFile.getOffsetOfLineAfter(offset),
+        // Ensure this position isn't outside of the cascade parens
+        // (e.g., single-line cascade, multiline cascade with non-aligned right paren).
+        function.rightParenthesis.offset,
+      );
 
       // If this is null, we default to right after the invocation.
       final int offset;
@@ -352,8 +374,9 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
         case NewPropPlacement.auto:
           // Try to insert it after other props that aren't method calls or index expressions,
           // or members typically inserted at the end like addTestId, key, and ref.
-          final propToInsertAfter =
-              usage.cascadedMembers.lastWhereOrNull((element) {
+          final propToInsertAfter = usage.cascadedMembers.lastWhereOrNull((
+            element,
+          ) {
             if (element is BuilderMethodInvocation) {
               return false;
             } else if (element is PropAssignment) {
@@ -363,21 +386,26 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
               return false;
             } else {
               throw ArgumentError.value(
-                  element, 'element', 'Unhandled BuilderMemberAccess subtype');
+                element,
+                'element',
+                'Unhandled BuilderMemberAccess subtype',
+              );
             }
           });
           // Insert at the beginning of the next line so that we're not fighting with
           // insertions at the beginning of that prop (e.g., fix-me comments).
           offset = propToInsertAfter != null
               ? getInsertionOffsetWithinBuilderOnNextLineIfPossible(
-                  propToInsertAfter.node.end)
+                  propToInsertAfter.node.end,
+                )
               : function.rightParenthesis.offset;
           break;
         case NewPropPlacement.start:
           // TODO would it be better formatting and insertion-wise to attempt to insert at the beginning of the line of the first prop (similar to above)?
           offset = usage.cascadeExpression != null
               ? getInsertionOffsetWithinBuilderOnNextLineIfPossible(
-                  usage.cascadeExpression!.offset)
+                  usage.cascadeExpression!.offset,
+                )
               : function.rightParenthesis.offset;
           break;
         case NewPropPlacement.end:
@@ -479,7 +507,9 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     if (additionalCascadeSection != null) {
       // Add spaces so that dartfmt has a better time in case the cascade section has leading line comments
       yieldInsertionPatch(
-          '\n  $additionalCascadeSection', prop.rightHandSide.end);
+        '\n  $additionalCascadeSection',
+        prop.rightHandSide.end,
+      );
     }
   }
 
@@ -492,7 +522,9 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   /// with a custom [message].
   void yieldUsageFixmePatch(FluentComponentUsage usage, String message) {
     yieldInsertionPatch(
-        lineComment('$fixmePrefix $message'), usage.node.offset);
+      lineComment('$fixmePrefix $message'),
+      usage.node.offset,
+    );
   }
 
   void yieldPropManualMigratePatch(PropAssignment prop) {
@@ -548,20 +580,24 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   /// )();
   /// ```
   void yieldBuilderMemberFixmePatch(
-      BuilderMemberAccess access, String message) {
+    BuilderMemberAccess access,
+    String message,
+  ) {
     // Add an extra newline beforehand so that the comment doesn't end up on
     // the same line as the cascade target (the builder) in single-prop cascades.
     // Add a space so that dartfmt indents comment with the next line as opposed to
     // keeping it at the beginning of the line.
     // This formatting makes the output nicer, but more importantly it keeps
     // formatting of expected output in tests more consistent and easier to predict.
-    final needsLeadingNewline = access.parentCascade != null &&
+    final needsLeadingNewline =
+        access.parentCascade != null &&
         context.sourceFile.getLine(access.parentCascade!.target.end) ==
             context.sourceFile.getLine(access.node.offset);
     yieldInsertionPatch(
-        (needsLeadingNewline ? '\n ' : '') +
-            lineComment('$fixmePrefix - $message'),
-        access.node.offset);
+      (needsLeadingNewline ? '\n ' : '') +
+          lineComment('$fixmePrefix - $message'),
+      access.node.offset,
+    );
   }
 
   /// Yields a patch with a fix-me comment before a given [child]
@@ -593,16 +629,20 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
     // keeping it at the beginning of the line.
     // This formatting makes the output nicer, but more importantly it keeps
     // formatting of expected output in tests more consistent and easier to predict.
-    final needsLeadingNewline = context.sourceFile.getLine(child.node.parent!
-            .thisOrAncestorOfType<InvocationExpression>()!
-            .argumentList
-            .leftParenthesis
-            .end) ==
+    final needsLeadingNewline =
+        context.sourceFile.getLine(
+          child.node.parent!
+              .thisOrAncestorOfType<InvocationExpression>()!
+              .argumentList
+              .leftParenthesis
+              .end,
+        ) ==
         context.sourceFile.getLine(child.node.offset);
     yieldInsertionPatch(
-        (needsLeadingNewline ? '\n ' : '') +
-            lineComment('$fixmePrefix - $message'),
-        child.node.beginToken.offset);
+      (needsLeadingNewline ? '\n ' : '') +
+          lineComment('$fixmePrefix - $message'),
+      child.node.beginToken.offset,
+    );
   }
 
   static final _ignoreInfoForUnitCache = Expando<OrcmIgnoreInfo>();
@@ -611,8 +651,10 @@ abstract class ComponentUsageMigrator with ClassSuggestor {
   ///
   /// See [ComponentUsageMigrator] for comment formats.
   bool _isIgnored(FluentComponentUsage usage, CompilationUnit unit) {
-    final ignoreInfo = _ignoreInfoForUnitCache[unit] ??=
-        OrcmIgnoreInfo.forDart(unit, context.sourceText);
+    final ignoreInfo = _ignoreInfoForUnitCache[unit] ??= OrcmIgnoreInfo.forDart(
+      unit,
+      context.sourceText,
+    );
     // IgnoreInfo's line numbers are 1-based,
     // whereas SourceFile's are 0-based
     final line = context.sourceFile.getLine(usage.node.offset) + 1;
@@ -650,15 +692,21 @@ enum NewPropPlacement {
 /// Returns the values in [propNames] that do not correspond to the names of
 /// statically declared props in [usage]'s static type.
 Iterable<String> _getUnknownPropNames(
-    FluentComponentUsage usage, Iterable<String> propNames) {
+  FluentComponentUsage usage,
+  Iterable<String> propNames,
+) {
   final propsClassElement = usage.propsClassElement;
   if (propsClassElement != null) {
-    final library =
-        usage.builder.root.tryCast<CompilationUnit>()?.declaredElement!.library;
+    final library = usage.builder.root
+        .tryCast<CompilationUnit>()
+        ?.declaredElement!
+        .library;
     if (library != null) {
       return propNames
-          .where((propName) =>
-              propsClassElement.lookUpSetter(propName, library) == null)
+          .where(
+            (propName) =>
+                propsClassElement.lookUpSetter(propName, library) == null,
+          )
           .toList();
     }
   }
@@ -674,15 +722,18 @@ Iterable<String> _getUnknownPropNames(
 PropAssignment? getFirstPropWithName(FluentComponentUsage usage, String name) {
   final unknownPropNames = _getUnknownPropNames(usage, [name]);
   if (unknownPropNames.isNotEmpty) {
-    throw ArgumentError("prop '$name' is"
-        " not statically available on builder class '${usage.propsClassElement?.name}'"
-        " (declared in ${usage.propsClassElement?.enclosingElement.source.uri})."
-        " Double-check that that prop exists in that props class"
-        " and that the key in 'migratorsByName' does not have any typos.");
+    throw ArgumentError(
+      "prop '$name' is"
+      " not statically available on builder class '${usage.propsClassElement?.name}'"
+      " (declared in ${usage.propsClassElement?.enclosingElement.source.uri})."
+      " Double-check that that prop exists in that props class"
+      " and that the key in 'migratorsByName' does not have any typos.",
+    );
   }
 
-  return usage.cascadedProps
-      .firstWhereOrNull((element) => element.name.name == name);
+  return usage.cascadedProps.firstWhereOrNull(
+    (element) => element.name.name == name,
+  );
 }
 
 /// Iterates over the cascaded prop assignments in [usage] and calls the matching
@@ -712,11 +763,12 @@ void handleCascadedPropsByName(
   final unknownPropNames = _getUnknownPropNames(usage, propHandlersByName.keys);
   if (unknownPropNames.isNotEmpty) {
     throw ArgumentError(
-        "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
-        " not statically available on builder class '${usage.propsClassElement?.name}'"
-        " (declared in ${usage.propsClassElement?.enclosingElement.source.uri})."
-        " Double-check that that prop exists in that props class"
-        " and that the key in 'migratorsByName' does not have any typos.");
+      "'migratorsByName' contains unknown prop name(s) '$unknownPropNames'"
+      " not statically available on builder class '${usage.propsClassElement?.name}'"
+      " (declared in ${usage.propsClassElement?.enclosingElement.source.uri})."
+      " Double-check that that prop exists in that props class"
+      " and that the key in 'migratorsByName' does not have any typos.",
+    );
   }
 
   for (final prop in usage.cascadedProps) {

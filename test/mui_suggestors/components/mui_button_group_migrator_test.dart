@@ -33,25 +33,27 @@ void main() {
     );
 
     group('migrates WSD ButtonGroups', () {
-      test('that are either unnamespaced or namespaced, and either v1 or v2',
-          () async {
-        await testSuggestor(
-          input: withOverReactAndWsdImports(/*language=dart*/ '''
+      test(
+        'that are either unnamespaced or namespaced, and either v1 or v2',
+        () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
               content() {
                 ButtonGroup()();
                 wsd_v1.ButtonGroup()();
                 wsd_v2.ButtonGroup()();
               }
           '''),
-          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
               content() {
                 mui.ButtonGroup()();
                 mui.ButtonGroup()();
                 mui.ButtonGroup()();
               }
           '''),
-        );
-      });
+          );
+        },
+      );
 
       test('and not non-WSD ButtonGroups or other components', () async {
         await testSuggestor(

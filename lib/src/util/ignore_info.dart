@@ -55,10 +55,8 @@ class OrcmIgnoreInfo {
   final List<_Ignore> _ignoredForFile = [];
 
   @override
-  String toString() => 'OrcmIgnoreInfo ${{
-        '_ignoredOnLine': _ignoredOnLine,
-        '_ignoredForFile': _ignoredForFile,
-      }}';
+  String toString() =>
+      'OrcmIgnoreInfo ${{'_ignoredOnLine': _ignoredOnLine, '_ignoredForFile': _ignoredForFile}}';
 
   /// Initialize a newly created instance of this class to represent the ignore
   /// comments in the given compilation [unit].
@@ -71,10 +69,9 @@ class OrcmIgnoreInfo {
         final location = lineInfo.getLocation(ignoreComment.comment.offset);
         var lineNumber = location.lineNumber;
         final beforeMatch = content.substring(
-            lineInfo.getOffsetOfLine(lineNumber - 1),
-            lineInfo.getOffsetOfLine(lineNumber - 1) +
-                location.columnNumber -
-                1);
+          lineInfo.getOffsetOfLine(lineNumber - 1),
+          lineInfo.getOffsetOfLine(lineNumber - 1) + location.columnNumber - 1,
+        );
         if (beforeMatch.trim().isEmpty) {
           // The comment is on its own line, so it refers to the next line.
           lineNumber++;
@@ -150,8 +147,10 @@ extension on CompilationUnit {
   ///     * ['// orcm_ignore: code', 'code']
   ///
   /// Resulting codes may be in a list ('code_1,code2').
-  static final RegExp _IGNORE_MATCHER =
-      RegExp(r'//+[ ]*orcm_ignore(:(.*))?\s*$', multiLine: true);
+  static final RegExp _IGNORE_MATCHER = RegExp(
+    r'//+[ ]*orcm_ignore(:(.*))?\s*$',
+    multiLine: true,
+  );
 
   /// A regular expression for matching 'ignore_for_file' comments.  Produces
   /// matches containing 2 groups.  For example:
@@ -159,8 +158,10 @@ extension on CompilationUnit {
   ///     * ['// orcm_ignore_for_file: code', 'code']
   ///
   /// Resulting codes may be in a list ('code_1,code2').
-  static final RegExp _IGNORE_FOR_FILE_MATCHER =
-      RegExp(r'//[ ]*orcm_ignore_for_file(:(.*))?\s*$', multiLine: true);
+  static final RegExp _IGNORE_FOR_FILE_MATCHER = RegExp(
+    r'//[ ]*orcm_ignore_for_file(:(.*))?\s*$',
+    multiLine: true,
+  );
 
   static List<_Ignore> _getIgnoresForMatch(Match match) {
     if (match.group(1) == null) return [_Ignore.all()];
@@ -175,10 +176,13 @@ extension on CompilationUnit {
   }
 
   static Iterable<IgnoreComment> _processPrecedingComments(
-      Token currentToken) sync* {
-    for (Token? comment = currentToken.precedingComments;
-        comment != null;
-        comment = comment.next) {
+    Token currentToken,
+  ) sync* {
+    for (
+      Token? comment = currentToken.precedingComments;
+      comment != null;
+      comment = comment.next
+    ) {
       final lexeme = comment.lexeme;
       var match = _IGNORE_MATCHER.matchAsPrefix(lexeme);
       if (match != null) {

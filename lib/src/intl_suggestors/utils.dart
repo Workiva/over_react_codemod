@@ -49,8 +49,9 @@ String? stringContent(AstNode node) {
   if (node is AdjacentStrings) {
     if (!node.strings.toList().every((x) => x is SimpleStringLiteral))
       return null;
-    return [for (var s in node.strings) (s as SimpleStringLiteral).value]
-        .join('');
+    return [
+      for (var s in node.strings) (s as SimpleStringLiteral).value,
+    ].join('');
   }
   return null;
 }
@@ -166,12 +167,18 @@ String toVariableName(String str) {
   if (str.startsWith("'") && str.endsWith("'")) {
     str = str.substring(1, str.length - 1);
   }
-  String strippedName =
-      str.replaceFirst(RegExp(r'^[0-9]*'), '').replaceAll("'", '').trim();
-  var fiveAtMost =
-      strippedName.split(' ').where((each) => each.isNotEmpty).toList();
-  fiveAtMost =
-      fiveAtMost.sublist(0, fiveAtMost.length < 5 ? fiveAtMost.length : 5);
+  String strippedName = str
+      .replaceFirst(RegExp(r'^[0-9]*'), '')
+      .replaceAll("'", '')
+      .trim();
+  var fiveAtMost = strippedName
+      .split(' ')
+      .where((each) => each.isNotEmpty)
+      .toList();
+  fiveAtMost = fiveAtMost.sublist(
+    0,
+    fiveAtMost.length < 5 ? fiveAtMost.length : 5,
+  );
   final alphaNumericName = toAlphaNumeric(fiveAtMost.join(' '));
   final name = toCamelCase(alphaNumericName);
 
@@ -191,9 +198,9 @@ String toCamelCase(String str) {
 
   /// BuildCamelCase
   var capitalizationResult = res.replaceAllMapped(
-      _toCamelCaseRegexp,
-      (m) =>
-          m.start == 0 ? m[0]?.toLowerCase() ?? '' : m[0]?.toUpperCase() ?? '');
+    _toCamelCaseRegexp,
+    (m) => m.start == 0 ? m[0]?.toLowerCase() ?? '' : m[0]?.toUpperCase() ?? '',
+  );
 
   /// Finally remove the spaces
   return capitalizationResult.replaceAll(' ', '');
@@ -206,31 +213,40 @@ bool excludeKnownBadCases(PropAssignment prop, String propKey) {
   var targetType = prop.target.staticType;
   if (targetType == null) return false; // We don't know.
   if (targetType.isOrIsSubtypeOfClassFromPackage(
-          'AbstractSelectOptionPropsMixin', 'web_skin_dart') &&
+        'AbstractSelectOptionPropsMixin',
+        'web_skin_dart',
+      ) &&
       propKey == 'value') {
     return true;
   }
   return false;
 }
 
-final RegExp _excludedStaticTypes =
-    RegExp('((List|Iterable)\<ReactElement\>|ReactElement)(\sFunction)?');
+final RegExp _excludedStaticTypes = RegExp(
+  '((List|Iterable)\<ReactElement\>|ReactElement)(\sFunction)?',
+);
 
 bool excludeUnlikelyExpressions<E extends Expression>(
-    PropAssignment prop, String propKey) {
+  PropAssignment prop,
+  String propKey,
+) {
   final staticType = prop.rightHandSide.staticType;
   if (staticType == null) return true;
   if (staticType.isDartCoreBool) return true;
   if (staticType.isDartCoreNull) return true;
   if (_excludedStaticTypes.hasMatch(
-      prop.rightHandSide.staticType?.getDisplayString(withNullability: false) ??
-          '')) return true;
+    prop.rightHandSide.staticType?.getDisplayString(withNullability: false) ??
+        '',
+  ))
+    return true;
   if (prop.rightHandSide.staticType?.getDisplayString(withNullability: false) ==
-      'Iterable<ReactElement>') return true;
+      'Iterable<ReactElement>')
+    return true;
   final source = prop.rightHandSide.toSource();
   if (source == propKey ||
       source == 'props.$propKey' ||
-      source == "props['$propKey']") return true;
+      source == "props['$propKey']")
+    return true;
   if (source == "''") return true;
   if (source == "'.'") return true;
   if (source == "'('") return true;
@@ -251,7 +267,8 @@ bool excludeUnlikelyExpressions<E extends Expression>(
 ///
 /// So basically camel case either starting lower case or upper case.
 final _camelRegexp = RegExp(
-    r"^([a-z\.]+[A-Z0-9\.][a-z0-9\.]+[A-Za-z0-9\.]*)|([A-Z\.][a-z0-9\.]*[A-Z0-9\.][a-z0-9\.]+[A-Za-z0-9\.]*)$");
+  r"^([a-z\.]+[A-Z0-9\.][a-z0-9\.]+[A-Za-z0-9\.]*)|([A-Z\.][a-z0-9\.]*[A-Z0-9\.][a-z0-9\.]+[A-Za-z0-9\.]*)$",
+);
 
 /// If a string value is in lowerCamelCase or UpperCamelCase or
 /// Period.Separated.Camels, it is most likely a key of some kind, not a
@@ -291,28 +308,42 @@ extension DartHtmlTypes$Element on Element /*?*/ {
 }
 
 extension ElementSubtypeUtils on Element /*?*/ {
-  bool isOrIsSubtypeOfTypeFromPackage(String typeName, String packageName,
-      [PackageType packageType = PackageType.package]) {
+  bool isOrIsSubtypeOfTypeFromPackage(
+    String typeName,
+    String packageName, [
+    PackageType packageType = PackageType.package,
+  ]) {
     final that = this;
     return that is InterfaceElement &&
         (that.isTypeFromPackage(typeName, packageName, packageType) ||
-            that.allSupertypes.any((type) => type.element
-                .isTypeFromPackage(typeName, packageName, packageType)));
+            that.allSupertypes.any(
+              (type) => type.element.isTypeFromPackage(
+                typeName,
+                packageName,
+                packageType,
+              ),
+            ));
   }
 
-  bool isTypeFromPackage(String typeName, String packageName,
-          [PackageType packageType = PackageType.package]) =>
-      name == typeName && isDeclaredInPackageOfType(packageName, packageType);
+  bool isTypeFromPackage(
+    String typeName,
+    String packageName, [
+    PackageType packageType = PackageType.package,
+  ]) => name == typeName && isDeclaredInPackageOfType(packageName, packageType);
 }
 
 extension ElementChecks on Element {
-  bool isDeclaredInPackageOfType(String packageName,
-          [PackageType packageType = PackageType.package]) =>
-      isUriWithinPackage(source?.uri ?? Uri(), packageName, packageType);
+  bool isDeclaredInPackageOfType(
+    String packageName, [
+    PackageType packageType = PackageType.package,
+  ]) => isUriWithinPackage(source?.uri ?? Uri(), packageName, packageType);
 }
 
-bool isUriWithinPackage(Uri uri, String packageName,
-    [PackageType packageType = PackageType.package]) {
+bool isUriWithinPackage(
+  Uri uri,
+  String packageName, [
+  PackageType packageType = PackageType.package,
+]) {
   switch (packageType) {
     case PackageType.dartCore:
       return uri.isScheme('dart') &&
@@ -325,10 +356,7 @@ bool isUriWithinPackage(Uri uri, String packageName,
   }
 }
 
-enum PackageType {
-  dartCore,
-  package,
-}
+enum PackageType { dartCore, package }
 
 /// Is there an ignore comment ahead of this token which we think should apply to it.
 ///

@@ -35,11 +35,15 @@ void main() {
       void sharedTests(bool isDevDependency, {String? hostedUrl}) {
         final key = isDevDependency ? 'dev_dependencies' : 'dependencies';
 
-        String getExpectedOutput(
-            {bool useMidVersionMin = false, String? hostedUrl}) {
+        String getExpectedOutput({
+          bool useMidVersionMin = false,
+          String? hostedUrl,
+        }) {
           if (useMidVersionMin) {
-            final expected = VersionConstraint.parse('^5.0.0')
-                    .allows(Version.parse(midVersionMin))
+            final expected =
+                VersionConstraint.parse(
+                  '^5.0.0',
+                ).allows(Version.parse(midVersionMin))
                 ? '^$midVersionMin'
                 : '">=$midVersionMin <6.0.0"';
 
@@ -57,8 +61,10 @@ void main() {
               '';
         }
 
-        String getExpectedPreReleaseOutput(
-            {bool useMidVersionMin = false, String? hostedUrl}) {
+        String getExpectedPreReleaseOutput({
+          bool useMidVersionMin = false,
+          String? hostedUrl,
+        }) {
           return ''
               '$key:\n'
               '${getDependencyDeclaration('react', '^5.0.0-alpha', hostedUrl)}'
@@ -67,76 +73,85 @@ void main() {
         }
 
         /// Suggestor used to test the default configurations.
-        final testSuggestor = getSuggestorTester(PubspecUpgrader(
-          'react',
-          parseVersionRange(reactVersionRange),
-          isDevDependency: isDevDependency,
-          hostedUrl: hostedUrl,
-        ));
+        final testSuggestor = getSuggestorTester(
+          PubspecUpgrader(
+            'react',
+            parseVersionRange(reactVersionRange),
+            isDevDependency: isDevDependency,
+            hostedUrl: hostedUrl,
+          ),
+        );
 
         /// Suggestor to test when the codemod should not add the dependency if
         /// it does not encounter it.
-        final doNotAddDependencies = getSuggestorTester(PubspecUpgrader(
-          'react',
-          parseVersionRange(reactVersionRange),
-          shouldAddDependencies: false,
-          isDevDependency: isDevDependency,
-          hostedUrl: hostedUrl,
-        ));
+        final doNotAddDependencies = getSuggestorTester(
+          PubspecUpgrader(
+            'react',
+            parseVersionRange(reactVersionRange),
+            shouldAddDependencies: false,
+            isDevDependency: isDevDependency,
+            hostedUrl: hostedUrl,
+          ),
+        );
 
         group('when there are no special cases', () {
           sharedPubspecTest(
-              testSuggestor: testSuggestor,
-              getExpectedOutput: getExpectedOutput,
-              hostedUrl: hostedUrl,
-              startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
-              isDevDependency: isDevDependency,
-              dependency: 'react',
-              midVersionRange: '^$midVersionMin');
+            testSuggestor: testSuggestor,
+            getExpectedOutput: getExpectedOutput,
+            hostedUrl: hostedUrl,
+            startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
+            isDevDependency: isDevDependency,
+            dependency: 'react',
+            midVersionRange: '^$midVersionMin',
+          );
 
           group('and the new version is a pre-release version', () {
             sharedPubspecTest(
-                testSuggestor: getSuggestorTester(PubspecUpgrader(
+              testSuggestor: getSuggestorTester(
+                PubspecUpgrader(
                   'react',
                   parseVersionRange(reactVersionRangeForTesting),
                   isDevDependency: isDevDependency,
                   hostedUrl: hostedUrl,
-                )),
-                getExpectedOutput: getExpectedPreReleaseOutput,
-                hostedUrl: hostedUrl,
-                startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
-                isDevDependency: isDevDependency,
-                midVersionRange: '^5.5.3',
-                shouldUpdateMidRange: false,
-                dependency: 'react');
+                ),
+              ),
+              getExpectedOutput: getExpectedPreReleaseOutput,
+              hostedUrl: hostedUrl,
+              startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
+              isDevDependency: isDevDependency,
+              midVersionRange: '^5.5.3',
+              shouldUpdateMidRange: false,
+              dependency: 'react',
+            );
           });
         });
 
         group('when the codemod should not add dependencies', () {
           sharedPubspecTest(
-              testSuggestor: doNotAddDependencies,
-              getExpectedOutput: getExpectedOutput,
-              hostedUrl: hostedUrl,
-              startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
-              isDevDependency: isDevDependency,
-              dependency: 'react',
-              midVersionRange: '^$midVersionMin',
-              shouldAddDependencies: false);
+            testSuggestor: doNotAddDependencies,
+            getExpectedOutput: getExpectedOutput,
+            hostedUrl: hostedUrl,
+            startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
+            isDevDependency: isDevDependency,
+            dependency: 'react',
+            midVersionRange: '^$midVersionMin',
+            shouldAddDependencies: false,
+          );
         });
 
-        group(
-            'when the codemod should not update because the version range is '
+        group('when the codemod should not update because the version range is '
             'acceptable', () {
           sharedPubspecTest(
-              testSuggestor: testSuggestor,
-              getExpectedOutput: getExpectedOutput,
-              hostedUrl: hostedUrl,
-              startingRange: parseVersionRange('^5.0.0'),
-              isDevDependency: isDevDependency,
-              dependency: 'react',
-              shouldUpdate: false,
-              shouldUpdateMidRange: false,
-              midVersionRange: '^5.5.3');
+            testSuggestor: testSuggestor,
+            getExpectedOutput: getExpectedOutput,
+            hostedUrl: hostedUrl,
+            startingRange: parseVersionRange('^5.0.0'),
+            isDevDependency: isDevDependency,
+            dependency: 'react',
+            shouldUpdate: false,
+            shouldUpdateMidRange: false,
+            midVersionRange: '^5.5.3',
+          );
         });
 
         test('does not lower the lower bound', () async {
@@ -144,14 +159,16 @@ void main() {
             expectedPatchCount: 1,
             shouldDartfmtOutput: false,
             validateContents: validatePubspecYaml,
-            input: ''
+            input:
+                ''
                 'name: nothing\n'
                 'version: 0.0.0\n'
                 '$key:\n'
                 '${getDependencyDeclaration('react', '">=4.8.0 <5.0.0"', hostedUrl)}'
                 '  test: 1.5.1\n'
                 '',
-            expectedOutput: ''
+            expectedOutput:
+                ''
                 'name: nothing\n'
                 'version: 0.0.0\n'
                 '$key:\n'
@@ -167,7 +184,8 @@ void main() {
               expectedPatchCount: 0,
               shouldDartfmtOutput: false,
               validateContents: validatePubspecYaml,
-              input: ''
+              input:
+                  ''
                   'dependency_overrides:\n'
                   '  react:\n'
                   '    git:\n'
@@ -181,7 +199,8 @@ void main() {
               expectedPatchCount: 0,
               shouldDartfmtOutput: false,
               validateContents: validatePubspecYaml,
-              input: ''
+              input:
+                  ''
                   'dependency_overrides:\n'
                   '  react:\n'
                   '    path: ../\n',
@@ -193,14 +212,18 @@ void main() {
       group('true', () {
         sharedTests(true);
 
-        group('and the dependency is hosted',
-            () => sharedTests(true, hostedUrl: 'https://pub.whatever.org'));
+        group(
+          'and the dependency is hosted',
+          () => sharedTests(true, hostedUrl: 'https://pub.whatever.org'),
+        );
       });
       group('false', () {
         sharedTests(false);
 
-        group('and the dependency is hosted',
-            () => sharedTests(false, hostedUrl: 'https://pub.whatever.org'));
+        group(
+          'and the dependency is hosted',
+          () => sharedTests(false, hostedUrl: 'https://pub.whatever.org'),
+        );
       });
     });
   });

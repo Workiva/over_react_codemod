@@ -136,24 +136,30 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
           ? ''
           // Get full comment text, and trim trailing newline/whitespace
           : context.sourceFile
-              .getText(beforeComments.first.offset, beforeComments.last.end)
-              .trimRight();
+                .getText(beforeComments.first.offset, beforeComments.last.end)
+                .trimRight();
 
-      migratedSystemPropEntries.add([
-        if (commentSource.isNotEmpty) '\n $commentSource',
-        "'${prop.name.name}': ${context.sourceFor(prop.rightHandSide)}"
-      ].join('\n'));
+      migratedSystemPropEntries.add(
+        [
+          if (commentSource.isNotEmpty) '\n $commentSource',
+          "'${prop.name.name}': ${context.sourceFor(prop.rightHandSide)}",
+        ].join('\n'),
+      );
 
-      yieldPatch('', beforeComments.firstOrNull?.offset ?? prop.node.offset,
-          prop.node.end);
+      yieldPatch(
+        '',
+        beforeComments.firstOrNull?.offset ?? prop.node.offset,
+        prop.node.end,
+      );
     }
 
     final propForwardingSources = _detectPropForwardingSources(usage);
 
     final bool anySystemPropSetBeforeForwarding;
     if (propForwardingSources.isNotEmpty) {
-      final propForwardingOffsets =
-          propForwardingSources.map((s) => s.cascadedMethod.node.end).toList();
+      final propForwardingOffsets = propForwardingSources
+          .map((s) => s.cascadedMethod.node.end)
+          .toList();
       final systemPropOffsets = systemProps.map((p) => p.node.end).toList();
       anySystemPropSetBeforeForwarding =
           systemPropOffsets.min < propForwardingOffsets.max;
@@ -188,9 +194,10 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         // Insert before, to preserve existing behavior where any spread sx trumped these styles.
         // Add a leading newline to ensure comments don't get stuck to the opening braces.
         yieldPatch(
-            '${getFixmesSource()}\n${migratedSystemPropEntries.join(',\n')},',
-            value.leftBracket.end,
-            value.leftBracket.end);
+          '${getFixmesSource()}\n${migratedSystemPropEntries.join(',\n')},',
+          value.leftBracket.end,
+          value.leftBracket.end,
+        );
         // Force a multiline in all cases by ensuring there's a trailing comma.
         final hadTrailingComma =
             value.rightBracket.previous?.type == TokenType.COMMA;
@@ -202,19 +209,22 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         // Case 1b: spread existing sx value into a new map literal
 
         final type = value.staticType;
-        final nonNullable = type != null &&
+        final nonNullable =
+            type != null &&
             type is! DynamicType &&
             type.nullabilitySuffix == NullabilitySuffix.none;
         final spread = '...${nonNullable ? '' : '?'}';
         // Insert before spread, to preserve existing behavior where any forwarded sx trumped these styles.
         yieldPatch(
-            '{${getFixmesSource()}\n${migratedSystemPropEntries.join(', ')}, $spread',
-            value.offset,
-            value.offset);
-        final maybeTrailingComma = _shouldForceMultiline([
-          ...migratedSystemPropEntries,
-          '$spread${context.sourceFor(value)}',
-        ])
+          '{${getFixmesSource()}\n${migratedSystemPropEntries.join(', ')}, $spread',
+          value.offset,
+          value.offset,
+        );
+        final maybeTrailingComma =
+            _shouldForceMultiline([
+              ...migratedSystemPropEntries,
+              '$spread${context.sourceFor(value)}',
+            ])
             ? ','
             : '';
         yieldPatch('$maybeTrailingComma}', value.end, value.end);
@@ -245,8 +255,9 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         bool canSafelyGetForwardedSx;
         final props = propForwardingSources.singleOrNull?.sourceProps;
         if (props != null && (props is Identifier || props is PropertyAccess)) {
-          final propsElement =
-              props.staticType?.typeOrBound.tryCast<InterfaceType>()?.element;
+          final propsElement = props.staticType?.typeOrBound
+              .tryCast<InterfaceType>()
+              ?.element;
           canSafelyGetForwardedSx =
               propsElement?.lookUpGetter('sx', propsElement.library) != null;
         } else {
@@ -258,7 +269,8 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
         } else {
           forwardedSxSpread = null;
           fixmes.add(
-              'spread in any sx prop forwarded to this component above, if needed (spread should go at the end of this map to preserve behavior)');
+            'spread in any sx prop forwarded to this component above, if needed (spread should go at the end of this map to preserve behavior)',
+          );
         }
       } else {
         forwardedSxSpread = null;
@@ -276,13 +288,14 @@ class SystemPropsToSxMigrator extends ComponentUsageMigrator {
       // whichever is later.
       final insertionLocation = [
         ...propForwardingSources.map((s) => s.cascadedMethod.node.end),
-        ...systemProps.map((p) => p.node.end)
+        ...systemProps.map((p) => p.node.end),
       ].max;
 
       yieldPatch(
-          '${getFixmesSource()}..sx = {${elements.join(', ')}$maybeTrailingComma}',
-          insertionLocation,
-          insertionLocation);
+        '${getFixmesSource()}..sx = {${elements.join(', ')}$maybeTrailingComma}',
+        insertionLocation,
+        insertionLocation,
+      );
     }
   }
 
@@ -324,7 +337,8 @@ class _PropSpreadSource {
 
 /// Returns the sources of props being added or spread to [usage].
 List<_PropSpreadSource> _detectPropForwardingSources(
-    FluentComponentUsage usage) {
+  FluentComponentUsage usage,
+) {
   return usage.cascadedMethodInvocations
       .map((c) {
         final methodName = c.methodName.name;

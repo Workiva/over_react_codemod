@@ -26,8 +26,9 @@ import 'package:over_react_codemod/src/react16_suggestors/react16_utilities.dart
 /// cases should be a num instead of a string.
 class ReactStyleMapsUpdater extends GeneralizingAstVisitor
     with AstVisitingSuggestor {
-  static final _cssValueSuffixPattern =
-      RegExp(r'\b(?:rem|em|ex|vh|vw|vmin|vmax|%|px|cm|mm|in|pt|pc|ch)$');
+  static final _cssValueSuffixPattern = RegExp(
+    r'\b(?:rem|em|ex|vh|vw|vmin|vmax|%|px|cm|mm|in|pt|pc|ch)$',
+  );
 
   @override
   visitCascadeExpression(CascadeExpression node) {
@@ -110,12 +111,12 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
             if (cssPropertyValue is ConditionalExpression) {
               ternaryExpressions = [
                 cssPropertyValue.thenExpression,
-                cssPropertyValue.elseExpression
+                cssPropertyValue.elseExpression,
               ];
             } else if (cssPropertyValue is BinaryExpression) {
               ternaryExpressions = [
                 cssPropertyValue.leftOperand,
-                cssPropertyValue.rightOperand
+                cssPropertyValue.rightOperand,
               ];
             } else {
               throw UnimplementedError('Unhandled type for cssPropertyValue');
@@ -129,7 +130,10 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
               } else if (isANumber(cleanedPropertySubString) &&
                   !isANumber(property.toSource())) {
                 yieldPatch(
-                    cleanedPropertySubString, property.offset, property.end);
+                  cleanedPropertySubString,
+                  property.offset,
+                  property.end,
+                );
               }
             }
           } else if (cssPropertyValue is SimpleStringLiteral ||
@@ -191,14 +195,15 @@ class ReactStyleMapsUpdater extends GeneralizingAstVisitor
           isOther) {
         yieldPatch(
           getString(
-              isAVariable: isAVariable,
-              hasPotentiallyInvalidValue:
-                  potentiallyInvalidProperties.isNotEmpty,
-              isAFunction: isAFunction,
-              affectedValues: potentiallyInvalidProperties,
-              addExtraLine: context.sourceFile.getLine(cascade.offset) ==
-                  context.sourceFile.getLine(cascade.parent!.offset),
-              isOther: isOther),
+            isAVariable: isAVariable,
+            hasPotentiallyInvalidValue: potentiallyInvalidProperties.isNotEmpty,
+            isAFunction: isAFunction,
+            affectedValues: potentiallyInvalidProperties,
+            addExtraLine:
+                context.sourceFile.getLine(cascade.offset) ==
+                context.sourceFile.getLine(cascade.parent!.offset),
+            isOther: isOther,
+          ),
           cascade.offset,
           cascade.offset,
         );
@@ -217,21 +222,25 @@ String getString({
   bool isForCustomProps = false,
   bool isOther = false,
 }) {
-  String checkboxWithAffectedValues = '// [ ] Check this box upon manual '
+  String checkboxWithAffectedValues =
+      '// [ ] Check this box upon manual '
       'validation that this style map uses a valid value for the following '
       'keys: ${affectedValues.join(', ')}.';
 
-  String variableCheckbox = '// [ ] Check this box upon manual validation '
+  String variableCheckbox =
+      '// [ ] Check this box upon manual validation '
       'that this style map is receiving a value that is valid for the keys '
       'that are simple string variables.';
 
-  String variableCheckboxWithAffectedValues = '// [ ] Check this box upon '
+  String variableCheckboxWithAffectedValues =
+      '// [ ] Check this box upon '
       'manual validation that this style map is receiving a value that is '
       'valid for the following keys: ${affectedValues.join(', ')}.';
 
   String willBeRemovedSuffix = '//$willBeRemovedCommentSuffix';
 
-  String functionCheckbox = '// [ ] Check this box upon manual validation '
+  String functionCheckbox =
+      '// [ ] Check this box upon manual validation '
       'that the method called to set the style prop does not return any '
       'simple, unitless strings instead of nums.';
 
