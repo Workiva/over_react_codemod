@@ -61,10 +61,10 @@ void main() {
       test('non-matching standalone constant', () async {
         await testSuggestor(
           input: '''
-            const foo = 'probably-not';
+            const foo = 'probably_not';
             ''',
           expectedOutput: '''
-            const foo = 'probably-not';
+            const foo = 'probably_not';
             ''',
         );
         final expectedFileContent = '';
@@ -168,6 +168,33 @@ void main() {
             ''',
         );
         final expectedFileContent = '';
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
+      test('date formats are ignored', () async {
+        await testSuggestor(
+          input: '''
+            const foo = 'MM/dd/yy';
+            ''',
+          expectedOutput: '''
+            const foo = 'MM/dd/yy';
+            ''',
+        );
+        final expectedFileContent = '';
+        expect(messages.messageContents(), expectedFileContent);
+      });
+
+      test('date format logic does not have false positives', () async {
+        await testSuggestor(
+          input: '''
+            const migrateMe = 'migrate me';
+            ''',
+          expectedOutput: '''
+            final String migrateMe = TestClassIntl.migrateMe;
+            ''',
+        );
+        final expectedFileContent =
+            '\n  static String get migrateMe => Intl.message(\'migrate me\', name: \'TestClassIntl_migrateMe\');\n';
         expect(messages.messageContents(), expectedFileContent);
       });
 
