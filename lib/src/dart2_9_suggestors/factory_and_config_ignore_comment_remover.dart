@@ -56,7 +56,10 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
       }
 
       removeIgnoreComment(
-          node.beginToken.precedingComments, ignoreToRemove, yieldPatch);
+        node.beginToken.precedingComments,
+        ignoreToRemove,
+        yieldPatch,
+      );
     }
   }
 
@@ -64,15 +67,16 @@ class FactoryAndConfigIgnoreCommentRemover extends RecursiveAstVisitor
   bool shouldSkip(FileContext context) => hasParseErrors(context.sourceText);
 
   Iterable<Token> _findPossibleIgnoreComments(
-      SimpleIdentifier generatedFactoryNode) sync* {
+    SimpleIdentifier generatedFactoryNode,
+  ) sync* {
     final lineNumber = context.sourceFile.getLine(generatedFactoryNode.offset);
     for (var comment in allComments(generatedFactoryNode.root.beginToken)) {
       final commentLineNumber = context.sourceFile.getLine(comment.offset);
       final commentAppliesToNode =
           // EOL comments
           commentLineNumber == lineNumber ||
-              // Comments on the previous line
-              commentLineNumber == lineNumber - 1;
+          // Comments on the previous line
+          commentLineNumber == lineNumber - 1;
       if (commentAppliesToNode) {
         yield comment;
       }

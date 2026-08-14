@@ -30,8 +30,10 @@ mixin ClassSuggestor {
   /// The context helper for the file currently being visited.
   FileContext get context {
     if (_context != null) return _context!;
-    throw StateError('context accessed outside of a visiting context. '
-        'Ensure that your suggestor only accesses `this.context` inside an AST visitor method.');
+    throw StateError(
+      'context accessed outside of a visiting context. '
+      'Ensure that your suggestor only accesses `this.context` inside an AST visitor method.',
+    );
   }
 
   FileContext? _context;
@@ -57,22 +59,22 @@ mixin ClassSuggestor {
           .groupBy((patch) => patch.isInsertionPatch ? patch.startOffset : null)
           .entries
           .expand((entry) {
-        final isInsertionPatchGroup = entry.key != null;
-        if (!isInsertionPatchGroup) return entry.value;
+            final isInsertionPatchGroup = entry.key != null;
+            if (!isInsertionPatchGroup) return entry.value;
 
-        return entry.value.toList()
-          ..sort((a, b) {
-            if (a.updatedText == '(' && b.updatedText == '(') return 0;
-            if (a.updatedText == '(') return -1000;
-            if (b.updatedText == '(') return 1000;
+            return entry.value.toList()..sort((a, b) {
+              if (a.updatedText == '(' && b.updatedText == '(') return 0;
+              if (a.updatedText == '(') return -1000;
+              if (b.updatedText == '(') return 1000;
 
-            if (a.updatedText == ')' && b.updatedText == ')') return 0;
-            if (a.updatedText == ')') return 1000;
-            if (b.updatedText == ')') return -1000;
+              if (a.updatedText == ')' && b.updatedText == ')') return 0;
+              if (a.updatedText == ')') return 1000;
+              if (b.updatedText == ')') return -1000;
 
-            return entry.value.indexOf(a).compareTo(entry.value.indexOf(b));
-          });
-      }).toList();
+              return entry.value.indexOf(a).compareTo(entry.value.indexOf(b));
+            });
+          })
+          .toList();
     }
 
     yield* Stream.fromIterable(patches);

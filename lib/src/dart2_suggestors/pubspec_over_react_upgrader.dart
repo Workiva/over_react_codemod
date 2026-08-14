@@ -30,17 +30,18 @@ class PubspecOverReactUpgrader extends PubspecUpgrader {
   /// Version constraint that ensures a version of over_react compatible with
   /// the Dart 2 builder and also opens the range up to over_react 2.x which is
   /// the first release that drops support for Dart 1.
-  static final VersionRange dart2Constraint =
-      parseVersionRange('>=1.30.2 <3.0.0');
+  static final VersionRange dart2Constraint = parseVersionRange(
+    '>=1.30.2 <3.0.0',
+  );
 
   PubspecOverReactUpgrader(
     VersionRange targetConstraint, {
     bool shouldAddDependencies = true,
   }) : super(
-          'over_react',
-          targetConstraint,
-          shouldAddDependencies: shouldAddDependencies,
-        );
+         'over_react',
+         targetConstraint,
+         shouldAddDependencies: shouldAddDependencies,
+       );
 
   /// Constructor used to ignore checks and ensure that the codemod always
   /// tries to update the constraint.
@@ -53,8 +54,8 @@ class PubspecOverReactUpgrader extends PubspecUpgrader {
     VersionRange targetConstraint, {
     bool shouldAddDependencies = true,
   }) : super.alwaysUpdate(
-          'over_react',
-          targetConstraint,
-          shouldAddDependencies: shouldAddDependencies,
-        );
+         'over_react',
+         targetConstraint,
+         shouldAddDependencies: shouldAddDependencies,
+       );
 }

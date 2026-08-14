@@ -39,7 +39,9 @@ import 'package:over_react_codemod/src/util/component_usage.dart';
 /// print(newValue); // prints: newSmall
 /// ```
 V? mapWsdConstant<V>(
-    Expression expression, Map<String, V> wsdConstantToNewValue) {
+  Expression expression,
+  Map<String, V> wsdConstantToNewValue,
+) {
   return wsdConstantToNewValue.entries
       .where((element) => isWsdStaticConstant(expression, element.key))
       .map((e) => e.value)
@@ -64,16 +66,25 @@ V? mapWsdConstant<V>(
 bool isWsdStaticConstant(Expression expression, String constant) =>
     _isStaticConstant(expression, constant, fromPackage: 'web_skin_dart');
 
-bool _isStaticConstant(Expression expression, String constant,
-    {String? fromPackage}) {
+bool _isStaticConstant(
+  Expression expression,
+  String constant, {
+  String? fromPackage,
+}) {
   final constantParts = constant.split('.');
   if (constantParts.length != 2) {
     throw ArgumentError.value(
-        constant, 'constant', "Expected 'ClassName.constantName'");
+      constant,
+      'constant',
+      "Expected 'ClassName.constantName'",
+    );
   }
   if (!constantParts.every(_isValidSimpleIdentifier)) {
-    throw ArgumentError.value(constant, 'constant',
-        "Expected 'ClassName.constantName', where both parts are valid identifiers");
+    throw ArgumentError.value(
+      constant,
+      'constant',
+      "Expected 'ClassName.constantName', where both parts are valid identifiers",
+    );
   }
 
   final className = constantParts[0];
@@ -119,8 +130,11 @@ bool _isStaticConstant(Expression expression, String constant,
 /// ```
 bool usesWsdFactory(FluentComponentUsage usage, String wsdFactoryName) {
   if (!_isValidSimpleIdentifier(wsdFactoryName)) {
-    throw ArgumentError.value(wsdFactoryName, 'wsdFactoryName',
-        'must be a valid, non-namespaced identifier');
+    throw ArgumentError.value(
+      wsdFactoryName,
+      'wsdFactoryName',
+      'must be a valid, non-namespaced identifier',
+    );
   }
 
   final factoryElement = usage.factoryTopLevelVariableElement;
@@ -180,8 +194,11 @@ final _isValidSimpleIdentifier = RegExp(r'^[_$a-zA-Z][_$a-zA-Z0-9]*$').hasMatch;
 /// ```
 bool usesWsdPropsClass(FluentComponentUsage usage, String wsdPropsName) {
   if (!_isValidSimpleIdentifier(wsdPropsName)) {
-    throw ArgumentError.value(wsdPropsName, 'wsdPropsName',
-        'must be a valid, non-namespaced identifier');
+    throw ArgumentError.value(
+      wsdPropsName,
+      'wsdPropsName',
+      'must be a valid, non-namespaced identifier',
+    );
   }
 
   final propsClassElement = usage.propsClassElement;

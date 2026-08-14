@@ -33,10 +33,11 @@ void main() {
     );
 
     test(
-        'does not migrate non-WSD Button/FormSubmitInput/FormResetInput factories,'
-        ' toolbar factories, or other components', () async {
-      await testSuggestor(
-        input: withOverReactAndWsdImports(/*language=dart*/ '''
+      'does not migrate non-WSD Button/FormSubmitInput/FormResetInput factories,'
+      ' toolbar factories, or other components',
+      () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
             // Shadows the WSD factories
             UiFactory Button;
             UiFactory FormSubmitInput;
@@ -58,8 +59,9 @@ void main() {
               Dom.div()();
             }
         '''),
-      );
-    });
+        );
+      },
+    );
 
     group('does not migrate Buttons within buttonBefore or buttonAfter', () {
       test('directly assigned to', () async {
@@ -143,8 +145,7 @@ void main() {
         );
       });
 
-      group(
-          'for FormResetInput (potentially namespaced or v1/v2),'
+      group('for FormResetInput (potentially namespaced or v1/v2),'
           ' also adding relevant props', () {
         test('when there are no props', () async {
           await testSuggestor(
@@ -188,8 +189,7 @@ void main() {
         });
       });
 
-      group(
-          'for FormSubmit (potentially namespaced or v1/v2),'
+      group('for FormSubmit (potentially namespaced or v1/v2),'
           ' also adding relevant props', () {
         test('when there are no parens around the builder', () async {
           await testSuggestor(
@@ -328,23 +328,24 @@ void main() {
 
       group('skin', () {
         test(
-            'mapping link skin constants properly and changing the factory to LinkButton',
-            () async {
-          await testSuggestor(
-            input: withOverReactAndWsdImports(/*language=dart*/ '''
+          'mapping link skin constants properly and changing the factory to LinkButton',
+          () async {
+            await testSuggestor(
+              input: withOverReactAndWsdImports(/*language=dart*/ '''
                 content() {
                   (Button()..skin = ButtonSkin.LINK)();
                   (Button()..skin = ButtonSkin.OUTLINE_LINK)();
                 }
             '''),
-            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+              expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
                 content() {
                   (mui.LinkButton())();
                   (mui.LinkButton()..variant = mui.ButtonVariant.outlined)();
                 }
             '''),
-          );
-        });
+            );
+          },
+        );
 
         test('mapping skin constants properly', () async {
           await testSuggestor(
@@ -600,8 +601,7 @@ void main() {
       });
     });
 
-    group(
-        'migrates tooltipContent to use a wrapper OverlayTrigger,'
+    group('migrates tooltipContent to use a wrapper OverlayTrigger,'
         ' when the prop is', () {
       test('by itself', () async {
         await testSuggestor(
@@ -1139,23 +1139,25 @@ void main() {
       });
     });
 
-    test('flags buttons when `DialogFooter` occurs somewhere in the same file',
-        () async {
-      await testSuggestor(
-        input: withOverReactAndWsdImports(/*language=dart*/ '''
+    test(
+      'flags buttons when `DialogFooter` occurs somewhere in the same file',
+      () async {
+        await testSuggestor(
+          input: withOverReactAndWsdImports(/*language=dart*/ '''
             renderFooter() => DialogFooter()();
             content() {   
               Button()();
             }
         '''),
-        expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
             renderFooter() => DialogFooter()();
             content() {
               // FIXME(mui_migration) check whether this button is nested inside a DialogFooter. If so, wrap it in a mui.ButtonToolbar with `..sx = {'float': 'right'}`.
               mui.Button()();
             }
         '''),
-      );
-    });
+        );
+      },
+    );
   }, tags: 'wsd');
 }

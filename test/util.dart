@@ -34,8 +34,9 @@ final formatter = DartFormatter();
 // tests since it is pretty much entirely input >> output.
 // https://github.com/dart-lang/dart_style/blob/master/test/utils.dart#L55
 void testSuggestorsDir(Map<String, Suggestor> suggestorMap, String testDir) {
-  final testFiles =
-      Directory(testDir).listSync(followLinks: false, recursive: true);
+  final testFiles = Directory(
+    testDir,
+  ).listSync(followLinks: false, recursive: true);
   testFiles.sort((a, b) => a.path.compareTo(b.path));
 
   for (var testFile in testFiles) {
@@ -56,8 +57,9 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
     // Let the test specify whether to format expected and actual output
     // before comparing them.
     var dartfmtOutputAll = false;
-    suggestorName =
-        suggestorName.replaceAllMapped(_dartfmtOutputPattern, (match) {
+    suggestorName = suggestorName.replaceAllMapped(_dartfmtOutputPattern, (
+      match,
+    ) {
       dartfmtOutputAll = true;
       return '';
     });
@@ -95,8 +97,9 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       // Let the test specify whether to format expected and actual output
       // before comparing them.
       var shouldDartfmtOutput = dartfmtOutputAll;
-      description =
-          description.replaceAllMapped(_dartfmtOutputPattern, (match) {
+      description = description.replaceAllMapped(_dartfmtOutputPattern, (
+        match,
+      ) {
         shouldDartfmtOutput = true;
         return '';
       });
@@ -115,8 +118,9 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
       });
 
       description = description.trim();
-      description =
-          description.isEmpty ? 'line ${i + 1}' : 'line ${i + 1}: $description';
+      description = description.isEmpty
+          ? 'line ${i + 1}'
+          : 'line ${i + 1}: $description';
 
       var input = '';
       while (!lines[i].startsWith('<<<')) {
@@ -151,16 +155,17 @@ void _testSuggestor(Map<String, Suggestor> suggestorMap, String testFilePath) {
   });
 }
 
-typedef SuggestorTester = Future<void> Function({
-  required String input,
-  String? expectedOutput,
-  int? expectedPatchCount,
-  bool shouldDartfmtOutput,
-  bool testIdempotency,
-  SharedAnalysisContext? resolvedContext,
-  IsExpectedError? isExpectedError,
-  void Function(String contents)? validateContents,
-});
+typedef SuggestorTester =
+    Future<void> Function({
+      required String input,
+      String? expectedOutput,
+      int? expectedPatchCount,
+      bool shouldDartfmtOutput,
+      bool testIdempotency,
+      SharedAnalysisContext? resolvedContext,
+      IsExpectedError? isExpectedError,
+      void Function(String contents)? validateContents,
+    });
 
 const defaultSuggestorTesterInputUrl = 'lib/src/input';
 
@@ -180,19 +185,18 @@ SuggestorTester getSuggestorTester(
     SharedAnalysisContext? resolvedContext,
     IsExpectedError? isExpectedError,
     void Function(String contents)? validateContents,
-  }) =>
-      testSuggestor(
-        suggestor: suggestor,
-        input: input,
-        expectedOutput: expectedOutput,
-        expectedPatchCount: expectedPatchCount,
-        shouldDartfmtOutput: shouldDartfmtOutput,
-        testIdempotency: testIdempotency,
-        resolvedContext: resolvedContext ?? defaultResolvedContext,
-        isExpectedError: isExpectedError,
-        validateContents: validateContents,
-        inputUrl: inputUrl,
-      );
+  }) => testSuggestor(
+    suggestor: suggestor,
+    input: input,
+    expectedOutput: expectedOutput,
+    expectedPatchCount: expectedPatchCount,
+    shouldDartfmtOutput: shouldDartfmtOutput,
+    testIdempotency: testIdempotency,
+    resolvedContext: resolvedContext ?? defaultResolvedContext,
+    isExpectedError: isExpectedError,
+    validateContents: validateContents,
+    inputUrl: inputUrl,
+  );
 }
 
 String _formatWithBetterFailureOutput(String input, {required String uri}) {
@@ -222,28 +226,35 @@ Future<void> testSuggestor({
 
   if (isExpectedError != null && resolvedContext == null) {
     throw ArgumentError(
-        'resolvedContext must be non-null to specify isExpectedError');
+      'resolvedContext must be non-null to specify isExpectedError',
+    );
   }
 
   Future<FileContext> getFileContext({
     required String contents,
     required String path,
-  }) =>
-      resolvedContext != null
-          ? resolvedContext.resolvedFileContextForTest(contents,
-              filename: path,
-              includeTestDescription: false,
-              isExpectedError: isExpectedError)
-          : fileContextForTest(path, contents);
+  }) => resolvedContext != null
+      ? resolvedContext.resolvedFileContextForTest(
+          contents,
+          filename: path,
+          includeTestDescription: false,
+          isExpectedError: isExpectedError,
+        )
+      : fileContextForTest(path, contents);
 
   if (validateContents != null) {
-    expect(() => validateContents(input), returnsNormally,
-        reason: 'input is invalid');
+    expect(
+      () => validateContents(input),
+      returnsNormally,
+      reason: 'input is invalid',
+    );
   }
 
   if (shouldDartfmtOutput) {
-    expectedOutput =
-        _formatWithBetterFailureOutput(expectedOutput, uri: 'expectedOutput');
+    expectedOutput = _formatWithBetterFailureOutput(
+      expectedOutput,
+      uri: 'expectedOutput',
+    );
   }
 
   String modifiedInput;
@@ -251,44 +262,64 @@ Future<void> testSuggestor({
     final context = await getFileContext(contents: input, path: inputUrl);
     final patches = await suggestor(context).toList();
     if (expectedPatchCount != null && patches.length != expectedPatchCount) {
-      fail('Incorrect number of patches generated '
-          '(expected: $expectedPatchCount, actual: ${patches.length})\n'
-          'Patches:\n$patches');
+      fail(
+        'Incorrect number of patches generated '
+        '(expected: $expectedPatchCount, actual: ${patches.length})\n'
+        'Patches:\n$patches',
+      );
     }
     try {
       modifiedInput =
           applyPatches(context.sourceFile, patches).trimRight() + '\n';
     } catch (_) {
-      print('Patches:\n${patches.map((p) {
-        return '<Patch: from ${p.startOffset} to ${p.endOffset} with text "${p.updatedText}">';
-      }).join('\n')}\n');
+      print(
+        'Patches:\n${patches.map((p) {
+          return '<Patch: from ${p.startOffset} to ${p.endOffset} with text "${p.updatedText}">';
+        }).join('\n')}\n',
+      );
       rethrow;
     }
     if (validateContents != null) {
-      expect(() => validateContents(modifiedInput), returnsNormally,
-          reason: 'output is invalid');
+      expect(
+        () => validateContents(modifiedInput),
+        returnsNormally,
+        reason: 'output is invalid',
+      );
     }
     if (shouldDartfmtOutput) {
-      modifiedInput = _formatWithBetterFailureOutput(modifiedInput,
-          uri: '$inputUrl.modifiedInput');
+      modifiedInput = _formatWithBetterFailureOutput(
+        modifiedInput,
+        uri: '$inputUrl.modifiedInput',
+      );
     }
-    expect(modifiedInput, expectedOutput,
-        reason: 'Original input:\n---------------\n$input');
+    expect(
+      modifiedInput,
+      expectedOutput,
+      reason: 'Original input:\n---------------\n$input',
+    );
   }
 
   if (testIdempotency) {
-    final context =
-        await getFileContext(contents: input, path: '$inputUrl.modifiedInput');
+    final context = await getFileContext(
+      contents: input,
+      path: '$inputUrl.modifiedInput',
+    );
     final patches = await suggestor(context).toList();
     var doubleModifiedInput =
         applyPatches(context.sourceFile, patches).trimRight() + '\n';
     if (shouldDartfmtOutput) {
-      doubleModifiedInput = _formatWithBetterFailureOutput(doubleModifiedInput,
-          uri: '$inputUrl.doubleModifiedInput');
+      doubleModifiedInput = _formatWithBetterFailureOutput(
+        doubleModifiedInput,
+        uri: '$inputUrl.doubleModifiedInput',
+      );
     }
-    expect(doubleModifiedInput, expectedOutput,
-        reason: 'Should be idempotent, but changed in the second run.\n\n'
-            'Original input:\n---------------\n$input');
+    expect(
+      doubleModifiedInput,
+      expectedOutput,
+      reason:
+          'Should be idempotent, but changed in the second run.\n\n'
+          'Original input:\n---------------\n$input',
+    );
   }
 }
 
@@ -300,29 +331,42 @@ void validatePubspecYaml(String yaml) {
   final yamlDoc = loadYamlDocument(yaml);
 
   expect(yamlDoc.contents, isA<YamlMap>());
-  final extraTopLevelKeys =
-      (yamlDoc.contents as YamlMap).keys.toSet().difference(const {
-    'name',
-    'version',
-    'author',
-    'executables',
-    'description',
-    'dependencies',
-    'dev_dependencies',
-    'dependency_overrides',
-  });
-  expect(extraTopLevelKeys, isEmpty,
-      reason: 'unexpected top-level keys in pubspec.yaml;'
-          ' could the dependencies be missing indentation?');
+  final extraTopLevelKeys = (yamlDoc.contents as YamlMap).keys
+      .toSet()
+      .difference(const {
+        'name',
+        'version',
+        'author',
+        'executables',
+        'description',
+        'dependencies',
+        'dev_dependencies',
+        'dependency_overrides',
+      });
+  expect(
+    extraTopLevelKeys,
+    isEmpty,
+    reason:
+        'unexpected top-level keys in pubspec.yaml;'
+        ' could the dependencies be missing indentation?',
+  );
 }
 
-Func1<T, A> boundExpectAsync1<T, A>(T Function(A) callback,
-        {int count = 1, int max = 0, String? id, String? reason}) =>
-    expectAsync1(callback, count: count, max: max, id: id, reason: reason);
+Func1<T, A> boundExpectAsync1<T, A>(
+  T Function(A) callback, {
+  int count = 1,
+  int max = 0,
+  String? id,
+  String? reason,
+}) => expectAsync1(callback, count: count, max: max, id: id, reason: reason);
 
-Func2<T, A, B> boundExpectAsync2<T, A, B>(T Function(A, B) callback,
-        {int count = 1, int max = 0, String? id, String? reason}) =>
-    expectAsync2(callback, count: count, max: max, id: id, reason: reason);
+Func2<T, A, B> boundExpectAsync2<T, A, B>(
+  T Function(A, B) callback, {
+  int count = 1,
+  int max = 0,
+  String? id,
+  String? reason,
+}) => expectAsync2(callback, count: count, max: max, id: id, reason: reason);
 
 extension PatchMatchers on TypeMatcher<Patch> {
   Matcher havingText(dynamic matcher) =>
@@ -332,9 +376,13 @@ extension PatchMatchers on TypeMatcher<Patch> {
 Matcher hasPatchText(dynamic matcher) => isA<Patch>().havingText(matcher);
 
 Matcher isMuiMigrationFixmeCommentPatch({String withMessage = ''}) =>
-    hasPatchText(matches(
-      RegExp(r'// FIXME\(mui_migration\) - .+ - ' + RegExp.escape(withMessage)),
-    ));
+    hasPatchText(
+      matches(
+        RegExp(
+          r'// FIXME\(mui_migration\) - .+ - ' + RegExp.escape(withMessage),
+        ),
+      ),
+    );
 
 extension ObjectMatchers on TypeMatcher<Object> {
   Matcher havingToStringValue(dynamic matcher) =>

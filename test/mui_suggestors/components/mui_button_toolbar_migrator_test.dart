@@ -33,25 +33,27 @@ void main() {
     );
 
     group('migrates WSD ButtonToolbars', () {
-      test('that are either unnamespaced or namespaced, and either v1 or v2',
-          () async {
-        await testSuggestor(
-          input: withOverReactAndWsdImports(/*language=dart*/ '''
+      test(
+        'that are either unnamespaced or namespaced, and either v1 or v2',
+        () async {
+          await testSuggestor(
+            input: withOverReactAndWsdImports(/*language=dart*/ '''
               content() {
                 ButtonToolbar()();
                 wsd_v1.ButtonToolbar()();
                 wsd_v2.ButtonToolbar()();
               }
           '''),
-          expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
+            expectedOutput: withOverReactAndWsdImports(/*language=dart*/ '''
               content() {
                 mui.ButtonToolbar()();
                 mui.ButtonToolbar()();
                 mui.ButtonToolbar()();
               }
           '''),
-        );
-      });
+          );
+        },
+      );
 
       test('and not non-WSD ButtonToolbars or other components', () async {
         await testSuggestor(

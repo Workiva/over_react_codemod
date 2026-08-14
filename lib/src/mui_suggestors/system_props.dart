@@ -27,8 +27,10 @@ bool hasSxAndSomeSystemProps(InterfaceElement propsElement) {
     'letterSpacing',
   ];
 
-  return propsToCheck.every((propName) =>
-      propsElement.lookUpGetter(propName, propsElement.library) != null);
+  return propsToCheck.every(
+    (propName) =>
+        propsElement.lookUpGetter(propName, propsElement.library) != null,
+  );
 }
 
 /// The names of all the MUI system props.

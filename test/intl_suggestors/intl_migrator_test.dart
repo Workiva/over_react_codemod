@@ -22,12 +22,14 @@ void main() {
     // Idempotency isn't a worry for this suggestor, and testing it throws off
     // using a global counter for numbering messages whose name isn't otherwise
     // unique, so skip that check.
-    Future<void> testSuggestor(
-            {required String input, required String expectedOutput}) =>
-        basicSuggestor(
-            input: input,
-            expectedOutput: expectedOutput,
-            testIdempotency: false);
+    Future<void> testSuggestor({
+      required String input,
+      required String expectedOutput,
+    }) => basicSuggestor(
+      input: input,
+      expectedOutput: expectedOutput,
+      testIdempotency: false,
+    );
 
     setUp(() async {
       final Directory tmp = await fs.systemTempDirectory.createTemp();
@@ -1363,7 +1365,8 @@ void main() {
 
     group('Ignore', () {
       test('Ignore statement with ignore comment', () async {
-        final source = 'import \'package:over_react/over_react.dart\';\n'
+        final source =
+            'import \'package:over_react/over_react.dart\';\n'
             '\n'
             'mixin FooProps on UiProps {}\n'
             '\n'
@@ -1388,7 +1391,8 @@ void main() {
             '  _\$FooConfig, //ignore: undefined_identifier\n'
             ');\n'
             '';
-        final output = 'import \'package:over_react/over_react.dart\';\n'
+        final output =
+            'import \'package:over_react/over_react.dart\';\n'
             '\n'
             'mixin FooProps on UiProps {}\n'
             '\n'
@@ -1414,10 +1418,7 @@ void main() {
             ');\n'
             '';
 
-        await testSuggestor(
-          input: source,
-          expectedOutput: output,
-        );
+        await testSuggestor(input: source, expectedOutput: output);
       });
 
       test('Ignore line within a component', () async {
@@ -1459,15 +1460,12 @@ mixin FooProps on UiProps {}
   );
 ''';
 
-        await testSuggestor(
-          input: source,
-          expectedOutput: output,
-        );
+        await testSuggestor(input: source, expectedOutput: output);
       });
 
-      test('Ignore statement with ignore comment with leading spaces',
-          () async {
-        final source = 'import \'package:over_react/over_react.dart\';\n'
+      test('Ignore statement with ignore comment with leading spaces', () async {
+        final source =
+            'import \'package:over_react/over_react.dart\';\n'
             '\n'
             'mixin FooProps on UiProps {}\n'
             '\n'
@@ -1494,7 +1492,8 @@ mixin FooProps on UiProps {}
             '  _\$FooConfig, //ignore: undefined_identifier\n'
             ');\n'
             '';
-        final output = 'import \'package:over_react/over_react.dart\';\n'
+        final output =
+            'import \'package:over_react/over_react.dart\';\n'
             '\n'
             'mixin FooProps on UiProps {}\n'
             '\n'
@@ -1522,10 +1521,7 @@ mixin FooProps on UiProps {}
             ');\n'
             '';
 
-        await testSuggestor(
-          input: source,
-          expectedOutput: output,
-        );
+        await testSuggestor(input: source, expectedOutput: output);
       });
 
       test('Ignore file with ignore comment', () async {
@@ -1547,10 +1543,7 @@ mixin FooProps on UiProps {}
             );
             ''';
 
-        await testSuggestor(
-          input: source,
-          expectedOutput: source,
-        );
+        await testSuggestor(input: source, expectedOutput: source);
 
         expect(messages.messageContents(), '');
       });

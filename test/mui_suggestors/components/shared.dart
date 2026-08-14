@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-String withOverReactAndWsdImports(String source) => /*language=dart*/ '''
+String withOverReactAndWsdImports(String source) => /*language=dart*/
+    '''
     import 'dart:html';
     
     import 'package:over_react/over_react.dart';

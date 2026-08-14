@@ -25,7 +25,8 @@ const styleMapExplanation =
 const styleMapExample =
     "// Incorrect value for 'width': '40'. Correct values: 40, '40px', '4em'.";
 
-const styleMapComment = '''
+const styleMapComment =
+    '''
       $styleMapExplanation
       $styleMapExample
     ''';

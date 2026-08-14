@@ -22,12 +22,14 @@ void main() {
     // Idempotency isn't a worry for this suggestor, and testing it throws off
     // checking for duplicates, so disable it for these tests.
     // TODO: Avoid duplicating this between test files.
-    Future<void> testSuggestor(
-            {required String input, required String expectedOutput}) =>
-        basicSuggestor(
-            input: input,
-            expectedOutput: expectedOutput,
-            testIdempotency: false);
+    Future<void> testSuggestor({
+      required String input,
+      required String expectedOutput,
+    }) => basicSuggestor(
+      input: input,
+      expectedOutput: expectedOutput,
+      testIdempotency: false,
+    );
 
     setUp(() async {
       final Directory tmp = await fs.systemTempDirectory.createTemp();
@@ -102,10 +104,7 @@ void main() {
             // ignore_statement: intl_message_migration
             const foo = 'I am a user-visible constant';
             ''';
-        await testSuggestor(
-          input: input,
-          expectedOutput: input,
-        );
+        await testSuggestor(input: input, expectedOutput: input);
         final expectedFileContent = '';
         expect(messages.messageContents(), expectedFileContent);
       });
@@ -116,10 +115,7 @@ void main() {
             // ignore_statement: intl_message_migration
             const foo = 'I am a user-visible constant';
             ''';
-        await testSuggestor(
-          input: input,
-          expectedOutput: input,
-        );
+        await testSuggestor(input: input, expectedOutput: input);
         final expectedFileContent = '';
         expect(messages.messageContents(), expectedFileContent);
       });
@@ -150,10 +146,7 @@ void main() {
             var y = x == 5 ? x : 42;
             const foo = 'I am a user-visible constant';
             ''';
-        await testSuggestor(
-          input: input,
-          expectedOutput: input,
-        );
+        await testSuggestor(input: input, expectedOutput: input);
         final expectedFileContent = '';
         expect(messages.messageContents(), expectedFileContent);
       });
@@ -238,8 +231,10 @@ void main() {
   static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');
 
 ''';
-        expect(messages.messageContents().trim(),
-            expectedFileContent.trim()); // Avoid the leading return.
+        expect(
+          messages.messageContents().trim(),
+          expectedFileContent.trim(),
+        ); // Avoid the leading return.
       });
 
       test('duplicate static names with duplicated text', () async {
@@ -271,14 +266,17 @@ void main() {
   static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');
 
 ''';
-        expect(messages.messageContents().trim(),
-            expectedFileContent.trim()); // Avoid the leading return.
+        expect(
+          messages.messageContents().trim(),
+          expectedFileContent.trim(),
+        ); // Avoid the leading return.
       });
 
-      test('duplicate static names with duplicated text, with double quotes',
-          () async {
-        await testSuggestor(
-          input: '''
+      test(
+        'duplicate static names with duplicated text, with double quotes',
+        () async {
+          await testSuggestor(
+            input: '''
           class Bar {
             static const foo = "I am a user-visible constant";
           }
@@ -287,7 +285,7 @@ void main() {
           }
           const foo = "Another static";
             ''',
-          expectedOutput: '''
+            expectedOutput: '''
           class Bar { 
             static final String foo = TestClassIntl.foo;
           }
@@ -298,16 +296,19 @@ void main() {
           final String foo = TestClassIntl.anotherStatic;
           
             ''',
-        );
-        final expectedFileContent = '''
+          );
+          final expectedFileContent = '''
   static String get anotherStatic => Intl.message(\'Another static\', name: \'TestClassIntl_anotherStatic\');
 
   static String get foo => Intl.message(\'I am a user-visible constant\', name: \'TestClassIntl_foo\');
 
 ''';
-        expect(messages.messageContents().trim(),
-            expectedFileContent.trim()); // Avoid the leading return.
-      });
+          expect(
+            messages.messageContents().trim(),
+            expectedFileContent.trim(),
+          ); // Avoid the leading return.
+        },
+      );
 
       test('duplicate getter names increment', () async {
         await testSuggestor(
@@ -330,8 +331,10 @@ void main() {
   static String get dueDate1 => Intl.message(\'Due date\', name: \'TestClassIntl_dueDate1\');
 
 ''';
-        expect(messages.messageContents().trim(),
-            expectedFileContent.trim()); // Avoid the leading return.
+        expect(
+          messages.messageContents().trim(),
+          expectedFileContent.trim(),
+        ); // Avoid the leading return.
       });
     });
   });

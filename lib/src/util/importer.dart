@@ -33,9 +33,10 @@ Suggestor importerSuggestorBuilder({
     // Parts that have not been generated can show up as `exists = false` but also `isPart = false`,
     // so using the unitResults is a little trickier than using the libraryElement to get it.
     final mainLibraryUnitResult = libraryResult.units.singleWhere(
-        (unitResult) =>
-            unitResult.unit.declaredElement ==
-            libraryResult.element.definingCompilationUnit);
+      (unitResult) =>
+          unitResult.unit.declaredElement ==
+          libraryResult.element.definingCompilationUnit,
+    );
 
     // Look for errors in the main compilation unit and its part files.
     // Ignore null partContexts and partContexts elements caused by
@@ -43,19 +44,25 @@ Suggestor importerSuggestorBuilder({
     final needsImport = libraryResult.units
         .expand((unitResult) => unitResult.errors)
         .where((error) => error.errorCode.name == 'UNDEFINED_IDENTIFIER')
-        .any((error) =>
-            error.message.contains("Undefined name '$importNamespace'"));
+        .any(
+          (error) =>
+              error.message.contains("Undefined name '$importNamespace'"),
+        );
 
     if (!needsImport) return;
 
     final insertInfo = insertionLocationForPackageImport(
-        importUri, mainLibraryUnitResult.unit, mainLibraryUnitResult.lineInfo);
+      importUri,
+      mainLibraryUnitResult.unit,
+      mainLibraryUnitResult.lineInfo,
+    );
     yield Patch(
-        insertInfo.leadingNewlines +
-            "import '$importUri' as $importNamespace;" +
-            insertInfo.trailingNewlines,
-        insertInfo.offset,
-        insertInfo.offset);
+      insertInfo.leadingNewlines +
+          "import '$importUri' as $importNamespace;" +
+          insertInfo.trailingNewlines,
+      insertInfo.offset,
+      insertInfo.offset,
+    );
   };
 }
 
@@ -80,16 +87,21 @@ class _InsertionLocation {
 /// otherwise inserting it in a new section relative to other imports
 /// or other directives.
 _InsertionLocation insertionLocationForPackageImport(
-    String importUri, CompilationUnit unit, LineInfo lineInfo) {
+  String importUri,
+  CompilationUnit unit,
+  LineInfo lineInfo,
+) {
   final imports = unit.directives.whereType<ImportDirective>();
   final firstImport = imports.firstOrNull;
 
-  final dartImports =
-      imports.where((i) => i.uri.stringValue?.startsWith('dart:') ?? false);
+  final dartImports = imports.where(
+    (i) => i.uri.stringValue?.startsWith('dart:') ?? false,
+  );
   final lastDartImport = dartImports.lastOrNull;
 
-  final packageImports =
-      imports.where((i) => i.uri.stringValue?.startsWith('package:') ?? false);
+  final packageImports = imports.where(
+    (i) => i.uri.stringValue?.startsWith('package:') ?? false,
+  );
   final firstPackageImportSortedAfterNewImport = packageImports
       .where((i) => i.uri.stringValue!.compareTo(importUri) > 0)
       .firstOrNull;
@@ -97,8 +109,9 @@ _InsertionLocation insertionLocationForPackageImport(
       .where((i) => i.uri.stringValue!.compareTo(importUri) < 0)
       .lastOrNull;
 
-  final firstNonImportDirective =
-      unit.directives.where((d) => d is! ImportDirective).firstOrNull;
+  final firstNonImportDirective = unit.directives
+      .where((d) => d is! ImportDirective)
+      .firstOrNull;
 
   final AstNode relativeNode;
   final bool insertAfter;
@@ -129,8 +142,10 @@ _InsertionLocation insertionLocationForPackageImport(
   } else {
     // No directive to insert relative to; insert before the first member or
     // at the beginning of the file.
-    return _InsertionLocation(unit.declarations.firstOrNull?.offset ?? 0,
-        trailingNewlineCount: 2);
+    return _InsertionLocation(
+      unit.declarations.firstOrNull?.offset ?? 0,
+      trailingNewlineCount: 2,
+    );
   }
 
   return _InsertionLocation(

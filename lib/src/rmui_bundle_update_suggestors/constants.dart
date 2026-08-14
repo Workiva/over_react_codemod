@@ -53,9 +53,10 @@ class Link {
 
   /// A pattern for finding a link tag with a matching path.
   RegExp get pattern => RegExp(
-      r'(?<preceding_whitespace>[^\S\r\n]*)<link[^>]*href="(?<path_prefix>[^"]*)' +
-          pathSubpattern +
-          r'"[^>]*>(?<trailing_new_line>\n?)');
+    r'(?<preceding_whitespace>[^\S\r\n]*)<link[^>]*href="(?<path_prefix>[^"]*)' +
+        pathSubpattern +
+        r'"[^>]*>(?<trailing_new_line>\n?)',
+  );
 
   @override
   String toString() =>

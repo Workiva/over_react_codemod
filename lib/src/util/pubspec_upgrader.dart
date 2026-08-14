@@ -47,11 +47,13 @@ class PubspecUpgrader {
   /// found.
   final bool shouldAddDependencies;
 
-  PubspecUpgrader(this.packageName, this.targetConstraint,
-      {this.isDevDependency = false,
-      this.shouldAddDependencies = true,
-      this.hostedUrl})
-      : shouldIgnoreMin = false;
+  PubspecUpgrader(
+    this.packageName,
+    this.targetConstraint, {
+    this.isDevDependency = false,
+    this.shouldAddDependencies = true,
+    this.hostedUrl,
+  }) : shouldIgnoreMin = false;
 
   /// Constructor used to ignore checks and ensure that the codemod always
   /// tries to update the constraint.
@@ -60,11 +62,13 @@ class PubspecUpgrader {
   /// range, rather than a target upper or lower bound. The only time this
   /// will not update the pubspec is if the target version range is equal to
   /// the version that is already there (avoiding an empty patch error).
-  PubspecUpgrader.alwaysUpdate(this.packageName, this.targetConstraint,
-      {this.isDevDependency = false,
-      this.shouldAddDependencies = true,
-      this.hostedUrl})
-      : shouldIgnoreMin = true;
+  PubspecUpgrader.alwaysUpdate(
+    this.packageName,
+    this.targetConstraint, {
+    this.isDevDependency = false,
+    this.shouldAddDependencies = true,
+    this.hostedUrl,
+  }) : shouldIgnoreMin = true;
 
   String getPatch(String newVersionConstraint) {
     if (hostedUrl == null) {
@@ -91,15 +95,18 @@ class PubspecUpgrader {
         final constraint = VersionConstraint.parse(constraintValue);
 
         if (shouldUpdateVersionRange(
-            targetConstraint: targetConstraint,
-            constraint: constraint,
-            shouldIgnoreMin: shouldIgnoreMin)) {
+          targetConstraint: targetConstraint,
+          constraint: constraint,
+          shouldIgnoreMin: shouldIgnoreMin,
+        )) {
           final newConstraint =
               targetConstraint.toString().contains('-alpha') ||
-                      targetConstraint.toString().contains('-dev')
-                  ? targetConstraint
-                  : generateNewVersionRange(
-                      constraint as VersionRange, targetConstraint);
+                  targetConstraint.toString().contains('-dev')
+              ? targetConstraint
+              : generateNewVersionRange(
+                  constraint as VersionRange,
+                  targetConstraint,
+                );
 
           var newValue = friendlyVersionConstraint(newConstraint);
           // Wrap the new constraint in quotes if required.
@@ -135,13 +142,17 @@ class PubspecUpgrader {
         pubspec.update([depKey, packageName], targetConstraint.toString());
       } else {
         pubspec.update(
-            [depKey, packageName],
-            YamlMap.wrap({
-              'hosted': {'name': packageName, 'url': hostedUrl}
-            }));
+          [depKey, packageName],
+          YamlMap.wrap({
+            'hosted': {'name': packageName, 'url': hostedUrl},
+          }),
+        );
         // Add the version range separately so it will be correctly formatted with quotes.
-        pubspec.update(
-            [depKey, packageName, 'version'], targetConstraint.toString());
+        pubspec.update([
+          depKey,
+          packageName,
+          'version',
+        ], targetConstraint.toString());
       }
 
       // Update the pubspec and also replace any unnecessary spaces because

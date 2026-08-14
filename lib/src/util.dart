@@ -38,8 +38,13 @@ import 'package:source_span/source_span.dart';
 
 import 'constants.dart';
 
-typedef CompanionBuilder = String Function(String className,
-    {String? annotations, String? commentPrefix, String? docComment});
+typedef CompanionBuilder =
+    String Function(
+      String className, {
+      String? annotations,
+      String? commentPrefix,
+      String? docComment,
+    });
 
 /// Returns an iterable of all the comments from [beginToken] to the end of the
 /// file.
@@ -66,8 +71,10 @@ Iterable<Token> allComments(Token beginToken) sync* {
 }
 
 bool _isCommentToken(Token token) {
-  return const {TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT}
-      .contains(token.type);
+  return const {
+    TokenType.SINGLE_LINE_COMMENT,
+    TokenType.MULTI_LINE_COMMENT,
+  }.contains(token.type);
 }
 
 /// Returns all the comments before a given [node], including doc comments.
@@ -207,7 +214,9 @@ final _usesOverReactRegex = RegExp(
 /// This can be used to update dependency ranges without lowering a current
 /// constraint unintentionally.
 VersionRange generateNewVersionRange(
-    VersionRange currentRange, VersionRange targetRange) {
+  VersionRange currentRange,
+  VersionRange targetRange,
+) {
   return VersionRange(
     min: currentRange.min! > targetRange.min!
         ? currentRange.min
@@ -243,8 +252,8 @@ String friendlyVersionConstraint(VersionConstraint constraint) {
 /// should be wrapped in quotations.
 bool mightNeedYamlEscaping(String scalarValue) =>
     // Values starting with `>` need escaping.
-// Whitelist a non-exhaustive list of allowable characters,
-// flagging that the value should be escaped when we're not sure.
+    // Whitelist a non-exhaustive list of allowable characters,
+    // flagging that the value should be escaped when we're not sure.
     !RegExp(r'^[^>][-+.<>=^ \w]*$').hasMatch(scalarValue);
 
 /// Parses a `--comment-prefix=<value>` command-line option from [args] if
@@ -283,28 +292,41 @@ String? parseAndRemoveCommentPrefixArg(List<String> args) {
 /// Locates the [commentToRemove] and - if found - removes it from the
 /// [node] using the [yieldPatch] provided.
 void removeCommentFromNode(
-    AstNode node, String commentToRemove, YieldPatch yieldPatch) {
+  AstNode node,
+  String commentToRemove,
+  YieldPatch yieldPatch,
+) {
   final nodeCommentLines = allComments(node.beginToken);
-  final commentLinesToRemove =
-      commentToRemove.split('\n').map((line) => line.trim()).toList();
+  final commentLinesToRemove = commentToRemove
+      .split('\n')
+      .map((line) => line.trim())
+      .toList();
   final firstLineOfCommentToRemove = commentLinesToRemove.first;
   final firstMatchingCommentLineToken = nodeCommentLines.firstWhereOrNull(
-      (token) => token.toString().trim() == firstLineOfCommentToRemove);
+    (token) => token.toString().trim() == firstLineOfCommentToRemove,
+  );
 
   if (firstMatchingCommentLineToken != null) {
     if (commentLinesToRemove.length == 1) {
       // Remove single line comment
-      yieldPatch('', firstMatchingCommentLineToken.offset,
-          firstMatchingCommentLineToken.end);
+      yieldPatch(
+        '',
+        firstMatchingCommentLineToken.offset,
+        firstMatchingCommentLineToken.end,
+      );
     } else {
       final lastLineOfCommentToRemove =
           commentLinesToRemove[commentLinesToRemove.length - 2];
       final lastMatchingCommentLineToken = nodeCommentLines.lastWhereOrNull(
-          (token) => token.toString().trim() == lastLineOfCommentToRemove);
+        (token) => token.toString().trim() == lastLineOfCommentToRemove,
+      );
       if (lastMatchingCommentLineToken != null) {
         // Remove multi line comment
-        yieldPatch('', firstMatchingCommentLineToken.offset,
-            lastMatchingCommentLineToken.end);
+        yieldPatch(
+          '',
+          firstMatchingCommentLineToken.offset,
+          lastMatchingCommentLineToken.end,
+        );
       }
     }
   }
@@ -406,15 +428,16 @@ Iterable<String> pubspecYamlPaths() => Directory.current
 Iterable<String> allHtmlPaths() =>
     filePathsFromGlob(Glob('**.html', recursive: true));
 
-Iterable<String> allHtmlPathsIncludingTemplates() => allHtmlPaths()
-    .followedBy(filePathsFromGlob(Glob('**.html.tpl', recursive: true)));
+Iterable<String> allHtmlPathsIncludingTemplates() => allHtmlPaths().followedBy(
+  filePathsFromGlob(Glob('**.html.tpl', recursive: true)),
+);
 
 Iterable<String> allDartPathsExceptHidden() =>
     filePathsFromGlob(Glob('**.dart', recursive: true));
 
-Iterable<String> allDartPathsExceptHiddenAndGenerated() =>
-    filePathsFromGlob(Glob('**.dart', recursive: true))
-        .where((path) => !path.endsWith('.g.dart'));
+Iterable<String> allDartPathsExceptHiddenAndGenerated() => filePathsFromGlob(
+  Glob('**.dart', recursive: true),
+).where((path) => !path.endsWith('.g.dart'));
 
 /// Returns whether or not [sourceText] contains invalid code.
 ///
@@ -460,7 +483,7 @@ extension IsA on DartType {
     InterfaceType self = this as InterfaceType;
 
     var supertypes = [
-      for (var type in self.element.allSupertypes) type.element.name
+      for (var type in self.element.allSupertypes) type.element.name,
     ];
     return supertypes.contains(typeName);
   }
@@ -488,7 +511,10 @@ VersionRange parseVersionRange(String text) {
   final constraint = VersionConstraint.parse(text);
   if (constraint is! VersionRange) {
     throw ArgumentError.value(
-        text, 'text', 'not a VersionRange; was a ${constraint.runtimeType}');
+      text,
+      'text',
+      'not a VersionRange; was a ${constraint.runtimeType}',
+    );
   }
   return constraint;
 }
@@ -516,17 +542,22 @@ extension IterableGroupBy<E> on Iterable<E> {
       collection.groupBy(this, key);
 }
 
-String prettyPrintErrors(Iterable<AnalysisError> errors,
-    {LineInfo? lineInfo, bool includeFilename = true}) {
-  return errors.map((e) {
-    final severity = e.errorCode.errorSeverity.name.toLowerCase();
-    final errorCode = e.errorCode.name.toLowerCase();
-    final location =
-        lineInfo?.getLocation(e.offset).toString() ?? 'offset ${e.offset}';
-    final filename = e.source.shortName;
+String prettyPrintErrors(
+  Iterable<AnalysisError> errors, {
+  LineInfo? lineInfo,
+  bool includeFilename = true,
+}) {
+  return errors
+      .map((e) {
+        final severity = e.errorCode.errorSeverity.name.toLowerCase();
+        final errorCode = e.errorCode.name.toLowerCase();
+        final location =
+            lineInfo?.getLocation(e.offset).toString() ?? 'offset ${e.offset}';
+        final filename = e.source.shortName;
 
-    return " - [$severity] ${e.message} ($errorCode at${includeFilename ? ' $filename' : ''} $location)";
-  }).join('\n');
+        return " - [$severity] ${e.message} ($errorCode at${includeFilename ? ' $filename' : ''} $location)";
+      })
+      .join('\n');
 }
 
 extension SpanForEntity on SourceFile {

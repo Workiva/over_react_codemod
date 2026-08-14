@@ -55,7 +55,7 @@ final rmuiImportsToUpdate = [
     'package:unify_ui/components/usage_must_be_approved_by_unify_team_for_legal_reasons/data_grid_premium.dart',
     rmuiUri:
         'package:react_material_ui/components/usage_must_be_approved_by_unify_team_for_legal_reasons_rmui/data_grid_premium.dart',
-  )
+  ),
 ];
 
 /// A map of RMUI component names to their new names in unify_ui.

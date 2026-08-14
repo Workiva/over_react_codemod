@@ -33,15 +33,17 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
   final bool updateAttributes;
   final bool removeTag;
 
-  DartScriptUpdater(this.existingScriptPath, this.newScriptPath,
-      {this.updateAttributes = true})
-      : removeTag = false;
+  DartScriptUpdater(
+    this.existingScriptPath,
+    this.newScriptPath, {
+    this.updateAttributes = true,
+  }) : removeTag = false;
 
   /// Use this constructor to remove the whole tag instead of updating it.
   DartScriptUpdater.remove(this.existingScriptPath)
-      : removeTag = true,
-        updateAttributes = false,
-        newScriptPath = 'will be ignored';
+    : removeTag = true,
+      updateAttributes = false,
+      newScriptPath = 'will be ignored';
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
@@ -49,22 +51,22 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
     final stringValue = node.literal.lexeme;
 
     final relevantScriptTags = [
-      ...Script(pathSubpattern: existingScriptPath)
-          .pattern
-          .allMatches(stringValue),
+      ...Script(
+        pathSubpattern: existingScriptPath,
+      ).pattern.allMatches(stringValue),
       ...?(!removeTag
-          ? Script(pathSubpattern: newScriptPath)
-              .pattern
-              .allMatches(stringValue)
-          : null)
+          ? Script(
+              pathSubpattern: newScriptPath,
+            ).pattern.allMatches(stringValue)
+          : null),
     ];
     final relevantLinkTags = [
-      ...Link(pathSubpattern: existingScriptPath)
-          .pattern
-          .allMatches(stringValue),
+      ...Link(
+        pathSubpattern: existingScriptPath,
+      ).pattern.allMatches(stringValue),
       ...?(!removeTag
           ? Link(pathSubpattern: newScriptPath).pattern.allMatches(stringValue)
-          : null)
+          : null),
     ];
 
     // Do not update if neither the existingScriptPath nor newScriptPath are in the file.
@@ -99,8 +101,9 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
       for (final scriptTagMatch in relevantScriptTags) {
         final scriptTag = scriptTagMatch.group(0);
         if (scriptTag == null) continue;
-        final typeAttributes =
-            getAttributePattern('type').allMatches(scriptTag);
+        final typeAttributes = getAttributePattern(
+          'type',
+        ).allMatches(scriptTag);
         if (typeAttributes.isNotEmpty) {
           final attribute = typeAttributes.first;
           final value = attribute.group(1);
@@ -129,8 +132,9 @@ class DartScriptUpdater extends RecursiveAstVisitor<void>
       for (final linkTagMatch in relevantLinkTags) {
         final linkTag = linkTagMatch.group(0);
         if (linkTag == null) continue;
-        final crossOriginAttributes =
-            getAttributePattern('crossorigin').allMatches(linkTag);
+        final crossOriginAttributes = getAttributePattern(
+          'crossorigin',
+        ).allMatches(linkTag);
         if (crossOriginAttributes.isNotEmpty) {
           final attribute = crossOriginAttributes.first;
           final value = attribute.group(1);

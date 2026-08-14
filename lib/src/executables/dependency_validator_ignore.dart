@@ -32,23 +32,32 @@ const _dependency = 'dependency';
 /// config.
 void main(List<String> args) async {
   final parser = ArgParser()
-    ..addFlag('help',
-        abbr: 'h', negatable: false, help: 'Prints this help output')
-    ..addFlag('verbose',
-        abbr: 'v',
-        negatable: false,
-        help: 'Outputs all logging to stdout/stderr.')
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: 'Prints this help output',
+    )
+    ..addFlag(
+      'verbose',
+      abbr: 'v',
+      negatable: false,
+      help: 'Outputs all logging to stdout/stderr.',
+    )
     ..addFlag(
       'yes-to-all',
       negatable: false,
-      help: 'Forces all patches accepted without prompting the user. '
+      help:
+          'Forces all patches accepted without prompting the user. '
           'Useful for scripts.',
     )
     ..addSeparator('Dependency Validator Updater Options')
-    ..addOption(_dependency,
-        abbr: 'd',
-        mandatory: true,
-        help: 'The dependency that should be ignored.');
+    ..addOption(
+      _dependency,
+      abbr: 'd',
+      mandatory: true,
+      help: 'The dependency that should be ignored.',
+    );
 
   final parsedArgs = parser.parse(args);
 
@@ -83,7 +92,9 @@ void main(List<String> args) async {
     final pubspecFile = File(pubspec);
     final VersionRange? dependencyValidatorVersion =
         getNonHostedDependencyVersion(
-            pubspecFile.readAsStringSync(), 'dependency_validator');
+          pubspecFile.readAsStringSync(),
+          'dependency_validator',
+        );
     final majorVersion = dependencyValidatorVersion?.min?.major;
 
     // This means that either there is no dependency on `dependency_validator`
@@ -100,7 +111,8 @@ void main(List<String> args) async {
     if (exitCode == 1) continue;
 
     logger.info(
-        'Detected dependency_validator version $dependencyValidatorVersion');
+      'Detected dependency_validator version $dependencyValidatorVersion',
+    );
 
     // It is necessary to check the major version and handle each one
     // differently because each major has a different method to identify
@@ -118,8 +130,9 @@ void main(List<String> args) async {
           ],
           V1DependencyValidatorUpdater(dependencyToUpdate),
           // Only pass valid low level codemod flags
-          args: args
-              .where((arg) => !arg.contains(_dependency) && !arg.contains('d')),
+          args: args.where(
+            (arg) => !arg.contains(_dependency) && !arg.contains('d'),
+          ),
         );
         break;
       case 2:
@@ -127,8 +140,9 @@ void main(List<String> args) async {
           [pubspecFile.path],
           V2DependencyValidatorUpdater(dependencyToUpdate),
           // Only pass valid low level codemod flags
-          args: args
-              .where((arg) => !arg.contains(_dependency) && !arg.contains('d')),
+          args: args.where(
+            (arg) => !arg.contains(_dependency) && !arg.contains('d'),
+          ),
         );
         break;
       case 3:
@@ -145,15 +159,18 @@ void main(List<String> args) async {
         }
 
         exitCode = await runInteractiveCodemod(
-          configFiles, V3DependencyValidatorUpdater(dependencyToUpdate),
+          configFiles,
+          V3DependencyValidatorUpdater(dependencyToUpdate),
           // Only pass valid low level codemod flags
-          args: args
-              .where((arg) => !arg.contains(_dependency) && !arg.contains('d')),
+          args: args.where(
+            (arg) => !arg.contains(_dependency) && !arg.contains('d'),
+          ),
         );
         break;
       default:
         throw UnsupportedError(
-            'Unexpected version of dependency_validator detected: $majorVersion');
+          'Unexpected version of dependency_validator detected: $majorVersion',
+        );
     }
   }
 
@@ -165,9 +182,13 @@ void main(List<String> args) async {
 /// NOTE: This logic is not very flexible and doesn't work for hosted dependencies.
 @visibleForTesting
 VersionRange? getNonHostedDependencyVersion(
-    String pubspecContent, String dependency) {
-  final dependencyValidatorRegex =
-      RegExp('^ {2,}$dependency: *(.+)\$', multiLine: true);
+  String pubspecContent,
+  String dependency,
+) {
+  final dependencyValidatorRegex = RegExp(
+    '^ {2,}$dependency: *(.+)\$',
+    multiLine: true,
+  );
   final dependencyMatch = dependencyValidatorRegex.firstMatch(pubspecContent);
   if (dependencyMatch == null) return null;
 

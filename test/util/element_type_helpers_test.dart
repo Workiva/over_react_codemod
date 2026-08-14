@@ -75,9 +75,12 @@ void main() {
       /// with generic bounds.
       DartType parameterType(String name) =>
           allDescendantsOfType<SimpleFormalParameter>(unit)
-              .singleWhere((p) => p.name?.lexeme == name, orElse: () {
-                throw StateError("Could not find variable with name '$name'");
-              })
+              .singleWhere(
+                (p) => p.name?.lexeme == name,
+                orElse: () {
+                  throw StateError("Could not find variable with name '$name'");
+                },
+              )
               .declaredElement!
               .type;
 
@@ -154,86 +157,116 @@ void main() {
       group('isOrIsSubtypeOfTypeFromPackage', () {
         test('returns true when the type is an exact match', () {
           expect(
-              parameterType('uiProps')
-                  .isOrIsSubtypeOfClassFromPackage('UiProps', 'over_react'),
-              isTrue);
+            parameterType(
+              'uiProps',
+            ).isOrIsSubtypeOfClassFromPackage('UiProps', 'over_react'),
+            isTrue,
+          );
         });
 
         test('returns true when the type is a subtype', () {
           expect(
-              parameterType('customProps')
-                  .isOrIsSubtypeOfClassFromPackage('UiProps', 'over_react'),
-              isTrue);
+            parameterType(
+              'customProps',
+            ).isOrIsSubtypeOfClassFromPackage('UiProps', 'over_react'),
+            isTrue,
+          );
         });
 
         test('returns true when the type is bounded by that type', () {
           expect(
-              parameterType('uiPropsAsBound')
-                  .isOrIsSubtypeOfClassFromPackage('UiProps', 'over_react'),
-              isTrue);
+            parameterType(
+              'uiPropsAsBound',
+            ).isOrIsSubtypeOfClassFromPackage('UiProps', 'over_react'),
+            isTrue,
+          );
         });
 
         test('returns true when the type is bounded by a subtype', () {
           expect(
-              parameterType('customPropsAsBound')
-                  .isOrIsSubtypeOfClassFromPackage('UiProps', 'over_react'),
-              isTrue);
+            parameterType(
+              'customPropsAsBound',
+            ).isOrIsSubtypeOfClassFromPackage('UiProps', 'over_react'),
+            isTrue,
+          );
         });
 
         test('returns false when the type name does not match', () {
           expect(
-              parameterType('uiProps')
-                  .isOrIsSubtypeOfClassFromPackage('NotUiProps', 'over_react'),
-              isFalse);
+            parameterType(
+              'uiProps',
+            ).isOrIsSubtypeOfClassFromPackage('NotUiProps', 'over_react'),
+            isFalse,
+          );
         });
 
         test('returns false when the package name does not match', () {
           expect(
-              parameterType('uiProps')
-                  .isOrIsSubtypeOfClassFromPackage('UiProps', 'not_over_react'),
-              isFalse);
+            parameterType(
+              'uiProps',
+            ).isOrIsSubtypeOfClassFromPackage('UiProps', 'not_over_react'),
+            isFalse,
+          );
         });
       });
 
       group('isElementFromPackage', () {
         test(
-            'returns whether a type is declared in package with the given name',
-            () async {
-          final uiPropsElement = parameterTypeElement('uiProps');
-          final mapElement = parameterTypeElement('map');
-          final customClassElement = parameterTypeElement('customClass');
+          'returns whether a type is declared in package with the given name',
+          () async {
+            final uiPropsElement = parameterTypeElement('uiProps');
+            final mapElement = parameterTypeElement('map');
+            final customClassElement = parameterTypeElement('customClass');
 
-          expect(uiPropsElement.isElementFromPackage('UiProps', 'over_react'),
-              isTrue);
+            expect(
+              uiPropsElement.isElementFromPackage('UiProps', 'over_react'),
+              isTrue,
+            );
 
-          expect(
+            expect(
               uiPropsElement.isElementFromPackage('NotUiProps', 'over_react'),
-              isFalse);
-          expect(
+              isFalse,
+            );
+            expect(
               uiPropsElement.isElementFromPackage('UiProps', 'not_over_react'),
-              isFalse);
+              isFalse,
+            );
 
-          expect(mapElement.isElementFromPackage('Map', 'over_react'), isFalse);
-          expect(
+            expect(
+              mapElement.isElementFromPackage('Map', 'over_react'),
+              isFalse,
+            );
+            expect(
               customClassElement.isElementFromPackage(
-                  'CustomClass', 'over_react'),
-              isFalse);
-        });
+                'CustomClass',
+                'over_react',
+              ),
+              isFalse,
+            );
+          },
+        );
       });
 
       group('isDeclaredInPackage', () {
         test(
-            'returns whether an element is declared in package with the given name',
-            () async {
-          final uiPropsElement = parameterTypeElement('uiProps');
-          final mapElement = parameterTypeElement('map');
-          final customClassElement = parameterTypeElement('customClass');
+          'returns whether an element is declared in package with the given name',
+          () async {
+            final uiPropsElement = parameterTypeElement('uiProps');
+            final mapElement = parameterTypeElement('map');
+            final customClassElement = parameterTypeElement('customClass');
 
-          expect(uiPropsElement.isDeclaredInPackage('over_react'), isTrue);
-          expect(uiPropsElement.isDeclaredInPackage('not_over_react'), isFalse);
-          expect(mapElement.isDeclaredInPackage('over_react'), isFalse);
-          expect(customClassElement.isDeclaredInPackage('over_react'), isFalse);
-        });
+            expect(uiPropsElement.isDeclaredInPackage('over_react'), isTrue);
+            expect(
+              uiPropsElement.isDeclaredInPackage('not_over_react'),
+              isFalse,
+            );
+            expect(mapElement.isDeclaredInPackage('over_react'), isFalse);
+            expect(
+              customClassElement.isDeclaredInPackage('over_react'),
+              isFalse,
+            );
+          },
+        );
       });
     });
   });

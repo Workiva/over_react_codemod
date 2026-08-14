@@ -24,12 +24,18 @@ class MessageSyntax {
   /// one from the string.
   ///
   /// ex: static String get fooBar => Intl.message('Foo Bar','name: FooBarIntl_fooBar',);
-  String getterDefinition(StringLiteral node, String namespace,
-      {String? name}) {
+  String getterDefinition(
+    StringLiteral node,
+    String namespace, {
+    String? name,
+  }) {
     String text = stringContent(node)!;
     final varName = nameForNode(node, initialName: name);
-    final message = intlFunctionBody(text, '${namespace}_$varName',
-        isMultiline: isMultiline(node));
+    final message = intlFunctionBody(
+      text,
+      '${namespace}_$varName',
+      isMultiline: isMultiline(node),
+    );
     return '  $intlFunctionPrefix get $varName => $message;';
   }
 
@@ -52,14 +58,20 @@ class MessageSyntax {
   ///                                           'name: FooBarIntl_Foo_bar',
   ///                                           );
   String functionDefinition(
-      StringInterpolation node, String namespace, String namePrefix) {
+    StringInterpolation node,
+    String namespace,
+    String namePrefix,
+  ) {
     final functionName = nameForNode(node);
     final functionParams = intlFunctionParameters(node);
     final parameterizedMessage = intlParameterizedMessage(node);
     final messageArgs = intlMessageArgs(node);
     final message = intlFunctionBody(
-        parameterizedMessage, '${namespace}_$functionName',
-        args: messageArgs, isMultiline: node.isMultiline);
+      parameterizedMessage,
+      '${namespace}_$functionName',
+      args: messageArgs,
+      isMultiline: node.isMultiline,
+    );
     return '  ${intlFunctionPrefix} $functionName$functionParams => $message;';
   }
 
@@ -87,9 +99,14 @@ class MessageSyntax {
   /// Converts 'Interpolated ${foo.bar} and $baz' into
   /// 'Interpolated $bar and $baz'
   String intlParameterizedMessage(StringInterpolation node) => node.elements
-      .map((e) => e is InterpolationExpression
-          ? intlInterpolation(e)
-          : escapeNewlines((e as InterpolationString).value, node.isMultiline))
+      .map(
+        (e) => e is InterpolationExpression
+            ? intlInterpolation(e)
+            : escapeNewlines(
+                (e as InterpolationString).value,
+                node.isMultiline,
+              ),
+      )
       .toList()
       .join('');
 
@@ -123,13 +140,18 @@ class MessageSyntax {
     return '(${args.join(', ')})';
   }
 
-  String nameForNode(StringLiteral body,
-      {String? initialName, bool startAtZero = false}) {
+  String nameForNode(
+    StringLiteral body, {
+    String? initialName,
+    bool startAtZero = false,
+  }) {
     var messageText = literalText(body);
     // The case where there is no text after this should be checked in
     // isValidStringInterpolationNode and so it should never happen here.
     return owner.nameForString(
-        initialName ?? toVariableName(messageText), messageText,
-        startAtZero: startAtZero);
+      initialName ?? toVariableName(messageText),
+      messageText,
+      startAtZero: startAtZero,
+    );
   }
 }

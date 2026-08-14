@@ -20,46 +20,54 @@ import '../../util.dart';
 main() {
   group('V3DependencyUpdater', () {
     const addedDependency = 'an_added_dependency';
-    final testSuggestor =
-        getSuggestorTester(V3DependencyValidatorUpdater(addedDependency));
+    final testSuggestor = getSuggestorTester(
+      V3DependencyValidatorUpdater(addedDependency),
+    );
 
     test('updates when the file is empty', () async {
       await testSuggestor(
-          shouldDartfmtOutput: false,
-          expectedPatchCount: 1,
-          input: '''''',
-          expectedOutput: ''
-              'ignore:\n'
-              '  - $addedDependency\n'
-              '');
+        shouldDartfmtOutput: false,
+        expectedPatchCount: 1,
+        input: '''''',
+        expectedOutput:
+            ''
+            'ignore:\n'
+            '  - $addedDependency\n'
+            '',
+      );
     });
 
     test('adds an ignore tag if one is not present', () async {
       await testSuggestor(
-          shouldDartfmtOutput: false,
-          expectedPatchCount: 1,
-          input: ''
-              '# a comment above exclude\n'
-              'exclude:\n'
-              '  # a comment above an excluded directory\n'
-              '  - app\n'
-              '',
-          expectedOutput: ''
-              '# a comment above exclude\n'
-              'exclude:\n'
-              '  # a comment above an excluded directory\n'
-              '  - app\n'
-              'ignore:\n'
-              '  - $addedDependency\n'
-              '');
+        shouldDartfmtOutput: false,
+        expectedPatchCount: 1,
+        input:
+            ''
+            '# a comment above exclude\n'
+            'exclude:\n'
+            '  # a comment above an excluded directory\n'
+            '  - app\n'
+            '',
+        expectedOutput:
+            ''
+            '# a comment above exclude\n'
+            'exclude:\n'
+            '  # a comment above an excluded directory\n'
+            '  - app\n'
+            'ignore:\n'
+            '  - $addedDependency\n'
+            '',
+      );
     });
 
-    test('appends the new dependency to the ignore tag if the tag is present',
-        () async {
-      await testSuggestor(
+    test(
+      'appends the new dependency to the ignore tag if the tag is present',
+      () async {
+        await testSuggestor(
           shouldDartfmtOutput: false,
           expectedPatchCount: 1,
-          input: ''
+          input:
+              ''
               '# a comment above exclude\n'
               'exclude:\n'
               '  # a comment above an excluded directory\n'
@@ -68,7 +76,8 @@ main() {
               '  # a comment above a specific dependency\n'
               '  - a_dependency\n'
               '',
-          expectedOutput: ''
+          expectedOutput:
+              ''
               '# a comment above exclude\n'
               'exclude:\n'
               '  # a comment above an excluded directory\n'
@@ -77,23 +86,27 @@ main() {
               '  # a comment above a specific dependency\n'
               '  - a_dependency\n'
               '  - $addedDependency\n'
-              '');
-    });
+              '',
+        );
+      },
+    );
 
     test('makes no change if the dependency is already there', () async {
       await testSuggestor(
-          shouldDartfmtOutput: false,
-          expectedPatchCount: 0,
-          input: ''
-              '# a comment above exclude\n'
-              'exclude:\n'
-              '  # a comment above an excluded directory\n'
-              '  - app\n'
-              'ignore:\n'
-              '  # a comment above a specific dependency\n'
-              '  - a_dependency\n'
-              '  - $addedDependency\n'
-              '');
+        shouldDartfmtOutput: false,
+        expectedPatchCount: 0,
+        input:
+            ''
+            '# a comment above exclude\n'
+            'exclude:\n'
+            '  # a comment above an excluded directory\n'
+            '  - app\n'
+            'ignore:\n'
+            '  # a comment above a specific dependency\n'
+            '  - a_dependency\n'
+            '  - $addedDependency\n'
+            '',
+      );
     });
   });
 }

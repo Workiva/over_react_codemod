@@ -27,14 +27,14 @@ void main() {
         '2',
         '--other-flag',
         ...getArgsToRemove(),
-        'positional'
+        'positional',
       ];
       final expectedArgs = [
         '--other-option-1=1',
         '--other-option-2',
         '2',
         '--other-flag',
-        'positional'
+        'positional',
       ];
       expect(removeArgs(args), expectedArgs);
     }
@@ -59,16 +59,24 @@ void main() {
 
         test('when there are multiple matching options of the same name', () {
           sharedTest(
-            getArgsToRemove: () =>
-                ['--test-option', 'value1', '--test-option', 'value2'],
+            getArgsToRemove: () => [
+              '--test-option',
+              'value1',
+              '--test-option',
+              'value2',
+            ],
             removeArgs: (args) => removeOptionArgs(args, ['test-option']),
           );
         });
 
         test('when multiple names are specified', () {
           sharedTest(
-            getArgsToRemove: () =>
-                ['--test-option-1', 'value', '--test-option-2', 'value'],
+            getArgsToRemove: () => [
+              '--test-option-1',
+              'value',
+              '--test-option-2',
+              'value',
+            ],
             removeArgs: (args) =>
                 removeOptionArgs(args, ['test-option-1', 'test-option-2']),
           );

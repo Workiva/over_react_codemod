@@ -21,10 +21,12 @@ import '../util.dart';
 
 void main() {
   group('DartScriptAdder', () {
-    final testSuggestor = getSuggestorTester(aggregate([
-      DartScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated),
-      DartScriptUpdater(rmuiBundleProd, rmuiBundleProdUpdated),
-    ]));
+    final testSuggestor = getSuggestorTester(
+      aggregate([
+        DartScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated),
+        DartScriptUpdater(rmuiBundleProd, rmuiBundleProdUpdated),
+      ]),
+    );
 
     test('empty file', () async {
       await testSuggestor(expectedPatchCount: 0, input: '');
@@ -42,13 +44,15 @@ void main() {
     test('dev bundle', () async {
       await testSuggestor(
         expectedPatchCount: 4,
-        input: '''
+        input:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDev"></script>',
                 '<link rel="preload" href="$rmuiBundleDev" as="script">',
               ];
             ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDevUpdated" type="module"></script>',
                 '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
@@ -60,13 +64,15 @@ void main() {
     test('prod bundle', () async {
       await testSuggestor(
         expectedPatchCount: 4,
-        input: '''
+        input:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleProd"></script>',
                 '<link rel="preload" href="$rmuiBundleProd" as="script">',
               ];
             ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleProdUpdated" type="module"></script>',
                 '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">',
@@ -79,14 +85,16 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 0,
         shouldDartfmtOutput: false,
-        input: '''
+        input:
+            '''
             List<String> _reactHtmlHeaders = const [
               '<script src="$rmuiBundleDevUpdated" type="module"></script>',
               '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
               '<script src="$rmuiBundleProdUpdated" type="module"></script>',
               '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">',
             ];\n''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
             List<String> _reactHtmlHeaders = const [
               '<script src="$rmuiBundleDevUpdated" type="module"></script>',
               '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
@@ -99,13 +107,15 @@ void main() {
     test('with indentation', () async {
       await testSuggestor(
         expectedPatchCount: 4,
-        input: '''
+        input:
+            '''
                 List<String> _reactHtmlHeaders = const [
                 '  <script src="$rmuiBundleDev"></script>',
                 '  <link rel="preload" href="$rmuiBundleDev" as="script">',
               ];
             ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '  <script src="$rmuiBundleDevUpdated" type="module"></script>',
                 '  <link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
@@ -118,7 +128,8 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 4,
         shouldDartfmtOutput: false,
-        input: '''
+        input:
+            '''
           List<String> _reactHtmlHeaders = const [
             '<!DOCTYPE html>',
             '<html>',
@@ -157,7 +168,8 @@ void main() {
             '  </body>',
             '</html>',
           ];''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           List<String> _reactHtmlHeaders = const [
             '<!DOCTYPE html>',
             '<html>',
@@ -203,7 +215,8 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 8,
         shouldDartfmtOutput: false,
-        input: '''
+        input:
+            '''
           List<String> _reactHtmlHeaders = const [
             '<script type="module" src="$rmuiBundleProd"></script>',
             '<link crossorigin="" rel="preload" href="$rmuiBundleProd" as="script">',
@@ -214,7 +227,8 @@ void main() {
             '<script src="$rmuiBundleProdUpdated"></script>',
             '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">',
           ];''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           List<String> _reactHtmlHeaders = const [
             '<script type="module" src="$rmuiBundleProdUpdated"></script>',
             '<link crossorigin="" rel="preload" href="$rmuiBundleProdUpdated" as="script">',
@@ -232,14 +246,16 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 8,
         shouldDartfmtOutput: false,
-        input: '''
+        input:
+            '''
           List<String> _reactHtmlHeaders = const [
             '<script src="$rmuiBundleDev" type="js/slk-f.sdkf"></script>',
             '<link rel="preload" href="$rmuiBundleDev" crossorigin="asdfsafdsf" as="script">',
             '<script src="$rmuiBundleProd" type="js/slkfsdkf"></script>',
             '<link rel="preload" href="$rmuiBundleProd" crossorigin="sadfsa/asdf" as="script">',
           ];''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           List<String> _reactHtmlHeaders = const [
             '<script src="$rmuiBundleDevUpdated" type="module"></script>',
             '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
@@ -252,13 +268,15 @@ void main() {
     test('just script tags', () async {
       await testSuggestor(
         expectedPatchCount: 4,
-        input: '''
+        input:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDev"></script>',
                 '<script src="$rmuiBundleProd"></script>',
               ];
             ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDevUpdated" type="module"></script>',
                 '<script src="$rmuiBundleProdUpdated" type="module"></script>',
@@ -270,13 +288,15 @@ void main() {
     test('just link tags', () async {
       await testSuggestor(
         expectedPatchCount: 4,
-        input: '''
+        input:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '<link rel="preload" href="$rmuiBundleDev" as="script">',
                 '<link rel="preload" href="$rmuiBundleProd" as="script">',
               ];
             ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
                 '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">',
@@ -288,7 +308,8 @@ void main() {
     test('string const', () async {
       await testSuggestor(
         expectedPatchCount: 2,
-        input: '''
+        input:
+            '''
           const expectedWithReact = \'\'\'
             <!DOCTYPE html>
             <html>
@@ -307,7 +328,8 @@ void main() {
             </html>
           \'\'\';
         ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
           const expectedWithReact = \'\'\'
             <!DOCTYPE html>
             <html>
@@ -331,19 +353,24 @@ void main() {
 
     test('updateAttributes arg', () async {
       final updateSuggestor = getSuggestorTester(
-        DartScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated,
-            updateAttributes: false),
+        DartScriptUpdater(
+          rmuiBundleDev,
+          rmuiBundleDevUpdated,
+          updateAttributes: false,
+        ),
       );
 
       await updateSuggestor(
         expectedPatchCount: 2,
-        input: '''
+        input:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDev"></script>',
                 '<link rel="preload" href="$rmuiBundleDev" as="script">',
               ];
             ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDevUpdated"></script>',
                 '<link rel="preload" href="$rmuiBundleDevUpdated" as="script">',
@@ -353,13 +380,15 @@ void main() {
     });
 
     group('remove constructor', () {
-      final removeTagSuggestor =
-          getSuggestorTester(DartScriptUpdater.remove(rmuiBundleDev));
+      final removeTagSuggestor = getSuggestorTester(
+        DartScriptUpdater.remove(rmuiBundleDev),
+      );
 
       test('list', () async {
         await removeTagSuggestor(
           expectedPatchCount: 3,
-          input: '''
+          input:
+              '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDev"></script>',
                 '<link rel="preload" href="$rmuiBundleDev" as="script">',
@@ -368,7 +397,8 @@ void main() {
                 '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
               ];
             ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
               List<String> _reactHtmlHeaders = const [
                 '<script src="$rmuiBundleDevUpdated" type="module"></script>',
                 '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">',
@@ -380,7 +410,8 @@ void main() {
       test('string const', () async {
         await removeTagSuggestor(
           expectedPatchCount: 1,
-          input: '''
+          input:
+              '''
           const expectedWithReact = \'\'\'
             <!DOCTYPE html>
             <html>

@@ -61,21 +61,22 @@ void main() {
       final suggestor = Simple();
       final context = await fileContextForTest('lib.dart', 'library lib;');
       expect(
-          suggestor(context),
-          emitsInOrder([
-            isA<Patch>()
-                .having((p) => p.startOffset, 'startOffset', 0)
-                .having((p) => p.endOffset, 'endOffset', 1)
-                .having((p) => p.updatedText, 'updatedText', 'foo1')
-                .having((p) => p.isInsertionPatch, 'isInsertionPatch', isFalse),
-            equals(Patch('foo1', 0, 1)),
-            isA<Patch>()
-                .having((p) => p.startOffset, 'startOffset', 1)
-                .having((p) => p.endOffset, 'endOffset', 1)
-                .having((p) => p.updatedText, 'updatedText', 'foo2')
-                .having((p) => p.isInsertionPatch, 'isInsertionPatch', isTrue),
-            emitsDone,
-          ]));
+        suggestor(context),
+        emitsInOrder([
+          isA<Patch>()
+              .having((p) => p.startOffset, 'startOffset', 0)
+              .having((p) => p.endOffset, 'endOffset', 1)
+              .having((p) => p.updatedText, 'updatedText', 'foo1')
+              .having((p) => p.isInsertionPatch, 'isInsertionPatch', isFalse),
+          equals(Patch('foo1', 0, 1)),
+          isA<Patch>()
+              .having((p) => p.startOffset, 'startOffset', 1)
+              .having((p) => p.endOffset, 'endOffset', 1)
+              .having((p) => p.updatedText, 'updatedText', 'foo2')
+              .having((p) => p.isInsertionPatch, 'isInsertionPatch', isTrue),
+          emitsDone,
+        ]),
+      );
     });
 
     test('should be able to be run multiple times', () async {
@@ -83,7 +84,7 @@ void main() {
       final expectedPatches = [
         Patch('foo1', 0, 1),
         Patch('foo1', 0, 1),
-        Patch('foo2', 1, 1)
+        Patch('foo2', 1, 1),
       ];
 
       final contextA = await fileContextForTest('a.dart', 'library a;');
@@ -95,8 +96,7 @@ void main() {
       expect(patchesB, expectedPatches);
     });
 
-    test(
-        'should scope patch generation such that it is not broken by '
+    test('should scope patch generation such that it is not broken by '
         'listening to streams out-of-order', () async {
       final suggestor = LibNameDoubler();
 
@@ -114,11 +114,12 @@ void main() {
       expect(await patchesC.toList(), [Patch('cc', 0, 1)]);
     });
 
-    test('should sort insertion patches when sortParenInsertionPatches is true',
-        () async {
-      final suggestor = SortParens(true);
-      final context = await fileContextForTest('lib.dart', 'foo()');
-      expect(
+    test(
+      'should sort insertion patches when sortParenInsertionPatches is true',
+      () async {
+        final suggestor = SortParens(true);
+        final context = await fileContextForTest('lib.dart', 'foo()');
+        expect(
           suggestor(context),
           emitsInOrder([
             Patch('(', 0, 0),
@@ -128,15 +129,17 @@ void main() {
             Patch(')', 3, 3),
             Patch(')', 3, 3),
             emitsDone,
-          ]));
-    });
+          ]),
+        );
+      },
+    );
 
     test(
-        'should not sort insertion patches when sortParenInsertionPatches is false',
-        () async {
-      final suggestor = SortParens(false);
-      final context = await fileContextForTest('lib.dart', 'foo()');
-      expect(
+      'should not sort insertion patches when sortParenInsertionPatches is false',
+      () async {
+        final suggestor = SortParens(false);
+        final context = await fileContextForTest('lib.dart', 'foo()');
+        expect(
           suggestor(context),
           emitsInOrder([
             Patch('(', 0, 0),
@@ -146,7 +149,9 @@ void main() {
             Patch('..baz', 3, 3),
             Patch(')', 3, 3),
             emitsDone,
-          ]));
-    });
+          ]),
+        );
+      },
+    );
   });
 }

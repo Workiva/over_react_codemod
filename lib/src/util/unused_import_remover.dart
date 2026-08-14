@@ -28,12 +28,14 @@ Suggestor unusedImportRemoverSuggestorBuilder(String package) {
         .where((error) => error.errorCode.name.toLowerCase() == 'unused_import')
         .toList();
 
-    final allImports =
-        unitResult.unit.directives.whereType<ImportDirective>().toList();
+    final allImports = unitResult.unit.directives
+        .whereType<ImportDirective>()
+        .toList();
 
     for (final error in unusedImportErrors) {
-      final matchingImport = allImports
-          .singleWhere((import) => import.containsOffset(error.offset));
+      final matchingImport = allImports.singleWhere(
+        (import) => import.containsOffset(error.offset),
+      );
       final importUri = matchingImport.uri.stringValue;
       if (importUri != null && importUri.startsWith('package:$package/')) {
         final prevTokenEnd = matchingImport.beginToken.previous?.end;

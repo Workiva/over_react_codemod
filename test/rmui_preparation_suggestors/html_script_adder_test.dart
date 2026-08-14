@@ -55,10 +55,12 @@ void main() {
     // Test both suggestors together to:
     // 1. verify for all cases that the wrong bundle type isn't added
     // 2. verify they work well together, since they'll never really be run individually
-    final testSuggestor = getSuggestorTester(aggregate([
-      HtmlScriptAdder(rmuiBundleProd, true),
-      HtmlScriptAdder(rmuiBundleDev, false)
-    ]));
+    final testSuggestor = getSuggestorTester(
+      aggregate([
+        HtmlScriptAdder(rmuiBundleProd, true),
+        HtmlScriptAdder(rmuiBundleDev, false),
+      ]),
+    );
 
     test('empty file', () async {
       await testSuggestor(expectedPatchCount: 0, input: '');
@@ -68,7 +70,8 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 0,
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '<script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
             '',
       );
@@ -107,10 +110,12 @@ void _htmlScriptAdderTests(
     await testSuggestor(
       expectedPatchCount: 1,
       shouldDartfmtOutput: false,
-      input: ''
+      input:
+          ''
           '${scriptStrings.join('\n')}'
           '',
-      expectedOutput: ''
+      expectedOutput:
+          ''
           '${scriptStrings.join('\n')}\n'
           '${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\n'
           '',
@@ -121,10 +126,12 @@ void _htmlScriptAdderTests(
     await testSuggestor(
       expectedPatchCount: 1,
       shouldDartfmtOutput: false,
-      input: ''
+      input:
+          ''
           '  ${scriptStrings.join('\n  ')}'
           '',
-      expectedOutput: ''
+      expectedOutput:
+          ''
           '  ${scriptStrings.join('\n  ')}\n'
           '  ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\n'
           '',
@@ -135,7 +142,8 @@ void _htmlScriptAdderTests(
     await testSuggestor(
       expectedPatchCount: 1,
       shouldDartfmtOutput: false,
-      input: ''
+      input:
+          ''
           '<!DOCTYPE html>\n'
           '<html>\n'
           '  <head>\n'
@@ -151,7 +159,8 @@ void _htmlScriptAdderTests(
           '  <body></body>\n'
           '</html>\n'
           '',
-      expectedOutput: ''
+      expectedOutput:
+          ''
           '<!DOCTYPE html>\n'
           '<html>\n'
           '  <head>\n'
@@ -172,20 +181,25 @@ void _htmlScriptAdderTests(
   });
 
   test('with a different script added', () async {
-    final someOtherScript =
-        ScriptToAdd(path: 'packages/something_else/something-else.js');
-    final anotherTestSuggestor = getSuggestorTester(aggregate([
-      HtmlScriptAdder(someOtherScript, true),
-      HtmlScriptAdder(someOtherScript, false),
-    ]));
+    final someOtherScript = ScriptToAdd(
+      path: 'packages/something_else/something-else.js',
+    );
+    final anotherTestSuggestor = getSuggestorTester(
+      aggregate([
+        HtmlScriptAdder(someOtherScript, true),
+        HtmlScriptAdder(someOtherScript, false),
+      ]),
+    );
 
     await anotherTestSuggestor(
       expectedPatchCount: 1,
       shouldDartfmtOutput: false,
-      input: ''
+      input:
+          ''
           '    ${scriptStrings.join('\n    ')}'
           '',
-      expectedOutput: ''
+      expectedOutput:
+          ''
           '    ${scriptStrings.join('\n    ')}\n'
           '    ${someOtherScript.scriptTag(pathPrefix: pathPrefix)}\n'
           '',
@@ -196,7 +210,8 @@ void _htmlScriptAdderTests(
     await testSuggestor(
       expectedPatchCount: 0,
       shouldDartfmtOutput: false,
-      input: ''
+      input:
+          ''
           '    ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\n'
           '    ${scriptStrings.join('\n    ')}\n'
           '',

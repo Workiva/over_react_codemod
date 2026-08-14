@@ -32,8 +32,8 @@ class MessageParser {
   // If we're parsing a method in isolation, it can't be parsed (at least not if it's static),
   // so wrap it in a trivial class and parse that.
   MessageParser.forMethod(String methodSource, {String className = 'Foo'})
-      : this.source = 'class $className { $methodSource }',
-        path = 'generated class for method' {
+    : this.source = 'class $className { $methodSource }',
+      path = 'generated class for method' {
     _parse();
   }
 
@@ -53,14 +53,18 @@ class MessageParser {
     for (var decl in allDeclarations) {
       if (decl is! MethodDeclaration) {
         throw FormatException(
-            'Invalid member, not a method declaration: "$decl"');
+          'Invalid member, not a method declaration: "$decl"',
+        );
       }
     }
     var methodDeclarations = allDeclarations.cast<MethodDeclaration>();
     methods = [
       for (var declaration in methodDeclarations)
-        Method(declaration.name.lexeme, messageText(declaration),
-            '  ${corrected(declaration)}')
+        Method(
+          declaration.name.lexeme,
+          messageText(declaration),
+          '  ${corrected(declaration)}',
+        ),
     ];
   }
 
@@ -87,7 +91,9 @@ class MessageParser {
   /// This also takes the state of the current source if it's already been
   /// partially rewritten.
   String withCorrectFunctionTypes(
-      MethodDeclaration declaration, String currentSource) {
+    MethodDeclaration declaration,
+    String currentSource,
+  ) {
     // Split out the body and just do a simple string replace on the header. The
     // conditions for a false positive on this seem unlikely, so just do it and
     // cross our fingers. If it's in a function name it will be followed by a
@@ -96,16 +102,20 @@ class MessageParser {
     // presumably be followed by either a comma or a close-paren.
     var splitString = (declaration.body is BlockFunctionBody) ? '{' : '=>';
     var declarationParts = currentSource.split(splitString);
-    var newBeginning =
-        declarationParts.first.replaceAll('Function ', 'Object ');
+    var newBeginning = declarationParts.first.replaceAll(
+      'Function ',
+      'Object ',
+    );
     return '$newBeginning$splitString${declarationParts.last}';
   }
 
   /// Find the parameter `name:` from the invocation, or return null if there
   /// isn't one.
   NamedExpression? nameParameterFrom(MethodInvocation invocation) =>
-      invocation.argumentList.childEntities.firstWhereOrNull((element) =>
-              element is NamedExpression && element.name.label.name == 'name')
+      invocation.argumentList.childEntities.firstWhereOrNull(
+            (element) =>
+                element is NamedExpression && element.name.label.name == 'name',
+          )
           as NamedExpression?;
 
   /// Return the method body with the correct name.
@@ -118,7 +128,10 @@ class MessageParser {
     var basicString = '$declaration';
     if (actual == null) {
       return basicString.replaceRange(
-          basicString.length - 2, basicString.length, ', name: $expected);');
+        basicString.length - 2,
+        basicString.length,
+        ', name: $expected);',
+      );
     } else
       return expected == actual
           ? basicString
@@ -138,11 +151,13 @@ class MessageParser {
       var methods = children.whereType<MethodInvocation>().toList();
       if (methods.length > 1)
         throw ArgumentError(
-            'A message can only contain a single call, which must be to an Intl function');
+          'A message can only contain a single call, which must be to an Intl function',
+        );
       return methods.first;
     } else {
       throw ArgumentError(
-          'Cannot parse $node. It needs to be a function with a single expression which is an Intl method invocation');
+        'Cannot parse $node. It needs to be a function with a single expression which is an Intl method invocation',
+      );
     }
   }
 

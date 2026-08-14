@@ -67,10 +67,7 @@ const List<String> overReactPropsStateNonMixinAnnotationNames = [
 ];
 
 /// Annotation names for over_react's props and state mixins.
-const List<String> overReactMixinAnnotationNames = [
-  'PropsMixin',
-  'StateMixin',
-];
+const List<String> overReactMixinAnnotationNames = ['PropsMixin', 'StateMixin'];
 
 /// A list of the names of the core component classes that can be upgraded to a "v2" version.
 const List<String> upgradableV1ComponentClassNames = [
@@ -101,16 +98,14 @@ const String stateMetaType = 'StateMeta';
 const String temporaryCompanionClassComment =
     'This will be removed once the transition to Dart 2 is complete.';
 
-RegExp getDependencyRegExp(String packageName) => RegExp(
-      packageName + r''':\s*(["']?)(.+)\1\s*$''',
-      multiLine: true,
-    );
+RegExp getDependencyRegExp(String packageName) =>
+    RegExp(packageName + r''':\s*(["']?)(.+)\1\s*$''', multiLine: true);
 
 RegExp getHostedDependencyRegExp(String packageName) => RegExp(
-      packageName +
-          r''':\n\s+hosted:\n\s+name:.*\n\s+url:.*\n\s+version:\s*(["']?)(.+)\1\s*$''',
-      multiLine: true,
-    );
+  packageName +
+      r''':\n\s+hosted:\n\s+name:.*\n\s+url:.*\n\s+version:\s*(["']?)(.+)\1\s*$''',
+  multiLine: true,
+);
 
 /// Regex to find a react dependency.
 final RegExp reactDependencyRegExp = getDependencyRegExp('react');
@@ -119,10 +114,7 @@ final RegExp reactDependencyRegExp = getDependencyRegExp('react');
 final RegExp overReactDependencyRegExp = getDependencyRegExp('over_react');
 
 /// Regex to find the dependency pubspec.yaml key.
-final RegExp dependencyRegExp = RegExp(
-  r'^dependencies:\s*$',
-  multiLine: true,
-);
+final RegExp dependencyRegExp = RegExp(r'^dependencies:\s*$', multiLine: true);
 
 /// Regex to find the dependency pubspec.yaml key.
 final RegExp devDependencyRegExp = RegExp(

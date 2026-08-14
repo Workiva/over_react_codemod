@@ -46,9 +46,10 @@ void main() {
 
     test('correctly changes display name', () async {
       testSuggestor = getSuggestorTester(
-          ConfigsMigrator('TestClassIntl', messages),
-          resolvedContext: resolvedContext,
-          inputUrl: 'test/input/display_name_config.dart');
+        ConfigsMigrator('TestClassIntl', messages),
+        resolvedContext: resolvedContext,
+        inputUrl: 'test/input/display_name_config.dart',
+      );
       await testSuggestor!(
         input: '''
             class TestExperienceConfig {
@@ -70,9 +71,10 @@ void main() {
 
     test('correctly changes name', () async {
       testSuggestor = getSuggestorTester(
-          ConfigsMigrator('TestClassIntl', messages),
-          resolvedContext: resolvedContext,
-          inputUrl: 'test/input/name_config.dart');
+        ConfigsMigrator('TestClassIntl', messages),
+        resolvedContext: resolvedContext,
+        inputUrl: 'test/input/name_config.dart',
+      );
 
       await testSuggestor!(
         input: '''
@@ -95,9 +97,10 @@ void main() {
 
     test('correctly changes title', () async {
       testSuggestor = getSuggestorTester(
-          ConfigsMigrator('TestClassIntl', messages),
-          resolvedContext: resolvedContext,
-          inputUrl: 'test/input/title_config.dart');
+        ConfigsMigrator('TestClassIntl', messages),
+        resolvedContext: resolvedContext,
+        inputUrl: 'test/input/title_config.dart',
+      );
       await testSuggestor!(
         input: '''
             class TestExperienceConfig {

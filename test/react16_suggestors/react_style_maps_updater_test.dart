@@ -66,11 +66,12 @@ main() {
         );
       });
 
-      test('is a single value within a style map using double quotes',
-          () async {
-        await testSuggestor(
-          expectedPatchCount: 1,
-          input: '''
+      test(
+        'is a single value within a style map using double quotes',
+        () async {
+          await testSuggestor(
+            expectedPatchCount: 1,
+            input: '''
             main() {
               Foo()
               ..id = 'number1'
@@ -79,7 +80,7 @@ main() {
               };
             }
           ''',
-          expectedOutput: '''
+            expectedOutput: '''
             main() {
               Foo()
               ..id = 'number1'
@@ -88,8 +89,9 @@ main() {
               };
             }
           ''',
-        );
-      });
+          );
+        },
+      );
 
       test('is a single value within an inline style map', () async {
         await testSuggestor(
@@ -180,7 +182,8 @@ main() {
               };
             }
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             main() {
               Foo()
               ${manualVariableCheckComment(keysOfModdedValues: ['width'])}
@@ -209,12 +212,11 @@ main() {
               };
             }
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             main() {
               Foo()
-              ${manualVariableCheckComment(keysOfModdedValues: [
-                'width',
-              ])}
+              ${manualVariableCheckComment(keysOfModdedValues: ['width'])}
               ..style = {
                 'width': isWide ?? isNotWide,
                 'height': '40%',
@@ -240,12 +242,11 @@ main() {
               };
             }
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             main() {
               Foo()
-              ${manualVariableCheckComment(keysOfModdedValues: [
-                'width',
-              ])}
+              ${manualVariableCheckComment(keysOfModdedValues: ['width'])}
               ..style = {
                 'width': width / 10,
                 'height': '40%',
@@ -339,18 +340,16 @@ main() {
         );
       });
 
-      test('is an interpolated string not ending in a known CSS unit',
-          () async {
-        await testSuggestor(
-          expectedPatchCount: 0,
-          input: '''
+      test(
+        'is an interpolated string not ending in a known CSS unit',
+        () async {
+          await testSuggestor(
+            expectedPatchCount: 0,
+            input:
+                '''
             main() {
               Foo()
-                ${getCheckboxComment(keysOfModdedValues: [
-                'width',
-                'height',
-                'fontSize'
-              ])}
+                ${getCheckboxComment(keysOfModdedValues: ['width', 'height', 'fontSize'])}
                 ..style = {
                   'width': '\$width',
                   'height': '\${getHeight()}foo',
@@ -358,8 +357,9 @@ main() {
                 };
             }
           ''',
-        );
-      });
+          );
+        },
+      );
 
       test('is on an instance creation expression', () async {
         await testSuggestor(
@@ -380,14 +380,11 @@ main() {
       test('is an expression that has already been updated', () async {
         await testSuggestor(
           expectedPatchCount: 0,
-          input: '''
+          input:
+              '''
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: [
-                'width',
-                'fontSize',
-                'margin'
-              ])}
+              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
               ..style = {
                 'width': isWide ? 40 : 20,
                 'height': '40%',
@@ -396,14 +393,11 @@ main() {
               };
             }
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: [
-                'width',
-                'fontSize',
-                'margin'
-              ])}
+              ${getCheckboxComment(keysOfModdedValues: ['width', 'fontSize', 'margin'])}
               ..style = {
                 'width': isWide ? 40 : 20,
                 'height': '40%',
@@ -430,7 +424,8 @@ main() {
               ..style = getStyleMap();
             }
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             main() {
               Map getStyleMap() {
                 return {
@@ -517,7 +512,8 @@ main() {
               };
             }
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             main() {
               Foo()
               ${manualVariableCheckComment(keysOfModdedValues: ['width'])}
@@ -538,7 +534,8 @@ main() {
               ..style = foo.bar;
             }
           ''',
-          expectedOutput: '''
+          expectedOutput:
+              '''
             main() {
               Foo()
               ${manualVariableCheckComment()}
@@ -549,18 +546,20 @@ main() {
       });
     });
 
-    test('adds a validate variable comment when the map value is a variable',
-        () async {
-      await testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
+    test(
+      'adds a validate variable comment when the map value is a variable',
+      () async {
+        await testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
             main() {
               var bar = {'width': '40'};
               Foo()
               ..style = bar;
             }
         ''',
-        expectedOutput: '''
+          expectedOutput:
+              '''
           main() {
             var bar = {'width': '40'};
             Foo()
@@ -568,14 +567,16 @@ main() {
             ..style = bar;
           }
         ''',
-      );
-    });
+        );
+      },
+    );
 
-    test('adds a validate variable comment when the key value is a variable',
-        () async {
-      await testSuggestor(
-        expectedPatchCount: 1,
-        input: '''
+    test(
+      'adds a validate variable comment when the key value is a variable',
+      () async {
+        await testSuggestor(
+          expectedPatchCount: 1,
+          input: '''
             main() {
               Foo()
               ..style = {
@@ -583,7 +584,8 @@ main() {
               };
             }
         ''',
-        expectedOutput: '''
+          expectedOutput:
+              '''
           main() {
             Foo()
             ${manualVariableCheckComment(keysOfModdedValues: ['width'])}
@@ -592,13 +594,15 @@ main() {
             };
           }
         ''',
-      );
-    });
+        );
+      },
+    );
 
     test('does not add a second validate comment when unchecked', () async {
       await testSuggestor(
         expectedPatchCount: 0,
-        input: '''
+        input:
+            '''
             main() {
               Foo()
               ${getCheckboxComment(keysOfModdedValues: ['width'])}
@@ -613,12 +617,11 @@ main() {
     test('does not add a second validate comment when checked', () async {
       await testSuggestor(
         expectedPatchCount: 0,
-        input: '''
+        input:
+            '''
             main() {
               Foo()
-              ${getCheckboxComment(keysOfModdedValues: [
-              'width'
-            ], checked: true)}
+              ${getCheckboxComment(keysOfModdedValues: ['width'], checked: true)}
               ..style = {
                 'width': '40px',
               };
@@ -668,11 +671,12 @@ main() {
       );
     });
 
-    test('does not run on DOM style property assignments in various forms',
-        () async {
-      await testSuggestor(
-        expectedPatchCount: 0,
-        input: '''
+    test(
+      'does not run on DOM style property assignments in various forms',
+      () async {
+        await testSuggestor(
+          expectedPatchCount: 0,
+          input: '''
             main() {
               style.width = '400';
               style..width = '400';
@@ -681,8 +685,9 @@ main() {
               DivElement().style..width = '400';
             }
           ''',
-      );
-    });
+        );
+      },
+    );
 
     test('works for custom props maps containing styles', () async {
       await testSuggestor(
@@ -713,12 +718,11 @@ main() {
     test('does not run twice', () async {
       await testSuggestor(
         expectedPatchCount: 0,
-        input: '''
+        input:
+            '''
             main() {
               Foo()
-              ${manualVariableCheckComment(keysOfModdedValues: [
-              'width'
-            ], isChecked: true)}
+              ${manualVariableCheckComment(keysOfModdedValues: ['width'], isChecked: true)}
               ..style = {
                 'width': isWide ?? 40,
                 'height': '40%',
@@ -727,12 +731,11 @@ main() {
               };
             }
           ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
             main() {
               Foo()
-              ${manualVariableCheckComment(keysOfModdedValues: [
-              'width'
-            ], isChecked: true)}
+              ${manualVariableCheckComment(keysOfModdedValues: ['width'], isChecked: true)}
               ..style = {
                 'width': isWide ?? 40,
                 'height': '40%',
@@ -754,8 +757,10 @@ String getCheckboxComment({
     $styleMapComment
     //$willBeRemovedCommentSuffix''';
 
-String manualVariableCheckComment(
-        {List<String> keysOfModdedValues = const [], isChecked = false}) =>
+String manualVariableCheckComment({
+  List<String> keysOfModdedValues = const [],
+  isChecked = false,
+}) =>
     '''// ${isChecked ? '[x]' : '[ ]'} Check this box upon manual validation that this style map is receiving a value that is valid ${keysOfModdedValues.isNotEmpty ? 'for the following keys: ${keysOfModdedValues.join(', ')}.' : 'for the keys that are simple string variables.'}
     $styleMapComment
     //$willBeRemovedCommentSuffix''';

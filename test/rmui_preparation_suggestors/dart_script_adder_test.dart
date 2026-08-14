@@ -25,10 +25,12 @@ void main() {
     // Test both suggestors together to:
     // 1. verify for all cases that the wrong bundle type isn't added
     // 2. verify they work well together, since they'll never really be run individually
-    final testSuggestor = getSuggestorTester(aggregate([
-      DartScriptAdder(rmuiBundleProd, true),
-      DartScriptAdder(rmuiBundleDev, false)
-    ]));
+    final testSuggestor = getSuggestorTester(
+      aggregate([
+        DartScriptAdder(rmuiBundleProd, true),
+        DartScriptAdder(rmuiBundleDev, false),
+      ]),
+    );
 
     test('empty file', () async {
       await testSuggestor(expectedPatchCount: 0, input: '');
@@ -76,12 +78,14 @@ void _dartScriptAdderTests(
     test('', () async {
       await testSuggestor(
         expectedPatchCount: 1,
-        input: '''
+        input:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '${scriptStrings.join('\',\n\'')}'
               ];
             ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
               List<String> _reactHtmlHeaders = const [
                 '${scriptStrings.join('\',\n\'')}'
                 ,\n\'${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}\'
@@ -93,13 +97,15 @@ void _dartScriptAdderTests(
     test('when there is already a comma after the preceding string', () async {
       await testSuggestor(
         expectedPatchCount: 1,
-        input: '''
+        input:
+            '''
             List<String> _reactHtmlHeaders = const [
               '${scriptStrings.join('\',\n\'')}',
               '<script src="packages/react_testing_library/js/react-testing-library.js"></script>',
             ];
           ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
             List<String> _reactHtmlHeaders = const [
               '${scriptStrings.join('\',\n\'')}',
               '${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}',
@@ -112,7 +118,8 @@ void _dartScriptAdderTests(
     test('when the added script already exists in the list', () async {
       await testSuggestor(
         expectedPatchCount: 0,
-        input: '''
+        input:
+            '''
             List<String> _reactHtmlHeaders = const [
               '${scriptStrings.join('\',\n\'')}',
               '${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}',
@@ -122,21 +129,26 @@ void _dartScriptAdderTests(
     });
 
     test('with a different script added', () async {
-      final someOtherScript =
-          ScriptToAdd(path: 'packages/something_else/something-else.js');
-      final anotherTestSuggestor = getSuggestorTester(aggregate([
-        DartScriptAdder(someOtherScript, false),
-        DartScriptAdder(someOtherScript, true),
-      ]));
+      final someOtherScript = ScriptToAdd(
+        path: 'packages/something_else/something-else.js',
+      );
+      final anotherTestSuggestor = getSuggestorTester(
+        aggregate([
+          DartScriptAdder(someOtherScript, false),
+          DartScriptAdder(someOtherScript, true),
+        ]),
+      );
 
       await anotherTestSuggestor(
         expectedPatchCount: 1,
-        input: '''
+        input:
+            '''
             List<String> _reactHtmlHeaders = const [
               '${scriptStrings.join('\',\n\'')}',
             ];
           ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
             List<String> _reactHtmlHeaders = const [
               '${scriptStrings.join('\',\n\'')}',
               '${someOtherScript.scriptTag(pathPrefix: pathPrefix)}',
@@ -168,7 +180,8 @@ void _dartScriptAdderTests(
     test('nested in other logic', () async {
       await testSuggestor(
         expectedPatchCount: 1,
-        input: '''
+        input:
+            '''
             import 'package:dart_dev/dart_dev.dart' show config, TestRunnerConfig, Environment;
             
             main(List<String> args) async {
@@ -191,7 +204,8 @@ void _dartScriptAdderTests(
               ];
             }
           ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
             import 'package:dart_dev/dart_dev.dart' show config, TestRunnerConfig, Environment;
             
             main(List<String> args) async {
@@ -223,12 +237,14 @@ void _dartScriptAdderTests(
     test('', () async {
       await testSuggestor(
         expectedPatchCount: 1,
-        input: '''
+        input:
+            '''
               const expectedTemplateHeaders = \'\'\'
                 ${scriptStrings.join('\n                ')}
               \'\'\';
             ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
               const expectedTemplateHeaders = \'\'\'
                 ${scriptStrings.join('\n                ')}
                 ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}
@@ -240,7 +256,8 @@ void _dartScriptAdderTests(
     test('with a large string', () async {
       await testSuggestor(
         expectedPatchCount: 1,
-        input: '''
+        input:
+            '''
             const expectedTemplateHeaders = \'\'\'
               <!DOCTYPE html>
               <html>
@@ -258,7 +275,8 @@ void _dartScriptAdderTests(
               </html>
               \'\'\';
           ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
             const expectedTemplateHeaders = \'\'\'
               <!DOCTYPE html>
               <html>
@@ -281,21 +299,26 @@ void _dartScriptAdderTests(
     });
 
     test('with a different script added', () async {
-      final someOtherScript =
-          ScriptToAdd(path: 'packages/something_else/something-else.js');
-      final anotherTestSuggestor = getSuggestorTester(aggregate([
-        DartScriptAdder(someOtherScript, false),
-        DartScriptAdder(someOtherScript, true),
-      ]));
+      final someOtherScript = ScriptToAdd(
+        path: 'packages/something_else/something-else.js',
+      );
+      final anotherTestSuggestor = getSuggestorTester(
+        aggregate([
+          DartScriptAdder(someOtherScript, false),
+          DartScriptAdder(someOtherScript, true),
+        ]),
+      );
 
       await anotherTestSuggestor(
         expectedPatchCount: 1,
-        input: '''
+        input:
+            '''
             const expectedTemplateHeaders = \'\'\'
               ${scriptStrings.join('\n              ')}
             \'\'\';
           ''',
-        expectedOutput: '''
+        expectedOutput:
+            '''
             const expectedTemplateHeaders = \'\'\'
               ${scriptStrings.join('\n              ')}
               ${someOtherScript.scriptTag(pathPrefix: pathPrefix)}
@@ -307,7 +330,8 @@ void _dartScriptAdderTests(
     test('when the script already exists', () async {
       await testSuggestor(
         expectedPatchCount: 0,
-        input: '''
+        input:
+            '''
             const expectedTemplateHeaders = \'\'\'
               ${scriptStrings.join('\n              ')}
               ${expectedAddedScript.scriptTag(pathPrefix: pathPrefix)}

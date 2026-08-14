@@ -36,10 +36,16 @@ void main(List<String> args) async {
 
   exitCode = await runInteractiveCodemod(
     pubspecYamlPaths(),
-    aggregate([
-      PubspecUpgrader('react_material_ui', parseVersionRange('^1.89.1'),
-          hostedUrl: 'https://pub.workiva.org', shouldAddDependencies: false),
-    ].map((s) => ignoreable(s))),
+    aggregate(
+      [
+        PubspecUpgrader(
+          'react_material_ui',
+          parseVersionRange('^1.89.1'),
+          hostedUrl: 'https://pub.workiva.org',
+          shouldAddDependencies: false,
+        ),
+      ].map((s) => ignoreable(s)),
+    ),
     defaultYes: true,
     args: parsedArgs.rest,
     additionalHelpOutput: parser.usage,

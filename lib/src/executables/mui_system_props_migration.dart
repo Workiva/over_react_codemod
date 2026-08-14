@@ -20,14 +20,13 @@ import 'package:over_react_codemod/src/mui_suggestors/system_props_to_sx_migrato
 import 'package:over_react_codemod/src/util.dart';
 
 void main(List<String> args) async {
-  const description = 'Migrates deprecated MUI system props to the `sx` prop,'
+  const description =
+      'Migrates deprecated MUI system props to the `sx` prop,'
       '\nensuring that existing `sx` prop values are preserved and merged correctly.';
 
   exitCode = await runInteractiveCodemod(
     allDartPathsExceptHidden(),
-    aggregate([
-      SystemPropsToSxMigrator(),
-    ].map((s) => ignoreable(s))),
+    aggregate([SystemPropsToSxMigrator()].map((s) => ignoreable(s))),
     defaultYes: true,
     args: args,
     additionalHelpOutput: description,

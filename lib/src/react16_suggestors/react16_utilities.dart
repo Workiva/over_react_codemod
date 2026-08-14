@@ -56,21 +56,25 @@ bool hasComment(AstNode node, SourceFile sourceFile, String comment) {
 /// Whether the [node] has a documentation comment that has
 /// any lines that match lines found within the provided [comment].
 bool hasMultilineDocComment(
-    AnnotatedNode node, SourceFile sourceFile, String comment) {
-  final nodeComments = nodeCommentSpan(node, sourceFile)
-      .text
-      .replaceAll('///', '')
-      .split('\n')
-      .map((line) => line.replaceAll('\n', '').trim())
-      .toList()
-    ..removeWhere((line) => line.isEmpty);
-  final commentLines = comment
-      .replaceAll('///', '')
-      .trimLeft()
-      .split('\n')
-      .map((line) => line.replaceAll('\n', '').trim())
-      .toList()
-    ..removeWhere((line) => line.isEmpty);
+  AnnotatedNode node,
+  SourceFile sourceFile,
+  String comment,
+) {
+  final nodeComments =
+      nodeCommentSpan(node, sourceFile).text
+          .replaceAll('///', '')
+          .split('\n')
+          .map((line) => line.replaceAll('\n', '').trim())
+          .toList()
+        ..removeWhere((line) => line.isEmpty);
+  final commentLines =
+      comment
+          .replaceAll('///', '')
+          .trimLeft()
+          .split('\n')
+          .map((line) => line.replaceAll('\n', '').trim())
+          .toList()
+        ..removeWhere((line) => line.isEmpty);
 
   bool match = false;
 
@@ -88,7 +92,8 @@ bool hasMultilineDocComment(
 /// Returns the `SourceSpan` value of any comments on the provided [node] within the [sourceFile].
 SourceSpan nodeCommentSpan(AnnotatedNode node, SourceFile sourceFile) {
   return sourceFile.span(
-      node.beginToken.offset,
-      node.metadata.beginToken?.offset ??
-          node.firstTokenAfterCommentAndMetadata.offset);
+    node.beginToken.offset,
+    node.metadata.beginToken?.offset ??
+        node.firstTokenAfterCommentAndMetadata.offset,
+  );
 }

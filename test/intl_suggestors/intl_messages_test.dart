@@ -15,7 +15,7 @@ void main() {
     test('methodName', () {
       var names = [
         for (var method in sampleMethods)
-          MessageParser.forMethod(method).methods.first.name
+          MessageParser.forMethod(method).methods.first.name,
       ];
       expect(names, [
         'orange',
@@ -25,7 +25,7 @@ void main() {
         'aPlural',
         'formatted',
         'formattedNonArrow',
-        'someSelect'
+        'someSelect',
       ]);
     });
     test('Tabs instead of spaces', () {
@@ -35,19 +35,22 @@ void main() {
         name: 'TestProjectIntl_activateTheSelectedNode',
       );
       ''';
-      expect(MessageParser.forMethod(tabbed).methods.first.name,
-          'activateTheSelectedNode');
+      expect(
+        MessageParser.forMethod(tabbed).methods.first.name,
+        'activateTheSelectedNode',
+      );
     });
 
     test('Rewrite invalid name', () {
       var badName =
           '''static String get foo => Intl.message('Foo', name: 'foo');''';
       expect(
-          MessageParser.forMethod(badName, className: 'AbcIntl')
-              .methods
-              .first
-              .source,
-          contains("name: 'AbcIntl_foo'"));
+        MessageParser.forMethod(
+          badName,
+          className: 'AbcIntl',
+        ).methods.first.source,
+        contains("name: 'AbcIntl_foo'"),
+      );
     });
 
     test('Add missing name', () {
@@ -57,10 +60,13 @@ void main() {
       // Check that this parses as valid Dart code and the resulting declaration has the same source,
       // i.e. we didn't mess anything up too badly.
       var parsed = parseString(
-          content: 'class AbcIntl {${parser.methods.first.source}}');
+        content: 'class AbcIntl {${parser.methods.first.source}}',
+      );
       var theClass = parsed.unit.declarations.first as ClassDeclaration;
-      expect(theClass.members.first.toSource(),
-          parser.methods.first.source.trim());
+      expect(
+        theClass.members.first.toSource(),
+        parser.methods.first.source.trim(),
+      );
     });
   });
 
@@ -87,13 +93,16 @@ void main() {
       var classSource = 'class Foo { $method }';
       var parsed = parseString(content: classSource);
       var intlClass = parsed.unit.declarations.first as ClassDeclaration;
-      var methodDeclarations =
-          intlClass.members.toList().cast<MethodDeclaration>();
-      var argument = ((methodDeclarations.first.body.childEntities.toList()[1]
-              as MethodInvocation)
-          .argumentList
-          .arguments
-          .first as StringLiteral);
+      var methodDeclarations = intlClass.members
+          .toList()
+          .cast<MethodDeclaration>();
+      var argument =
+          ((methodDeclarations.first.body.childEntities.toList()[1]
+                      as MethodInvocation)
+                  .argumentList
+                  .arguments
+                  .first
+              as StringLiteral);
       messages = IntlMessages('TestProject', output: intlFile);
       var derivedName = messages.syntax.nameForNode(argument);
       expect(derivedName, 'adjacentStringsOnTwoLines');
@@ -106,7 +115,8 @@ void main() {
 
     writeExisting(List<String> methods) {
       intlFile.writeAsStringSync(
-          "${IntlMessages.prologueFor('TestProjectIntl')}\n${methods.join('\n\n')}\n}\n");
+        "${IntlMessages.prologueFor('TestProjectIntl')}\n${methods.join('\n\n')}\n}\n",
+      );
       messages = IntlMessages('TestProject', output: intlFile);
     }
 
@@ -127,33 +137,43 @@ void main() {
         'aPlural',
         'formatted',
         'formattedNonArrow',
-        'someSelect'
+        'someSelect',
       ]);
-      expect(messages.methods.values.map((each) => each.source).toList(),
-          sampleMethods);
+      expect(
+        messages.methods.values.map((each) => each.source).toList(),
+        sampleMethods,
+      );
     });
 
     test('messages written as expected', () {
       messages.write(force: true);
       messages.format();
-      expect(messages.outputFile.readAsStringSync(),
-          expectedFile(sortedSampleMethods.join('\n\n') + '\n'));
+      expect(
+        messages.outputFile.readAsStringSync(),
+        expectedFile(sortedSampleMethods.join('\n\n') + '\n'),
+      );
     });
 
     test('Function in formattedMessage parameters rewritten to Object', () {
       // Write the file with a method in it that has a parameter typed Function.
       var formattedMethod = messages.methods['formatted']!;
-      formattedMethod.source =
-          formattedMethod.source.replaceFirst('(Object ', '(Function ');
+      formattedMethod.source = formattedMethod.source.replaceFirst(
+        '(Object ',
+        '(Function ',
+      );
       messages.write(force: true);
-      expect(messages.outputFile.readAsStringSync(),
-          isNot(equals(expectedFile(sortedSampleMethods.join('\n\n')))));
+      expect(
+        messages.outputFile.readAsStringSync(),
+        isNot(equals(expectedFile(sortedSampleMethods.join('\n\n')))),
+      );
       // Read it back and re-write it.
       var newMessages = IntlMessages('TestProject', output: intlFile);
       newMessages.write(force: true);
       // Check that the Function parameter is back to normal.
-      expect(messages.outputFile.readAsStringSync(),
-          expectedFile(sortedSampleMethods.join('\n\n') + '\n'));
+      expect(
+        messages.outputFile.readAsStringSync(),
+        expectedFile(sortedSampleMethods.join('\n\n') + '\n'),
+      );
     });
 
     test('annotated messages rewritten properly when new ones are added', () {
@@ -163,8 +183,10 @@ void main() {
           "  static String get zzNewMessage => Intl.message('new', name: 'TestProjectIntl_zzNewMessage');\n";
       messages.addMethod(extra);
       messages.write();
-      expect(messages.outputFile.readAsStringSync(),
-          expectedFile([...sortedSampleMethods, extra].join('\n\n')));
+      expect(
+        messages.outputFile.readAsStringSync(),
+        expectedFile([...sortedSampleMethods, extra].join('\n\n')),
+      );
     });
 
     test('duplicate names with different content throw in addMethod', () {
@@ -172,8 +194,7 @@ void main() {
       expect(() => messages.addMethod(tweaked), throwsA(isA<AssertionError>()));
     });
 
-    test('duplicate names with different content give a valid name if asked',
-        () {
+    test('duplicate names with different content give a valid name if asked', () {
       /// Modify the message text, but also change the name so that when it parses the function it will
       /// find it. So we're really exercising the nameForString more than the addMethod.
       var tweaked = sampleMethods[3].replaceFirst('def', 'zzzz');
@@ -193,7 +214,8 @@ void main() {
 }
 
 String wIntl = 'w_intl';
-String expectedFile(String methods) => '''
+String expectedFile(String methods) =>
+    '''
 import 'package:${wIntl}/intl_wrapper.dart';
 
 ${IntlMessages.introComment}
@@ -213,7 +235,7 @@ string''', name: 'TestProjectIntl_long');""",
   """  static String aPlural(int n) => Intl.plural(n, zero: 'zero', other: 'other', name: 'TestProjectIntl_aPlural', args: [n]);""",
   """  static List<Object> formatted(Object f) => Intl.formattedMessage([f, 'foo'], name: 'TestProjectIntl_formatted', args: [f]);""",
   """  static List<Object> formattedNonArrow(Object f) {Intl.formattedMessage([f, 'foo'], name: 'TestProjectIntl_formattedNonArrow', args: [f]);}""",
-  """  static String someSelect(Object choice) => Intl.select(choice, {'a' : 'b'}, name: 'TestProjectIntl_someSelect', args: [choice]);"""
+  """  static String someSelect(Object choice) => Intl.select(choice, {'a' : 'b'}, name: 'TestProjectIntl_someSelect', args: [choice]);""",
 ];
 
 // The sample methods in a hard-coded sorted order.

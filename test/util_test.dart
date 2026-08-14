@@ -32,33 +32,45 @@ void main() {
   group('Utils', () {
     group('buildIgnoreComment()', () {
       test('constInitializedWithNonConstantValue', () {
-        expect(buildIgnoreComment(constInitializedWithNonConstantValue: true),
-            '// ignore: const_initialized_with_non_constant_value');
+        expect(
+          buildIgnoreComment(constInitializedWithNonConstantValue: true),
+          '// ignore: const_initialized_with_non_constant_value',
+        );
       });
 
       test('mixinOfNonClass', () {
-        expect(buildIgnoreComment(mixinOfNonClass: true),
-            '// ignore: mixin_of_non_class');
+        expect(
+          buildIgnoreComment(mixinOfNonClass: true),
+          '// ignore: mixin_of_non_class',
+        );
       });
 
       test('undefinedClass', () {
-        expect(buildIgnoreComment(undefinedClass: true),
-            '// ignore: undefined_class');
+        expect(
+          buildIgnoreComment(undefinedClass: true),
+          '// ignore: undefined_class',
+        );
       });
 
       test('undefinedIdentifier', () {
-        expect(buildIgnoreComment(undefinedIdentifier: true),
-            '// ignore: undefined_identifier');
+        expect(
+          buildIgnoreComment(undefinedIdentifier: true),
+          '// ignore: undefined_identifier',
+        );
       });
 
       test('uriHasNotBeenGenerated', () {
-        expect(buildIgnoreComment(uriHasNotBeenGenerated: true),
-            '// ignore: uri_has_not_been_generated');
+        expect(
+          buildIgnoreComment(uriHasNotBeenGenerated: true),
+          '// ignore: uri_has_not_been_generated',
+        );
       });
 
       test('multiple', () {
-        expect(buildIgnoreComment(mixinOfNonClass: true, undefinedClass: true),
-            '// ignore: mixin_of_non_class, undefined_class');
+        expect(
+          buildIgnoreComment(mixinOfNonClass: true, undefinedClass: true),
+          '// ignore: mixin_of_non_class, undefined_class',
+        );
       });
     });
 
@@ -155,7 +167,8 @@ void overReactExample() {}''';
     });
 
     group('getNonHostedDependencyVersion', () {
-      final pubspecContent = ''
+      final pubspecContent =
+          ''
           'name: nothing\n'
           'version: 0.0.0\n'
           'dependencies:\n'
@@ -170,48 +183,66 @@ void overReactExample() {}''';
           '';
 
       test('returns null if the dependency is not found', () {
-        expect(getNonHostedDependencyVersion(pubspecContent, 'a_dependency'),
-            isNull);
+        expect(
+          getNonHostedDependencyVersion(pubspecContent, 'a_dependency'),
+          isNull,
+        );
       });
 
       group('identifies the expected version for a dependency that is', () {
         test('"any"', () {
           expect(
-              getNonHostedDependencyVersion(pubspecContent, 'any_dependency'),
-              VersionConstraint.parse('any'));
+            getNonHostedDependencyVersion(pubspecContent, 'any_dependency'),
+            VersionConstraint.parse('any'),
+          );
         });
         test('fixed', () {
-          expect(getNonHostedDependencyVersion(pubspecContent, 'fixed'),
-              VersionConstraint.parse('10.2.3'));
+          expect(
+            getNonHostedDependencyVersion(pubspecContent, 'fixed'),
+            VersionConstraint.parse('10.2.3'),
+          );
         });
         test('using the caret syntax', () {
-          expect(getNonHostedDependencyVersion(pubspecContent, 'caret_syntax'),
-              VersionConstraint.parse('^2.3.4'));
+          expect(
+            getNonHostedDependencyVersion(pubspecContent, 'caret_syntax'),
+            VersionConstraint.parse('^2.3.4'),
+          );
         });
         test('a greater than range', () {
           expect(
-              getNonHostedDependencyVersion(
-                  pubspecContent, 'greater_than_ranged'),
-              VersionConstraint.parse('>=5.7.8'));
+            getNonHostedDependencyVersion(
+              pubspecContent,
+              'greater_than_ranged',
+            ),
+            VersionConstraint.parse('>=5.7.8'),
+          );
         });
         test('a less than range', () {
           expect(
-              getNonHostedDependencyVersion(pubspecContent, 'less_than_ranged'),
-              VersionConstraint.parse('<=5.7.8'));
+            getNonHostedDependencyVersion(pubspecContent, 'less_than_ranged'),
+            VersionConstraint.parse('<=5.7.8'),
+          );
         });
         test('an intersection', () {
-          expect(getNonHostedDependencyVersion(pubspecContent, 'intersection'),
-              VersionConstraint.parse('>=2.3.0 <2.8.0'));
+          expect(
+            getNonHostedDependencyVersion(pubspecContent, 'intersection'),
+            VersionConstraint.parse('>=2.3.0 <2.8.0'),
+          );
         });
         test('with double quotes', () {
-          expect(getNonHostedDependencyVersion(pubspecContent, 'intersection'),
-              VersionConstraint.parse('>=2.3.0 <2.8.0'));
+          expect(
+            getNonHostedDependencyVersion(pubspecContent, 'intersection'),
+            VersionConstraint.parse('>=2.3.0 <2.8.0'),
+          );
         });
         test('with single quotes', () {
           expect(
-              getNonHostedDependencyVersion(
-                  pubspecContent, 'intersection_single_quoted'),
-              VersionConstraint.parse('>=2.3.0 <2.8.0'));
+            getNonHostedDependencyVersion(
+              pubspecContent,
+              'intersection_single_quoted',
+            ),
+            VersionConstraint.parse('>=2.3.0 <2.8.0'),
+          );
         });
       });
     });
@@ -228,16 +259,19 @@ void overReactExample() {}''';
       });
 
       test(
-          'returns the version constraint\'s toString if caret syntax cannot be used',
-          () {
-        expect(friendlyFromString('>1.0.0 <2.0.0'), '>1.0.0 <2.0.0');
-        expect(friendlyFromString('>=1.0.0 <3.0.0'), '>=1.0.0 <3.0.0');
-        expect(friendlyFromString('>=1.0.0 <1.5.0'), '>=1.0.0 <1.5.0');
-        // Edge cases
-        expect(friendlyFromString('any'), 'any');
-        expect(friendlyVersionConstraint(VersionConstraint.empty),
-            VersionConstraint.empty.toString());
-      });
+        'returns the version constraint\'s toString if caret syntax cannot be used',
+        () {
+          expect(friendlyFromString('>1.0.0 <2.0.0'), '>1.0.0 <2.0.0');
+          expect(friendlyFromString('>=1.0.0 <3.0.0'), '>=1.0.0 <3.0.0');
+          expect(friendlyFromString('>=1.0.0 <1.5.0'), '>=1.0.0 <1.5.0');
+          // Edge cases
+          expect(friendlyFromString('any'), 'any');
+          expect(
+            friendlyVersionConstraint(VersionConstraint.empty),
+            VersionConstraint.empty.toString(),
+          );
+        },
+      );
     });
 
     group('mightNeedYamlEscaping()', () {
@@ -294,91 +328,111 @@ void overReactExample() {}''';
       group('when the current dependency uses the caret syntax ', () {
         test('and the target uses caret syntax', () {
           expect(
-              shouldUpdateVersionRange(
-                  constraint: VersionConstraint.parse('^4.0.0'),
-                  targetConstraint: parseVersionRange('^5.0.0')),
-              isTrue);
+            shouldUpdateVersionRange(
+              constraint: VersionConstraint.parse('^4.0.0'),
+              targetConstraint: parseVersionRange('^5.0.0'),
+            ),
+            isTrue,
+          );
         });
 
         test('and the target uses a range', () {
           expect(
-              shouldUpdateVersionRange(
-                  constraint: VersionConstraint.parse('^4.0.0'),
-                  targetConstraint: parseVersionRange('>=5.0.0 <6.0.0')),
-              isTrue);
+            shouldUpdateVersionRange(
+              constraint: VersionConstraint.parse('^4.0.0'),
+              targetConstraint: parseVersionRange('>=5.0.0 <6.0.0'),
+            ),
+            isTrue,
+          );
         });
       });
 
       group('when the current dependency uses a range ', () {
         test('and the range has no specified max', () {
           expect(
-              shouldUpdateVersionRange(
-                  constraint: VersionConstraint.parse('>=4.0.0'),
-                  targetConstraint: parseVersionRange('^5.0.0')),
-              isTrue);
+            shouldUpdateVersionRange(
+              constraint: VersionConstraint.parse('>=4.0.0'),
+              targetConstraint: parseVersionRange('^5.0.0'),
+            ),
+            isTrue,
+          );
         });
 
         test('and the target uses caret syntax', () {
           expect(
-              shouldUpdateVersionRange(
-                  constraint: VersionConstraint.parse('>=4.0.0 <5.0.0'),
-                  targetConstraint: parseVersionRange('^5.0.0')),
-              isTrue);
+            shouldUpdateVersionRange(
+              constraint: VersionConstraint.parse('>=4.0.0 <5.0.0'),
+              targetConstraint: parseVersionRange('^5.0.0'),
+            ),
+            isTrue,
+          );
         });
 
         test('and the target uses a range', () {
           expect(
-              shouldUpdateVersionRange(
-                  constraint: VersionConstraint.parse('>=4.0.0 <5.0.0'),
-                  targetConstraint: parseVersionRange('>=5.0.0 <6.0.0')),
-              isTrue);
+            shouldUpdateVersionRange(
+              constraint: VersionConstraint.parse('>=4.0.0 <5.0.0'),
+              targetConstraint: parseVersionRange('>=5.0.0 <6.0.0'),
+            ),
+            isTrue,
+          );
         });
       });
 
       group('when shouldIgnoreMin is true ', () {
         test('and the current min is higher than the target min', () {
           expect(
-              shouldUpdateVersionRange(
-                  constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: parseVersionRange('>=5.0.0 <6.0.0'),
-                  shouldIgnoreMin: true),
-              isTrue);
+            shouldUpdateVersionRange(
+              constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
+              targetConstraint: parseVersionRange('>=5.0.0 <6.0.0'),
+              shouldIgnoreMin: true,
+            ),
+            isTrue,
+          );
         });
 
         test('and the target max is higher than the current max', () {
           expect(
-              shouldUpdateVersionRange(
-                  constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: parseVersionRange('>=5.0.0 <7.0.0'),
-                  shouldIgnoreMin: true),
-              isTrue);
+            shouldUpdateVersionRange(
+              constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
+              targetConstraint: parseVersionRange('>=5.0.0 <7.0.0'),
+              shouldIgnoreMin: true,
+            ),
+            isTrue,
+          );
         });
       });
 
       group('when shouldIgnoreMin is false ', () {
         test('and the current min is higher than the target min', () {
           expect(
-              shouldUpdateVersionRange(
-                  constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: parseVersionRange('>=5.0.0 <6.0.0')),
-              isFalse);
+            shouldUpdateVersionRange(
+              constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
+              targetConstraint: parseVersionRange('>=5.0.0 <6.0.0'),
+            ),
+            isFalse,
+          );
         });
 
         test('and the target max is higher than the current max', () {
           expect(
-              shouldUpdateVersionRange(
-                  constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
-                  targetConstraint: parseVersionRange('>=5.0.0 <7.0.0')),
-              isTrue);
+            shouldUpdateVersionRange(
+              constraint: VersionConstraint.parse('>=5.5.0 <6.0.0'),
+              targetConstraint: parseVersionRange('>=5.0.0 <7.0.0'),
+            ),
+            isTrue,
+          );
         });
       });
 
       test('and the current max is higher than the target max', () {
         expect(
-            shouldUpdateVersionRange(
-                constraint: VersionConstraint.parse('>=5.0.0 <7.0.0'),
-                targetConstraint: parseVersionRange('>=5.0.0 <6.0.0')),
-            isFalse);
+          shouldUpdateVersionRange(
+            constraint: VersionConstraint.parse('>=5.0.0 <7.0.0'),
+            targetConstraint: parseVersionRange('>=5.0.0 <6.0.0'),
+          ),
+          isFalse,
+        );
       });
     });
 
@@ -469,81 +523,84 @@ void overReactExample() {}''';
           parseString(content: source).unit.declarations.single;
 
       test('returns all comments for a node', () {
-        expect(allCommentsForNode(parseAndGetSingle('''
+        expect(
+          allCommentsForNode(
+            parseAndGetSingle('''
           // Some comment
           int node;
-        ''')).map((comment) => comment.toString()).toList(), [
-          '// Some comment',
-        ]);
+        '''),
+          ).map((comment) => comment.toString()).toList(),
+          ['// Some comment'],
+        );
       });
 
       test('handles nodes with doc comments properly', () {
         // It's important to test both orders due to the way
         // doc comments are included in the node.
 
-        expect(allCommentsForNode(parseAndGetSingle('''
+        expect(
+          allCommentsForNode(
+            parseAndGetSingle('''
           /// Doc comment
           // other comment
           int node;
-        ''')).map((comment) => comment.toString()).toList(), [
-          '/// Doc comment',
-          '// other comment',
-        ]);
+        '''),
+          ).map((comment) => comment.toString()).toList(),
+          ['/// Doc comment', '// other comment'],
+        );
 
-        expect(allCommentsForNode(parseAndGetSingle('''
+        expect(
+          allCommentsForNode(
+            parseAndGetSingle('''
           // other comment
           /// Doc comment
           int node;
-        ''')).map((comment) => comment.toString()).toList(), [
-          '// other comment',
-          '/// Doc comment',
-        ]);
+        '''),
+          ).map((comment) => comment.toString()).toList(),
+          ['// other comment', '/// Doc comment'],
+        );
       });
 
       test('handles mixed comment types properly', () {
-        expect(allCommentsForNode(parseAndGetSingle('''
+        expect(
+          allCommentsForNode(
+            parseAndGetSingle('''
           // single line comment
           /* multiline comment */
           int node;
-        ''')).map((comment) => comment.toString()).toList(), [
-          '// single line comment',
-          '/* multiline comment */',
-        ]);
+        '''),
+          ).map((comment) => comment.toString()).toList(),
+          ['// single line comment', '/* multiline comment */'],
+        );
 
-        expect(allCommentsForNode(parseAndGetSingle('''
+        expect(
+          allCommentsForNode(
+            parseAndGetSingle('''
           /* multiline comment */
           // single line comment
           int node;
-        ''')).map((comment) => comment.toString()).toList(), [
-          '/* multiline comment */',
-          '// single line comment',
-        ]);
+        '''),
+          ).map((comment) => comment.toString()).toList(),
+          ['/* multiline comment */', '// single line comment'],
+        );
       });
     });
 
     group('hasParseErrors()', () {
       test('when sourceText contains invalid code', () {
-        expect(
-          hasParseErrors('a = 1;'),
-          isTrue,
-        );
+        expect(hasParseErrors('a = 1;'), isTrue);
       });
 
       test('when sourceText contains valid code', () {
-        expect(
-          hasParseErrors('final a = 1;'),
-          isFalse,
-        );
+        expect(hasParseErrors('final a = 1;'), isFalse);
       });
     });
 
     group('allDescendants()', () {
       TopLevelVariableDeclaration parseAndGetSingle(String source) =>
-          parseString(content: source)
-              .unit
-              .declarations
-              .whereType<TopLevelVariableDeclaration>()
-              .single;
+          parseString(
+            content: source,
+          ).unit.declarations.whereType<TopLevelVariableDeclaration>().single;
 
       test('returns all descendants for a node', () {
         final node = parseAndGetSingle('''
@@ -551,45 +608,79 @@ void overReactExample() {}''';
         ''');
 
         expect(
-            allDescendants(node).toList(),
-            unorderedEquals([
-              isA<VariableDeclarationList>().having(
-                (node) => node.toSource(),
-                'string value',
-                'UiFactory<FooProps> Foo = castUiFactory(_\$Foo)',
+          allDescendants(node).toList(),
+          unorderedEquals([
+            isA<VariableDeclarationList>().having(
+              (node) => node.toSource(),
+              'string value',
+              'UiFactory<FooProps> Foo = castUiFactory(_\$Foo)',
+            ),
+            isA<VariableDeclaration>().having(
+              (node) => node.toSource(),
+              'string value',
+              'Foo = castUiFactory(_\$Foo)',
+            ),
+            isA<NamedType>().having(
+              (node) => node.name.name,
+              'name',
+              'UiFactory',
+            ),
+            isA<NamedType>().having(
+              (node) => node.name.name,
+              'name',
+              'FooProps',
+            ),
+            isA<MethodInvocation>().having(
+              (node) => node.methodName.name,
+              'methodName',
+              'castUiFactory',
+            ),
+            isA<TypeArgumentList>().having(
+              (node) => node.arguments.toList(),
+              'arguments',
+              [
+                isA<NamedType>().having(
+                  (node) => node.name.name,
+                  'name',
+                  'FooProps',
+                ),
+              ],
+            ),
+            isA<ArgumentList>().having(
+              (node) => node.arguments.toList(),
+              'arguments',
+              [
+                isA<SimpleIdentifier>().having(
+                  (node) => node.name,
+                  'name',
+                  '_\$Foo',
+                ),
+              ],
+            ),
+            if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
+              isA<SimpleIdentifier>().having(
+                (node) => node.name,
+                'name',
+                'UiFactory',
               ),
-              isA<VariableDeclaration>().having(
-                (node) => node.toSource(),
-                'string value',
-                'Foo = castUiFactory(_\$Foo)',
+            if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
+              isA<SimpleIdentifier>().having(
+                (node) => node.name,
+                'name',
+                'FooProps',
               ),
-              isA<NamedType>()
-                  .having((node) => node.name.name, 'name', 'UiFactory'),
-              isA<NamedType>()
-                  .having((node) => node.name.name, 'name', 'FooProps'),
-              isA<MethodInvocation>().having((node) => node.methodName.name,
-                  'methodName', 'castUiFactory'),
-              isA<TypeArgumentList>().having(
-                  (node) => node.arguments.toList(), 'arguments', [
-                isA<NamedType>()
-                    .having((node) => node.name.name, 'name', 'FooProps')
-              ]),
-              isA<ArgumentList>().having(
-                  (node) => node.arguments.toList(), 'arguments', [
-                isA<SimpleIdentifier>()
-                    .having((node) => node.name, 'name', '_\$Foo')
-              ]),
-              if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
-                isA<SimpleIdentifier>()
-                    .having((node) => node.name, 'name', 'UiFactory'),
-              if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
-                isA<SimpleIdentifier>()
-                    .having((node) => node.name, 'name', 'FooProps'),
-              isA<SimpleIdentifier>()
-                  .having((node) => node.name, 'name', '_\$Foo'),
-              isA<SimpleIdentifier>()
-                  .having((node) => node.name, 'name', 'castUiFactory'),
-            ]));
+            isA<SimpleIdentifier>().having(
+              (node) => node.name,
+              'name',
+              '_\$Foo',
+            ),
+            isA<SimpleIdentifier>().having(
+              (node) => node.name,
+              'name',
+              'castUiFactory',
+            ),
+          ]),
+        );
       });
 
       test('returns empty list when input has no descendants', () {
@@ -602,11 +693,9 @@ void overReactExample() {}''';
 
     group('allDescendantsOfType()', () {
       TopLevelVariableDeclaration parseAndGetSingle(String source) =>
-          parseString(content: source)
-              .unit
-              .declarations
-              .whereType<TopLevelVariableDeclaration>()
-              .single;
+          parseString(
+            content: source,
+          ).unit.declarations.whereType<TopLevelVariableDeclaration>().single;
 
       group('returns all descendants of the specified type for a node', () {
         final node = parseAndGetSingle('''
@@ -615,33 +704,52 @@ void overReactExample() {}''';
 
         test('when there are many descendants of a type', () {
           expect(
-              allDescendantsOfType<SimpleIdentifier>(node).toList(),
-              unorderedEquals([
-                if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
-                  isA<SimpleIdentifier>()
-                      .having((node) => node.name, 'name', 'UiFactory'),
-                if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
-                  isA<SimpleIdentifier>()
-                      .having((node) => node.name, 'name', 'FooProps'),
-                isA<SimpleIdentifier>()
-                    .having((node) => node.name, 'name', '_\$Foo'),
-                isA<SimpleIdentifier>()
-                    .having((node) => node.name, 'name', 'castUiFactory'),
-              ]));
+            allDescendantsOfType<SimpleIdentifier>(node).toList(),
+            unorderedEquals([
+              if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
+                isA<SimpleIdentifier>().having(
+                  (node) => node.name,
+                  'name',
+                  'UiFactory',
+                ),
+              if (currentAnalyzerHasChildrenIdentifiersInNamedTypes())
+                isA<SimpleIdentifier>().having(
+                  (node) => node.name,
+                  'name',
+                  'FooProps',
+                ),
+              isA<SimpleIdentifier>().having(
+                (node) => node.name,
+                'name',
+                '_\$Foo',
+              ),
+              isA<SimpleIdentifier>().having(
+                (node) => node.name,
+                'name',
+                'castUiFactory',
+              ),
+            ]),
+          );
         });
 
         test('when there is one descendant of a type', () {
           expect(
-              allDescendantsOfType<MethodInvocation>(node).toList(),
-              unorderedEquals([
-                isA<MethodInvocation>().having((node) => node.methodName.name,
-                    'methodName', 'castUiFactory'),
-              ]));
+            allDescendantsOfType<MethodInvocation>(node).toList(),
+            unorderedEquals([
+              isA<MethodInvocation>().having(
+                (node) => node.methodName.name,
+                'methodName',
+                'castUiFactory',
+              ),
+            ]),
+          );
         });
 
         test('when there are no descendants of a type', () {
           expect(
-              allDescendantsOfType<MethodDeclaration>(node).toList(), isEmpty);
+            allDescendantsOfType<MethodDeclaration>(node).toList(),
+            isEmpty,
+          );
         });
       });
 
@@ -666,9 +774,11 @@ void overReactExample() {}''';
 /// author tests that pass regardless of analyzer behavior.
 bool currentAnalyzerHasChildrenIdentifiersInNamedTypes() {
   final namedTypes = <NamedType>[];
-  parseString(content: '''
+  parseString(
+    content: '''
     NamedType variable;
-  ''').unit.accept(_NamedTypeVisitor(namedTypes.add));
+  ''',
+  ).unit.accept(_NamedTypeVisitor(namedTypes.add));
   return namedTypes.single.childEntities
       .whereType<SimpleIdentifier>()
       .isNotEmpty;
@@ -794,22 +904,23 @@ class Foo extends _\$Foo
   });
 }
 
-void sharedGenerateNewVersionRangeTests(
-    {required VersionRange currentRange,
-    required VersionRange currentRangeWithHigherMinBound,
-    required VersionRange targetRange,
-    required VersionRange expectedMixedRange}) {
+void sharedGenerateNewVersionRangeTests({
+  required VersionRange currentRange,
+  required VersionRange currentRangeWithHigherMinBound,
+  required VersionRange targetRange,
+  required VersionRange expectedMixedRange,
+}) {
   group('', () {
     test('', () {
       expect(generateNewVersionRange(currentRange, targetRange), targetRange);
     });
 
-    test(
-        'when the current range lower bound is higher than the target '
+    test('when the current range lower bound is higher than the target '
         'range lower bound', () {
       expect(
-          generateNewVersionRange(currentRangeWithHigherMinBound, targetRange),
-          expectedMixedRange);
+        generateNewVersionRange(currentRangeWithHigherMinBound, targetRange),
+        expectedMixedRange,
+      );
     });
   });
 }

@@ -54,8 +54,12 @@ class SharedAnalysisContext {
   /// null-safety analysis errors. Those are suppressed via [defaultIsExpectedError]
   /// so suggestor tests can still exercise pre-null-safe code patterns.
   static final overReact = SharedAnalysisContext(
-      p.join(findPackageRootFor(p.current), 'test/test_fixtures/over_react_project'),
-      defaultIsExpectedError: _isLegacyNullSafetyError);
+    p.join(
+      findPackageRootFor(p.current),
+      'test/test_fixtures/over_react_project',
+    ),
+    defaultIsExpectedError: _isLegacyNullSafetyError,
+  );
 
   static bool _isLegacyNullSafetyError(AnalysisError error) {
     const legacyCodes = {
@@ -72,24 +76,29 @@ class SharedAnalysisContext {
 
   /// A context root located at `test/test_fixtures/over_react_null_safe_project`
   /// that depends on the `over_react` package and a null-safe Dart version.
-  static final overReactNullSafe = SharedAnalysisContext(p.join(
+  static final overReactNullSafe = SharedAnalysisContext(
+    p.join(
       findPackageRootFor(p.current),
-      'test/test_fixtures/over_react_null_safe_project'));
+      'test/test_fixtures/over_react_null_safe_project',
+    ),
+  );
 
   /// A context root located at `test/test_fixtures/over_react_project`
   /// that depends on the internal `web_skin_dart` package (as well as `over_react`).
   static final wsd = SharedAnalysisContext(
-      p.join(findPackageRootFor(p.current), 'test/test_fixtures/wsd_project'),
-      defaultIsExpectedError: _isLegacyNullSafetyError,
-      customPubGetErrorMessage:
-          'If this fails to resolve in GitHub Actions, make sure your test or'
-          ' test group is tagged with "wsd" so that it\'s only run in Skynet.');
+    p.join(findPackageRootFor(p.current), 'test/test_fixtures/wsd_project'),
+    defaultIsExpectedError: _isLegacyNullSafetyError,
+    customPubGetErrorMessage:
+        'If this fails to resolve in GitHub Actions, make sure your test or'
+        ' test group is tagged with "wsd" so that it\'s only run in Skynet.',
+  );
 
   /// A context root located at `test/test_fixtures/rmui_project`
   /// that depends on the `react_material_ui` package (as well as `over_react`).
   static final rmui = SharedAnalysisContext(
-      p.join(findPackageRootFor(p.current), 'test/test_fixtures/rmui_project'),
-      defaultIsExpectedError: _isLegacyNullSafetyError);
+    p.join(findPackageRootFor(p.current), 'test/test_fixtures/rmui_project'),
+    defaultIsExpectedError: _isLegacyNullSafetyError,
+  );
 
   /// The path to the package root in which test files will be created
   /// and resolved.
@@ -116,8 +125,11 @@ class SharedAnalysisContext {
   // analysis results (meaning faster test runs).
   final _testFileSubpath = 'lib/dynamic_test_files/${Uuid().v4()}';
 
-  SharedAnalysisContext(this._path,
-      {this.customPubGetErrorMessage, this.defaultIsExpectedError}) {
+  SharedAnalysisContext(
+    this._path, {
+    this.customPubGetErrorMessage,
+    this.defaultIsExpectedError,
+  }) {
     if (!p.isAbsolute(_path)) {
       throw ArgumentError.value(_path, 'projectRoot', 'must be absolute');
     }
@@ -128,28 +140,26 @@ class SharedAnalysisContext {
   final _initMemo = AsyncMemoizer();
 
   Future<void> _initIfNeeded() => _initMemo.runOnce(() async {
-        // Note that if tests are run concurrently, then concurrent pub gets will be run.
-        // This is hard to avoid (trying to avoid it using a filesystem lock in
-        // macOS/Linux doesn't work due to advisory lock behavior), but intermittently
-        // causes issues, so message referencing exit code 66 and workaround below.
-        try {
-          await runPubGetIfNeeded(_path);
-        } catch (e, st) {
-          var message = [
-            // ignore: no_adjacent_strings_in_list
-            'If the exit code is 66, the issue is likely concurrent `pub get`s on'
-                ' this directory from concurrent test entrypoints.'
-                ' Regardless of the exit code, if in CI, try running `pub get`'
-                ' in this directory before running any tests.',
-            if (customPubGetErrorMessage != null) customPubGetErrorMessage,
-          ].join(' ');
-          throw Exception('$message\nOriginal exception: $e$st');
-        }
+    // Note that if tests are run concurrently, then concurrent pub gets will be run.
+    // This is hard to avoid (trying to avoid it using a filesystem lock in
+    // macOS/Linux doesn't work due to advisory lock behavior), but intermittently
+    // causes issues, so message referencing exit code 66 and workaround below.
+    try {
+      await runPubGetIfNeeded(_path);
+    } catch (e, st) {
+      var message = [
+        // ignore: no_adjacent_strings_in_list
+        'If the exit code is 66, the issue is likely concurrent `pub get`s on'
+            ' this directory from concurrent test entrypoints.'
+            ' Regardless of the exit code, if in CI, try running `pub get`'
+            ' in this directory before running any tests.',
+        if (customPubGetErrorMessage != null) customPubGetErrorMessage,
+      ].join(' ');
+      throw Exception('$message\nOriginal exception: $e$st');
+    }
 
-        collection = AnalysisContextCollection(
-          includedPaths: [_path],
-        );
-      });
+    collection = AnalysisContextCollection(includedPaths: [_path]);
+  });
 
   /// Warms up the AnalysisContextCollection by running `pub get` (if needed) and
   /// initializing [collection] if that hasn't been done yet, and getting the
@@ -228,47 +238,55 @@ class SharedAnalysisContext {
         final testName = Invoker.current!.liveTest.test.name;
         sourceText =
             lineComment('Created within test with name:\n> $testName') +
-                '\n' +
-                sourceText;
+            '\n' +
+            sourceText;
       } catch (_) {}
     }
 
     final path = p.join(_path, _testFileSubpath, filename);
     final file = File(path);
     if (file.existsSync()) {
-      throw StateError('File already exists: ${filename}.'
-          ' Cannot use an existing file, since there is no public API'
-          ' to update a file within a AnalysisContextCollection.'
-          ' Make sure you\'re using a unique filename each time.'
-          ' This error can also occur if there are concurrent test runs'
-          ' and `_testFileSubpath` is not namespaced.');
+      throw StateError(
+        'File already exists: ${filename}.'
+        ' Cannot use an existing file, since there is no public API'
+        ' to update a file within a AnalysisContextCollection.'
+        ' Make sure you\'re using a unique filename each time.'
+        ' This error can also occur if there are concurrent test runs'
+        ' and `_testFileSubpath` is not namespaced.',
+      );
     }
     file.parent.createSync(recursive: true);
     file.writeAsStringSync(sourceText);
 
-    final context = collection.contexts
-        .singleWhere((c) => c.contextRoot.root.path == _path);
+    final context = collection.contexts.singleWhere(
+      (c) => c.contextRoot.root.path == _path,
+    );
 
     if (throwOnAnalysisErrors && !preResolveLibrary) {
       throw ArgumentError(
-          'If throwOnAnalysisErrors is true, preResolveFile must be false');
+        'If throwOnAnalysisErrors is true, preResolveFile must be false',
+      );
     }
     if (isExpectedError != null && !throwOnAnalysisErrors) {
       throw ArgumentError(
-          'If isExpectedError is provided, throwOnAnalysisErrors must be true');
+        'If isExpectedError is provided, throwOnAnalysisErrors must be true',
+      );
     }
     if (preResolveLibrary) {
       final result = await _printAboutFirstFile(
-          () => context.currentSession.getResolvedLibrary(path));
+        () => context.currentSession.getResolvedLibrary(path),
+      );
       if (throwOnAnalysisErrors) {
         final mergedIsExpectedError =
             (defaultIsExpectedError == null && isExpectedError == null)
-                ? null
-                : (AnalysisError error) =>
-                    (defaultIsExpectedError?.call(error) ?? false) ||
-                    (isExpectedError?.call(error) ?? false);
-        checkResolvedResultForErrors(result,
-            isExpectedError: mergedIsExpectedError);
+            ? null
+            : (AnalysisError error) =>
+                  (defaultIsExpectedError?.call(error) ?? false) ||
+                  (isExpectedError?.call(error) ?? false);
+        checkResolvedResultForErrors(
+          result,
+          isExpectedError: mergedIsExpectedError,
+        );
       }
     }
 
@@ -299,8 +317,10 @@ class SharedAnalysisContext {
 
     if (shouldPrint) {
       final contextName = p.basename(_path);
-      print('Resolving a file for the first time in context "${contextName}";'
-          ' this will take a few seconds...');
+      print(
+        'Resolving a file for the first time in context "${contextName}";'
+        ' this will take a few seconds...',
+      );
     }
     final result = await callback();
     if (shouldPrint) {
@@ -326,7 +346,8 @@ void checkResolvedResultForErrors(
 }) {
   isExpectedError ??= (_) => false;
 
-  const sharedMessage = 'If analysis errors are expected for this test, either:'
+  const sharedMessage =
+      'If analysis errors are expected for this test, either:'
       '\n1. specify `isExpectedError` with a function that returns true'
       ' only for your expected error'
       '\n2. use an `ignore:` comment to silence them'
@@ -335,32 +356,35 @@ void checkResolvedResultForErrors(
       ' to verify that only the expected errors are present.';
 
   if (result is! ResolvedLibraryResult) {
-    throw ArgumentError([
-      'Error resolving file; result was ${result}.',
-      sharedMessage
-    ].join(' '));
+    throw ArgumentError(
+      ['Error resolving file; result was ${result}.', sharedMessage].join(' '),
+    );
   }
 
   final unexpectedErrors = result.units
       .expand((unit) => unit.errors)
-      .where((AnalysisError error) =>
-          error.severity == Severity.error ||
-          const {
-            'unused_element',
-            'unused_local_variable',
-          }.contains(error.errorCode.name.toLowerCase()))
+      .where(
+        (AnalysisError error) =>
+            error.severity == Severity.error ||
+            const {
+              'unused_element',
+              'unused_local_variable',
+            }.contains(error.errorCode.name.toLowerCase()),
+      )
       // We need a non-null-assertion here due to https://github.com/dart-lang/sdk/issues/40790
       .where((error) => !isExpectedError!(error))
       .toList();
   if (unexpectedErrors.isNotEmpty) {
-    throw ArgumentError([
-      // ignore: no_adjacent_strings_in_list
-      'File had analysis errors or unused element hints,'
-          ' which likely indicate that the test file is set up improperly,'
-          ' potentially resulting in false positives in your test.',
-      sharedMessage,
-      'Errors:\n${prettyPrintErrors(unexpectedErrors)}.'
-    ].join(' '));
+    throw ArgumentError(
+      [
+        // ignore: no_adjacent_strings_in_list
+        'File had analysis errors or unused element hints,'
+            ' which likely indicate that the test file is set up improperly,'
+            ' potentially resulting in false positives in your test.',
+        sharedMessage,
+        'Errors:\n${prettyPrintErrors(unexpectedErrors)}.',
+      ].join(' '),
+    );
   }
 }
 
@@ -395,18 +419,21 @@ extension ParseHelpers on SharedAnalysisContext {
     CompilationUnit unit;
     // Wrap the expression in parens to ensure this is interpreted as an expression
     // for ambiguous cases (e.g, a map literal that could be interpreted as an empty block).
-    final source = '''
+    final source =
+        '''
       $imports
       void wrapperFunction() {
         ($expression);
       }
       $otherSource
     ''';
-    final fileContext = await resolvedFileContextForTest(source,
-        // We don't want to get the resolved unit if `isResolve = false`,
-        // since it may fail.
-        preResolveLibrary: false,
-        throwOnAnalysisErrors: false);
+    final fileContext = await resolvedFileContextForTest(
+      source,
+      // We don't want to get the resolved unit if `isResolve = false`,
+      // since it may fail.
+      preResolveLibrary: false,
+      throwOnAnalysisErrors: false,
+    );
     if (isResolved) {
       final result = await fileContext.getResolvedUnit();
       unit = result!.unit;

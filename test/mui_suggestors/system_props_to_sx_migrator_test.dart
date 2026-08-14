@@ -42,7 +42,8 @@ void main() {
       muiUri = Uri.file(muiFile.path).toString();
     });
 
-    String withImports(String source) => '''
+    String withImports(String source) =>
+        '''
       //@dart=2.19
       import 'package:over_react/over_react.dart';
       import ${jsonEncode(muiUri.toString())};
@@ -65,8 +66,9 @@ void main() {
       late ResolvedUnitResult unit;
 
       setUpAll(() async {
-        final file =
-            await resolvedContext.resolvedFileContextForTest(withImports(''));
+        final file = await resolvedContext.resolvedFileContextForTest(
+          withImports(''),
+        );
         unit = (await file.getResolvedUnit())!;
       });
 
@@ -74,10 +76,7 @@ void main() {
           getImportedInterfaceElement(unit, propsName);
 
       test('with system props', () async {
-        expect(
-          hasSxAndSomeSystemProps(getProps('BoxProps')),
-          isTrue,
-        );
+        expect(hasSxAndSomeSystemProps(getProps('BoxProps')), isTrue);
         expect(hasSxAndSomeSystemProps(getProps('GridProps')), isTrue);
         expect(hasSxAndSomeSystemProps(getProps('StackProps')), isTrue);
         expect(hasSxAndSomeSystemProps(getProps('TypographyProps')), isTrue);
@@ -217,10 +216,11 @@ void main() {
         );
       });
 
-      test('with an entry that has the same key as a migrated system prop',
-          () async {
-        await testSuggestor(
-          input: withImports('''
+      test(
+        'with an entry that has the same key as a migrated system prop',
+        () async {
+          await testSuggestor(
+            input: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -229,10 +229,10 @@ void main() {
                     ..mt = 2
                   )();
           '''),
-          // This will result in duplicate keys in the map, but they're in the
-          // correct order to preserve the original behavior, and will result in
-          // a hint that there are duplicate entries.
-          expectedOutput: withImports('''
+            // This will result in duplicate keys in the map, but they're in the
+            // correct order to preserve the original behavior, and will result in
+            // a hint that there are duplicate entries.
+            expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = { 
@@ -241,8 +241,9 @@ void main() {
                     }
                   )();
           '''),
-        );
-      });
+          );
+        },
+      );
     });
 
     group('merges with forwarded sx prop using spread:', () {
@@ -393,10 +394,11 @@ void main() {
       });
 
       // Regression test
-      test('even when there are other unrelated calls in the cascade',
-          () async {
-        await testSuggestor(
-          input: withImports('''
+      test(
+        'even when there are other unrelated calls in the cascade',
+        () async {
+          await testSuggestor(
+            input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -404,7 +406,7 @@ void main() {
                     ..mt = 2
                   )();
           '''),
-          expectedOutput: withImports('''
+            expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -412,8 +414,9 @@ void main() {
                     ..sx = {'mt': 2, ...?props.sx,}
                   )();
           '''),
-        );
-      });
+          );
+        },
+      );
     });
 
     group('adds FIXME comment when forwarding is ambiguous:', () {
@@ -663,27 +666,31 @@ void main() {
       );
     });
 
-    test('does not migrate components without deprecated system props',
-        () async {
-      await testSuggestor(
-        input: withImports('''
+    test(
+      'does not migrate components without deprecated system props',
+      () async {
+        await testSuggestor(
+          input: withImports('''
             content() => 
                 (Box()
                   ..id = 'test'
                   ..className = 'test-class'
                 )();
         '''),
-      );
-    });
+        );
+      },
+    );
 
-    test('does not migrate deprecated props with the same name as system props',
-        () async {
-      await testSuggestor(
-        input: withImports('''
+    test(
+      'does not migrate deprecated props with the same name as system props',
+      () async {
+        await testSuggestor(
+          input: withImports('''
             content() => (TextField()..color = '')();
         '''),
-      );
-    });
+        );
+      },
+    );
 
     test('does not flag unrelated cascades with FIXMEs', () async {
       await testSuggestor(
@@ -699,11 +706,12 @@ void main() {
       );
     });
 
-    group('adds a fixme when there are forwarded props after system props and',
-        () {
-      test('an existing sx map literal', () async {
-        await testSuggestor(
-          input: withImports('''
+    group(
+      'adds a fixme when there are forwarded props after system props and',
+      () {
+        test('an existing sx map literal', () async {
+          await testSuggestor(
+            input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
@@ -711,7 +719,7 @@ void main() {
                     ..sx = {'border': '1px solid black'}
                   )();
           '''),
-          expectedOutput: withImports('''
+            expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -722,12 +730,12 @@ void main() {
                     }
                   )();
           '''),
-        );
-      });
+          );
+        });
 
-      test('an existing sx value', () async {
-        await testSuggestor(
-          input: withImports('''
+        test('an existing sx value', () async {
+          await testSuggestor(
+            input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
@@ -736,7 +744,7 @@ void main() {
                   )();
               Map getSx() => {'color': 'red'};
           '''),
-          expectedOutput: withImports('''
+            expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -748,19 +756,19 @@ void main() {
                   )();
               Map getSx() => {'color': 'red'};
           '''),
-        );
-      });
+          );
+        });
 
-      test('no existing sx', () async {
-        await testSuggestor(
-          input: withImports('''
+        test('no existing sx', () async {
+          await testSuggestor(
+            input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
                     ..addProps(props)
                   )();
           '''),
-          expectedOutput: withImports('''
+            expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -771,15 +779,17 @@ void main() {
                     }
                   )();
           '''),
-        );
-      });
-    });
+          );
+        });
+      },
+    );
 
     group('insertion location:', () {
-      test('inserts after prop forwarding to avoid being overwritten',
-          () async {
-        await testSuggestor(
-          input: withImports('''
+      test(
+        'inserts after prop forwarding to avoid being overwritten',
+        () async {
+          await testSuggestor(
+            input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
@@ -787,7 +797,7 @@ void main() {
                     ..id = 'test'
                   )();
           '''),
-          expectedOutput: withImports('''
+            expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -796,13 +806,15 @@ void main() {
                     ..id = 'test'
                   )();
           '''),
-        );
-      });
+          );
+        },
+      );
 
-      test('inserts at location of last system prop when no prop forwarding',
-          () async {
-        await testSuggestor(
-          input: withImports('''
+      test(
+        'inserts at location of last system prop when no prop forwarding',
+        () async {
+          await testSuggestor(
+            input: withImports('''
               content() => 
                   (Box()
                     ..id = 'first'
@@ -812,7 +824,7 @@ void main() {
                     ..onClick = (_) {}
                   )();
           '''),
-          expectedOutput: withImports('''
+            expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..id = 'first'
@@ -821,13 +833,15 @@ void main() {
                     ..onClick = (_) {}
                   )();
           '''),
-        );
-      });
+          );
+        },
+      );
 
-      test('inserts after latest of (forwarding or last system prop)',
-          () async {
-        await testSuggestor(
-          input: withImports('''
+      test(
+        'inserts after latest of (forwarding or last system prop)',
+        () async {
+          await testSuggestor(
+            input: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..mt = 2
@@ -835,7 +849,7 @@ void main() {
                     ..p = 3
                   )();
           '''),
-          expectedOutput: withImports('''
+            expectedOutput: withImports('''
               content(BoxProps props) =>
                   (Box()
                     ..addProps(props)
@@ -844,8 +858,9 @@ void main() {
                     ..sx = {'mt': 2, 'p': 3, ...?props.sx,}
                   )();
           '''),
-        );
-      });
+          );
+        },
+      );
 
       test('inserts after all forwarding calls when multiple exist', () async {
         await testSuggestor(
@@ -914,17 +929,18 @@ void main() {
         );
       });
 
-      test('uses multiline for long content (>= 20 chars with 2+ elements)',
-          () async {
-        await testSuggestor(
-          input: withImports('''
+      test(
+        'uses multiline for long content (>= 20 chars with 2+ elements)',
+        () async {
+          await testSuggestor(
+            input: withImports('''
               content() => 
                   (Box()
                     ..mt = 2
                     ..bgcolor = 'verylongcolor.main'
                   )();
           '''),
-          expectedOutput: withImports('''
+            expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..sx = {
@@ -933,8 +949,9 @@ void main() {
                     }
                   )();
           '''),
-        );
-      });
+          );
+        },
+      );
     });
 
     group('preserves comments before system props:', () {
@@ -1058,10 +1075,11 @@ void main() {
         );
       });
 
-      test('comments before system props mixed with non-system props',
-          () async {
-        await testSuggestor(
-          input: withImports('''
+      test(
+        'comments before system props mixed with non-system props',
+        () async {
+          await testSuggestor(
+            input: withImports('''
               content() => 
                   (Box()
                     ..id = 'test'
@@ -1072,7 +1090,7 @@ void main() {
                     ..p = 3
                   )();
           '''),
-          expectedOutput: withImports('''
+            expectedOutput: withImports('''
               content() => 
                   (Box()
                     ..id = 'test'
@@ -1085,8 +1103,9 @@ void main() {
                     }
                   )();
           '''),
-        );
-      });
+          );
+        },
+      );
 
       test('comment before system prop with forwarding', () async {
         await testSuggestor(
@@ -1215,13 +1234,9 @@ void main() {
 }
 
 String getStubMuiLibrarySource({required String filenameWithoutExtension}) {
-  final systemPropComponentsSource = [
-    'Box',
-    'Grid',
-    'Stack',
-    'Typography',
-  ].map((componentName) {
-    return '''
+  final systemPropComponentsSource = ['Box', 'Grid', 'Stack', 'Typography']
+      .map((componentName) {
+        return '''
       UiFactory<${componentName}Props> $componentName = uiFunction((_) {}, _\$${componentName}Config);
       
       @Props(keyNamespace: '')
@@ -1232,7 +1247,8 @@ String getStubMuiLibrarySource({required String filenameWithoutExtension}) {
         ${systemPropNames.map((propName) => "  @Deprecated('Use sx.') dynamic ${propName};").join('\n')}
       }
   ''';
-  }).join('\n\n');
+      })
+      .join('\n\n');
 
   return '''
       //@dart=2.19
@@ -1265,8 +1281,11 @@ InterfaceElement getInterfaceElement(ResolvedUnitResult result, String name) =>
         .singleWhere((e) => e.name == name);
 
 InterfaceElement getImportedInterfaceElement(
-        ResolvedUnitResult result, String name) =>
+  ResolvedUnitResult result,
+  String name,
+) =>
     result.libraryElement.importedLibraries
-        .map((l) => l.exportNamespace.get(name))
-        .whereNotNull()
-        .single as InterfaceElement;
+            .map((l) => l.exportNamespace.get(name))
+            .whereNotNull()
+            .single
+        as InterfaceElement;

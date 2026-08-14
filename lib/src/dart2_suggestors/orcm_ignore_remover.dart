@@ -19,10 +19,6 @@ final _orcmIgnore = RegExp(r'[\n]?[ ]*//[ ]*orcm_ignore[ ]*');
 /// Suggestor that removes every instance of a `// orcm_ignore` comment.
 Stream<Patch> orcmIgnoreRemover(FileContext context) async* {
   for (final match in _orcmIgnore.allMatches(context.sourceText)) {
-    yield Patch(
-      '',
-      match.start,
-      match.end,
-    );
+    yield Patch('', match.start, match.end);
   }
 }

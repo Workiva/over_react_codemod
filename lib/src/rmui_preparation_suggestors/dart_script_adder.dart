@@ -67,9 +67,11 @@ class DartScriptAdder extends RecursiveAstVisitor<void>
       }
     } else if (parent is ListLiteral) {
       // Do not add the script to the list if it is already there.
-      if (parent.elements.any((element) =>
-          element is SimpleStringLiteral &&
-          scriptToAdd.pattern.hasMatch(element.literal.lexeme))) {
+      if (parent.elements.any(
+        (element) =>
+            element is SimpleStringLiteral &&
+            scriptToAdd.pattern.hasMatch(element.literal.lexeme),
+      )) {
         return;
       }
 
@@ -80,9 +82,11 @@ class DartScriptAdder extends RecursiveAstVisitor<void>
       if (scriptMatch != null && isExactMatch) {
         // To avoid adding the [scriptToAdd] twice, verify that [node] is the
         // last matching react script in the list.
-        final lastMatchElement = parent.elements.lastWhere((element) =>
-            element is SimpleStringLiteral &&
-            reactJsScript.pattern.firstMatch(element.value) != null);
+        final lastMatchElement = parent.elements.lastWhere(
+          (element) =>
+              element is SimpleStringLiteral &&
+              reactJsScript.pattern.firstMatch(element.value) != null,
+        );
         if (node.offset != lastMatchElement.offset) return;
 
         // Only add [scriptToAdd] if it has the same prod/dev status as the

@@ -33,13 +33,17 @@ class CommentRemover extends GeneralizingAstVisitor with AstVisitingSuggestor {
     int? endingOffset;
 
     for (var comment in allComments(node.root.beginToken)) {
-      final commentText =
-          context.sourceFile.getText(comment.offset, comment.end);
+      final commentText = context.sourceFile.getText(
+        comment.offset,
+        comment.end,
+      );
 
       if (commentText.contains(startString) && startingOffset == null) {
         // Make the starting offset the end of the previous line.
-        startingOffset = context.sourceFile
-                .getOffset(context.sourceFile.getLine(comment.offset)) -
+        startingOffset =
+            context.sourceFile.getOffset(
+              context.sourceFile.getLine(comment.offset),
+            ) -
             1;
       }
 

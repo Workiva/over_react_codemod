@@ -24,14 +24,16 @@ void main() {
       group('returns null', () {
         void _expectNullReturnValue(String input) {
           final unit = parseString(content: input).unit;
-          final argList = (unit.declarations
-                  .whereType<TopLevelVariableDeclaration>()
-                  .first
-                  .variables
-                  .variables
-                  .first
-                  .initializer! as MethodInvocation)
-              .argumentList;
+          final argList =
+              (unit.declarations
+                          .whereType<TopLevelVariableDeclaration>()
+                          .first
+                          .variables
+                          .variables
+                          .first
+                          .initializer!
+                      as MethodInvocation)
+                  .argumentList;
 
           expect(getGeneratedFactoryConfigArg(argList), isNull);
         }
@@ -68,14 +70,16 @@ void main() {
       group('returns the generated factory config', () {
         void _expectConfigName({required String input, String? expectedName}) {
           final unit = parseString(content: input).unit;
-          final argList = (unit.declarations
-                  .whereType<TopLevelVariableDeclaration>()
-                  .first
-                  .variables
-                  .variables
-                  .first
-                  .initializer! as MethodInvocation)
-              .argumentList;
+          final argList =
+              (unit.declarations
+                          .whereType<TopLevelVariableDeclaration>()
+                          .first
+                          .variables
+                          .variables
+                          .first
+                          .initializer!
+                      as MethodInvocation)
+                  .argumentList;
 
           final returnValue = getGeneratedFactoryConfigArg(argList)!;
           expect(returnValue, isA<SimpleIdentifier>());
@@ -150,14 +154,16 @@ void main() {
             ));
           ''';
           final unit = parseString(content: input).unit;
-          final memoArgList = (unit.declarations
-                  .whereType<TopLevelVariableDeclaration>()
-                  .first
-                  .variables
-                  .variables
-                  .first
-                  .initializer! as MethodInvocation)
-              .argumentList;
+          final memoArgList =
+              (unit.declarations
+                          .whereType<TopLevelVariableDeclaration>()
+                          .first
+                          .variables
+                          .variables
+                          .first
+                          .initializer!
+                      as MethodInvocation)
+                  .argumentList;
           final uiFunctionArgList = memoArgList.arguments
               .whereType<MethodInvocation>()
               .first
@@ -174,8 +180,9 @@ void main() {
       group('returns null and false, respectively', () {
         void _expectNullReturnValue(String input) {
           final unit = parseString(content: input).unit;
-          final decl =
-              unit.declarations.whereType<TopLevelVariableDeclaration>().first;
+          final decl = unit.declarations
+              .whereType<TopLevelVariableDeclaration>()
+              .first;
 
           expect(getGeneratedFactory(decl), isNull);
           expect(isClassOrConnectedComponentFactory(decl), isFalse);
@@ -207,11 +214,14 @@ void main() {
       });
 
       group('returns the generated factory and true, respectively', () {
-        void _expectGeneratedFactoryName(
-            {required String input, String? expectedName}) {
+        void _expectGeneratedFactoryName({
+          required String input,
+          String? expectedName,
+        }) {
           final unit = parseString(content: input).unit;
-          final decl =
-              unit.declarations.whereType<TopLevelVariableDeclaration>().first;
+          final decl = unit.declarations
+              .whereType<TopLevelVariableDeclaration>()
+              .first;
 
           final returnValue = getGeneratedFactory(decl)!;
           expect(returnValue, isA<SimpleIdentifier>());
@@ -270,7 +280,8 @@ void main() {
 
         test('with type casting function', () {
           _expectGeneratedFactoryName(
-            input: '''
+            input:
+                '''
             UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); // ignore: undefined_identifier
           ''',
             expectedName: '_\$Foo',
@@ -302,7 +313,8 @@ void main() {
 
         test('for connected components with type casting', () {
           _expectGeneratedFactoryName(
-            input: '''
+            input:
+                '''
               UiFactory<FooProps> Foo = connect<SomeState, FooProps>(
                 mapStateToProps: (state) => (Foo()
                   ..foo = state.foo
@@ -340,67 +352,84 @@ void main() {
       group('returns false', () {
         void _expectFalse({required String input}) {
           final unit = parseString(content: input).unit;
-          final decl =
-              unit.declarations.whereType<TopLevelVariableDeclaration>().first;
+          final decl = unit.declarations
+              .whereType<TopLevelVariableDeclaration>()
+              .first;
 
           expect(isLegacyFactoryDecl(decl), isFalse);
         }
 
         test('when the initializer is not generated', () {
-          _expectFalse(input: '''
+          _expectFalse(
+            input: '''
             UiFactory<FooProps> Foo = someFactory;
-          ''');
+          ''',
+          );
         });
 
         test('when the input is not a component factory', () {
-          _expectFalse(input: '''
+          _expectFalse(
+            input: '''
             DriverFactory driverFactory = createDriver;
-          ''');
+          ''',
+          );
         });
 
         test('when the factory is not annotated', () {
-          _expectFalse(input: '''
+          _expectFalse(
+            input: '''
             UiFactory<FooProps> Foo = _\$Foo; // ignore: undefined_identifier
-          ''');
+          ''',
+          );
         });
 
         test('with type casting function', () {
-          _expectFalse(input: '''
+          _expectFalse(
+            input:
+                '''
             UiFactory<FooProps> Foo = $castFunctionName(_\$Foo); // ignore: undefined_identifier
-          ''');
+          ''',
+          );
         });
       });
 
       group('returns true', () {
         void _expectTrue({required String input}) {
           final unit = parseString(content: input).unit;
-          final decl =
-              unit.declarations.whereType<TopLevelVariableDeclaration>().first;
+          final decl = unit.declarations
+              .whereType<TopLevelVariableDeclaration>()
+              .first;
 
           expect(isLegacyFactoryDecl(decl), isTrue);
         }
 
         test('when the factory is annotated', () {
-          _expectTrue(input: '''
+          _expectTrue(
+            input: '''
             @Factory()
             UiFactory<FooProps> Foo = _\$Foo; // ignore: undefined_identifier
-          ''');
+          ''',
+          );
         });
 
         test('without ignore comment', () {
-          _expectTrue(input: '''
+          _expectTrue(
+            input: '''
             @Factory()
             UiFactory<FooProps> Foo = _\$Foo;
-          ''');
+          ''',
+          );
         });
 
         test('when the ignore comment is before the initializer', () {
-          _expectTrue(input: '''
+          _expectTrue(
+            input: '''
             @Factory()
             UiFactory<FooProps> Foo = 
               // ignore: undefined_identifier
               _\$Foo;
-          ''');
+          ''',
+          );
         });
       });
     });

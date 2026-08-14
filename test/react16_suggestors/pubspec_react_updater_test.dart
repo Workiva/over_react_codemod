@@ -33,59 +33,67 @@ main() {
   group('PubspecReactUpdater', () {
     /// Suggestor used to test the default configurations.
     final testSuggestor = getSuggestorTester(
-        PubspecReactUpdater(parseVersionRange(reactVersionRange)));
+      PubspecReactUpdater(parseVersionRange(reactVersionRange)),
+    );
 
     /// Suggestor to test when the codemod should not add the dependency if
     /// it does not encounter it.
-    final doNotAddDependencies = getSuggestorTester(PubspecReactUpdater(
+    final doNotAddDependencies = getSuggestorTester(
+      PubspecReactUpdater(
         parseVersionRange(reactVersionRange),
-        shouldAddDependencies: false));
+        shouldAddDependencies: false,
+      ),
+    );
 
     group('when there are no special cases', () {
       sharedPubspecTest(
-          testSuggestor: testSuggestor,
-          getExpectedOutput: getExpectedOutput,
-          startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
-          isDevDependency: false,
-          dependency: 'react',
-          midVersionRange: '^$midVersionMin');
+        testSuggestor: testSuggestor,
+        getExpectedOutput: getExpectedOutput,
+        startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
+        isDevDependency: false,
+        dependency: 'react',
+        midVersionRange: '^$midVersionMin',
+      );
 
       group('and the new version is a pre-release version', () {
         sharedPubspecTest(
-            testSuggestor: getSuggestorTester(PubspecReactUpdater(
-                parseVersionRange(reactVersionRangeForTesting))),
-            getExpectedOutput: getExpectedPreReleaseOutput,
-            startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
-            isDevDependency: false,
-            midVersionRange: '^5.5.3',
-            shouldUpdateMidRange: false,
-            dependency: 'react');
+          testSuggestor: getSuggestorTester(
+            PubspecReactUpdater(parseVersionRange(reactVersionRangeForTesting)),
+          ),
+          getExpectedOutput: getExpectedPreReleaseOutput,
+          startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
+          isDevDependency: false,
+          midVersionRange: '^5.5.3',
+          shouldUpdateMidRange: false,
+          dependency: 'react',
+        );
       });
     });
 
     group('when the codemod should not add dependencies', () {
       sharedPubspecTest(
-          testSuggestor: doNotAddDependencies,
-          getExpectedOutput: getExpectedOutput,
-          startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
-          isDevDependency: false,
-          dependency: 'react',
-          midVersionRange: '^$midVersionMin',
-          shouldAddDependencies: false);
+        testSuggestor: doNotAddDependencies,
+        getExpectedOutput: getExpectedOutput,
+        startingRange: parseVersionRange('>=4.6.1 <4.9.0'),
+        isDevDependency: false,
+        dependency: 'react',
+        midVersionRange: '^$midVersionMin',
+        shouldAddDependencies: false,
+      );
     });
 
-    group(
-        'when the codemod should not update because the version range is '
+    group('when the codemod should not update because the version range is '
         'acceptable', () {
       sharedPubspecTest(
-          testSuggestor: testSuggestor,
-          getExpectedOutput: getExpectedOutput,
-          startingRange: parseVersionRange('^5.0.0'),
-          isDevDependency: false,
-          dependency: 'react',
-          shouldUpdate: false,
-          shouldUpdateMidRange: false,
-          midVersionRange: '^5.5.3');
+        testSuggestor: testSuggestor,
+        getExpectedOutput: getExpectedOutput,
+        startingRange: parseVersionRange('^5.0.0'),
+        isDevDependency: false,
+        dependency: 'react',
+        shouldUpdate: false,
+        shouldUpdateMidRange: false,
+        midVersionRange: '^5.5.3',
+      );
     });
 
     test('does not lower the lower bound', () async {
@@ -93,14 +101,16 @@ main() {
         expectedPatchCount: 1,
         shouldDartfmtOutput: false,
         validateContents: validatePubspecYaml,
-        input: ''
+        input:
+            ''
             'name: nothing\n'
             'version: 0.0.0\n'
             'dependencies:\n'
             '  react: ">=4.8.0 <5.0.0"\n'
             '  test: 1.5.1\n'
             '',
-        expectedOutput: ''
+        expectedOutput:
+            ''
             'name: nothing\n'
             'version: 0.0.0\n'
             'dependencies:\n'
@@ -116,7 +126,8 @@ main() {
           expectedPatchCount: 0,
           shouldDartfmtOutput: false,
           validateContents: validatePubspecYaml,
-          input: ''
+          input:
+              ''
               'dependency_overrides:\n'
               '  react:\n'
               '    git:\n'
@@ -130,7 +141,8 @@ main() {
           expectedPatchCount: 0,
           shouldDartfmtOutput: false,
           validateContents: validatePubspecYaml,
-          input: ''
+          input:
+              ''
               'dependency_overrides:\n'
               '  react:\n'
               '    path: ../\n',
@@ -144,8 +156,8 @@ String getExpectedOutput({bool useMidVersionMin = false, String? hostedUrl}) {
   if (useMidVersionMin) {
     final expected =
         VersionConstraint.parse('^5.0.0').allows(Version.parse(midVersionMin))
-            ? '^$midVersionMin'
-            : '">=$midVersionMin <6.0.0"';
+        ? '^$midVersionMin'
+        : '">=$midVersionMin <6.0.0"';
 
     return ''
         'dependencies:\n'
@@ -161,8 +173,10 @@ String getExpectedOutput({bool useMidVersionMin = false, String? hostedUrl}) {
       '';
 }
 
-String getExpectedPreReleaseOutput(
-    {bool useMidVersionMin = false, String? hostedUrl}) {
+String getExpectedPreReleaseOutput({
+  bool useMidVersionMin = false,
+  String? hostedUrl,
+}) {
   return ''
       'dependencies:\n'
       '  react: ^5.0.0-alpha\n'

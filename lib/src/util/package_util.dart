@@ -21,8 +21,9 @@ import 'package:path/path.dart' as p;
 final _logger = Logger('orcm.pubspec');
 
 bool _isPubGetNecessary(String packageRoot) {
-  final packageConfig =
-      File(p.join(packageRoot, '.dart_tool', 'package_config.json'));
+  final packageConfig = File(
+    p.join(packageRoot, '.dart_tool', 'package_config.json'),
+  );
   final pubspec = File(p.join(packageRoot, 'pubspec.yaml'));
   final pubspecLock = File(p.join(packageRoot, 'pubspec.lock'));
 
@@ -43,7 +44,8 @@ Future<void> runPubGetIfNeeded(String packageRoot) async {
     await runPubGet(packageRoot);
   } else {
     _logger.info(
-        'Skipping `dart pub get`, which has already been run, in `$packageRoot`');
+      'Skipping `dart pub get`, which has already been run, in `$packageRoot`',
+    );
   }
 }
 
@@ -55,19 +57,26 @@ Future<void> runPubGetIfNeeded(String packageRoot) async {
 Future<void> runPubGet(String workingDirectory) async {
   _logger.info('Running `dart pub get` in `$workingDirectory`...');
 
-  final process = await Process.start('dart', ['pub', 'get'],
-      workingDirectory: workingDirectory,
-      runInShell: true,
-      mode: ProcessStartMode.inheritStdio);
+  final process = await Process.start(
+    'dart',
+    ['pub', 'get'],
+    workingDirectory: workingDirectory,
+    runInShell: true,
+    mode: ProcessStartMode.inheritStdio,
+  );
   final exitCode = await process.exitCode;
 
   if (exitCode == 69) {
     _logger.info(
-        'Re-running `dart pub get` but with `--offline`, to hopefully fix the above error.');
-    final process = await Process.start('dart', ['pub', 'get', '--offline'],
-        workingDirectory: workingDirectory,
-        runInShell: true,
-        mode: ProcessStartMode.inheritStdio);
+      'Re-running `dart pub get` but with `--offline`, to hopefully fix the above error.',
+    );
+    final process = await Process.start(
+      'dart',
+      ['pub', 'get', '--offline'],
+      workingDirectory: workingDirectory,
+      runInShell: true,
+      mode: ProcessStartMode.inheritStdio,
+    );
     final exitCode = await process.exitCode;
     if (exitCode != 0) {
       throw Exception('dart pub get failed with exit code: $exitCode');
@@ -96,7 +105,7 @@ Future<void> runPubGet(String workingDirectory) async {
 String findPackageRootFor(String path) {
   final packageRoot = [
     path,
-    ...ancestorsOfPath(path)
+    ...ancestorsOfPath(path),
   ].firstWhereOrNull((path) => File(p.join(path, 'pubspec.yaml')).existsSync());
 
   if (packageRoot == null) {
@@ -130,6 +139,8 @@ bool isNotWithinTopLevelToolDir(File file) =>
 /// Returns whether [file] is within a top-level [topLevelDir] directory
 /// (e.g., `bin`, `lib`, `web`) of a package root.
 bool isWithinTopLevelDir(File file, String topLevelDir) =>
-    ancestorsOfPath(file.path).any((ancestor) =>
-        p.basename(ancestor) == topLevelDir &&
-        File(p.join(p.dirname(ancestor), 'pubspec.yaml')).existsSync());
+    ancestorsOfPath(file.path).any(
+      (ancestor) =>
+          p.basename(ancestor) == topLevelDir &&
+          File(p.join(p.dirname(ancestor), 'pubspec.yaml')).existsSync(),
+    );

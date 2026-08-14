@@ -21,10 +21,12 @@ import '../util.dart';
 
 void main() {
   group('HtmlScriptUpdater', () {
-    final testSuggestor = getSuggestorTester(aggregate([
-      HtmlScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated),
-      HtmlScriptUpdater(rmuiBundleProd, rmuiBundleProdUpdated),
-    ]));
+    final testSuggestor = getSuggestorTester(
+      aggregate([
+        HtmlScriptUpdater(rmuiBundleDev, rmuiBundleDevUpdated),
+        HtmlScriptUpdater(rmuiBundleProd, rmuiBundleProdUpdated),
+      ]),
+    );
 
     test('empty file', () async {
       await testSuggestor(expectedPatchCount: 0, input: '');
@@ -34,7 +36,8 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 0,
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '<script src="packages/react_testing_library/js/react-testing-library.js"></script>\n'
             '',
       );
@@ -44,11 +47,13 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 4,
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '<script src="$rmuiBundleDev"></script>\n'
             '<link rel="preload" href="$rmuiBundleDev" as="script">\n'
             '',
-        expectedOutput: ''
+        expectedOutput:
+            ''
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
             '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '',
@@ -59,11 +64,13 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 4,
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '<script src="$rmuiBundleProd"></script>\n'
             '<link rel="preload" href="$rmuiBundleProd" as="script">\n'
             '',
-        expectedOutput: ''
+        expectedOutput:
+            ''
             '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
             '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">\n'
             '',
@@ -74,13 +81,15 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 0,
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
             '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
             '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">\n'
             '',
-        expectedOutput: ''
+        expectedOutput:
+            ''
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
             '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
@@ -93,11 +102,13 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 4,
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '  <script src="$rmuiBundleDev"></script>\n'
             '  <link rel="preload" href="$rmuiBundleDev" as="script">\n'
             '',
-        expectedOutput: ''
+        expectedOutput:
+            ''
             '  <script src="$rmuiBundleDevUpdated" type="module"></script>\n'
             '  <link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '',
@@ -108,7 +119,8 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 4,
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '<!DOCTYPE html>\n'
             '<html>\n'
             '  <head>\n'
@@ -147,7 +159,8 @@ void main() {
             '  </body>\n'
             '</html>\n'
             '',
-        expectedOutput: ''
+        expectedOutput:
+            ''
             '<!DOCTYPE html>\n'
             '<html>\n'
             '  <head>\n'
@@ -193,7 +206,8 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 8,
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '<script type="module" src="$rmuiBundleProd"></script>\n'
             '<link crossorigin="" rel="preload" href="$rmuiBundleProd" as="script">\n'
             '<script src="$rmuiBundleDev" type="module" ></script>\n'
@@ -203,7 +217,8 @@ void main() {
             '<script src="$rmuiBundleProdUpdated"></script>\n'
             '<link rel="preload" href="$rmuiBundleProdUpdated" as="script">\n'
             '',
-        expectedOutput: ''
+        expectedOutput:
+            ''
             '<script type="module" src="$rmuiBundleProdUpdated"></script>\n'
             '<link crossorigin="" rel="preload" href="$rmuiBundleProdUpdated" as="script">\n'
             '<script src="$rmuiBundleDevUpdated" type="module" ></script>\n'
@@ -220,13 +235,15 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 8,
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '<script src="$rmuiBundleDev" type="js/slk-f.sdkf"></script>\n'
             '<link rel="preload" href="$rmuiBundleDev" crossorigin="sadfsafdsa" as="script">\n'
             '<script src="$rmuiBundleProd" type="js/slkfsdkf"></script>\n'
             '<link rel="preload" href="$rmuiBundleProd" crossorigin="saf/asdf/sa" as="script">\n'
             '',
-        expectedOutput: ''
+        expectedOutput:
+            ''
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
             '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
@@ -239,11 +256,13 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 4,
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '<script src="/directory/$rmuiBundleDev"></script>\n'
             '<script src="$rmuiBundleProd"></script>\n'
             '',
-        expectedOutput: ''
+        expectedOutput:
+            ''
             '<script src="/directory/$rmuiBundleDevUpdated" type="module"></script>\n'
             '<script src="$rmuiBundleProdUpdated" type="module"></script>\n'
             '',
@@ -254,11 +273,13 @@ void main() {
       await testSuggestor(
         expectedPatchCount: 4,
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '<link rel="preload" href="$rmuiBundleDev" as="script">\n'
             '<link rel="preload" href="$rmuiBundleProd" as="script">\n'
             '',
-        expectedOutput: ''
+        expectedOutput:
+            ''
             '<link rel="preload" href="$rmuiBundleDevUpdated" crossorigin="" as="script">\n'
             '<link rel="preload" href="$rmuiBundleProdUpdated" crossorigin="" as="script">\n'
             '',
@@ -266,12 +287,14 @@ void main() {
     });
 
     test('removeTag arg', () async {
-      final removeTagSuggestor =
-          getSuggestorTester(HtmlScriptUpdater.remove(rmuiBundleDev));
+      final removeTagSuggestor = getSuggestorTester(
+        HtmlScriptUpdater.remove(rmuiBundleDev),
+      );
 
       await removeTagSuggestor(
         shouldDartfmtOutput: false,
-        input: ''
+        input:
+            ''
             '<script src="$rmuiBundleDev"></script>\n'
             '  <script src="$rmuiBundleDev"></script>\n'
             '<script src="/something_else/$rmuiBundleDev"></script>\n'
@@ -282,7 +305,8 @@ void main() {
             '<script src="${rmuiBundleDevUpdated}abc" type="module"></script>\n'
             '<link rel="preload" href="$rmuiBundleDev" crossorigin="" as="script">\n'
             '',
-        expectedOutput: ''
+        expectedOutput:
+            ''
             '<link rel="preload" href="${rmuiBundleDev}abc" as="script">\n'
             '<script src="$rmuiBundleDevUpdated" type="module"></script>\n'
             '<script src="${rmuiBundleDevUpdated}abc" type="module"></script>\n'

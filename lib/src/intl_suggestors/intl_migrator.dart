@@ -30,20 +30,29 @@ class ContextMenuMigrator extends GeneralizingAstVisitor
     if (isValidStringLiteralNode(args.first)) {
       var literal = args.first as StringLiteral;
       final functionCall = _messages.syntax.getterCall(literal, _className);
-      final functionDef =
-          _messages.syntax.getterDefinition(literal, _className);
+      final functionDef = _messages.syntax.getterDefinition(
+        literal,
+        _className,
+      );
       yieldPatch(functionCall, literal.offset, literal.end);
       addMethodToClass(_messages, functionDef);
     }
     if (isValidStringInterpolationNode(args.first)) {
       var interpolation = args.first as StringInterpolation;
-      final functionCall =
-          _messages.syntax.functionCall(interpolation, _className, '');
-      final functionDef =
-          _messages.syntax.functionDefinition(interpolation, _className, '');
+      final functionCall = _messages.syntax.functionCall(
+        interpolation,
+        _className,
+        '',
+      );
+      final functionDef = _messages.syntax.functionDefinition(
+        interpolation,
+        _className,
+        '',
+      );
       // A lot of context menu calls are of the form 'Delete $type', which would be better done
       // as a fixed number of 'Delete Audit', 'Delete Form', etc. Add a comment to point that out.
-      final callWithFixMe = '''
+      final callWithFixMe =
+          '''
 // FIXME - INTL Untranslated interpolated value. Is this one of a known set of possibilities?
 $functionCall
 ''';
@@ -127,10 +136,16 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
         // Constant strings might be private.
         var name = publicNameFor(node);
         names.add(name);
-        final functionCall =
-            _messages.syntax.getterCall(literal, _className, name: name);
-        final functionDef =
-            _messages.syntax.getterDefinition(literal, _className, name: name);
+        final functionCall = _messages.syntax.getterCall(
+          literal,
+          _className,
+          name: name,
+        );
+        final functionDef = _messages.syntax.getterDefinition(
+          literal,
+          _className,
+          name: name,
+        );
         yieldPatch('final String ${node.name} = $functionCall', start, end);
         addMethodToClass(_messages, functionDef);
       }
@@ -140,14 +155,16 @@ class ConstantStringMigrator extends GeneralizingAstVisitor
   String publicNameFor(VariableDeclaration node) {
     var basicName = node.name.lexeme;
     // Make sure it's not private.
-    var publicName =
-        basicName.startsWith('_') ? basicName.substring(1) : basicName;
+    var publicName = basicName.startsWith('_')
+        ? basicName.substring(1)
+        : basicName;
     if (isUnique(publicName)) {
       return publicName;
     } else {
       // Use a content-based name.
-      var contentBasedName =
-          toVariableName(stringContent(node.initializer! as StringLiteral)!);
+      var contentBasedName = toVariableName(
+        stringContent(node.initializer! as StringLiteral)!,
+      );
       return contentBasedName;
     }
   }
@@ -182,45 +199,50 @@ class IntlMigrator extends ComponentUsageMigrator {
     if (isStatementIgnored(usage.node)) return false;
     if (isFileIgnored(this.context.sourceText)) return false;
 
-    return usage.cascadedProps.any((prop) =>
-            isValidStringLiteralProp(prop) ||
-            isValidStringInterpolationProp(prop)) ||
-        usage.children.any((child) =>
-            isValidStringLiteralNode(child.node) ||
-            isValidStringInterpolationNode(child.node));
+    return usage.cascadedProps.any(
+          (prop) =>
+              isValidStringLiteralProp(prop) ||
+              isValidStringInterpolationProp(prop),
+        ) ||
+        usage.children.any(
+          (child) =>
+              isValidStringLiteralNode(child.node) ||
+              isValidStringInterpolationNode(child.node),
+        );
   }
 
   @override
   void migrateUsage(FluentComponentUsage usage) {
     super.migrateUsage(usage);
-    final namePrefix = usage.node
-            .thisOrAncestorOfType<ClassDeclaration>()
-            ?.name
-            .lexeme ??
+    final namePrefix =
+        usage.node.thisOrAncestorOfType<ClassDeclaration>()?.name.lexeme ??
         usage.node.thisOrAncestorOfType<VariableDeclaration>()?.name.lexeme ??
         'null';
 
     //Props
-    final stringLiteralProps =
-        usage.cascadedProps.where((prop) => isValidStringLiteralProp(prop));
-    final stringInterpolationProps = usage.cascadedProps
-        .where((prop) => isValidStringInterpolationProp(prop));
+    final stringLiteralProps = usage.cascadedProps.where(
+      (prop) => isValidStringLiteralProp(prop),
+    );
+    final stringInterpolationProps = usage.cascadedProps.where(
+      (prop) => isValidStringInterpolationProp(prop),
+    );
 
     stringLiteralProps.forEach(migratePropStringLiteral);
-    stringInterpolationProps
-        .forEach((prop) => migratePropStringInterpolation(prop, namePrefix));
+    stringInterpolationProps.forEach(
+      (prop) => migratePropStringInterpolation(prop, namePrefix),
+    );
 
     //Children
     final childNodes = usage.children.map((child) => child.node).toList();
     //Migrate String Literals
-    childNodes
-        .whereType<StringLiteral>()
-        .forEach((node) => migrateChildStringLiteral(node));
+    childNodes.whereType<StringLiteral>().forEach(
+      (node) => migrateChildStringLiteral(node),
+    );
 
     //Migrate String Interpolations
-    childNodes
-        .whereType<StringInterpolation>()
-        .forEach((node) => migrateChildStringInterpolation(node, namePrefix));
+    childNodes.whereType<StringInterpolation>().forEach(
+      (node) => migrateChildStringInterpolation(node, namePrefix),
+    );
   }
 
   @override
@@ -249,9 +271,7 @@ class IntlMigrator extends ComponentUsageMigrator {
     // }
   }
 
-  void migrateChildStringLiteral(
-    StringLiteral node,
-  ) {
+  void migrateChildStringLiteral(StringLiteral node) {
     if (isValidStringLiteralNode(node)) {
       final functionCall = _messages.syntax.getterCall(node, _className);
       final functionDef = _messages.syntax.getterDefinition(node, _className);
@@ -261,20 +281,26 @@ class IntlMigrator extends ComponentUsageMigrator {
   }
 
   void migrateChildStringInterpolation(
-      StringInterpolation node, String namePrefix) {
+    StringInterpolation node,
+    String namePrefix,
+  ) {
     if (isValidStringInterpolationNode(node)) {
-      final functionCall =
-          _messages.syntax.functionCall(node, _className, namePrefix);
-      final functionDef =
-          _messages.syntax.functionDefinition(node, _className, namePrefix);
+      final functionCall = _messages.syntax.functionCall(
+        node,
+        _className,
+        namePrefix,
+      );
+      final functionDef = _messages.syntax.functionDefinition(
+        node,
+        _className,
+        namePrefix,
+      );
       yieldPatchOverNode(functionCall, node);
       addMethodToClass(_messages, functionDef);
     }
   }
 
-  void migratePropStringLiteral(
-    PropAssignment prop,
-  ) {
+  void migratePropStringLiteral(PropAssignment prop) {
     if (isValidStringLiteralProp(prop)) {
       final rhs = prop.rightHandSide as StringLiteral;
       final functionCall = _messages.syntax.getterCall(rhs, _className);
@@ -284,16 +310,19 @@ class IntlMigrator extends ComponentUsageMigrator {
     }
   }
 
-  void migratePropStringInterpolation(
-    PropAssignment prop,
-    String namePrefix,
-  ) {
+  void migratePropStringInterpolation(PropAssignment prop, String namePrefix) {
     if (isValidStringInterpolationProp(prop)) {
       final rhs = prop.rightHandSide as StringInterpolation;
-      final functionCall =
-          _messages.syntax.functionCall(rhs, _className, namePrefix);
-      final functionDef =
-          _messages.syntax.functionDefinition(rhs, _className, namePrefix);
+      final functionCall = _messages.syntax.functionCall(
+        rhs,
+        _className,
+        namePrefix,
+      );
+      final functionDef = _messages.syntax.functionDefinition(
+        rhs,
+        _className,
+        namePrefix,
+      );
       yieldPropPatch(prop, newRhs: functionCall);
       addMethodToClass(_messages, functionDef);
     }

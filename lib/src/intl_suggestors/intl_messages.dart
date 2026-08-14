@@ -33,23 +33,31 @@ class IntlMessages {
   bool get pruning => methodsUsed.isNotEmpty;
 
   // TODO: I think packagePath only applies if there's a sub-package.
-  IntlMessages(this.packageName,
-      {Directory? directory, String packagePath = '', File? output})
-      : outputFile = output ??
-            (directory ?? LocalFileSystem().currentDirectory).childFile(p.join(
-                packagePath,
-                'lib',
-                'src',
-                'intl',
-                '${packageName}_intl.dart')) {
+  IntlMessages(
+    this.packageName, {
+    Directory? directory,
+    String packagePath = '',
+    File? output,
+  }) : outputFile =
+           output ??
+           (directory ?? LocalFileSystem().currentDirectory).childFile(
+             p.join(
+               packagePath,
+               'lib',
+               'src',
+               'intl',
+               '${packageName}_intl.dart',
+             ),
+           ) {
     syntax = MessageSyntax(this);
     _readExisting();
   }
 
   /// Read the existing file and incorporate its methods.
   void _readExisting() {
-    String existing =
-        outputFile.existsSync() ? outputFile.readAsStringSync() : '';
+    String existing = outputFile.existsSync()
+        ? outputFile.readAsStringSync()
+        : '';
     var parsed = parseMethods(existing);
     if (parsed != null) {
       for (var method in parsed) {
@@ -72,8 +80,10 @@ class IntlMessages {
     // If we call this rather than addMethodNamed, then we're adding a new
     // method, record that.
     addedNewMethods |= true;
-    var parsed =
-        MessageParser.forMethod(source, className: className).methods.first;
+    var parsed = MessageParser.forMethod(
+      source,
+      className: className,
+    ).methods.first;
     var expectedName = nameForString(parsed.name, parsed.messageText);
     if (expectedName != parsed.name) {
       throw AssertionError('''
@@ -91,8 +101,11 @@ Attempting to add a different message with the same name:
 
   /// Find the existing name for [name]+number that has the same [messageText], or
   /// if there isn't one, return the first available.
-  String nameForString(String name, String messageText,
-      {bool startAtZero = false}) {
+  String nameForString(
+    String name,
+    String messageText, {
+    bool startAtZero = false,
+  }) {
     var index = 1;
     var newName = '$name${startAtZero ? 0 : ''}';
     while (isNameTaken(newName, messageText)) {
@@ -111,17 +124,19 @@ Attempting to add a different message with the same name:
   void delete() => outputFile.deleteSync();
 
   /// The contents of the generated file.
-  String get contents => (StringBuffer()
-        ..write(prologue)
-        ..write(_messageContents)
-        ..write('\n}'))
-      .toString();
+  String get contents =>
+      (StringBuffer()
+            ..write(prologue)
+            ..write(_messageContents)
+            ..write('\n}'))
+          .toString();
 
   // Just the messages, without the prologue or closing brace.
   String get _messageContents {
     var buffer = StringBuffer();
-    (methods.keys.toList()..sort())
-        .forEach((name) => buffer.write('\n${methods[name]?.source}\n'));
+    (methods.keys.toList()..sort()).forEach(
+      (name) => buffer.write('\n${methods[name]?.source}\n'),
+    );
     return '$buffer';
   }
 
@@ -152,8 +167,12 @@ Attempting to add a different message with the same name:
   /// Format the output file using dart_dev, and print an error it it fails
   /// (possibly because dart_dev is not set up for this repo.)
   void format() async {
-    var result =
-        Process.runSync('dart', ['run', 'dart_dev', 'format', outputFile.path]);
+    var result = Process.runSync('dart', [
+      'run',
+      'dart_dev',
+      'format',
+      outputFile.path,
+    ]);
     if (result.exitCode != 0) {
       print('Stderr from formatting:\n${result.stderr}');
       print('''
