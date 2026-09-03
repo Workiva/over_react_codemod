@@ -50,3 +50,10 @@ executables:
   sort_intl:
   unify_package_rename:
   react_18_upgrade:
+
+
+dependency_overrides:
+  web_skin_dart:
+    git:
+      url: git@github.com:Workiva/web_skin_dart
+      ref: tooltip-describedby-by-default
